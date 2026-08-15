@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stats_session_base",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stats_session_base",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/Scripts/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"free_banner",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"free_banner",
+  "parent":{
+    "name":"ui",
+    "path":"folders/Scripts/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"handle_save",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"handle_save",
+  "parent":{
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

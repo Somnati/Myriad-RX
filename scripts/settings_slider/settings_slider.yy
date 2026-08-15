@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"settings_slider",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"settings_slider",
+  "parent":{
+    "name":"settings",
+    "path":"folders/Scripts/settings.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

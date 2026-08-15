@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"mouse_over_raw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mouse_over_raw",
+  "parent":{
+    "name":"input",
+    "path":"folders/Scripts/input.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"save_import_saf",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"save_import_saf",
+  "parent":{
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

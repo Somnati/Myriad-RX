@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"letter_get_roman",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"letter_get_roman",
+  "parent":{
+    "name":"namegen",
+    "path":"folders/Scripts/namegen.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

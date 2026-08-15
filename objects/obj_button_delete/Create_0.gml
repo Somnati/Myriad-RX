@@ -1,0 +1,5 @@
+
+
+pair;
+
+text = "delete";

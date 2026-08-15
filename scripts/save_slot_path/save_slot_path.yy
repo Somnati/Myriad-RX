@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"save_slot_path",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"save_slot_path",
+  "parent":{
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

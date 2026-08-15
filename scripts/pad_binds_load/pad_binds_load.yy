@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"pad_binds_load",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"pad_binds_load",
+  "parent":{
+    "name":"input",
+    "path":"folders/Scripts/input.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

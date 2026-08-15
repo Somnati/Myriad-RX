@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stats_v2_spark",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stats_v2_spark",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/Scripts/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

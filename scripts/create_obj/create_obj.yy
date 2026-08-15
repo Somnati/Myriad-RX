@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"create_obj",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"create_obj",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

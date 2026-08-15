@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"assign_banner",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"assign_banner",
+  "parent":{
+    "name":"ui",
+    "path":"folders/Scripts/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

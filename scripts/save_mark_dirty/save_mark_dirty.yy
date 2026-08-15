@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"save_mark_dirty",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"save_mark_dirty",
+  "parent":{
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

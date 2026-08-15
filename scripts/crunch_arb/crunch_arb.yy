@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"crunch_arb",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"crunch_arb",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

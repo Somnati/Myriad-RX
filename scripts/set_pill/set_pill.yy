@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"set_pill",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"set_pill",
+  "parent":{
+    "name":"ui",
+    "path":"folders/Scripts/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

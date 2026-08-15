@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"handle_settings",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"handle_settings",
+  "parent":{
+    "name":"settings",
+    "path":"folders/Scripts/settings.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

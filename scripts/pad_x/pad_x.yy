@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"pad_x",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"pad_x",
+  "parent":{
+    "name":"input",
+    "path":"folders/Scripts/input.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

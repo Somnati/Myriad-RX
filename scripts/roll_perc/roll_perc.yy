@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"roll_perc",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"roll_perc",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

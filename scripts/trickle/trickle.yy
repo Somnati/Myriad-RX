@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"trickle",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"trickle",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

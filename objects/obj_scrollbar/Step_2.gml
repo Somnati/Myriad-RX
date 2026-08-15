@@ -1,0 +1,11 @@
+/// @description specifics
+// MYRIAD RX: engine lanes only (statistics + settings). a rebuilt DE
+// room that scrolls adds its lane here + Step_0, same pattern.
+
+if i = scrl_statistics
+	if not instance_exists(syst_statistics_v2)
+kill;
+
+if i = scrl_settings
+	if not instance_exists(syst_settings)
+kill;

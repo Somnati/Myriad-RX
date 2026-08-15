@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dig_to_arb",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dig_to_arb",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

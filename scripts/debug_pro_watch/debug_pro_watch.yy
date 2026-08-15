@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"debug_pro_watch",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"debug_pro_watch",
+  "parent":{
+    "name":"debug",
+    "path":"folders/Scripts/debug.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

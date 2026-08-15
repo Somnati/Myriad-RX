@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"clipboard_get",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"clipboard_get",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

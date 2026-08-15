@@ -1,0 +1,237 @@
+/// the list body, ZEBRA edition (2026-07-12, his call: match what
+/// rm_settings looks like - the raised-panel round-2 look retired).
+/// the panel surface itself paints in __row_panel (Create), shared
+/// with the close-anim ghosts; it stays OPAQUE because the unfurl
+/// depends on it: the row loop runs TWO passes - emerging children
+/// draw first (pass 0) at their TRUE sheet position, everything else
+/// paints OVER them (pass 1) - so a child genuinely slides out from
+/// under the folder row instead of popping in. (the old version
+/// PINNED emerging children in a stack at the fold line; exposed at
+/// the list bottom that read as rows stuck/popping - his report.)
+/// the screen still stacks by DEPTH (settings' recipe): rows HERE ->
+/// widgets (depth-1) -> the title strip proxy (depth-2) -> menu -520.
+
+// backdrop: fully opaque - panels composite on a known surface
+draw_sprite_ext(spr_pixel_1x1, 0, 0, obj_ui_header.sprite_height - 2,
+	room_width, room_height, 0, c_hsv(169, 186, 5), 1);
+
+draw_set_font(fnt);
+
+// ---- closing: the removed children ride back UP under the fold as
+// ghosts (frozen copies captured at the rebuild). they draw before
+// BOTH passes, so every live row paints over them and they submerge
+// under the folder row exactly the way opening children emerge ----
+if (anim_t < 1 && anim_n < 0) {
+	var _gy = __row_y(anim_row) + row_h - anim_t * (-anim_n) * row_h;
+	for (var _k = 0; _k < array_length(anim_ghost); _k++) {
+		var _gr2 = anim_ghost[_k];
+		// entries are line-padded (kind 3 pads fill spans), one line each
+		if (_gr2.kind != 3)
+		if (_gy + row_h * _gr2.span > list_y && _gy < room_height)
+			__ghost_paint(anim_row + 1 + _k, _gr2, _gy);
+		_gy += row_h;
+	}
+}
+
+// ---- the rows, windowed, two passes (emerging children UNDER) ----
+var _n = array_length(rows);
+var _first = max(0, floor(g.stats_page));
+var _lo = max(0, _first - span_max + 1);
+// while an anim runs, rows beyond the window slide through view -
+// reach that much further so neither edge ever gaps
+var _reach = (anim_t < 1) ? abs(anim_n) : 0;
+var _unfurl = (anim_t < 1 && anim_n > 0);
+
+var _hi = min(_n, _first + visible_rows + 1 + _reach);
+for (var _pass = 0; _pass < 2; _pass++) {
+for (var _r = _lo; _r < _hi; _r++) {
+	var _row = rows[_r];
+	if (_row.kind == 3) continue; // pads: their widget row drew the block
+	var _emerging = (_unfurl && _r > anim_row && _r <= anim_row + anim_n);
+	if ((_pass == 0) != _emerging) continue;
+	// emerging children draw at their TRUE sheet position - the opaque
+	// folder row and everything above (pass 1) covers them until they
+	// clear the fold, so they emerge pixel by pixel, never pinned
+	var _ry = __row_y(_r) + __anim_off(_r);
+	if (_ry + row_h * _row.span < list_y) continue;
+	if (_ry > room_height) { if (_pass == 1) break; continue; }
+
+	// ---- the panel surface (zebra + seams + indent guides) ----
+	var _bh = row_h * _row.span;
+	__row_panel(_r, _row, _ry, _bh);
+
+	// hover wash on the tappable rows (settings has one; match it)
+	if (_row.kind == 1 || _row.kind == 4 || _row.kind == 5)
+	if (input_free())
+	if (mouse_y >= list_y)
+	if (point_in_rectangle(mouse_x, mouse_y, 0, _ry, room_width, _ry + _bh - 1))
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, c_white, .04);
+
+	var _tx = 8 + _row.fdep * 10;
+
+	if (_row.kind == 1) {
+		// folder: section band + the +/- chip (his call: the signs
+		// read better than arrows) + tinted name
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, 2, _bh, 0, _row.c1, .9);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0, c_black, .45);
+		draw_px_rect(_tx, _ry + 2, 9, 9, _row.c1, .5);
+		draw_set_halign(fa_center);
+		draw_set_color(_row.c1);
+		draw_set_alpha(.95);
+		draw_text(_tx + 5, _ry + 3, _row.open ? "-" : "+");
+		draw_set_halign(fa_left);
+		draw_text(_tx + 14, _ry + 4, _row.name);
+		continue;
+	}
+
+	// the pin gutter: every named line carries a star pip at the far
+	// left - lit gold when favorited, a dim socket otherwise
+	if (_row.kind == 0 && _row.name != "") {
+		draw_sprite_ext(spr_pixel_1x1, 0, 4, _ry + 5, 4, 4, 0,
+			_row.fav ? c_gold : c_black, _row.fav ? .95 : .55);
+		if (!_row.fav) draw_px_rect(4, _ry + 5, 4, 4, c_gray, .35);
+	}
+
+	// plain + widget + toggle + cycle + spark rows: name left
+	if (_row.name != "") {
+		draw_set_halign(fa_left);
+		draw_set_color(_row.c1);
+		draw_set_alpha(.9);
+		draw_text(_tx, _ry + 4, _row.name);
+		if (_row.kind == 0 && _row.help != "") {
+			// a whisper of a "?" marks tappable explainers
+			draw_set_alpha(.3);
+			draw_text(_tx + string_width(_row.name) + 5, _ry + 4, "?");
+		}
+	}
+	if (_row.kind == 0 && _row.val != "") {
+		draw_set_halign(fa_right);
+		draw_set_color(_row.c2);
+		draw_set_alpha(.95);
+		draw_text(val_x, _ry + 4, _row.val);
+		// change pulse: a white flash decaying over the value when it
+		// moved since the last rebuild that saw it
+		var _pt = __pulse[$ _row.key] ?? -9999;
+		var _age = __tick - _pt;
+		if (_age >= 0 && _age < 45) {
+			draw_set_color(c_white);
+			draw_set_alpha(.9 * (1 - _age / 45));
+			draw_text(val_x, _ry + 4, _row.val);
+		}
+	}
+	if (_row.kind == 4) {
+		// toggle: the house status pill (teal = on, gray = off)
+		draw_status_pill(val_x, _ry + 2, _row.open ? "on" : "off",
+			_row.open ? uist.positive : uist.neutral, fa_right);
+	}
+	if (_row.kind == 5) {
+		// cycle: the current option between tap-me chevrons
+		var _lbl = "";
+		var _cn = array_length(_row.data);
+		if (_cn > 0) {
+			var _iv = 0;
+			if (variable_global_exists(_row.val)) _iv = variable_global_get(_row.val);
+			_lbl = string(_row.data[clamp(_iv, 0, _cn - 1)]);
+		}
+		draw_set_halign(fa_right);
+		draw_set_color(c_gold);
+		draw_set_alpha(.95);
+		draw_text(val_x, _ry + 4, "< " + _lbl + " >");
+	}
+	if (_row.kind == 6) {
+		// the history graph: a filled AREA under a bright line, quarter
+		// gridlines, hi/lo labels in a right gutter and the live value
+		// at the value column - samples are packed arbs, so crunch_arb
+		// formats every label directly (and the packing is log scale,
+		// exactly the axis an idle curve wants). hover to SCRUB: a
+		// cursor line with the exact value + how many seconds ago.
+		var _gx = _tx;
+		var _gr = val_x - 52; // the label gutter
+		var _gy = _ry + row_h;
+		var _gh = _bh - row_h - 5;
+		var _gw = _gr - _gx;
+		var _arr = g.stats_hist[$ _row.val] ?? -1;
+		if (!is_array(_arr) || array_length(_arr) < 2) {
+			draw_set_halign(fa_left);
+			draw_set_color(_row.c2);
+			draw_set_alpha(.4);
+			draw_text(_gx, _gy + (_gh >> 1) - 3, "gathering samples...");
+		}
+		else {
+			var _nn = array_length(_arr);
+			var _vmn = _arr[0]; var _vmx = _arr[0];
+			for (var _s = 1; _s < _nn; _s++) {
+				_vmn = min(_vmn, _arr[_s]);
+				_vmx = max(_vmx, _arr[_s]);
+			}
+			var _lmn = _vmn; var _lmx = _vmx; // label the TRUE window
+			if (_vmx - _vmn < 0.0001) { _vmn -= .5; _vmx += .5; } // flat
+
+			// pane + quarter gridlines + frame
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, c_black, .4);
+			for (var _q = 1; _q < 4; _q++)
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy + (_gh * _q) div 4,
+					_gw, 1, 0, c_white, .05);
+			draw_px_rect(_gx, _gy, _gw, _gh, merge_colour(_row.c1, c_black, .5), .45);
+
+			// the area: one column per screen pixel, lerped between
+			// samples - a smooth line with a soft fill under it
+			for (var _px = 0; _px < _gw - 2; _px++) {
+				var _sf = (_px / max(1, _gw - 3)) * (_nn - 1);
+				var _s0 = floor(_sf);
+				var _v = lerp(_arr[_s0], _arr[min(_s0 + 1, _nn - 1)], frac(_sf));
+				var _hh = clamp((_v - _vmn) / (_vmx - _vmn), 0, 1) * (_gh - 4);
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1 + _px,
+					_gy + _gh - 2 - _hh, 1, _hh + 1, 0, _row.c1, .18);
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1 + _px,
+					_gy + _gh - 2 - _hh, 1, 2, 0,
+					merge_colour(_row.c1, c_white, .3), .95);
+			}
+
+			// hi / lo in the gutter, the LIVE value at the value column
+			draw_set_halign(fa_left);
+			draw_set_color(sett_ink);
+			draw_set_alpha(.75);
+			draw_text_transformed(_gr + 4, _gy, "hi " + crunch_arb(_lmx), .85, .85, 0);
+			draw_text_transformed(_gr + 4, _gy + _gh - 6, "lo " + crunch_arb(_lmn), .85, .85, 0);
+			draw_set_alpha(.35);
+			draw_text_transformed(_gr + 4, _gy + (_gh >> 1) - 3,
+				string(_nn) + "s", .85, .85, 0);
+			draw_set_halign(fa_right);
+			draw_set_color(_row.c1);
+			draw_set_alpha(.95);
+			draw_text(val_x, _ry + 4, crunch_arb(_arr[_nn - 1]));
+
+			// hover scrub (display only - claims no clicks; hidden
+			// while a menu/popup owns the input)
+			if (input_free())
+			if (point_in_rectangle(mouse_x, mouse_y, _gx, _gy, _gx + _gw, _gy + _gh)) {
+				var _px2 = clamp(mouse_x - _gx - 1, 0, _gw - 3);
+				var _sf2 = (_px2 / max(1, _gw - 3)) * (_nn - 1);
+				var _v2 = lerp(_arr[floor(_sf2)],
+					_arr[min(floor(_sf2) + 1, _nn - 1)], frac(_sf2));
+				var _hh2 = clamp((_v2 - _vmn) / (_vmx - _vmn), 0, 1) * (_gh - 4);
+				var _cy2 = _gy + _gh - 2 - _hh2;
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1 + _px2, _gy + 1,
+					1, _gh - 2, 0, c_white, .25);
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx + _px2 - 1, _cy2 - 1,
+					4, 4, 0, c_white, .9);
+				var _stx = crunch_arb(_v2) + "  -"
+					+ string(round((_nn - 1) - _sf2)) + "s";
+				var _stw = string_width(_stx) * .85 + 8;
+				var _sx2 = clamp(_gx + _px2 + 8, _gx, _gx + _gw - _stw);
+				draw_sprite_ext(spr_pixel_1x1, 0, _sx2, _gy + 2, _stw, 11, 0,
+					c_black, .9);
+				draw_px_rect(_sx2, _gy + 2, _stw, 11, _row.c1, .6);
+				draw_set_halign(fa_left);
+				draw_set_color(merge_colour(_row.c1, c_white, .4));
+				draw_text_transformed(_sx2 + 4, _gy + 4, _stx, .85, .85, 0);
+			}
+		}
+	}
+}
+}
+
+draw_set_halign(fa_left);
+draw_set_color(c_white);
+draw_set_alpha(1);

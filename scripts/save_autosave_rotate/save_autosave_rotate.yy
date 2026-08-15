@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"save_autosave_rotate",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"save_autosave_rotate",
+  "parent":{
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

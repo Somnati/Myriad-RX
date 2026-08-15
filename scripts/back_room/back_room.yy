@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"back_room",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"back_room",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

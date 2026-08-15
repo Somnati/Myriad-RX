@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"services_signin",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"services_signin",
+  "parent":{
+    "name":"services",
+    "path":"folders/Scripts/services.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

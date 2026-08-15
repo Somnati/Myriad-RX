@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"do_throwable",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"do_throwable",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

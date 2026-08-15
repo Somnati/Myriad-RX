@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"c_hue",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"c_hue",
+  "parent":{
+    "name":"colors",
+    "path":"folders/Scripts/colors.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

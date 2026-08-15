@@ -1,0 +1,19 @@
+# GameMaker Studio 2 build output and caches
+*.tmp
+/Configs/
+/Output/
+/cache/
+/tmp/
+
+# Claude Code worktrees (parallel chat workspaces — never commit)
+/.claude/worktrees/
+
+# GameMaker generated/user-specific files
+*.resource_order.backup
+*.yyp.backup*
+/options/*/lock.txt
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stats_v2_toggle",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stats_v2_toggle",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/Scripts/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

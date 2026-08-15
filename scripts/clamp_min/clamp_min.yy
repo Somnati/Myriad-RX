@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"clamp_min",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"clamp_min",
+  "parent":{
+    "name":"util",
+    "path":"folders/Scripts/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

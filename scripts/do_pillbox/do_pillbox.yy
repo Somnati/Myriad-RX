@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"do_pillbox",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"do_pillbox",
+  "parent":{
+    "name":"ui",
+    "path":"folders/Scripts/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

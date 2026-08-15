@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"services_achieve",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"services_achieve",
+  "parent":{
+    "name":"services",
+    "path":"folders/Scripts/services.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

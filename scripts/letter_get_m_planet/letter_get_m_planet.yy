@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"letter_get_m_planet",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"letter_get_m_planet",
+  "parent":{
+    "name":"namegen",
+    "path":"folders/Scripts/namegen.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"do_subtract",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"do_subtract",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

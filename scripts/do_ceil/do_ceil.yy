@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"do_ceil",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"do_ceil",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

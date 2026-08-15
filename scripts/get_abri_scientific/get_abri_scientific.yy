@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"get_abri_scientific",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"get_abri_scientific",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

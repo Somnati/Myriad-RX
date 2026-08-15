@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"arb_log10",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"arb_log10",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"services_signout",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"services_signout",
+  "parent":{
+    "name":"services",
+    "path":"folders/Scripts/services.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

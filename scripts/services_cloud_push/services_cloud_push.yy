@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"services_cloud_push",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"services_cloud_push",
+  "parent":{
+    "name":"services",
+    "path":"folders/Scripts/services.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
