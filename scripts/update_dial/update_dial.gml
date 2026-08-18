@@ -1,0 +1,40 @@
+/// @description update_dial(i) - re-derive ONE dial's live numbers from
+/// its level (Myriad DE's update_auto). Call it after anything that
+/// changes a dial; nothing here is ever stored in a save.
+/// THE SHAPE, in DE's own order:
+///   1. base output from the curve            dial_gps(tier, level)
+///   2. the LEVEL RAMP md = clamp(level/50, .1, 1) - a dial under
+///      level 50 runs at a fraction of its output and reaches full
+///      strength at 50. The early-game warm-up.
+///   3. the timer: autoeff .3 stretches every cycle 30% longer than
+///      its roster time (DE's b_autoeff; its autostarter abilities buy
+///      that back later). cps = cycles per second.
+///   4. per-cycle pay = base x cycle-seconds x ramp; per-second =
+///      per-cycle x cps.
+/// NOTE THE CANCELLATION: per-second output is almost independent of
+/// cycle length - a slow dial simply banks the same income in bigger,
+/// rarer lumps (the 30% autoeff stretch is the only real cost). Cycle
+/// length is PACING, not power; power comes from the tier head start.
+/// The multiplier chain DE runs between these steps (abilities, gear,
+/// refinery, milestones, tiles, rebirth) has no layer yet - each one
+/// re-enters HERE, result-side, as it gets rebuilt.
+function update_dial(_i) {
+	var _d   = g.dial[_i];
+	var _cfg = dial_config(_i);
+
+	_d.b_gps = dial_gps(_i, _d.level);
+	if (_d.level <= 0) {
+		_d.gps = 0; _d.gpc = 0; _d.cps = 0; _d.cycle_t = _cfg.cycle;
+		return;
+	}
+
+	// the timer chain
+	var _autoeff = .3;                        // DE's b_autoeff
+	_d.cycle_t = _cfg.cycle * (1 + _autoeff);
+	_d.cps     = 1 / _d.cycle_t;
+
+	// the level ramp, then the two payout readings
+	var _md = clamp(_d.level / 50, .1, 1);
+	_d.gpc = do_ceil(do_scale(_d.b_gps, max(1, _cfg.cycle * _md)));
+	_d.gps = do_scale(_d.gpc, _d.cps);
+}

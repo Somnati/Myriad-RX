@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"port_vis_line",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"port_vis_line",
+  "parent":{
+    "name":"USER INTERFACE",
+    "path":"folders/Scripts/USER INTERFACE.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

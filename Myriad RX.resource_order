@@ -1,0 +1,11 @@
+{
+  "FolderOrderSettings":[
+    {"name":"Extensions","order":6,"path":"folders/Extensions.yy",},
+    {"name":"Objects","order":3,"path":"folders/Objects.yy",},
+    {"name":"Rooms","order":4,"path":"folders/Rooms.yy",},
+    {"name":"Scripts","order":2,"path":"folders/Scripts.yy",},
+    {"name":"Shaders","order":5,"path":"folders/Shaders.yy",},
+    {"name":"Sounds","order":1,"path":"folders/Sounds.yy",},
+  ],
+  "ResourceOrderSettings":[],
+}

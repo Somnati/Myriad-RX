@@ -8,6 +8,12 @@
 	g.blur = false;
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
+	// ---- the currency ----
+	// PROFIT is the one currency: dials generate it, taps generate it,
+	// dial levels are bought with it (Myriad DE calls it gold)
+	g.profit       = 0;
+	g.total_profit = 0;
+
 	// run difficulty (new game overhaul): 0 easy / 1 standard /
 	// 2 hard / 3 critical. picked in the new-game flow, stored on the
 	// save - nothing reads it yet
@@ -30,6 +36,12 @@
 	// statistics session baseline: "session" deltas diff against this
 	// boot's starting values (a save LOAD re-snapshots it)
 	stats_session_base();
+
+	// ---- dials + the tap ----
+	// data only (g.dial structs + the clicker's globals); syst_production
+	// ticks it, syst_dials is just a view. create_dials ends by deriving
+	// everything, so the first frame is already correct.
+	create_dials();
 
 // ---- run gating (title screen, 2026-07-07): nothing plays until
 // continue / new game flips this. the header menu checks it ----

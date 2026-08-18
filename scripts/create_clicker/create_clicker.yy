@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"create_clicker",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"create_clicker",
+  "parent":{
+    "name":"dials",
+    "path":"folders/Scripts/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

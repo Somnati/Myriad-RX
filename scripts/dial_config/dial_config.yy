@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dial_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dial_config",
+  "parent":{
+    "name":"dials",
+    "path":"folders/Scripts/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"give_profit",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"give_profit",
+  "parent":{
+    "name":"dials",
+    "path":"folders/Scripts/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

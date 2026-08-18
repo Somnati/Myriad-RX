@@ -14,7 +14,13 @@
 function game_reset(_diff = 1) {
 
 	// run scalars (setgame's fresh values)
-	g.playtime = 0;
+	g.playtime     = 0;
+	g.profit       = 0;
+	g.total_profit = 0;
+
+	// dials + the tap: create_dials hard-resets the whole layer and
+	// re-derives it (levels, cycles, the tap's own power)
+	create_dials(true);
 
 	// difficulty: chosen at new game, stored on the save. nothing
 	// reads it yet - when it goes live, scale balance knobs off it at

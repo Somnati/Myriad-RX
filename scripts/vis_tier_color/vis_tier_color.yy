@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"vis_tier_color",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"vis_tier_color",
+  "parent":{
+    "name":"dials",
+    "path":"folders/Scripts/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

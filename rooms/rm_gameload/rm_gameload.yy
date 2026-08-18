@@ -6,6 +6,7 @@
   "inheritCreationOrder":false,
   "inheritLayers":false,
   "instanceCreationOrder":[
+    {"name":"inst_SYSPROD1","path":"rooms/rm_gameload/rm_gameload.yy",},
     {"name":"inst_3F5AFE91","path":"rooms/rm_gameload/rm_gameload.yy",},
     {"name":"inst_6F4245D8","path":"rooms/rm_gameload/rm_gameload.yy",},
     {"name":"inst_309ACCBC","path":"rooms/rm_gameload/rm_gameload.yy",},
@@ -22,6 +23,7 @@
   "layers":[
     {"$GMREffectLayer":"","%Name":"menu_blur","depth":-500,"effectEnabled":true,"effectType":"_effect_gaussian_blur","gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"layers":[],"name":"menu_blur","properties":[{"name":"g_numDownsamples","type":0,"value":"1",},{"name":"g_numPasses","type":0,"value":"4",},{"name":"g_intensity","type":0,"value":"0",},],"resourceType":"GMREffectLayer","resourceVersion":"2.0","userdefinedDepth":true,"visible":false,},
     {"$GMRInstanceLayer":"","%Name":"Instances","depth":0,"effectEnabled":true,"effectType":null,"gridX":8,"gridY":8,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
+        {"$GMRInstance":"v4","%Name":"inst_SYSPROD1","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnD":false,"name":"inst_SYSPROD1","objectId":{"name":"syst_production","path":"objects/syst_production/syst_production.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_3F5AFE91","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_3F5AFE91","objectId":{"name":"system","path":"objects/system/system.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_6F4245D8","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_6F4245D8","objectId":{"name":"syst_roomtrans","path":"objects/syst_roomtrans/syst_roomtrans.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":40.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_309ACCBC","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_309ACCBC","objectId":{"name":"syst_touchscreen","path":"objects/syst_touchscreen/syst_touchscreen.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":40.0,},
