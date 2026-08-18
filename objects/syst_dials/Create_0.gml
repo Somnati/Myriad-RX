@@ -1,23 +1,46 @@
-/// syst_dials - the dial column: draw-only plus its own hit regions
-/// (the house region pattern; Myriad DE spreads this across obj_dial,
-/// obj_dial_position and obj_dragautos, each dial a live instance with
-/// surfaces and spring animation - RX starts with one controller
-/// drawing all rows, and grows into per-dial instances when the feel
-/// work needs them).
+/// syst_dials - THE DIAL DRAWER. Docked off the right edge; swipe LEFT
+/// (or press D) pulls it out, swipe right (or A) sends it back.
+/// This is Myriad DE's own shape: DE keeps the dial column collapsed at
+/// the right of rm_clicker as a stack of coloured dots (obj_dial's
+/// Draw_72 circles) and obj_dragautos expands them into full-width
+/// rows. The dots are not decoration - each one BREATHES with its
+/// dial's cycle and flashes on payout, so the closed drawer is still
+/// the production readout.
 /// THE REVEAL RULE (DE's): you see the dials you own plus the NEXT one,
-/// so the ladder unfolds as you climb it instead of showing thirteen
+/// so the ladder unfolds as you climb it rather than showing thirteen
 /// locked rows on a fresh save.
 
 // rm_clicker depth plan (LOWER DRAWS ON TOP): header -1000 |
-// syst_dials -20 | obj_clicker 0 | obj_bignum5 50 | the room's
-// opaque Background layer 100. Anything deeper than 100 is behind
-// the black fill and simply never appears.
+// syst_dials -20 | obj_clicker 0 | obj_bignum5 50 | the room's opaque
+// Background layer 100. Anything deeper than 100 is behind the black
+// fill and never appears.
 depth = -20;
 
-row_y0 = 180;  // the column's top - obj_clicker's tap surface ends at 176
-row_h  = 16;
-row_x  = 3;
-row_w  = room_width - 6;
+// ---- the drawer ----
+dpos   = 0;   // eased 0 (docked) .. 1 (out)
+target = 0;   // where it is heading
+dock_w = 12;  // the docked strip: the dot column, and the grab handle.
+              // set to 0 for a drawer that hides completely.
+
+// ---- the rows ----
+row_w  = 140;
+row_h  = 12;
+row_p  = 15;  // pitch: a little air between bars
+row_x  = 2;   // resting x once fully out
+col_y0 = 22;
+
+// ---- gesture state (menu2's rule: taps land on RELEASE under a drag
+// budget, so a swipe never doubles as a tap) ----
+press_x = -1;
+press_y = -1;
+SWIPE   = 40; // release distance that counts as a swipe
+BUDGET  = 7;  // a press that travels less than this is a tap
+
+// the drawer face's left edge, republished every Step. obj_clicker
+// READS this rather than recomputing the geometry, so the tap surface
+// and the drawer can never disagree about where the edge is (a plain
+// variable, not a method - reading one across objects is unambiguous).
+face = room_width - dock_w;
 
 /// how many rows to draw: every owned dial, plus one unbought
 __rows = function() {

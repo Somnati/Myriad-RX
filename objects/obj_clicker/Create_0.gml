@@ -8,10 +8,10 @@
 depth = 0; // input only - this object draws nothing, but keep it
            // above the room's Background layer (100) on principle
 
-// the live tap surface: header bottom down to the dial column's top.
-// syst_dials owns the rest of the screen, so the two never fight for
-// the same press (region law - these numbers ARE the hit test).
+// the live tap surface: everything under the header. The dial drawer
+// carves its own face out of it every frame (see Step), so the two
+// never fight for the same press - region law.
 tap_y0 = 16;
-tap_y1 = 176;
+tap_y1 = room_height;
 
 pop = 0;  // a little press feedback the room can read

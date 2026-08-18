@@ -7,6 +7,10 @@ if (!input_free()) exit;
 if (g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
 if (mouse_y < tap_y0 || mouse_y > tap_y1) exit;
+// never tap THROUGH the dial drawer, docked or out: it asks the drawer
+// where its face is this frame rather than duplicating the geometry
+if (instance_exists(syst_dials))
+	if (mouse_x >= syst_dials.face) exit;
 if (!variable_global_exists("click_gps")) exit;
 
 // THE TAP: pay what update_click derived, count it, and say so.

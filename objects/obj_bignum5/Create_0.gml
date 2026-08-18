@@ -54,13 +54,15 @@ vis.renderer.set_label_callback(function(_tier_mag, _count) {
 	return crunch_arb(port_log_to_arb(_tier_mag + log10(max(1, _count))));
 });
 
-// additive glow: the old spr_glow_sw pass. glow_pulse 1 + alpha .35
-// replicates the shipped sawtooth (.35 * frac(gold/2)) exactly.
-// spr_glow_sw is 144x144 origin-centered - the contract the glow needs.
-vis.glow_sprite = spr_glow_sw;
-vis.glow_size = 90; // px diameter; ~0.63 of room width like the techdemo tuning
-vis.glow_alpha = 0.35;
-vis.glow_pulse = 1;
+// THE GLOW IS PARKED (his report: the circular banding was never in
+// the original). DE's obj_bignum5 puts an additive spr_glow_sw pass
+// behind the blocks; a wide, dark, additive gradient is precisely what
+// BANDS on an 8-bit surface - the house lore - so it read as a ringed
+// halo rather than as light. The techdemo's own obj_bignum had already
+// parked its glow for the same reason.
+// Bringing it back needs a DITHERED pass, not a raw sprite stretch:
+//   vis.glow_sprite = spr_glow_sw;
+//   vis.glow_size = 90; vis.glow_alpha = .35; vis.glow_pulse = 1;
 
 // entry glide: seed the camera 0.6 OOM out so entry is a glide IN to
 // native zoom. feed the focus once now - Step re-feeds it every frame.

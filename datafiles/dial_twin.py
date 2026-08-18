@@ -139,14 +139,16 @@ def checks():
     """The invariants worth failing loudly on."""
     ok = True
 
-    # 1. the opening is reachable by thumb alone
+    # 1. DIAL A COSTS EXACTLY 100 - his rule, and DE's own special case
+    #    in get_cost_v3. Not "about 100": the opening price is a fixed
+    #    landmark, and at 1 profit per tap it is exactly 100 taps.
     first = cost(0, 0, 1)
     taps = first / tap(0, 0)
-    print(f"opening buy: {first:.0f} profit = {taps:.0f} taps", end="  ")
-    if 20 <= taps <= 400:
+    print(f"dial a opening price: {first:.6g} ({taps:.0f} taps)", end="  ")
+    if first == 100.0 and taps == 100.0:
         print("HOLDS")
     else:
-        print("FAILS (should be a short, deliberate opening)"); ok = False
+        print("FAILS - must be exactly 100"); ok = False
 
     # 2. cost must outrun output per level, or one dial solves the game
     c_growth = 10 ** 0.05
