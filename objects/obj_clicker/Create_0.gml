@@ -5,7 +5,8 @@
 /// DE reads five simultaneous touch devices here; RX starts with the
 /// single pointer and grows into that when a device needs it.
 
-depth = 900; // under every UI, over the room
+depth = 0; // input only - this object draws nothing, but keep it
+           // above the room's Background layer (100) on principle
 
 // the live tap surface: header bottom down to the dial column's top.
 // syst_dials owns the rest of the screen, so the two never fight for

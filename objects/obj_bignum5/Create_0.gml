@@ -11,13 +11,13 @@
 x = room_width * 0.5;
 y = room_height / 3;
 
-depth = 2000; // GM CULLS draws outside depth -16000..16000 - the family's
-              // 10000000 never drew directly (obj_bignum2 only shows via
-              // obj_surface_vis's event_perform capture at depth 1000).
-              // 2000 = deeper than every rm_clicker layer (max 150) and
-              // than obj_surface_vis, still inside the drawable range.
+depth = 50; // BEHIND the dial column (-20) and the header (-1000) but
+            // IN FRONT of rm_clicker's opaque Background layer (100).
+            // DE can park this at 2000 because its clicker room has no
+            // black fill layer; ours does, and LOWER DEPTH DRAWS ON TOP
+            // - at 2000 the background simply painted over it.
 
-salpha = 0; // fade-in once the tutorial clears (the family's entrance)
+salpha = 0; // the entrance fade
 
 // continuous swipe-zoom state (see Step)
 swipe_oy = -1;      // press-origin y (-1 = no press)

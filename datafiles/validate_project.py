@@ -31,9 +31,20 @@ def load(path):
 
 
 def check(name, ok, detail=""):
+    """A hard gate: anything here stops the IDE loading the project."""
     print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  {detail}" if detail and not ok else ""))
     if not ok:
         fails.append(name)
+
+
+def warn(name, ok, detail=""):
+    """A soft gate: the project still LOADS, but something will not be
+    visible. Kept separate because benign cases exist - obj_background
+    paints black beneath an already-black layer, which is redundant
+    rather than wrong - and a benign case must never block the gate."""
+    print(f"  {'ok  ' if ok else 'WARN'}  {name}" + (f"  {detail}" if detail and not ok else ""))
+    if not ok:
+        warns.append(name)
 
 
 print(f"\nvalidating {YYP}\n" + "-" * 60)
@@ -152,6 +163,67 @@ for p, d in groups.get("GMRoom", []):
     if named != ordered:
         mismatched.append(f"{d['name']}: {sorted(named ^ ordered)[:4]}")
 check("room creation order matches its instances", not mismatched, str(mismatched[:3]))
+
+# -------------------------------- 11. drawn BEHIND an opaque background
+# LOWER DEPTH DRAWS ON TOP. A room with an opaque background layer at
+# depth D hides every instance whose object sets depth > D - the code
+# runs, input still works, nothing appears. Cost one round trip.
+def create_depth(objname):
+    p = f"objects/{objname}/Create_0.gml"
+    if not os.path.exists(p):
+        return None
+    m = re.search(r"^\s*depth\s*=\s*(-?\d+)", open(p, encoding="utf-8-sig").read(), re.M)
+    return int(m.group(1)) if m else None
+
+
+def draws_in_begin(objname):
+    p = f"objects/{objname}/{objname}.yy"
+    if not os.path.exists(p):
+        return False
+    return any(e["eventType"] == 8 and e["eventNum"] == 72
+               for e in load(p).get("eventList", []))
+
+
+buried, begun = [], []
+for p, d in groups.get("GMRoom", []):
+    opaque = [L["depth"] for L in d.get("layers", [])
+              if L.get("resourceType") == "GMRBackgroundLayer"
+              and L.get("spriteId") is None
+              and (L.get("colour", 0) >> 24) & 0xFF == 0xFF]
+    if not opaque:
+        continue
+    top = min(opaque)   # the shallowest opaque fill is what buries things
+    for L in d.get("layers", []):
+        for i in L.get("instances", []):
+            o = i.get("objectId", {}).get("name")
+            if not o:
+                continue
+            dep = create_depth(o)
+            if dep is not None and dep > top:
+                buried.append(f"{d['name']}:{o} depth {dep} > background {top}")
+            if draws_in_begin(o):
+                begun.append(f"{d['name']}:{o}")
+warn("nothing drawn behind an opaque background layer", not buried,
+     "; ".join(buried[:4]))
+warn("no Draw Begin under an opaque background (it precedes layers)",
+     not begun, "; ".join(begun[:4]))
+
+# ------------------------------------------------- 12. empty folders
+# Tree hygiene, not correctness: a folder with no assets and no
+# subfolders is a leftover (RX inherited 45 of them from the techdemo's
+# stripped game layer). Expected briefly when a folder is declared
+# ahead of the system that will fill it.
+used_f = collections.Counter()
+for n, rp in reg.items():
+    par = load(rp).get("parent", {}).get("path")
+    if par:
+        used_f[par] += 1
+allf = [f["folderPath"] for f in proj["Folders"]]
+hollow = [f for f in allf
+          if used_f[f] == 0 and f.count("/") > 1
+          and not any(o != f and o.startswith(f[:-3] + "/") for o in allf)]
+warn("no empty folders in the resource tree", not hollow,
+     f"{len(hollow)}: " + ", ".join(hollow[:4]))
 
 # ------------------------------------------- 10. rooms in RoomOrderNodes
 ro = {r["roomId"]["name"] for r in proj["RoomOrderNodes"]}

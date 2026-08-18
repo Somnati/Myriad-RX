@@ -8,7 +8,11 @@
 /// so the ladder unfolds as you climb it instead of showing thirteen
 /// locked rows on a fresh save.
 
-depth = 800;
+// rm_clicker depth plan (LOWER DRAWS ON TOP): header -1000 |
+// syst_dials -20 | obj_clicker 0 | obj_bignum5 50 | the room's
+// opaque Background layer 100. Anything deeper than 100 is behind
+// the black fill and simply never appears.
+depth = -20;
 
 row_y0 = 180;  // the column's top - obj_clicker's tap surface ends at 176
 row_h  = 16;
