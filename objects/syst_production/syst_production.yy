@@ -1,5 +1,5 @@
 {
-  "$GMObject":"v1",
+  "$GMObject":"",
   "%Name":"syst_production",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
