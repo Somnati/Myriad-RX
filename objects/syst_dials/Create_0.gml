@@ -22,12 +22,17 @@ target = 0;   // where it is heading
 dock_w = 12;  // the docked strip: the dot column, and the grab handle.
               // set to 0 for a drawer that hides completely.
 
-// ---- the rows ----
+// ---- the rows: Myriad DE's own geometry ----
+// spr_dial is 140x11 and DE seats its column LOW in the room
+// (obj_dial y 270, obj_dial_position y 256, pitch sprite_height+5).
+// The stack grows UPWARD from the bottom, so a fresh save's one row
+// sits where your thumb already is and thirteen dials still clear the
+// header - it can never crawl up behind it.
 row_w  = 140;
-row_h  = 12;
-row_p  = 15;  // pitch: a little air between bars
+row_h  = 11;  // spr_dial's height
+row_p  = 16;  // DE's pitch: sprite_height + 5
 row_x  = 2;   // resting x once fully out
-col_y0 = 22;
+row_y1 = 256; // DE's anchor: dial a's row, everything else stacks up
 
 // ---- gesture state (menu2's rule: taps land on RELEASE under a drag
 // budget, so a swipe never doubles as a tap) ----

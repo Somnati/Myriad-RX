@@ -51,7 +51,7 @@ if (_px < face) { target = 0; exit; }
 // interaction.
 var _n = __rows();
 for (var _i = 0; _i < _n; _i++) {
-	var _ry = col_y0 + _i * row_p;
+	var _ry = row_y1 - _i * row_p;   // dial a lowest, stacking upward
 	if (_py < _ry || _py >= _ry + row_h) continue;
 	if (dial_buy(_i, 1)) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
 	else                 play_sound_ext(snd_matclick, .6, .75, .35, 1);

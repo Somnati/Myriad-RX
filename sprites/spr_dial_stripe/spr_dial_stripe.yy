@@ -1,28 +1,27 @@
 {
   "$GMSprite":"v2",
-  "%Name":"spr_dial_endcaps",
+  "%Name":"spr_dial_stripe",
   "bboxMode":0,
-  "bbox_bottom":9,
+  "bbox_bottom":10,
   "bbox_left":0,
-  "bbox_right":2,
-  "bbox_top":1,
+  "bbox_right":1,
+  "bbox_top":7,
   "collisionKind":1,
   "collisionTolerance":0,
   "DynamicTexturePage":false,
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"03fa0fd2-1496-4fc4-8dc4-53ad458ea276","name":"03fa0fd2-1496-4fc4-8dc4-53ad458ea276","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"3ea7305f-38ae-49f8-9668-7f12ac9629cf","name":"3ea7305f-38ae-49f8-9668-7f12ac9629cf","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"5bc76641-9a68-46de-824b-2508735cc9e7","name":"5bc76641-9a68-46de-824b-2508735cc9e7","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":11,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"126c879b-5583-44b6-8fc3-d3cad215ce18","blendMode":0,"displayName":"default","isLocked":false,"name":"126c879b-5583-44b6-8fc3-d3cad215ce18","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"0985318a-3f8c-43d0-a996-d3ceae37a76f","blendMode":0,"displayName":"default","isLocked":false,"name":"0985318a-3f8c-43d0-a996-d3ceae37a76f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name":"spr_dial_endcaps",
+  "name":"spr_dial_stripe",
   "nineSlice":null,
   "origin":0,
   "parent":{
@@ -50,7 +49,7 @@
     },
     "eventStubScript":null,
     "eventToFunction":{},
-    "length":2.0,
+    "length":1.0,
     "lockOrigin":false,
     "moments":{
       "$KeyframeStore<MomentsEventKeyframe>":"",
@@ -69,8 +68,7 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"03fa0fd2-1496-4fc4-8dc4-53ad458ea276","path":"sprites/spr_dial_endcaps/spr_dial_endcaps.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"3703656b-c226-4d99-8fcc-c7bdd014a615","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"3ea7305f-38ae-49f8-9668-7f12ac9629cf","path":"sprites/spr_dial_endcaps/spr_dial_endcaps.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b3c9a34c-a254-4c83-abe4-16882e33bcf5","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"5bc76641-9a68-46de-824b-2508735cc9e7","path":"sprites/spr_dial_stripe/spr_dial_stripe.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"ca96d3ac-d48b-4bfa-8e8b-a03f0dd0d12b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
@@ -86,5 +84,5 @@
   },
   "type":0,
   "VTile":false,
-  "width":3,
+  "width":2,
 }
