@@ -10,8 +10,8 @@
   "name":"obj_bignum5",
   "overriddenProperties":[],
   "parent":{
-    "name":"visualizers",
-    "path":"folders/Objects/visualizers.yy",
+    "name":"visualizer",
+    "path":"folders/Objects/visualizer.yy",
   },
   "parentObjectId":null,
   "persistent":false,

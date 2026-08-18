@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"port_log_to_arb",
   "parent":{
-    "name":"USER INTERFACE",
-    "path":"folders/Scripts/USER INTERFACE.yy",
+    "name":"visualizer",
+    "path":"folders/Scripts/visualizer.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

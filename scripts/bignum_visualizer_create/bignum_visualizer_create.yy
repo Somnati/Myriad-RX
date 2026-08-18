@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"bignum_visualizer_create",
   "parent":{
-    "name":"USER INTERFACE",
-    "path":"folders/Scripts/USER INTERFACE.yy",
+    "name":"visualizer",
+    "path":"folders/Scripts/visualizer.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
