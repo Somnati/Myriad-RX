@@ -1,15 +1,25 @@
-// the eased slide (trickle is the house motion idiom, and DE animates
-// its own dial drawer the same way), then republish the face so
+// the eased slide between stages, then republish the face so
 // obj_clicker's tap surface tracks it exactly
-dpos = trickle(dpos, target, 5);
-face = lerp(room_width - dock_w, row_x, dpos);
+sp   = trickle(sp, stage, 5);
+var _dp = clamp(sp, 0, 1);
+face = lerp(room_width - dock_w, row_x, _dp);
 
 if (!variable_global_exists("dial")) exit;
 
-// ---- keys: D pulls the drawer out, A sends it back ----
+// the docked dot's spring: the radius chases the cycle (DE's des_size
+// = progress SQUARED) and gets a kick on payout, then settles
+var _n = __rows();
+for (var _i = 0; _i < _n; _i++) {
+	var _d = g.dial[_i];
+	var _t = (_d.level > 0) ? sqr(__perc(_d)) * (row_h * .5) : 0;
+	if (_d.paid) rd[_i] = row_h * .5 + 2;   // the pop
+	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
+}
+
+// ---- keys: D walks the drawer out, A walks it back ----
 if (input_free()) {
-	if (keyboard_check_pressed(ord("D"))) target = 1;
-	if (keyboard_check_pressed(ord("A"))) target = 0;
+	if (keyboard_check_pressed(ord("D"))) stage = min(2, stage + 1);
+	if (keyboard_check_pressed(ord("A"))) stage = max(0, stage - 1);
 }
 
 // ---- pointer ----
@@ -27,33 +37,45 @@ press_x = -1;
 
 var _dx = mouse_x - _px;
 
-// A SWIPE: left pulls the drawer out, right puts it away. Room-wide,
-// so the gesture works from the tap surface too - the drawer's own
-// physical direction, exactly like pulling a handle.
-if (_dx <= -SWIPE) { target = 1; exit; }
-if (_dx >=  SWIPE) { target = 0; exit; }
+// A SWIPE: left pulls the drawer further out, right walks it back.
+// Room-wide, so it works from the tap surface too - the drawer's own
+// physical direction, like pulling a handle.
+if (_dx <= -SWIPE) { stage = min(2, stage + 1); exit; }
+if (_dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
 
 // under the drag budget it was a TAP
 if (point_distance(_px, _py, mouse_x, mouse_y) > BUDGET) exit;
 
 // docked: tapping the dot column pulls the drawer out
-if (dpos < .5) {
-	if (_px >= room_width - dock_w) target = 1;
+if (sp < .5) {
+	if (_px >= room_width - dock_w) stage = 1;
 	exit;
 }
 
-// out: a tap left of the drawer face puts it away
-if (_px < face) { target = 0; exit; }
+// a tap left of the drawer face puts it away
+if (_px < face) { stage = 0; exit; }
 
-// out: a tap on a row buys it a level. DE splits these jobs (tapping a
-// dial restarts its cycle, a separate button buys) which only matters
-// once autonomy is an upgrade you earn - until then buying IS the
-// interaction.
-var _n = __rows();
+// ---- a tap on a row ----
+var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
 for (var _i = 0; _i < _n; _i++) {
-	var _ry = row_y1 - _i * row_p;   // dial a lowest, stacking upward
-	if (_py < _ry || _py >= _ry + row_h) continue;
-	if (dial_buy(_i, 1)) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
-	else                 play_sound_ext(snd_matclick, .6, .75, .35, 1);
+	var _ry = row_y1 - _i * row_p;         // dial a lowest, stacking up
+	if (_py < _ry - 2 || _py >= _ry + row_h + 2) continue;
+	var _d = g.dial[_i];
+
+	// STAGE 2: the buy button to the right of the narrowed bar
+	if (stage >= 2 && _d.level > 0) {
+		if (_px >= face + _bw + 2) {
+			if (dial_buy(_i, 1)) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
+			else                 play_sound_ext(snd_matclick, .6, .75, .35, 1);
+		}
+		break;
+	}
+
+	// A DORMANT DIAL BUYS FROM ITS OWN BAR at any stage - DE's rule:
+	// tapping an unpurchased dial is how you purchase it
+	if (_d.level <= 0) {
+		if (dial_buy(_i, 1)) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
+		else                 play_sound_ext(snd_matclick, .6, .75, .35, 1);
+	}
 	break;
 }

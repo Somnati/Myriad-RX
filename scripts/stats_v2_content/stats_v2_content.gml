@@ -34,7 +34,6 @@ function stats_v2_content() {
 	// flips or advances the global it names) ----
 	if (stats_v2_folder("options", c_steelblue)) {
 		stats_v2_cycle("values", "stats_mode", ["total", "session"]);
-		stats_v2_toggle("menu blur", "blur");
 	}
 	stats_v2_folder_end();
 }

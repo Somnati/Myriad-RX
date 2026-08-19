@@ -118,6 +118,8 @@
     {"id":{"name":"par_toggle_single","path":"objects/par_toggle_single/par_toggle_single.yy",},},
     {"id":{"name":"par_toggle","path":"objects/par_toggle/par_toggle.yy",},},
     {"id":{"name":"setgame","path":"objects/setgame/setgame.yy",},},
+    {"id":{"name":"spr_button_bevel","path":"sprites/spr_button_bevel/spr_button_bevel.yy",},},
+    {"id":{"name":"spr_button_bevel_long","path":"sprites/spr_button_bevel_long/spr_button_bevel_long.yy",},},
     {"id":{"name":"spr_dial","path":"sprites/spr_dial/spr_dial.yy",},},
     {"id":{"name":"spr_dial_bubble","path":"sprites/spr_dial_bubble/spr_dial_bubble.yy",},},
     {"id":{"name":"spr_dial_name","path":"sprites/spr_dial_name/spr_dial_name.yy",},},
