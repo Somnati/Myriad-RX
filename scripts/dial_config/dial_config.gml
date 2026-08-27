@@ -18,5 +18,11 @@ function dial_config(_i) {
 	return {
 		name  : chr(ord("a") + _i),
 		cycle : 3 * power(2, _i) * _mm, // seconds per cycle at base speed
+		// THE WIND-UP (DE's b_autoeff, a per-dial stat): the first 30%
+		// of a cycle is spin-up. It lives HERE so the two consumers -
+		// update_dial, which stretches the cycle by it, and the drawer,
+		// which hides progress and prints "..." during it - can never
+		// disagree about how long the spin-up is.
+		autoeff : .3,
 	};
 }

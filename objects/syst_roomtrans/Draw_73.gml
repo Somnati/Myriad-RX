@@ -60,3 +60,8 @@ else {
 }
 
 draw_sprite_ext(spr_pixel_1x1,0,0,0,room_width,room_height,0,c_black,balpha);
+
+// the wipe's alpha must not outlive the event - draw state carries
+// across frames, and this is Draw END, so it would tint the next
+// frame's first draws (syst_banner's 'beans faded randomly' class)
+draw_set_alpha(1);

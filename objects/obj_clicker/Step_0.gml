@@ -31,4 +31,7 @@ play_sound_ext(snd_click, .95, 1.15, .35, 1);
 // tic 0 = back-to-back, the tap's rapid-fire style.
 var _n = round(random_range(2, 7));
 if (arb(15) >= g.click_gps) _n = clamp(unarb(g.click_gps), 1, 7);
-bezier_bits(mouse_x, mouse_y, _n, c_gold, BEZ_X, BEZ_Y, 0);
+// target omitted on purpose: bezier_bits already owns the counter's
+// seat as its default, so the two earners cannot aim at different
+// places - one constant, in the framework that draws them
+bezier_bits(mouse_x, mouse_y, _n, c_gold, undefined, undefined, 0);

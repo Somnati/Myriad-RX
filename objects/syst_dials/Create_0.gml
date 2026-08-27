@@ -31,17 +31,17 @@ row_p  = 16;  // DE's pitch
 row_x  = 2;
 row_y1 = 256; // dial a's row; everything else stacks up from here
 
-// THE WIND-UP (DE's b_autoeff): the first 30% of every cycle is spin-up
-// - the bar shows nothing and the timer reads "..." until the cycle
-// passes it. It is a VIEW transform, not a second timer: update_dial
-// already stretches the cycle by the same 30%, so the sim never forks.
+// THE WIND-UP is dial_config's `autoeff` - read, never redeclared, so
+// this view and update_dial's timer maths cannot drift apart. It is a
+// VIEW transform, not a second timer: update_dial already stretches the
+// cycle by the same fraction, so the sim never forks.
 //   gps_perc = (cycle - autoeff) / (1 - autoeff)
-AUTOEFF = .3;
 
 // per-dial spring radius for the docked dot (DE runs its own wiggle
 // spring on des_size; this is the same overshoot, kept view-side)
 rd = [];
-for (var _i = 0; _i < 13; _i++) rd[_i] = 0;
+for (var _i = 0; _i < (variable_global_exists("dial_total") ? g.dial_total : 13); _i++)
+	rd[_i] = 0;
 
 // ---- gesture state (menu2's rule: taps land on RELEASE under a drag
 // budget, so a swipe never doubles as a tap) ----
@@ -65,6 +65,12 @@ __rows = function() {
 };
 
 /// a dial's VISIBLE progress: zero through the wind-up, then 0..1
-__perc = function(_d) {
-	return clamp((_d.cycle - AUTOEFF) / (1 - AUTOEFF), 0, 1);
+__perc = function(_i, _d) {
+	var _a = dial_config(_i).autoeff;
+	return clamp((_d.cycle - _a) / (1 - _a), 0, 1);
+};
+
+/// is this dial still winding up? (the "..." on its timer)
+__wind = function(_i, _d) {
+	return (_d.cycle < dial_config(_i).autoeff);
 };

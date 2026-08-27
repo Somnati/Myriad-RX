@@ -11,7 +11,7 @@ if (!variable_global_exists("dial")) exit;
 var _n = __rows();
 for (var _i = 0; _i < _n; _i++) {
 	var _d = g.dial[_i];
-	var _t = (_d.level > 0) ? sqr(__perc(_d)) * (row_h * .5) : 0;
+	var _t = (_d.level > 0) ? sqr(__perc(_i, _d)) * (row_h * .5) : 0;
 	if (_d.paid) {
 		rd[_i] = row_h * .5 + 2;   // the pop
 
@@ -29,7 +29,7 @@ for (var _i = 0; _i < _n; _i++) {
 		var _nb = 1;
 		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
-		bezier_bits(_sx, _sy, _nb, dial_color(_i), 20, 14, -1);
+		bezier_bits(_sx, _sy, _nb, dial_color(_i), undefined, undefined, -1);
 	}
 	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
 }

@@ -183,7 +183,7 @@ for (var i = 0; i < _n; i++) {
             advance_lock = advance_delay;   // the selecting input doesn't
                                             // bleed into the next panel
             if (is_undefined(_opt.tree)) { __close(); break; }
-            global.__ds_queue = [];
+            g.__ds_queue = [];
             _opt.tree();
             queue_pos = 0;
             __advance();

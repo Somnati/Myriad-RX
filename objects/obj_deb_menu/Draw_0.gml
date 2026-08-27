@@ -21,5 +21,5 @@ draw_set_color(tcol);
 draw_set_alpha(1);
 draw_text_transformed(x+swdiv+10-14,y+3,name,1,1,0);
 
-
-
+// restore the global draw state (see par_button)
+draw_set_halign(fa_left);

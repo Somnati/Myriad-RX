@@ -26,7 +26,7 @@ if i = scrl_statistics
 if instance_exists(syst_statistics_v2) {
 	mn = syst_statistics_v2.full_rows; // rows that FIT - ceil left the last row unreachable
 	mx = syst_statistics_v2.mx;
-	input = global.stats_page;
+	input = g.stats_page;
 	slot_height = syst_statistics_v2.row_h;
 	depth = syst_statistics_v2.depth - 1;
 }
@@ -91,7 +91,7 @@ if not selected
 
 
 // output \\
-if i = scrl_statistics global.stats_page = clamp_min(input, 0);
+if i = scrl_statistics g.stats_page = clamp_min(input, 0);
 if i = scrl_settings g.settings_page = clamp_min(input, 0);
 //if in_room(rm_modules) global.module_page = clamp_min(input,0);
 /*

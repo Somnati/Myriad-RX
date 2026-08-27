@@ -28,9 +28,8 @@ function update_dial(_i) {
 		return;
 	}
 
-	// the timer chain
-	var _autoeff = .3;                        // DE's b_autoeff
-	_d.cycle_t = _cfg.cycle * (1 + _autoeff);
+	// the timer chain (autoeff comes from the config - one source)
+	_d.cycle_t = _cfg.cycle * (1 + _cfg.autoeff);
 	_d.cps     = 1 / _d.cycle_t;
 
 	// the level ramp, then the two payout readings

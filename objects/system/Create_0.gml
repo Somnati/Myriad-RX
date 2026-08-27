@@ -4,7 +4,7 @@
 return_status = os_paused();
 
 debug_pro_watch("g.playtime", "playtime");
-show_debug_message("WATCH COUNT = " + string(array_length(global.__dbgpro_watch)));
+show_debug_message("WATCH COUNT = " + string(array_length(g.__dbgpro_watch)));
 
 
 g.font = font_add_sprite(spr_font,ord(" "),true,1);

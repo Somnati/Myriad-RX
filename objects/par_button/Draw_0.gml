@@ -12,3 +12,9 @@ draw_set_valign(fa_middle);
 draw_text(x+swdiv,y+shdiv,text);
 
 draw_set_valign(fa_top);
+
+// GM's draw state is GLOBAL and persists past this event: this object
+// is the PARENT of every button, so a halign left at fa_center leaked
+// into whatever drew next. valign was already restored below; halign
+// was not.
+draw_set_halign(fa_left);

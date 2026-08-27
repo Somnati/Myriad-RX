@@ -4,7 +4,7 @@
 function vibrate() {
 	_mil = 40; 
 	if os_type = os_android
-	    if global.haptics = true{
+	    if g.haptics = true{
 	if argument_count = 2 {_mil = argument[0]; _int = argument[1];} 
 	if argument_count = 1 _int = argument[0];
 	system.has_vibration = true;

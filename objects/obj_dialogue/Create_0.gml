@@ -168,7 +168,7 @@ box_h_def = box_h;
 border_def = box_col_border;
 
 dialogue_start = function(_tree) {
-    global.__ds_queue = [];
+    g.__ds_queue = [];
     _tree();                    // the tree script fills the queue
     queue_pos = 0;
     dialogue_active = true;
@@ -185,8 +185,8 @@ dialogue_start = function(_tree) {
 /// event BREAKS (silent, keep walking)
 __advance = function() {
     while (true) {
-        if (queue_pos >= array_length(global.__ds_queue)) { __close(); return; }
-        var _e = global.__ds_queue[queue_pos++];
+        if (queue_pos >= array_length(g.__ds_queue)) { __close(); return; }
+        var _e = g.__ds_queue[queue_pos++];
         switch (_e.type) {
             case "say":
                 __start_line(_e.speaker, _e.text);

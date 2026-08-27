@@ -36,7 +36,7 @@ if (_da > 0) {
 		draw_set_alpha(_da);
 		draw_circle_colour(_dx, _y, _r0, _bg, _bg, false);
 		if (_d.level > 0) {
-			var _p  = __perc(_d);
+			var _p  = __perc(_i, _d);
 			var _fg = merge_colour(_bg, _c, clamp(_p, 0, 1));
 			if (rd[_i] > _r0) _fg = _c;            // the payout pop
 			draw_circle_colour(_dx, _y, rd[_i], _fg, _fg, false);
@@ -73,8 +73,8 @@ for (var _i = 0; _i < _n; _i++) {
 		continue;
 	}
 
-	var _p = __perc(_d);               // 0 through the wind-up
-	var _wind = (_d.cycle < AUTOEFF);  // still spinning up
+	var _p    = __perc(_i, _d);   // 0 through the wind-up
+	var _wind = __wind(_i, _d);   // still spinning up
 
 	// ---- body ----
 	draw_sprite_ext(spr_dial_endcaps, 0, _x, _y, 1, 1, 0, _nc, _oa);
