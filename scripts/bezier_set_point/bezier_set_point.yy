@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bezier_set_point",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bezier_set_point",
+  "parent":{
+    "name":"arb",
+    "path":"folders/Scripts/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

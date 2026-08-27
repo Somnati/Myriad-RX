@@ -23,3 +23,12 @@ pop = 1;
 
 float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps), c_gold);
 play_sound_ext(snd_click, .95, 1.15, .35, 1);
+
+// THE SPIT: bezier profit bits fly from the tap to the counter. The
+// count is the techdemo's law - a tiny tap spits exactly as many bits
+// as it earned (so the first taps read as "one profit, one mote"),
+// and once the number outgrows counting it settles into a 2-7 burst.
+// tic 0 = back-to-back, the tap's rapid-fire style.
+var _n = round(random_range(2, 7));
+if (arb(15) >= g.click_gps) _n = clamp(unarb(g.click_gps), 1, 7);
+bezier_bits(mouse_x, mouse_y, _n, c_gold, BEZ_X, BEZ_Y, 0);

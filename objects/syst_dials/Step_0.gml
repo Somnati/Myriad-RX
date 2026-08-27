@@ -12,7 +12,25 @@ var _n = __rows();
 for (var _i = 0; _i < _n; _i++) {
 	var _d = g.dial[_i];
 	var _t = (_d.level > 0) ? sqr(__perc(_d)) * (row_h * .5) : 0;
-	if (_d.paid) rd[_i] = row_h * .5 + 2;   // the pop
+	if (_d.paid) {
+		rd[_i] = row_h * .5 + 2;   // the pop
+
+		// THE SPIT (DE's obj_dial do_spit): a completed cycle throws
+		// profit bits at the counter in the dial's OWN colour, so a
+		// glance tells you which dial just paid. tic -1 = the whole
+		// burst at once, the payout style; the count rides the size of
+		// the payout the way DE's does.
+		var _sx = room_width - dock_w * .5;         // docked: the dot
+		var _sy = row_y1 - _i * 11 + 5;
+		if (sp >= .5) {                              // out: the bar
+			_sx = face + 39;
+			_sy = row_y1 - _i * row_p + row_h * .5;
+		}
+		var _nb = 1;
+		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
+		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
+		bezier_bits(_sx, _sy, _nb, dial_color(_i), 20, 14, -1);
+	}
 	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
 }
 

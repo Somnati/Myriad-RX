@@ -15,3 +15,9 @@ tap_y0 = 16;
 tap_y1 = room_height;
 
 pop = 0;  // a little press feedback the room can read
+
+// where the profit bits fly TO: the header's profit counter, which RX
+// draws at (6,14). syst_dials aims at the same seat, so every earner
+// in the room converges on the number it is feeding.
+BEZ_X = 20;
+BEZ_Y = 14;
