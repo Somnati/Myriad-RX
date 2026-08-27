@@ -9,8 +9,8 @@
   "name":"system",
   "overriddenProperties":[],
   "parent":{
-    "name":"core",
-    "path":"folders/Objects/core.yy",
+    "name":"SYSTEM",
+    "path":"folders/Objects/SYSTEM.yy",
   },
   "parentObjectId":null,
   "persistent":true,

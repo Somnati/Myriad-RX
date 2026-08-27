@@ -10,8 +10,8 @@
   "name":"obj_set_slider",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"sliders",
+    "path":"folders/Objects/ui/sliders.yy",
   },
   "parentObjectId":{
     "name":"par_slider",

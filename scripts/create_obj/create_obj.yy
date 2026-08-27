@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"create_obj",
   "parent":{
-    "name":"util",
-    "path":"folders/Scripts/util.yy",
+    "name":"SYSTEM",
+    "path":"folders/Scripts/SYSTEM.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

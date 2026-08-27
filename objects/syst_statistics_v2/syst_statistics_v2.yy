@@ -10,8 +10,8 @@
   "name":"syst_statistics_v2",
   "overriddenProperties":[],
   "parent":{
-    "name":"game",
-    "path":"folders/Objects/game.yy",
+    "name":"statistics",
+    "path":"folders/Objects/statistics.yy",
   },
   "parentObjectId":null,
   "persistent":false,

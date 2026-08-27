@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"vis_tier_color",
   "parent":{
-    "name":"dials",
-    "path":"folders/Scripts/dials.yy",
+    "name":"visualizer",
+    "path":"folders/Scripts/visualizer.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

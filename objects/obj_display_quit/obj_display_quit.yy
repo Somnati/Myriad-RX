@@ -10,8 +10,8 @@
   "name":"obj_display_quit",
   "overriddenProperties":[],
   "parent":{
-    "name":"core",
-    "path":"folders/Objects/core.yy",
+    "name":"window buttons",
+    "path":"folders/Objects/window buttons.yy",
   },
   "parentObjectId":{
     "name":"par_toggle_single",

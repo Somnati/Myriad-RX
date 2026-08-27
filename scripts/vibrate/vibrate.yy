@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"vibrate",
   "parent":{
-    "name":"util",
-    "path":"folders/Scripts/util.yy",
+    "name":"audio",
+    "path":"folders/Scripts/audio.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

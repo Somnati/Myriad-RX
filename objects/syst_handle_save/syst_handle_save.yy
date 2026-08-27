@@ -11,8 +11,8 @@
   "name":"syst_handle_save",
   "overriddenProperties":[],
   "parent":{
-    "name":"core",
-    "path":"folders/Objects/core.yy",
+    "name":"save",
+    "path":"folders/Objects/save.yy",
   },
   "parentObjectId":null,
   "persistent":true,

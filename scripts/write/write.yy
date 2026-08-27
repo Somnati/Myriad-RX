@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"write",
   "parent":{
-    "name":"util",
-    "path":"folders/Scripts/util.yy",
+    "name":"save",
+    "path":"folders/Scripts/save.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

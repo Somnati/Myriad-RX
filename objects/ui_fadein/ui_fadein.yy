@@ -10,8 +10,8 @@
   "name":"ui_fadein",
   "overriddenProperties":[],
   "parent":{
-    "name":"core",
-    "path":"folders/Objects/core.yy",
+    "name":"ui",
+    "path":"folders/Objects/ui.yy",
   },
   "parentObjectId":null,
   "persistent":true,

@@ -30,8 +30,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"space",
-    "path":"folders/Sprites/space.yy",
+    "name":"fx",
+    "path":"folders/Sprites/fx.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

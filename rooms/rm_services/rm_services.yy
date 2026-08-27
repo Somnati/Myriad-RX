@@ -27,8 +27,8 @@
   ],
   "name":"rm_services",
   "parent":{
-    "name":"game",
-    "path":"folders/Rooms/game.yy",
+    "name":"ui",
+    "path":"folders/Rooms/ui.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

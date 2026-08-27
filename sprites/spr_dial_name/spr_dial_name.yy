@@ -50,8 +50,8 @@
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"ui",
-    "path":"folders/Sprites/ui.yy",
+    "name":"Production",
+    "path":"folders/Sprites/Production.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

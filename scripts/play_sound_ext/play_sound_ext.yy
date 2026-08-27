@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"play_sound_ext",
   "parent":{
-    "name":"util",
-    "path":"folders/Scripts/util.yy",
+    "name":"audio",
+    "path":"folders/Scripts/audio.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

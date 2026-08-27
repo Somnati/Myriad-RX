@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"dial_color",
   "parent":{
-    "name":"dials",
-    "path":"folders/Scripts/dials.yy",
+    "name":"Production",
+    "path":"folders/Scripts/Production.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

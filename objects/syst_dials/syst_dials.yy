@@ -10,8 +10,8 @@
   "name":"syst_dials",
   "overriddenProperties":[],
   "parent":{
-    "name":"core",
-    "path":"folders/Objects/core.yy",
+    "name":"Production",
+    "path":"folders/Objects/Production.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -10,8 +10,8 @@
   "name":"par_toggle_single",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"toggles",
+    "path":"folders/Objects/ui/toggles.yy",
   },
   "parentObjectId":null,
   "persistent":false,

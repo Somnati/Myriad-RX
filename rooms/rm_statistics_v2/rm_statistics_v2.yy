@@ -21,8 +21,8 @@
   ],
   "name":"rm_statistics_v2",
   "parent":{
-    "name":"game",
-    "path":"folders/Rooms/game.yy",
+    "name":"ui",
+    "path":"folders/Rooms/ui.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

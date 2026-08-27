@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"fx",
-    "path":"folders/Sprites/fx.yy",
+    "name":"visualizer",
+    "path":"folders/Sprites/visualizer.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

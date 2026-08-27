@@ -44,8 +44,8 @@
   ],
   "name":"rm_gameload",
   "parent":{
-    "name":"game",
-    "path":"folders/Rooms/game.yy",
+    "name":"SYSTEM",
+    "path":"folders/Rooms/SYSTEM.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

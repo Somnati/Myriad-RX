@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"bezier_bits",
   "parent":{
-    "name":"dials",
-    "path":"folders/Scripts/dials.yy",
+    "name":"game",
+    "path":"folders/Scripts/game.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -9,8 +9,8 @@
   "name":"obj_set_toggle",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"toggles",
+    "path":"folders/Objects/ui/toggles.yy",
   },
   "parentObjectId":{
     "name":"par_toggle",
