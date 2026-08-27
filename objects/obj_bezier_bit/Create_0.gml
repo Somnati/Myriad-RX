@@ -18,6 +18,15 @@ col = c_seagreen;         // currency tint (resin default)
 tx = 48; ty = 12;         // target (bezier_bits sets it, then aim())
 t = 0;                    // curve progress 0..1
 spd = random_range(.0083, .0167); // Myriad's random_range(.01,.02)/1.2
+
+// THE CURVE IS HIS BEZIER LIBRARY, not a local reimplementation.
+// bezier_create seeds the instance-scope curve state (_zero is the
+// progress, _zero_adj the per-step advance); aim() pushes the points,
+// bezier_approach walks it and bezier_get_x/y evaluate it. Using the
+// library also hands us its path-length speed mod for free - the
+// clamp_min(300/_point_dist,1) inside bezier_approach is exactly the
+// "short hops never crawl" rule this object used to do by hand.
+bezier_create(spd);
 rot = random(360);
 rot_spd = random_range(-10, 10);
 size = 1;
@@ -56,8 +65,13 @@ aim = function() {
 	p0y = y;
 	cx = random(room_width);
 	cy = y + random_range(-50, 100); // the original's throw, mostly down
-	// short paths fly quicker: Myriad's 300/dist mod, floored at 1
-	spd *= max(1, 300 / max(1, point_distance(p0x, p0y, tx, ty)));
+	// the three points: start, the thrown control, the counter.
+	// bezier_set_point also accumulates _point_dist, which is what
+	// bezier_approach's own speed mod reads - so the short-hop rule
+	// comes from the library rather than being applied here.
+	bezier_set_point(p0x, p0y);
+	bezier_set_point(cx, cy);
+	bezier_set_point(tx, ty);
 	// the circle wears the currency's hue at a rolled sat/val
 	// (Myriad's exact blend); coins + munny keep their own art white
 	if (look == 1) tint = make_colour_hsv(colour_get_hue(col),

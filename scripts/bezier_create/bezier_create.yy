@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bezier_create",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bezier_create",
+  "parent":{
+    "name":"Production",
+    "path":"folders/Scripts/Production.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

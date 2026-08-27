@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bezier_get_x",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bezier_get_x",
+  "parent":{
+    "name":"Production",
+    "path":"folders/Scripts/Production.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

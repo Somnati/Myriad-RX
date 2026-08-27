@@ -94,6 +94,12 @@
   },
   "name":"Myriad RX",
   "resources":[
+    {"id":{"name":"bezier_approach","path":"scripts/bezier_approach/bezier_approach.yy",},},
+    {"id":{"name":"bezier_create","path":"scripts/bezier_create/bezier_create.yy",},},
+    {"id":{"name":"bezier_find","path":"scripts/bezier_find/bezier_find.yy",},},
+    {"id":{"name":"bezier_get_x","path":"scripts/bezier_get_x/bezier_get_x.yy",},},
+    {"id":{"name":"bezier_get_y","path":"scripts/bezier_get_y/bezier_get_y.yy",},},
+    {"id":{"name":"bezier_set_point","path":"scripts/bezier_set_point/bezier_set_point.yy",},},
     {"id":{"name":"Clipboard","path":"extensions/Clipboard/Clipboard.yy",},},
     {"id":{"name":"FileTransfer","path":"extensions/FileTransfer/FileTransfer.yy",},},
     {"id":{"name":"Haptics","path":"extensions/Haptics/Haptics.yy",},},
