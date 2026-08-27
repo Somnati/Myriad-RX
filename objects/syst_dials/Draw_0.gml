@@ -15,10 +15,23 @@ var _n  = __rows();
 var _ax = face;
 var _dp = clamp(sp, 0, 1);
 var _bp = clamp(sp - 1, 0, 1);                 // the buy stage
-var _oa = clamp(_dp * 1.6 - .3, 0, 1);         // bars fade in
-var _da = clamp(1 - _dp * 2, 0, 1);            // dots fade out
+// the fades run the FULL travel now. The old curves saturated early
+// (alpha hit 1 at 81% of the slide), which left the last stretch
+// moving at full opacity and made the arrival read as a pop.
+var _oa = _dp * _dp;                           // bars fade in
+var _da = (1 - _dp) * (1 - _dp);               // dots fade out
 var _ec = sprite_get_width(spr_dial_endcaps);  // 3
 var _bw = lerp(row_w, row_w2, _bp);            // the bar narrows for buy
+
+// ============ the backdrop ============
+// DE dims the play area behind its dial drawer; the dim rides the same
+// eased position, so it arrives with the bars instead of switching on.
+// Drawn FIRST in this event, so it covers the visualiser (depth 50)
+// and the tap surface while the bars land on top of it. The header
+// sits at -1000 and stays clear, which is what DE does too.
+if (_dp > 0)
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0,
+		c_black, .62 * _dp);
 
 // ============ docked: DE's collapsed dot column ============
 // TWO FILLED CIRCLES, no outline (DE's Draw_72): a dark disc at FULL

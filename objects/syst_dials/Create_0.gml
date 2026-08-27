@@ -19,6 +19,17 @@ stage  = 0;   // 0 docked / 1 list / 2 buy
 sp     = 0;   // the eased position between stages
 dock_w = 12;  // the docked strip: the dot column and the grab handle
 
+// THE SLIDE, on a timed smoothstep rather than trickle. trickle is an
+// exponential chase: it decelerates forever and never actually
+// arrives, so it carries a hardpoint that snaps the last 1% to the
+// target - which at this travel is the visible pop at the end of the
+// slide. A normalised clock through smoothstep eases in AND out and
+// lands exactly, with no hardpoint to snap.
+sp_from = 0;   // where the slide started
+sp_to   = 0;   // where it is going
+sp_t    = 1;   // 0..1 through the move (1 = settled)
+SP_TIME = .26; // seconds end to end
+
 // ---- the rows: DE's geometry ----
 // spr_dial is 140x11 and DE seats its column LOW (obj_dial y 270,
 // obj_dial_position y 256, pitch sprite_height+5), the stack growing

@@ -15,6 +15,7 @@
 depth = -90; // above room content; the floats (-100) stay on top
 
 col = c_seagreen;         // currency tint (resin default)
+amt = 0;                  // the profit this mote is carrying home
 tx = 48; ty = 12;         // target (bezier_bits sets it, then aim())
 t = 0;                    // curve progress 0..1
 spd = random_range(.0083, .0167); // Myriad's random_range(.01,.02)/1.2

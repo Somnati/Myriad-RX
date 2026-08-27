@@ -7,7 +7,6 @@
   "inheritLayers":false,
   "instanceCreationOrder":[
     {"name":"inst_CLK00001","path":"rooms/rm_clicker/rm_clicker.yy",},
-    {"name":"inst_CLK00002","path":"rooms/rm_clicker/rm_clicker.yy",},
     {"name":"inst_CLK00003","path":"rooms/rm_clicker/rm_clicker.yy",},
     {"name":"inst_CLK00004","path":"rooms/rm_clicker/rm_clicker.yy",},
   ],
@@ -20,7 +19,6 @@
       ],"resourceType":"GMREffectLayer","resourceVersion":"2.0","userdefinedDepth":true,"visible":false,},
     {"$GMRInstanceLayer":"","%Name":"Instances","depth":0,"effectEnabled":true,"effectType":null,"gridX":8,"gridY":8,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
         {"$GMRInstance":"v4","%Name":"inst_CLK00001","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00001","objectId":{"name":"obj_ui_header","path":"objects/obj_ui_header/obj_ui_header.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
-        {"$GMRInstance":"v4","%Name":"inst_CLK00002","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00002","objectId":{"name":"obj_clicker","path":"objects/obj_clicker/obj_clicker.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_CLK00003","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00003","objectId":{"name":"syst_dials","path":"objects/syst_dials/syst_dials.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_CLK00004","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00004","objectId":{"name":"obj_bignum5","path":"objects/obj_bignum5/obj_bignum5.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
       ],"layers":[],"name":"Instances","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},

@@ -36,6 +36,7 @@ function prod_dials(_secs = -1) {
 		var _pay = (_n > 1) ? do_scale(_d.gpc, _n) : _d.gpc;
 		give_profit(_pay);
 		_d.paid = true;
+		_d.paid_amt = _pay;   // the view's motes carry this home
 		_d.glow = max(.35, _d.glow);
 	}
 }

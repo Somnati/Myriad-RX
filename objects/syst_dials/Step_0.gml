@@ -1,6 +1,14 @@
-// the eased slide between stages, then republish the face so
-// obj_clicker's tap surface tracks it exactly
-sp   = trickle(sp, stage, 5);
+// ---- the eased slide ----
+// a new target restarts the clock FROM WHERE IT IS, so reversing
+// mid-slide is smooth rather than a jump back to the start
+if (sp_to != stage) { sp_from = sp; sp_to = stage; sp_t = 0; }
+if (sp_t < 1) {
+	sp_t = min(1, sp_t + (delta / 60) / SP_TIME);
+	var _e = sp_t * sp_t * (3 - 2 * sp_t);   // smoothstep
+	sp = lerp(sp_from, sp_to, _e);
+} else sp = sp_to;                            // exact arrival, no snap
+
+// republish the face so obj_clicker's tap surface tracks it exactly
 var _dp = clamp(sp, 0, 1);
 face = lerp(room_width - dock_w, row_x, _dp);
 
@@ -29,7 +37,8 @@ for (var _i = 0; _i < _n; _i++) {
 		var _nb = 1;
 		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
-		bezier_bits(_sx, _sy, _nb, dial_color(_i), undefined, undefined, -1);
+		bezier_bits(_sx, _sy, _nb, dial_color(_i), undefined, undefined, -1,
+			_d.paid_amt);
 	}
 	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
 }

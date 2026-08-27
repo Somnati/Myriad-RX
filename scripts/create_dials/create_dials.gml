@@ -28,6 +28,7 @@ function create_dials(_force = false) {
 			cycle_t   : 0,     // seconds per cycle, after autoeff
 			// ---- view feedback (consumed by the room, not saved) ----
 			paid      : false, // one frame true when a cycle landed
+			paid_amt  : 0,     // ...and what it paid, for the motes to carry
 			glow      : 0,
 		};
 	}

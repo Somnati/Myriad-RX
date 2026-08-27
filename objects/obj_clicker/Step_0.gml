@@ -1,6 +1,13 @@
 // the press decay (feedback only)
 pop = max(0, pop - .08 * delta);
 
+// persistent now, so the surface re-reads whichever room it is
+// standing in (rooms differ in size)
+tap_y1 = room_height;
+
+// tapping is live only inside a running game (see __live)
+if (!__live()) exit;
+
 // arbitrated region pattern: a tap the menu, a popup or any clickable
 // widget already claimed is not ours
 if (!input_free()) exit;
@@ -34,4 +41,7 @@ if (arb(15) >= g.click_gps) _n = clamp(unarb(g.click_gps), 1, 7);
 // target omitted on purpose: bezier_bits already owns the counter's
 // seat as its default, so the two earners cannot aim at different
 // places - one constant, in the framework that draws them
-bezier_bits(mouse_x, mouse_y, _n, c_gold, undefined, undefined, 0);
+// the burst CARRIES this tap's profit: the counter holds it back
+// until the motes land (see obj_ui_header's Step)
+bezier_bits(mouse_x, mouse_y, _n, c_gold, undefined, undefined, 0,
+	g.click_gps);

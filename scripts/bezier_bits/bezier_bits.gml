@@ -9,8 +9,16 @@
 /// anywhere else. callers scale n with the event's YIELD (a 1-resin
 /// tap = exactly 1 bit); the population cap (~48) gates spawns inside
 /// the emitter so payout floods stay cheap.
+/// AMOUNT (round 2, his ask): a burst can carry the profit it
+/// represents. The profit is already banked the moment it is earned -
+/// what the amount does is let the COUNTER hold that much back until
+/// the motes actually land, so the number climbs as they arrive
+/// instead of jumping ahead of them (Myriad DE's emit_gold). Carrying
+/// it rather than paying on arrival matters: the population cap can
+/// swallow a spawn, and a mote that never existed must not swallow
+/// profit with it.
 function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
-	_tic = -1) {
+	_tic = -1, _amt = 0) {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
 	if (_tx == undefined) {
@@ -26,4 +34,6 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_e.col    = _col;
 	_e.tx     = _tx;
 	_e.ty     = _ty;
+	_e.amt    = _amt;                                  // the whole burst
+	_e.share  = (_amt > 0) ? do_scale(_amt, 1 / _n) : 0; // one mote's cut
 }

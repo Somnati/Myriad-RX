@@ -13,3 +13,10 @@ tic_   = -1;     // -1 = all at once / 0+ = frames between spits
 col    = c_seagreen;
 tx     = 48;
 ty     = 12;
+
+// the profit this burst still owes the counter: bezier_bits sets amt
+// to the whole payout and share to one mote's cut. amt drains as motes
+// spawn and each mote carries its share onward, so the total in flight
+// is always (this emitter's amt) + (every live mote's amt).
+amt    = 0;
+share  = 0;

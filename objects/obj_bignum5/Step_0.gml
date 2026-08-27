@@ -3,11 +3,13 @@ var _dt = delta_time / 1000000;
 salpha = trickle(salpha, 1, 5);
 vis.alpha = salpha;
 
-// display AND camera focus ride the profit counter. DE feeds this the
-// counter's DISPLAYED value instead of the true one, so earnings only
-// land on the visualiser when their bezier particle arrives at the
-// header - when that particle layer is rebuilt, this is its hook.
+// display AND camera focus ride the counter's DISPLAYED value, not the
+// raw pile: profit still riding bezier motes is held back, so a payout
+// only grows the blocks when its motes actually arrive. The header owns
+// that figure (obj_ui_header.prof_shown) so the number and the blocks
+// can never tell different stories.
 var _g = g.profit;
+if (instance_exists(obj_ui_header)) _g = obj_ui_header.prof_shown;
 vis.set_display_value(_g);
 vis.set_focus_value(_g);
 

@@ -66,5 +66,6 @@ vis.renderer.set_label_callback(function(_tier_mag, _count) {
 
 // entry glide: seed the camera 0.6 OOM out so entry is a glide IN to
 // native zoom. feed the focus once now - Step re-feeds it every frame.
-vis.set_focus_value(g.profit);
+vis.set_focus_value(instance_exists(obj_ui_header)
+	? obj_ui_header.prof_shown : g.profit);
 vis.lod.wm = max(vis.lod.wm_min, vis.focus_mag - vis.lod.band_anchor) + 0.6;

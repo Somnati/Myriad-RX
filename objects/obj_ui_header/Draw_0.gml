@@ -6,8 +6,10 @@ draw_sprite_ext(sprite_index,img,0,y,room_width,1,0,col,1);
 
 // ---- profit, top left: gliding arb counter + gain pops ----
 if (variable_global_exists("profit")) {
-	// target in log10 (arb_log10 = the one unpack site)
-	var _pv  = g.profit;
+	// the target is the HELD-BACK figure, not the raw pile - Step
+	// subtracts what is still in flight so the count arrives with the
+	// motes (his ask, and DE's behaviour)
+	var _pv  = prof_shown;
 	var _tlg = (_pv < arb(1)) ? -1 : arb_log10(_pv);
 
 	// gain pop: profit LANDED (a sale) - spending only glides down

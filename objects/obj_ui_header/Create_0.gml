@@ -21,6 +21,11 @@ create_obj(x,y,obj_ui_menu2);
 // be lerped directly). -1 = "showing zero". snap on spawn (headers
 // are per-room - gliding/popping on every room switch would be noise)
 prof_lg = -1;
-if (variable_global_exists("profit") && g.profit >= arb(1))
-	prof_lg = arb_log10(g.profit);
-prof_last = variable_global_exists("profit") ? g.profit : 0;
+// prof_shown = profit MINUS whatever is still riding profit motes (see
+// Step). Everything that displays the pile reads this, not g.profit.
+prof_shown   = variable_global_exists("profit") ? g.profit : 0;
+flight       = 0;
+ratchet_real = prof_shown;   // DE's decade-boundary ratchet
+ratchet_tgt  = prof_shown;
+if (prof_shown >= arb(1)) prof_lg = arb_log10(prof_shown);
+prof_last = prof_shown;
