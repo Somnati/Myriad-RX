@@ -29,6 +29,11 @@ sp_from = 0;   // where the slide started
 sp_to   = 0;   // where it is going
 sp_t    = 1;   // 0..1 through the move (1 = settled)
 SP_TIME = .26; // seconds end to end
+// A RELEASED DRAG IS ALREADY MOVING. smoothstep eases IN from a dead
+// stop, so settling a flick with it stalled the drawer for an instant
+// before it resumed - the stutter he felt. Releases ease OUT only:
+// they start at speed and decelerate into the stage.
+sp_ease_out = false;
 
 // ---- the rows: DE's geometry ----
 // spr_dial is 140x11 and DE seats its column LOW (obj_dial y 270,

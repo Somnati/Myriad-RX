@@ -28,6 +28,13 @@ swipe_sens = 0.02;  // OOMs per px: ~60px swipe = 1.2 OOM
 vis = bignum_visualizer_create();
 vis.renderer.grid_sprite = spr_vis_grid2; // 3 subimages: border/inner/outer
 
+// NO SUB-TIER SQUARES (his report). DigitWindow can SYNTHESISE digits
+// below the value's real precision so a deep zoom always has something
+// to draw - which shows up as squares smaller than the lowest (white)
+// tier, representing decimals the number does not actually have.
+// The tier-1 squares ARE the unit; nothing is smaller than one.
+vis.display_win.fake_digits = false;
+
 // framing for the 144-wide portrait room (techdemo tuned 480-wide):
 // base_unit scales everything; start_scale = px per unit of the lowest
 // field at rest -> 1px units, a 100px field, fits with margin

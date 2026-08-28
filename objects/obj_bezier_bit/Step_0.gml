@@ -15,7 +15,15 @@ if (_bpoints >= 3) {
 	bezier_approach();
 }
 t = _zero;
-if (t >= 1 && pop_t < 0) pop_t = 0;
+if (t >= 1 && pop_t < 0) {
+	pop_t = 0;
+	// ARRIVED: hand the counter the profit this mote was carrying
+	if (amt > 0) {
+		g.profit_flight = (g.profit_flight > amt)
+			? do_subtract(g.profit_flight, amt) : 0;
+		amt = 0;
+	}
+}
 
 // evaluate the 3-point curve (bezier_get_x/y run de Casteljau for the
 // point count you pass - 3 here, and the library goes to 4 when a

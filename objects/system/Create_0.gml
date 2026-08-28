@@ -47,6 +47,12 @@ g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
 // recolour their money and have the whole game agree. When the
 // settings row for it lands it needs to change nothing but this value.
 g.profit_color = c_sgreen;
+// profit earned but not yet DELIVERED by its motes. Registered by
+// give_profit and released as each mote lands, so the counter can hold
+// it back. A global, because the alternative - summing the live motes
+// each frame - only works if the motes already exist when the sum
+// runs, and that depends on room instance order.
+g.profit_flight = 0;
 g.trans_kind = 1;     // room transition: 0 circle wipe / 1 slice wipe
 	// (round 7's showcase; settings > display, latched per flight
 	// by goto_room)

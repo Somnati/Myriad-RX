@@ -2,10 +2,17 @@
 // a new target restarts the clock FROM WHERE IT IS, so reversing
 // mid-slide is smooth rather than a jump back to the start
 if (!drag_on) {
-	if (sp_to != stage) { sp_from = sp; sp_to = stage; sp_t = 0; }
+	if (sp_to != stage) {
+		sp_from = sp; sp_to = stage; sp_t = 0;
+		sp_ease_out = false;                  // key/tap: starts at rest
+	}
 	if (sp_t < 1) {
 		sp_t = min(1, sp_t + (delta / 60) / SP_TIME);
-		var _e = sp_t * sp_t * (3 - 2 * sp_t);   // smoothstep
+		// ease-out for a release (already moving), smoothstep for a
+		// key or tap (starting from rest)
+		var _e = sp_ease_out
+			? 1 - (1 - sp_t) * (1 - sp_t)
+			: sp_t * sp_t * (3 - 2 * sp_t);
 		sp = lerp(sp_from, sp_to, _e);
 	} else sp = sp_to;                            // exact arrival, no snap
 }
@@ -89,6 +96,9 @@ if (drag_on) {
 	else
 		stage = clamp(round(sp), 0, 2);
 	sp_from = sp; sp_to = stage; sp_t = 0;
+	sp_ease_out = true;                      // carry the finger's speed
+	// a shorter settle for a release: the finger did most of the
+	// travel, so a full-length ease reads as sluggish
 	exit;                                    // a drag is never a tap
 }
 

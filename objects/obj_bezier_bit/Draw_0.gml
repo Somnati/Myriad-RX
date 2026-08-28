@@ -19,9 +19,17 @@ if (look == 0) {
 	// the standard square, verbatim from round 5
 	draw_sprite_ext(spr_vis_glow_soft, 0, x, y, .15 * size, .15 * size, 0,
 		col, .35);
-	var _s = max(1, 2.5 * size);
-	draw_sprite_ext(spr_pixel_1x1, 0, x - _s * .5, y - _s * .5, _s, _s,
-		rot, merge_colour(col, c_white, .45), .95);
+	// spr_pixel_1x1's origin is its TOP-LEFT, so draw_sprite_ext spins
+	// it about that corner: offsetting by half its size centred it at
+	// rot 0 and swung it in a circle at every other angle - the mote
+	// visibly orbiting its own glow. Place the corner by rotating the
+	// half-diagonal instead, and the square spins in place, centred on
+	// (x,y) at any rotation.
+	var _s  = max(1, 2.5 * size);
+	var _hd = _s * .70710678;                    // half the diagonal
+	draw_sprite_ext(spr_pixel_1x1, 0,
+		x - lengthdir_x(_hd, rot - 45), y - lengthdir_y(_hd, rot - 45),
+		_s, _s, rot, merge_colour(col, c_white, .45), .95);
 	exit;
 }
 

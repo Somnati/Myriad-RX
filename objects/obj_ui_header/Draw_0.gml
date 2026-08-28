@@ -20,12 +20,13 @@ if (variable_global_exists("profit")) {
 	// RECOMPUTED FROM SCRATCH, never accumulated: a running total
 	// drifts permanently short the first time a mote is culled by the
 	// population cap.
-	flight = 0;
-	with (obj_bezier_emit)
-		if (amt > 0) obj_ui_header.flight = do_add(obj_ui_header.flight, amt);
-	with (obj_bezier_bit)
-		if (amt > 0) obj_ui_header.flight = do_add(obj_ui_header.flight, amt);
-	
+	// SELF-HEAL: with nothing in the air, nothing can be owed. This
+	// covers a spawn the population cap swallowed, a room with no
+	// spitter in it at all, and leaving the room mid-flight.
+	if (!instance_exists(obj_bezier_bit) && !instance_exists(obj_bezier_emit))
+		g.profit_flight = 0;
+	flight = g.profit_flight;
+
 	var _tgt = (g.profit > flight) ? do_subtract(g.profit, flight) : 0;
 	
 	// DE's RATCHET: do_add and do_subtract round differently either side
