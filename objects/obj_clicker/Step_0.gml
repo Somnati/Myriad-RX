@@ -28,7 +28,8 @@ give_profit(g.click_gps);
 g.total_taps++;
 pop = 1;
 
-float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps), c_gold);
+float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps),
+	g.profit_color);
 play_sound_ext(snd_click, .95, 1.15, .35, 1);
 
 // THE SPIT: bezier profit bits fly from the tap to the counter. The
@@ -43,5 +44,5 @@ if (arb(15) >= g.click_gps) _n = clamp(unarb(g.click_gps), 1, 7);
 // places - one constant, in the framework that draws them
 // the burst CARRIES this tap's profit: the counter holds it back
 // until the motes land (see obj_ui_header's Step)
-bezier_bits(mouse_x, mouse_y, _n, c_gold, undefined, undefined, 0,
+bezier_bits(mouse_x, mouse_y, _n, g.profit_color, undefined, undefined, 0,
 	g.click_gps);

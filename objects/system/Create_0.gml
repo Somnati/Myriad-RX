@@ -41,6 +41,12 @@ g.show_fps   = false; // corner readout, drawn by syst_display Draw GUI
 g.autosave   = true;  // gates syst_handle_save's rotating autosave
 g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
 	// square) / 1 circle / 2 coin / 3 munny (settings > gameplay)
+// THE PROFIT COLOUR - ONE global that everything profit-denominated
+// reads: the counter, the bezier motes, dial payouts, rates, prices.
+// Myriad DE does exactly this (g.profit_color) so the player can
+// recolour their money and have the whole game agree. When the
+// settings row for it lands it needs to change nothing but this value.
+g.profit_color = c_sgreen;
 g.trans_kind = 1;     // room transition: 0 circle wipe / 1 slice wipe
 	// (round 7's showcase; settings > display, latched per flight
 	// by goto_room)

@@ -49,6 +49,8 @@ function handle_settings(_method) {
 	section = "gameplay";
 
 	g.autosave = handle("autosave",g.autosave);
+	// the profit tint persists so a future settings row just works
+	g.profit_color = handle("profit_color", g.profit_color);
 
 	// MYRIAD RX: the "balance" section returns when the DE parity
 	// rebuild lands its balance_init - every knob a rebuilt system

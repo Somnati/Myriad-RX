@@ -58,8 +58,16 @@ for (var _i = 0; _i < (variable_global_exists("dial_total") ? g.dial_total : 13)
 // budget, so a swipe never doubles as a tap) ----
 press_x = -1;
 press_y = -1;
-SWIPE   = 40;
-BUDGET  = 7;
+SWIPE   = 26;   // a flick this far throws the drawer a whole stage
+BUDGET  = 6;    // under this, the press was a tap
+
+// THE DRAWER FOLLOWS THE FINGER. Waiting for release before moving is
+// what made it feel sticky - you pulled and nothing happened until you
+// let go. Past the drag budget it tracks 1:1, and the release just
+// decides which stage to settle into.
+drag_on   = false;
+drag_from = 0;
+DRAG_PX   = 110; // pixels of travel per stage
 
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the

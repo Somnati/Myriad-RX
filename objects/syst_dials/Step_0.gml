@@ -1,12 +1,14 @@
-// ---- the eased slide ----
+// ---- the eased slide (skipped while a finger owns the drawer) ----
 // a new target restarts the clock FROM WHERE IT IS, so reversing
 // mid-slide is smooth rather than a jump back to the start
-if (sp_to != stage) { sp_from = sp; sp_to = stage; sp_t = 0; }
-if (sp_t < 1) {
-	sp_t = min(1, sp_t + (delta / 60) / SP_TIME);
-	var _e = sp_t * sp_t * (3 - 2 * sp_t);   // smoothstep
-	sp = lerp(sp_from, sp_to, _e);
-} else sp = sp_to;                            // exact arrival, no snap
+if (!drag_on) {
+	if (sp_to != stage) { sp_from = sp; sp_to = stage; sp_t = 0; }
+	if (sp_t < 1) {
+		sp_t = min(1, sp_t + (delta / 60) / SP_TIME);
+		var _e = sp_t * sp_t * (3 - 2 * sp_t);   // smoothstep
+		sp = lerp(sp_from, sp_to, _e);
+	} else sp = sp_to;                            // exact arrival, no snap
+}
 
 // republish the face so obj_clicker's tap surface tracks it exactly
 var _dp = clamp(sp, 0, 1);
@@ -24,10 +26,11 @@ for (var _i = 0; _i < _n; _i++) {
 		rd[_i] = row_h * .5 + 2;   // the pop
 
 		// THE SPIT (DE's obj_dial do_spit): a completed cycle throws
-		// profit bits at the counter in the dial's OWN colour, so a
-		// glance tells you which dial just paid. tic -1 = the whole
-		// burst at once, the payout style; the count rides the size of
-		// the payout the way DE's does.
+		// profit motes at the counter. They wear THE PROFIT COLOUR, not
+		// the dial's - every mote in the game is the same money (his
+		// call), and the dot they leave from already says which dial
+		// paid. tic -1 = the whole burst at once, the payout style; the
+		// count rides the size of the payout the way DE's does.
 		var _sx = room_width - dock_w * .5;         // docked: the dot
 		var _sy = row_y1 - _i * 11 + 5;
 		if (sp >= .5) {                              // out: the bar
@@ -37,7 +40,7 @@ for (var _i = 0; _i < _n; _i++) {
 		var _nb = 1;
 		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
-		bezier_bits(_sx, _sy, _nb, dial_color(_i), undefined, undefined, -1,
+		bezier_bits(_sx, _sy, _nb, g.profit_color, undefined, undefined, -1,
 			_d.paid_amt);
 	}
 	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
@@ -50,11 +53,22 @@ if (input_free()) {
 }
 
 // ---- pointer ----
-if (!input_free()) { press_x = -1; exit; }
+if (!input_free()) { press_x = -1; drag_on = false; exit; }
 
 if (mouse_check_button_pressed(mb_left)) {
-	press_x = mouse_x;
-	press_y = mouse_y;
+	press_x   = mouse_x;
+	press_y   = mouse_y;
+	drag_from = sp;
+	drag_on   = false;
+}
+
+// LIVE DRAG: once the press clears the budget the drawer tracks the
+// finger, so the pull has weight in the hand instead of happening
+// after the fact
+if (press_x >= 0 && mouse_check_button(mb_left)) {
+	var _tr = press_x - mouse_x;             // pulling LEFT opens
+	if (!drag_on && abs(_tr) > BUDGET) drag_on = true;
+	if (drag_on) sp = clamp(drag_from + _tr / DRAG_PX, 0, 2);
 }
 
 if (!mouse_check_button_released(mb_left)) exit;
@@ -64,9 +78,21 @@ press_x = -1;
 
 var _dx = mouse_x - _px;
 
-// A SWIPE: left pulls the drawer further out, right walks it back.
-// Room-wide, so it works from the tap surface too - the drawer's own
-// physical direction, like pulling a handle.
+// RELEASING A DRAG: a decisive flick throws it a whole stage from
+// where the drag STARTED; anything gentler settles at the nearest
+// stage to where the finger left it. Either way the ease takes over
+// from the drawer's current position, so nothing jumps.
+if (drag_on) {
+	drag_on = false;
+	if (abs(_dx) >= SWIPE)
+		stage = clamp(drag_from + ((_dx < 0) ? 1 : -1), 0, 2);
+	else
+		stage = clamp(round(sp), 0, 2);
+	sp_from = sp; sp_to = stage; sp_t = 0;
+	exit;                                    // a drag is never a tap
+}
+
+// a flick that never became a drag still throws the drawer
 if (_dx <= -SWIPE) { stage = min(2, stage + 1); exit; }
 if (_dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
 

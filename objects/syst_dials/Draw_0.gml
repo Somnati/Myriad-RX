@@ -79,7 +79,7 @@ for (var _i = 0; _i < _n; _i++) {
 		draw_sprite_ext(spr_dial, 2, _x, _y, 1, 1, 0,
 			merge_colour(c_black, _lc, .12), .9 * _oa);
 		draw_set_halign(fa_center);
-		draw_set_color(_can ? c_gold : merge_colour(_lc, c_black, .35));
+		draw_set_color(_can ? g.profit_color : merge_colour(_lc, c_black, .35));
 		draw_set_alpha((_can ? .95 : .6) * _oa);
 		draw_text(_x + _bw * .5, _y + 2, "purchase " + crunch_arb(_cost));
 		draw_set_halign(fa_left);
@@ -139,7 +139,7 @@ for (var _i = 0; _i < _n; _i++) {
 	// what this cycle has accrued so far, at the bar's right end
 	if (_p > 0) {
 		draw_set_halign(fa_right);
-		draw_set_color(merge_colour(c_gray, _lc, .7));
+		draw_set_color(merge_colour(c_gray, g.profit_color, .7));
 		draw_set_alpha(.85 * _oa);
 		draw_text_transformed(_px + _pw - 2, _py - .5,
 			crunch_arb(do_scale(_d.gpc, _p)), .8, .8, 0);
@@ -152,11 +152,11 @@ for (var _i = 0; _i < _n; _i++) {
 		var _cost = dial_cost(_i, _d.level, _d.level + 1);
 		var _can  = (g.profit >= _cost);
 		var _bx   = _x + _bw + 2;
-		var _bc2  = merge_colour(_can ? c_gold : c_gray, c_black,
+		var _bc2  = merge_colour(_can ? g.profit_color : c_gray, c_black,
 			_can ? .5 : .8);
 		draw_sprite_ext(spr_button_bevel, 0, _bx, _y - 2, 1, 1, 0, _bc2, _bp * _oa);
 		draw_set_halign(fa_center);
-		draw_set_color(_can ? c_gold : c_gray);
+		draw_set_color(_can ? g.profit_color : c_gray);
 		draw_set_alpha((_can ? .95 : .6) * _bp * _oa);
 		draw_text_transformed(_bx + sprite_get_width(spr_button_bevel) * .5,
 			_y + 1, crunch_arb(_cost), .8, .8, 0);
@@ -166,7 +166,7 @@ for (var _i = 0; _i < _n; _i++) {
 
 // the fleet's two headline numbers, under the column
 draw_set_halign(fa_center);
-draw_set_color(c_gold);
+draw_set_color(g.profit_color);
 draw_set_alpha(.85 * _oa);
 draw_text(_ax + row_w * .5, row_y1 + row_p, crunch_arb(g.all_gps) + "/sec");
 draw_set_color(sett_ink);
