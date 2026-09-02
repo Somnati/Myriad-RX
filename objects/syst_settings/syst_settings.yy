@@ -11,8 +11,8 @@
   "name":"syst_settings",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "parentObjectId":null,
   "persistent":false,

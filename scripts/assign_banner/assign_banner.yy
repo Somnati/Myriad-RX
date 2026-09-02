@@ -6,7 +6,7 @@
   "name":"assign_banner",
   "parent":{
     "name":"ui",
-    "path":"folders/Scripts/ui.yy",
+    "path":"folders/engine/ui.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

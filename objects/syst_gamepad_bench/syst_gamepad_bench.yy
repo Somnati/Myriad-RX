@@ -10,8 +10,8 @@
   "name":"syst_gamepad_bench",
   "overriddenProperties":[],
   "parent":{
-    "name":"debug",
-    "path":"folders/Objects/debug.yy",
+    "name":"gamepad",
+    "path":"folders/engine/gamepad.yy",
   },
   "parentObjectId":null,
   "persistent":false,

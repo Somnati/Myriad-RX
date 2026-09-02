@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"set_throwable",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Scripts/SYSTEM.yy",
+    "name":"display",
+    "path":"folders/engine/display.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

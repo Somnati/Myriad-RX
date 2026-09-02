@@ -6,7 +6,7 @@
   "name":"set_profile",
   "parent":{
     "name":"save",
-    "path":"folders/Scripts/save.yy",
+    "path":"folders/engine/save.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -6,7 +6,7 @@
   "name":"input_free",
   "parent":{
     "name":"input",
-    "path":"folders/Scripts/input.yy",
+    "path":"folders/engine/input.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

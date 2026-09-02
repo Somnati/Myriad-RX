@@ -6,7 +6,7 @@
   "name":"services_init",
   "parent":{
     "name":"services",
-    "path":"folders/Scripts/services.yy",
+    "path":"folders/engine/services.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

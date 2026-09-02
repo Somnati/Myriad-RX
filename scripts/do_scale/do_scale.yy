@@ -6,7 +6,7 @@
   "name":"do_scale",
   "parent":{
     "name":"arb",
-    "path":"folders/Scripts/arb.yy",
+    "path":"folders/engine/arb.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -9,8 +9,8 @@
   "name":"syst_input",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"input",
+    "path":"folders/engine/input.yy",
   },
   "parentObjectId":null,
   "persistent":true,

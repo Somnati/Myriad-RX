@@ -10,8 +10,8 @@
   "name":"par_button",
   "overriddenProperties":[],
   "parent":{
-    "name":"buttons",
-    "path":"folders/Objects/ui/buttons.yy",
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
   },
   "parentObjectId":null,
   "persistent":false,

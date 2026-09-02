@@ -10,8 +10,8 @@
   "name":"obj_display_minimize",
   "overriddenProperties":[],
   "parent":{
-    "name":"window buttons",
-    "path":"folders/Objects/window buttons.yy",
+    "name":"display",
+    "path":"folders/engine/display.yy",
   },
   "parentObjectId":{
     "name":"par_toggle_single",

@@ -3,8 +3,8 @@
   "%Name":"sh_fog_dither",
   "name":"sh_fog_dither",
   "parent":{
-    "name":"fx",
-    "path":"folders/Shaders/fx.yy",
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
   },
   "resourceType":"GMShader",
   "resourceVersion":"2.0",

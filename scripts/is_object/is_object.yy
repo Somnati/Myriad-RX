@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"is_object",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Scripts/SYSTEM.yy",
+    "name":"util",
+    "path":"folders/engine/util.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

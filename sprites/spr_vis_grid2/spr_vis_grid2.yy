@@ -28,7 +28,7 @@
   "origin":9,
   "parent":{
     "name":"visualizer",
-    "path":"folders/Sprites/visualizer.yy",
+    "path":"folders/engine/visualizer.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

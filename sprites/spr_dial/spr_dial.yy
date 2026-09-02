@@ -30,8 +30,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"Production",
-    "path":"folders/Sprites/Production.yy",
+    "name":"dials",
+    "path":"folders/game/dials.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

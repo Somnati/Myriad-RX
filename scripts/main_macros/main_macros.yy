@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"main_macros",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Scripts/SYSTEM.yy",
+    "name":"boot",
+    "path":"folders/engine/boot.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

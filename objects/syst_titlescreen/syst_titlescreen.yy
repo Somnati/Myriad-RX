@@ -10,8 +10,8 @@
   "name":"syst_titlescreen",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
   },
   "parentObjectId":null,
   "persistent":false,

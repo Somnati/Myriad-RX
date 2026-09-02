@@ -52,8 +52,8 @@
   "optionsFile":"options.json",
   "packageId":"com.delightlycreative.Clipboard",
   "parent":{
-    "name":"Extensions",
-    "path":"folders/Extensions.yy",
+    "name":"extensions",
+    "path":"folders/extensions.yy",
   },
   "productId":"ACBD3CFF4E539AD869A0E8E3B4B022DD",
   "resourceType":"GMExtension",

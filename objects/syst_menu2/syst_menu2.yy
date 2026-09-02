@@ -10,8 +10,8 @@
   "name":"syst_menu2",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"menu",
+    "path":"folders/engine/menu.yy",
   },
   "parentObjectId":null,
   "persistent":false,

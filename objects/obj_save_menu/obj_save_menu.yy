@@ -11,7 +11,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"save",
-    "path":"folders/Objects/save.yy",
+    "path":"folders/engine/save.yy",
   },
   "parentObjectId":null,
   "persistent":false,

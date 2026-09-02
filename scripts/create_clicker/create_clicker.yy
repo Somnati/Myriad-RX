@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"create_clicker",
   "parent":{
-    "name":"Production",
-    "path":"folders/Scripts/Production.yy",
+    "name":"tap",
+    "path":"folders/game/tap.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

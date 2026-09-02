@@ -27,8 +27,8 @@
   ],
   "name":"rm_services",
   "parent":{
-    "name":"ui",
-    "path":"folders/Rooms/ui.yy",
+    "name":"services",
+    "path":"folders/engine/services.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

@@ -25,8 +25,8 @@
   ],
   "name":"rm_titlescreen",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Rooms/SYSTEM.yy",
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

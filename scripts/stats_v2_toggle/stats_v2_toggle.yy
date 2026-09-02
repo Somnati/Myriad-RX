@@ -6,7 +6,7 @@
   "name":"stats_v2_toggle",
   "parent":{
     "name":"statistics",
-    "path":"folders/Scripts/statistics.yy",
+    "path":"folders/engine/statistics.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

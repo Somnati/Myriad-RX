@@ -6,7 +6,7 @@
   "name":"in_range",
   "parent":{
     "name":"util",
-    "path":"folders/Scripts/util.yy",
+    "path":"folders/engine/util.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

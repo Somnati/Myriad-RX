@@ -32,8 +32,8 @@
   ],
   "name":"rm_settings",
   "parent":{
-    "name":"ui",
-    "path":"folders/Rooms/ui.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

@@ -10,8 +10,8 @@
   "name":"ui_fadein",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
   },
   "parentObjectId":null,
   "persistent":true,

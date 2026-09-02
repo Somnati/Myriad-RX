@@ -46,8 +46,8 @@
   ],
   "name":"rm_gameload",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Rooms/SYSTEM.yy",
+    "name":"boot",
+    "path":"folders/engine/boot.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

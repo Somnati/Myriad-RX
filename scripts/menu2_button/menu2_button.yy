@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"menu2_button",
   "parent":{
-    "name":"ui",
-    "path":"folders/Scripts/ui.yy",
+    "name":"menu",
+    "path":"folders/engine/menu.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

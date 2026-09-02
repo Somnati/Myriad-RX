@@ -6,7 +6,7 @@
   "name":"bignum_visualizer_create",
   "parent":{
     "name":"visualizer",
-    "path":"folders/Scripts/visualizer.yy",
+    "path":"folders/engine/visualizer.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

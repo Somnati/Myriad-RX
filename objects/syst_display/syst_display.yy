@@ -10,8 +10,8 @@
   "name":"syst_display",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"display",
+    "path":"folders/engine/display.yy",
   },
   "parentObjectId":null,
   "persistent":true,

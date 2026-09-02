@@ -27,8 +27,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"fx",
-    "path":"folders/Sprites/fx.yy",
+    "name":"bezier",
+    "path":"folders/engine/bezier.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -11,7 +11,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"visualizer",
-    "path":"folders/Objects/visualizer.yy",
+    "path":"folders/engine/visualizer.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -8,8 +8,8 @@
   "name":"syst_production",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"dials",
+    "path":"folders/game/dials.yy",
   },
   "parentObjectId":null,
   "persistent":true,

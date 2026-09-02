@@ -10,8 +10,8 @@
   "name":"obj_draw_proxy",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
   },
   "parentObjectId":null,
   "persistent":false,

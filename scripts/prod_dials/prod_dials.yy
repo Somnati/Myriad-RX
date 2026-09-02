@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"prod_dials",
   "parent":{
-    "name":"Production",
-    "path":"folders/Scripts/Production.yy",
+    "name":"dials",
+    "path":"folders/game/dials.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

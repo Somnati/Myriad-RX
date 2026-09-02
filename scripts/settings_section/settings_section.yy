@@ -6,7 +6,7 @@
   "name":"settings_section",
   "parent":{
     "name":"settings",
-    "path":"folders/Scripts/settings.yy",
+    "path":"folders/engine/settings.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

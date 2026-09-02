@@ -9,8 +9,8 @@
   "name":"obj_set_radio",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "parentObjectId":{
     "name":"par_toggle_single",

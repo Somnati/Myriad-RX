@@ -11,8 +11,8 @@
   "name":"obj_bezier_bit",
   "overriddenProperties":[],
   "parent":{
-    "name":"game",
-    "path":"folders/Objects/game.yy",
+    "name":"bezier",
+    "path":"folders/engine/bezier.yy",
   },
   "parentObjectId":null,
   "persistent":false,

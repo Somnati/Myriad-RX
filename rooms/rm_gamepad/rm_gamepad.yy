@@ -27,8 +27,8 @@
   ],
   "name":"rm_gamepad",
   "parent":{
-    "name":"debug",
-    "path":"folders/Rooms/debug.yy",
+    "name":"gamepad",
+    "path":"folders/engine/gamepad.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

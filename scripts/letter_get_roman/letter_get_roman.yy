@@ -6,7 +6,7 @@
   "name":"letter_get_roman",
   "parent":{
     "name":"namegen",
-    "path":"folders/Scripts/namegen.yy",
+    "path":"folders/engine/namegen.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -10,8 +10,8 @@
   "name":"par_slider",
   "overriddenProperties":[],
   "parent":{
-    "name":"sliders",
-    "path":"folders/Objects/ui/sliders.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "parentObjectId":null,
   "persistent":false,

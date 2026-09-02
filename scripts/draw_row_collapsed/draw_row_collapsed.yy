@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"draw_row_collapsed",
   "parent":{
-    "name":"draw",
-    "path":"folders/Scripts/draw.yy",
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

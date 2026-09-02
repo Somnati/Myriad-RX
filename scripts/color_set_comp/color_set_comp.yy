@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"color_set_comp",
   "parent":{
-    "name":"colors",
-    "path":"folders/Scripts/colors.yy",
+    "name":"util",
+    "path":"folders/engine/util.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

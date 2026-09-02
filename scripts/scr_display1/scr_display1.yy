@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_display1",
   "parent":{
-    "name":"settings",
-    "path":"folders/Scripts/settings.yy",
+    "name":"display",
+    "path":"folders/engine/display.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

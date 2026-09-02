@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"bezier_bits",
   "parent":{
-    "name":"game",
-    "path":"folders/Scripts/game.yy",
+    "name":"bezier",
+    "path":"folders/engine/bezier.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -9,8 +9,8 @@
   "name":"obj_menu2_bck",
   "overriddenProperties":[],
   "parent":{
-    "name":"buttons",
-    "path":"folders/Objects/ui/buttons.yy",
+    "name":"menu",
+    "path":"folders/engine/menu.yy",
   },
   "parentObjectId":null,
   "persistent":false,

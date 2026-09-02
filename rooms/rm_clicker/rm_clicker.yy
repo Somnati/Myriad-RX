@@ -26,8 +26,8 @@
   ],
   "name":"rm_clicker",
   "parent":{
-    "name":"game",
-    "path":"folders/Rooms/game.yy",
+    "name":"rooms",
+    "path":"folders/game/rooms.yy",
   },
   "parentRoom":null,
   "physicsSettings":{

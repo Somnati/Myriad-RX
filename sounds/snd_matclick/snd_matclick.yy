@@ -14,8 +14,8 @@
   "exportDir":"",
   "name":"snd_matclick",
   "parent":{
-    "name":"ui",
-    "path":"folders/Sounds/ui.yy",
+    "name":"sounds",
+    "path":"folders/sounds.yy",
   },
   "preload":false,
   "resourceType":"GMSound",

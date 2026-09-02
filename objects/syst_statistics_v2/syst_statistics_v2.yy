@@ -11,7 +11,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"statistics",
-    "path":"folders/Objects/statistics.yy",
+    "path":"folders/engine/statistics.yy",
   },
   "parentObjectId":null,
   "persistent":false,

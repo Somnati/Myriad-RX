@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"visualizer",
-    "path":"folders/Sprites/visualizer.yy",
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

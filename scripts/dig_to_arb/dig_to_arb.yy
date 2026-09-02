@@ -6,7 +6,7 @@
   "name":"dig_to_arb",
   "parent":{
     "name":"arb",
-    "path":"folders/Scripts/arb.yy",
+    "path":"folders/engine/arb.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

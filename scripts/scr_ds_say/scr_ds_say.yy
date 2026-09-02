@@ -6,7 +6,7 @@
   "name":"scr_ds_say",
   "parent":{
     "name":"debug",
-    "path":"folders/Scripts/debug.yy",
+    "path":"folders/engine/debug.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

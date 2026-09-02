@@ -10,8 +10,8 @@
   "name":"par_toggle",
   "overriddenProperties":[],
   "parent":{
-    "name":"toggles",
-    "path":"folders/Objects/ui/toggles.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -10,8 +10,8 @@
   "name":"syst_gamepad",
   "overriddenProperties":[],
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Objects/SYSTEM.yy",
+    "name":"gamepad",
+    "path":"folders/engine/gamepad.yy",
   },
   "parentObjectId":null,
   "persistent":true,

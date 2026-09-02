@@ -6,7 +6,7 @@
   "name":"debug_pro_watch",
   "parent":{
     "name":"debug",
-    "path":"folders/Scripts/debug.yy",
+    "path":"folders/engine/debug.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

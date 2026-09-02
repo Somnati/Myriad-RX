@@ -8,8 +8,8 @@
   "name":"obj_set_landscape",
   "overriddenProperties":[],
   "parent":{
-    "name":"ui",
-    "path":"folders/Objects/ui.yy",
+    "name":"display",
+    "path":"folders/engine/display.yy",
   },
   "parentObjectId":null,
   "persistent":false,

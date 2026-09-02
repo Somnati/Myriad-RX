@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"set_pill",
   "parent":{
-    "name":"ui",
-    "path":"folders/Scripts/ui.yy",
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

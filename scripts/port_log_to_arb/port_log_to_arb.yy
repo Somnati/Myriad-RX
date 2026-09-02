@@ -6,7 +6,7 @@
   "name":"port_log_to_arb",
   "parent":{
     "name":"visualizer",
-    "path":"folders/Scripts/visualizer.yy",
+    "path":"folders/engine/visualizer.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

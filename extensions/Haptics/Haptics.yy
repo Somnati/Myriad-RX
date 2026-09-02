@@ -59,8 +59,8 @@
   "optionsFile":"options.json",
   "packageId":"com.gamephase.haptics",
   "parent":{
-    "name":"Extensions",
-    "path":"folders/Extensions.yy",
+    "name":"extensions",
+    "path":"folders/extensions.yy",
   },
   "productId":"",
   "resourceType":"GMExtension",

@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"pad_down",
   "parent":{
-    "name":"input",
-    "path":"folders/Scripts/input.yy",
+    "name":"gamepad",
+    "path":"folders/engine/gamepad.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -11,7 +11,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"debug",
-    "path":"folders/Objects/debug.yy",
+    "path":"folders/engine/debug.yy",
   },
   "parentObjectId":null,
   "persistent":true,

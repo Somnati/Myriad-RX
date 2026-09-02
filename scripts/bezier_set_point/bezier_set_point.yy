@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"bezier_set_point",
   "parent":{
-    "name":"Production",
-    "path":"folders/Scripts/Production.yy",
+    "name":"bezier",
+    "path":"folders/engine/bezier.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

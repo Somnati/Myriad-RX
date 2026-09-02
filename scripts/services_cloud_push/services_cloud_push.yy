@@ -6,7 +6,7 @@
   "name":"services_cloud_push",
   "parent":{
     "name":"services",
-    "path":"folders/Scripts/services.yy",
+    "path":"folders/engine/services.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

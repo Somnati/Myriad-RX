@@ -9,8 +9,8 @@
   "name":"obj_clicker",
   "overriddenProperties":[],
   "parent":{
-    "name":"Production",
-    "path":"folders/Objects/Production.yy",
+    "name":"tap",
+    "path":"folders/game/tap.yy",
   },
   "parentObjectId":null,
   "persistent":true,

@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"fx",
-    "path":"folders/Sprites/fx.yy",
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

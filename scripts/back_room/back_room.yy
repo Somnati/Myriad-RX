@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"back_room",
   "parent":{
-    "name":"SYSTEM",
-    "path":"folders/Scripts/SYSTEM.yy",
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",
