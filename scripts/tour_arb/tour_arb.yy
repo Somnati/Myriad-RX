@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_arb",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_arb",
+  "parent":{
+    "name":"arb",
+    "path":"folders/engine/arb.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

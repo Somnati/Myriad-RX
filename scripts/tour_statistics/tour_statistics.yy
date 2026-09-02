@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_statistics",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_statistics",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/engine/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

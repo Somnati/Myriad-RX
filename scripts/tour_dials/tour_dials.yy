@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_dials",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_dials",
+  "parent":{
+    "name":"dials",
+    "path":"folders/game/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

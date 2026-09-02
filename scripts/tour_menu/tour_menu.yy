@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_menu",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_menu",
+  "parent":{
+    "name":"menu",
+    "path":"folders/engine/menu.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

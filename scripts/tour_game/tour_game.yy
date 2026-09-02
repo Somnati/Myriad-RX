@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_game",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_game",
+  "parent":{
+    "name":"game",
+    "path":"folders/game.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

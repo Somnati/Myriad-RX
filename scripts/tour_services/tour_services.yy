@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_services",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_services",
+  "parent":{
+    "name":"services",
+    "path":"folders/engine/services.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

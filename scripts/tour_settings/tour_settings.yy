@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_settings",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_settings",
+  "parent":{
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

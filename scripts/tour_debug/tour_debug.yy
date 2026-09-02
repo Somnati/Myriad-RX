@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_debug",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_debug",
+  "parent":{
+    "name":"debug",
+    "path":"folders/engine/debug.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

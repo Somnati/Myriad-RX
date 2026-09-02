@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_boot",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_boot",
+  "parent":{
+    "name":"boot",
+    "path":"folders/engine/boot.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

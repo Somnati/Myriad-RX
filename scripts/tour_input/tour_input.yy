@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_input",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_input",
+  "parent":{
+    "name":"input",
+    "path":"folders/engine/input.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

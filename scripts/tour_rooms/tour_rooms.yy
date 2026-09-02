@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_rooms",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_rooms",
+  "parent":{
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

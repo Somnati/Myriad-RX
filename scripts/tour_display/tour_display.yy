@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_display",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_display",
+  "parent":{
+    "name":"display",
+    "path":"folders/engine/display.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

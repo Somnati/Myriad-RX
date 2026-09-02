@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_namegen",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_namegen",
+  "parent":{
+    "name":"namegen",
+    "path":"folders/engine/namegen.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

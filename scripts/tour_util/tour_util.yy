@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_util",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_util",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

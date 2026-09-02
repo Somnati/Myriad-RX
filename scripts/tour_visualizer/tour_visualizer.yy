@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_visualizer",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_visualizer",
+  "parent":{
+    "name":"visualizer",
+    "path":"folders/engine/visualizer.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

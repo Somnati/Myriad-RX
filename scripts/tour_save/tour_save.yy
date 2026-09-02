@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_save",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_save",
+  "parent":{
+    "name":"save",
+    "path":"folders/engine/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

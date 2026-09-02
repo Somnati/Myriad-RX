@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_tap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_tap",
+  "parent":{
+    "name":"tap",
+    "path":"folders/game/tap.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
