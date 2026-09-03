@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_rebirth",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_rebirth",
+  "parent":{
+    "name":"rebirth",
+    "path":"folders/game/rebirth.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

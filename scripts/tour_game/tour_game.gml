@@ -10,8 +10,9 @@
 //   dials/   the thirteen dials a..m, their economy, the drawer
 //   tap/     the tap and the one place profit is earned
 //   offline/ the away-time calculator (one call to prod_dials)
+//   rebirth/ units for profit held, +100% dial output each
 //   rooms/   rm_clicker, DE's money room (144x296 portrait)
-// Read tour_dials, tour_tap and tour_offline.
+// Read tour_dials, tour_tap, tour_offline and tour_rebirth.
 
 // ========================== THE LOOP ================================
 //   setgame            create_dials() builds g.dial[] and the tap's
@@ -28,9 +29,9 @@
 //                      update_dials (THE resync).
 
 // ========================= WHAT IS MISSING ==========================
-// DE's multiplier layers - upgrades, milestones, crit, abilities,
-// rebirth, offline, gear, refinery, tiles, chests, credits, goals,
-// daily gift, tutorial, autobuy. Each lands as its own game/ folder
+// DE's remaining layers - upgrades, milestones, crit, abilities,
+// gear, refinery, tiles, chests, credits, goals, daily gift,
+// tutorial, autobuy. Each lands as its own game/ folder
 // with its own tour_* page. Until they do, pacing is DE's base curve
 // alone: slow by design, not a bug.
 

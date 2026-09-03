@@ -17,6 +17,7 @@ function scr_escape() {
 	if (instance_exists(syst_roomtrans) && syst_roomtrans.switch_rooms) return;
 	// local consumers (they close/exit themselves this frame)
 	if (instance_exists(obj_ui_menu2) && obj_ui_menu2.open) return;
+	if (instance_exists(syst_rebirth) && syst_rebirth.open) return;
 	if (instance_exists(obj_debug_pro) && obj_debug_pro.edit_index >= 0) return;
 	if (instance_exists(syst_statistics_v2) && syst_statistics_v2.search_on) return;
 	// popups/modals (pillbox, confirm, dialogue, the offline card):

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"rebirth_do",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"rebirth_do",
+  "parent":{
+    "name":"rebirth",
+    "path":"folders/game/rebirth.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

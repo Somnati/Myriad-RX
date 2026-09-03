@@ -30,6 +30,18 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- rebirth ----
+	if (variable_global_exists("rebirth"))
+	if (stats_v2_folder("rebirth", c_hred)) {
+		stats_v2_line("units", (g.rebirth.units >= arb(1)) ? crunch_arb(g.rebirth.units) : "0");
+		stats_v2_line("total rebirths", string(g.rebirth.total));
+		stats_v2_line("unit boost", "x" + crunch_arb(rebirth_boost()));
+		var _c = rebirth_calc();
+		stats_v2_line("next rebirth", _c.can ? "+" + crunch_arb(_c.units) + " units"
+			: "need " + crunch_arb(_c.lack));
+	}
+	stats_v2_folder_end();
+
 	// ---- options: LIVE toggles + cycles (data-driven - each row
 	// flips or advances the global it names) ----
 	if (stats_v2_folder("options", c_steelblue)) {

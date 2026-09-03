@@ -41,6 +41,8 @@
 	// data only (g.dial structs + the clicker's globals); syst_production
 	// ticks it, syst_dials is just a view. create_dials ends by deriving
 	// everything, so the first frame is already correct.
+	rebirth_init(); // the meta layer, before the dials derive from it
+	rebirth_init(); // the meta layer, before the dials derive from it
 	create_dials();
 
 	// THE BUY MODE (Myriad DE's g.buy_lv): 1 / 10 / 100 / 1000 / "max"

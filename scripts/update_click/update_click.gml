@@ -19,6 +19,11 @@ function update_click() {
 	if (!variable_global_exists("all_level")) { g.all_level = 0; g.all_gps = 0; }
 
 	g.click_gps      = arb(1 + g.all_level);
+	// DE's tap absorbs the rebirth units directly (click_gps += units)
+	// rather than taking the dial boost - its boost line is commented
+	// out in update_clicker, and this one is live
+	rebirth_init();
+	if (g.rebirth.units >= arb(1)) g.click_gps = do_add(g.click_gps, g.rebirth.units);
 	g.tapsyphon_pull = 0;
 
 	if (g.tapsyphon > 0 && g.all_gps > 2)

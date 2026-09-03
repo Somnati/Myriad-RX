@@ -35,5 +35,12 @@ function update_dial(_i) {
 	// the level ramp, then the two payout readings
 	var _md = clamp(_d.level / 50, .1, 1);
 	_d.gpc = do_ceil(do_scale(_d.b_gps, max(1, _cfg.cycle * _md)));
+
+	// THE REBIRTH BOOST (DE's update_auto: give x total_rebirth_boost) -
+	// 1 + units, on the per-cycle pay, dials only (the tap takes the
+	// units flat instead, see update_click)
+	var _rb = rebirth_boost();
+	if (_rb > arb(1)) _d.gpc = do_multi(_d.gpc, _rb);
+
 	_d.gps = do_scale(_d.gpc, _d.cps);
 }

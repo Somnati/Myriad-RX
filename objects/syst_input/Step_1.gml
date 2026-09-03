@@ -15,8 +15,10 @@ if (instance_exists(obj_ui_menu2) && obj_ui_menu2.open)
 if (instance_exists(obj_dialogue) && obj_dialogue.dialogue_active
 && !obj_dialogue.passive) // passive barks never block (round 19)
 	g.input_block = ui_layer_modal;
-// (MYRIAD RX: rebuilt DE systems that own the room - offline card,
-// rebirth overlay - add their blocker line back here as they land)
+if (instance_exists(syst_rebirth) && syst_rebirth.open)
+	g.input_block = ui_layer_modal; // the rebirth overlay owns the room
+// (MYRIAD RX: rebuilt DE systems that own the room add their blocker
+// line here as they land)
 
 // ---- pointer owner: topmost eligible clickable under the cursor ----
 // eligible = visible, and its ui_layer (default 0) clears the block.
@@ -28,7 +30,7 @@ var _best = infinity;
 // every family whose members call mouse_over(). a new clickable family
 // is one entry here; par_* children are swept through their parent
 var _fams = [par_button, par_toggle, par_toggle_single, par_slider,
-             obj_scrollbar, obj_deb_menu, obj_pillbox];
+             obj_scrollbar, obj_deb_menu, obj_pillbox, syst_rebirth];
 
 for (var _i = 0; _i < array_length(_fams); _i++) {
 	with (_fams[_i]) {
