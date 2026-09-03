@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"milestone_next",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"milestone_next",
+  "parent":{
+    "name":"milestones",
+    "path":"folders/game/milestones.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -11,6 +11,7 @@
 //   tap/     the tap and the one place profit is earned
 //   offline/ the away-time calculator (one call to prod_dials)
 //   rebirth/ units for profit held, +100% dial output each
+//   milestones/ level rungs (25/50/75/100) that cost more and pay for good
 //   rooms/   rm_clicker, DE's money room (144x296 portrait)
 // Read tour_dials, tour_tap, tour_offline and tour_rebirth.
 
@@ -29,7 +30,7 @@
 //                      update_dials (THE resync).
 
 // ========================= WHAT IS MISSING ==========================
-// DE's remaining layers - upgrades, milestones, crit, abilities,
+// DE's remaining layers - upgrades, crit, abilities,
 // gear, refinery, tiles, chests, credits, goals, daily gift,
 // tutorial, autobuy. Each lands as its own game/ folder
 // with its own tour_* page. Until they do, pacing is DE's base curve

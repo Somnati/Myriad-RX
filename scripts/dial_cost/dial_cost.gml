@@ -9,7 +9,14 @@
 /// BY DESIGN: levelling one dial always decays, and the way forward is
 /// the next dial up the tier ladder. Never "fix" this asymmetry.
 /// Dial a's very first level is the fixed opening price of 100.
-function dial_cost(_tier, _from, _to) {
+/// THE MILESTONE PREMIUM (his spec, 2026-09-02 - DE never managed it,
+/// its milestone levels sold at vanilla price): every rung inside the
+/// range adds (g.milestone_cost_mult - 1) x that level's own price,
+/// so the level that crosses a rung costs cost_mult times normal and
+/// a bulk buy that rolls through one pays the premium in its quote.
+/// raw = true is the price WITHOUT premiums - the premium calls it
+/// for the single level's base, nothing else should.
+function dial_cost(_tier, _from, _to, _raw = false) {
 	if (_to <= _from) return 0;
 
 	var _lvdiv = dial_lvdiv(_tier);
@@ -39,6 +46,19 @@ function dial_cost(_tier, _from, _to) {
 	// the opening price: dial a's first level is always 100 (DE's own
 	// special case - the bootstrap the first taps are paying toward)
 	if (_from <= 0 && _tier == 0) _cost = arb(100);
+
+	// the milestone premium, rung by rung inside (from, to]
+	if (!_raw && variable_global_exists("milestones") && g.milestone_cost_mult > 1) {
+		var _ms = g.milestones;
+		for (var _k = 0; _k < array_length(_ms); _k++) {
+			var _m = _ms[_k].level;
+			if (_m > _from && _m <= _to) {
+				var _one = dial_cost(_tier, _m - 1, _m, true);
+				if (_one >= arb(1))
+					_cost = do_add(_cost, do_scale(_one, g.milestone_cost_mult - 1));
+			}
+		}
+	}
 
 	return do_ceil(_cost);
 }

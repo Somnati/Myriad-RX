@@ -10,10 +10,8 @@
 /// clean +10 / +100. That is the whole feel of the button.
 ///     des = floor((level + N) / N) * N
 ///
-/// "next" = up to the NEXT MILESTONE level (DE: p_ms_req). Until the
-/// milestone system lands it falls back to the x100 rule, as DE does
-/// when a dial has no further milestone (p_ms_level = -1).
-/// >>> MILESTONES: replace the fallback with the ladder's next level.
+/// "next" = up to the NEXT MILESTONE level (DE: p_ms_req), the x100
+/// rule past the top of the ladder (DE's own fallback).
 ///
 /// "max" = the largest target the pile can pay for. DE walked it in a
 /// ladder over several frames (get_buy_max); RX finds the edge in one
@@ -31,8 +29,10 @@ function buy_resolve(_i, _from, _mode) {
 		_to = (_n == 1) ? _from + 1 : (floor((_from + _n) / _n) * _n);
 	}
 	else if (_mode == "next") {
-		// >>> MILESTONES: _to = dial_milestone_next(_i, _from) when it exists
-		_to = floor((_from + 100) / 100) * 100;
+		// up to the next milestone rung; past the top of the ladder DE
+		// falls back to the x100 rule, and so does this
+		var _nx = milestone_next(_from);
+		_to = (_nx > _from) ? _nx : floor((_from + 100) / 100) * 100;
 	}
 	else if (_mode == "max") {
 		if (!(g.profit >= dial_cost(_i, _from, _from + 1))) return _from + 1;

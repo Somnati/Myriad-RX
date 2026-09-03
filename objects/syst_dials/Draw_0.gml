@@ -165,11 +165,14 @@ for (var _i = 0; _i < _n; _i++) {
 		var _cost = _q.cost;
 		var _can  = _q.ok;
 		var _bx   = _x + _bw + 2;
-		var _bc2  = merge_colour(_can ? g.profit_color : c_gray, c_black,
+		// DE's signal: a buy that REACHES the next milestone wears green
+		var _nx   = milestone_next(_d.level);
+		var _tint = (_can && _nx > 0 && _q.to >= _nx) ? c_sgreen : g.profit_color;
+		var _bc2  = merge_colour(_can ? _tint : c_gray, c_black,
 			_can ? .5 : .8);
 		draw_sprite_ext(spr_button_bevel, 0, _bx, _y - 2, 1, 1, 0, _bc2, _bp * _oa);
 		draw_set_halign(fa_center);
-		draw_set_color(_can ? g.profit_color : c_gray);
+		draw_set_color(_can ? _tint : c_gray);
 		draw_set_alpha((_can ? .95 : .6) * _bp * _oa);
 		draw_text_transformed(_bx + sprite_get_width(spr_button_bevel) * .5,
 			_y + 1, crunch_arb(_cost), .8, .8, 0);

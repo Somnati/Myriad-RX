@@ -77,8 +77,8 @@ DRAG_PX   = 110; // pixels of travel per stage
 // ---- THE BUY MODE BUTTON (Myriad DE's obj_ui_buylv, "buy bulk") ----
 // lives at the top of the buy stage, above the highest possible row
 // (thirteen rows stack up from 256 to 64; this sits at 20). Tap cycles
-// g.buy_lv through DE's order x1 -> x10 -> x100 -> x1000 -> max -> x1
-// ("next" rejoins when milestones land). DE's own gate, kept: the
+// g.buy_lv through DE's order x1 -> x10 -> x100 -> x1000 -> next ->
+// max -> x1 ("next" = up to the next milestone rung). DE's own gate, kept: the
 // button stays hidden until 3 million lifetime profit, so the early
 // game is one dial, one level, one tap.
 mb_y = 20;
@@ -99,7 +99,7 @@ __mode_color = function() {                  // DE's tints per mode
 	return c_white;
 };
 __mode_cycle = function() {
-	var _seq = [1, 10, 100, 1000, "max"];     // >>> MILESTONES: add "next" before "max"
+	var _seq = [1, 10, 100, 1000, "next", "max"];   // DE's order
 	var _ix = 0;
 	for (var _k = 0; _k < array_length(_seq); _k++)
 		if (g.buy_lv == _seq[_k]) _ix = _k;

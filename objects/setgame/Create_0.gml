@@ -42,6 +42,22 @@
 	// ticks it, syst_dials is just a view. create_dials ends by deriving
 	// everything, so the first frame is already correct.
 	rebirth_init(); // the meta layer, before the dials derive from it
+	// ---- DIAL MILESTONES (his spec, 2026-09-02) - THE TABLE, edit here ----
+	// A dial that reaches a rung's level earns its bonus for good:
+	// "speed" = its cycle runs mult times faster, "profit" = every
+	// cycle pays mult times more. Bonuses derive from the level
+	// (milestone_get), so nothing here is saved.
+	// THE PREMIUM: the one level that crosses a rung costs
+	// milestone_cost_mult times its normal price (level 24 -> 25 at
+	// ten times what dial_cost would otherwise charge for it).
+	g.milestone_cost_mult = 10;
+	g.milestones = [
+		{ level : 25,  kind : "speed",  mult : 2 },
+		{ level : 50,  kind : "profit", mult : 2 },
+		{ level : 75,  kind : "profit", mult : 2 },
+		{ level : 100, kind : "speed",  mult : 2 },
+	];
+
 	rebirth_init(); // the meta layer, before the dials derive from it
 	create_dials();
 

@@ -15,7 +15,19 @@ function dial_buy(_i, _n = 1) {
 	if (!(g.profit >= _cost)) return false;
 
 	g.profit  = do_subtract(g.profit, _cost);
+	var _was = milestone_get(_i, _d.level);
 	_d.level += _n;
+
+	// a rung crossed by this buy: say so (DE's "speed up" / "profit up"
+	// banner), in the dial's own colour
+	var _now = milestone_get(_i, _d.level);
+	for (var _k = 0; _k < array_length(_now.earned); _k++)
+		if (_now.earned[_k] && !_was.earned[_k]) {
+			var _m = g.milestones[_k];
+			assign_banner("dial " + dial_config(_i).name + " " + _m.kind
+				+ " x" + string(_m.mult), dial_color(_i), c_black);
+			play_sound_ext(snd_pop, .7, .9, .6, 1);
+		}
 
 	// a dial that just woke starts its first cycle with DE's autoeff
 	// head start rather than from cold

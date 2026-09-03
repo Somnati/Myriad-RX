@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_milestones",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_milestones",
+  "parent":{
+    "name":"milestones",
+    "path":"folders/game/milestones.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

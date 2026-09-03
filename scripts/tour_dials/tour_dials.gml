@@ -27,8 +27,9 @@
 //   dial_lvdiv(tier)   the tier's level HEAD START (dial m is born
 //                    ~1080 levels along). This is where depth lives.
 //   update_dial(i)   re-derive one dial: base -> level ramp (full
-//                    strength at 50) -> timer stretched by autoeff ->
-//                    gpc and gps. Per-second output is nearly
+//                    strength at 50) -> timer stretched by autoeff and
+//                    divided by speed milestones -> gpc (x profit
+//                    milestones, x the rebirth boost) and gps. Per-second output is nearly
 //                    independent of cycle length: length is PACING.
 //   update_dials()   all of them, then the fleet totals, then
 //                    update_click. THE resync - every load and buy

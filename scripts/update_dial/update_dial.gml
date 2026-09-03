@@ -28,13 +28,22 @@ function update_dial(_i) {
 		return;
 	}
 
-	// the timer chain (autoeff comes from the config - one source)
-	_d.cycle_t = _cfg.cycle * (1 + _cfg.autoeff);
+	// the milestones this level has earned (derived, never stored)
+	var _ms = milestone_get(_i, _d.level);
+
+	// the timer chain (autoeff comes from the config - one source);
+	// a SPEED milestone divides the stretched cycle (DE's seat:
+	// timer_ /= p_ms_speed)
+	_d.cycle_t = _cfg.cycle * (1 + _cfg.autoeff) / max(1, _ms.speed);
 	_d.cps     = 1 / _d.cycle_t;
 
 	// the level ramp, then the two payout readings
 	var _md = clamp(_d.level / 50, .1, 1);
 	_d.gpc = do_ceil(do_scale(_d.b_gps, max(1, _cfg.cycle * _md)));
+
+	// a PROFIT milestone multiplies the per-cycle pay (DE's seat:
+	// give x p_ms_profit)
+	if (_ms.profit > 1) _d.gpc = do_scale(_d.gpc, _ms.profit);
 
 	// THE REBIRTH BOOST (DE's update_auto: give x total_rebirth_boost) -
 	// 1 + units, on the per-cycle pay, dials only (the tap takes the

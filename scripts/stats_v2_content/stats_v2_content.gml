@@ -42,6 +42,33 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- milestones: THE DEBUG LIST (his ask) - every dial's rungs,
+	// earned or locked, the live totals, the next rung's premium ----
+	if (variable_global_exists("milestones") && variable_global_exists("dial"))
+	if (stats_v2_folder("milestones", c_aqua)) {
+		stats_v2_line("premium", "x" + string(g.milestone_cost_mult) + " the crossing level");
+		for (var _i = 0; _i < g.dial_total; _i++) {
+			var _d  = g.dial[_i];
+			var _ms = milestone_get(_i, _d.level);
+			var _hd = "dial " + dial_config(_i).name + "  lv " + string(_d.level);
+			if (stats_v2_folder(_hd, dial_color(_i))) {
+				stats_v2_line("speed", "x" + string(_ms.speed), -1, (_ms.speed > 1) ? c_sgreen : c_gray);
+				stats_v2_line("profit", "x" + string(_ms.profit), -1, (_ms.profit > 1) ? c_sgreen : c_gray);
+				for (var _k = 0; _k < array_length(g.milestones); _k++) {
+					var _m = g.milestones[_k];
+					stats_v2_line("lv " + string(_m.level) + " " + _m.kind + " x" + string(_m.mult),
+						_ms.earned[_k] ? "earned" : "locked", -1,
+						_ms.earned[_k] ? c_sgreen : c_gray);
+				}
+				if (_ms.next > 0 && _d.level > 0)
+					stats_v2_line("next rung cost",
+						crunch_arb(dial_cost(_i, _ms.next - 1, _ms.next)), -1, c_gold);
+			}
+			stats_v2_folder_end();
+		}
+	}
+	stats_v2_folder_end();
+
 	// ---- options: LIVE toggles + cycles (data-driven - each row
 	// flips or advances the global it names) ----
 	if (stats_v2_folder("options", c_steelblue)) {
