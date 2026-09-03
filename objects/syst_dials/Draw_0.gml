@@ -103,6 +103,15 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_text(_x + 15, _y + 2, "lv");
 	draw_set_color(_lc);
 	draw_text(_x + 24, _y + 2, string(_d.level));
+	// the buy stage says how many levels the live mode buys: "+3"
+	// beside the level (the techdemo's convention, kept)
+	if (_bp > .02 && _i < array_length(quote) && !is_undefined(quote[_i]))
+	if (quote[_i].n > 0) {
+		draw_set_color(quote[_i].ok ? c_sgreen : merge_colour(c_sgreen, c_black, .5));
+		draw_set_alpha(_bp * _oa);
+		draw_text(_x + 24 + string_width(string(_d.level)) + 2, _y + 2,
+			"+" + string(quote[_i].n));
+	}
 
 	// ---- the progress bar ----
 	var _pw = _bw - 39 - _ec - 1;                  // fills to the endcap
@@ -149,8 +158,12 @@ for (var _i = 0; _i < _n; _i++) {
 
 	// ---- STAGE 2: DE's buy button, right of the narrowed bar ----
 	if (_bp > .02) {
-		var _cost = dial_cost(_i, _d.level, _d.level + 1);
-		var _can  = (g.profit >= _cost);
+		// the price of the LIVE MODE's buy, from the quote cache (a
+		// row without a quote yet prices itself once)
+		var _q = (_i < array_length(quote)) ? quote[_i] : undefined;
+		if (is_undefined(_q)) _q = dial_buy_ext(_i, g.buy_lv, false);
+		var _cost = _q.cost;
+		var _can  = _q.ok;
 		var _bx   = _x + _bw + 2;
 		var _bc2  = merge_colour(_can ? g.profit_color : c_gray, c_black,
 			_can ? .5 : .8);
@@ -162,6 +175,19 @@ for (var _i = 0; _i < _n; _i++) {
 			_y + 1, crunch_arb(_cost), .8, .8, 0);
 		draw_set_halign(fa_left);
 	}
+}
+
+// ---- the buy-mode button (DE's "buy bulk"), top of the buy stage ----
+if (_bp > .02 && __mode_gate()) {
+	var _mc = __mode_color();
+	var _mx = _ax + 2;
+	draw_sprite_ext(spr_button_bevel, 0, _mx, mb_y, 1, 1, 0,
+		merge_colour(_mc, c_black, .6), _bp * _oa);
+	draw_set_halign(fa_center);
+	draw_set_color(_mc);
+	draw_set_alpha(.95 * _bp * _oa);
+	draw_text_transformed(_mx + mb_w * .5, mb_y + 3, "buy " + __mode_label(), .8, .8, 0);
+	draw_set_halign(fa_left);
 }
 
 // the fleet's two headline numbers, under the column

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dial_buy_ext",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dial_buy_ext",
+  "parent":{
+    "name":"dials",
+    "path":"folders/game/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

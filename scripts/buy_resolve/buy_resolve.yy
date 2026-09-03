@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"buy_resolve",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"buy_resolve",
+  "parent":{
+    "name":"dials",
+    "path":"folders/game/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

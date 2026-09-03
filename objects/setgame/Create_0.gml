@@ -43,6 +43,11 @@
 	// everything, so the first frame is already correct.
 	create_dials();
 
+	// THE BUY MODE (Myriad DE's g.buy_lv): 1 / 10 / 100 / 1000 / "max"
+	// ("next" joins when milestones land). Session-only in DE too - it
+	// is never saved, a fresh boot is x1
+	g.buy_lv = 1;
+
 // ---- run gating (title screen, 2026-07-07): nothing plays until
 // continue / new game flips this. the header menu checks it ----
 g.game_started = false;

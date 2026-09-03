@@ -44,6 +44,14 @@
 //   dial_buy(i, [n]) THE one place a dial gains levels: quote, spend,
 //                    resync, mark dirty. Level 0 is dormant; the first
 //                    level is the purchase.
+//   buy_resolve(i, from, mode)   THE BUY-MODE LADDER (DE's law): x10 /
+//                    x100 / x1000 buy UP TO THE NEXT ROUND LEVEL (level
+//                    37, x10 -> 40), "max" is the largest affordable
+//                    target snapped down to a round level, "next" will
+//                    be the next milestone. g.buy_lv holds the live
+//                    mode, session-only like DE's.
+//   dial_buy_ext(i, mode, [commit])   quote {ok, n, to, cost} for a
+//                    mode, or commit it through dial_buy.
 
 // ========================== THE VIEW ================================
 //   syst_dials       THE DRAWER in rm_clicker, DE's obj_dial look
@@ -56,7 +64,10 @@
 //                    countdown centred and the accruing take at its
 //                    end; "..." during the wind-up; the docked dot is
 //                    DE's two filled circles whose radius IS the
-//                    progress. Answers obj_clicker's __consumes(x, y)
+//                    progress. The buy stage carries DE's "buy bulk"
+//                    mode button at the top (hidden until 3m lifetime
+//                    profit, DE's gate) and a "+N" beside each level
+//                    saying how many levels the mode buys. Answers obj_clicker's __consumes(x, y)
 //                    so a press on a bar or button is a UI action while
 //                    the dimmed space beside them still pays a tap.
 //   spr_dial, spr_dial_endcaps, spr_dial_name (a-z glyphs),

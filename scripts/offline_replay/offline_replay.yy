@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"offline_replay",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"offline_replay",
+  "parent":{
+    "name":"offline",
+    "path":"folders/game/offline.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

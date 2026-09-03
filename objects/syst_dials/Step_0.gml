@@ -53,6 +53,15 @@ for (var _i = 0; _i < _n; _i++) {
 	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
 }
 
+// ---- the buy quotes (slow tick, and at once when the mode changes) ----
+qtic -= delta;
+if (sp > .9 && (qtic <= 0 || qmode != g.buy_lv)) {
+	qtic  = 6;
+	qmode = g.buy_lv;
+	for (var _i = 0; _i < _n; _i++)
+		quote[_i] = (g.dial[_i].level > 0) ? dial_buy_ext(_i, g.buy_lv, false) : undefined;
+}
+
 // ---- keys: D walks the drawer out, A walks it back ----
 if (input_free()) {
 	if (keyboard_check_pressed(ord("D"))) stage = min(2, stage + 1);
@@ -118,6 +127,15 @@ if (sp < .5) {
 // a tap left of the drawer face puts it away
 if (_px < face) { stage = 0; exit; }
 
+// ---- the buy-mode button (stage 2, past DE's 3m gate) ----
+if (stage >= 2 && __mode_gate())
+if (point_in_rectangle(_px, _py, face + 2, mb_y, face + 2 + mb_w, mb_y + mb_h)) {
+	__mode_cycle();
+	qtic = 0;                               // requote every row now
+	play_sound_ext(snd_softclick, .9, 1.1, .4, 1);
+	exit;
+}
+
 // ---- a tap on a row ----
 var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
 for (var _i = 0; _i < _n; _i++) {
@@ -128,8 +146,12 @@ for (var _i = 0; _i < _n; _i++) {
 	// STAGE 2: the buy button to the right of the narrowed bar
 	if (stage >= 2 && _d.level > 0) {
 		if (_px >= face + _bw + 2) {
-			if (dial_buy(_i, 1)) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
-			else                 play_sound_ext(snd_matclick, .6, .75, .35, 1);
+			// the buy in the LIVE MODE (x1 buys one; x10 buys up to the
+			// next ten; max buys the pile's worth) - see buy_resolve
+			var _q = dial_buy_ext(_i, g.buy_lv, true);
+			qtic = 0;                           // requote after a buy
+			if (_q.ok) play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
+			else       play_sound_ext(snd_matclick, .6, .75, .35, 1);
 		}
 		break;
 	}

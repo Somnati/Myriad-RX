@@ -37,3 +37,7 @@ if (_best > 0) {
 // save_mark_dirty()
 autosave_delay = 60000; // ms, 1 minute
 autosave_next  = current_time + autosave_delay;
+
+// the absence watcher (game/offline): persistent, spawned here so it
+// exists from boot in every room without a room placement
+if (!instance_exists(syst_offline)) create_obj(0, 0, syst_offline);

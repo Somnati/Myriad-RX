@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_offline",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_offline",
+  "parent":{
+    "name":"offline",
+    "path":"folders/game/offline.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

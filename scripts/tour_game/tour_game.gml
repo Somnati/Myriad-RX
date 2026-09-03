@@ -9,8 +9,9 @@
 // ========================== WHAT EXISTS =============================
 //   dials/   the thirteen dials a..m, their economy, the drawer
 //   tap/     the tap and the one place profit is earned
+//   offline/ the away-time calculator (one call to prod_dials)
 //   rooms/   rm_clicker, DE's money room (144x296 portrait)
-// Read tour_dials and tour_tap.
+// Read tour_dials, tour_tap and tour_offline.
 
 // ========================== THE LOOP ================================
 //   setgame            create_dials() builds g.dial[] and the tap's

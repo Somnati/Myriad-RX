@@ -74,6 +74,45 @@ drag_on   = false;
 drag_from = 0;
 DRAG_PX   = 110; // pixels of travel per stage
 
+// ---- THE BUY MODE BUTTON (Myriad DE's obj_ui_buylv, "buy bulk") ----
+// lives at the top of the buy stage, above the highest possible row
+// (thirteen rows stack up from 256 to 64; this sits at 20). Tap cycles
+// g.buy_lv through DE's order x1 -> x10 -> x100 -> x1000 -> max -> x1
+// ("next" rejoins when milestones land). DE's own gate, kept: the
+// button stays hidden until 3 million lifetime profit, so the early
+// game is one dial, one level, one tap.
+mb_y = 20;
+mb_w = sprite_get_width(spr_button_bevel);   // 43, the buy buttons' width
+mb_h = sprite_get_height(spr_button_bevel);  // 15
+__mode_gate  = function() { return (g.total_profit >= arb(3000000)); };
+__mode_label = function() {
+	if (g.buy_lv == "max")  return "max";
+	if (g.buy_lv == "next") return "next";
+	return "x" + string(g.buy_lv);
+};
+__mode_color = function() {                  // DE's tints per mode
+	if (g.buy_lv == 10)     return c_rarity_uncommon;
+	if (g.buy_lv == 100)    return c_rarity_rare;
+	if (g.buy_lv == 1000)   return c_rarity_epic;
+	if (g.buy_lv == "next") return c_sgreen;
+	if (g.buy_lv == "max")  return c_gold;
+	return c_white;
+};
+__mode_cycle = function() {
+	var _seq = [1, 10, 100, 1000, "max"];     // >>> MILESTONES: add "next" before "max"
+	var _ix = 0;
+	for (var _k = 0; _k < array_length(_seq); _k++)
+		if (g.buy_lv == _seq[_k]) _ix = _k;
+	g.buy_lv = _seq[(_ix + 1) mod array_length(_seq)];
+};
+
+// THE QUOTE CACHE: what the current mode would buy per row, as
+// dial_buy_ext dry runs - refreshed on a slow tick because "max"
+// bisects dial_cost per row, which is cheap once but not 13 x 144 hz.
+quote = array_create(variable_global_exists("dial_total") ? g.dial_total : 13, undefined);
+qtic  = 0;
+qmode = -1;
+
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the
 // drawer can never disagree about where the edge is.
@@ -112,6 +151,9 @@ __consumes = function(_px, _py) {
 	var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
 	var _x2 = face + _bw;
 	if (stage >= 2) _x2 += 2 + sprite_get_width(spr_button_bevel);
+	if (stage >= 2 && __mode_gate())            // the buy-mode button
+		if (point_in_rectangle(_px, _py, face + 2, mb_y, face + 2 + mb_w, mb_y + mb_h))
+			return true;
 	if (_px < face || _px >= _x2) return false;
 	for (var _i = 0; _i < _n; _i++) {
 		var _ry = row_y1 - _i * row_p;
