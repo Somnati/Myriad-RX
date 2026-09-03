@@ -14,6 +14,8 @@ statement of what those shipped formulas actually do.
 
 Run:  python dial_twin.py
 """
+import math
+
 
 N_DIALS = 13
 
@@ -69,24 +71,33 @@ def per_second(tier, level):
     return gpc(tier, level) / (cycle_seconds(tier) * 1.3)
 
 
-def cost(tier, frm, to):
-    """dial_cost: geometric series solved by subtraction (.05 dec/level)."""
+MILESTONE_COST_MULT = 10          # setgame: g.milestone_cost_mult
+MILESTONES = [(25, "speed", 2), (50, "profit", 2), (75, "profit", 2), (100, "speed", 2)]
+
+def cost(tier, frm, to, raw=False):
+    """dial_cost: geometric series solved by subtraction (.05 dec/level).
+    Price POINTS are rounded to whole units before subtracting, so a chain
+    of singles telescopes to exactly the bulk price (the bulk law). Rungs
+    inside (frm, to] add (MILESTONE_COST_MULT - 1) x that level's own raw
+    price, rounded - the milestone premium."""
     if to <= frm:
-        return 0.0
-    if frm <= 0 and tier == 0:
-        return 100.0                      # DE's fixed opening price
+        return 0
     lvd = lvdiv(tier)
-    lv, des = frm + lvd, to + lvd
     pp = 4 if frm > 0 else 3
     base = max(2, pp - 1)
-    gth = 5 / 100
-    a = base + gth * lv + gth * max(0, frm - 700)
-    b = base + gth * des + gth * max(0, to - 700)
-    pt = 10 ** pp
-    ca = pt if frm <= 0 else pt + 10 ** a
-    cb = pt + 10 ** b
-    return cb - ca
-
+    gth = 0.05 * (1 + 999 * tier / 1e6)
+    a = base + gth * (frm + lvd) + gth * max(0, frm - 700)
+    b = base + gth * (to + lvd) + gth * max(0, to - 700)
+    pa = 10 ** pp if frm <= 0 else 10 ** pp + 10 ** a
+    pb = 10 ** pp + 10 ** b
+    c = max(1, math.ceil(pb) - math.ceil(pa))
+    if frm <= 0 and tier == 0:
+        c = 100
+    if not raw and MILESTONE_COST_MULT > 1:
+        for lv, _kind, _mult in MILESTONES:
+            if frm < lv <= to:
+                c += math.ceil(cost(tier, lv - 1, lv, True) * (MILESTONE_COST_MULT - 1))
+    return c
 
 def tap(all_level, all_gps):
     """update_click: 1 + every dial level, plus 1% of the fleet's rate."""
@@ -192,3 +203,27 @@ if __name__ == "__main__":
     checks()
     print()
     simulate(180)
+
+
+def check_bulk():
+    """THE BULK LAW: for every dial and every range, the sum of x1 buys
+    equals the bulk price - through every milestone rung, premium included."""
+    ok = True
+    for tier in range(13):
+        for frm in range(1, 130):
+            for to in (frm + 1, frm + 10, frm + 25, frm + 100):
+                singles = sum(cost(tier, l, l + 1) for l in range(frm, to))
+                bulk = cost(tier, frm, to)
+                if singles != bulk:
+                    ok = False
+                    print(f"  MISMATCH dial {tier} {frm}->{to}: singles {singles} bulk {bulk}")
+    # the premium: the crossing level costs exactly MULT x its raw price
+    for lv, _k, _m in MILESTONES:
+        if cost(0, lv - 1, lv) != MILESTONE_COST_MULT * cost(0, lv - 1, lv, True):
+            ok = False
+            print(f"  PREMIUM WRONG at lv {lv}")
+    print("bulk law: singles == bulk, premium == x%d:" % MILESTONE_COST_MULT, "HOLDS" if ok else "FAILS")
+    return ok
+
+if __name__ == "__main__":
+    check_bulk()

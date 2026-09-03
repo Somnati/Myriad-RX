@@ -16,6 +16,13 @@
 /// a bulk buy that rolls through one pays the premium in its quote.
 /// raw = true is the price WITHOUT premiums - the premium calls it
 /// for the single level's base, nothing else should.
+/// THE BULK LAW (his check, 2026-09-02): x1 buys must cost exactly
+/// what their bulk equivalent costs. The price POINTS are rounded to
+/// whole units and THEN subtracted, so cost(A,B) = P(B) - P(A) with
+/// integer P, and a chain of singles telescopes to the same sum by
+/// construction. (Rounding the difference instead - DE's way - made
+/// ten singles a few units dearer than one x10.) The premium rounds
+/// to whole units too, for the same reason.
 function dial_cost(_tier, _from, _to, _raw = false) {
 	if (_to <= _from) return 0;
 
@@ -38,8 +45,8 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 	var _b = _base + _gth * _des + _gth * max(0, _to   - 700);
 
 	var _pt = log_to_arb(_pp);
-	var _ca = (_from <= 0) ? _pt : do_add(_pt, log_to_arb(_a));
-	var _cb = do_add(_pt, log_to_arb(_b));
+	var _ca = do_ceil((_from <= 0) ? _pt : do_add(_pt, log_to_arb(_a)));
+	var _cb = do_ceil(do_add(_pt, log_to_arb(_b)));
 
 	var _cost = (_cb > _ca) ? do_subtract(_cb, _ca) : arb(1);
 
@@ -55,7 +62,7 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 			if (_m > _from && _m <= _to) {
 				var _one = dial_cost(_tier, _m - 1, _m, true);
 				if (_one >= arb(1))
-					_cost = do_add(_cost, do_scale(_one, g.milestone_cost_mult - 1));
+					_cost = do_add(_cost, do_ceil(do_scale(_one, g.milestone_cost_mult - 1)));
 			}
 		}
 	}
