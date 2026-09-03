@@ -98,3 +98,24 @@ __perc = function(_i, _d) {
 __wind = function(_i, _d) {
 	return (_d.cycle < dial_config(_i).autoeff);
 };
+
+/// does a PRESS at (px, py) land on something the drawer OWNS - a live
+/// row, its buy button, or the docked grab strip? obj_clicker asks this
+/// before paying a tap. HIS RULE (2026-09-02): the thumb earns on every
+/// screen, dials open or not - so the drawer only claims the bars and
+/// buttons themselves, and the dimmed space around them still pays.
+/// Same rectangles as the tap handling in Step, so the two can't drift.
+__consumes = function(_px, _py) {
+	if (!variable_global_exists("dial")) return false;
+	if (sp < .5) return (_px >= room_width - dock_w);   // the dot strip
+	var _n  = __rows();
+	var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
+	var _x2 = face + _bw;
+	if (stage >= 2) _x2 += 2 + sprite_get_width(spr_button_bevel);
+	if (_px < face || _px >= _x2) return false;
+	for (var _i = 0; _i < _n; _i++) {
+		var _ry = row_y1 - _i * row_p;
+		if (_py >= _ry - 2 && _py < _ry + row_h + 2) return true;
+	}
+	return false;
+};

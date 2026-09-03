@@ -8,7 +8,8 @@
 //                    once g.game_started, never in the title / boot /
 //                    quit rooms. Owns nothing but the tap surface:
 //                    everything under the header, minus the dial
-//                    drawer's face (read from syst_dials each frame).
+//                    drawer's bars and buttons (syst_dials answers
+//                    __consumes(x, y)) - taps pay with the drawer open.
 //                    A tap: give_profit(g.click_gps), count it, float
 //                    the "+N", click sound, spit motes that CARRY the
 //                    tap's profit (a tiny tap spits exactly as many

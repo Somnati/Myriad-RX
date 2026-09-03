@@ -14,10 +14,12 @@ if (!input_free()) exit;
 if (g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
 if (mouse_y < tap_y0 || mouse_y > tap_y1) exit;
-// never tap THROUGH the dial drawer, docked or out: it asks the drawer
-// where its face is this frame rather than duplicating the geometry
+// the dial drawer claims ONLY its bars, buy buttons and docked strip
+// (his rule: profit taps fire even with the dials open). It answers
+// from the same rectangles its own tap handling uses, so a press on a
+// bar is a UI action and a press beside it is a paid tap - never both.
 if (instance_exists(syst_dials))
-	if (mouse_x >= syst_dials.face) exit;
+	if (syst_dials.__consumes(mouse_x, mouse_y)) exit;
 if (!variable_global_exists("click_gps")) exit;
 
 // THE TAP: pay what update_click derived, count it, and say so.

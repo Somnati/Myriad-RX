@@ -56,8 +56,9 @@
 //                    countdown centred and the accruing take at its
 //                    end; "..." during the wind-up; the docked dot is
 //                    DE's two filled circles whose radius IS the
-//                    progress. Republishes `face` every step so
-//                    obj_clicker never taps through it.
+//                    progress. Answers obj_clicker's __consumes(x, y)
+//                    so a press on a bar or button is a UI action while
+//                    the dimmed space beside them still pays a tap.
 //   spr_dial, spr_dial_endcaps, spr_dial_name (a-z glyphs),
 //   spr_progressbar (track / cap / comet / glow), spr_dial_bubble,
 //   spr_dial_stripe   DE's own art.

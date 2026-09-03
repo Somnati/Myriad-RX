@@ -14,8 +14,8 @@ depth = 0; // input only - this object draws nothing, but keep it
            // above the room's Background layer (100) on principle
 
 // the live tap surface: everything under the header. The dial drawer
-// carves its own face out of it every frame (see Step), so the two
-// never fight for the same press - region law.
+// claims only its bars and buttons (syst_dials.__consumes, see Step),
+// so taps keep paying with the drawer open - region law, his rule.
 tap_y0 = 16;
 tap_y1 = room_height;
 
