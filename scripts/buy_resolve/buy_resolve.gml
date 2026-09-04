@@ -4,29 +4,34 @@
 /// Modes: 1 / 10 / 100 / 1000 / "next" / "max" (DE's set and order;
 /// g.buy_lv holds the live one, cycled by the drawer's mode button).
 ///
-/// DE'S ROUNDING LAW, kept exactly: x10 / x100 / x1000 do NOT buy ten
-/// levels - they buy UP TO THE NEXT ROUND LEVEL. At level 37, x10 buys
-/// three levels (to 40), x100 buys 63 (to 100). The next press is a
-/// clean +10 / +100. That is the whole feel of the button.
+/// DE'S ROUNDING LAW: x10 / x100 / x1000 do NOT buy ten levels - they
+/// buy UP TO THE NEXT ROUND LEVEL. At level 37, x10 buys three levels
+/// (to 40), x100 buys 63 (to 100). The next press is a clean +10 /
+/// +100. That is the whole feel of the button.
 ///     des = floor((level + N) / N) * N
+/// g.buy_round (settings > gameplay, "rounded bulk buys", DE's default
+/// on) switches it: off, x10 is a flat +10 from wherever you are.
 ///
 /// "next" = up to the NEXT MILESTONE level (DE: p_ms_req), the x100
 /// rule past the top of the ladder (DE's own fallback).
 ///
-/// "max" = the largest target the pile can pay for. DE walked it in a
-/// ladder over several frames (get_buy_max); RX finds the edge in one
-/// call by doubling out then bisecting dial_cost (a closed form, so
-/// every probe is O(1)), then SNAPS DOWN to the biggest round level
-/// that still fits - DE's descent steps 1000000 / 100000 / 10000 /
-/// 1000 / 500 / 100 / 50 / 10 - or keeps the raw edge when no round
-/// level clears the current level. Can't afford one level: quotes
-/// level+1 anyway, so the button can show the price, dimmed.
+/// "max" = EVERY level the pile can pay for. DE walked it in a ladder
+/// over several frames (get_buy_max: down by multiples while too dear,
+/// then up one level per frame until the edge); RX finds the same
+/// edge in one call by doubling out then bisecting dial_cost (a closed
+/// form, so every probe is O(1)). No round-level snap: the techdemo
+/// snapped down and left up to 95 levels unbought (his check,
+/// 2026-09-03). Can't afford one level: quotes level+1 anyway, so the
+/// button can show the price, dimmed.
 function buy_resolve(_i, _from, _mode) {
 	var _to = _from + 1;
 
 	if (is_real(_mode)) {
 		var _n = max(1, floor(_mode));
-		_to = (_n == 1) ? _from + 1 : (floor((_from + _n) / _n) * _n);
+		var _round = (!variable_global_exists("buy_round") || g.buy_round);
+		if (_n == 1)      _to = _from + 1;
+		else if (_round)  _to = floor((_from + _n) / _n) * _n;   // DE: up to the round level
+		else              _to = _from + _n;                       // flat
 	}
 	else if (_mode == "next") {
 		// up to the next milestone rung; past the top of the ladder DE
@@ -46,12 +51,7 @@ function buy_resolve(_i, _from, _mode) {
 			if (g.profit >= dial_cost(_i, _from, _mid)) _lo = _mid;
 			else _hi = _mid;
 		}
-		_to = _lo;
-		var _snaps = [1000000, 100000, 10000, 1000, 500, 100, 50, 10];
-		for (var _s = 0; _s < array_length(_snaps); _s++) {
-			var _r = (_to div _snaps[_s]) * _snaps[_s];
-			if (_r > _from) { _to = _r; break; }
-		}
+		_to = _lo;   // the exact edge: cost(from, lo) fits, cost(from, lo+1) doesn't
 	}
 
 	return max(_to, _from + 1);

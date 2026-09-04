@@ -28,4 +28,5 @@ function settings_defaults() {
 	g.autosave = true;
 	g.profit_color = c_sgreen;   // the one profit tint (see system's Create)
 	g.display_gps  = 0;          // dial rate readout: per cycle
+	g.buy_round    = true;       // DE's round-up bulk buys
 }

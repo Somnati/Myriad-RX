@@ -47,10 +47,11 @@
 //                    level is the purchase.
 //   buy_resolve(i, from, mode)   THE BUY-MODE LADDER (DE's law): x10 /
 //                    x100 / x1000 buy UP TO THE NEXT ROUND LEVEL (level
-//                    37, x10 -> 40), "max" is the largest affordable
-//                    target snapped down to a round level, "next" will
-//                    be the next milestone. g.buy_lv holds the live
-//                    mode, session-only like DE's.
+//                    37, x10 -> 40) while settings > gameplay "rounded
+//                    bulk buys" is on (g.buy_round, DE's default), flat
+//                    +10 off; "max" is EVERY level the pile can pay
+//                    for (exact, no snap); "next" the next milestone.
+//                    g.buy_lv holds the live mode, session-only.
 //   dial_buy_ext(i, mode, [commit])   quote {ok, n, to, cost} for a
 //                    mode, or commit it through dial_buy.
 

@@ -52,6 +52,7 @@ function handle_settings(_method) {
 	// the profit tint persists so a future settings row just works
 	g.profit_color = handle("profit_color", g.profit_color);
 	g.display_gps  = handle("display_gps",  g.display_gps); // the view button's pick
+	g.buy_round    = handle("buy_round",    g.buy_round);   // rounded bulk buys
 
 	// MYRIAD RX: the "balance" section returns when the DE parity
 	// rebuild lands its balance_init - every knob a rebuilt system

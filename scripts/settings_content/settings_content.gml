@@ -181,6 +181,13 @@ function settings_content() {
 		"a rotating autosave every minute, only when something actually "
 		+ "changed. off = manual saves only. living dangerously.");
 
+	settings_toggle("rounded bulk buys",
+		function() { return g.buy_round; },
+		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },
+		"myriad's rule: x10 buys UP TO the next round level (at level 37 "
+		+ "it buys 3, to reach 40), x100 to the next hundred. off = a "
+		+ "flat +10 / +100 from wherever you are.");
+
 	if (variable_global_exists("playtime"))
 		settings_info("time played", crunch_time_long(g.playtime * 60));
 

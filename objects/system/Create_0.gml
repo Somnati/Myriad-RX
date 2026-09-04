@@ -50,6 +50,9 @@ g.profit_color = c_sgreen;
 // THE DIAL RATE VIEW (DE's view button): 0 = profit per cycle, 1 = per
 // second. A display pref, so it rides settings.ini like the tint
 g.display_gps = 0;
+// ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
+// off = a flat +10. His toggle, settings > gameplay
+g.buy_round = true;
 // profit earned but not yet DELIVERED by its motes. Registered by
 // give_profit and released as each mote lands, so the counter can hold
 // it back. A global, because the alternative - summing the live motes

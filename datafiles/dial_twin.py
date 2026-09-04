@@ -225,5 +225,38 @@ def check_bulk():
     print("bulk law: singles == bulk, premium == x%d:" % MILESTONE_COST_MULT, "HOLDS" if ok else "FAILS")
     return ok
 
+def buy_max(tier, frm, profit):
+    """buy_resolve "max": doubling out, then bisecting the cost curve - the exact edge."""
+    if profit < cost(tier, frm, frm + 1):
+        return frm + 1
+    step = 1
+    while step < 1000000 and profit >= cost(tier, frm, frm + step * 2):
+        step *= 2
+    lo, hi = frm + step, frm + step * 2
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if profit >= cost(tier, frm, mid):
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+def check_max():
+    """MAX IS EXACT: for random bankrolls the target is affordable and one more level is not."""
+    import random
+    random.seed(7)
+    ok = True
+    for _ in range(3000):
+        tier = random.randrange(13); frm = random.randrange(1, 400)
+        profit = cost(tier, frm, frm + random.randrange(1, 300)) * random.uniform(.5, 1.5)
+        to = buy_max(tier, frm, profit)
+        if to > frm + 1 and cost(tier, frm, to) > profit:
+            ok = False; print(f"  max UNAFFORDABLE dial {tier} {frm}->{to}")
+        if profit >= cost(tier, frm, to + 1):
+            ok = False; print(f"  max LEFT A LEVEL dial {tier} {frm}->{to} (could reach {to + 1})")
+    print("max is the exact edge:", "HOLDS" if ok else "FAILS")
+    return ok
+
 if __name__ == "__main__":
     check_bulk()
+    check_max()
