@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"credits_init",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"credits_init",
+  "parent":{
+    "name":"credits",
+    "path":"folders/game/credits.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

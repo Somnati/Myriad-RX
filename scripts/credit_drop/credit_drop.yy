@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"credit_drop",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"credit_drop",
+  "parent":{
+    "name":"credits",
+    "path":"folders/game/credits.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -39,20 +39,19 @@ function handle_save(){
 	// stored only for now - future balance wiring reads it live
 	g.difficulty = handle("difficulty", g.difficulty);
 
-	// ---- rebirth: the meta layer that outlives runs (units bank as a
-	// packed arb, plain 0 while empty) ----
-	section = "rebirth";
-	rebirth_init();
-	g.rebirth.units       = handle("units",       g.rebirth.units);
-	g.rebirth.total       = handle("total",       g.rebirth.total);
-	g.rebirth.run_pt0     = handle("run_pt0",     g.rebirth.run_pt0);
-	g.rebirth.prev_units  = handle("prev_units",  g.rebirth.prev_units);
-	g.rebirth.prev_secs   = handle("prev_secs",   g.rebirth.prev_secs);
-	g.rebirth.prev_profit = handle("prev_profit", g.rebirth.prev_profit);
+	// ---- credits: the second currency (survives rebirth) + the
+	// dropper's pool and cooldown ----
+	section = "credits";
+	credits_init();
+	g.credits       = handle("credits",       g.credits);
+	g.total_credits = handle("total_credits", g.total_credits);
+	g.credit_pool   = handle("pool",          g.credit_pool);
+	g.credit_cool   = handle("cool",          g.credit_cool);
 	if (action == sv_load) {
-		g.rebirth.total = max(0, floor(g.rebirth.total));
-		if (!(g.rebirth.units >= arb(1))) g.rebirth.units = 0;
-		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
+		if (!(g.credits >= arb(1)))       g.credits = 0;
+		if (!(g.total_credits >= arb(1))) g.total_credits = 0;
+		g.credit_pool = clamp(g.credit_pool, 0, g.credit_cap);
+		g.credit_cool = max(0, g.credit_cool);
 	}
 
 	// ---- rebirth: the meta layer that outlives runs (units bank as a

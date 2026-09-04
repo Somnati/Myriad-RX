@@ -28,6 +28,12 @@ if (!variable_global_exists("click_gps")) exit;
 // this one site as its layer gets rebuilt.
 give_profit(g.click_gps);
 g.total_taps++;
+
+// THE CREDIT ROLL (DE's give_click): a small chance per tap pulls a
+// few credits from the dropper's pool - refused by credit_drop while
+// its cooldown runs, so a hot streak can't drain it
+if (variable_global_exists("credit_tap_chance"))
+if (roll_perc(g.credit_tap_chance)) credit_drop(mouse_x, mouse_y, -1);
 pop = 1;
 
 float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps),

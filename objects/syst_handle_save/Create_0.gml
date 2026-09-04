@@ -41,3 +41,5 @@ autosave_next  = current_time + autosave_delay;
 // the absence watcher (game/offline): persistent, spawned here so it
 // exists from boot in every room without a room placement
 if (!instance_exists(syst_offline)) create_obj(0, 0, syst_offline);
+// the credit panel (game/credits): persistent, every room, self-hiding
+if (!instance_exists(obj_display_credits)) create_obj(0, 0, obj_display_credits);

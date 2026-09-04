@@ -58,7 +58,17 @@
 		{ level : 100, kind : "speed",  mult : 2 },
 	];
 
-	rebirth_init(); // the meta layer, before the dials derive from it
+	// ---- CREDITS (the second currency; Myriad DE's dropper) - THE KNOBS ----
+	// a pool refills over time; every tap has a chance to pull a few
+	// credits out of it. credit_tick / credit_drop read these live.
+	g.credit_cap        = 7;    // the pool's ceiling
+	g.credit_refill     = 12;   // credits per HOUR into the pool
+	g.credit_maxpull    = 3;    // the most one drop can pay
+	g.credit_tap_chance = 2;    // percent chance per tap
+	g.credit_cool_min   = 5;    // seconds between drops, rolled in
+	g.credit_cool_max   = 8;    //   this range (halved one time in ten)
+	credits_init();
+
 	create_dials();
 
 	// THE BUY MODE (Myriad DE's g.buy_lv): 1 / 10 / 100 / 1000 / "max"

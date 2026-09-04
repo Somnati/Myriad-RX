@@ -13,7 +13,6 @@ function menu2_content() {
 	menu2_section("game");
 	menu2_button("clicker",      rm_clicker,       c_horange);
 	menu2_button("rebirth",      function() { rebirth_open(); }, c_hred); // myriad
-	menu2_button("rebirth",      function() { rebirth_open(); }, c_hred); // myriad
 	menu2_button("statistics",   rm_statistics_v2, c_sgreen);  // myriad
 	menu2_button("settings",     rm_settings,      c_white);
 	menu2_button("services",     rm_services,      c_seagreen);

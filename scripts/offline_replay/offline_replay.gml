@@ -28,6 +28,7 @@ function offline_replay(_secs) {
 	var _rate   = g.all_gps;      // the rate the absence ran at
 
 	prod_dials(_secs);
+	credit_tick(_secs);   // the dropper's pool refills over the absence too
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)

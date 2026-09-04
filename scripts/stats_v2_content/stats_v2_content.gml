@@ -30,6 +30,19 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- credits ----
+	if (variable_global_exists("credits"))
+	if (stats_v2_folder("credits", c_lavender)) {
+		stats_v2_line("credits", (g.credits >= arb(1)) ? crunch_arb(g.credits) : "0", -1, c_lavender);
+		stats_v2_line("lifetime", (g.total_credits >= arb(1)) ? crunch_arb(g.total_credits) : "0");
+		stats_v2_line("pool", string_format(g.credit_pool, 1, 2) + " / " + string(g.credit_cap));
+		stats_v2_line("cooldown", (g.credit_cool > 0) ? string_format(g.credit_cool, 1, 1) + "s" : "ready");
+		stats_v2_line("chance per tap", string(g.credit_tap_chance) + "%");
+		stats_v2_line("max per drop", string(g.credit_maxpull));
+		stats_v2_line("refill", string(g.credit_refill) + " / hour");
+	}
+	stats_v2_folder_end();
+
 	// ---- rebirth ----
 	if (variable_global_exists("rebirth"))
 	if (stats_v2_folder("rebirth", c_hred)) {

@@ -22,7 +22,7 @@ function game_reset(_diff = 1) {
 	// dials + the tap: create_dials hard-resets the whole layer and
 	// re-derives it (levels, cycles, the tap's own power)
 	rebirth_init(true); // a NEW GAME wipes the bank; a rebirth never does
-	rebirth_init(true); // a NEW GAME wipes the bank; a rebirth never does
+	credits_init(true); // and the credits (DE: they survive rebirth, not a new game)
 	create_dials(true);
 	g.buy_lv = 1; // DE resets the buy mode with the run
 

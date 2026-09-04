@@ -8,3 +8,4 @@
 
 if (!variable_global_exists("dial")) exit;
 prod_dials();
+credit_tick();   // the dropper's pool + cooldown, same clock

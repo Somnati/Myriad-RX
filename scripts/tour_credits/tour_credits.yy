@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_credits",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_credits",
+  "parent":{
+    "name":"credits",
+    "path":"folders/game/credits.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

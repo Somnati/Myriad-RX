@@ -12,6 +12,7 @@
 //   offline/ the away-time calculator (one call to prod_dials)
 //   rebirth/ units for profit held, +100% dial output each
 //   milestones/ level rungs (25/50/75/100) that cost more and pay for good
+//   credits/ the second currency: a slow pool, tapped out by taps
 //   rooms/   rm_clicker, DE's money room (144x296 portrait)
 // Read tour_dials, tour_tap, tour_offline and tour_rebirth.
 
