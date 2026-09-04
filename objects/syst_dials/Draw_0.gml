@@ -102,15 +102,18 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_set_alpha(_oa);
 	draw_text(_x + 15, _y + 2, "lv");
 	draw_set_color(_lc);
-	draw_text(_x + 24, _y + 2, string(_d.level));
-	// the buy stage says how many levels the live mode buys: "+3"
-	// beside the level (the techdemo's convention, kept)
+	// the level SHRINKS to fit the 15px between "lv" and the bar (DE's
+	// sc), so a three-digit level never runs under the bar
+	var _lt = string(_d.level);
+	var _ls = min(1, 14 / max(1, string_width(_lt)));
+	draw_text_transformed(_x + 24, _y + 2 + lerp(3, 0, _ls), _lt, _ls, _ls, 0);
+	// the buy stage says how many levels the live mode buys: "+3" UNDER
+	// the level, DE's seat (obj_dial draws its mtext a line below "lv")
 	if (_bp > .02 && _i < array_length(quote) && !is_undefined(quote[_i]))
 	if (quote[_i].n > 0) {
 		draw_set_color(quote[_i].ok ? c_sgreen : merge_colour(c_sgreen, c_black, .5));
 		draw_set_alpha(_bp * _oa);
-		draw_text(_x + 24 + string_width(string(_d.level)) + 2, _y + 2,
-			"+" + string(quote[_i].n));
+		draw_text_transformed(_x + 15, _y + 6, "+" + string(quote[_i].n), .7, .7, 0);
 	}
 
 	// ---- the progress bar: DE's 70 wide at the list stage (the rate
@@ -164,7 +167,10 @@ for (var _i = 0; _i < _n; _i++) {
 	if (_bp < .98) {
 		var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
 		var _rt = "+" + crunch_arb(_rv);
-		var _sc = min(1, string_width("000000") / max(1, string_width(_rt)));
+		// fit the SEAT past the bar (DE bounded it to six digits' width;
+		// our seat is the 28px between the bar's end and the endcap)
+		var _seat = (_x + _bw - _ec) - (_px + _pw + 2);
+		var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
 		draw_set_halign(fa_right);
 		draw_set_color(g.profit_color);
 		draw_set_alpha(.95 * _oa * (1 - _bp));
