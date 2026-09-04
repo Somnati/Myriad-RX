@@ -34,7 +34,7 @@ draw_text(_cx, _sy, "current units");
 draw_set_color(c_hred);
 draw_text(_cx, _sy + 9, (g.rebirth.units >= arb(1)) ? crunch_arb(g.rebirth.units) : "0");
 draw_set_color(c_white);
-draw_text(_cx, _sy + 22, "unit boost (+100% each)");
+draw_text(_cx, _sy + 22, "unit boost");
 draw_set_color(c_gold);
 draw_text(_cx, _sy + 31, "x" + crunch_arb(rebirth_boost()));
 
@@ -52,7 +52,9 @@ if (calc.can) {
 	}
 } else {
 	draw_set_color(c_aqua);
-	draw_text(_cx, by - 58, "the more profit you hold,\nthe more units\nyou'll receive");
+	draw_text(_cx, by - 58, "the more profit
+you hold, the more
+units you'll get");
 	draw_set_font(fnt_large_outline);
 	draw_set_color(c_white);
 	draw_text(_cx, by - 28, "-come back later-");
