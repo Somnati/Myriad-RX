@@ -52,9 +52,7 @@ if (calc.can) {
 	}
 } else {
 	draw_set_color(c_aqua);
-	draw_text(_cx, by - 58, "the more profit
-you hold, the more
-units you'll get");
+	draw_text(_cx, by - 58, "the more profit\nyou hold, the more\nunits you'll get");
 	draw_set_font(fnt_large_outline);
 	draw_set_color(c_white);
 	draw_text(_cx, by - 28, "-come back later-");
