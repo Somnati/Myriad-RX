@@ -21,6 +21,20 @@ if (!drag_on) {
 var _dp = clamp(sp, 0, 1);
 face = lerp(room_width - dock_w, row_x, _dp);
 
+// DE's two top-right buttons ride in from off the right edge: the view
+// button with the list, the buy-bulk button with the buy layer (and the
+// view button tucks left to make room, DE's parking)
+var _bp0 = clamp(sp - 1, 0, 1);
+bb_cx = lerp(room_width + 3, bb_x, _bp0);
+vb_cx = lerp(room_width + 2, lerp(vb_x1, vb_x2, _bp0), _dp);
+
+// ---- the view pick: the pillbox hands it back on this instance ----
+if (_pselid != -1) {
+	g.display_gps = _pselval;
+	_pselid = -1;
+	save_mark_dirty();
+}
+
 if (!variable_global_exists("dial")) exit;
 
 // the docked dot's spring: the radius chases the cycle (DE's des_size
@@ -78,6 +92,35 @@ if (mouse_check_button_pressed(mb_left)) {
 	drag_on   = false;
 }
 
+// pressed faces for the two buttons (DE's frame 1 while held)
+var _held = (press_x >= 0 && mouse_check_button(mb_left) && !drag_on);
+bb_down = _held && stage >= 2 && point_in_rectangle(mouse_x, mouse_y, bb_cx, bb_y, bb_cx + bb_w, bb_y + bb_h);
+vb_down = _held && point_in_rectangle(mouse_x, mouse_y, vb_cx, vb_y, vb_cx + vb_w, vb_y + vb_h);
+
+// ---- THE MANUAL START (Myriad DE's click_dial): the pointer HELD on a
+// dial that is still winding up skips the wind-up - its cycle jumps to
+// the end of the spin-up and the bar starts filling now, with DE's
+// autostart sound (softer the deeper the drawer is out). Held rather
+// than tapped, so a finger dragged down the column starts every dial
+// it crosses - DE's feel. Fires once per dial: after the jump the
+// cycle is no longer under autoeff.
+if (_held && sp >= .5) {
+	var _bw0 = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
+	if (mouse_x >= face && mouse_x < face + _bw0)
+	for (var _i = 0; _i < _n; _i++) {
+		var _ry = row_y1 - _i * row_p;
+		if (mouse_y < _ry - 2 || mouse_y >= _ry + row_h + 2) continue;
+		var _d = g.dial[_i];
+		var _ae = dial_config(_i).autoeff;
+		if (_d.level > 0 && _d.cycle < _ae) {
+			_d.cycle = _ae;
+			_d.glow  = max(_d.glow, .5);
+			play_sound_ext(snd_autostart, .8, 1.2, (stage >= 2) ? .1 : .2, 0);
+		}
+		break;
+	}
+}
+
 // LIVE DRAG: once the press clears the budget the drawer tracks the
 // finger, so the pull has weight in the hand instead of happening
 // after the fact
@@ -127,11 +170,21 @@ if (sp < .5) {
 // a tap left of the drawer face puts it away
 if (_px < face) { stage = 0; exit; }
 
-// ---- the buy-mode button (stage 2, past DE's 3m gate) ----
+// ---- the buy bulk button (buy stage) ----
 if (stage >= 2 && __mode_gate())
-if (point_in_rectangle(_px, _py, face + 2, mb_y, face + 2 + mb_w, mb_y + mb_h)) {
+if (point_in_rectangle(_px, _py, bb_cx, bb_y, bb_cx + bb_w, bb_y + bb_h)) {
 	__mode_cycle();
 	qtic = 0;                               // requote every row now
+	play_sound_ext(snd_softclick, .9, 1.1, .4, 1);
+	exit;
+}
+
+// ---- the view button: DE's pillbox of views ----
+if (point_in_rectangle(_px, _py, vb_cx, vb_y, vb_cx + vb_w, vb_y + vb_h)) {
+	pillbox_init();
+	set_pill("profit per cycle",  { val : 0, col : c_rarity_common, enabled : (g.display_gps == 0) });
+	set_pill("profit per second", { val : 1, col : c_steelblue,     enabled : (g.display_gps == 1) });
+	do_pillbox(room_width, vb_y + vb_h * .5);
 	play_sound_ext(snd_softclick, .9, 1.1, .4, 1);
 	exit;
 }

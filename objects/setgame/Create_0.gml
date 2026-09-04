@@ -75,6 +75,9 @@
 	// ("next" joins when milestones land). Session-only in DE too - it
 	// is never saved, a fresh boot is x1
 	g.buy_lv = 1;
+	// DE hid the "buy bulk" button until 3,000,000 lifetime profit. This
+	// is that gate; 0 = always shown (his ask, 2026-09-03)
+	g.buylv_unlock = 0;
 
 // ---- run gating (title screen, 2026-07-07): nothing plays until
 // continue / new game flips this. the header menu checks it ----

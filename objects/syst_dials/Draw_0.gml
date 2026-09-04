@@ -113,8 +113,9 @@ for (var _i = 0; _i < _n; _i++) {
 			"+" + string(quote[_i].n));
 	}
 
-	// ---- the progress bar ----
-	var _pw = _bw - 39 - _ec - 1;                  // fills to the endcap
+	// ---- the progress bar: DE's 70 wide at the list stage (the rate
+	// readout owns the seat past it), narrowing with the bar for buy ----
+	var _pw = min(sprite_get_width(spr_progressbar), _bw - 39 - _ec - 1);
 	var _ph = sprite_get_height(spr_progressbar);
 	var _sw = sprite_get_width(spr_progressbar);
 	var _px = _x + 39, _py = _y + 3;
@@ -156,6 +157,21 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_set_font(fnt);
 	draw_set_halign(fa_left);
 
+	// ---- THE RATE, right-aligned at the row's far edge past the bar
+	// (DE's obj_dial): "+gpc" per cycle or "+gps" per second, by the
+	// view button's g.display_gps; shrunk to fit six digits' width.
+	// The buy stage narrows the bar over this seat, so it fades with it
+	if (_bp < .98) {
+		var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
+		var _rt = "+" + crunch_arb(_rv);
+		var _sc = min(1, string_width("000000") / max(1, string_width(_rt)));
+		draw_set_halign(fa_right);
+		draw_set_color(g.profit_color);
+		draw_set_alpha(.95 * _oa * (1 - _bp));
+		draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
+		draw_set_halign(fa_left);
+	}
+
 	// ---- STAGE 2: DE's buy button, right of the narrowed bar ----
 	if (_bp > .02) {
 		// the price of the LIVE MODE's buy, from the quote cache (a
@@ -180,18 +196,31 @@ for (var _i = 0; _i < _n; _i++) {
 	}
 }
 
-// ---- the buy-mode button (DE's "buy bulk"), top of the buy stage ----
+// ---- DE's two top-right buttons ----
+// the VIEW button (with the list): face + the mode glyph, "view" above
+if (_dp > .02) {
+	var _vc = (g.display_gps == 1) ? c_steelblue : c_rarity_common;
+	var _vf = (g.display_gps == 1) ? 3 : 2;
+	draw_sprite_ext(spr_hud_toggle_ps, vb_down ? 1 : 0, vb_cx, vb_y, 1, 1, 0, _vc, _oa);
+	draw_sprite_ext(spr_hud_toggle_ps, _vf, vb_cx, vb_y + (vb_down ? 1 : 0), 1, 1, 0, _vc, .8 * _oa);
+	draw_set_halign(fa_center);
+	draw_set_color(_vc);
+	draw_set_alpha(_oa);
+	draw_text_transformed(vb_cx + vb_w * .5, vb_y - 4, "view", .6, .5, 0);
+}
+// the BUY BULK button (with the buy layer): DE's face tinted by the
+// mode, the mode glyph on top, "buy bulk" above - obj_ui_buylv's draw
 if (_bp > .02 && __mode_gate()) {
 	var _mc = __mode_color();
-	var _mx = _ax + 2;
-	draw_sprite_ext(spr_button_bevel, 0, _mx, mb_y, 1, 1, 0,
-		merge_colour(_mc, c_black, .6), _bp * _oa);
+	draw_sprite_ext(spr_buylv, bb_down ? 1 : 0, bb_cx, bb_y, 1, 1, 0, _mc, _bp * _oa);
+	draw_sprite_ext(spr_buylv, __mode_frame(), bb_cx, bb_y + (bb_down ? 1 : 0), 1, 1, 0,
+		merge_colour(_mc, c_white, .5), _bp * _oa);
 	draw_set_halign(fa_center);
 	draw_set_color(_mc);
-	draw_set_alpha(.95 * _bp * _oa);
-	draw_text_transformed(_mx + mb_w * .5, mb_y + 3, "buy " + __mode_label(), .8, .8, 0);
-	draw_set_halign(fa_left);
+	draw_set_alpha(_bp * _oa);
+	draw_text_transformed(bb_cx + bb_w * .5, bb_y - 4, "buy bulk", .6, .5, 0);
 }
+draw_set_halign(fa_left);
 
 // the fleet's two headline numbers, under the column
 draw_set_halign(fa_center);

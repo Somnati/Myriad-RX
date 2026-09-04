@@ -65,10 +65,17 @@
 //                    countdown centred and the accruing take at its
 //                    end; "..." during the wind-up; the docked dot is
 //                    DE's two filled circles whose radius IS the
-//                    progress. The buy stage carries DE's "buy bulk"
-//                    mode button at the top (hidden until 3m lifetime
-//                    profit, DE's gate) and a "+N" beside each level
-//                    saying how many levels the mode buys. Answers obj_clicker's __consumes(x, y)
+//                    progress. DE's two top-right buttons ride in from
+//                    the right edge: VIEW (with the list; a pillbox
+//                    picking the rate readout, profit per cycle or per
+//                    second - g.display_gps) and BUY BULK (with the
+//                    buy layer; cycles the mode, g.buylv_unlock gates
+//                    it, 0 = always). Each row's rate sits right-
+//                    aligned past DE's 70-wide bar; "+N" beside the
+//                    level says how many levels the mode buys.
+//                    THE MANUAL START (DE's click_dial): holding the
+//                    pointer on a dial still winding up jumps its cycle
+//                    to the end of the wind-up, with snd_autostart. Answers obj_clicker's __consumes(x, y)
 //                    so a press on a bar or button is a UI action while
 //                    the dimmed space beside them still pays a tap.
 //   spr_dial, spr_dial_endcaps, spr_dial_name (a-z glyphs),

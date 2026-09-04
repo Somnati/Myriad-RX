@@ -47,6 +47,9 @@ g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
 // recolour their money and have the whole game agree. When the
 // settings row for it lands it needs to change nothing but this value.
 g.profit_color = c_sgreen;
+// THE DIAL RATE VIEW (DE's view button): 0 = profit per cycle, 1 = per
+// second. A display pref, so it rides settings.ini like the tint
+g.display_gps = 0;
 // profit earned but not yet DELIVERED by its motes. Registered by
 // give_profit and released as each mote lands, so the counter can hold
 // it back. A global, because the alternative - summing the live motes

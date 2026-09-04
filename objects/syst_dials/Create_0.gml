@@ -74,21 +74,30 @@ drag_on   = false;
 drag_from = 0;
 DRAG_PX   = 110; // pixels of travel per stage
 
-// ---- THE BUY MODE BUTTON (Myriad DE's obj_ui_buylv, "buy bulk") ----
-// lives at the top of the buy stage, above the highest possible row
-// (thirteen rows stack up from 256 to 64; this sits at 20). Tap cycles
-// g.buy_lv through DE's order x1 -> x10 -> x100 -> x1000 -> next ->
-// max -> x1 ("next" = up to the next milestone rung). DE's own gate, kept: the
-// button stays hidden until 3 million lifetime profit, so the early
-// game is one dial, one level, one tap.
-mb_y = 20;
-mb_w = sprite_get_width(spr_button_bevel);   // 43, the buy buttons' width
-mb_h = sprite_get_height(spr_button_bevel);  // 15
-__mode_gate  = function() { return (g.total_profit >= arb(3000000)); };
-__mode_label = function() {
-	if (g.buy_lv == "max")  return "max";
-	if (g.buy_lv == "next") return "next";
-	return "x" + string(g.buy_lv);
+// ---- THE BUY BULK BUTTON (Myriad DE's obj_ui_buylv) ----
+// DE seats it TOP-RIGHT at (119, 31) and slides it in from off the
+// right edge when the buy layer opens. spr_buylv (24x12) carries the
+// look as frames: 0 face, 1 pressed face, 2..7 the mode glyphs
+// x1 x10 x100 x1000 next max. Tap cycles g.buy_lv in DE's order.
+// DE hid it until 3m lifetime profit; g.buylv_unlock (setgame) holds
+// that gate and 0 switches it off (his ask 2026-09-03: he wants to
+// see it).
+bb_x  = 119; bb_y = 31;
+bb_w  = sprite_get_width(spr_buylv);
+bb_h  = sprite_get_height(spr_buylv);
+bb_cx = room_width + 3;          // live x, eased in Step
+bb_down = false;                 // pressed face while held
+__mode_gate = function() {
+	if (!variable_global_exists("buylv_unlock") || g.buylv_unlock <= 0) return true;
+	return (g.total_profit >= arb(g.buylv_unlock));
+};
+__mode_frame = function() {                  // spr_buylv's glyph frames
+	if (g.buy_lv == 10)     return 3;
+	if (g.buy_lv == 100)    return 4;
+	if (g.buy_lv == 1000)   return 5;
+	if (g.buy_lv == "next") return 6;
+	if (g.buy_lv == "max")  return 7;
+	return 2;
 };
 __mode_color = function() {                  // DE's tints per mode
 	if (g.buy_lv == 10)     return c_rarity_uncommon;
@@ -105,6 +114,20 @@ __mode_cycle = function() {
 		if (g.buy_lv == _seq[_k]) _ix = _k;
 	g.buy_lv = _seq[(_ix + 1) mod array_length(_seq)];
 };
+
+// ---- THE VIEW BUTTON (Myriad DE's obj_hud_toggle_persecond) ----
+// beside the buy button: x 122 at the list stage, tucking left to 98
+// when the buy layer opens (DE parks it left of buylv). It picks what
+// every row's rate readout shows - g.display_gps: 0 profit per CYCLE,
+// 1 profit per SECOND (DE's other views belong to systems RX lacks).
+// spr_hud_toggle_ps (18x12): 0 face, 1 pressed, 2 per cycle, 3 per
+// second. Tap opens the house pillbox; the pick lands in _pselval.
+vb_x1 = 122; vb_x2 = 98; vb_y = 30;
+vb_w  = sprite_get_width(spr_hud_toggle_ps);
+vb_h  = sprite_get_height(spr_hud_toggle_ps);
+vb_cx = room_width + 2;
+vb_down = false;
+pillbox_init();
 
 // THE QUOTE CACHE: what the current mode would buy per row, as
 // dial_buy_ext dry runs - refreshed on a slow tick because "max"
@@ -151,9 +174,10 @@ __consumes = function(_px, _py) {
 	var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
 	var _x2 = face + _bw;
 	if (stage >= 2) _x2 += 2 + sprite_get_width(spr_button_bevel);
-	if (stage >= 2 && __mode_gate())            // the buy-mode button
-		if (point_in_rectangle(_px, _py, face + 2, mb_y, face + 2 + mb_w, mb_y + mb_h))
-			return true;
+	// DE's two top-right buttons
+	if (stage >= 2 && __mode_gate())
+		if (point_in_rectangle(_px, _py, bb_cx, bb_y, bb_cx + bb_w, bb_y + bb_h)) return true;
+	if (point_in_rectangle(_px, _py, vb_cx, vb_y, vb_cx + vb_w, vb_y + vb_h)) return true;
 	if (_px < face || _px >= _x2) return false;
 	for (var _i = 0; _i < _n; _i++) {
 		var _ry = row_y1 - _i * row_p;
