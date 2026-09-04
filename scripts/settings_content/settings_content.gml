@@ -188,6 +188,12 @@ function settings_content() {
 		+ "it buys 3, to reach 40), x100 to the next hundred. off = a "
 		+ "flat +10 / +100 from wherever you are.");
 
+	settings_toggle("always show popups",
+		function() { return g.persist_popups; },
+		function(_v) { g.persist_popups = _v; },
+		"myriad's setting: the credit panel stays out in the money room "
+		+ "instead of sliding in only when credits drop.");
+
 	if (variable_global_exists("playtime"))
 		settings_info("time played", crunch_time_long(g.playtime * 60));
 

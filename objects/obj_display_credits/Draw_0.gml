@@ -2,12 +2,12 @@ if (move <= 0) exit;
 
 draw_set_font(fnt);
 var _px = x + x_;
-var _c  = merge_colour(c_black, c_lavender, lerp(.2, 1, glow));
+var _c  = merge_colour_smooth(c_black, c_lavender, lerp(.2, 1, glow));
 
-// the strip: black at the left, lavender-lit at the right (DE's four-
-// corner gradient), then the end-cap
+// the strip, DE's four corners verbatim: lavender-lit at the LEFT edge
+// (where the icon sits) fading to black at the right, then the end-cap
 draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, y - 1, tw, 11, 0,
-	c_black, _c, _c, c_black, .8);
+	_c, c_black, c_black, _c, .8);
 draw_sprite_ext(spr_display_units, 1, _px + tw, y, 1, 1, 0, c_black, .8);
 
 draw_set_halign(fa_left);

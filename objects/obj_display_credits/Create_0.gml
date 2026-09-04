@@ -5,10 +5,11 @@
 /// tap (DE's neither). Persistent; spawned once by syst_handle_save's
 /// Create so it exists in every room, and shows itself only in game
 /// rooms with a run started.
-/// WHEN IT SHOWS (DE's hp budget): three seconds after every drop,
-/// re-armed by each one; and while the dial drawer is out, so the
-/// balance is readable when you are shopping. Hidden under the
-/// rebirth overlay.
+/// WHEN IT SHOWS (DE's rules): three seconds after every drop, re-armed
+/// by each one; while the menu is open; and always in the money room
+/// when "always show popups" is on (g.persist_popups, DE's setting,
+/// off by default). It goes AWAY while the dial drawer is out and under
+/// the rebirth overlay.
 /// DE's DRAW, kept: a pixel strip tw x 11 at alpha .8 shaded black
 /// into lavender by the glow, spr_display_units frame 1 as the right
 /// end-cap, text at +13/+1, spr_particon at +5/+4.

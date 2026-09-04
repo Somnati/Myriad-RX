@@ -228,6 +228,7 @@
     {"id":{"name":"LODController","path":"scripts/LODController/LODController.yy",},},
     {"id":{"name":"log_to_arb","path":"scripts/log_to_arb/log_to_arb.yy",},},
     {"id":{"name":"main_macros","path":"scripts/main_macros/main_macros.yy",},},
+    {"id":{"name":"merge_colour_smooth","path":"scripts/merge_colour_smooth/merge_colour_smooth.yy",},},
     {"id":{"name":"menu2_button","path":"scripts/menu2_button/menu2_button.yy",},},
     {"id":{"name":"menu2_content","path":"scripts/menu2_content/menu2_content.yy",},},
     {"id":{"name":"menu2_section","path":"scripts/menu2_section/menu2_section.yy",},},

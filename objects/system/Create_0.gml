@@ -53,6 +53,9 @@ g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
 // off = a flat +10. His toggle, settings > gameplay
 g.buy_round = true;
+// ALWAYS SHOW POPUPS (DE's persist_popups): the credit panel stays out
+// in the money room instead of showing only after a drop
+g.persist_popups = false;
 // profit earned but not yet DELIVERED by its motes. Registered by
 // give_profit and released as each mote lands, so the counter can hold
 // it back. A global, because the alternative - summing the live motes

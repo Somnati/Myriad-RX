@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"merge_colour_smooth",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"merge_colour_smooth",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

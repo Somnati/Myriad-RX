@@ -8,11 +8,18 @@ hp = max(0, hp - delta / 60);
 add_hp = max(0, add_hp - delta / 60);
 if (add_hp <= 0) add_val = 0;
 
+// DE's rules, in DE's order: the menu forces it out; "always show
+// popups" (g.persist_popups, settings > gameplay, off by default) keeps
+// it out in the money room while no drawer is open; the dial drawer
+// being OUT puts it away (DE: obj_dragautos.open -> hp = 0); the
+// rebirth overlay puts it away
+var _menu   = instance_exists(obj_ui_menu2) && obj_ui_menu2.open;
+var _drawer = instance_exists(syst_dials) && syst_dials.sp > .5;
+if (_menu) hp = hp_;
+if (in_room(rm_clicker) && !_drawer && variable_global_exists("persist_popups") && g.persist_popups) hp = hp_;
+if (!_menu && _drawer) hp = 0;
+if (instance_exists(syst_rebirth) && syst_rebirth.open) hp = 0;
 var _want = _live && (hp > 0);
-// out while the dial drawer is out: the balance is readable while shopping
-if (_live && instance_exists(syst_dials) && syst_dials.sp > .5) _want = true;
-// never under the rebirth overlay
-if (instance_exists(syst_rebirth) && syst_rebirth.open) _want = false;
 
 move = trickle(move, _want ? 1 : 0, 4);
 if (move < .01 && !_want) { move = 0; add_val = 0; }
@@ -28,7 +35,7 @@ if (_real < 1000000000) {
 	shown = _real;
 	text = crunch_arb(g.credits);
 }
-if (add_val > 0) text += " +" + string(add_val);
+if (add_val > 0) text += "+" + string(add_val);   // DE: no space
 
 draw_set_font(fnt);
 tw = string_width(text) + 15;

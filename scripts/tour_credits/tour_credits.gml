@@ -32,9 +32,12 @@
 //   obj_display_credits   THE PANEL sliding in from the LEFT edge at
 //                      y 46 (DE's own draw: pixel strip, end-cap from
 //                      spr_display_units, spr_particon icon, lavender
-//                      text). Out for 3 s after a drop, and while the
-//                      dial drawer is out; hidden under the rebirth
-//                      overlay. Display only, never tappable.
+//                      text). Out for 3 s after a drop, while the
+//                      menu is open, and always in the money room with
+//                      "always show popups" on (settings > gameplay,
+//                      DE's persist_popups); away while the dial drawer
+//                      is out and under the rebirth overlay - DE's
+//                      rules. Display only, never tappable.
 //                      Persistent, spawned by syst_handle_save.
 //   spr_display_units, spr_particon, snd_diamond, snd_orb   DE's assets.
 
