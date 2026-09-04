@@ -35,6 +35,19 @@ function DigitWindow() constructor {
         mag       = bignum_vis_magnitude(_bignum);
         if (digit_str == "") digit_str = "0";
 
+        // THE UNIT IS THE ATOM (his report, 2026-09-04: sub-tier white
+        // squares under the units at deep zoom). The mantissa string
+        // carries up to 12 significant digits, so for a value like
+        // 1234.33 the digits below the units place are REAL digits to
+        // get_digits and the unit field draws them as a partial - a
+        // fraction of a unit, rendered as smaller squares. Nothing below
+        // fake_floor exists in this game, so cut it off here, at the
+        // data layer, and no renderer path can ever see it.
+        var _keep = mag - fake_floor + 1;
+        if (_keep < 1) digit_str = "0";
+        else if (string_length(digit_str) > _keep)
+            digit_str = string_copy(digit_str, 1, _keep);
+
         // seed from every real digit plus the magnitude: any change in
         // profit's visible digits reshuffles the fake strata below
         var _len = string_length(digit_str);

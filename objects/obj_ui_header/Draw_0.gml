@@ -28,6 +28,7 @@ if (variable_global_exists("profit")) {
 	flight = g.profit_flight;
 
 	var _tgt = (g.profit > flight) ? do_subtract(g.profit, flight) : 0;
+	if (_tgt >= arb(1)) _tgt = do_floor(_tgt);   // profit is whole units; so is the shown figure
 	
 	// DE's RATCHET: do_add and do_subtract round differently either side
 	// of a decade boundary, so the held-back figure could read 999.9b for

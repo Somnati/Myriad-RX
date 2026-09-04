@@ -15,9 +15,12 @@ repeat (_rep) {
 		var _o = instance_create_depth(x + random_range(-3, 3),
 			y + random_range(-3, 3), -90, obj_bezier_bit);
 		_o.col = col;
-		// hand this mote its cut and stop owing it
-		_o.amt = share;
-		if (amt > 0) amt = (amt > share) ? do_subtract(amt, share) : 0;
+		// hand this mote its cut and stop owing it; the LAST mote takes
+		// whatever is left, so whole-unit shares never strand a remainder
+		var _cut = (count <= 0) ? amt : share;
+		if (amt > 0 && _cut > amt) _cut = amt;
+		_o.amt = _cut;
+		if (amt > 0) amt = (amt > _cut) ? do_subtract(amt, _cut) : 0;
 		_o.tx = tx + random_range(-2, 2);
 		_o.ty = ty + random_range(-1, 1);
 		_o.aim();

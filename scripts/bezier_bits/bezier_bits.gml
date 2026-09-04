@@ -35,5 +35,9 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_e.tx     = _tx;
 	_e.ty     = _ty;
 	_e.amt    = _amt;                                  // the whole burst
-	_e.share  = (_amt > 0) ? do_scale(_amt, 1 / _n) : 0; // one mote's cut
+	// one mote's cut, in WHOLE UNITS: a fractional share left the
+	// counter's held-back figure fractional mid-flight, and the
+	// visualiser drew the fraction as sub-unit squares. The remainder
+	// rides the last mote (the emitter hands it over on the final spawn)
+	_e.share  = (_amt > 0) ? do_floor(do_scale(_amt, 1 / _n)) : 0;
 }
