@@ -58,6 +58,30 @@ pw = 148;         // panel width. EVERYTHING in the drawer anchors to
 hdr_h = 44;       // pinned header band
 foot_h = 26;      // pinned time-played band
 
+// THE ROW WIDTH (his ask, 2026-09-04): nav rows are only as wide as the
+// LONGEST menu label plus room, and they sit against the panel's RIGHT
+// edge - the menu then reads as a column of names instead of a stack of
+// full-width slabs.
+// Measured ONCE and cached: menu2_content is static, and __layout runs
+// in BOTH Step (hit tests) and Draw (pixels). Measuring under whatever
+// font the previous event happened to leave set would let those two
+// disagree, which the one-geometry-authority rule exists to prevent - so
+// the measure sets the house font itself and puts back what was there.
+btn_w = -1;       // -1 = not measured yet
+__btn_w = function() {
+	if (btn_w > 0) return btn_w;
+	var _f = draw_get_font();
+	draw_set_font(fnt);
+	var _m = 0;
+	for (var _i = 0; _i < array_length(btns); _i++)
+		_m = max(_m, string_width(btns[_i].name));
+	draw_set_font(_f);
+	// 9px text inset + the label + room past it: the "you are here"
+	// pip lives in the row's last 7px and must not touch the text
+	btn_w = min(pw - 12, ceil(_m) + 20);
+	return btn_w;
+};
+
 __ease = function(_v) {
 	return _v * _v * (3 - 2 * _v);
 };
@@ -118,6 +142,12 @@ __layout = function() {
 	scr = clamp(scr, 0, scr_max);
 	var _y = _top - scr;
 	var _sec = "";
+	// ONE left edge for the whole column - buttons, info labels and the
+	// section headers above them - so the group holds together when it
+	// moves right. The section's rule still runs out to the panel edge.
+	var _bw  = __btn_w();
+	var _rx2 = panel_x + _pw - 6;
+	var _rx1 = _rx2 - _bw;
 	for (var _i = 0; _i < _n; _i++) {
 		// x2 anchors to panel_x + _pw (== room_width when fully open,
 		// identical geometry) so rows RIDE the slide instead of
@@ -125,18 +155,18 @@ __layout = function() {
 		if (btns[_i].sec != _sec) {
 			_sec = btns[_i].sec;
 			array_push(_it, { kind : 2, idx : -1, name : _sec, col : c_white,
-				x1 : panel_x + 8, y1 : _y, x2 : panel_x + _pw - 8, y2 : _y + _sh });
+				x1 : _rx1, y1 : _y, x2 : panel_x + _pw - 8, y2 : _y + _sh });
 			_y += _sh;
 		}
 		// kind 3 = info label (menu2_label): dim text, never a tap
 		if (btns[_i][$ "lbl"] ?? false) {
 			array_push(_it, { kind : 3, idx : _i, name : btns[_i].name, col : btns[_i].col,
-				x1 : panel_x + 9, y1 : _y, x2 : panel_x + _pw - 6, y2 : _y + _lh });
+				x1 : _rx1 + 3, y1 : _y, x2 : _rx2, y2 : _y + _lh });
 			_y += _lh + _gap;
 			continue;
 		}
 		array_push(_it, { kind : 0, idx : _i, name : btns[_i].name, col : btns[_i].col,
-			x1 : panel_x + 6, y1 : _y, x2 : panel_x + _pw - 6, y2 : _y + _bh });
+			x1 : _rx1, y1 : _y, x2 : _rx2, y2 : _y + _bh });
 		_y += _bh + _gap;
 	}
 	return _it;
