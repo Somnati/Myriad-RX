@@ -37,6 +37,7 @@ function handle_settings(_method) {
 	g.blur = handle("blur",g.blur);
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);
+	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve
 	g.trans_kind = handle("trans_kind",g.trans_kind); // room transition style
 
 	section = "audio";

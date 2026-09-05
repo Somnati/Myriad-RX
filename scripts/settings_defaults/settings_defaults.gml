@@ -15,6 +15,7 @@ function settings_defaults() {
 	system.desired_fps      = display_get_frequency();
 	g.blur                  = false;
 	g.show_fps              = false;
+	g.fit_margin            = 12;   // % of screen height kept for OS chrome
 
 	// audio
 	g.vol_master = 100;

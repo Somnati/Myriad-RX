@@ -106,6 +106,24 @@ function settings_content() {
 			+ "back. reverts by itself if you can't confirm.",
 			g.fullscreen ? c_gray : -1);
 
+		// how much screen height a portrait room leaves for the OS
+		// chrome. Kept as a PERCENTAGE so it holds at any DPI - see
+		// scr_display1's fit block for why this exists at all.
+		settings_slider("portrait margin", 0, 30,
+			function() { return g.fit_margin; },
+			function(_v) {
+				// the slider calls this every frame of a drag; only a real
+				// step re-arms, or the swap logs once per frame
+				if (_v == g.fit_margin) return;
+				g.fit_margin = _v;
+				g.screen_size = -abs(g.screen_size); // re-arm the fit
+			},
+			"%", 1,
+			"how much of the screen height a portrait room keeps clear "
+			+ "for the title bar and the taskbar. too little and the "
+			+ "bottom of the room hides behind them. you'll see it "
+			+ "change back in the clicker.");
+
 		settings_toggle("vsync",
 			function() { return g.vsync != 0; },
 			function(_v) { g.vsync = _v ? 1 : 0; display_reset(0, g.vsync); },

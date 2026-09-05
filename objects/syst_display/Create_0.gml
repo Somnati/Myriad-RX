@@ -8,6 +8,14 @@ g.screen_size_user = 2560; // the CHOSEN size: what the player picked in
 	// scr_display1 validates it against scr_res_list on every swap.
 g.fullscreen_borderless = true;
 g.vsync = false;
+// PORTRAIT FIT MARGIN: the share of the display HEIGHT that "fit" mode
+// leaves clear for the OS window chrome - the title bar above and the
+// taskbar below. GML has no work-area call, so this is the reserve.
+// A PERCENTAGE, not pixels, because chrome scales with DPI: the title
+// bar + taskbar are ~7% of the screen height at 100% and at 200% alike.
+// 12 keeps ~6% at each end, which clears a standard Windows 11 bar with
+// room to spare. Settings > display tunes it.
+g.fit_margin = 12;
 
 fullscreen_disabled = false;
 border = false;

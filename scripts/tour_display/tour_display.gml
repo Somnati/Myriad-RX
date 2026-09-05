@@ -29,6 +29,18 @@
 //                    toy (DE has obj_throwable in rm_clicker); RX runs
 //                    it inside syst_display.
 
+// ========================= "FIT" MODE ===============================
+// A portrait room (rm_clicker, 144x296) parks g.screen_size at 144 and
+// scr_display1 scales the window to the display HEIGHT. It cannot use
+// the height RAW: a windowed game also needs room for the title bar
+// above and the taskbar below, and GML has no work-area call. So
+// g.fit_margin (a PERCENT of screen height, settings > display,
+// default 12) is reserved, and the window centres in the display -
+// half the reserve above, half below.
+// Kept as a percent, not pixels, because window chrome scales with
+// DPI: title + taskbar are ~7% of the screen height at 100% and at
+// 200% alike, so one number holds on any monitor.
+
 // ======================= THE TWO SIZE GLOBALS =======================
 //   g.screen_size_user   what the player CHOSE. Saved. Never touched
 //                        by rooms.
@@ -38,6 +50,12 @@
 //                        through a portrait room overwrote the choice.
 
 // ============================ TRAPS =================================
+//   - NEVER size a windowed portrait fit to display_get_height() and
+//     pin it at y 0. That is what it did until 2026-09-04: the title
+//     bar went off the top (the window could not be dragged) and the
+//     last ~13 of the room's 296 rows sat behind the taskbar, which
+//     is where the menu's foot band keeps its numbers. Reserve
+//     g.fit_margin and centre.
 //   - Instance sprite_width is ALREADY scaled by image_xscale.
 //   - Everything is 8-bit: wide dark gradients band. The fix in this
 //     project is temporal dither (sh_fog_dither), not more bits.

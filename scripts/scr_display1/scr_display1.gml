@@ -196,8 +196,28 @@ if g.fullscreen = false
 if g.screen_size < 0{g.screen_size = abs(g.screen_size); show("swap g.screen_size");
 
 if g.screen_size = 144 {
-	// "fit" mode: portrait/mobile-aspect rooms fill the display height
-	des_w = room_width*(_dis_h/room_height); des_h = room_height*(_dis_h/room_height); window_center(); window_set_position(window_get_x(),0);
+	// "FIT" mode: a portrait/mobile-aspect room scales to the display
+	// HEIGHT. It used to take _dis_h RAW and then pin the window at
+	// y 0, which on Windows costs the room twice: the title bar goes
+	// off the top of the screen (so the window can no longer be
+	// dragged) and the bottom stripe of the room sits behind the
+	// taskbar. His report 2026-09-04 - the menu's foot band drew its
+	// "profit" / "time played" labels and hid the numbers under them,
+	// because on a 1080 display a 48px taskbar eats the last 13 of the
+	// room's 296 rows, and the values live at row 284.
+	// g.fit_margin (percent, settings > display) is the reserve for
+	// that chrome; the window then centres in the display, so half the
+	// reserve sits above the title bar and half below the taskbar.
+	var _res = _dis_h * (clamp(g.fit_margin, 0, 40) / 100);
+	var _use = max(240, _dis_h - _res);
+	var _fs  = _use / room_height;
+	des_w = room_width * _fs;
+	des_h = room_height * _fs;
+	// tell the throwable window system where the window now lives, or
+	// its trickle drags it back toward a stale centre and undoes this
+	_center_x = _dis_w * .5;
+	_center_y = _dis_h * .5;
+	window_center();
 }
 else {
 	// the swap used to be a hardcoded if-chain of five sizes offered
