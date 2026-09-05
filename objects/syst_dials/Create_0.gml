@@ -150,6 +150,17 @@ __rows = function() {
 	return min(g.dial_total, _n + 1);
 };
 
+/// THE DOCKED DOT'S SEAT. His report (2026-09-04): the dots did not
+/// line up with the bars they turn into. They had their own tighter
+/// pitch of 11 against the rows' 16, so the error grew with the index -
+/// dial a was close, dial m sat sixty pixels from its row, and opening
+/// the drawer slid every dot to a different place. ONE PITCH now: the
+/// dot is centred on exactly the row it becomes, so the drawer opens
+/// as a widening, not a re-shuffle.
+__dot_y = function(_i) {
+	return row_y1 - _i * row_p + row_h * .5;
+};
+
 /// a dial's VISIBLE progress: zero through the wind-up, then 0..1
 __perc = function(_i, _d) {
 	var _a = dial_config(_i).autoeff;
@@ -169,7 +180,12 @@ __wind = function(_i, _d) {
 /// Same rectangles as the tap handling in Step, so the two can't drift.
 __consumes = function(_px, _py) {
 	if (!variable_global_exists("dial")) return false;
-	if (sp < .5) return (_px >= room_width - dock_w);   // the dot strip
+	// DOCKED: nothing here answers a tap any more - the drawer opens by
+	// swipe only (his call, 2026-09-04) - so the strip must not swallow
+	// one either. His standing rule: the thumb earns anywhere the
+	// drawer is not actually using the pixels. A swipe still STARTS
+	// here; the drag budget is what tells the two apart.
+	if (sp < .5) return false;
 	var _n  = __rows();
 	var _bw = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
 	var _x2 = face + _bw;

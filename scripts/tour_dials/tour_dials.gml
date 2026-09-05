@@ -58,15 +58,19 @@
 // ========================== THE VIEW ================================
 //   syst_dials       THE DRAWER in rm_clicker, DE's obj_dial look
 //                    rebuilt: three stages (docked dot column / 140px
-//                    bars / 93px bars + buy buttons), swipe left or D
-//                    to pull out, swipe right or A or tap outside to
-//                    put away, live drag past a 6px budget, ease-out
-//                    on release. Bars are DE's composition: endcaps,
+//                    bars / 93px bars + buy buttons), SWIPE LEFT or D
+//                    to pull out - swiping is the ONLY way out (his
+//                    call 2026-09-04: tapping the dot column opened it,
+//                    which fought a thumb earning near the right edge)
+//                    - swipe right or A or tap outside to put away,
+//                    live drag past a 6px budget, ease-out on release. Bars are DE's composition: endcaps,
 //                    the letter glyph, lv, the progress bar with the
 //                    countdown centred and the accruing take at its
 //                    end; "..." during the wind-up; the docked dot is
 //                    DE's two filled circles whose radius IS the
-//                    progress. DE's two top-right buttons ride in from
+//                    progress, seated by __dot_y at the exact y of the
+//                    BAR it becomes, so opening the drawer widens the
+//                    column instead of re-shuffling it. DE's two top-right buttons ride in from
 //                    the right edge: VIEW (with the list; a pillbox
 //                    picking the rate readout, profit per cycle or per
 //                    second - g.display_gps) and BUY BULK (with the
@@ -86,4 +90,9 @@
 // ============================ TRAPS =================================
 //   - autoeff lives in dial_config and is READ by both update_dial
 //     and the drawer, so the sim and the view can't disagree.
+//   - ONE PITCH for the column. The docked dots once had their own
+//     (11 against the rows' row_p of 16) and the error grew with the
+//     index - dial m's dot sat sixty pixels from its bar. Everything
+//     vertical in the column goes through __dot_y or row_p; never
+//     write a second spacing.
 //   - The level is the only owned number. Never store a rate.

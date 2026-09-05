@@ -53,11 +53,11 @@ for (var _i = 0; _i < _n; _i++) {
 		// paid. tic -1 = the whole burst at once, the payout style; the
 		// count rides the size of the payout the way DE's does.
 		var _sx = room_width - dock_w * .5;         // docked: the dot
-		var _sy = row_y1 - _i * 11 + 5;
-		if (sp >= .5) {                              // out: the bar
-			_sx = face + 39;
-			_sy = row_y1 - _i * row_p + row_h * .5;
-		}
+		var _sy = __dot_y(_i);
+		// out: the bar. Only the X moves now - the dot and the bar
+		// share one seat, so a payout leaves from the same height
+		// whichever face the drawer is wearing.
+		if (sp >= .5) _sx = face + 39;
 		var _nb = 1;
 		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
@@ -161,11 +161,12 @@ if (_dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
 // under the drag budget it was a TAP
 if (point_distance(_px, _py, mouse_x, mouse_y) > BUDGET) exit;
 
-// docked: tapping the dot column pulls the drawer out
-if (sp < .5) {
-	if (_px >= room_width - dock_w) stage = 1;
-	exit;
-}
+// DOCKED: THE DRAWER OPENS BY SWIPE ONLY (his call, 2026-09-04).
+// Tapping the dot column used to pull it out, so a thumb earning near
+// the right edge kept opening the dials on him. The flick tests above
+// (and D) are the only way out now; a tap here is just a tap, and
+// obj_clicker pays it.
+if (sp < .5) exit;
 
 // a tap left of the drawer face puts it away
 if (_px < face) { stage = 0; exit; }

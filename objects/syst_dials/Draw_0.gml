@@ -43,7 +43,7 @@ if (_da > 0) {
 	for (var _i = 0; _i < _n; _i++) {
 		var _d  = g.dial[_i];
 		var _c  = dial_color(_i);
-		var _y  = row_y1 - _i * 11 + 5;
+		var _y  = __dot_y(_i);          // the row it becomes
 		var _r0 = row_h * .5;                      // DE's des_size_
 		var _bg = merge_colour(_c, c_black, .8);   // the dark disc
 		draw_set_alpha(_da);
@@ -56,8 +56,12 @@ if (_da > 0) {
 		}
 		draw_set_alpha(1);
 	}
-	draw_sprite_ext(spr_pixel_1x1, 0, room_width - 1, row_y1 - _n * 11 + 2, 1,
-		_n * 11 + 8, 0, c_gold, .35 * _da);
+	// the gold edge hairline spans the dot column, so it grew with the
+	// dots when the pitch changed
+	var _gy0 = __dot_y(_n - 1) - row_h * .5 - 2;
+	var _gy1 = __dot_y(0) + row_h * .5 + 2;
+	draw_sprite_ext(spr_pixel_1x1, 0, room_width - 1, _gy0, 1,
+		_gy1 - _gy0, 0, c_gold, .35 * _da);
 }
 
 if (_oa <= 0) { draw_set_alpha(1); draw_set_color(c_white); exit; }
