@@ -65,6 +65,30 @@
 //                    and a screen with rows < widgets < strip < menu
 //                    needs four.
 
+// ====================== THE REGION SNAPSHOTS ========================
+// Two pairs, same shape: a CAPTURE that copies the application surface
+// into a reduced one, and a DRAW that paints a piece of it back into a
+// rectangle. Both give a panel something to sit on that is made of
+// whatever it is covering.
+//
+//   pixel_snap([cell])             capture, POINT sampled
+//   draw_pixel_region(x,y,w,h,[a]) draw it back in hard blocks
+//   -- IN USE: the dial drawer's backdrop, 3 room pixels a block.
+//
+//   blur_snap([room_px])           capture, bilinear, halved down and
+//                                  doubled back up
+//   draw_blur_region(x,y,w,h,[a])  draw it back soft
+//   -- PARKED. It works; it just was not what this screen wanted. The
+//      visualiser's grid lines survived every radius as soft
+//      rectangles, and the glow layer had already spread the light
+//      before the capture saw it, so blurring smeared a smear. Kept
+//      for the next panel that wants glass.
+//
+// ⚖️ THE TWO ARE OPPOSITES AND MUST NOT SHARE CODE. Pixelation takes
+// ONE EXACT SAMPLE PER CELL and never averages (house law - it is why
+// GameMaker's _filter_pixelate is banned here); blur is nothing BUT
+// averaging. One wants the texture filter off, the other on.
+
 // ========================= THE REGION BLUR ==========================
 //   blur_snap([down])            capture: the application surface into
 //                                g.blur_small at 1/down.

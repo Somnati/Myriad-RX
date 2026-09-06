@@ -158,32 +158,34 @@ quote = array_create(variable_global_exists("dial_total") ? g.dial_total : 13, u
 qtic  = 0;
 qmode = -1;
 
-// THE DRAWER'S BLUR, second attempt and the right one. The first was a
-// gaussian EFFECT LAYER, which is always full screen - so it could only
-// be switched on in portrait, where full screen happens to be the
-// drawer's width. The region blur (blur_snap / draw_blur_region)
-// replaces it and works in BOTH shapes, because it paints a blurred
-// copy of the scene back into a RECTANGLE.
-// This proxy is the capture slot, and its DEPTH is the whole design:
-// everything drawn before it is in the blur, everything after is not.
-// 0 sits after the room, the visualiser and the entire fx stack
-// (40/30/20) and before the drawer (-20) and the header (-1000), so
-// the drawer frosts the room and never itself.
-// only while the drawer is actually out: a full-surface downsample
-// every frame to feed a panel nobody can see is pure cost. The proxy
-// sits at depth 0 and the drawer at -20, so on the frame the slide
-// starts the capture still runs FIRST and the blur is ready in time.
-// 3 ROOM pixels. That sounds tiny and is not: the money room is 144
-// wide, so 8 was reaching a twentieth of the way across it and there
-// was no structure left in the result - his screenshot showed the
-// visualiser reduced to one green wash. A frosted backdrop should
-// still read as the thing behind it. blur_snap takes ROOM pixels and
-// solves for the halvings, so this is the same on any monitor.
-__blur_cap = function() { if (sp > 0) blur_snap(3); };
-blur_px = create_obj(0, 0, obj_draw_proxy);
-blur_px.owner = id;
-blur_px.depth = 0;
-blur_px.fn    = __blur_cap;
+// THE DRAWER'S BACKDROP, third attempt and the one that fits.
+//   1. a gaussian EFFECT LAYER - always full screen, so it could only
+//      be switched on in portrait, where full screen happens to be the
+//      drawer's width.
+//   2. a region BLUR - worked in both shapes, but read as a smear
+//      rather than as glass: the visualiser's grid lines survived every
+//      radius as soft rectangles, and the glow layer had already spread
+//      the light before the capture saw it, so it blurred a blur.
+//   3. a region PIXELATION, his call. It suits the game: this is a
+//      pixel-art screen, and blocks read as deliberate where a soft
+//      wash reads as a mistake. 3 ROOM pixels a block.
+// blur_snap / draw_blur_region are PARKED, not deleted - they work, and
+// the next panel that wants glass can have them.
+//
+// ⚖️ THE PROXY'S DEPTH IS THE WHOLE DESIGN: everything drawn before it
+// is in the snapshot, everything after is not. 0 sits after the room,
+// the visualiser and the entire fx stack (40/30/20), and before the
+// drawer (-20) and the header (-1000) - so the drawer pixelates the
+// room and never itself.
+// Only while the drawer is out: a full-surface capture every frame to
+// feed a panel nobody can see is pure cost. The proxy is at depth 0 and
+// the drawer at -20, so on the frame the slide starts the capture still
+// runs FIRST and the snapshot is ready in time.
+__snap_cap = function() { if (sp > 0) pixel_snap(3); };
+snap_px = create_obj(0, 0, obj_draw_proxy);
+snap_px.owner = id;
+snap_px.depth = 0;
+snap_px.fn    = __snap_cap;
 
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the

@@ -44,12 +44,11 @@ if (_dp > 0) {
 	// changing shape during the pull.
 	var _mg  = max(0, room_width - (row_x + row_w));
 	var _bx0 = floor(face - _mg);
-	// FROSTED GLASS: the blurred copy of whatever the strip is covering,
-	// then a dim over it. The dim is lighter than it was (.62 -> .45)
-	// because the blur now does most of the work of separating the
-	// drawer from the room - dimming that hard on top of a blur just
-	// reads as a black panel.
-	draw_blur_region(_bx0, 0, room_width - _bx0, room_height, _dp);
+	// the PIXELATED copy of whatever the strip is covering, then a dim
+	// over it. The dim stays light (.45) because the pixelation already
+	// separates the drawer from the room; dimming hard on top of it just
+	// reads as a black panel again.
+	draw_pixel_region(_bx0, 0, room_width - _bx0, room_height, _dp);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, room_width - _bx0,
 		room_height, 0, c_black, .45 * _dp);
 }

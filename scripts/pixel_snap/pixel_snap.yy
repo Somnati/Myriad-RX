@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"pixel_snap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"pixel_snap",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
