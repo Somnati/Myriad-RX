@@ -32,6 +32,20 @@ vis.renderer.grid_sprite = spr_vis_grid2; // 3 subimages: border/inner/outer
 vis.renderer.grid_alpha = (variable_global_exists("vis_grid_alpha")
 	? g.vis_grid_alpha : 75) / 100;
 
+// THE GLOW LAYER'S INTENSITY, his setting (settings > visuals). The
+// clicker rooms carry a "glow" effect layer over the block field; the
+// visualiser applies the preference on arrival because it is the thing
+// that layer exists for. 0 switches the layer off outright rather than
+// running a pass that contributes nothing.
+// Guarded on layer_exists: obj_bignum5 could be placed in a room that
+// never declared the layer, and a missing one must not be an error.
+if (layer_exists("glow")) {
+	var _gi = (variable_global_exists("vis_glow") ? g.vis_glow : 15) / 100;
+	var _gf = layer_get_fx("glow");
+	if (_gf != -1) fx_set_parameter(_gf, "g_GlowIntensity", _gi);
+	layer_set_visible("glow", _gi > 0);
+}
+
 // NO SUB-TIER SQUARES (his report). DigitWindow can SYNTHESISE digits
 // below the value's real precision so a deep zoom always has something
 // to draw - which shows up as squares smaller than the lowest (white)

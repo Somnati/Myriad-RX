@@ -65,6 +65,10 @@ function blur_snap(_room_px = 6) {
 	}
 
 	gpu_set_tex_filter(true);
+
+	// DOWN the chain: each pass halves, which is the only ratio at which
+	// bilinear averages honestly (see above). This is where the WIDTH of
+	// the blur comes from - 2^steps surface pixels of reach.
 	var _src = application_surface;
 	for (var _i = 0; _i < _steps; _i++) {
 		var _d = g.blur_chain[_i];
@@ -77,8 +81,30 @@ function blur_snap(_room_px = 6) {
 		surface_reset_target();
 		_src = _d;
 	}
+
+	// ⚖️ AND BACK UP AGAIN - this is the QUALITY half (his report
+	// 2026-09-06: the blur "feels low res"). It did: the bottom of the
+	// chain is a thirtieth of the window, and blowing a 30px-tall image
+	// straight to full size is soft but mushy, because there is simply
+	// no detail left in it. Climbing back up doubles it a step at a
+	// time, filtering at every step, so the WIDTH stays what the deep
+	// levels made it while the RESOLUTION comes back to half the window.
+	// This is the dual-filter (Kawase) shape, and it is why real engines
+	// blur this way rather than with one huge downscale.
+	for (var _i = _steps - 2; _i >= 0; _i--) {
+		var _d = g.blur_chain[_i];
+		var _s = g.blur_chain[_i + 1];
+		surface_set_target(_d);
+		draw_clear_alpha(c_black, 0);
+		draw_surface_ext(_s, 0, 0,
+			surface_get_width(_d)  / surface_get_width(_s),
+			surface_get_height(_d) / surface_get_height(_s),
+			0, c_white, 1);
+		surface_reset_target();
+	}
 	gpu_set_tex_filter(false);
 
-	g.blur_small = g.blur_chain[_steps - 1];
+	// the top link: half the window, carrying the deep levels' width
+	g.blur_small = g.blur_chain[0];
 	return true;
 }

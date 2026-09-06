@@ -185,6 +185,25 @@ function settings_content() {
 		"how strongly the lattice behind the number is drawn. 0 leaves "
 		+ "just the blocks.");
 
+	// THE GLOW over the block field - the room's "glow" effect layer.
+	// GameMaker's own default for it is .15, so 15 here is what it
+	// shipped as; 0 switches the layer off rather than running a pass
+	// that contributes nothing.
+	settings_slider("visualiser glow", 0, 60,
+		function() { return g.vis_glow; },
+		function(_v) {
+			g.vis_glow = _v;
+			// live, wherever the layer actually exists
+			if (layer_exists("glow")) {
+				var _gf = layer_get_fx("glow");
+				if (_gf != -1) fx_set_parameter(_gf, "g_GlowIntensity", _v / 100);
+				layer_set_visible("glow", _v > 0);
+			}
+		},
+		"%", 1,
+		"how far the block field bleeds light into the dark around it. "
+		+ "0 turns the pass off entirely.");
+
 	settings_toggle("menu blur",
 		function() { return g.blur; },
 		function(_v) { g.blur = _v; },

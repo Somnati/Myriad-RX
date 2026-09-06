@@ -18,6 +18,7 @@ function settings_defaults() {
 	g.fit_margin            = 12;   // % of screen height kept for OS chrome
 	g.orient                = -1;   // -1 auto / 0 portrait / 1 landscape
 	g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
+	g.vis_glow              = 15;   // visualiser glow intensity, %
 
 	// audio
 	g.vol_master = 100;

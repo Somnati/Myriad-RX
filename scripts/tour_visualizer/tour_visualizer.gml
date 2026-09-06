@@ -63,6 +63,13 @@
 // NOT PORTED: the techdemo's fourth layer, a gaussian "blur" kept
 // switched OFF, and its partner obj_vis_darken (a 30% black plate
 // drawn only while g.blur is on). Neither was active.
+// THE GLOW IS TUNABLE: settings > visuals "visualiser glow" writes
+// g_GlowIntensity on that layer, and 0 hides the layer outright rather
+// than running a pass that contributes nothing. obj_bignum5 applies it
+// on create (guarded on layer_exists - a room may not declare the
+// layer) and the slider writes through live. The grid slider beside it
+// is g.vis_grid_alpha, which is the RENDERER's own master alpha, not an
+// fx layer - two different mechanisms, one settings tab.
 // The parameters came from a 480x270 room unchanged, so the glow
 // radius is a bigger fraction of a 144-wide portrait one - that is the
 // first number to reach for if portrait reads too soft.

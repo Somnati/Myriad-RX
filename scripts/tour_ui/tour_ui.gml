@@ -86,11 +86,20 @@
 // flushes, so it is an ordinary texture by the time we draw it. The
 // manual's warning is about drawing a surface ONTO ITSELF.
 //
-// ⚖️ THE BLUR IS THE FILTERING - no shader anywhere. Bilinear on the
-// way down averages down x down pixels into one; bilinear on the way
-// back up smooths between them. Raise `down` for softer AND cheaper.
-// The project runs with interpolation OFF (options_windows), so both
-// helpers turn gpu_set_tex_filter back off when they are done.
+// ⚖️ THE BLUR IS THE FILTERING - no shader anywhere - but it has to be
+// done in HALVES, DOWN AND BACK UP. Bilinear samples four texels
+// however far you scale, so one big downscale reads a 2x2 and skips
+// everything else: aliasing, not blur. Halving is the only ratio that
+// averages honestly. The way DOWN sets the blur's WIDTH; the way back
+// UP restores its RESOLUTION, because the bottom of the chain is a
+// thirtieth of the window and blowing that straight to full size is
+// mushy. That is the dual-filter (Kawase) shape, and both halves are
+// needed - his two reports, "barely visible" then "feels low res",
+// were exactly these two mistakes in turn.
+// The radius is asked for in ROOM pixels: the app surface is the
+// WINDOW's size, so a surface-space radius would change with the
+// monitor. The project runs with interpolation OFF
+// (options_windows), so both helpers restore gpu_set_tex_filter.
 //
 // ⚖️ SURFACES ARE VOLATILE: alt-tab, a resolution change or a device
 // loss frees them. Every use re-checks surface_exists and rebuilds -

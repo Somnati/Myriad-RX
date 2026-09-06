@@ -57,6 +57,12 @@ g.profit_color = c_sgreen;
 // (BignumVisRenderer's grid_alpha, .75 out of the box); this is that
 // number as a percent, so 75 is what it always was.
 g.vis_grid_alpha = 75;
+// THE VISUALISER'S GLOW (settings > visuals). The clicker rooms carry a
+// "glow" effect layer over the block field; this is its intensity as a
+// percent, and GameMaker's own default for that layer is .15 - so 15
+// here is exactly what it shipped as. 0 switches the layer off outright
+// rather than running a pass that does nothing.
+g.vis_glow = 15;
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
 // off = a flat +10. His toggle, settings > gameplay
