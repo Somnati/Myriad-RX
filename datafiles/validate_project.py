@@ -255,6 +255,16 @@ def room_objects(name):
     return out
 
 
+def room_effects(name):
+    """The FX stack, as name+type pairs. Parameters are deliberately NOT
+    compared: a 144x296 room may well want a different glow radius from
+    a 480x270 one, but it should not be missing the glow."""
+    d = load(reg[name])
+    return {(lay.get("name"), lay.get("effectType"))
+            for lay in d.get("layers", [])
+            if lay.get("effectType")}
+
+
 pairs_gml = "scripts/room_pairs/room_pairs.gml"
 pairs = []
 if os.path.exists(os.path.join(ROOT, pairs_gml)):
@@ -272,7 +282,12 @@ for p, l in pairs:
     b = room_objects(l) - {MARKER}
     if a != b:
         drift.append(f"{p} vs {l}: " + ", ".join(sorted(a ^ b)))
-warn("orientation twins hold the same instances", not drift, "; ".join(drift[:3]))
+    fa, fb = room_effects(p), room_effects(l)
+    if fa != fb:
+        drift.append(f"{p} vs {l} fx: "
+                     + ", ".join(sorted(n for n, _ in fa ^ fb)))
+warn("orientation twins hold the same instances and fx", not drift,
+     "; ".join(drift[:3]))
 
 marker = []
 for n, p in reg.items():

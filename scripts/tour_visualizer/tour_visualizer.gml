@@ -37,3 +37,32 @@
 // THE GLOW IS OFF (his call, twice confirmed): the additive
 // spr_glow_sw pass BANDS on the 8-bit surface into a ringed halo.
 // Bringing it back needs a dithered pass, not a toggle.
+// NOTE this is the SPRITE glow, and it is a different thing from the
+// FX-layer glow below - which is on, and is not additive, so it does
+// not band.
+
+// ========================= THE FX STACK =============================
+// rm_clicker and its landscape twin carry three of GameMaker's own
+// effect layers, ported 2026-09-06 from the techdemo's rm_visualizer
+// where they were tuned:
+//   vignette     depth 40   _filter_vignette    edges .95/1.1, sharp 1.26
+//   subtle_blur  depth 30   _filter_zoom_blur   intensity .05, focus 1024
+//   glow         depth 20   _effect_glow        radius 20, intensity .15
+//
+// THE WHOLE TRICK IS THE DEPTHS. An FX layer affects only layers
+// DEEPER than itself, so the stack sits BETWEEN the visualiser and the
+// UI: obj_bignum5 at 50 and the black Background at 100 are deeper, so
+// both are wrapped; syst_dials (-20), the header (-1000) and every
+// panel are shallower and stay perfectly crisp. Move obj_bignum5
+// shallower than 40 and the effects silently stop touching it - no
+// error, just a flat visualiser. The techdemo expressed the same
+// relationship as 2000 against 1030..1250; only the numbers changed.
+// Order within the stack is draw order, deepest first: vignette, then
+// the zoom blur, then the glow.
+//
+// NOT PORTED: the techdemo's fourth layer, a gaussian "blur" kept
+// switched OFF, and its partner obj_vis_darken (a 30% black plate
+// drawn only while g.blur is on). Neither was active.
+// The parameters came from a 480x270 room unchanged, so the glow
+// radius is a bigger fraction of a 144-wide portrait one - that is the
+// first number to reach for if portrait reads too soft.
