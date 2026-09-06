@@ -30,7 +30,19 @@
 //                    Folds and destroys itself when the trigger
 //                    clears.
 //   obj_menu2_bck    the dark backing BEHIND the blur layer, so the
-//                    gaussian smooths it too.
+//                    gaussian smooths it too. Plus THE EDGE GRADIENTS
+//                    (ported 2026-09-06 from the techdemo's old
+//                    obj_menu_bck, which menu v2 never inherited):
+//                    spr_menu_back_3, a 144x1 strip opaque at column 0
+//                    and fading out by 143, drawn twice - its one pixel
+//                    row stretched to the room's height, mirrored
+//                    inward from each side edge by a NEGATIVE x scale
+//                    on the right-hand copy. Each fade spans half the
+//                    room at any width.
+//   spr_menu_back_3  that strip. It is a general edge-fade asset, not
+//                    a menu one - the techdemo also ran it through a
+//                    draw_edge_shade() helper to shade all four edges
+//                    of the visualiser. That helper is NOT ported.
 //   spr_ui_menubutton   art from the old menu, unused by the drawn
 //                    burger; kept with the part.
 

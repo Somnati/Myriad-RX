@@ -383,6 +383,7 @@
     {"id":{"name":"spr_glow_sw","path":"sprites/spr_glow_sw/spr_glow_sw.yy",},},
     {"id":{"name":"spr_hud_toggle_ps","path":"sprites/spr_hud_toggle_ps/spr_hud_toggle_ps.yy",},},
     {"id":{"name":"spr_line_10","path":"sprites/spr_line_10/spr_line_10.yy",},},
+    {"id":{"name":"spr_menu_back_3","path":"sprites/spr_menu_back_3/spr_menu_back_3.yy",},},
     {"id":{"name":"spr_munny","path":"sprites/spr_munny/spr_munny.yy",},},
     {"id":{"name":"spr_part_profit","path":"sprites/spr_part_profit/spr_part_profit.yy",},},
     {"id":{"name":"spr_particon","path":"sprites/spr_particon/spr_particon.yy",},},
