@@ -179,8 +179,9 @@ function settings_content() {
 	settings_toggle("menu blur",
 		function() { return g.blur; },
 		function(_v) { g.blur = _v; },
-		"blurs the room behind menus. purely cosmetic - off saves a "
-		+ "little gpu.");
+		"blurs the room behind menus, and carries the shading at its "
+		+ "edges - the blur is what keeps that gradient smooth, so the "
+		+ "two go together. off saves a little gpu.");
 
 	// room transition style (round 7's showcase slice wipe vs the
 	// classic circle; goto_room latches the pick per flight)
