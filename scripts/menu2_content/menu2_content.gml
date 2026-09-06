@@ -15,11 +15,11 @@ function menu2_content() {
 	menu2_button("rebirth",      function() { rebirth_open(); }, c_hred); // myriad
 	menu2_button("statistics",   rm_statistics_v2, c_sgreen);  // myriad
 	menu2_button("settings",     rm_settings,      c_white);
-	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("titlescreen",  rm_titlescreen,   c_gray);
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 
 	menu2_section("misc");
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
+	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
 }
