@@ -65,6 +65,40 @@
 //                    and a screen with rows < widgets < strip < menu
 //                    needs four.
 
+// ========================= THE REGION BLUR ==========================
+//   blur_snap([down])            capture: the application surface into
+//                                g.blur_small at 1/down.
+//   draw_blur_region(x,y,w,h,[a])  draw: the blurred copy of whatever
+//                                was behind that rectangle, back into
+//                                it. Draw-only, like every helper here.
+// Frosted glass behind a panel, without a shader. First customer: the
+// dial drawer's backdrop.
+//
+// ⚖️ WHERE THE CAPTURE IS CALLED IS THE WHOLE DESIGN. Everything drawn
+// BEFORE it is in the blur; everything after is not. So it goes in an
+// obj_draw_proxy slot seated between the content and the UI - depth 0
+// in rm_clicker: after the room, the visualiser and the fx stack, and
+// before the drawer (-20) and the header (-1000). Shallower than that
+// and the UI starts frosting itself.
+//
+// ⚖️ READING application_surface THERE IS SAFE, though it looks wrong:
+// surface_set_target() moves the render target away from it and
+// flushes, so it is an ordinary texture by the time we draw it. The
+// manual's warning is about drawing a surface ONTO ITSELF.
+//
+// ⚖️ THE BLUR IS THE FILTERING - no shader anywhere. Bilinear on the
+// way down averages down x down pixels into one; bilinear on the way
+// back up smooths between them. Raise `down` for softer AND cheaper.
+// The project runs with interpolation OFF (options_windows), so both
+// helpers turn gpu_set_tex_filter back off when they are done.
+//
+// ⚖️ SURFACES ARE VOLATILE: alt-tab, a resolution change or a device
+// loss frees them. Every use re-checks surface_exists and rebuilds -
+// never cache the handle.
+// Room coords are not surface coords: the app surface is the WINDOW's
+// size, so rectangles scale through the snap's own size. No hardcoded
+// scale belongs in either script.
+
 // ============================ TRAPS =================================
 //   - Lower depth draws on top. Draw Begin is painted over by the
 //     room's background; Draw End paints over the open menu. Stack by

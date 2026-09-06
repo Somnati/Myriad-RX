@@ -158,31 +158,26 @@ quote = array_create(variable_global_exists("dial_total") ? g.dial_total : 13, u
 qtic  = 0;
 qmode = -1;
 
-// THE DRAWER'S BLUR (his ask 2026-09-06). A GameMaker effect layer is
-// always FULL SCREEN - there is no region form of one - so it is only
-// created where full screen IS the drawer's width: portrait, where the
-// column opens to x 2 and the strip is the whole room. In landscape the
-// drawer parks against the right edge, and blurring everything would
-// smear the room beside it, which is the thing he did not want; there
-// the dimmed strip stands on its own. A landscape strip-blur would need
-// an application-surface snapshot, which is a different job.
-blur_fx = -1;
-if (row_x <= 4) {
-	if (!layer_exists("dial_blur")) {
-		// DEPTH 10 is the whole trick, same rule as the fx stack:
-		// deeper than 10 are the vignette/zoom/glow layers (40/30/20),
-		// the visualiser (50) and the black plate (100), so all of it
-		// blurs; the drawer itself is at -20 and the header at -1000,
-		// both shallower, so they stay sharp on top of it.
-		var _l = layer_create(10, "dial_blur");
-		var _f = fx_create("_effect_gaussian_blur");
-		fx_set_parameter(_f, "g_numPasses", 4);
-		fx_set_parameter(_f, "g_numDownsamples", 1);
-		fx_set_parameter(_f, "g_intensity", 0);
-		layer_set_fx(_l, _f);
-	}
-	blur_fx = layer_get_fx("dial_blur");
-}
+// THE DRAWER'S BLUR, second attempt and the right one. The first was a
+// gaussian EFFECT LAYER, which is always full screen - so it could only
+// be switched on in portrait, where full screen happens to be the
+// drawer's width. The region blur (blur_snap / draw_blur_region)
+// replaces it and works in BOTH shapes, because it paints a blurred
+// copy of the scene back into a RECTANGLE.
+// This proxy is the capture slot, and its DEPTH is the whole design:
+// everything drawn before it is in the blur, everything after is not.
+// 0 sits after the room, the visualiser and the entire fx stack
+// (40/30/20) and before the drawer (-20) and the header (-1000), so
+// the drawer frosts the room and never itself.
+// only while the drawer is actually out: a full-surface downsample
+// every frame to feed a panel nobody can see is pure cost. The proxy
+// sits at depth 0 and the drawer at -20, so on the frame the slide
+// starts the capture still runs FIRST and the blur is ready in time.
+__blur_cap = function() { if (sp > 0) blur_snap(4); };
+blur_px = create_obj(0, 0, obj_draw_proxy);
+blur_px.owner = id;
+blur_px.depth = 0;
+blur_px.fn    = __blur_cap;
 
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the

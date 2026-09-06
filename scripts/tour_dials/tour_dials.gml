@@ -106,7 +106,12 @@
 //     layer ("dial_blur", depth 10) created ONLY when row_x <= 4 -
 //     i.e. only where full screen IS the drawer's width - because GM
 //     effect layers have no region form. A landscape strip-blur needs
-//     an application-surface snapshot; that job has not been done.
+//     an application-surface snapshot. THAT JOB IS NOW DONE: the
+//     backdrop uses blur_snap / draw_blur_region (see tour_ui), which
+//     paints a blurred copy of the scene into the strip's rectangle and
+//     so works in BOTH shapes. The gaussian fx layer it replaced is
+//     gone. The capture rides an obj_draw_proxy at depth 0 - between
+//     the content and the drawer - and only runs while sp > 0.
 //   - THE SEATS ARE DERIVED, not typed. row_x / row_y1 / bb_x / vb_x*
 //     are offsets from the room's edges because the money room has two
 //     shapes (rm_clicker 144x296, rm_clicker_landscape 480x270). Each
