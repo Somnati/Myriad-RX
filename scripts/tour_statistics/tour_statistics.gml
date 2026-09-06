@@ -30,7 +30,10 @@
 //   syst_statistics_v2  the controller: folders open by full path
 //                       (g.stats_open, remembered), favourites pin
 //                       into a synthetic folder on top (g.stats_fav,
-//                       SAVED), search flattens the tree, change
+//                       SAVED) with the [favs] button in the title
+//                       strip showing or hiding the star gutter that
+//                       pins them (g.stats_fav_show, saved beside
+//                       them); change
 //                       pulses, +/- folder chips, rows as raised
 //                       panels, the unfurl animation on toggle,
 //                       rebuilds throttled to 1/s except structure

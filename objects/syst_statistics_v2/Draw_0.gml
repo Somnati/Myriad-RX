@@ -85,8 +85,10 @@ for (var _r = _lo; _r < _hi; _r++) {
 	}
 
 	// the pin gutter: every named line carries a star pip at the far
-	// left - lit gold when favorited, a dim socket otherwise
-	if (_row.kind == 0 && _row.name != "") {
+	// left - lit gold when favorited, a dim socket otherwise. The [favs]
+	// button in the title strip puts the whole gutter away; the row's
+	// own indent does not move, so nothing reflows when it does.
+	if (fav_show && _row.kind == 0 && _row.name != "") {
 		draw_sprite_ext(spr_pixel_1x1, 0, 4, _ry + 5, 4, 4, 0,
 			_row.fav ? c_gold : c_black, _row.fav ? .95 : .55);
 		if (!_row.fav) draw_px_rect(4, _ry + 5, 4, 4, c_gray, .35);

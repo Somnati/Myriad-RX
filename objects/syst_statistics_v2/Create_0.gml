@@ -6,8 +6,7 @@
 ///  - folders NEST via the call pattern; open state persists in
 ///    g.stats_open keyed by full path, so revisits remember. the
 ///    build now always walks the WHOLE tree (closed folders just
-///    emit no rows) so favorites, search and the clipboard dump see
-///    everything
+///    emit no rows) so the favorites walk sees everything
 ///  - favorited lines pin into a synthetic folder on top (the star
 ///    gutter at the left edge toggles them; g.stats_fav saves)
 ///  - widget rows embed live instances (rarity bars, sliders) - the
@@ -43,7 +42,10 @@ rows        = [];
 widgets     = []; // widgets in the CURRENT build (positioned)
 widgets_all = []; // every widget ever registered (all get parked)
 fav_rows    = []; // pinned-line copies captured during the walk
-dump        = []; // the full tree as text rows (clipboard export)
+dump        = []; // the full tree as text rows. Still WRITTEN by the
+	// content scripts, read by nobody since [copy] retired 2026-09-06 -
+	// kept so bringing that button back is one draw and one hit test,
+	// not a re-thread of four scripts
 _fdepth  = 0;
 _fpath   = "";
 _fhid    = 0;  // >0 while inside any closed folder (rows suppressed)
@@ -58,13 +60,19 @@ __prev  = {};
 __pulse = {};
 __tick  = 0;
 
-// search / help / copy state
+// SHOW THE STAR GUTTER? his ask 2026-09-06. Saved with the favourites
+// themselves (save section "statistics"), because it is part of the same
+// preference - which stats you pin, and whether you want the pinning
+// controls on screen while you read.
+fav_show = variable_global_exists("stats_fav_show") ? g.stats_fav_show : true;
+
+// help state (search and the clipboard dump retired with their buttons;
+// `search` stays as the rebuild's filter input, permanently empty)
 search     = "";
 search_on  = false;
 help_txt   = "";
 help_x     = 0;
 help_y     = 0;
-copy_flash = 0;
 
 // widget instances, lazily spawned by the content script
 w_tilebar    = noone;
@@ -239,42 +247,29 @@ __draw_strip = function() {
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y - 1, room_width, 1, 0,
 		rgb(170, 190, 230), .25);
 
-	// title - or the live query while the find box is lit
+	// title
 	draw_set_halign(fa_left);
-	if (search_on) {
-		draw_set_color(c_gold);
-		draw_set_alpha(.95);
-		var _caret = ((current_time div 400) % 2 == 0) ? "_" : "";
-		draw_text(6, _bby + 8, "find: " + search + _caret);
-		if (search != "" && array_length(rows) == 0) {
-			draw_set_color(rgb(195, 205, 235));
-			draw_set_alpha(.5);
-			draw_text(6, list_y + 8, "no matches");
-		}
-	}
-	else {
-		draw_set_color(rgb(195, 205, 235));
-		draw_set_alpha(.85);
-		var _ttl = "statistics";
-		if (variable_global_exists("stats_mode") && g.stats_mode == 1) _ttl += " (session)";
-		draw_text(6, _bby + 8, _ttl);
-	}
+	draw_set_color(rgb(195, 205, 235));
+	draw_set_alpha(.85);
+	var _ttl = "statistics";
+	if (variable_global_exists("stats_mode") && g.stats_mode == 1) _ttl += " (session)";
+	draw_text(6, _bby + 8, _ttl);
 
-	// [copy] [find] [back]
-	var _bx = room_width - 150;
+	// [favs] [back]  (copy and find retired 2026-09-06, his call - he is
+	// cleaning this screen up)
+	// FAVS toggles whether the per-row star gutter is DRAWN at all.
+	// Pinning is a thing you do rarely and then want out of the way, so
+	// the pips can be put away without unpinning anything: the
+	// favourites folder at the top stays either way.
+	var _bx = room_width - 106;
 	draw_set_alpha(1);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _bby + 6, 40, 16, 0, c_black, .8);
-	draw_px_rect(_bx, _bby + 6, 40, 16, rgb(170, 190, 230), (copy_flash > 0) ? .95 : .5);
+	draw_px_rect(_bx, _bby + 6, 40, 16, fav_show ? c_gold : rgb(170, 190, 230),
+		fav_show ? .9 : .5);
 	draw_set_halign(fa_center);
-	draw_set_color((copy_flash > 0) ? c_gold : c_white);
+	draw_set_color(fav_show ? c_gold : c_white);
 	draw_set_alpha(.9);
-	draw_text(_bx + 20, _bby + 10, (copy_flash > 0) ? "ok!" : "copy");
-
-	_bx = room_width - 106;
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _bby + 6, 40, 16, 0, c_black, .8);
-	draw_px_rect(_bx, _bby + 6, 40, 16, search_on ? c_gold : rgb(170, 190, 230), search_on ? .9 : .5);
-	draw_set_color(search_on ? c_gold : c_white);
-	draw_text(_bx + 20, _bby + 10, "find");
+	draw_text(_bx + 20, _bby + 10, "favs");
 
 	_bx = room_width - 62;
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _bby + 6, 56, 16, 0, c_black, .8);
