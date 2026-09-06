@@ -173,7 +173,9 @@ qmode = -1;
 // every frame to feed a panel nobody can see is pure cost. The proxy
 // sits at depth 0 and the drawer at -20, so on the frame the slide
 // starts the capture still runs FIRST and the blur is ready in time.
-__blur_cap = function() { if (sp > 0) blur_snap(4); };
+// 8 ROOM pixels of blur - blur_snap takes room pixels and solves for
+// the halvings itself, so it looks the same on any monitor
+__blur_cap = function() { if (sp > 0) blur_snap(8); };
 blur_px = create_obj(0, 0, obj_draw_proxy);
 blur_px.owner = id;
 blur_px.depth = 0;
