@@ -153,11 +153,19 @@ for (var _i = 0; _i < _n; _i++) {
 	if (!_wind) _txt = crunch_time((1 - _d.cycle) * _d.cycle_t * 60);
 	draw_text_transformed(_px + _pw * .5, _py - .5, _txt, .8, .8, 0);
 
-	// what this cycle has accrued so far, at the bar's right end
-	if (_p > 0) {
+	// WHAT THIS CYCLE HAS ACCRUED, at the bar's right end. DE colours it
+	// off the DIAL, not off money: obj_dial's
+	// set_color(merge_colour(c_gray, lc, .7)) - the row's one living
+	// element and its take read as the same thing. The port had
+	// substituted g.profit_color (his report 2026-09-06).
+	// It FADES WITH THE BUY STAGE, DE's ualpha: the bar's interior text
+	// is on the layer the buy panel replaces, so the take is gone by the
+	// time the buttons have arrived - which is what frees the row for
+	// the rate readout to slide into.
+	if (_p > 0 && _bp < .98) {
 		draw_set_halign(fa_right);
-		draw_set_color(merge_colour(c_gray, g.profit_color, .7));
-		draw_set_alpha(.85 * _oa);
+		draw_set_color(merge_colour(c_gray, _lc, .7));
+		draw_set_alpha(.85 * _oa * (1 - _bp));
 		draw_text_transformed(_px + _pw - 2, _py - .5,
 			crunch_arb(do_scale(_d.gpc, _p)), .8, .8, 0);
 	}
@@ -166,21 +174,28 @@ for (var _i = 0; _i < _n; _i++) {
 
 	// ---- THE RATE, right-aligned at the row's far edge past the bar
 	// (DE's obj_dial): "+gpc" per cycle or "+gps" per second, by the
-	// view button's g.display_gps; shrunk to fit six digits' width.
-	// The buy stage narrows the bar over this seat, so it fades with it
-	if (_bp < .98) {
-		var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
-		var _rt = "+" + crunch_arb(_rv);
-		// fit the SEAT past the bar (DE bounded it to six digits' width;
-		// our seat is the 28px between the bar's end and the endcap)
-		var _seat = (_x + _bw - _ec) - (_px + _pw + 2);
-		var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
-		draw_set_halign(fa_right);
-		draw_set_color(g.profit_color);
-		draw_set_alpha(.95 * _oa * (1 - _bp));
-		draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
-		draw_set_halign(fa_left);
-	}
+	// view button's g.display_gps.
+	// IT DOES NOT LEAVE AT THE BUY STAGE (his report 2026-09-06 - the
+	// port faded it out). DE draws it twice at the SAME anchor,
+	// _x + width - endcap, and cross-fades the two as the row narrows;
+	// since that anchor rides `width`, the number simply travels left
+	// with the shrinking row. Ours is one draw at the same moving
+	// anchor, which is the same picture with no seam.
+	var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
+	var _rt = "+" + crunch_arb(_rv);
+	// THE SEAT OPENS UP AS THE ROW NARROWS. At the list stage the
+	// readout shares the row with the accruing take, so it fits the
+	// space PAST the bar; at the buy stage that take has faded and
+	// the whole bar interior is free, which is what keeps the number
+	// readable at 93px instead of squeezing it to nothing.
+	var _from = lerp(_px + _pw + 2, _px, _bp);
+	var _seat = (_x + _bw - _ec) - _from;
+	var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
+	draw_set_halign(fa_right);
+	draw_set_color(g.profit_color);
+	draw_set_alpha(.95 * _oa);
+	draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
+	draw_set_halign(fa_left);
 
 	// ---- STAGE 2: DE's buy button, right of the narrowed bar ----
 	if (_bp > .02) {
@@ -191,14 +206,29 @@ for (var _i = 0; _i < _n; _i++) {
 		var _cost = _q.cost;
 		var _can  = _q.ok;
 		var _bx   = _x + _bw + 2;
-		// DE's signal: a buy that REACHES the next milestone wears green
+		// DE'S COLOUR LAW (obj_button_dialbuy's Step, his report
+		// 2026-09-06 - the port had the wrong three):
+		//   affordable            c_sblue   (DE's theme_afford)
+		//   ...and the buy REACHES the next milestone rung   c_sgreen
+		//   cannot afford         c_hred    (DE's theme_cantafford;
+		//                                    the port used c_gray)
+		// DE's third case, c_gold, is skipped on purpose: it keys off
+		// the per-dial level SOFTCAP (its `hard`), a mechanic RX does
+		// not have. It returns with the softcap, not before.
 		var _nx   = milestone_next(_d.level);
-		var _tint = (_can && _nx > 0 && _q.to >= _nx) ? c_sgreen : g.profit_color;
-		var _bc2  = merge_colour(_can ? _tint : c_gray, c_black,
-			_can ? .5 : .8);
+		var _tint = c_sblue;
+		if (_can && _nx > 0 && _q.to >= _nx) _tint = c_sgreen;
+		if (!_can) _tint = c_hred;
+		// DE's chrome sits FAR back toward black - merge_colour(blend,
+		// c_black, lerp(.8, 0, glow)), and glow is 0 except for the
+		// half-second after a buy. The port lit affordable rows at .5,
+		// which is why they never matched.
+		var _bc2  = merge_colour(_tint, c_black, .8);
 		draw_sprite_ext(spr_button_bevel, 0, _bx, _y - 2, 1, 1, 0, _bc2, _bp * _oa);
 		draw_set_halign(fa_center);
-		draw_set_color(_can ? _tint : c_gray);
+		// DE prices in MONEY's colour, greying out what you cannot buy -
+		// the chrome carries the state, the text carries the currency
+		draw_set_color(_can ? g.profit_color : c_gray);
 		draw_set_alpha((_can ? .95 : .6) * _bp * _oa);
 		draw_text_transformed(_bx + sprite_get_width(spr_button_bevel) * .5,
 			_y + 1, crunch_arb(_cost), .8, .8, 0);
