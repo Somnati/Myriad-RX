@@ -27,7 +27,20 @@
 //                       (g.stats_hist), hover-scrub with seconds-ago.
 //   stats_session_base  the boot/load snapshot that "session" deltas
 //                       subtract from.
-//   syst_statistics_v2  the controller: folders open by full path
+//   syst_statistics_v2  the controller. REBUILT 2026-09-06 to the
+//                       SETTINGS ROOM's shape, his ask: an 80px
+//                       category RAIL on the left, rows in the band
+//                       beside it, one tab per TOP-LEVEL folder.
+//                       `rows` is still the whole build (favourites
+//                       capture needs to see everything); `view` is the
+//                       active tab's slice and is what draws, scrolls
+//                       and hit-tests. sections[] is found by scanning
+//                       the build for depth-0 folders, so a new
+//                       top-level folder in stats_v2_content becomes a
+//                       tab with no other edit. Depth-0 folders are
+//                       forced OPEN in stats_v2_folder - the rail is
+//                       their label - so only NESTED folders fold.
+//                       folders open by full path
 //                       (g.stats_open, remembered), favourites pin
 //                       into a synthetic folder on top (g.stats_fav,
 //                       SAVED) with the [favs] button in the title

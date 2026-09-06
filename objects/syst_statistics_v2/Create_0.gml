@@ -22,6 +22,7 @@
 // ---- persistent framework state (self-contained: no setgame edit) ----
 if (!variable_global_exists("stats_open")) g.stats_open = {};
 if (!variable_global_exists("stats_page")) g.stats_page = 0;
+if (!variable_global_exists("stats_tab"))  g.stats_tab  = 0;
 if (!variable_global_exists("stats_fav"))  g.stats_fav  = {};
 if (!variable_global_exists("stats_hist")) g.stats_hist = {};
 if (!variable_global_exists("stats_base")) stats_session_base();
@@ -31,6 +32,13 @@ if (is_undefined(g.stats_open[$ "/favorites"])) g.stats_open[$ "/favorites"] = t
 // ---- layout: derived, not hardcoded ----
 row_h  = 15; // th 7 + spc 8, the house rhythm
 list_y = obj_ui_header.sprite_height + 29; // header + the title strip
+// THE CATEGORY RAIL (his ask 2026-09-06: make this room look like the
+// settings room). Same numbers syst_settings uses, so the two screens
+// are the same screen with different content: an 80px rail of tabs on
+// the left, rows in the band beside it. Top-level folders ARE the tabs,
+// which is what got the five big colour bars off the list.
+rail_w    = 80;
+content_x = rail_w + 6;
 visible_rows = ceil((room_height - list_y) / row_h);  // draw window
 full_rows    = floor((room_height - list_y) / row_h); // scroll math:
 	// only rows that FIT count, so max scroll lands the last row fully
@@ -38,7 +46,9 @@ full_rows    = floor((room_height - list_y) / row_h); // scroll math:
 val_x = room_width - 10; // value column, clear of the scrollbar
 
 // ---- builder state (the stats_v2_* scripts run in this scope) ----
-rows        = [];
+rows        = [];  // the WHOLE build: every folder, open or not
+view        = [];  // the active tab's slice - what the screen shows
+sections    = [];  // {name, col, row} - the depth-0 folders, ie the rail
 widgets     = []; // widgets in the CURRENT build (positioned)
 widgets_all = []; // every widget ever registered (all get parked)
 fav_rows    = []; // pinned-line copies captured during the walk
@@ -64,7 +74,13 @@ __tick  = 0;
 // themselves (save section "statistics"), because it is part of the same
 // preference - which stats you pin, and whether you want the pinning
 // controls on screen while you read.
-fav_show = variable_global_exists("stats_fav_show") ? g.stats_fav_show : true;
+// OFF BY DEFAULT (his call 2026-09-06): pinning is a thing you set up
+// once, so the controls stay out of the way until asked for.
+fav_show = variable_global_exists("stats_fav_show") ? g.stats_fav_show : false;
+// the gutter SLIDES: names sit close to the left with it off, and step
+// right as the star comes out from behind the rail. fav_t is the eased
+// 0..1 the draw reads for both.
+fav_t = fav_show ? 1 : 0;
 
 // help state (search and the clipboard dump retired with their buttons;
 // `search` stays as the rebuild's filter input, permanently empty)
@@ -92,12 +108,42 @@ __row_y = function(_i) {
 __row_at = function(_my) {
 	var _yoff = row_h * (floor(g.stats_page) - g.stats_page);
 	var _r = floor((_my - list_y - _yoff) / row_h) + floor(g.stats_page);
-	if (_r < 0 || _r >= array_length(rows)) return -1;
+	if (_r < 0 || _r >= array_length(view)) return -1;
 	return _r;
+};
+
+// tab rail geometry: shared by draw and hit test - no drift possible
+__tabs = function() {
+	var _out = [];
+	var _ty = list_y + 3;
+	for (var _i = 0; _i < array_length(sections); _i++) {
+		array_push(_out, { x1 : 2, y1 : _ty, x2 : rail_w - 4, y2 : _ty + 17, idx : _i });
+		_ty += 19;
+	}
+	return _out;
+};
+
+// THE ACTIVE TAB'S SLICE: the rows between its top-level folder marker
+// and the next one. The marker row itself stays OUT - the rail is the
+// label, exactly as settings does it. `rows` remains the whole build
+// (favourites capture still needs to see everything); `view` is what
+// the screen draws, scrolls and hit-tests.
+__slice = function() {
+	view = [];
+	mx = 0;
+	var _n = array_length(sections);
+	if (_n == 0) return;
+	g.stats_tab = clamp(g.stats_tab, 0, _n - 1);
+	var _s = sections[g.stats_tab].row + 1;
+	var _e = (g.stats_tab + 1 < _n) ? sections[g.stats_tab + 1].row
+	                                : array_length(rows);
+	for (var _i = _s; _i < _e; _i++) array_push(view, rows[_i]);
+	mx = array_length(view);
 };
 
 __rebuild = function() {
 	rows     = [];
+	sections = [];
 	widgets  = [];
 	fav_rows = [];
 	dump     = [];
@@ -123,7 +169,15 @@ __rebuild = function() {
 		if (_fopen) _head = array_concat(_head, fav_rows);
 		rows = array_concat(_head, rows);
 	}
-	mx = array_length(rows); // the scrollbar's range
+	// the rail's tabs ARE the depth-0 folders, found by scanning the
+	// finished build - so a new top-level folder in stats_v2_content
+	// becomes a tab with no other edit, the same way a settings_section
+	// does
+	for (var _i = 0; _i < array_length(rows); _i++)
+		if (rows[_i].kind == 1 && rows[_i].fdep == 0)
+			array_push(sections, { name : rows[_i].name, col : rows[_i].c1,
+				row : _i });
+	__slice(); // sets mx from the slice - the scrollbar's range
 };
 mx = 0;
 
@@ -159,6 +213,7 @@ __anim_off = function(_r) {
 // cover and reveal. shared by live rows AND the close-anim ghosts, so
 // the two can never drift apart visually.
 __row_panel = function(_r, _row, _ry, _bh) {
+	var _cw = room_width - rail_w;   // the content band
 	var _back = c_hsv(169, 186, 5);
 	// THE ZEBRA, quietened (his report 2026-09-06 - the screen "looked
 	// bad"). It ran 18 against 4, a stripe strong enough to fight the
@@ -180,20 +235,22 @@ __row_panel = function(_r, _row, _ry, _bh) {
 		// Folder rows also sit a shade proud of their children, so the
 		// hierarchy reads from brightness rather than from colour.
 		var _fd = merge_colour(_c, c_white, .05);
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, _fd, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, _fd, 1);
 		var _gl = merge_colour(_fd, _row.c1, .10);
-		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, _ry,
-			room_width * .33, _bh, 0, _gl, _fd, _fd, _gl, 1);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, rail_w, _ry,
+			_cw * .33, _bh, 0, _gl, _fd, _fd, _gl, 1);
 	} else
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, _c, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, _c, 1);
 	// settings' gradient edge seams (top + bottom hairlines)
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, _ry, room_width, 1, 0,
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, rail_w, _ry, _cw, 1, 0,
 		_c, _cc, _cc, _c, .52);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, _ry + _bh - 1,
-		room_width, 1, 0, _cc, _c, _c, _cc, .52);
-	// indent guides still carry the tree depth
-	for (var _g2 = 1; _g2 <= _row.fdep; _g2++)
-		draw_sprite_ext(spr_pixel_1x1, 0, 2 + _g2 * 10, _ry, 1, _bh, 0,
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, rail_w, _ry + _bh - 1,
+		_cw, 1, 0, _cc, _c, _c, _cc, .52);
+	// indent guides still carry the tree depth. Depth 0 is the rail now,
+	// so a row inside a tab starts at depth 1 and its first guide would
+	// sit under the text - the guides begin one notch in
+	for (var _g2 = 2; _g2 <= _row.fdep; _g2++)
+		draw_sprite_ext(spr_pixel_1x1, 0, content_x - 4 + _g2 * 10, _ry, 1, _bh, 0,
 			merge_colour(_c, c_white, .14), 1);
 };
 
@@ -204,9 +261,11 @@ __row_panel = function(_r, _row, _ry, _bh) {
 __ghost_paint = function(_r, _row, _ry) {
 	var _bh = row_h * _row.span;
 	__row_panel(_r, _row, _ry, _bh);
-	var _tx = 8 + _row.fdep * 10;
+	// same seat as the live rows: content band, depth measured from 1,
+	// riding the favourite gutter's slide
+	var _tx = content_x + 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 	if (_row.kind == 1) {
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, 2, _bh, 0, _row.c1, .9);
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, 2, _bh, 0, _row.c1, .9);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0, c_black, .45);
 		draw_px_rect(_tx, _ry + 2, 9, 9, _row.c1, .5);
 		draw_set_halign(fa_center);

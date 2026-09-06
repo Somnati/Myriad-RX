@@ -34,7 +34,7 @@ if (anim_t < 1 && anim_n < 0) {
 }
 
 // ---- the rows, windowed, two passes (emerging children UNDER) ----
-var _n = array_length(rows);
+var _n = array_length(view);
 var _first = max(0, floor(g.stats_page));
 var _lo = max(0, _first - span_max + 1);
 // while an anim runs, rows beyond the window slide through view -
@@ -45,7 +45,7 @@ var _unfurl = (anim_t < 1 && anim_n > 0);
 var _hi = min(_n, _first + visible_rows + 1 + _reach);
 for (var _pass = 0; _pass < 2; _pass++) {
 for (var _r = _lo; _r < _hi; _r++) {
-	var _row = rows[_r];
+	var _row = view[_r];
 	if (_row.kind == 3) continue; // pads: their widget row drew the block
 	var _emerging = (_unfurl && _r > anim_row && _r <= anim_row + anim_n);
 	if ((_pass == 0) != _emerging) continue;
@@ -64,15 +64,21 @@ for (var _r = _lo; _r < _hi; _r++) {
 	if (_row.kind == 1 || _row.kind == 4 || _row.kind == 5)
 	if (input_free())
 	if (mouse_y >= list_y)
-	if (point_in_rectangle(mouse_x, mouse_y, 0, _ry, room_width, _ry + _bh - 1))
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, c_white, .04);
+	if (mouse_x >= rail_w)
+	if (point_in_rectangle(mouse_x, mouse_y, rail_w, _ry, room_width, _ry + _bh - 1))
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, room_width - rail_w, _bh,
+			0, c_white, .04);
 
-	var _tx = 8 + _row.fdep * 10;
+	// THE NAME'S SEAT. Depth 0 is the rail now, so a tab's own rows sit
+	// at depth 1 and the indent is measured from there. The whole column
+	// steps RIGHT as the favourite gutter comes out (fav_t), which is
+	// what makes room for the star without reflowing anything else.
+	var _tx = content_x + 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 
 	if (_row.kind == 1) {
 		// folder: section band + the +/- chip (his call: the signs
 		// read better than arrows) + tinted name
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, 2, _bh, 0, _row.c1, .9);
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, 2, _bh, 0, _row.c1, .9);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0, c_black, .45);
 		draw_px_rect(_tx, _ry + 2, 9, 9, _row.c1, .5);
 		draw_set_halign(fa_center);
@@ -88,10 +94,14 @@ for (var _r = _lo; _r < _hi; _r++) {
 	// left - lit gold when favorited, a dim socket otherwise. The [favs]
 	// button in the title strip puts the whole gutter away; the row's
 	// own indent does not move, so nothing reflows when it does.
-	if (fav_show && _row.kind == 0 && _row.name != "") {
-		draw_sprite_ext(spr_pixel_1x1, 0, 4, _ry + 5, 4, 4, 0,
+	// it SLIDES OUT FROM BEHIND THE RAIL: the rail paints after the rows,
+	// so a pip parked at rail_w - 6 is simply covered, and the same lerp
+	// that walks it into the band walks the names right to meet it.
+	if (fav_t > .01 && _row.kind == 0 && _row.name != "") {
+		var _fx = lerp(rail_w - 6, content_x + 1, fav_t);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, _ry + 5, 4, 4, 0,
 			_row.fav ? c_gold : c_black, _row.fav ? .95 : .55);
-		if (!_row.fav) draw_px_rect(4, _ry + 5, 4, 4, c_gray, .35);
+		if (!_row.fav) draw_px_rect(_fx, _ry + 5, 4, 4, c_gray, .35);
 	}
 
 	// plain + widget + toggle + cycle + spark rows: name left
@@ -232,6 +242,41 @@ for (var _r = _lo; _r < _hi; _r++) {
 		}
 	}
 }
+}
+
+// ---- THE CATEGORY RAIL, syst_settings' verbatim (his ask: make this
+// room look like that one). Drawn AFTER the rows, which is what lets
+// the favourite gutter slide out from behind it. menu2's colour
+// language: identity pip at the left edge, active = solid fill + white,
+// the rest sink toward black. ----
+draw_set_alpha(1);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
+	c_hsv(169, 186, 7), .97);
+draw_sprite_ext(spr_pixel_1x1, 0, rail_w - 1, list_y, 1, room_height - list_y, 0,
+	c_black, .5);
+
+var _tb = __tabs();
+for (var _i = 0; _i < array_length(_tb); _i++) {
+	var _t = _tb[_i];
+	var _s = sections[_t.idx];
+	var _on = (_i == g.stats_tab);
+	var _hov = point_in_rectangle(mouse_x, mouse_y, _t.x1, _t.y1, _t.x2, _t.y2);
+	var _tw = _t.x2 - _t.x1;
+	var _th = _t.y2 - _t.y1;
+	draw_set_alpha(1);
+	if (_on)
+		draw_sprite_ext(spr_pixel_1x1, 0, _t.x1, _t.y1, _tw, _th, 0,
+			merge_colour(_s.col, c_black, .6), .92);
+	else
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _t.x1, _t.y1, _tw, _th, 0,
+			c_black, merge_colour(_s.col, c_black, _hov ? .5 : .75),
+			merge_colour(_s.col, c_black, _hov ? .5 : .75), c_black, .85);
+	draw_sprite_ext(spr_pixel_1x1, 0, _t.x1, _t.y1, _hov || _on ? 3 : 2, _th, 0,
+		merge_colour(_s.col, c_white, .2), 1);
+	draw_set_halign(fa_left);
+	draw_set_color(_on ? c_white : merge_colour(_s.col, c_white, _hov ? .7 : .45));
+	draw_set_alpha(.95);
+	draw_text(_t.x1 + 7, _t.y1 + ((_th - 7) div 2), _s.name);
 }
 
 draw_set_halign(fa_left);

@@ -98,7 +98,7 @@ function handle_save(){
 	section = "statistics";
 	// whether the per-row star gutter is drawn at all - part of the same
 	// preference as which lines are pinned, so it rides with them
-	if (!variable_global_exists("stats_fav_show")) g.stats_fav_show = true;
+	if (!variable_global_exists("stats_fav_show")) g.stats_fav_show = false;
 	g.stats_fav_show = handle("stats_fav_show", g.stats_fav_show);
 	if (!variable_global_exists("stats_fav")) g.stats_fav = {};
 	var _fav_keys = struct_get_names(g.stats_fav);

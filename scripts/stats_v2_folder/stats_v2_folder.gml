@@ -15,7 +15,12 @@
 /// starts COLLAPSED.
 function stats_v2_folder(_name, _col = c_sblue) {
 	_fpath += "/" + _name;
-	var _open = g.stats_open[$ _fpath] ?? false;
+	// A TOP-LEVEL FOLDER IS A RAIL TAB (2026-09-06, the settings-room
+	// rebuild), and the rail is its label - so it is always OPEN and its
+	// children always build. Only nested folders still fold, which is
+	// where folding earns its keep. Everything still starts collapsed
+	// below depth 0.
+	var _open = (_fdepth == 0) ? true : (g.stats_open[$ _fpath] ?? false);
 	array_push(dump, { name : _name, val : "", dep : _fdepth });
 	if (_fhid == 0 && search == "") array_push(rows, {
 		kind : 1, // folder

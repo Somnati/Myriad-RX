@@ -1,13 +1,18 @@
 
 __tick += delta; // the change-pulse clock
 
+// the favourite gutter's slide: names step right as the star comes out
+// from behind the rail, and back when it goes
+fav_t = trickle(fav_t, fav_show ? 1 : 0, 5);
+if (abs(fav_t - (fav_show ? 1 : 0)) < .01) fav_t = fav_show ? 1 : 0;
+
 // ---- rebuild: throttled for value freshness, instant for structure ----
 utic -= delta;
 if (utic <= 0 || rebuild) {
 	utic = 60;
 	rebuild = false;
 	var _oldmx = mx;
-	var _oldrows = rows; // __rebuild reassigns; keep the old build for ghosts
+	var _oldrows = view; // __rebuild reassigns; keep the old slice for ghosts
 	__rebuild();
 	// a folder toggle queued an unfurl: the row delta IS the fold size
 	if (anim_pend >= 0) {
@@ -57,8 +62,8 @@ var _lo = max(0, _first - span_max + 1);
 // while an anim runs, reach past the window like the draw does - a
 // widget riding up from below the fold places before its row settles
 var _wreach = (anim_t < 1) ? abs(anim_n) : 0;
-for (var _r = _lo; _r < min(array_length(rows), _first + visible_rows + 1 + _wreach); _r++) {
-	var _row = rows[_r];
+for (var _r = _lo; _r < min(array_length(view), _first + visible_rows + 1 + _wreach); _r++) {
+	var _row = view[_r];
 	if (_row.kind != 2) continue;
 	if (!instance_exists(_row.inst)) continue;
 	var _ay = __anim_off(_r);
@@ -67,7 +72,8 @@ for (var _r = _lo; _r < min(array_length(rows), _first + visible_rows + 1 + _wre
 	// the fold line (the draw skips those rows too)
 	if (anim_t < 1 && anim_n > 0 && _r > anim_row && _r <= anim_row + anim_n)
 	if (__row_y(_r) + _ay < __row_y(anim_row) + row_h) continue;
-	_row.inst.x = 10 + _row.fdep * 10;
+	// the content band, same seat and same gutter slide as the names
+	_row.inst.x = content_x + 4 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 	_row.inst.y = __row_y(_r) + _ay + ((_row.name != "") ? 14 : 6);
 }
 
@@ -95,11 +101,31 @@ if (mouse_check_button_pressed(mb_left)) {
 		exit;
 	}
 
+	// the rail: pick a category. Switching resets the scroll, since a
+	// remembered page from a long tab means landing mid-air in a short
+	// one - settings does the same
+	if (mouse_x < rail_w && mouse_y >= list_y) {
+		var _tb = __tabs();
+		for (var _i = 0; _i < array_length(_tb); _i++)
+			if (point_in_rectangle(mouse_x, mouse_y, _tb[_i].x1, _tb[_i].y1,
+				_tb[_i].x2, _tb[_i].y2)) {
+				if (_i != g.stats_tab) {
+					g.stats_tab = _i;
+					g.stats_page = 0;
+					__slice();
+					help_txt = "";
+					play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
+				}
+				exit;
+			}
+		exit;   // a tap on the rail is never a tap on a row
+	}
+
 	// list rows. same geometry as the draw - no drift
 	if (mouse_y >= list_y) {
 		var _hit = __row_at(mouse_y);
 		if (_hit != -1) {
-			var _hr = rows[_hit];
+			var _hr = view[_hit];
 			if (help_txt != "") {
 				help_txt = ""; // an open explainer eats the next tap
 			}
