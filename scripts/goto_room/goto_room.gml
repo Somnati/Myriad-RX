@@ -12,10 +12,18 @@ function goto_room() {
 			syst_roomtrans.switch_rooms = true;
 
 			if argument_count = 1 {
+				// ORIENTATION (2026-09-06): every destination resolves to
+				// the SHAPE being played. Code names the portrait room -
+				// goto_room(rm_clicker) - and lands in the landscape twin
+				// when that is the mode. One seam, so the menu, the save
+				// menu, the titlescreen and back_room all obey it without
+				// knowing the framework exists. See room_pairs.
+				var _dest = room_variant(argument[0]);
+
 				// nav history
 				if (!variable_global_exists("room_hist")) g.room_hist = [];
 				if (!variable_global_exists("room_hist_skip")) g.room_hist_skip = false;
-				if (!g.room_hist_skip && argument[0] != room
+				if (!g.room_hist_skip && _dest != room
 					&& room != rm_gameload)
 					array_push(g.room_hist, room);
 				if (array_length(g.room_hist) > 32)
@@ -38,8 +46,8 @@ function goto_room() {
 					g.save_dirty = false;
 				}
 
-				syst_roomtrans.des_room = room_get_name(argument[0]);
-				syst_roomtrans.des_room_id = argument[0]
+				syst_roomtrans.des_room = room_get_name(_dest);
+				syst_roomtrans.des_room_id = _dest
 				syst_roomtrans.r = 0;
 				syst_roomtrans.alpha = 0;
 				// transition kind LATCH (round 7): capture the setting

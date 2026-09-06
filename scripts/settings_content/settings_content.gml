@@ -131,6 +131,28 @@ function settings_content() {
 			+ "while on, the fps cap below stops mattering.");
 	}
 
+	// ORIENTATION: forces the SHAPE of every room that has two of
+	// them (room_pairs - today that is the clicker). Rooms with
+	// one shape are unaffected, so the settings/statistics
+	// screens stay landscape whatever this says.
+	settings_pill("orientation", "orient",
+		(g.orient == 0) ? "portrait" : ((g.orient == 1) ? "landscape" : "auto"),
+		function() {
+			set_pill("auto",      { val : -1,
+				col : (g.orient == -1) ? c_gold : sett_ink,
+				enabled : (g.orient == -1) });
+			set_pill("landscape", { val : 1,
+				col : (g.orient == 1) ? c_gold : sett_ink,
+				enabled : (g.orient == 1) });
+			set_pill("portrait",  { val : 0,
+				col : (g.orient == 0) ? c_gold : sett_ink,
+				enabled : (g.orient == 0) });
+		},
+		function(_v) { g.orient = _v; },
+		"which shape of room you play in. auto follows the device - "
+		+ "phone portrait, desktop landscape. applies to rooms that "
+		+ "have both shapes; the rest are landscape only.");
+
 	settings_slider("fps cap", 30, 240,
 		function() { return system.desired_fps; },
 		function(_v) { system.desired_fps = _v; },

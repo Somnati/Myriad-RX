@@ -16,6 +16,13 @@ g.vsync = false;
 // 12 keeps ~6% at each end, which clears a standard Windows 11 bar with
 // room to spare. Settings > display tunes it.
 g.fit_margin = 12;
+// ORIENTATION (2026-09-06, his ask): which SHAPE of room the game
+// plays in. -1 AUTO (phone = portrait, desktop = landscape), 0 forced
+// portrait, 1 forced landscape. Rooms that exist in both shapes are
+// listed in room_pairs; goto_room resolves every destination through
+// it, so this one number decides what you walk into. room_orient() is
+// the reader - never test this global directly.
+g.orient = -1;
 
 fullscreen_disabled = false;
 border = false;

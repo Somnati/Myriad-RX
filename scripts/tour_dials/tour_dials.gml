@@ -90,6 +90,12 @@
 // ============================ TRAPS =================================
 //   - autoeff lives in dial_config and is READ by both update_dial
 //     and the drawer, so the sim and the view can't disagree.
+//   - THE SEATS ARE DERIVED, not typed. row_x / row_y1 / bb_x / vb_x*
+//     are offsets from the room's edges because the money room has two
+//     shapes (rm_clicker 144x296, rm_clicker_landscape 480x270). Each
+//     one reproduces DE's portrait number EXACTLY at 144x296 - check
+//     that if you ever change one (row_x 2, row_y1 256, bb_x 119,
+//     vb_x1 122, vb_x2 98). Never write a raw 144 or 296 in here.
 //   - ONE PITCH for the column. The docked dots once had their own
 //     (11 against the rows' row_p of 16) and the error grew with the
 //     index - dial m's dot sat sixty pixels from its bar. Everything

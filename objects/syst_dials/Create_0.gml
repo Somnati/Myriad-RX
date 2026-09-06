@@ -44,8 +44,25 @@ row_w  = 140; // stage 1
 row_w2 = 93;  // stage 2, DE's narrowed width
 row_h  = 11;  // spr_dial's height
 row_p  = 16;  // DE's pitch
-row_x  = 2;
-row_y1 = 256; // dial a's row; everything else stacks up from here
+// THE SEATS DERIVE FROM THE ROOM (2026-09-06), because the money room
+// now exists in two shapes: rm_clicker 144x296 and rm_clicker_landscape
+// 480x270. Every constant below reproduces DE's portrait number
+// EXACTLY at 144x296 - they are the same seats written as offsets from
+// the edges they were always measured against - and they follow the
+// room when it is the wide one.
+//   row_x  = where the open drawer's face lands. In portrait that is
+//            2 (the column fills the room); in landscape it parks the
+//            same 140px column against the RIGHT edge instead of
+//            stranding it at the far left of a 480px room. 142 = the
+//            bar (140) + its 2px gap; the stage-2 buy button needs
+//            93 + 2 + 43 = 138, so it fits inside the same seat.
+//   row_y1 = dial a's row, 40 up from the floor - the column still
+//            grows UPWARD from under the thumb (DE's law). 296-40=256
+//            portrait, 230 landscape, which keeps the fleet's two
+//            headline numbers (row_y1 + 16 and + 26) on screen in a
+//            270-tall room.
+row_x  = max(2, room_width - 142);
+row_y1 = room_height - 40;
 
 // THE WIND-UP is dial_config's `autoeff` - read, never redeclared, so
 // this view and update_dial's timer maths cannot drift apart. It is a
@@ -82,7 +99,7 @@ DRAG_PX   = 110; // pixels of travel per stage
 // DE hid it until 3m lifetime profit; g.buylv_unlock (setgame) holds
 // that gate and 0 switches it off (his ask 2026-09-03: he wants to
 // see it).
-bb_x  = 119; bb_y = 31;
+bb_x  = room_width - 25; bb_y = 31;   // 119 in the 144 room
 bb_w  = sprite_get_width(spr_buylv);
 bb_h  = sprite_get_height(spr_buylv);
 bb_cx = room_width + 3;          // live x, eased in Step
@@ -122,7 +139,7 @@ __mode_cycle = function() {
 // 1 profit per SECOND (DE's other views belong to systems RX lacks).
 // spr_hud_toggle_ps (18x12): 0 face, 1 pressed, 2 per cycle, 3 per
 // second. Tap opens the house pillbox; the pick lands in _pselval.
-vb_x1 = 122; vb_x2 = 98; vb_y = 30;
+vb_x1 = room_width - 22; vb_x2 = room_width - 46; vb_y = 30; // 122 / 98
 vb_w  = sprite_get_width(spr_hud_toggle_ps);
 vb_h  = sprite_get_height(spr_hud_toggle_ps);
 vb_cx = room_width + 2;
