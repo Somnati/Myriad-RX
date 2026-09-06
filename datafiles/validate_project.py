@@ -230,6 +230,64 @@ ro = {r["roomId"]["name"] for r in proj["RoomOrderNodes"]}
 rooms = {n for n, p in reg.items() if p.startswith("rooms/")}
 check("every room appears in RoomOrderNodes", ro == rooms, str(ro ^ rooms))
 
+# ------------------------------------------- 13. orientation pairs
+# The money room exists in two shapes (room_pairs). Two things can rot
+# silently once a room has a twin, and neither stops the project
+# LOADING, so the IDE will never tell him:
+#   - a twin drifts: an instance added to one shape and not the other.
+#     A warn, not a gate - a shape may legitimately want an extra
+#     instance, and a false gate that blocks a build is worse than a
+#     line of output.
+#   - a room carries the wrong orientation marker. obj_set_landscape is
+#     what re-arms the player's resolution in scr_display1; a landscape
+#     room without it parks the window in portrait, and a portrait room
+#     with it never parks at all. That one is mechanical - decided by
+#     the room's own dimensions - so it IS a gate.
+MARKER = "obj_set_landscape"
+
+
+def room_objects(name):
+    d = load(reg[name])
+    out = set()
+    for lay in d.get("layers", []):
+        for inst in lay.get("instances", []):
+            out.add(inst["objectId"]["name"])
+    return out
+
+
+pairs_gml = "scripts/room_pairs/room_pairs.gml"
+pairs = []
+if os.path.exists(os.path.join(ROOT, pairs_gml)):
+    src = open(os.path.join(ROOT, pairs_gml), encoding="utf-8").read()
+    pairs = re.findall(r"\{\s*p\s*:\s*(\w+)\s*,\s*l\s*:\s*(\w+)\s*\}", src)
+
+bad_pair = [f"{p}/{l}" for p, l in pairs if p not in reg or l not in reg]
+check("room_pairs names rooms that exist", not bad_pair, ", ".join(bad_pair))
+
+drift = []
+for p, l in pairs:
+    if p not in reg or l not in reg:
+        continue
+    a = room_objects(p) - {MARKER}
+    b = room_objects(l) - {MARKER}
+    if a != b:
+        drift.append(f"{p} vs {l}: " + ", ".join(sorted(a ^ b)))
+warn("orientation twins hold the same instances", not drift, "; ".join(drift[:3]))
+
+marker = []
+for n, p in reg.items():
+    if not p.startswith("rooms/"):
+        continue
+    rs = load(p).get("roomSettings", {})
+    wide = rs.get("Width", 0) > rs.get("Height", 0)
+    has = MARKER in room_objects(n)
+    if wide and not has:
+        marker.append(f"{n} is landscape without {MARKER}")
+    if not wide and has:
+        marker.append(f"{n} is portrait but places {MARKER}")
+check("every landscape room places the orientation marker", not marker,
+      "; ".join(marker[:3]))
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")
