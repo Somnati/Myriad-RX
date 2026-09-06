@@ -104,20 +104,35 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_set_halign(fa_left);
 	draw_set_color(merge_colour(_lc, c_black, .2));
 	draw_set_alpha(_oa);
-	draw_text(_x + 15, _y + 2, "lv");
+	// DE nudges the "lv N" pair 4px LEFT as the buy layer opens
+	// (obj_dial: _x + 15 - (4 * obj_dragautoupgrades.alpha)), making the
+	// room the "+N" needs beside it
+	var _lvx = _x + 15 - 4 * _bp;
+	draw_text(_lvx, _y + 2, "lv");
 	draw_set_color(_lc);
 	// the level SHRINKS to fit the 15px between "lv" and the bar (DE's
 	// sc), so a three-digit level never runs under the bar
 	var _lt = string(_d.level);
 	var _ls = min(1, 14 / max(1, string_width(_lt)));
-	draw_text_transformed(_x + 24, _y + 2 + lerp(3, 0, _ls), _lt, _ls, _ls, 0);
-	// the buy stage says how many levels the live mode buys: "+3" UNDER
-	// the level, DE's seat (obj_dial draws its mtext a line below "lv")
+	draw_text_transformed(_lvx + 9, _y + 2 + lerp(3, 0, _ls), _lt, _ls, _ls, 0);
+	// HOW MANY LEVELS THE LIVE MODE BUYS. His report 2026-09-06: ours
+	// was green and in the wrong place. DE seats it AFTER the level text
+	// rather than under "lv" - x + 15 - 4a + string_width("lv" + level),
+	// six pixels below the level's own line - and colours it
+	// merge_colour(c_gray, colour_set_comp(lc), .17): almost entirely
+	// grey, carrying just a breath of the dial's OPPOSITE hue. It reads
+	// as a quiet annotation on that dial rather than as a second signal.
+	// Drawn in the outline font at full size, DE's mtext.
+	// The affordable / not distinction is deliberately NOT here: DE puts
+	// that on the button's chrome, which is the thing you press.
 	if (_bp > .02 && _i < array_length(quote) && !is_undefined(quote[_i]))
 	if (quote[_i].n > 0) {
-		draw_set_color(quote[_i].ok ? c_sgreen : merge_colour(c_sgreen, c_black, .5));
+		draw_set_font(fnt_outline);
+		draw_set_color(merge_colour(c_gray, color_set_comp(_lc), .17));
 		draw_set_alpha(_bp * _oa);
-		draw_text_transformed(_x + 15, _y + 6, "+" + string(quote[_i].n), .7, .7, 0);
+		draw_text(_lvx + string_width("lv" + _lt),
+			_y + 2 + lerp(3, 0, _ls) + 6, "+" + string(quote[_i].n));
+		draw_set_font(fnt);
 	}
 
 	// ---- the progress bar: DE's 70 wide at the list stage (the rate
@@ -127,18 +142,33 @@ for (var _i = 0; _i < _n; _i++) {
 	var _sw = sprite_get_width(spr_progressbar);
 	var _px = _x + 39, _py = _y + 3;
 	var _xs = _pw / _sw;                           // scale to the live width
+	// THE BAR ITSELF LEAVES AT THE BUY STAGE (his report 2026-09-06).
+	// DE hangs the track and the fill on ualpha - the same layer as the
+	// bar's interior text - so the buy buttons arrive onto an empty row.
+	// _ba is that layer's alpha; only the completion glow below escapes
+	// it, which is why a paying dial still blinks while you shop.
+	var _ba = _oa * (1 - _bp);
 	draw_sprite_general(spr_progressbar, 0, 0, 0, _sw, _ph, _px, _py,
-		_xs, 1, 0, _bc, _nc, _nc, _bc, _oa);
+		_xs, 1, 0, _bc, _nc, _nc, _bc, _ba);
 	if (_p > 0) {
 		draw_sprite_part_ext(spr_progressbar, 0, 0, 0, _p * (_sw - 1), _ph,
-			_px, _py, _xs, 1, _lc, _oa);
+			_px, _py, _xs, 1, _lc, _ba);
 		draw_sprite_ext(spr_progressbar, 1, _px + _p * (_pw - 1.1), _py,
-			1, 1, 0, _lc, _oa);
+			1, 1, 0, _lc, _ba);
 		draw_sprite_ext(spr_progressbar, 2, _px + _p * (_pw - 1) - _sw + 2, _py,
 			1, 1, 0, merge_colour(_lc, c_white, lerp(0, .8, _p * _p)),
-			lerp(0, .8, _oa * _p) * (_p * _p));
+			lerp(0, .8, _ba * _p) * (_p * _p));
 	}
+	// DE'S COMPLETION GLOW: spr_progressbar frame 3, in the DIAL's
+	// colour, drawn OUTSIDE the fade (obj_dial's bubbleglow, which the
+	// port never drew at all). It is the one thing left on the row once
+	// the buy layer owns it.
 	if (_d.glow > 0)
+		draw_sprite_ext(spr_progressbar, 3, _px, _py, _xs, 1, 0, _lc,
+			_d.glow * _oa);
+	// the WHITE payout flash is DE's other glow, and DE gates it on the
+	// buy layer being shut - two flashes at once would just be a blur
+	if (_d.glow > 0 && _bp < .02)
 		draw_sprite_general(spr_progressbar, 0, 0, 0, _sw, _ph, _px, _py,
 			_xs, 1, 0, c_white, c_white, c_white, c_white, _d.glow * _oa);
 
@@ -147,8 +177,11 @@ for (var _i = 0; _i < _n; _i++) {
 	// started, it just has nothing to show yet.
 	draw_set_font(fnt_outline);
 	draw_set_halign(fa_center);
+	// on _ba with the bar it sits on: DE hangs the countdown, the take
+	// and the bar itself on one alpha, so they leave together and the
+	// row does not end up with a timer floating over nothing
 	draw_set_color(merge_colour(c_white, _lc, .5));
-	draw_set_alpha(.95 * _oa);
+	draw_set_alpha(.95 * _ba);
 	var _txt = "...";
 	if (!_wind) _txt = crunch_time((1 - _d.cycle) * _d.cycle_t * 60);
 	draw_text_transformed(_px + _pw * .5, _py - .5, _txt, .8, .8, 0);
@@ -165,7 +198,7 @@ for (var _i = 0; _i < _n; _i++) {
 	if (_p > 0 && _bp < .98) {
 		draw_set_halign(fa_right);
 		draw_set_color(merge_colour(c_gray, _lc, .7));
-		draw_set_alpha(.85 * _oa * (1 - _bp));
+		draw_set_alpha(.85 * _ba);
 		draw_text_transformed(_px + _pw - 2, _py - .5,
 			crunch_arb(do_scale(_d.gpc, _p)), .8, .8, 0);
 	}
@@ -192,7 +225,11 @@ for (var _i = 0; _i < _n; _i++) {
 	var _seat = (_x + _bw - _ec) - _from;
 	var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
 	draw_set_halign(fa_right);
-	draw_set_color(g.profit_color);
+	// GOLD, his call 2026-09-06. Note this is a deliberate step AWAY
+	// from DE, which draws the rate in g.profit_color (the recolourable
+	// money tint) - so if the profit colour ever needs to reach this
+	// number again, here is the one line.
+	draw_set_color(c_gold);
 	draw_set_alpha(.95 * _oa);
 	draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
 	draw_set_halign(fa_left);
