@@ -36,8 +36,13 @@ if (variable_global_exists("credit_tap_chance"))
 if (roll_perc(g.credit_tap_chance)) credit_drop(mouse_x, mouse_y, -1);
 pop = 1;
 
+// fnt_outline: float_text's own header names it as the tap floats'
+// font and no caller was passing one, so they had been drawing in
+// whatever font the room happened to leave set (his note 2026-09-06).
+// A float lands on top of the visualiser, which is the busiest thing
+// on screen - the outline is what keeps it readable there.
 float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps),
-	g.profit_color);
+	g.profit_color, fnt_outline);
 play_sound_ext(snd_click, .95, 1.15, .35, 1);
 
 // THE SPIT: bezier profit bits fly from the tap to the counter. The

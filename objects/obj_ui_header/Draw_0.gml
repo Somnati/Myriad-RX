@@ -56,7 +56,7 @@ if (variable_global_exists("profit")) {
 		// (his audit, 2026-09-06). It belongs to the header, so it
 		// rides just above it.
 		float_text(48, 16, "+" + crunch_arb(do_subtract(_pv, prof_last)),
-			g.profit_color, -1, depth - 10);
+			g.profit_color, fnt_outline, depth - 10);
 	prof_last = _pv;
 
 	// the glide (move_to in log space; 12 ~ a fifth of a second)

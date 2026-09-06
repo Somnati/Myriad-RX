@@ -173,9 +173,13 @@ qmode = -1;
 // every frame to feed a panel nobody can see is pure cost. The proxy
 // sits at depth 0 and the drawer at -20, so on the frame the slide
 // starts the capture still runs FIRST and the blur is ready in time.
-// 8 ROOM pixels of blur - blur_snap takes room pixels and solves for
-// the halvings itself, so it looks the same on any monitor
-__blur_cap = function() { if (sp > 0) blur_snap(8); };
+// 3 ROOM pixels. That sounds tiny and is not: the money room is 144
+// wide, so 8 was reaching a twentieth of the way across it and there
+// was no structure left in the result - his screenshot showed the
+// visualiser reduced to one green wash. A frosted backdrop should
+// still read as the thing behind it. blur_snap takes ROOM pixels and
+// solves for the halvings, so this is the same on any monitor.
+__blur_cap = function() { if (sp > 0) blur_snap(3); };
 blur_px = create_obj(0, 0, obj_draw_proxy);
 blur_px.owner = id;
 blur_px.depth = 0;
