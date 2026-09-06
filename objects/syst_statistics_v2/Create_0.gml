@@ -160,15 +160,30 @@ __anim_off = function(_r) {
 // the two can never drift apart visually.
 __row_panel = function(_r, _row, _ry, _bh) {
 	var _back = c_hsv(169, 186, 5);
-	var _c  = (_r & 1) ? c_hsv(168, 158, 18) : c_hsv(168, 160, 4);
+	// THE ZEBRA, quietened (his report 2026-09-06 - the screen "looked
+	// bad"). It ran 18 against 4, a stripe strong enough to fight the
+	// section colours for attention; 11 against 5 still separates the
+	// rows without the list itself reading as banding.
+	var _c  = (_r & 1) ? c_hsv(168, 158, 11) : c_hsv(168, 160, 5);
 	var _cc = (_r & 1) ? c_hsv(168, 149, 67) : c_black;
 	_c = merge_colour(_c, _back, .2); // == settings' .8-alpha wash, kept solid
 	draw_set_alpha(1);
 	if (_row.kind == 1) {
-		// folder: section color fading left-to-right into the zebra
-		var _gl = merge_colour(_c, _row.c1, .35);
+		// FOLDER: dark furniture, ONE living element - the house law the
+		// dial rows already follow. The section colour used to wash 35%
+		// of the way across the WHOLE row, which on a 480-wide row is a
+		// big saturated field, and that is what he was looking at. The
+		// colour now lives only where it carries meaning: the edge
+		// accent, the +/- chip and the name. The panel keeps a whisper
+		// of it - a tenth, spent by a third of the way across - enough
+		// for the eye to group a section, not enough to shout.
+		// Folder rows also sit a shade proud of their children, so the
+		// hierarchy reads from brightness rather than from colour.
+		var _fd = merge_colour(_c, c_white, .05);
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, _fd, 1);
+		var _gl = merge_colour(_fd, _row.c1, .10);
 		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, _ry,
-			room_width, _bh, 0, _gl, _c, _c, _gl, 1);
+			room_width * .33, _bh, 0, _gl, _fd, _fd, _gl, 1);
 	} else
 		draw_sprite_ext(spr_pixel_1x1, 0, 0, _ry, room_width, _bh, 0, _c, 1);
 	// settings' gradient edge seams (top + bottom hairlines)
