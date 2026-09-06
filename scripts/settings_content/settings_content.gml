@@ -160,6 +160,15 @@ function settings_content() {
 		"how many frames per second the game runs at. higher = smoother "
 		+ "and hungrier; on battery, lower is kinder.");
 
+	// ============================ visuals ===========================
+	// THE LOOK, split out of display 2026-09-06 (his ask to organise the
+	// room): display had grown into eleven rows mixing window management
+	// with cosmetics. "display" is now the WINDOW - where the game sits
+	// and how fast it runs - and everything about how it LOOKS lives
+	// here, where a player looking to make it prettier or cheaper can
+	// find it all in one place.
+	settings_section("visuals", c_salmon);
+
 	// THE VISUALISER GRID. The renderer multiplies every grid piece -
 	// the border, the inner rules and the outer frame - by one master
 	// alpha, so this single number takes the lattice from solid to
@@ -199,11 +208,6 @@ function settings_content() {
 		"how room changes look: slice = staggered slats snapping across, "
 		+ "circle = the classic closing wipe.");
 
-	settings_toggle("show fps",
-		function() { return g.show_fps; },
-		function(_v) { g.show_fps = _v; },
-		"a small live frame rate readout in the bottom-left corner, "
-		+ "in every room.");
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);
@@ -306,6 +310,12 @@ function settings_content() {
 	settings_info("platform", _desktop ? "desktop" : "mobile");
 
 	// the debug overlay lived on F1 - which mobile doesn't have
+	settings_toggle("show fps",
+		function() { return g.show_fps; },
+		function(_v) { g.show_fps = _v; },
+		"a small live frame rate readout in the bottom-left corner, "
+		+ "in every room.");
+
 	settings_toggle("debug overlay",
 		function() { return system.debug; },
 		function(_v) { system.debug = _v; },
