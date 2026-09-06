@@ -37,7 +37,7 @@ function rebirth_calc() {
 	var _out = { units : 0, can : false, cool : 0, run_s : 0, lack : 0,
 		start : 0, tc : 1, gfrac : 0 };
 
-	var _run = max(0, (variable_global_exists("playtime") ? g.playtime : 0)
+	var _run = max(0, (variable_global_exists("time_played_active") ? g.time_played_active : 0)
 		- g.rebirth.run_pt0);
 	_out.run_s = _run;
 	if (_run < 600) _out.cool = 600 - _run;

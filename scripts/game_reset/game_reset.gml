@@ -14,7 +14,8 @@
 function game_reset(_diff = 1) {
 
 	// run scalars (setgame's fresh values)
-	g.playtime     = 0;
+	g.time_played_active     = 0;
+	g.time_played_offline    = 0;
 	g.profit        = 0;
 	g.total_profit  = 0;
 	g.profit_flight = 0;

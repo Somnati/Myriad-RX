@@ -24,6 +24,11 @@
 //                    earned) the next time rm_clicker is up with a
 //                    run started. Absences under a minute replay
 //                    silently.
+//   THE AWAY CLOCK also accrues here, in offline_replay, because this
+//   is the ONE place an absence is measured - both callers below land
+//   on it, so g.time_played_offline cannot miss a gap or count one
+//   twice. Banked before the "are there dials yet" guard: the wall
+//   clock ran whether or not there was anything to replay.
 //   syst_handle_save (engine/save) after a LOAD: away time = now
 //                    minus the save's datetime stamp -> offline_replay.
 //                    A stamp in the FUTURE (clock rolled back) replays

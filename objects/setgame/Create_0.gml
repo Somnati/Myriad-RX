@@ -26,7 +26,18 @@
 	// stored ones back, so saved identities stick across boots
 	randomize();
 	g.profile  = 0;
-	g.playtime = 0; // seconds this save has been played, accumulated
+	// TWO CLOCKS (2026-09-06, his ask - DE tracks both and the port kept
+	// only half). They never overlap, so their SUM is the whole life of
+	// the save:
+	//   active   ticks in syst_handle_save's Step while the game runs
+	//   offline  accrues in offline_replay, the one place an absence is
+	//            measured (a suspend and a closed app both land there)
+	// DE keeps ONE combined number (total_seconds_played: +1 a second
+	// while running, + the away gap on load). RX splits it so "how long
+	// have I actually played" and "how old is this save" are both
+	// answerable. Anything wanting DE's figure adds them.
+	g.time_played_active = 0; // seconds this save has been played, accumulated
+	g.time_played_offline = 0; // seconds this save has spent away
 	                // by syst_handle_save and stored per savefile
 	for (var _i = 0; _i < 4; _i++) {
 		g.profile_name[_i]  = gen_name_planet();

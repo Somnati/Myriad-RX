@@ -5,7 +5,8 @@
 /// units) are plain reals, so a straight copy is a real snapshot.
 function stats_session_base() {
 	g.stats_base = {
-		playtime : variable_global_exists("playtime") ? g.playtime : 0,
+		playtime : variable_global_exists("time_played_active") ? g.time_played_active : 0,
+		playtime_off : variable_global_exists("time_played_offline") ? g.time_played_offline : 0,
 		resin    : variable_global_exists("resin")    ? g.resin    : 0,
 		profit   : variable_global_exists("profit")   ? g.profit   : 0,
 		units    : variable_global_exists("units")    ? g.units    : 0,

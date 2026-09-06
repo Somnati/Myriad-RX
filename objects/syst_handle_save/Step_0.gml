@@ -31,7 +31,7 @@ action = -1;}
 
 // ---- playtime clock ----
 // real seconds, saved per savefile, shown by the save menu slots
-g.playtime += delta_time / 1000000;
+g.time_played_active += delta_time / 1000000;
 
 // ---- rotating autosave ----
 // on the clock AND dirty AND allowed: idle sessions don't churn the

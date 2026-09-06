@@ -19,10 +19,21 @@ function stats_v2_content() {
 
 	// ---- general ----
 	if (stats_v2_folder("general", c_sgreen)) {
-		if (variable_global_exists("playtime")) {
-			if (_sess) stats_v2_line("time played",
-				crunch_time_long(max(0, g.playtime - g.stats_base.playtime) * 60), -1, _sc);
-			else stats_v2_line("time played", crunch_time_long(g.playtime * 60));
+		// TWO CLOCKS (his ask): what you played, and that plus the time
+		// the save spent away. They never overlap, so the second is
+		// simply their sum - DE's single total_seconds_played figure.
+		if (variable_global_exists("time_played_active")) {
+			var _act = g.time_played_active;
+			var _off = variable_global_exists("time_played_offline")
+				? g.time_played_offline : 0;
+			if (_sess) {
+				_act = max(0, _act - g.stats_base.playtime);
+				_off = max(0, _off - (g.stats_base[$ "playtime_off"] ?? 0));
+			}
+			stats_v2_line("time played", crunch_time_long(_act * 60), -1,
+				_sess ? _sc : -1);
+			stats_v2_line("total time", crunch_time_long((_act + _off) * 60), -1,
+				_sess ? _sc : -1);
 		}
 		if (variable_global_exists("profile_name"))
 			stats_v2_line("profile", g.profile_name[g.profile], -1,

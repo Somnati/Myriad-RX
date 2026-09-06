@@ -25,7 +25,10 @@ function handle_save(){
 	// first save locks them in
 	g.profile_name[g.profile]  = handle("name",g.profile_name[g.profile]);
 	g.profile_color[g.profile] = handle("color",g.profile_color[g.profile]);
-	g.playtime = handle("playtime",g.playtime); // seconds, shown by slots
+	// the ACTIVE clock keeps the original key so saves written before
+	// the split still load their playtime; the away clock is new
+	g.time_played_active = handle("playtime",g.time_played_active); // seconds, shown by slots
+	g.time_played_offline = handle("playtime_off",g.time_played_offline);
 	// THE CURRENCY: profit is a packed arb, which rides the ini as a
 	// plain real. both move in whole units, so floor on load heals any
 	// fraction-caught save

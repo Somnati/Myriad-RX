@@ -234,8 +234,13 @@ function settings_content() {
 		"myriad's setting: the credit panel stays out in the money room "
 		+ "instead of sliding in only when credits drop.");
 
-	if (variable_global_exists("playtime"))
-		settings_info("time played", crunch_time_long(g.playtime * 60));
+	if (variable_global_exists("time_played_active")) {
+		settings_info("time played", crunch_time_long(g.time_played_active * 60));
+		// active + away: DE's single "time played" figure
+		settings_info("total time", crunch_time_long((g.time_played_active
+			+ (variable_global_exists("time_played_offline")
+				? g.time_played_offline : 0)) * 60));
+	}
 
 	// ============================ input =============================
 	settings_section("input", c_horange);

@@ -17,13 +17,18 @@
 //                      newest autosave over the main save if it is
 //                      newer (continue = the run you were actually on).
 //                      Step: run handle_save + handle_settings when
-//                      `action` is set; tick g.playtime; every 60 s,
+//                      `action` is set; tick g.time_played_active; every 60 s,
 //                      if g.save_dirty and autosave is on, rotate.
 //   handle(key, default)   the bidirectional read/write. `section`
 //                      (an instance variable) picks the ini section.
 //   read / write       the ini calls it wraps.
 //   handle_save        EDIT HERE. Sections: system (datetime), player
 //                      (name/colour/playtime/profit/difficulty), dials
+//                      NOTE the two clocks: ini key "playtime" is the
+//                      ACTIVE one (the name predates the split, kept so
+//                      old saves still load) and "playtime_off" is the
+//                      time away. Their SUM is DE's single
+//                      total_seconds_played figure.
 //                      (level + cycle + auto per dial, then
 //                      update_dials = THE resync), statistics (pins).
 //                      A rebuilt DE system adds its section here.
@@ -46,6 +51,8 @@
 //                      dialog on desktop (plain readable ini), the
 //                      clipboard on mobile until the SAF picker lands.
 //   save_slot_info     peek a file's name/colour/profit/playtime
+//                      (+ playtime_off; a pre-split save reads 0 there,
+//                      so its total simply equals its active time)
 //                      without loading it (the menu cards).
 //   set_profile(i)     switch profile: repoint, recover, load; a
 //                      fresh profile runs game_reset first.

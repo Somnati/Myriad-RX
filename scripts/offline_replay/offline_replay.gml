@@ -21,8 +21,20 @@
 /// backgrounded the app, the laptop slept - GM stopped stepping while
 /// the wall clock ran on).
 function offline_replay(_secs) {
-	if (!variable_global_exists("dial")) return;
 	if (_secs < 1) return;
+
+	// THE AWAY CLOCK. Counted here because this is the ONE place an
+	// absence is measured - a suspend (syst_offline's Step) and a
+	// closed app (syst_handle_save after a load) both arrive through
+	// this call, so neither can be missed or counted twice. It is a
+	// fact about the wall clock, so it is banked BEFORE the guard
+	// below: the time passed whether or not there was anything to
+	// replay. g.time_played_active only ticks while the game is
+	// running, so the two never overlap.
+	g.time_played_offline += _secs;
+	save_mark_dirty();
+
+	if (!variable_global_exists("dial")) return;
 
 	var _before = g.profit;
 	var _rate   = g.all_gps;      // the rate the absence ran at

@@ -41,7 +41,7 @@ function rebirth_do() {
 	g.buy_lv = 1;
 
 	// ---- 4. the run clock + the heavy save ----
-	g.rebirth.run_pt0 = variable_global_exists("playtime") ? g.playtime : 0;
+	g.rebirth.run_pt0 = variable_global_exists("time_played_active") ? g.time_played_active : 0;
 	save_mark_dirty();
 	if (instance_exists(syst_handle_save)) {
 		with (syst_handle_save) { action = sv_save; handle_save(); action = -1; }

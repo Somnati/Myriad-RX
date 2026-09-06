@@ -3,7 +3,7 @@
 //app_resize();
 return_status = os_paused();
 
-debug_pro_watch("g.playtime", "playtime");
+debug_pro_watch("g.time_played_active", "played");
 show_debug_message("WATCH COUNT = " + string(array_length(g.__dbgpro_watch)));
 
 

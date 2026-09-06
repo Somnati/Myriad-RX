@@ -107,7 +107,7 @@ __here_name = function() {
 
 // playtime as "00d 00h 00m 00s"
 __playtime_str = function() {
-	var _t = variable_global_exists("playtime") ? floor(g.playtime) : 0;
+	var _t = variable_global_exists("time_played_active") ? floor(g.time_played_active) : 0;
 	var _dd = _t div 86400;
 	var _hh = (_t div 3600) mod 24;
 	var _mm = (_t div 60) mod 60;

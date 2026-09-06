@@ -8,8 +8,8 @@
 ///               (plain 0 while empty - never do_add onto arb(0))
 ///   total       rebirths so far (seeds the flavor names, gates the
 ///               first-rebirth timeclamp exemption)
-///   run_pt0     g.playtime when this run began - the run clock is
-///               g.playtime - run_pt0, so lifetime playtime survives
+///   run_pt0     g.time_played_active when this run began - the run clock is
+///               g.time_played_active - run_pt0, so lifetime playtime survives
 ///   prev_*      the last run's report card for the overlay footer
 function rebirth_init(_force = false) {
 	if (variable_global_exists("rebirth") && !_force) return;

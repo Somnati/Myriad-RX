@@ -122,7 +122,14 @@ draw_set_alpha(.45 * am);
 draw_text(panel_x + pw - 6, room_height - foot_h + 4, "time played");
 draw_set_color(_ink);
 draw_set_alpha(.9 * am);
-draw_text(panel_x + pw - 6, room_height - foot_h + 14, __playtime_str());
+// the precise ACTIVE clock, then the away time as a compact tail:
+// "00d 02h 14m 03s +5h" reads as what you played plus what accrued
+// while you were gone, and their sum is the save's whole life. Below a
+// minute of absence the tail is left off rather than showing "+0s".
+var _tp = __playtime_str();
+var _off = variable_global_exists("time_played_offline") ? g.time_played_offline : 0;
+if (_off >= 60) _tp += " +" + crunch_time(_off * 60);
+draw_text(panel_x + pw - 6, room_height - foot_h + 14, _tp);
 draw_set_halign(fa_left);
 
 // scrollbar whisper (rides the panel edge too)
