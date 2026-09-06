@@ -184,6 +184,29 @@ if (row_x <= 4) {
 	blur_fx = layer_get_fx("dial_blur");
 }
 
+// THE PAYOUT RIPPLE (his pick from the shader ideas: a shimmer that
+// runs out from whatever just paid). No custom shader needed - GM ships
+// _filter_ripples, a radial wave with a position, a growing radius and
+// an amplitude, which is exactly the shape of the idea.
+// DEPTH 15 seats it in the visualiser's stack: deeper than it are the
+// glow / zoom / vignette layers, obj_bignum5 (50) and the black plate
+// (100), so the wave crosses all of that, while the drawer (-20) and
+// the header (-1000) are shallower and do not move a pixel. A UI that
+// wobbles when a dial pays would be unusable.
+rip_amp = 0;    // decays to 0; at 0 the filter is a no-op
+rip_rad = 0;    // grows outward, in APPLICATION SURFACE pixels
+rip_gro = 12;   // radius growth per frame, re-derived per fire
+if (!layer_exists("dial_ripple")) {
+	var _l = layer_create(15, "dial_ripple");
+	var _f = fx_create("_filter_ripples");
+	fx_set_parameter(_f, "g_RipplesSpeed", 2);
+	fx_set_parameter(_f, "g_RipplesWidth", 64);
+	fx_set_parameter(_f, "g_RipplesAmplitude", 0);
+	fx_set_parameter(_f, "g_RipplesRadius", 0);
+	layer_set_fx(_l, _f);
+}
+rip_fx = layer_get_fx("dial_ripple");
+
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the
 // drawer can never disagree about where the edge is.

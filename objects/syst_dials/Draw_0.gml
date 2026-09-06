@@ -35,7 +35,15 @@ var _bw = lerp(row_w, row_w2, _bp);            // the bar narrows for buy
 // the drawer at the right edge and leaves the room beside it alone.
 // It rides `face`, so it widens WITH the pull rather than appearing.
 if (_dp > 0) {
-	var _bx0 = floor(face);
+	// EVEN MARGINS (his report 2026-09-06 - it stopped dead on the bars'
+	// left edge). The gap the bars leave on the RIGHT, measured at full
+	// open, is mirrored on the left: at row_x the content ends at
+	// row_x + 140 and the room ends at room_width, so that difference is
+	// the margin on both sides. Measured off row_x rather than the live
+	// face so it is a fixed inset that SLIDES with the drawer instead of
+	// changing shape during the pull.
+	var _mg  = max(0, room_width - (row_x + row_w));
+	var _bx0 = floor(face - _mg);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, room_width - _bx0,
 		room_height, 0, c_black, .62 * _dp);
 }
@@ -213,33 +221,65 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_set_halign(fa_left);
 
 	// ---- THE RATE, right-aligned at the row's far edge past the bar
-	// (DE's obj_dial): "+gpc" per cycle or "+gps" per second, by the
-	// view button's g.display_gps.
+	// (DE's obj_dial): "+gpc" per cycle, "+gps" per second, or this
+	// dial's SHARE OF THE FLEET as a percentage, by g.display_gps.
 	// IT DOES NOT LEAVE AT THE BUY STAGE (his report 2026-09-06 - the
 	// port faded it out). DE draws it twice at the SAME anchor,
 	// _x + width - endcap, and cross-fades the two as the row narrows;
 	// since that anchor rides `width`, the number simply travels left
 	// with the shrinking row. Ours is one draw at the same moving
 	// anchor, which is the same picture with no seam.
-	var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
-	var _rt = "+" + crunch_arb(_rv);
-	// THE SEAT OPENS UP AS THE ROW NARROWS. At the list stage the
-	// readout shares the row with the accruing take, so it fits the
-	// space PAST the bar; at the buy stage that take has faded and
-	// the whole bar interior is free, which is what keeps the number
-	// readable at 93px instead of squeezing it to nothing.
-	var _from = lerp(_px + _pw + 2, _px, _bp);
-	var _seat = (_x + _bw - _ec) - _from;
-	var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
-	draw_set_halign(fa_right);
-	// GOLD, his call 2026-09-06. Note this is a deliberate step AWAY
-	// from DE, which draws the rate in g.profit_color (the recolourable
-	// money tint) - so if the profit colour ever needs to reach this
-	// number again, here is the one line.
-	draw_set_color(c_gold);
-	draw_set_alpha(.95 * _oa);
-	draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
-	draw_set_halign(fa_left);
+	var _rt = "";
+	var _rc = c_gold;
+	if (g.display_gps == 2) {
+		// MODE 2, DE's "per centage" (obj_dial: v_track = do_div(gps,
+		// all_gps) + 2, the +2 being x100): what share of the fleet's
+		// output this dial is carrying. Computed in LOG SPACE, not
+		// through do_div - a share is by definition <= 1 and the arb
+		// library does not do sub-1 values; dividing into one would
+		// pack malformed and hang a normalize loop.
+		// DE hides it until the fleet clears 10/s, when the split
+		// starts meaning something.
+		if (g.all_gps >= arb(10) && _d.gps >= arb(1)) {
+			var _lg = arb_log10(_d.gps) - arb_log10(g.all_gps) + 2;
+			var _pc = power(10, _lg);          // a plain percent, 0..100
+			if (_lg >= 0) _rt = "+" + crunch_arb(log_to_arb(_lg)) + "%";
+			else          _rt = "-E" + string(round(abs(_lg))); // DE's tail
+			// DE grades the share by rarity - the thresholds are its
+			// packed-arb ones (0.8 / 1.20 / 1.5 / 1.65 / 1.75 / 1.9 /
+			// 1.95) read back as the percentages they stand for
+			_rc = c_rarity_common;
+			if (_pc >= 8)  _rc = c_rarity_uncommon;
+			if (_pc > 20)  _rc = c_rarity_rare;
+			if (_pc > 50)  _rc = c_rarity_epic;
+			if (_pc > 65)  _rc = c_rarity_legendary;
+			if (_pc > 75)  _rc = c_rarity_elite;
+			if (_pc > 90)  _rc = c_rarity_divine;
+			if (_pc > 95)  _rc = c_rarity_ultimate;
+		}
+	}
+	else {
+		var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
+		_rt = "+" + crunch_arb(_rv);
+	}
+	if (_rt != "") {
+		// THE SEAT OPENS UP AS THE ROW NARROWS. At the list stage the
+		// readout shares the row with the accruing take, so it fits the
+		// space PAST the bar; at the buy stage that take has faded and
+		// the whole bar interior is free, which is what keeps the number
+		// readable at 93px instead of squeezing it to nothing.
+		var _from = lerp(_px + _pw + 2, _px, _bp);
+		var _seat = (_x + _bw - _ec) - _from;
+		var _sc = clamp(_seat / max(1, string_width(_rt)), .5, 1);
+		draw_set_halign(fa_right);
+		// GOLD, his call 2026-09-06 - a deliberate step AWAY from DE, which
+		// draws the rate in g.profit_color. The percentage view overrides it
+		// with DE's rarity grade, which is the whole point of that mode.
+		draw_set_color(_rc);
+		draw_set_alpha(.95 * _oa);
+		draw_text_transformed(_x + _bw - _ec, _y + 2 + lerp(5, 0, _sc), _rt, _sc, _sc, 0);
+		draw_set_halign(fa_left);
+	}
 
 	// ---- STAGE 2: DE's buy button, right of the narrowed bar ----
 	if (_bp > .02) {
@@ -283,14 +323,26 @@ for (var _i = 0; _i < _n; _i++) {
 // ---- DE's two top-right buttons ----
 // the VIEW button (with the list): face + the mode glyph, "view" above
 if (_dp > .02) {
-	var _vc = (g.display_gps == 1) ? c_steelblue : c_rarity_common;
-	var _vf = (g.display_gps == 1) ? 3 : 2;
+	// THE MODE AS TEXT (his ask 2026-09-06): the button said "view" and
+	// wore a glyph frame; it now reads the abbreviation itself. Text
+	// rather than a sprite frame is also what let the third mode land
+	// without drawing a new one - spr_hud_toggle_ps only has frames for
+	// two, and glyph 2/3 are no longer used.
+	var _vc = c_rarity_common;
+	if (g.display_gps == 1) _vc = c_steelblue;
+	if (g.display_gps == 2) _vc = c_gold;
+	var _vt = "p/c";
+	if (g.display_gps == 1) _vt = "p/s";
+	if (g.display_gps == 2) _vt = "%";
 	draw_sprite_ext(spr_hud_toggle_ps, vb_down ? 1 : 0, vb_cx, vb_y, 1, 1, 0, _vc, _oa);
-	draw_sprite_ext(spr_hud_toggle_ps, _vf, vb_cx, vb_y + (vb_down ? 1 : 0), 1, 1, 0, _vc, .8 * _oa);
 	draw_set_halign(fa_center);
 	draw_set_color(_vc);
-	draw_set_alpha(_oa);
-	draw_text_transformed(vb_cx + vb_w * .5, vb_y - 4, "view", .6, .5, 0);
+	draw_set_alpha(.9 * _oa);
+	// shrunk to fit the 18px face with a pixel of air each side
+	var _vs = min(1, 16 / max(1, string_width(_vt)));
+	draw_text_transformed(vb_cx + vb_w * .5,
+		vb_y + (vb_h - 7 * _vs) * .5 + (vb_down ? 1 : 0), _vt, _vs, _vs, 0);
+	draw_set_halign(fa_left);
 }
 // the BUY BULK button (with the buy layer): DE's face tinted by the
 // mode, the mode glyph on top, "buy bulk" above - obj_ui_buylv's draw

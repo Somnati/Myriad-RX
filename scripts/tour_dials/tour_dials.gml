@@ -90,6 +90,22 @@
 // ============================ TRAPS =================================
 //   - autoeff lives in dial_config and is READ by both update_dial
 //     and the drawer, so the sim and the view can't disagree.
+//   - THE VIEW BUTTON has THREE modes (g.display_gps, settings.ini):
+//     0 p/c per cycle, 1 p/s per second, 2 "%" = this dial's share of
+//     the whole fleet's output, graded by DE's rarity thresholds. The
+//     button draws its mode as TEXT, not a sprite frame - which is what
+//     let the third one land without a new glyph (spr_hud_toggle_ps
+//     frames 2 and 3 are now unused).
+//     The share is computed in LOG SPACE, never through do_div: a share
+//     is <= 1 by definition and the arb library does not do sub-1
+//     values - dividing into one packs malformed and hangs a normalize
+//     loop. See the block in Draw_0.
+//   - THE PAYOUT RIPPLE is a runtime effect layer ("dial_ripple",
+//     depth 15, GM's _filter_ripples) fired from the seat a payout
+//     spits from. Its position and radius are in APPLICATION SURFACE
+//     pixels, not room pixels, so both are scaled by the surface/room
+//     ratio. It refuses to re-fire until the last wave has faded, or
+//     thirteen dials would reset it into jitter.
 //   - THE BACKDROP IS THE DRAWER'S WIDTH, not the room's: it starts at
 //     `face`, so in portrait it is the screen and in landscape it is a
 //     strip at the right edge. The BLUR behind it is a runtime effect

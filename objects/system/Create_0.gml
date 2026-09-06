@@ -49,6 +49,9 @@ g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
 g.profit_color = c_sgreen;
 // THE DIAL RATE VIEW (DE's view button): 0 = profit per cycle, 1 = per
 // second. A display pref, so it rides settings.ini like the tint
+// 0 profit per cycle / 1 per second / 2 this dial's SHARE of the fleet
+// as a percentage (DE's third view). The drawer's view button cycles
+// them; the value rides settings.ini
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
 // off = a flat +10. His toggle, settings > gameplay
