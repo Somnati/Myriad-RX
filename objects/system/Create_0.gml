@@ -52,6 +52,11 @@ g.profit_color = c_sgreen;
 // 0 profit per cycle / 1 per second / 2 this dial's SHARE of the fleet
 // as a percentage (DE's third view). The drawer's view button cycles
 // them; the value rides settings.ini
+// THE VISUALISER GRID'S OPACITY, 0..100 (settings > display). The
+// renderer keeps a master multiplier on every grid piece
+// (BignumVisRenderer's grid_alpha, .75 out of the box); this is that
+// number as a percent, so 75 is what it always was.
+g.vis_grid_alpha = 75;
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
 // off = a flat +10. His toggle, settings > gameplay

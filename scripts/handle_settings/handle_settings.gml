@@ -39,6 +39,7 @@ function handle_settings(_method) {
 	g.show_fps = handle("show_fps",g.show_fps);
 	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve
 	g.orient = handle("orient",g.orient); // -1 auto / 0 portrait / 1 landscape
+	g.vis_grid_alpha = handle("vis_grid_alpha",g.vis_grid_alpha); // grid %
 	g.trans_kind = handle("trans_kind",g.trans_kind); // room transition style
 
 	section = "audio";

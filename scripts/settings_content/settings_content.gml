@@ -160,6 +160,22 @@ function settings_content() {
 		"how many frames per second the game runs at. higher = smoother "
 		+ "and hungrier; on battery, lower is kinder.");
 
+	// THE VISUALISER GRID. The renderer multiplies every grid piece -
+	// the border, the inner rules and the outer frame - by one master
+	// alpha, so this single number takes the lattice from solid to
+	// gone without touching the blocks themselves.
+	settings_slider("visualiser grid", 0, 100,
+		function() { return g.vis_grid_alpha; },
+		function(_v) {
+			g.vis_grid_alpha = _v;
+			// live, if the visualiser happens to be alive
+			if (instance_exists(obj_bignum5))
+				obj_bignum5.vis.renderer.grid_alpha = _v / 100;
+		},
+		"%", 5,
+		"how strongly the lattice behind the number is drawn. 0 leaves "
+		+ "just the blocks.");
+
 	settings_toggle("menu blur",
 		function() { return g.blur; },
 		function(_v) { g.blur = _v; },

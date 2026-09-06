@@ -5,7 +5,7 @@
 
 	// visual option globals: initialized here so rooms that READ them
 	// never depend on the settings-room toggles having run first
-	g.blur = false;
+	g.blur = true;   // settings > display "menu blur"
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

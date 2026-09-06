@@ -27,6 +27,10 @@ swipe_sens = 0.02;  // OOMs per px: ~60px swipe = 1.2 OOM
 
 vis = bignum_visualizer_create();
 vis.renderer.grid_sprite = spr_vis_grid2; // 3 subimages: border/inner/outer
+// the grid's master opacity, his setting (settings > display). The
+// renderer's own default is .75, which is what 75 here reproduces.
+vis.renderer.grid_alpha = (variable_global_exists("vis_grid_alpha")
+	? g.vis_grid_alpha : 75) / 100;
 
 // NO SUB-TIER SQUARES (his report). DigitWindow can SYNTHESISE digits
 // below the value's real precision so a deep zoom always has something

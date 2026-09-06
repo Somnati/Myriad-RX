@@ -7,10 +7,15 @@ else open = false;
 am = move_to(am, open ? 1 : 0, 4); // move_to's adj is a divisor (delta-aware)
 if (!open && am < .01) { kill; exit; }
 
-// blur rides the fold, and switches off entirely at zero
+// blur rides the fold, and switches off entirely at zero.
+// g.blur (settings > display "menu blur") was a DEAD SETTING - saved,
+// defaulted, and read by nothing, so the toggle did nothing at all
+// (his report 2026-09-06). It gates the layer now; the default flipped
+// to on so the look is unchanged for anyone who never touches it.
 if (blur_fx != -1) {
-	layer_set_visible("menu_blur", am > 0);
-	fx_set_parameter(blur_fx, "g_intensity", am);
+	var _bl = (variable_global_exists("blur") ? g.blur : true) && (am > 0);
+	layer_set_visible("menu_blur", _bl);
+	fx_set_parameter(blur_fx, "g_intensity", _bl ? am : 0);
 }
 
 // ---- input: touch-list semantics. presses only ARM; drags scroll

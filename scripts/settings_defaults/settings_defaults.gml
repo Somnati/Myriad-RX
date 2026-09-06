@@ -13,10 +13,11 @@ function settings_defaults() {
 	g.vsync                 = 0;
 	display_reset(0, 0);
 	system.desired_fps      = display_get_frequency();
-	g.blur                  = false;
+	g.blur                  = true;
 	g.show_fps              = false;
 	g.fit_margin            = 12;   // % of screen height kept for OS chrome
 	g.orient                = -1;   // -1 auto / 0 portrait / 1 landscape
+	g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
 
 	// audio
 	g.vol_master = 100;

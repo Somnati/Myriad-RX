@@ -100,12 +100,6 @@
 //     is <= 1 by definition and the arb library does not do sub-1
 //     values - dividing into one packs malformed and hangs a normalize
 //     loop. See the block in Draw_0.
-//   - THE PAYOUT RIPPLE is a runtime effect layer ("dial_ripple",
-//     depth 15, GM's _filter_ripples) fired from the seat a payout
-//     spits from. Its position and radius are in APPLICATION SURFACE
-//     pixels, not room pixels, so both are scaled by the surface/room
-//     ratio. It refuses to re-fire until the last wave has faded, or
-//     thirteen dials would reset it into jitter.
 //   - THE BACKDROP IS THE DRAWER'S WIDTH, not the room's: it starts at
 //     `face`, so in portrait it is the screen and in landscape it is a
 //     strip at the right edge. The BLUR behind it is a runtime effect

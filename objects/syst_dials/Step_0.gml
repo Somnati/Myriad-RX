@@ -26,14 +26,6 @@ face = lerp(room_width - dock_w, row_x, _dp);
 // (landscape), see the Create
 if (blur_fx != -1) fx_set_parameter(blur_fx, "g_intensity", _dp);
 
-// the payout ripple spreads and fades. Amplitude reaching 0 leaves the
-// filter a no-op, so an idle screen pays nothing for it
-if (rip_fx != -1 && rip_amp > 0) {
-	rip_amp = max(0, rip_amp - .012 * delta);
-	rip_rad += rip_gro * delta;
-	fx_set_parameter(rip_fx, "g_RipplesAmplitude", rip_amp);
-	fx_set_parameter(rip_fx, "g_RipplesRadius", rip_rad);
-}
 
 // DE's two top-right buttons ride in from off the right edge: the view
 // button with the list, the buy-bulk button with the buy layer (and the
@@ -72,28 +64,6 @@ for (var _i = 0; _i < _n; _i++) {
 		// share one seat, so a payout leaves from the same height
 		// whichever face the drawer is wearing.
 		if (sp >= .5) _sx = face + 39;
-		// THE RIPPLE leaves from the same seat as the spit. Only when
-		// the last one has mostly gone: thirteen dials paying over each
-		// other would reset the wave every few frames and it would
-		// never get anywhere - it would read as jitter, not a pulse.
-		if (rip_fx != -1 && rip_amp <= .1) {
-			rip_amp = .35;
-			rip_rad = 0;
-			// THE FILTER WORKS ON THE APPLICATION SURFACE, which is the
-			// window's size, not the room's - so a room-space origin has
-			// to be scaled into it or the wave starts in the wrong
-			// corner entirely. Growth is sized off the surface too, so
-			// the wave takes the same time to cross at any resolution.
-			var _asw = surface_exists(application_surface)
-				? surface_get_width(application_surface) : room_width;
-			var _ash = surface_exists(application_surface)
-				? surface_get_height(application_surface) : room_height;
-			rip_gro = _ash * .012;
-			fx_set_parameter(rip_fx, "g_RipplesPosition",
-				[_sx * (_asw / max(1, room_width)),
-				 _sy * (_ash / max(1, room_height))]);
-		}
-
 		var _nb = 1;
 		if (_d.gpc >= arb(2)) _nb = choose(1, 2);
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
