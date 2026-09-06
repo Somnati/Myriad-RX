@@ -71,12 +71,9 @@ if (_da > 0) {
 		}
 		draw_set_alpha(1);
 	}
-	// the gold edge hairline spans the dot column, so it grew with the
-	// dots when the pitch changed
-	var _gy0 = __dot_y(_n - 1) - row_h * .5 - 2;
-	var _gy1 = __dot_y(0) + row_h * .5 + 2;
-	draw_sprite_ext(spr_pixel_1x1, 0, room_width - 1, _gy0, 1,
-		_gy1 - _gy0, 0, c_gold, .35 * _da);
+	// (the gold edge hairline that ran beside the dot column is gone -
+	// his report 2026-09-06: it read as a stray yellow line, and the
+	// dots mark the drawer's edge perfectly well by themselves)
 }
 
 if (_oa <= 0) { draw_set_alpha(1); draw_set_color(c_white); exit; }

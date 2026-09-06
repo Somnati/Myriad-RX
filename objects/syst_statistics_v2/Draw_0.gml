@@ -73,7 +73,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 	// at depth 1 and the indent is measured from there. The whole column
 	// steps RIGHT as the favourite gutter comes out (fav_t), which is
 	// what makes room for the star without reflowing anything else.
-	var _tx = content_x + 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
+	var _tx = content_x - 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 
 	if (_row.kind == 1) {
 		// folder: section band + the +/- chip (his call: the signs

@@ -23,9 +23,12 @@ tap_y1 = room_height;
 /// non-game rooms are off limits.
 __live = function() {
 	if (!variable_global_exists("game_started") || !g.game_started) return false;
-	if (in_room(rm_titlescreen) || in_room(rm_gameload) || in_room(rm_quit))
-		return false;
-	return true;
+	// THE MONEY ROOM ONLY (his call 2026-09-06). It used to be live
+	// everywhere but the title / boot / quit rooms, so a tap while
+	// reading the statistics paid profit and threw bezier motes across
+	// the screen. in_room is orientation-aware, so this covers both
+	// shapes of the clicker.
+	return in_room(rm_clicker);
 };
 
 pop = 0;  // a little press feedback the room can read

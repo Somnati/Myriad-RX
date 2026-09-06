@@ -73,7 +73,7 @@ for (var _r = _lo; _r < min(array_length(view), _first + visible_rows + 1 + _wre
 	if (anim_t < 1 && anim_n > 0 && _r > anim_row && _r <= anim_row + anim_n)
 	if (__row_y(_r) + _ay < __row_y(anim_row) + row_h) continue;
 	// the content band, same seat and same gutter slide as the names
-	_row.inst.x = content_x + 4 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
+	_row.inst.x = content_x + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 	_row.inst.y = __row_y(_r) + _ay + ((_row.name != "") ? 14 : 6);
 }
 
@@ -154,10 +154,13 @@ if (mouse_check_button_pressed(mb_left)) {
 				play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 			}
 			else if (_hr.kind == 0 && _hr.name != "") {
-				// the gutter only answers while it is on screen -
-				// otherwise a tap at the row's left edge is just a tap
-				// on the row, and opens its explainer
-				if (fav_show && mouse_x <= 9) {
+				// THE GUTTER'S BAND. It used to be x <= 9, from when the
+				// pips sat at the room's left edge; the rail rebuild
+				// moved them into the content band and this did not
+				// follow, so the stars could not be tapped (his report
+				// 2026-09-06). It answers only while the gutter is out -
+				// otherwise a tap here is just a tap on the row.
+				if (fav_show && mouse_x <= content_x + 10) {
 					// the star gutter: pin/unpin into the favorites section
 					var _now = !(g.stats_fav[$ _hr.key] ?? false);
 					if (_now) g.stats_fav[$ _hr.key] = true;

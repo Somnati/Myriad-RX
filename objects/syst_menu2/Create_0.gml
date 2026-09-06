@@ -112,10 +112,15 @@ __playtime_str = function() {
 	var _hh = (_t div 3600) mod 24;
 	var _mm = (_t div 60) mod 60;
 	var _ss = _t mod 60;
-	return ((_dd < 10) ? "0" : "") + string(_dd) + "d "
-	     + ((_hh < 10) ? "0" : "") + string(_hh) + "h "
-	     + ((_mm < 10) ? "0" : "") + string(_mm) + "m "
-	     + ((_ss < 10) ? "0" : "") + string(_ss) + "s";
+	// ONLY THE UNITS THAT HAVE A VALUE (his call 2026-09-06): a save
+	// three hours old reads "03h 12m 40s", not "00d 03h 12m 40s". Once
+	// a unit is in, every smaller one follows it in - "01d 00h 05m" is
+	// right, because the zero hours are real there.
+	var _o = "";
+	if (_dd > 0) _o += ((_dd < 10) ? "0" : "") + string(_dd) + "d ";
+	if (_o != "" || _hh > 0) _o += ((_hh < 10) ? "0" : "") + string(_hh) + "h ";
+	if (_o != "" || _mm > 0) _o += ((_mm < 10) ? "0" : "") + string(_mm) + "m ";
+	return _o + ((_ss < 10) ? "0" : "") + string(_ss) + "s";
 };
 
 // ONE geometry authority: items = {kind, idx, name, col, x1,y1,x2,y2}

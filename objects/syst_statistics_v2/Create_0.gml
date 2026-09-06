@@ -246,12 +246,11 @@ __row_panel = function(_r, _row, _ry, _bh) {
 		_c, _cc, _cc, _c, .52);
 	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, rail_w, _ry + _bh - 1,
 		_cw, 1, 0, _cc, _c, _c, _cc, .52);
-	// indent guides still carry the tree depth. Depth 0 is the rail now,
-	// so a row inside a tab starts at depth 1 and its first guide would
-	// sit under the text - the guides begin one notch in
-	for (var _g2 = 2; _g2 <= _row.fdep; _g2++)
-		draw_sprite_ext(spr_pixel_1x1, 0, content_x - 4 + _g2 * 10, _ry, 1, _bh, 0,
-			merge_colour(_c, c_white, .14), 1);
+	// NO INDENT GUIDES (his call 2026-09-06 - the vertical lines had to
+	// go). With top-level folders promoted to the rail there is at most
+	// one level of nesting left inside a tab, and a single 10px step
+	// says that on its own; the guides were drawing a tree that is no
+	// longer deep enough to need one.
 };
 
 // close-anim ghost: a removed row repainted compactly (panel + name +
@@ -263,7 +262,7 @@ __ghost_paint = function(_r, _row, _ry) {
 	__row_panel(_r, _row, _ry, _bh);
 	// same seat as the live rows: content band, depth measured from 1,
 	// riding the favourite gutter's slide
-	var _tx = content_x + 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
+	var _tx = content_x - 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 	if (_row.kind == 1) {
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, 2, _bh, 0, _row.c1, .9);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0, c_black, .45);
