@@ -49,8 +49,14 @@ if (variable_global_exists("profit")) {
 
 	// gain pop: profit LANDED (a sale) - spending only glides down
 	if (_pv > prof_last)
+		// ABOVE THE HEADER, not in the float band: this pop spawns at
+		// y 16, which is INSIDE the header's own 29px opaque bar - at
+		// the band's -100 against the header's -1000 it was drawn and
+		// then painted straight over, so it has never been visible
+		// (his audit, 2026-09-06). It belongs to the header, so it
+		// rides just above it.
 		float_text(48, 16, "+" + crunch_arb(do_subtract(_pv, prof_last)),
-			g.profit_color);
+			g.profit_color, -1, depth - 10);
 	prof_last = _pv;
 
 	// the glide (move_to in log space; 12 ~ a fifth of a second)
