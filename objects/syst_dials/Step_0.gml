@@ -21,6 +21,11 @@ if (!drag_on) {
 var _dp = clamp(sp, 0, 1);
 face = lerp(room_width - dock_w, row_x, _dp);
 
+// the blur rides the drawer's own eased position, so it arrives with
+// the bars instead of switching on. -1 = this room never made one
+// (landscape), see the Create
+if (blur_fx != -1) fx_set_parameter(blur_fx, "g_intensity", _dp);
+
 // DE's two top-right buttons ride in from off the right edge: the view
 // button with the list, the buy-bulk button with the buy layer (and the
 // view button tucks left to make room, DE's parking)

@@ -99,7 +99,12 @@ DRAG_PX   = 110; // pixels of travel per stage
 // DE hid it until 3m lifetime profit; g.buylv_unlock (setgame) holds
 // that gate and 0 switches it off (his ask 2026-09-03: he wants to
 // see it).
-bb_x  = room_width - 25; bb_y = 31;   // 119 in the 144 room
+// y 37, not DE's 31: the burger sits at (room_width - 15, 22) with its
+// lower bar at y 26, and these buttons carry their labels ABOVE them at
+// y - 4 - which put the text straight through the menu icon (his report
+// 2026-09-06). Six pixels down clears the burger and drops the labels
+// below the 29px header band as well.
+bb_x  = room_width - 25; bb_y = 37;   // 119 in the 144 room
 bb_w  = sprite_get_width(spr_buylv);
 bb_h  = sprite_get_height(spr_buylv);
 bb_cx = room_width + 3;          // live x, eased in Step
@@ -139,7 +144,7 @@ __mode_cycle = function() {
 // 1 profit per SECOND (DE's other views belong to systems RX lacks).
 // spr_hud_toggle_ps (18x12): 0 face, 1 pressed, 2 per cycle, 3 per
 // second. Tap opens the house pillbox; the pick lands in _pselval.
-vb_x1 = room_width - 22; vb_x2 = room_width - 46; vb_y = 30; // 122 / 98
+vb_x1 = room_width - 22; vb_x2 = room_width - 46; vb_y = 36; // 122 / 98
 vb_w  = sprite_get_width(spr_hud_toggle_ps);
 vb_h  = sprite_get_height(spr_hud_toggle_ps);
 vb_cx = room_width + 2;
@@ -152,6 +157,32 @@ pillbox_init();
 quote = array_create(variable_global_exists("dial_total") ? g.dial_total : 13, undefined);
 qtic  = 0;
 qmode = -1;
+
+// THE DRAWER'S BLUR (his ask 2026-09-06). A GameMaker effect layer is
+// always FULL SCREEN - there is no region form of one - so it is only
+// created where full screen IS the drawer's width: portrait, where the
+// column opens to x 2 and the strip is the whole room. In landscape the
+// drawer parks against the right edge, and blurring everything would
+// smear the room beside it, which is the thing he did not want; there
+// the dimmed strip stands on its own. A landscape strip-blur would need
+// an application-surface snapshot, which is a different job.
+blur_fx = -1;
+if (row_x <= 4) {
+	if (!layer_exists("dial_blur")) {
+		// DEPTH 10 is the whole trick, same rule as the fx stack:
+		// deeper than 10 are the vignette/zoom/glow layers (40/30/20),
+		// the visualiser (50) and the black plate (100), so all of it
+		// blurs; the drawer itself is at -20 and the header at -1000,
+		// both shallower, so they stay sharp on top of it.
+		var _l = layer_create(10, "dial_blur");
+		var _f = fx_create("_effect_gaussian_blur");
+		fx_set_parameter(_f, "g_numPasses", 4);
+		fx_set_parameter(_f, "g_numDownsamples", 1);
+		fx_set_parameter(_f, "g_intensity", 0);
+		layer_set_fx(_l, _f);
+	}
+	blur_fx = layer_get_fx("dial_blur");
+}
 
 // the drawer face's left edge, republished every Step. obj_clicker
 // READS this rather than recomputing it, so the tap surface and the

@@ -29,9 +29,16 @@ var _bw = lerp(row_w, row_w2, _bp);            // the bar narrows for buy
 // Drawn FIRST in this event, so it covers the visualiser (depth 50)
 // and the tap surface while the bars land on top of it. The header
 // sits at -1000 and stays clear, which is what DE does too.
-if (_dp > 0)
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0,
-		c_black, .62 * _dp);
+// THE BACKDROP IS THE DRAWER'S OWN WIDTH (his ask 2026-09-06), not the
+// room's. In portrait the column opens to x 2, so the strip IS the
+// screen and it behaves exactly as before; in landscape it stops with
+// the drawer at the right edge and leaves the room beside it alone.
+// It rides `face`, so it widens WITH the pull rather than appearing.
+if (_dp > 0) {
+	var _bx0 = floor(face);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, room_width - _bx0,
+		room_height, 0, c_black, .62 * _dp);
+}
 
 // ============ docked: DE's collapsed dot column ============
 // TWO FILLED CIRCLES, no outline (DE's Draw_72): a dark disc at FULL

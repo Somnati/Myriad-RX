@@ -90,6 +90,13 @@
 // ============================ TRAPS =================================
 //   - autoeff lives in dial_config and is READ by both update_dial
 //     and the drawer, so the sim and the view can't disagree.
+//   - THE BACKDROP IS THE DRAWER'S WIDTH, not the room's: it starts at
+//     `face`, so in portrait it is the screen and in landscape it is a
+//     strip at the right edge. The BLUR behind it is a runtime effect
+//     layer ("dial_blur", depth 10) created ONLY when row_x <= 4 -
+//     i.e. only where full screen IS the drawer's width - because GM
+//     effect layers have no region form. A landscape strip-blur needs
+//     an application-surface snapshot; that job has not been done.
 //   - THE SEATS ARE DERIVED, not typed. row_x / row_y1 / bb_x / vb_x*
 //     are offsets from the room's edges because the money room has two
 //     shapes (rm_clicker 144x296, rm_clicker_landscape 480x270). Each
