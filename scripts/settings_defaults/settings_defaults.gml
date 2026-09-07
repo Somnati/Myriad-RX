@@ -30,6 +30,11 @@ function settings_defaults() {
 
 	// gameplay
 	g.autosave = true;
+	// THE BACKUP LADDER (see save_autosave_rotate): how old a backup
+	// slot must be before it accepts a promotion, in minutes. 0/0 is
+	// the old flat cascade - three files spanning three minutes.
+	g.backup_mid  = 10;
+	g.backup_deep = 60;
 	g.profit_color = c_sgreen;   // the one profit tint (see system's Create)
 	g.display_gps  = 0;          // dial rate readout: per cycle
 	g.buy_round    = true;       // DE's round-up bulk buys

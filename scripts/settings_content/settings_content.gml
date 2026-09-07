@@ -261,6 +261,27 @@ function settings_content() {
 		"a rotating autosave every minute, only when something actually "
 		+ "changed. off = manual saves only. living dangerously.");
 
+	// THE BACKUP LADDER. The three autosave slots used to be a flat
+	// shift, so they only ever spanned three minutes - fine against a
+	// crash, useless for undoing a decision. These two say how far
+	// apart the rungs sit; the saves menu prints the real ages.
+	if (g.autosave) {
+		settings_slider("recent backup", 0, 60,
+			function() { return g.backup_mid; },
+			function(_v) { g.backup_mid = _v; }, " min", 1,
+			"how old backup slot 2 must be before the newest snapshot "
+			+ "pushes into it. bigger = the middle backup reaches "
+			+ "further into the past. 0 = it moves every minute, the "
+			+ "old behaviour.");
+
+		settings_slider("deep backup", 0, 480,
+			function() { return g.backup_deep; },
+			function(_v) { g.backup_deep = _v; }, " min", 10,
+			"the same gate for slot 3, the oldest backup - the one you "
+			+ "reach for when you want a run back the way it was an "
+			+ "hour ago, not a minute ago.");
+	}
+
 	settings_toggle("rounded bulk buys",
 		function() { return g.buy_round; },
 		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },

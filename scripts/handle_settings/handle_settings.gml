@@ -53,6 +53,8 @@ function handle_settings(_method) {
 	section = "gameplay";
 
 	g.autosave = handle("autosave",g.autosave);
+	g.backup_mid  = handle("backup_mid",  g.backup_mid);
+	g.backup_deep = handle("backup_deep", g.backup_deep);
 	// the profit tint persists so a future settings row just works
 	g.profit_color = handle("profit_color", g.profit_color);
 	g.display_gps  = handle("display_gps",  g.display_gps); // the view button's pick
