@@ -185,10 +185,11 @@ qmode = -1;
 // asked about: 0 is the hard-edged pixelation he already liked, 4
 // rounds the block rims by a quarter of a block (and quarters the edge
 // step he did not like), 2 is properly soft.
-// soft 0, ie the HARD-EDGED pixelation - the exact version he looked
-// at and approved. 4 rounds the block rims by a quarter of a block and
-// quarters the edge step; he has not seen that one yet.
-__snap_cap = function() { if (sp > 0) pixel_snap(3, 0); };
+// 3 room pixels a block, rims rounded by a quarter of one. THIS is the
+// version he approved - I had wrongly assumed his test predated the
+// soft commit and reverted to hard 0 for a moment. 0 is hard blocks if
+// it is ever wanted back.
+__snap_cap = function() { if (sp > 0) pixel_snap(3, 4); };
 snap_px = create_obj(0, 0, obj_draw_proxy);
 snap_px.owner = id;
 snap_px.depth = 0;
