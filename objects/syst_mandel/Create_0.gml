@@ -13,9 +13,24 @@
 ///
 /// 2. THE ZOOM IS EASED, NOT STEPPED. `scale` chases `scale_to`
 ///    geometrically, so a wheel notch is a glide rather than a jump and
-///    holding the wheel down reads as a continuous dive. The centre
-///    eases with it, which is what stops the eased zoom from sliding
-///    off the point you aimed at.
+///    holding the wheel down reads as a continuous dive.
+///
+/// THOSE TWO FIGHT EACH OTHER, and the first cut lost. It moved the
+/// centre ONCE, instantly, to where it belongs at the FINAL scale - and
+/// then glided the scale there over the next twenty frames, so the
+/// point under the cursor was correct only after the animation
+/// finished. It also measured the anchor against the live `scale` but
+/// compensated with a ratio of `scale_to`, mixing two frames of
+/// reference. Between them the view crawled away from wherever you
+/// aimed, which is exactly what he reported.
+///
+/// THE FIX IS TO STOP COMPUTING A CORRECTION AT ALL. A wheel notch
+/// records the complex point under the pointer and the screen pixel it
+/// must stay at; every frame after, the centre is DERIVED from that
+/// anchor at whatever the eased scale currently is. There is no
+/// accumulating correction to drift, the anchor is exact on every
+/// frame of the animation rather than only the last, and scrolling
+/// repeatedly just re-anchors under the cursor each time.
 ///
 /// AND THE HONEST LIMIT: float32 runs out around 1e-5 of span. Rather
 /// than let the image melt into blocks and look broken, the zoom stops
@@ -41,6 +56,16 @@ drag_my = 0;
 drag_cx = 0;
 drag_cy = 0;
 moved   = 0;         // pixels dragged, so a tap is not read as a pan
+
+// ---- the zoom anchor ----
+// while on, the centre is DERIVED each frame so that the complex point
+// (anch_x, anch_y) stays under screen pixel (anch_px, anch_py). Any
+// pan or jump clears it, because those set the centre themselves.
+anch_on = false;
+anch_x  = 0;
+anch_y  = 0;
+anch_px = 0;
+anch_py = 0;
 
 // ---- look ----
 // the palette phase. Drifts very slowly on its own so a still image is

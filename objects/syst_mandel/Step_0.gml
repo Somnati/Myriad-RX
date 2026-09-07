@@ -11,6 +11,19 @@ if (scale != scale_to) {
 	if (abs(scale_to / scale - 1) < .0005) scale = scale_to;
 }
 
+// ---- hold the anchor under the cursor ----
+// Derived, not corrected: solve __at(anch_px, anch_py) == (anch_x,
+// anch_y) for the centre, at whatever the scale currently is. Because
+// it is re-solved every frame the point is pinned for the WHOLE
+// animation instead of only at the end of it, and nothing accumulates.
+// This runs before the input guards on purpose - a zoom already in
+// flight must keep tracking even if a popup opens mid-glide.
+if (anch_on) {
+	var _aa = room_width / room_height;
+	cx = anch_x - ((anch_px / room_width)  - .5) * 2 * scale * _aa;
+	cy = anch_y - ((anch_py / room_height) - .5) * 2 * scale;
+}
+
 if (!input_free()) exit;
 if (g.click_owner != noone) exit;
 
@@ -18,24 +31,26 @@ var _mx = mouse_x;
 var _my = mouse_y;
 
 // ---- zoom toward the cursor ----
-// Keep the complex point under the pointer FIXED across the zoom. The
-// centre has to move to compensate, and this is that compensation:
-//   new_centre = p - (p - old_centre) * (new_scale / old_scale)
-// Without it every zoom step drifts whatever you aimed at off toward
-// the edge, and you spend the whole time dragging it back.
+// A notch only RE-ANCHORS and sets a new target; the block above does
+// the work. Note the anchor is read at the LIVE scale, which is the
+// view actually on screen - reading it at scale_to would anchor to a
+// view that does not exist yet, which is half of what was wrong before.
 var _w = mouse_wheel_up() - mouse_wheel_down();
 if (_w != 0) {
 	var _p  = __at(_mx, _my);
-	var _ns = clamp(scale_to * power(0.78, _w), SCALE_MIN, SCALE_MAX);
-	var _k  = _ns / scale_to;
-	cx = _p.x - (_p.x - cx) * _k;
-	cy = _p.y - (_p.y - cy) * _k;
-	scale_to = _ns;
+	anch_on = true;
+	anch_x  = _p.x;
+	anch_y  = _p.y;
+	anch_px = _mx;
+	anch_py = _my;
+	scale_to = clamp(scale_to * power(0.78, _w), SCALE_MIN, SCALE_MAX);
 }
 
 // ---- drag to pan ----
 if (mouse_check_button_pressed(mb_left)) {
 	drag    = true;
+	anch_on = false;   // the drag owns the centre from here
+	scale_to = scale;  // and a pan should not fight a zoom still in flight
 	moved   = 0;
 	drag_mx = _mx;
 	drag_my = _my;
@@ -70,6 +85,7 @@ if (keyboard_check_pressed(vk_space)) {
 	// across the plane through a lot of uninteresting black.
 	tour_i = (tour_i + 1) mod array_length(tour);
 	var _t = tour[tour_i];
+	anch_on = false;   // the jump sets the centre outright
 	cx = _t.x; cy = _t.y;
 	scale_to = clamp(_t.s, SCALE_MIN, SCALE_MAX);
 	play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
