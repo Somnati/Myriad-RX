@@ -173,21 +173,6 @@ void main()
     // side, which is the whole point.
     vec2 q = gl_FragCoord.xy / res;
 
-    // ---- THE DIAGNOSTIC VIEW ----
-    // Every failure of this coordinate has looked the same from the
-    // outside: a flat screen, or a picture subtly in the wrong place.
-    // [v] paints the coordinate itself - red rising left to right,
-    // green rising down the screen - so the next time it goes wrong
-    // the answer is one screenshot instead of another round of
-    // guessing. A flat result means the coordinate is dead; a green
-    // ramp running the wrong way means the render target counts y from
-    // the other end, which the fractal itself can never reveal because
-    // the set is symmetric about the real axis.
-    if (u_dbg > 0.5) {
-        gl_FragColor = vec4(q.x, q.y, 0.25, 1.0);
-        return;
-    }
-
     vec2 uv = (q - 0.5) * 2.0;
     uv.x *= (u_aspect > 0.01) ? u_aspect : (res.x / res.y);
     vec2 c = u_centre + uv * sc.x;
@@ -316,5 +301,23 @@ void main()
     float dth = fract(52.9829189 * fract(0.06711056 * p.x + 0.00583715 * p.y));
     col += (dth - 0.5) * (1.0 / 255.0) * 1.6;
 
-    gl_FragColor = vec4(col, 1.0) * v_vColour;
+    // ---- THE DIAGNOSTIC VIEW ----
+    // [v] paints the coordinate itself instead of the fractal - red
+    // rising left to right, green rising down the screen. Every failure
+    // of this coordinate has looked the same from outside (a flat
+    // screen, or a picture subtly displaced), so this makes the cause
+    // visible: flat means the coordinate is dead, a ramp that saturates
+    // partway across means the divisor is too small, and green running
+    // UPWARD means the render target counts y from the other end -
+    // which the fractal can never reveal, because the set is symmetric
+    // about the real axis and a vertical mirror is invisible.
+    //
+    // ⚖️ AN OVERRIDE AT THE END, not an early `return` in main. The
+    // early return is what stopped the shader compiling - it is the
+    // only structural thing that changed in the commit that broke it,
+    // and GM's GLSL-to-HLSL pass would not take it. The whole fractal
+    // is computed and thrown away in this mode, which costs nothing
+    // that matters: it is a diagnostic, not a render path.
+    if (u_dbg > 0.5) gl_FragColor = vec4(q.x, q.y, 0.25, 1.0);
+    else             gl_FragColor = vec4(col, 1.0) * v_vColour;
 }
