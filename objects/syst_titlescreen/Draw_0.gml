@@ -75,6 +75,38 @@ draw_set_alpha(.55);
 draw_text(room_width div 2, 84, "remix edition");
 draw_set_alpha(1);
 
+// THE CONTINUE CARD. It sits ABOVE the column, not under the continue
+// button: the gaps between buttons are 6px and this needs a line of its
+// own. (The old "no save yet" note lived below the column and clipped
+// the load button by a pixel; one seat serves both states now.)
+// Two-tone and still centred - measure both halves, then draw the line
+// left-aligned from the computed start, because a sprite font has no
+// business being scaled to fit.
+var _cy = btn_y0 - 16;
+draw_set_valign(fa_top);
+if (has_save && cont.valid) {
+	var _cn = (cont.name != "") ? cont.name : g.profile_name[g.profile];
+	var _cc = (cont.color >= 0) ? cont.color : g.profile_color[g.profile];
+	var _ago = crunch_time_ago(cont.datetime);
+	var _rest = " - " + crunch_arb(cont.profit);
+	if (_ago != "") _rest += " - " + _ago;
+	draw_set_halign(fa_left);
+	var _lx = (room_width - (string_width(_cn) + string_width(_rest))) div 2;
+	draw_set_color(_cc);
+	draw_set_alpha(.9);
+	draw_text(_lx, _cy, _cn);
+	draw_set_color(sett_ink);
+	draw_set_alpha(.55);
+	draw_text(_lx + string_width(_cn), _cy, _rest);
+	draw_set_alpha(1);
+} else {
+	draw_set_halign(fa_center);
+	draw_set_color(c_gray);
+	draw_set_alpha(.4);
+	draw_text(room_width div 2, _cy, "no save yet");
+	draw_set_alpha(1);
+}
+
 // the button column. hover BOUNCES the chrome up ~12% (spring in
 // Step: overshoot-settle in, bounce-back out), rounded to whole
 // pixels. the LABEL is pinned to the resting rect's anchor via
@@ -99,14 +131,6 @@ for (var _i = 0; _i < 5; _i++) {
 	draw_ui_button(_bx, _by2, _bw, _bh, labels[_i], _col, _en, _i <= 1,
 		btn_x + (btn_w div 2) + 1, _by + (btn_h - 7) div 2);
 }
-if (!has_save) {
-	draw_set_color(c_gray);
-	draw_set_alpha(.4);
-	draw_text_transformed(room_width div 2, btn_y0 + btn_p + btn_h + 1,
-		"no save yet", .85, .85, 0);
-	draw_set_alpha(1);
-}
-
 // version tag, bottom-left (game_version = THE string, main_macros -
 // a release bump is one line there) + the footnote under it
 draw_set_halign(fa_left);

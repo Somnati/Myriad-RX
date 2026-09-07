@@ -12,6 +12,13 @@
 save_file = save_slot_path(0);
 has_save = file_exists(save_file);
 
+// WHAT CONTINUE IS CONTINUING (2026-09-07, his ask). Boot already
+// loaded slot 0 behind rm_gameload, so this is only a peek for the
+// card: who the run belongs to, how far it got, how long ago you left
+// it. Read from the FILE rather than the globals - the file is the
+// profile's real identity, and it cannot disagree with what will load.
+cont = save_slot_info(save_file);
+
 // the button column, centered
 btn_w = 130;
 btn_h = 18;
