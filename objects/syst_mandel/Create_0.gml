@@ -10,10 +10,17 @@
 ///
 ///   f32      to 4e-6     plain single precision in the shader
 ///   f32x2    to 2e-13    the coordinate as a hi/lo float pair
-///   perturb  to ~1e-130  the per-pixel loop iterates the tiny DELTA
+///   perturb  to ~1e-350  the per-pixel loop iterates the tiny DELTA
 ///                        from a reference orbit, so it stays float32
 ///                        at ANY depth - and all the precision lives
 ///                        here, on the CPU, in a bignum
+///
+/// AND THE DEPTH IS NO LONGER THE BINDING LIMIT - the ITERATION BUDGET
+/// is. The formula asks for 2546 iterations at 1e-26 and 11780 at
+/// 1e-130, so a ceiling of 900 was stopping the picture resolving long
+/// before the numbers ran out. A coordinate precise enough to address a
+/// place you cannot resolve is not depth, it is arithmetic. Hence 3000,
+/// and the progressive renderer in Draw that makes 3000 affordable.
 ///
 /// ⚖️ WHY THE BIGNUM AND NOT JUST PERTURBATION. Perturbation alone
 /// bought almost nothing: at the f32x2 floor a float64 centre still had
@@ -44,7 +51,7 @@
 // allocates a few thousand times per reference build, and halving the
 // allocations matters more than the tidier shape would.
 BN_BASE = 1048576;      // 2^20, about 6.02 decimal digits per limb
-BN_MAX  = 24;           // ceiling on limbs, ~138 digits, see __bn_want
+BN_MAX  = 64;           // ceiling on limbs, ~385 digits, see __bn_want
 
 bn_L = 4;               // live limb count, follows the zoom
 
@@ -175,13 +182,13 @@ __bnmul = function(_a, _b) {
 // shallow view pay for depth it is not using - 24 limbs costs twelve
 // times what 7 does, and 7 already reaches 1e-26.
 __bn_want = function() {
-	var _dig = -log10(max(scale, power(10, -140))) + 8;
+	var _dig = -log10(max(scale, power(10, -360))) + 8;
 	return clamp(ceil(_dig / 6.02) + 2, 4, BN_MAX);
 };
 
 // ---- the view. The CENTRE is a bignum; SCALE is an ordinary real and
-// does not need to be more: a float64 represents 1e-130 perfectly well.
-// It is the centre, sitting at 0.75 and needing to move by 1e-131, that
+// does not need to be more: a float64 represents 1e-350 perfectly well.
+// It is the centre, sitting at 0.75 and needing to move by 1e-351, that
 // runs out of digits.
 cx = __bnfrom(-0.75, bn_L);
 cy = __bnfrom(0, bn_L);
@@ -194,7 +201,7 @@ scale_to = 1.35;
 // waiting to happen.
 SCALE_MIN_F32  = 0.000004;
 SCALE_MIN_DD   = 0.0000000000002;
-SCALE_MIN_PERT = power(10, -130);
+SCALE_MIN_PERT = power(10, -350);
 SCALE_MIN = SCALE_MIN_F32;
 SCALE_MAX = 2.5;
 
@@ -238,7 +245,7 @@ dbg       = false;   // [v] paints the raw screen coordinate
 // ---- the iteration budget ----
 __iter = function() {
 	var _mag = SCALE_MAX / max(scale, SCALE_MIN_PERT);
-	return clamp(60 + 26 * log2(_mag) + 22 * sqrt(max(0, log2(_mag))), 60, 900);
+	return clamp(60 + 26 * log2(_mag) + 22 * sqrt(max(0, log2(_mag))), 60, MAX_ITER);
 };
 
 // ================= THE REFERENCE ORBIT =================
@@ -254,8 +261,9 @@ __iter = function() {
 // sums past 2^24. The twin confirms 24 bits renders identically to full
 // precision, so no float surface and no buffer_set_surface byte-order
 // gamble - ordinary draws.
-REF_W   = 256;
-REF_MAX = 900;
+REF_W    = 256;
+REF_MAX  = 3000;   // must reach MAX_ITER, or deep views rebase constantly
+MAX_ITER = 3000;   // matches sh_mandel's MAX_I
 
 ref_surf  = -1;
 ref_len   = 0;
@@ -264,6 +272,7 @@ ref_cy    = cy;
 ref_valid = false;
 ref_built = 0;
 ref_esc   = false;
+ref_L     = 0;    // limb count the current reference was computed at
 
 __ref_pack = function(_v) {
 	var _u = clamp((_v + 2) / 4, 0, 1) * 16777215;
@@ -271,115 +280,176 @@ __ref_pack = function(_v) {
 	return make_colour_rgb(_i mod 256, (_i div 256) mod 256, (_i div 65536) mod 256);
 };
 
-// one candidate's orbit, at bignum precision. Returns how far it got
-// and whether it ESCAPED - the difference between "as long as it will
-// ever be" and "too short, build a longer one".
-__ref_orbit = function(_px, _py, _lim, _ox, _oy) {
-	var _L = array_length(_px) - 1;
-	var _zx = __bnzero(_L), _zy = __bnzero(_L);
-	for (var _i = 1; _i <= _lim; _i++) {
-		var _zx2 = __bnmul(_zx, _zx);
-		var _zy2 = __bnmul(_zy, _zy);
-		var _xy  = __bnmul(_zx, _zy);
-		var _nzy = __bnadd(__bnadd(_xy, _xy), _py);
-		_zx = __bnadd(__bnsub(_zx2, _zy2), _px);
-		_zy = _nzy;
-		// the escape test only needs the top limbs, so it reads the
-		// flattened value - a double is plenty to know whether |z| > 2
-		var _fx = __bnreal(_zx), _fy = __bnreal(_zy);
-		_ox[_i] = _fx;
-		_oy[_i] = _fy;
-		if (_fx * _fx + _fy * _fy > 4) return { len : _i, esc : true };
-	}
-	return { len : _lim, esc : false };
+// ================= BUILDING IT, A SLICE AT A TIME =================
+// ⚖️ THE BUILD CANNOT BE SYNCHRONOUS ANY MORE. At 64 limbs a 3000-step
+// orbit is ~37 million limb-multiplies, which in GML is seconds - a
+// freeze every time the reference goes stale. So it runs as a JOB: a
+// bounded slice per frame, with the OLD reference still serving the
+// screen until the new one is finished. A dive keeps rendering the
+// whole time; it just renders against a slightly stale reference for a
+// second or two, which perturbation tolerates by construction.
+rj_on   = false;
+rj_list = [];        // candidate points still to try
+rj_ci   = 0;
+rj_zx   = 0;
+rj_zy   = 0;
+rj_i    = 0;
+rj_lim  = 0;
+rj_ox   = [];
+rj_oy   = [];
+rj_bx   = [];
+rj_by   = [];
+rj_best = -1;
+rj_besc = true;
+rj_bpx  = 0;
+rj_bpy  = 0;
+rj_L    = 0;
+
+// how many orbit steps to afford this frame. O(L^2) per step, so the
+// deep end takes many more frames - which is exactly right, because the
+// deep end is also where the old reference stays valid longest.
+__rj_budget = function() {
+	return clamp(floor(90000 / (3 * bn_L * bn_L)), 6, 3000);
 };
 
 // ⚖️ THE ANCHOR IS THE FIRST CANDIDATE, and that is what makes a dive
-// affordable. A reference at the view CENTRE goes stale as the centre
-// slides toward the anchor - the drift test fires roughly every time
-// the scale halves, so a continuous dive would rebuild every second,
-// and at 24 limbs a rebuild is a real hitch. The anchor is a FIXED
-// point in the plane and stays at a fixed place on screen, so a
-// reference built there survives the entire descent.
+// affordable at all. A reference at the view CENTRE goes stale as the
+// centre slides toward the anchor - the drift test then fires about
+// every time the scale halves, so a continuous dive would start a new
+// job every second and never finish one. The anchor is a FIXED point in
+// the plane that stays put on screen, so a reference built there
+// survives the entire descent.
 //
-// After that, the centre and four points across the view. A reference
+// After it, the centre and four points across the view. A reference
 // that escapes after forty steps is nearly useless - the shader rebases
 // every forty iterations and a rebase throws away the smallness that
 // lets the delta run in float32 - and the obvious choices escape often,
 // because just outside the set is exactly where anything worth looking
-// at is. So: try several, keep the longest-surviving.
-__ref_build = function() {
-	var _n   = __iter();
-	var _lim = min(REF_MAX, max(64, ceil(_n * 1.6)));
-	var _L   = bn_L;
-
-	var _ox = array_create(_lim + 2, 0);
-	var _oy = array_create(_lim + 2, 0);
-	var _bx = array_create(_lim + 2, 0);
-	var _by = array_create(_lim + 2, 0);
+// at is. A bad candidate dies cheaply though: it escapes early, so
+// trying several costs far less than it sounds.
+__ref_begin = function() {
+	var _n = __iter();
+	rj_lim = min(REF_MAX, max(64, ceil(_n * 1.6)));
+	rj_L   = bn_L;
 
 	var _ar = room_width / room_height;
-	var _cand = [];
-	if (anch_on) array_push(_cand, [anch_x, anch_y]);
-	array_push(_cand, [cx, cy]);
+	rj_list = [];
+	if (anch_on) array_push(rj_list, [anch_x, anch_y]);
+	array_push(rj_list, [cx, cy]);
 	var _off = [[-.35, -.35], [.35, -.35], [-.35, .35], [.35, .35]];
 	for (var _k = 0; _k < 4; _k++)
-		array_push(_cand, [
-			__bnadd(cx, __bnfrom(_off[_k][0] * 2 * scale * _ar, _L)),
-			__bnadd(cy, __bnfrom(_off[_k][1] * 2 * scale, _L))]);
+		array_push(rj_list, [
+			__bnadd(cx, __bnfrom(_off[_k][0] * 2 * scale * _ar, rj_L)),
+			__bnadd(cy, __bnfrom(_off[_k][1] * 2 * scale, rj_L))]);
 
-	var _best = -1, _besc = true, _bpx = cx, _bpy = cy;
-	for (var _k = 0; _k < array_length(_cand); _k++) {
-		var _r = __ref_orbit(_cand[_k][0], _cand[_k][1], _lim, _ox, _oy);
-		if (_r.len > _best) {
-			_best = _r.len;
-			_besc = _r.esc;
-			_bpx  = _cand[_k][0];
-			_bpy  = _cand[_k][1];
-			array_copy(_bx, 0, _ox, 0, _lim + 2);
-			array_copy(_by, 0, _oy, 0, _lim + 2);
-		}
-		if (!_r.esc) break;   // survived the whole budget; nothing beats that
+	rj_ox = array_create(rj_lim + 2, 0);
+	rj_oy = array_create(rj_lim + 2, 0);
+	rj_bx = array_create(rj_lim + 2, 0);
+	rj_by = array_create(rj_lim + 2, 0);
+	rj_best = -1;
+	rj_besc = true;
+	rj_ci   = 0;
+	rj_on   = true;
+	__rj_cand();
+};
+
+// start the current candidate from z = 0
+__rj_cand = function() {
+	rj_zx = __bnzero(rj_L);
+	rj_zy = __bnzero(rj_L);
+	rj_i  = 0;
+};
+
+// keep the candidate just finished if it beat the best so far, then
+// move on - or paint, if it survived the whole budget or we are out
+__rj_close = function(_esc) {
+	if (rj_i > rj_best) {
+		rj_best = rj_i;
+		rj_besc = _esc;
+		rj_bpx  = rj_list[rj_ci][0];
+		rj_bpy  = rj_list[rj_ci][1];
+		array_copy(rj_bx, 0, rj_ox, 0, rj_lim + 2);
+		array_copy(rj_by, 0, rj_oy, 0, rj_lim + 2);
 	}
+	// a survivor cannot be beaten, so stop looking
+	if (!_esc) { __ref_paint(); return; }
+	rj_ci += 1;
+	if (rj_ci >= array_length(rj_list)) { __ref_paint(); return; }
+	__rj_cand();
+};
 
-	// ---- paint it ----
+// advance the running candidate by at most `_budget` orbit steps
+__ref_step = function(_budget) {
+	if (!rj_on) return;
+	var _px = rj_list[rj_ci][0];
+	var _py = rj_list[rj_ci][1];
+	repeat (_budget) {
+		if (rj_i >= rj_lim) { __rj_close(false); return; }
+		rj_i += 1;
+		var _zx2 = __bnmul(rj_zx, rj_zx);
+		var _zy2 = __bnmul(rj_zy, rj_zy);
+		var _xy  = __bnmul(rj_zx, rj_zy);
+		var _nzy = __bnadd(__bnadd(_xy, _xy), _py);
+		rj_zx = __bnadd(__bnsub(_zx2, _zy2), _px);
+		rj_zy = _nzy;
+		// the escape test only needs the top limbs, so it reads the
+		// flattened value - a double is plenty to know whether |z| > 2
+		var _fx = __bnreal(rj_zx), _fy = __bnreal(rj_zy);
+		rj_ox[rj_i] = _fx;
+		rj_oy[rj_i] = _fy;
+		if (_fx * _fx + _fy * _fy > 4) { __rj_close(true); return; }
+	}
+};
+
+__ref_paint = function() {
+	rj_on = false;
+	if (rj_best <= 0) { ref_valid = false; return; }
+
 	// ceil, not a bare divide: (REF_MAX+1)*2/REF_W is fractional, and a
-	// surface 7.03 texels tall drops the last row of the orbit.
+	// surface that is 23.4 texels tall drops the last row of the orbit.
 	if (!surface_exists(ref_surf))
 		ref_surf = surface_create(REF_W, ceil((REF_MAX + 1) * 2 / REF_W) + 1);
 	surface_set_target(ref_surf);
 	draw_clear_alpha(c_black, 1);
-	for (var _i = 0; _i <= _best; _i++) {
-		var _k2 = _i * 2;
-		draw_sprite_ext(spr_pixel_1x1, 0, _k2 mod REF_W, _k2 div REF_W, 1, 1, 0,
-			__ref_pack(_bx[_i]), 1);
-		_k2 += 1;
-		draw_sprite_ext(spr_pixel_1x1, 0, _k2 mod REF_W, _k2 div REF_W, 1, 1, 0,
-			__ref_pack(_by[_i]), 1);
+	for (var _i = 0; _i <= rj_best; _i++) {
+		var _k = _i * 2;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
+			__ref_pack(rj_bx[_i]), 1);
+		_k += 1;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
+			__ref_pack(rj_by[_i]), 1);
 	}
 	surface_reset_target();
 
-	ref_len   = _best;
-	ref_esc   = _besc;
-	ref_cx    = _bpx;
-	ref_cy    = _bpy;
+	ref_len   = rj_best;
+	ref_esc   = rj_besc;
+	ref_cx    = rj_bpx;
+	ref_cy    = rj_bpy;
+	ref_L     = rj_L;
 	ref_valid = true;
 	ref_built += 1;
 };
 
 // ⚖️ `!ref_esc` ON THE LENGTH TEST IS WHY THAT FLAG EXISTS. An escaped
 // orbit is already as long as it will ever be, so without it the "too
-// short" branch fires every frame forever, repainting a couple of
-// thousand texels per frame - which from outside does not look like a
-// rebuild loop, it looks like the zoom refusing to go any deeper.
+// short" branch starts a job every frame forever - which from outside
+// does not look like a rebuild loop, it looks like the zoom refusing to
+// go any deeper.
 __ref_check = function() {
 	if (scale > DD_AT) return;
 	if (!surface_exists(ref_surf)) ref_valid = false;
-	if (!ref_valid) { __ref_build(); return; }
-	if (!ref_esc && ref_len < __iter()) { __ref_build(); return; }
-	var _dx = __bnreal(__bnsub(cx, ref_cx));
-	var _dy = __bnreal(__bnsub(cy, ref_cy));
-	if (abs(_dx) > scale * 2.5 || abs(_dy) > scale * 2.5) __ref_build();
+	if (rj_on) { __ref_step(__rj_budget()); return; }
+
+	var _need = false;
+	if (!ref_valid) _need = true;
+	else if (ref_L != bn_L) _need = true;    // computed at a coarser width
+	else if (!ref_esc && ref_len < __iter()) _need = true;
+	else {
+		var _dx = __bnreal(__bnsub(cx, ref_cx));
+		var _dy = __bnreal(__bnsub(cy, ref_cy));
+		if (abs(_dx) > scale * 2.5 || abs(_dy) > scale * 2.5) _need = true;
+	}
+	if (_need) { __ref_begin(); __ref_step(__rj_budget()); }
 };
 
 // the limb count follows the zoom; growing is exact, so the view never
@@ -397,7 +467,11 @@ __bn_check = function() {
 	drag_cy = __bngrow(drag_cy, _w);
 	ref_cx  = __bngrow(ref_cx, _w);
 	ref_cy  = __bngrow(ref_cy, _w);
-	ref_valid = false;      // the reference was computed at the old width
+	// NOT invalidated: growing is exact, so the old reference keeps
+	// serving the screen while __ref_check starts a job for a new one at
+	// the wider precision. Blanking it here would drop the picture to
+	// the f32x2 fallback - which at this depth is noise - for however
+	// many frames the rebuild takes.
 };
 
 __pert_on = function() {
@@ -455,6 +529,79 @@ __split = function(_v) {
 	buffer_seek(g.dd_buf, buffer_seek_start, 0);
 	var _hi = buffer_read(g.dd_buf, buffer_f32);
 	return [_hi, _v - _hi];
+};
+
+// ================= THE RENDER SURFACE =================
+// See Draw's header for why. The state is here so it survives the frame.
+rend_surf  = -1;
+rend_dirty = true;
+rend_band  = 0;
+// the signature the renderer compares against to notice a change
+rend_k_scale = -1;
+rend_k_dx    = -1;
+rend_k_dy    = -1;
+rend_k_pal   = -1;
+rend_k_glow  = -1;
+rend_k_dbg   = -1;
+rend_k_ref   = -1;
+rend_k_pert  = -1;
+rend_k_it    = -1;
+
+// EVERY uniform, in one place, so the coarse pass and the refine pass
+// cannot drift apart - they differ only in the iteration count, and
+// that difference is the argument.
+__shade = function(_iter, _p, _pert, _dd) {
+	shader_set(sh_mandel);
+	// ⚖️ u_res IS THE RENDER TARGET, and the target is now the room-sized
+	// surface, so this is simply the room. gl_FragCoord counts
+	// render-target pixels; when this drew straight to the display the
+	// target was application_surface, sized to the WINDOW, and dividing
+	// by the room gave a coordinate wrong by the window/room ratio -
+	// which made the picture a stretched crop and made zoom-toward-
+	// cursor point somewhere the cursor was not.
+	shader_set_uniform_f(u_res,    room_width, room_height);
+	shader_set_uniform_f(u_aspect, room_width / room_height);
+	shader_set_uniform_f(u_dbg,    dbg ? 1 : 0);
+
+	// the shallow paths read the centre as plain floats, which is safe
+	// BECAUSE they are only reached above 2e-5
+	shader_set_uniform_f(u_centre, __bnreal(cx), __bnreal(cy));
+	shader_set_uniform_f(u_scale,  scale);
+	shader_set_uniform_f(u_iter,   _iter);
+	shader_set_uniform_f(u_time,   current_time / 1000);
+	shader_set_uniform_f(u_pal,    _p.r, _p.g, _p.b, pal_shift);
+	shader_set_uniform_f(u_glow,   glow);
+
+	var _sx = __split(__bnreal(cx));
+	var _sy = __split(__bnreal(cy));
+	var _ss = __split(scale);
+	shader_set_uniform_f(u_cdd, _sx[0], _sx[1], _sy[0], _sy[1]);
+	shader_set_uniform_f(u_sdd, _ss[0], _ss[1]);
+	shader_set_uniform_f(u_dd,  _dd ? 1 : 0);
+
+	shader_set_uniform_f(u_pert, _pert ? 1 : 0);
+	if (_pert) {
+		// ⚖️ THE ONLY THING THAT CROSSES IS A DIFFERENCE. cx and ref_cx
+		// are bignums with hundreds of digits and neither would survive
+		// a float uniform - but their DIFFERENCE is at most a view span,
+		// which is exactly the size a float carries perfectly. That is
+		// the whole reason perturbation makes depth a CPU question.
+		shader_set_uniform_f(u_dcoff,
+			__bnreal(__bnsub(cx, ref_cx)), __bnreal(__bnsub(cy, ref_cy)));
+		shader_set_uniform_f(u_reflen, ref_len);
+		shader_set_uniform_f(u_reftex, REF_W, surface_get_height(ref_surf));
+		texture_set_stage(s_ref, surface_get_texture(ref_surf));
+		// NEAREST, and no repeat: the orbit is read at exact texel
+		// centres, and a filtered read would blend two unrelated
+		// iterations of the reference into one - not a soft error, a
+		// wrong number in the middle of a recurrence.
+		gpu_set_tex_filter_ext(s_ref, false);
+		gpu_set_tex_repeat_ext(s_ref, false);
+	} else {
+		shader_set_uniform_f(u_dcoff,  0, 0);
+		shader_set_uniform_f(u_reflen, 0);
+		shader_set_uniform_f(u_reftex, 1, 1);
+	}
 };
 
 // screen pixel -> complex plane at the CURRENT view, in bignum. THE one

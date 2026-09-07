@@ -1,83 +1,79 @@
-/// one full-room quad through sh_mandel, then the readout.
+/// THE PROGRESSIVE RENDERER, then the readout.
+///
+/// ⚖️ WHY THIS EXISTS. The iteration budget at depth is enormous - the
+/// formula asks for 2546 at 1e-26 and 11780 at 1e-130 - and a budget
+/// that large cannot be spent every frame. Two things make it
+/// affordable, and neither is a compromise on the image:
+///
+/// 1. IT RENDERS INTO A ROOM-SIZED SURFACE, not to the screen.
+///    gl_FragCoord counts render-target pixels, so drawing straight to
+///    the display meant computing the fractal at WINDOW resolution -
+///    about eight times the pixels for a picture that is then shown at
+///    room scale anyway. (Drawing "to the screen" in GM is already
+///    drawing into application_surface, so this changes nothing about
+///    orientation or coordinates - it is the same kind of target, a
+///    better size.)
+/// 2. IT SPENDS THE BUDGET ACROSS FRAMES. While the view moves, one
+///    cheap pass at a capped iteration count keeps a whole image on
+///    screen. The moment it settles, the full budget is paid a BAND at
+///    a time until the picture is exact. You watch it sharpen instead
+///    of watching the framerate die, and a still view converges to a
+///    render no single frame could have afforded.
 
 var _it   = __iter();
 var _p    = pal_list[pal_set];
 var _pert = __pert_on();
 var _dd   = __dd_on();
 
-shader_set(sh_mandel);
-
-// ⚖️ u_res IS THE RENDER TARGET'S SIZE, NOT THE ROOM'S. gl_FragCoord
-// counts pixels of whatever surface is being drawn into, and
-// application_surface is sized to the WINDOW - so dividing it by the
-// room gave a coordinate wrong by the window/room ratio. That made the
-// picture a stretched crop AND made zoom-toward-cursor point somewhere
-// the cursor was not: GML normalises the mouse by the room, so the two
-// only agree when the shader normalises by its own target.
-var _rw = room_width, _rh = room_height;
-if (surface_exists(application_surface)) {
-	_rw = surface_get_width(application_surface);
-	_rh = surface_get_height(application_surface);
-}
-shader_set_uniform_f(u_res,    _rw, _rh);
-// the aspect is the ROOM's - it decides the shape the player sees, and
-// should not change if the surface is ever letterboxed
-shader_set_uniform_f(u_aspect, room_width / room_height);
-shader_set_uniform_f(u_dbg,    dbg ? 1 : 0);
-
-// the shallow path reads the centre as plain floats. Flattening a dd
-// pair is safe here BECAUSE it is only reached above 2e-5, where a
-// float32 centre is fine anyway.
-shader_set_uniform_f(u_centre, __bnreal(cx), __bnreal(cy));
-shader_set_uniform_f(u_scale,  scale);
-shader_set_uniform_f(u_iter,   _it);
-shader_set_uniform_f(u_time,   current_time / 1000);
-shader_set_uniform_f(u_pal,    _p.r, _p.g, _p.b, pal_shift);
-shader_set_uniform_f(u_glow,   glow);
-
-// ---- the f32x2 fallback path ----
-// Split every frame rather than cached: cx/cy move every frame while a
-// zoom eases, and a stale pair would put the deep view somewhere the
-// shallow one is not.
-var _sx = __split(__bnreal(cx));
-var _sy = __split(__bnreal(cy));
-var _ss = __split(scale);
-shader_set_uniform_f(u_cdd, _sx[0], _sx[1], _sy[0], _sy[1]);
-shader_set_uniform_f(u_sdd, _ss[0], _ss[1]);
-shader_set_uniform_f(u_dd,  _dd ? 1 : 0);
-
-// ---- the perturbation path ----
-// THE ONLY THING THE SHADER NEEDS FROM THE CENTRE is its offset from
-// the reference point - and that is a DIFFERENCE of two nearby dd
-// values, so it is small, and a plain float carries it exactly. That is
-// the whole trick: all the precision stays on this side, and what
-// crosses the uniform is a number small enough not to need any.
-shader_set_uniform_f(u_pert, _pert ? 1 : 0);
-if (_pert) {
-	// ⚖️ THE ONLY THING THAT CROSSES IS A DIFFERENCE. cx and ref_cx are
-	// both bignums with a hundred digits between them, and neither would
-	// survive a float uniform - but their DIFFERENCE is at most a view
-	// span, which is exactly the size a float carries perfectly. That is
-	// the whole reason perturbation makes the depth a CPU question.
-	shader_set_uniform_f(u_dcoff,
-		__bnreal(__bnsub(cx, ref_cx)), __bnreal(__bnsub(cy, ref_cy)));
-	shader_set_uniform_f(u_reflen, ref_len);
-	shader_set_uniform_f(u_reftex, REF_W, surface_get_height(ref_surf));
-	texture_set_stage(s_ref, surface_get_texture(ref_surf));
-	// NEAREST, and no repeat: the orbit is sampled at exact texel
-	// centres and a filtered read would blend two unrelated iterations
-	// of the reference into one - which is not a soft error, it is a
-	// wrong number in the middle of a recurrence.
-	gpu_set_tex_filter_ext(s_ref, false);
-	gpu_set_tex_repeat_ext(s_ref, false);
-} else {
-	shader_set_uniform_f(u_dcoff,  0, 0);
-	shader_set_uniform_f(u_reflen, 0);
-	shader_set_uniform_f(u_reftex, 1, 1);
+// ---- the surface ----
+if (!surface_exists(rend_surf)) {
+	rend_surf  = surface_create(room_width, room_height);
+	rend_dirty = true;
 }
 
-draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_white, 1);
-shader_reset();
+// ---- has anything about the picture changed? ----
+// The centre is compared as its OFFSET FROM THE REFERENCE, never as an
+// absolute: at this depth cx itself is a hundred digits long and
+// flattening it to a real would report "unchanged" for any pan smaller
+// than the double it collapses into. The difference is small and exact.
+var _kx = __bnreal(__bnsub(cx, ref_cx));
+var _ky = __bnreal(__bnsub(cy, ref_cy));
+if (scale != rend_k_scale || _kx != rend_k_dx || _ky != rend_k_dy
+ || pal_set != rend_k_pal || glow != rend_k_glow || dbg != rend_k_dbg
+ || ref_built != rend_k_ref || _pert != rend_k_pert || _it != rend_k_it) {
+	rend_dirty  = true;
+	rend_k_scale = scale;  rend_k_dx  = _kx;   rend_k_dy   = _ky;
+	rend_k_pal   = pal_set; rend_k_glow = glow; rend_k_dbg = dbg;
+	rend_k_ref   = ref_built; rend_k_pert = _pert; rend_k_it = _it;
+}
+
+// bands scale with the cost, so one band is always about the same
+// amount of work no matter how deep the view is
+var _bands = clamp(ceil(_it / 120), 1, 30);
+
+surface_set_target(rend_surf);
+if (rend_dirty) {
+	// one coarse pass over the whole surface, so there is never a
+	// half-drawn screen - a moving view gets an approximate picture
+	// immediately and the refine below makes it exact once it stops
+	__shade(min(_it, 260), _p, _pert, _dd);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_white, 1);
+	shader_reset();
+	rend_dirty = false;
+	rend_band  = 0;
+} else if (rend_band < _bands) {
+	// the refine: full budget, one band, drawn at its real y so
+	// gl_FragCoord still reports the whole-surface position
+	__shade(_it, _p, _pert, _dd);
+	var _y0 = floor(room_height * rend_band / _bands);
+	var _y1 = floor(room_height * (rend_band + 1) / _bands);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, _y0, room_width, _y1 - _y0, 0, c_white, 1);
+	shader_reset();
+	rend_band += 1;
+}
+surface_reset_target();
+
+draw_surface(rend_surf, 0, 0);
 
 if (!show_hud) exit;
 
@@ -86,10 +82,9 @@ draw_set_font(fnt);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 
-// magnification as a multiple of the opening view - the number that
-// means something to a person. Formatted by hand rather than through
-// crunch_arb: past ~1e15 the packing helpers are being asked to do
-// something they were built for money, not for this.
+// magnification as a multiple of the opening view. Formatted by hand
+// rather than through crunch_arb: past ~1e15 the packing helpers are
+// being asked to do something they were built for money, not for this.
 var _mag = 1.35 / max(scale, SCALE_MIN_PERT);
 var _mag_s;
 if (_mag < 1000) _mag_s = string(round(_mag)) + "x";
@@ -105,16 +100,18 @@ var _lines = [
 	"zoom " + _mag_s + "   iter " + string(round(_it)) + "   " + _mode
 		+ (_pert ? "  " + string(bn_L) + " limbs" : ""),
 ];
-// the reference's health is the thing to look at when a deep view
-// looks wrong or runs slow: a SHORT escaped orbit means the shader is
-// rebasing constantly and perturbation is buying nothing, and a
-// rebuild counter climbing every frame means the rebuild rule is
-// thrashing.
-if (_pert) array_push(_lines,
+// the reference's health, and whether a job is running. This is what to
+// look at when a deep view runs slow or looks wrong: a SHORT escaped
+// orbit means the shader is rebasing constantly and perturbation is
+// buying nothing.
+if (_pert || rj_on) array_push(_lines,
 	"ref " + string(ref_len) + (ref_esc ? " esc" : " full")
-	+ "   rebuilt " + string(ref_built) + "x");
+	+ (rj_on ? "   building " + string(round(100 * rj_i / max(1, rj_lim))) + "%"
+	         : "   built " + string(ref_built) + "x"));
+// and whether the picture on screen is finished
+if (rend_band < _bands) array_push(_lines,
+	"refining " + string(round(100 * rend_band / _bands)) + "%");
 
-// the floor, and what would be needed to pass it
 var _at_floor = (scale_to <= SCALE_MIN * 1.001);
 if (_at_floor) array_push(_lines, _pert
 	? "bignum floor - raise BN_MAX for more"
@@ -129,8 +126,7 @@ draw_sprite_ext(spr_pixel_1x1, 0, _pad, _pad, _w + 10,
 for (var _i = 0; _i < array_length(_lines); _i++) {
 	var _c = sett_ink;
 	if (_i == 0) _c = c_gold;
-	if (_lines[_i] == "bignum floor - raise BN_MAX for more"
-	 || _lines[_i] == "f32x2 floor" || _lines[_i] == "f32 floor") _c = c_horange;
+	if (string_pos("floor", _lines[_i]) > 0) _c = c_horange;
 	draw_set_color(_c);
 	draw_set_alpha((_i == 0) ? .95 : .8);
 	draw_text(_pad + 5, _pad + 4 + _i * 10, _lines[_i]);

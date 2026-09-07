@@ -101,9 +101,19 @@ uniform float     u_reflen;  // usable steps in the reference orbit
 uniform vec2      u_reftex;  // the reference texture's size, in texels
 uniform sampler2D u_ref;     // the reference orbit, 24-bit fixed point
 
-// the hard ceiling. GLSL ES wants a constant bound; u_iter breaks out
-// early, so this only sets the worst case the compiler must plan for.
-const int   MAX_I  = 900;
+// ⚖️ TWO CEILINGS, because the shallow paths do not need the deep one.
+// GLSL ES wants constant loop bounds; u_iter breaks out early, so these
+// only set the worst case the compiler must PLAN for - and planning for
+// 3000 in three separate loops would triple a shader that only one of
+// them ever needs. f32 and f32x2 cover scales where the budget is a few
+// hundred; perturbation is the only path that goes deep.
+//
+// THE DEEP END NEEDS THE ITERATIONS MORE THAN IT NEEDS THE DIGITS. At
+// 1e-26 the budget formula asks for 2546 and 900 was a third of it; at
+// 1e-130 it asks for 11780. A number precise enough to address a place
+// you cannot resolve is not depth, it is arithmetic.
+const int   MAX_I    = 3000;    // the perturbation loop
+const int   MAX_SHAL = 400;     // f32 and f32x2
 const float ESCAPE = 256.0;   // generous, so the smooth count is exact
 
 // ============================================================
@@ -315,7 +325,7 @@ void main()
         // as a pair would cost as much again for no visible gain
         vec2 dzs = vec2(1.0, 0.0);
 
-        for (int i = 0; i < MAX_I; i++) {
+        for (int i = 0; i < MAX_SHAL; i++) {
             if (float(i) >= it) break;
 
             float zx = zxd.x, zy = zyd.x;
@@ -339,7 +349,7 @@ void main()
         if (mag <= ESCAPE) inside = true;
     }
     else if (!inside && u_pert <= 0.5) {
-        for (int i = 0; i < MAX_I; i++) {
+        for (int i = 0; i < MAX_SHAL; i++) {
             if (float(i) >= it) break;
 
             // dz = 2*z*dz + 1, BEFORE z advances

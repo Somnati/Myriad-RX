@@ -136,7 +136,9 @@ if (keyboard_check_pressed(vk_space)) {
 if (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("Q")))
 	back_room();
 
-// the palette drifts on its own, very slowly - a still image that is
-// never quite still. delta-scaled, so it drifts at the same rate on a
-// 60hz laptop and his 144hz monitor.
-pal_shift += .00035 * delta;
+// ⚖️ THE PALETTE DRIFT IS GONE, and deliberately. It existed so a still
+// image was never quite still - but the progressive renderer decides
+// whether to refine by asking whether anything about the picture
+// CHANGED, and a palette that moves every frame answers yes forever.
+// The refine pass would never run, and a view would never sharpen past
+// its coarse pass. A slow shimmer is not worth the deep end.
