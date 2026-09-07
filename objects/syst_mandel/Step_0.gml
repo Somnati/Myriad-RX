@@ -59,6 +59,26 @@ if (_w != 0) {
 	scale_to = clamp(scale_to * power(0.78, _w), SCALE_MIN, SCALE_MAX);
 }
 
+// ---- hold right to dive, +shift to climb ----
+// Re-anchored every frame at the CURRENT pointer, which is what makes
+// it steerable: the fall keeps heading wherever you point it, and the
+// anchor block above pins that point through the whole descent.
+if (mouse_check_button(mb_right)) {
+	var _p = __at(_mx, _my);
+	anch_on = true;
+	anch_x  = _p.x;
+	anch_y  = _p.y;
+	anch_px = _mx;
+	anch_py = _my;
+	dive_t += delta;
+	// eases in over about a second and a half, so a tap of the button
+	// is a nudge and a hold is a plunge - the acceleration is what
+	// makes 26 orders of magnitude a reachable distance
+	var _sp = lerp(0.99, 0.955, clamp(dive_t / 90, 0, 1));
+	if (keyboard_check(vk_shift)) _sp = 1 / _sp;
+	scale_to = clamp(scale_to * power(_sp, delta), SCALE_MIN, SCALE_MAX);
+} else dive_t = 0;
+
 // ---- drag to pan ----
 if (mouse_check_button_pressed(mb_left)) {
 	drag    = true;

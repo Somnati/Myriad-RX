@@ -111,6 +111,17 @@ anch_y  = [0, 0];
 anch_px = 0;
 anch_py = 0;
 
+// ---- hold to dive ----
+// ⚖️ THE WHEEL ALONE CANNOT REACH THE FLOOR. At 0.78 per notch it is
+// 119 notches to the f32x2 floor and 242 to the perturbation one -
+// a full minute of unbroken scrolling. Nobody does that, so a viewer
+// that only zooms by notches is a viewer whose depth is theoretical.
+// Holding the right button dives continuously toward the cursor and
+// ACCELERATES, so the deep end is seconds away instead of minutes -
+// and because it re-anchors under the pointer every frame, you steer
+// while you fall rather than stopping to correct.
+dive_t = 0;
+
 // ---- look ----
 pal_set = 0;
 pal_list = [
@@ -158,6 +169,7 @@ ref_cx    = [0, 0];
 ref_cy    = [0, 0];
 ref_valid = false;
 ref_built = 0;    // how many times, for the readout
+ref_esc   = false;// did the chosen orbit escape? (see __ref_check)
 
 // pack a value in [-2, 2] into a colour. |Z| never exceeds 2 for a
 // reference that stays in the set, which is the only kind worth having.
@@ -170,71 +182,109 @@ __ref_pack = function(_v) {
 	return make_colour_rgb(_r, _g, _b);
 };
 
-// Compute the orbit at double-double precision and paint it into the
-// texture. Costs a few thousand draw calls, so it must NOT happen every
-// frame - see __ref_check.
-__ref_build = function() {
-	var _n = __iter();
-	var _lim = min(REF_MAX, max(64, ceil(_n * 1.15)));
-
-	// the orbit, in dd. Only the flattened value is kept: the shader
-	// needs Z to about 24 bits, not to 32 digits - the digits are for
-	// computing it accurately, not for storing it.
+// one candidate's orbit, at dd precision. Returns how far it got and
+// whether it ESCAPED, which is the difference between "this reference
+// is as long as it will ever be" and "this reference is too short".
+__ref_orbit = function(_px, _py, _lim, _ox, _oy) {
 	var _zx = [0, 0], _zy = [0, 0];
-	var _ox = array_create(_lim + 1, 0);
-	var _oy = array_create(_lim + 1, 0);
-	var _cnt = 0;                       // index 0 is Z0 = 0, already set
 	for (var _i = 1; _i <= _lim; _i++) {
 		var _zx2 = __ddmul(_zx, _zx);
 		var _zy2 = __ddmul(_zy, _zy);
-		var _nzy = __ddadd(__ddmul(__ddmul(_zx, _zy), [2, 0]), cy);
-		_zx = __ddadd(__ddsub(_zx2, _zy2), cx);
+		var _nzy = __ddadd(__ddmul(__ddmul(_zx, _zy), [2, 0]), _py);
+		_zx = __ddadd(__ddsub(_zx2, _zy2), _px);
 		_zy = _nzy;
 		var _fx = __ddflat(_zx), _fy = __ddflat(_zy);
 		_ox[_i] = _fx;
 		_oy[_i] = _fy;
-		_cnt = _i;
-		// a reference that escapes is no use past the escape - and the
-		// centre of a view worth looking at is usually IN the set, so
-		// this mostly runs to the limit
-		if (_fx * _fx + _fy * _fy > 4) break;
+		if (_fx * _fx + _fy * _fy > 4) return { len : _i, esc : true };
+	}
+	return { len : _lim, esc : false };
+};
+
+// Compute the orbit at double-double precision and paint it into the
+// texture. Costs a couple of thousand draw calls, so it must NOT happen
+// every frame - see __ref_check.
+//
+// ⚖️ THE REFERENCE HAS TO SURVIVE. A reference that escapes after forty
+// steps is nearly useless: the shader rebases every forty iterations,
+// and a rebase throws away the very smallness that lets the delta run
+// in float32. The obvious choice - the view centre - escapes whenever
+// it lands just outside the set, which is most of the time, because
+// just outside the set is precisely where anything worth looking at is.
+// So a handful of candidates across the view are tried and the
+// LONGEST-SURVIVING one wins. Each costs a few hundred dd iterations,
+// which is nothing next to painting the texture afterwards.
+__ref_build = function() {
+	var _n = __iter();
+	var _lim = min(REF_MAX, max(64, ceil(_n * 1.6)));
+
+	var _ox = array_create(_lim + 1, 0);
+	var _oy = array_create(_lim + 1, 0);
+	var _bx = array_create(_lim + 1, 0);
+	var _by = array_create(_lim + 1, 0);
+
+	// the centre first, then four points spread across the view. The
+	// centre usually wins; when it does not, it usually loses badly.
+	var _cand = [[0, 0], [-.35, -.35], [.35, -.35], [-.35, .35], [.35, .35]];
+	var _ar = room_width / room_height;
+	var _best = -1, _besc = true, _bpx = cx, _bpy = cy;
+
+	for (var _k = 0; _k < array_length(_cand); _k++) {
+		var _px = __ddadd(cx, [_cand[_k][0] * 2 * scale * _ar, 0]);
+		var _py = __ddadd(cy, [_cand[_k][1] * 2 * scale, 0]);
+		var _r  = __ref_orbit(_px, _py, _lim, _ox, _oy);
+		if (_r.len > _best) {
+			_best = _r.len;
+			_besc = _r.esc;
+			_bpx  = _px;
+			_bpy  = _py;
+			array_copy(_bx, 0, _ox, 0, _lim + 1);
+			array_copy(_by, 0, _oy, 0, _lim + 1);
+		}
+		if (!_r.esc) break;   // it survived the whole budget; nothing beats that
 	}
 
 	// ---- paint it ----
-	// ceil, not a bare divide: REF_MAX*2/REF_W is 7.03, and asking for
-	// a surface 7.03 texels tall is asking for the last row of the
-	// orbit to land outside the texture.
+	// ceil, not a bare divide: (REF_MAX+1)*2/REF_W is fractional, and
+	// asking for a surface 7.03 texels tall is asking for the last row
+	// of the orbit to land outside the texture.
 	if (!surface_exists(ref_surf))
 		ref_surf = surface_create(REF_W, ceil((REF_MAX + 1) * 2 / REF_W) + 1);
 	surface_set_target(ref_surf);
 	draw_clear_alpha(c_black, 1);
-	for (var _i = 0; _i <= _cnt; _i++) {
-		var _k = _i * 2;
-		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
-			__ref_pack(_ox[_i]), 1);
-		_k += 1;
-		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
-			__ref_pack(_oy[_i]), 1);
+	for (var _i = 0; _i <= _best; _i++) {
+		var _k2 = _i * 2;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k2 mod REF_W, _k2 div REF_W, 1, 1, 0,
+			__ref_pack(_bx[_i]), 1);
+		_k2 += 1;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k2 mod REF_W, _k2 div REF_W, 1, 1, 0,
+			__ref_pack(_by[_i]), 1);
 	}
 	surface_reset_target();
 
-	ref_len   = _cnt;
-	ref_cx    = cx;
-	ref_cy    = cy;
+	ref_len   = _best;
+	ref_esc   = _besc;
+	ref_cx    = _bpx;
+	ref_cy    = _bpy;
 	ref_valid = true;
 	ref_built += 1;
 };
 
 // Rebuild only when the reference has stopped being useful: it drifted
-// out of the view, it is too short for the current budget, or the
-// surface was lost (they are volatile on windows). During a dive the
-// centre barely moves relative to the span, so this is rare - which is
-// what makes a few thousand draw calls an acceptable price.
+// out of the view, it is too short for the budget, or the surface was
+// lost (they are volatile on windows).
+//
+// ⚖️ `!ref_esc` ON THE LENGTH TEST IS THE WHOLE POINT OF THAT FLAG. An
+// escaped orbit is already as long as it will ever be, so without this
+// the "too short" branch fires every frame forever, rebuilding a couple
+// of thousand texels per frame and grinding the room to a crawl - which
+// does not look like a rebuild loop, it looks like the zoom refusing to
+// go any deeper.
 __ref_check = function() {
 	if (scale > DD_AT) return;                       // shallow: not needed
 	if (!surface_exists(ref_surf)) ref_valid = false;
 	if (!ref_valid) { __ref_build(); return; }
-	if (ref_len < __iter()) { __ref_build(); return; }
+	if (!ref_esc && ref_len < __iter()) { __ref_build(); return; }
 	var _dx = __ddflat(__ddsub(cx, ref_cx));
 	var _dy = __ddflat(__ddsub(cy, ref_cy));
 	if (abs(_dx) > scale * 1.5 || abs(_dy) > scale * 1.5) __ref_build();

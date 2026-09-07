@@ -99,8 +99,14 @@ var _lines = [
 	"mandelbrot  -  " + _p.name,
 	"zoom " + _mag_s + "   iter " + string(round(_it)) + "   " + _mode,
 ];
+// the reference's health is the thing to look at when a deep view
+// looks wrong or runs slow: a SHORT escaped orbit means the shader is
+// rebasing constantly and perturbation is buying nothing, and a
+// rebuild counter climbing every frame means the rebuild rule is
+// thrashing.
 if (_pert) array_push(_lines,
-	"ref " + string(ref_len) + " steps, rebuilt " + string(ref_built) + "x");
+	"ref " + string(ref_len) + (ref_esc ? " esc" : " full")
+	+ "   rebuilt " + string(ref_built) + "x");
 
 // the floor, and what would be needed to pass it
 var _at_floor = (scale_to <= SCALE_MIN * 1.001);
@@ -127,7 +133,8 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 // controls, bottom left, quiet
 draw_set_color(sett_ink);
 draw_set_alpha(.45);
-draw_text(_pad + 5, room_height - 22, "drag pan   wheel zoom   space tour");
+draw_text(_pad + 5, room_height - 22,
+	"drag pan   wheel zoom   HOLD RIGHT dive (+shift out)   space tour");
 draw_text(_pad + 5, room_height - 12, "c palette   g glow   h hud   v coords   q back");
 
 draw_set_alpha(1);
