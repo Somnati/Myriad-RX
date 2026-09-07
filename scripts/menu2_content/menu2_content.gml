@@ -22,4 +22,5 @@ function menu2_content() {
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
+	menu2_button("mandelbrot",   rm_mandel,        c_lavender);
 }

@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_mandel",
+  "name":"sh_mandel",
+  "parent":{
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}
