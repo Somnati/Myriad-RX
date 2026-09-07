@@ -171,9 +171,15 @@ void main()
     // u_res is the RENDER TARGET's size, so this is 0..1 across the
     // screen - the same 0..1 that mouse_x/room_width gives on the GML
     // side, which is the whole point.
-    vec2 q = gl_FragCoord.xy / res;
+    // ⚖️ `scr`, not `q` - the cardioid test below already owns a
+    // `float q`, and declaring a vec2 of the same name in the same
+    // scope is what stopped this compiling. The second error followed
+    // from the first: with `q` still a vec2 at the cardioid line, its
+    // `<=` has no vector form. One name, two errors, neither of them
+    // where the change was.
+    vec2 scr = gl_FragCoord.xy / res;
 
-    vec2 uv = (q - 0.5) * 2.0;
+    vec2 uv = (scr - 0.5) * 2.0;
     uv.x *= (u_aspect > 0.01) ? u_aspect : (res.x / res.y);
     vec2 c = u_centre + uv * sc.x;
 
@@ -312,12 +318,13 @@ void main()
     // which the fractal can never reveal, because the set is symmetric
     // about the real axis and a vertical mirror is invisible.
     //
-    // ⚖️ AN OVERRIDE AT THE END, not an early `return` in main. The
-    // early return is what stopped the shader compiling - it is the
-    // only structural thing that changed in the commit that broke it,
-    // and GM's GLSL-to-HLSL pass would not take it. The whole fractal
-    // is computed and thrown away in this mode, which costs nothing
-    // that matters: it is a diagnostic, not a render path.
-    if (u_dbg > 0.5) gl_FragColor = vec4(q.x, q.y, 0.25, 1.0);
+    // An override at the end rather than an early return in main.
+    // (The early return was NOT what broke the compile - that was a
+    // variable name collision, see `scr` above. This shape is kept
+    // because one exit is tidier, not because the other was illegal.)
+    // It computes the whole fractal and throws it away in this mode,
+    // which costs nothing worth caring about: a diagnostic, not a
+    // render path.
+    if (u_dbg > 0.5) gl_FragColor = vec4(scr.x, scr.y, 0.25, 1.0);
     else             gl_FragColor = vec4(col, 1.0) * v_vColour;
 }

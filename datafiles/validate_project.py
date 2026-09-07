@@ -386,6 +386,74 @@ if os.path.exists(hs):
     check("every settings global has a boot default (not just settings_defaults)",
           not unseeded, ", ".join(unseeded[:5]))
 
+# ---------------------------------------------- 9. GLSL declarations
+# Claude cannot compile a shader either, and GM reports a shader error
+# as a line number in a build log the user has to go and find - so a
+# broken shader costs a whole round trip. This catches the one class
+# that has actually happened: REDECLARING A NAME IN THE SAME SCOPE.
+#
+# It cost five rounds on sh_mandel. `vec2 q` was added at the top of
+# main() where a `float q` already lived further down; the redeclaration
+# failed, `q` stayed a vec2 at the cardioid line, and its `<=` has no
+# vector form. Two errors, neither of them at the line that changed, and
+# four wrong guesses at the cause before the actual message was read.
+#
+# The scoping here is real, not approximated: a stack of scopes pushed
+# and popped on braces, which is exactly GLSL's rule. `for (int i...)`
+# headers are blanked first, because their declarations scope to the
+# loop and two sibling loops may both use `i`.
+GLSL = glob.glob("shaders/*/*.fsh") + glob.glob("shaders/*/*.vsh")
+GTYPE = (r"\b(?:float|int|bool|void|"
+         r"[ib]?vec[234]|mat[234]|sampler2D|samplerCube)\s+"
+         r"([A-Za-z_]\w*)\s*(?=[=;,)])")
+
+
+def blank_decl_parens(src):
+    """Blank every paren group that DECLARES rather than uses -
+    function parameter lists and for-headers. Both scope to their own
+    construct, not to the enclosing block: two sibling loops may each
+    declare `i`, and two functions may each take an `a`. Leaving them
+    in made this check fire on the dd_* helpers, which are perfectly
+    legal - and a rule that fails on working code is a wrong rule, not
+    a found bug. (Second time today. It is a good tell.)"""
+    out = list(src)
+    for m in re.finditer(r"\(", src):
+        i, depth = m.start(), 0
+        while i < len(src):
+            if src[i] == "(":
+                depth += 1
+            elif src[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            i += 1
+        if not re.search(GTYPE, src[m.start():i]):
+            continue          # a call, not a declaration
+        for j in range(m.start(), min(i + 1, len(src))):
+            out[j] = " "
+    return "".join(out)
+
+
+dup = []
+for p in GLSL:
+    src = blank_decl_parens(strip_gml(open(p, encoding="utf-8",
+                                           errors="replace").read()))
+    decls = [(m.start(), m.group(1)) for m in re.finditer(GTYPE, src)]
+    scopes, di = [set()], 0
+    for i, ch in enumerate(src):
+        while di < len(decls) and decls[di][0] < i:
+            nm = decls[di][1]
+            if nm in scopes[-1]:
+                line = src[:decls[di][0]].count(chr(10)) + 1
+                dup.append(f"{p}:{line} redeclares '{nm}'")
+            scopes[-1].add(nm)
+            di += 1
+        if ch == "{":
+            scopes.append(set())
+        elif ch == "}" and len(scopes) > 1:
+            scopes.pop()
+check("no GLSL name declared twice in one scope", not dup, "; ".join(dup[:3]))
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")
