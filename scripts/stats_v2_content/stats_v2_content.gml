@@ -109,6 +109,61 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- dial profit: WHY each dial earns what it earns (his ask) ----
+	// Myriad DE had a page like this and his verdict was that it was
+	// lame. It was a list of numbers, and a list cannot answer the only
+	// question worth asking - which of these is actually carrying the
+	// dial. dial_breakdown answers it by working in LOG10, where a
+	// product becomes a sum and a sum can be shared out; the bar draws
+	// those shares. A x2 milestone beside a x1000 base curve stops
+	// looking equally important, because it is not.
+	if (variable_global_exists("dial"))
+	if (stats_v2_folder("dial profit", c_gold)) {
+		var _any = false;
+		for (var _i = 0; _i < g.dial_total; _i++) {
+			var _d = g.dial[_i];
+			if (_d.level <= 0) continue;   // an unbought dial has no story
+			_any = true;
+			var _bd = dial_breakdown(_i);
+			var _hd = "dial " + dial_config(_i).name + "   "
+				+ crunch_arb(_d.gps) + " / sec";
+			if (stats_v2_folder(_hd, dial_color(_i))) {
+				// the bar first: the answer before the working
+				stats_v2_bar("share of output", _bd.steps, 4);
+
+				// then the factors themselves, each with what it does
+				for (var _s = 0; _s < array_length(_bd.steps); _s++) {
+					var _st = _bd.steps[_s];
+					var _sv = "";
+					// mult -1 = show the value itself (the base curve),
+					// -2 = a packed arb too big for string_format
+					if (_st.mult == -1)      _sv = crunch_arb(_st.val);
+					else if (_st.mult == -2) _sv = "x" + crunch_arb(_st.val);
+					else                     _sv = "x" + string_format(_st.mult, 1, 2);
+					stats_v2_line(_st.name, _sv, _st.col,
+						(_st.share < 0) ? c_hred : -1, _st.note);
+				}
+
+				stats_v2_line();
+				stats_v2_line("per cycle", crunch_arb(_d.gpc), -1, g.profit_color);
+				stats_v2_line("cycle", string_format(_d.cycle_t, 1, 1) + "s");
+				// the mirror's self-check. It should never show; if it
+				// does, update_dial has moved and dial_breakdown has not
+				if (!_bd.ok)
+					stats_v2_line("! breakdown drift", "chain "
+						+ string_format(_bd.derived, 1, 2) + " vs live "
+						+ string_format(_bd.live_lg, 1, 2), c_hred, c_hred,
+						"dial_breakdown mirrors update_dial's chain and the "
+						+ "two no longer agree - one was edited without the "
+						+ "other. The bar above is not trustworthy until "
+						+ "they match.");
+			}
+			stats_v2_folder_end();
+		}
+		if (!_any) stats_v2_line("no dials running", "", c_gray, c_gray);
+	}
+	stats_v2_folder_end();
+
 	// ---- milestones: THE DEBUG LIST (his ask) - every dial's rungs,
 	// earned or locked, the live totals, the next rung's premium ----
 	if (variable_global_exists("milestones") && variable_global_exists("dial"))

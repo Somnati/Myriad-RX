@@ -150,6 +150,89 @@ for (var _r = _lo; _r < _hi; _r++) {
 		draw_set_alpha(.95);
 		draw_text(val_x, _ry + 4, "< " + _lbl + " >");
 	}
+	if (_row.kind == 7) {
+		// THE CONTRIBUTION BAR. One stacked strip, a segment per
+		// contributor, width proportional to its share of the total.
+		// Shares are SIGNED and the widths use their MAGNITUDE, so a
+		// factor that takes away still occupies the strip - drawn dark
+		// with a hatch so it reads as a tax rather than as a gap. That
+		// is the point of the whole row: on a list of numbers a x0.8
+		// ramp and a x2 milestone are two similar lines, and here you
+		// can see which one is deciding the outcome.
+		var _bx0 = _tx;
+		var _bw0 = (val_x - 2) - _bx0;
+		var _by0 = _ry + row_h - 2;
+		var _bh0 = 9;
+		var _sg  = _row.data;
+		draw_set_alpha(1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx0, _by0, _bw0, _bh0, 0, c_black, .35);
+		if (is_array(_sg) && array_length(_sg) > 0) {
+			// walk twice: the strip, then the legend under it
+			var _cx0 = _bx0;
+			var _hovi = -1;
+			for (var _g = 0; _g < array_length(_sg); _g++) {
+				var _sw = abs(_sg[_g].share) * _bw0;
+				// a contributor worth drawing is worth seeing
+				if (_sw < 1 && abs(_sg[_g].share) > 0) _sw = 1;
+				var _neg = (_sg[_g].share < 0);
+				var _sc0 = _sg[_g].col;
+				var _fx0 = floor(_cx0);
+				var _fw0 = max(1, floor(_cx0 + _sw) - _fx0);
+				if (input_free())
+				if (point_in_rectangle(mouse_x, mouse_y, _fx0, _by0,
+					_fx0 + _fw0, _by0 + _bh0)) _hovi = _g;
+				var _lit = (_hovi == _g);
+				if (_neg) {
+					draw_sprite_ext(spr_pixel_1x1, 0, _fx0, _by0, _fw0, _bh0, 0,
+						merge_colour(_sc0, c_black, .62), _lit ? 1 : .9);
+					// the hatch: every third column, so a penalty is
+					// legible at a glance and at one pixel wide
+					for (var _hx = 0; _hx < _fw0; _hx += 3)
+						draw_sprite_ext(spr_pixel_1x1, 0, _fx0 + _hx, _by0, 1, _bh0,
+							0, c_black, .35);
+				} else
+					draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+						_fx0, _by0, _fw0, _bh0, 0,
+						merge_colour(_sc0, c_white, .22), merge_colour(_sc0, c_white, .22),
+						merge_colour(_sc0, c_black, .3), merge_colour(_sc0, c_black, .3),
+						_lit ? 1 : .92);
+				// a hairline between segments, so neighbours of similar
+				// colour do not read as one block
+				if (_g > 0)
+					draw_sprite_ext(spr_pixel_1x1, 0, _fx0, _by0, 1, _bh0, 0,
+						c_black, .55);
+				_cx0 += _sw;
+			}
+			// the legend: name and share, wrapped across the row's rest.
+			// Hovering a segment promotes its entry instead of opening a
+			// tooltip - the list is right there, a floating box over it
+			// would be one layer too many.
+			var _ly0 = _by0 + _bh0 + 3;
+			var _lx0 = _bx0;
+			draw_set_halign(fa_left);
+			for (var _g = 0; _g < array_length(_sg); _g++) {
+				var _txt = _sg[_g].name + " "
+					+ string(round(abs(_sg[_g].share) * 100)) + "%";
+				var _tw0 = string_width(_txt) + 12;
+				if (_lx0 + _tw0 > _bx0 + _bw0) { _lx0 = _bx0; _ly0 += 9; }
+				if (_ly0 > _ry + _bh - 8) break;
+				var _on0 = (_hovi == _g || _hovi == -1);
+				draw_sprite_ext(spr_pixel_1x1, 0, _lx0, _ly0 + 1, 4, 4, 0,
+					_sg[_g].col, _on0 ? .95 : .3);
+				draw_set_color(_sg[_g].share < 0 ? c_hred : sett_ink);
+				draw_set_alpha(_on0 ? .8 : .28);
+				draw_text(_lx0 + 7, _ly0 - 1, _txt);
+				_lx0 += _tw0;
+			}
+		} else {
+			draw_set_halign(fa_left);
+			draw_set_color(_row.c2);
+			draw_set_alpha(.35);
+			draw_text(_bx0 + 6, _by0 + 1, "nothing to break down");
+		}
+		draw_set_halign(fa_left);
+		draw_set_alpha(1);
+	}
 	if (_row.kind == 6) {
 		// the history graph: a filled AREA under a bright line, quarter
 		// gridlines, hi/lo labels in a right gutter and the live value

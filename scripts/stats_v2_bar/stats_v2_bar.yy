@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stats_v2_bar",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stats_v2_bar",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/engine/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
