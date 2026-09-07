@@ -14,9 +14,26 @@ shader_set_uniform_f(u_iter,   _it);
 shader_set_uniform_f(u_time,   current_time / 1000);
 shader_set_uniform_f(u_pal,    _p.r, _p.g, _p.b, pal_shift);
 shader_set_uniform_f(u_glow,   glow);
-// spr_pixel_1x1 stretched to the room IS the quad. Its texcoords run
-// 0..1 across it, which is what the shader reads as the view.
-draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_white, 1);
+// ⚖️ A HAND-BUILT QUAD, not draw_sprite_ext, and the texture
+// coordinates are the entire reason. A stretched sprite carries the UVs
+// of its ATLAS PAGE - for spr_pixel_1x1 that is one texel, effectively
+// constant across the screen - so the shader had nothing to work with.
+// Supplying the corners explicitly makes v_vTexcoord exactly 0..1
+// across the quad, in the room's own orientation, independent of the
+// atlas, of application_surface's size, and of whether the render
+// target counts y from the top or the bottom. That last part is what
+// makes the shader's pixel-to-complex mapping agree with __at()'s,
+// which is what makes zoom-toward-cursor land where the cursor is.
+// The texture is bound but never sampled; it is only here because
+// draw_vertex_texture needs one.
+draw_set_colour(c_white);
+draw_set_alpha(1);
+draw_primitive_begin_texture(pr_trianglestrip, sprite_get_texture(spr_pixel_1x1, 0));
+draw_vertex_texture(0,          0,           0, 0);
+draw_vertex_texture(room_width, 0,           1, 0);
+draw_vertex_texture(0,          room_height, 0, 1);
+draw_vertex_texture(room_width, room_height, 1, 1);
+draw_primitive_end();
 shader_reset();
 
 if (!show_hud) exit;

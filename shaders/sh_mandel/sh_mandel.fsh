@@ -48,21 +48,35 @@
 //    fractal gradient is exactly what re-bands on the way out. Same
 //    temporal IGN dither the fog shader uses, for the same reason.
 //
-// ⚖️ THE SCREEN COORDINATE COMES FROM gl_FragCoord, and neither of the
-// two obvious alternatives works here:
-//   - v_vTexcoord is out because the quad is spr_pixel_1x1 stretched,
-//     and a 1x1 sprite's UVs are a single texel of its atlas page -
-//     effectively constant across the whole screen.
-//   - a coordinate computed in the VERTEX stage is out because a
-//     uniform read there is not reliably populated by
-//     shader_set_uniform_f; u_res arrived as zero, the divide made
-//     NaN, and every NaN comparison below is false, so every pixel
-//     took the same branch.
-// Both of those render as ONE FLAT COLOUR, which is what he saw twice.
-// gl_FragCoord needs nothing from the vertex stage and is the same
-// source sh_fog_dither already uses in this pipeline. A vertical flip
-// between the GL and DirectX targets would be invisible anyway: the
-// set is symmetric about the real axis.
+// ⚖️ THE QUAD COORDINATE IS HANDED IN, on the vertex stream. Three
+// ways to get it were tried and all three were wrong, each for its own
+// reason - worth listing, because the failures look identical on screen
+// and the causes are not:
+//
+//   1. v_vTexcoord from a stretched spr_pixel_1x1. A 1x1 sprite's UVs
+//      are a single texel of its atlas page, so the value is very
+//      nearly constant across the whole screen. -> one flat colour.
+//   2. a coordinate computed in the VERTEX stage as in_Position/u_res.
+//      A uniform read in the vertex stage is not reliably populated by
+//      shader_set_uniform_f, so u_res was zero, the divide made NaN,
+//      and every NaN comparison is false - every pixel took the same
+//      branch. -> one flat colour, again.
+//   3. gl_FragCoord / room_size. gl_FragCoord is in RENDER TARGET
+//      pixels, and application_surface is sized to the WINDOW, not to
+//      the room. So the divisor was wrong by the window/room ratio:
+//      the picture was a stretched crop (which still looks like a
+//      mandelbrot, so it passed a glance) and - the real damage - the
+//      shader's pixel-to-complex mapping no longer agreed with the
+//      one __at() uses in GML. Zoom-toward-cursor computes the anchor
+//      in GML and the shader draws somewhere else, so it zooms at the
+//      wrong point no matter how correct the anchor maths is.
+//
+// The cure for all three is to stop DERIVING the coordinate from
+// something that happens to be lying around. The draw call supplies it
+// on the vertex stream as explicit texture coordinates 0..1 (see
+// syst_mandel's Draw), which cannot disagree with anything: not with
+// the atlas, not with the surface size, not with the render target's
+// y-orientation, and therefore not with __at().
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
@@ -90,20 +104,19 @@ vec3 palette(float t)
 
 void main()
 {
-    // ---- pixel -> complex plane ----
-    // A LAST-RESORT DEFAULT for the resolution: if u_res never lands,
-    // dividing by zero poisons everything downstream with NaN and the
-    // screen goes flat with nothing on it to diagnose. Falling back to
-    // the room's real size means a uniform that fails to arrive shows
-    // up as a picture that is merely WRONG rather than as no picture,
-    // which is a much easier thing to report and to read.
+    // ---- quad coordinate -> complex plane ----
+    // Guarded defaults: a uniform that fails to arrive should leave a
+    // picture that is merely WRONG - visible, reportable - rather than
+    // a NaN-poisoned flat screen with nothing on it to diagnose.
     vec2 res = (u_res.y > 1.0) ? u_res : vec2(480.0, 270.0);
     vec2 sc  = (u_scale > 0.0) ? vec2(u_scale) : vec2(1.35);
     float it = (u_iter > 1.0) ? u_iter : 120.0;
 
-    // aspect from the real quad size, so the set never stretches when
-    // the room shape does
-    vec2 uv = (gl_FragCoord.xy / res - 0.5) * 2.0;
+    // v_vTexcoord is EXACTLY 0..1 across the quad - the draw call put
+    // it there. u_res is now used only for the aspect ratio, never as
+    // a divisor for a screen position, so the window size cannot get
+    // into this maths at all.
+    vec2 uv = (v_vTexcoord - 0.5) * 2.0;
     uv.x *= res.x / res.y;
     vec2 c = u_centre + uv * sc.x;
 
