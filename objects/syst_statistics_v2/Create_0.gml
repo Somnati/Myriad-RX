@@ -241,20 +241,26 @@ __row_panel = function(_r, _row, _ry, _bh) {
 		// but you group it out of the corner of your eye instead of
 		// through the words.
 		//
-		// The gradient runs black -> colour left to right across the
-		// right 62%, so there is no visible seam where it starts: it
-		// begins AT black, which is what the row already is.
+		// LONGER AND DIMMER (his second pass): the first cut ran the
+		// gradient across the right 62% and peaked at 42% of the way to
+		// the colour, which put a fairly bright band in the right third
+		// and left a visible shoulder where it began. Both notes were
+		// the same underlying thing - a short ramp has to be bright to
+		// register at all, so stretching it is what ALLOWS it to be
+		// dim. It now starts almost at the rail and peaks at a quarter
+		// of the colour, which is a wash rather than a band.
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, c_black, 1);
-		var _gc = merge_colour(_row.c1, c_black, .42);
-		var _gw = _cw * .62;
+		var _gc = merge_colour(_row.c1, c_black, .74);
+		var _gw = _cw * .92;
 		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
 			rail_w + (_cw - _gw), _ry, _gw, _bh, 0,
 			c_black, _gc, _gc, c_black, 1);
-		// a bright lip on the right edge - the gradient's own end is
-		// soft by construction, and without this the row just fades out
-		// before it reaches the screen edge and looks unfinished
+		// the edge lip, also pulled down: it exists so the row reaches
+		// the screen edge instead of fading out short of it, and at the
+		// old white-merged strength it was the brightest thing on the
+		// row - which on a row whose point is to be quiet is backwards.
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w + _cw - 1, _ry, 1, _bh, 0,
-			merge_colour(_row.c1, c_white, .25), .9);
+			merge_colour(_row.c1, c_black, .35), .55);
 	} else
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, _c, 1);
 	// settings' gradient edge seams (top + bottom hairlines)
