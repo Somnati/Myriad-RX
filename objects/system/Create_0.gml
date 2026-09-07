@@ -39,6 +39,11 @@ g.vol_sfx    = 100; // 0..100, read by play_sound_ext
 g.mute       = false;
 g.show_fps   = false; // corner readout, drawn by syst_display Draw GUI
 g.autosave   = true;  // gates syst_handle_save's rotating autosave
+// THE BACKUP LADDER (save_autosave_rotate): minutes a backup slot must
+// have aged before it accepts a promotion, so the three autosaves span
+// a session instead of three minutes. 0/0 = the old flat cascade.
+g.backup_mid  = 10;   // slot 2's gate
+g.backup_deep = 60;   // slot 3's gate
 g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
 	// square) / 1 circle / 2 coin / 3 munny (settings > gameplay)
 // THE PROFIT COLOUR - ONE global that everything profit-denominated
