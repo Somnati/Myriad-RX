@@ -174,10 +174,6 @@ for (var i = 0; i < _n; i++) {
 
         // ---- selection: keyboard highlight or direct click ----
         if ((_confirm_kb || _clicked) && _n > 0) {
-			show("sel: kb=" + string(_confirm_kb)
-        + " clk=" + string(_clicked)
-        + " mx=" + string(_mx) + "," + string(_my)
-        + " x=" + string(_tx) + ".." + string(_tx + _tw));
             var _opt = choice_options[choice_index];
             choice_options = [];
             advance_lock = advance_delay;   // the selecting input doesn't

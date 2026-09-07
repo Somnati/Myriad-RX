@@ -1,5 +1,0 @@
-
-
-pair;
-
-text = "export";

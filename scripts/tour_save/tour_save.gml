@@ -85,15 +85,17 @@
 //                      overwrite confirm -> difficulty -> game_reset
 //                      -> save. Nothing is deleted until the
 //                      difficulty tap, so backing out is always safe.
-//                      RETIRED, kept dormant: obj_button_save / _load
-//                      / _delete / _export / _import / _export_saf /
+//                      DELETED 2026-09-07: obj_button_save / _load /
+//                      _delete / _export / _import / _export_saf /
 //                      _import_saf / _back. The first seven were
 //                      hard-placed in the room's bottom-right corner
 //                      and acted on syst_handle_save.file_to_handle -
 //                      the ACTIVE file, never the profile on screen -
 //                      and _delete wiped a save with no confirm at
 //                      all. They were also why rm_saves could not take
-//                      a portrait twin.
+//                      a portrait twin. Nothing referenced them after
+//                      the rebuild, so they went rather than lingering
+//                      as dormant objects with no path back.
 
 // ============================ TRAPS =================================
 //   - Packed arbs ride the ini as plain reals. Floor them on load.
