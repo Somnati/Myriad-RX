@@ -98,6 +98,21 @@ WIG_PUSH = 1;    // the payout's kick
 // budget, so a swipe never doubles as a tap) ----
 press_x = -1;
 press_y = -1;
+
+// ---- HOLD TO KEEP BUYING (Myriad DE's ctic, his ask 2026-09-06) ----
+// DE buys on PRESS and repeats while the button is held, getting
+// faster the longer you hold, while the sound AND the haptic fade out
+// so a held buy never machine-guns at you. Both halves come over; the
+// trigger does not. DE could buy on press because it is a mouse game
+// in that spot - here the drag budget is the only thing stopping a
+// drawer swipe that begins on a button from spending money, so the
+// single buy stays on RELEASE and the repeat only starts once the
+// finger has held still past a lead-in.
+hold_row   = -1;   // which row the finger is holding, -1 none
+hold_t     = 0;    // frames held, drives BOTH the speed and the fade
+hold_ct    = 0;    // countdown to the next repeat
+hold_fired = false;// a repeat happened, so the release must not buy again
+HOLD_LEAD  = 25;   // DE's lead-in before the first repeat, ~0.4s
 SWIPE   = 26;   // a flick this far throws the drawer a whole stage
 BUDGET  = 6;    // under this, the press was a tap
 

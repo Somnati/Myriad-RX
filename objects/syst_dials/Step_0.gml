@@ -95,10 +95,11 @@ if (input_free()) {
 if (!input_free()) { press_x = -1; drag_on = false; exit; }
 
 if (mouse_check_button_pressed(mb_left)) {
-	press_x   = mouse_x;
-	press_y   = mouse_y;
-	drag_from = sp;
-	drag_on   = false;
+	press_x    = mouse_x;
+	press_y    = mouse_y;
+	drag_from  = sp;
+	drag_on    = false;
+	hold_fired = false;
 }
 
 // pressed faces for the two buttons (DE's frame 1 while held)
@@ -129,6 +130,42 @@ if (_held && sp >= .5) {
 		break;
 	}
 }
+
+// ---- HOLD TO KEEP BUYING (DE's ctic; see the Create for why the
+// trigger differs). Two laws, both DE's:
+//   SPEED  five frames between buys to start, one fewer for every two
+//          seconds held, down to every frame at ten seconds
+//   FADE   volume and haptic ease to 5% over six seconds, so holding
+//          settles into a quiet rattle instead of a jackhammer
+if (_held && stage >= 2) {
+	var _bw3 = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
+	var _hr  = -1;
+	if (mouse_x >= face + _bw3 + 2)
+		for (var _i = 0; _i < _n; _i++) {
+			var _hy = row_y1 - _i * row_p;
+			if (mouse_y >= _hy - 2 && mouse_y < _hy + row_h + 2)
+			if (g.dial[_i].level > 0) { _hr = _i; break; }
+		}
+	// sliding onto a different button restarts the clock, so the
+	// acceleration can never carry over to a row you just arrived at
+	if (_hr != hold_row) { hold_row = _hr; hold_t = 0; hold_ct = HOLD_LEAD; }
+	if (_hr != -1) {
+		hold_t  += delta;
+		hold_ct -= delta;
+		if (hold_ct <= 0) {
+			hold_ct = max(0, 5 - floor(hold_t / 120));
+			var _hq = dial_buy_ext(_hr, g.buy_lv, true);
+			qtic = 0;
+			if (_hq.ok) {
+				hold_fired = true;
+				var _dm = lerp(1, .05, clamp(hold_t / 120, 0, 3) / 3);
+				play_sound_ext(snd_matclick2, 1.05, 1.25, .5 * _dm, round(_dm));
+			}
+			else hold_row = -1;   // ran out of money: stop, silently
+		}
+	}
+}
+else { hold_row = -1; hold_t = 0; hold_ct = HOLD_LEAD; }
 
 // LIVE DRAG: once the press clears the budget the drawer tracks the
 // finger, so the pull has weight in the hand instead of happening
@@ -212,6 +249,8 @@ for (var _i = 0; _i < _n; _i++) {
 
 	// STAGE 2: the buy button to the right of the narrowed bar
 	if (stage >= 2 && _d.level > 0) {
+		// a hold already bought - the release must not buy once more
+		if (hold_fired) { hold_fired = false; break; }
 		if (_px >= face + _bw + 2) {
 			// the buy in the LIVE MODE (x1 buys one; x10 buys up to the
 			// next ten; max buys the pile's worth) - see buy_resolve

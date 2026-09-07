@@ -78,6 +78,16 @@
 //                    it, 0 = always). Each row's rate sits right-
 //                    aligned past DE's 70-wide bar; "+N" beside the
 //                    level says how many levels the mode buys.
+//                    HOLD TO KEEP BUYING (DE's ctic): a held buy
+//                    button repeats, five frames apart to start and
+//                    one fewer every two seconds down to every frame,
+//                    while volume AND haptic fade to 5% over six
+//                    seconds so it settles into a rattle rather than a
+//                    jackhammer. DE buys on PRESS; RX keeps the single
+//                    buy on RELEASE, because the drag budget is the
+//                    only thing stopping a drawer swipe that starts on
+//                    a button from spending, and the repeat waits out
+//                    a 25-frame lead-in instead.
 //                    THE MANUAL START (DE's click_dial): holding the
 //                    pointer on a dial still winding up jumps its cycle
 //                    to the end of the wind-up, with snd_autostart. Answers obj_clicker's __consumes(x, y)
