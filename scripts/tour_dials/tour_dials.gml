@@ -107,7 +107,7 @@
 //     i.e. only where full screen IS the drawer's width - because GM
 //     effect layers have no region form. A landscape strip-blur needs
 //     an application-surface snapshot. THAT JOB IS NOW DONE: the
-//     backdrop uses pixel_snap / draw_pixel_region (see tour_ui), which
+//     backdrop uses blur_snap / draw_blur_region (see tour_ui), which
 //     paints a blurred copy of the scene into the strip's rectangle and
 //     so works in BOTH shapes. The gaussian fx layer it replaced is
 //     gone. The capture rides an obj_draw_proxy at depth 0 - between

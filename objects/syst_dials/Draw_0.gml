@@ -44,13 +44,36 @@ if (_dp > 0) {
 	// changing shape during the pull.
 	var _mg  = max(0, room_width - (row_x + row_w));
 	var _bx0 = floor(face - _mg);
-	// the PIXELATED copy of whatever the strip is covering, then a dim
-	// over it. The dim stays light (.45) because the pixelation already
-	// separates the drawer from the room; dimming hard on top of it just
-	// reads as a black panel again.
-	draw_pixel_region(_bx0, 0, room_width - _bx0, room_height, _dp);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, room_width - _bx0,
-		room_height, 0, c_black, .45 * _dp);
+	// ⚖️ THE GLASS RECIPE (his target, 2026-09-06). Four layers, and the
+	// ORDER and the WEIGHTS are the whole thing:
+	//   1 the blurred scene - what is behind, unreadable but present
+	//   2 a pale cool LIFT. This is the layer that makes it glass:
+	//     frosted glass SCATTERS light toward the viewer, so it comes
+	//     out brighter and less saturated than what is behind it. Every
+	//     earlier attempt went straight from the blur to a heavy black
+	//     wash, which is why they read as dark panels however well the
+	//     blur worked.
+	//   3 only enough black under the bars to keep them legible - .28,
+	//     not the .45 that was killing it
+	//   4 a bright hairline on the LEADING EDGE. One pixel, and it is
+	//     the single strongest glass signal in UI: real glass catches
+	//     light along its cut edge, and the eye reads a pane from that
+	//     alone.
+	var _bw2 = room_width - _bx0;
+	draw_blur_region(_bx0, 0, _bw2, room_height, _dp);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, _bw2, room_height, 0,
+		c_hsv(150, 45, 255), .12 * _dp);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, _bw2, room_height, 0,
+		c_black, .28 * _dp);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx0, 0, 1, room_height, 0,
+		c_white, .30 * _dp);
+	// and a short sheen falling away from that edge - glass is brighter
+	// where it is cut. Three strips rather than a gradient, because
+	// draw_sprite_general takes one alpha for all four corners and an
+	// alpha ramp is exactly what this needs
+	for (var _gs = 1; _gs <= 3; _gs++)
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx0 + _gs, 0, 1, room_height, 0,
+			c_white, (.10 / _gs) * _dp);
 }
 
 // ============ docked: DE's collapsed dot column ============

@@ -166,11 +166,18 @@ qmode = -1;
 //      rather than as glass: the visualiser's grid lines survived every
 //      radius as soft rectangles, and the glow layer had already spread
 //      the light before the capture saw it, so it blurred a blur.
-//   3. a region PIXELATION, his call. It suits the game: this is a
-//      pixel-art screen, and blocks read as deliberate where a soft
-//      wash reads as a mistake. 3 ROOM pixels a block.
-// blur_snap / draw_blur_region are PARKED, not deleted - they work, and
-// the next panel that wants glass can have them.
+//   3. a region PIXELATION - blocks, which suited the pixel-art screen
+//      but were never what he was after.
+//   4. GLASS, his actual target. Back to the blur, but the blur was
+//      never the reason attempt 2 failed: a .45 BLACK wash over it was.
+//      Glass SCATTERS AND LIFTS light; anything under a heavy dim reads
+//      as a dark panel no matter how well it is blurred. See the Draw
+//      for the recipe. And the radius goes back UP - frosted glass is
+//      SUPPOSED to destroy detail, that is what makes it frosted, so
+//      the structure the earlier tuning fought to preserve was working
+//      against the look all along.
+// pixel_snap / draw_pixel_region are PARKED now, not deleted - swapping
+// back is this one line and the one in the Draw.
 //
 // ⚖️ THE PROXY'S DEPTH IS THE WHOLE DESIGN: everything drawn before it
 // is in the snapshot, everything after is not. 0 sits after the room,
@@ -185,7 +192,7 @@ qmode = -1;
 // asked about: 0 is the hard-edged pixelation he already liked, 4
 // rounds the block rims by a quarter of a block (and quarters the edge
 // step he did not like), 2 is properly soft.
-__snap_cap = function() { if (sp > 0) pixel_snap(3, 4); };
+__snap_cap = function() { if (sp > 0) blur_snap(6); };
 snap_px = create_obj(0, 0, obj_draw_proxy);
 snap_px.owner = id;
 snap_px.depth = 0;
