@@ -48,11 +48,22 @@
 //    fractal gradient is exactly what re-bands on the way out. Same
 //    temporal IGN dither the fog shader uses, for the same reason.
 //
-// v_pos, not v_vTexcoord - see the vertex shader's header. A 1x1
-// sprite's texture coordinates are one texel of its page, so they are
-// effectively constant across a stretched quad; the position is the
-// only honest source of a 0..1 coordinate here.
-varying vec2 v_pos;
+// ⚖️ THE SCREEN COORDINATE COMES FROM gl_FragCoord, and neither of the
+// two obvious alternatives works here:
+//   - v_vTexcoord is out because the quad is spr_pixel_1x1 stretched,
+//     and a 1x1 sprite's UVs are a single texel of its atlas page -
+//     effectively constant across the whole screen.
+//   - a coordinate computed in the VERTEX stage is out because a
+//     uniform read there is not reliably populated by
+//     shader_set_uniform_f; u_res arrived as zero, the divide made
+//     NaN, and every NaN comparison below is false, so every pixel
+//     took the same branch.
+// Both of those render as ONE FLAT COLOUR, which is what he saw twice.
+// gl_FragCoord needs nothing from the vertex stage and is the same
+// source sh_fog_dither already uses in this pipeline. A vertical flip
+// between the GL and DirectX targets would be invisible anyway: the
+// set is symmetric about the real axis.
+varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
 uniform vec2  u_centre;   // complex-plane point at the middle of the quad
@@ -79,11 +90,22 @@ vec3 palette(float t)
 
 void main()
 {
-    // pixel -> complex plane. aspect taken from the real quad size, so
-    // the set never stretches when the room shape does.
-    vec2 uv = (v_pos - 0.5) * 2.0;
-    uv.x *= u_res.x / u_res.y;
-    vec2 c = u_centre + uv * u_scale;
+    // ---- pixel -> complex plane ----
+    // A LAST-RESORT DEFAULT for the resolution: if u_res never lands,
+    // dividing by zero poisons everything downstream with NaN and the
+    // screen goes flat with nothing on it to diagnose. Falling back to
+    // the room's real size means a uniform that fails to arrive shows
+    // up as a picture that is merely WRONG rather than as no picture,
+    // which is a much easier thing to report and to read.
+    vec2 res = (u_res.y > 1.0) ? u_res : vec2(480.0, 270.0);
+    vec2 sc  = (u_scale > 0.0) ? vec2(u_scale) : vec2(1.35);
+    float it = (u_iter > 1.0) ? u_iter : 120.0;
+
+    // aspect from the real quad size, so the set never stretches when
+    // the room shape does
+    vec2 uv = (gl_FragCoord.xy / res - 0.5) * 2.0;
+    uv.x *= res.x / res.y;
+    vec2 c = u_centre + uv * sc.x;
 
     // ---- exact interior tests (1): main cardioid, then period-2 bulb
     float xm = c.x - 0.25;
@@ -100,7 +122,7 @@ void main()
 
     if (!inside) {
         for (int i = 0; i < MAX_I; i++) {
-            if (float(i) >= u_iter) break;
+            if (float(i) >= it) break;
 
             // dz = 2*z*dz + 1, BEFORE z advances
             dz = 2.0 * vec2(z.x * dz.x - z.y * dz.y,
@@ -135,7 +157,7 @@ void main()
         // and the outer log is base 2 - that pairing is what makes nu
         // continuous straight across the escape boundary.
         float nu = n + 1.0 - log2(0.5 * log(mag));
-        float t  = nu / max(u_iter, 1.0);
+        float t  = nu / max(it, 1.0);
 
         // a curve on t: almost everything escapes fast, so without this
         // the outer shells eat the whole palette and the interesting
@@ -151,7 +173,7 @@ void main()
         if (u_glow > 0.0) {
             float lz = sqrt(mag);
             float d  = lz * log(lz) / max(length(dz), 1.0e-6);
-            float px = 2.0 * u_scale / u_res.y;      // one pixel, in complex units
+            float px = 2.0 * sc.x / res.y;           // one pixel, in complex units
             float e  = exp(-d / max(px, 1.0e-20) * 0.30);
             col += vec3(e) * u_glow * 0.9;
         }

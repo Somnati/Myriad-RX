@@ -81,6 +81,20 @@ u_time   = shader_get_uniform(sh_mandel, "u_time");
 u_pal    = shader_get_uniform(sh_mandel, "u_pal");
 u_glow   = shader_get_uniform(sh_mandel, "u_glow");
 
+// AND CHECK THEM. shader_get_uniform returns -1 when a uniform is not
+// found, and shader_set_uniform_f on -1 is a SILENT no-op - so a name
+// that does not match, or one the shader compiler optimised away,
+// shows up only as a picture that is subtly or completely wrong. This
+// screen's failure mode for that is "one flat colour", which says
+// nothing about the cause; a named line in the log says everything.
+var _uni = [["u_centre", u_centre], ["u_scale", u_scale], ["u_res", u_res],
+	["u_iter", u_iter], ["u_time", u_time], ["u_pal", u_pal],
+	["u_glow", u_glow]];
+for (var _i = 0; _i < array_length(_uni); _i++)
+	if (_uni[_i][1] < 0)
+		show("sh_mandel > uniform NOT FOUND: " + _uni[_i][0]
+			+ " (the shader will fall back and the view will be wrong)");
+
 // screen pixel -> complex plane, at the CURRENT view. The one place
 // that conversion is written; the zoom-toward-cursor maths below and
 // any future click-to-do-something both go through it, so they cannot
