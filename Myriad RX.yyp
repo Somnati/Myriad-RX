@@ -303,6 +303,8 @@
     {"id":{"name":"settings_slider","path":"scripts/settings_slider/settings_slider.yy",},},
     {"id":{"name":"settings_toggle","path":"scripts/settings_toggle/settings_toggle.yy",},},
     {"id":{"name":"show","path":"scripts/show/show.yy",},},
+    {"id":{"name":"stats_hist_push","path":"scripts/stats_hist_push/stats_hist_push.yy",},},
+    {"id":{"name":"stats_hist_tick","path":"scripts/stats_hist_tick/stats_hist_tick.yy",},},
     {"id":{"name":"stats_session_base","path":"scripts/stats_session_base/stats_session_base.yy",},},
     {"id":{"name":"stats_v2_content","path":"scripts/stats_v2_content/stats_v2_content.yy",},},
     {"id":{"name":"stats_v2_cycle","path":"scripts/stats_v2_cycle/stats_v2_cycle.yy",},},

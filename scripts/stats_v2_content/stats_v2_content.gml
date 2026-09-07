@@ -71,6 +71,19 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- history ----
+	// The spark rows. They read g.stats_hist, filled once a second by
+	// stats_hist_tick off the production heartbeat, so a graph is
+	// always the last two minutes and always of the run you are in.
+	// Session view changes nothing here: a history IS a session view.
+	if (variable_global_exists("stats_hist"))
+	if (stats_v2_folder("history", c_steelblue)) {
+		stats_v2_spark("profit / sec", "h_ps",     c_sgreen,  4);
+		stats_v2_spark("per tap",      "h_tap",    c_gold,    4);
+		stats_v2_spark("profit held",  "h_profit", c_sblue,   4);
+	}
+	stats_v2_folder_end();
+
 	// ---- credits ----
 	if (variable_global_exists("credits"))
 	if (stats_v2_folder("credits", c_lavender)) {

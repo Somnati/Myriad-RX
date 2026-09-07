@@ -157,17 +157,22 @@ for (var _r = _lo; _r < _hi; _r++) {
 		// formats every label directly (and the packing is log scale,
 		// exactly the axis an idle curve wants). hover to SCRUB: a
 		// cursor line with the exact value + how many seconds ago.
+		// THE GRAPH GETS THE WHOLE WIDTH. It used to give 52px to a
+		// right-hand gutter holding "hi", "lo" and the window length -
+		// three labels renting a fifth of the plot. They sit INSIDE the
+		// pane now, dim and out of the way at the corners, which is
+		// both less furniture and a wider curve.
 		var _gx = _tx;
-		var _gr = val_x - 52; // the label gutter
 		var _gy = _ry + row_h;
 		var _gh = _bh - row_h - 5;
-		var _gw = _gr - _gx;
+		var _gw = (val_x - 2) - _gx;
 		var _arr = g.stats_hist[$ _row.val] ?? -1;
 		if (!is_array(_arr) || array_length(_arr) < 2) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, c_black, .3);
 			draw_set_halign(fa_left);
 			draw_set_color(_row.c2);
-			draw_set_alpha(.4);
-			draw_text(_gx, _gy + (_gh >> 1) - 3, "gathering samples...");
+			draw_set_alpha(.35);
+			draw_text(_gx + 6, _gy + (_gh >> 1) - 3, "gathering samples...");
 		}
 		else {
 			var _nn = array_length(_arr);
@@ -179,37 +184,65 @@ for (var _r = _lo; _r < _hi; _r++) {
 			var _lmn = _vmn; var _lmx = _vmx; // label the TRUE window
 			if (_vmx - _vmn < 0.0001) { _vmn -= .5; _vmx += .5; } // flat
 
-			// pane + quarter gridlines + frame
-			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, c_black, .4);
+			// the pane: no frame. A rectangle drawn around a graph that
+			// already sits on its own darker field is a line doing
+			// nothing, and four of them stacked read as a table.
+			draw_set_alpha(1);
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, c_black, .3);
 			for (var _q = 1; _q < 4; _q++)
-				draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy + (_gh * _q) div 4,
-					_gw, 1, 0, c_white, .05);
-			draw_px_rect(_gx, _gy, _gw, _gh, merge_colour(_row.c1, c_black, .5), .45);
+				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + (_gh * _q) div 4,
+					_gw - 2, 1, 0, c_white, .045);
+			// a baseline, brighter than the gridlines: the curve needs
+			// something to stand on or it floats in the pane
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + _gh - 1, _gw - 2, 1, 0,
+				merge_colour(_row.c1, c_black, .45), .8);
 
-			// the area: one column per screen pixel, lerped between
-			// samples - a smooth line with a soft fill under it
+			// THE CURVE. One column per screen pixel, lerped between
+			// samples. Two changes from the first cut, both about how
+			// it reads rather than what it plots:
+			//  - the fill is a VERTICAL GRADIENT, near the line and
+			//    gone by the floor, instead of a flat 18% wash. Flat
+			//    fills fight the gridlines for attention; a gradient
+			//    puts the weight where the data is.
+			//  - the line CONNECTS to the previous column instead of
+			//    drawing a 2px stub at each height, so a steep slope is
+			//    a line rather than a dotted staircase.
+			var _cf_t = merge_colour(_row.c1, c_white, .12);
+			var _cf_b = merge_colour(_row.c1, c_black, .82);
+			var _lc   = merge_colour(_row.c1, c_white, .35);
+			var _prev = -1;
 			for (var _px = 0; _px < _gw - 2; _px++) {
 				var _sf = (_px / max(1, _gw - 3)) * (_nn - 1);
 				var _s0 = floor(_sf);
 				var _v = lerp(_arr[_s0], _arr[min(_s0 + 1, _nn - 1)], frac(_sf));
-				var _hh = clamp((_v - _vmn) / (_vmx - _vmn), 0, 1) * (_gh - 4);
-				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1 + _px,
-					_gy + _gh - 2 - _hh, 1, _hh + 1, 0, _row.c1, .18);
-				draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1 + _px,
-					_gy + _gh - 2 - _hh, 1, 2, 0,
-					merge_colour(_row.c1, c_white, .3), .95);
+				var _hh = clamp((_v - _vmn) / (_vmx - _vmn), 0, 1) * (_gh - 5);
+				var _cx = _gx + 1 + _px;
+				var _cy = _gy + _gh - 2 - _hh;
+				var _fh = (_gy + _gh - 1) - _cy;
+				if (_fh > 0)
+					draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+						_cx, _cy, 1, _fh, 0, _cf_t, _cf_t, _cf_b, _cf_b, .55);
+				// connect to the last column so slopes stay unbroken
+				var _y1 = (_prev < 0) ? _cy : min(_prev, _cy);
+				var _y2 = (_prev < 0) ? _cy : max(_prev, _cy);
+				draw_sprite_ext(spr_pixel_1x1, 0, _cx, _y1, 1,
+					max(1, _y2 - _y1) + 1, 0, _lc, .95);
+				_prev = _cy;
 			}
 
-			// hi / lo in the gutter, the LIVE value at the value column
+			// hi / lo / window, INSIDE the pane at the corners, dim
+			// enough to read as axis furniture rather than as data.
+			// Scale 1: fnt is a sprite font and the old .85 was
+			// resampling every glyph (integer scale only, house rule).
 			draw_set_halign(fa_left);
 			draw_set_color(sett_ink);
-			draw_set_alpha(.75);
-			draw_text_transformed(_gr + 4, _gy, "hi " + crunch_arb(_lmx), .85, .85, 0);
-			draw_text_transformed(_gr + 4, _gy + _gh - 6, "lo " + crunch_arb(_lmn), .85, .85, 0);
-			draw_set_alpha(.35);
-			draw_text_transformed(_gr + 4, _gy + (_gh >> 1) - 3,
-				string(_nn) + "s", .85, .85, 0);
+			draw_set_alpha(.4);
+			draw_text(_gx + 4, _gy + 2, crunch_arb(_lmx));
+			draw_text(_gx + 4, _gy + _gh - 10, crunch_arb(_lmn));
 			draw_set_halign(fa_right);
+			draw_set_alpha(.3);
+			draw_text(_gx + _gw - 4, _gy + _gh - 10, string(_nn) + "s");
+			// THE LIVE VALUE at the value column, on the title line
 			draw_set_color(_row.c1);
 			draw_set_alpha(.95);
 			draw_text(val_x, _ry + 4, crunch_arb(_arr[_nn - 1]));
@@ -230,14 +263,14 @@ for (var _r = _lo; _r < _hi; _r++) {
 					4, 4, 0, c_white, .9);
 				var _stx = crunch_arb(_v2) + "  -"
 					+ string(round((_nn - 1) - _sf2)) + "s";
-				var _stw = string_width(_stx) * .85 + 8;
+				var _stw = string_width(_stx) + 8;
 				var _sx2 = clamp(_gx + _px2 + 8, _gx, _gx + _gw - _stw);
 				draw_sprite_ext(spr_pixel_1x1, 0, _sx2, _gy + 2, _stw, 11, 0,
 					c_black, .9);
 				draw_px_rect(_sx2, _gy + 2, _stw, 11, _row.c1, .6);
 				draw_set_halign(fa_left);
 				draw_set_color(merge_colour(_row.c1, c_white, .4));
-				draw_text_transformed(_sx2 + 4, _gy + 4, _stx, .85, .85, 0);
+				draw_text(_sx2 + 4, _gy + 4, _stx);
 			}
 		}
 	}

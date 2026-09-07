@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stats_hist_tick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stats_hist_tick",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/engine/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

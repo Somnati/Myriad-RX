@@ -8,4 +8,5 @@
 
 if (!variable_global_exists("dial")) exit;
 prod_dials();
-credit_tick();   // the dropper's pool + cooldown, same clock
+credit_tick();      // the dropper's pool + cooldown, same clock
+stats_hist_tick();  // the statistics screen's history, same clock

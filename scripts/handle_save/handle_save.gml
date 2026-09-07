@@ -129,15 +129,18 @@ function handle_save(){
 	//////////////////////////////////////////////////////////////////
 
 
-	show("filename_path = " + filename_path(file_to_handle));
-	show("game_save_id = " + string(game_save_id));
-
-	// measured absence, informative for now: the RX offline story
-	// arrives with the DE parity rebuild (DE has rm_offline/rm_sleep;
-	// the techdemo's budget-aware replay is the engine reference) -
-	// nothing consumes this yet
-	time_away = (date_second_span(last_datetime,date_current_datetime()));
-	show("time away = " + crunch_time_long(time_away*60));
+	// (the three debug prints that used to live here - filename_path,
+	// game_save_id and a time_away readout - fired on EVERY write, so
+	// once the autosave clock got a ladder they were a line a minute in
+	// the console. The absence they measured is not measured here
+	// anyway: syst_handle_save's Step hands the real span to
+	// offline_replay right after this returns. Behind the debug flag if
+	// they are ever wanted back.)
+	if (system.debug) {
+		show("saved > " + filename_path(file_to_handle));
+		show("away  > " + crunch_time_long(
+			date_second_span(last_datetime, date_current_datetime()) * 60));
+	}
 
 	// a load restarts the "session" as far as statistics deltas care
 	if action = sv_load stats_session_base();
