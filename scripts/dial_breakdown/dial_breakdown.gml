@@ -54,10 +54,17 @@ function dial_breakdown(_i) {
 	// multiplier on something else - it IS the something else - so its
 	// "multiplier" is its own value and its log is the bulk of the sum.
 	var _base_lg = (_d.b_gps >= arb(1)) ? arb_log10(_d.b_gps) : 0;
+	// ⚖️ THE NOTE IS BUILT OUT HERE, not inline in the struct below.
+	// A ternary's ":" inside a struct literal is ambiguous with the
+	// literal's own key separator and GML's parser refuses it - the
+	// whole script fails to compile, and the error points at the
+	// struct rather than at the "?".
+	var _hs   = dial_lvdiv(_i);
+	var _note = "lv " + string(_d.level);
+	if (_hs > 0) _note += " +" + string(_hs) + " tier";
 	array_push(_out.steps, {
 		name  : "base curve",
-		note  : "lv " + string(_d.level)
-			+ (dial_lvdiv(_i) > 0 ? " +" + string(dial_lvdiv(_i)) + " tier" : ""),
+		note  : _note,
 		mult  : -1,               // -1 = show the VALUE, not a xN
 		val   : _d.b_gps,
 		lg    : _base_lg,
