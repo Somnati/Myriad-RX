@@ -284,6 +284,49 @@ print("""
     sums past 2^24, which float32 cannot represent. The two limits
     happen to meet, so the encoding writes itself.""")
 
+# ===================================================================
+# 5. THE ENCODING AS ACTUALLY WRITTEN
+# ===================================================================
+# Section 4 proved 24 bits is ENOUGH. This proves the two halves that
+# were then written - __ref_pack in syst_mandel's Create, and ref_at in
+# sh_mandel - are actually inverses of each other. They live in
+# different languages and cannot be diffed, which is exactly the kind of
+# pair that silently disagrees.
+head("5. pack (GML) and decode (GLSL) round-trip")
+
+
+def gml_ref_pack(v):
+    """syst_mandel __ref_pack, transcribed"""
+    u = min(max((v + 2.0) / 4.0, 0.0), 1.0) * 16777215.0
+    i = int(u)
+    return (i % 256, (i // 256) % 256, (i // 65536) % 256)
+
+
+def glsl_ref_at(rgb):
+    """sh_mandel ref_at, transcribed - including the /255 a texture read
+    applies on the way in, which is where a mismatched constant hides"""
+    r, g, b = (c / 255.0 for c in rgb)
+    v = r * 255.0 + g * 65280.0 + b * 16711680.0
+    return v / 16777215.0 * 4.0 - 2.0
+
+
+worst = 0.0
+for k in range(-2000, 2001):
+    v = k / 1000.0                       # the whole [-2, 2] range Z uses
+    worst = max(worst, abs(glsl_ref_at(gml_ref_pack(v)) - v))
+result("pack/decode round-trips across the whole [-2,2] range",
+       worst < 3e-7, f"worst error {worst:.2e}, one step is {4 / 16777215:.2e}")
+
+# the channel constants must be the ones the maths needs - transposing
+# 65280 and 16711680 would still LOOK like a plausible gradient
+result("channel weights are 255 / 255*256 / 255*65536",
+       65280 == 255 * 256 and 16711680 == 255 * 65536)
+
+# the largest sum the shader forms has to stay inside float32's exact
+# integer range, or the low byte silently stops counting
+result("the decoded sum stays inside float32's exact integers",
+       16777215 < 2 ** 24, "max sum 16777215, float32 exact to 16777216")
+
 print("\n" + "=" * 60)
 print("ALL CHECKS PASSED" if OK else "SOMETHING IS WRONG - do not build on this")
 print("=" * 60)

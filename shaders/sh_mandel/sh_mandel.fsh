@@ -94,10 +94,16 @@ uniform vec2  u_scale_dd;  // (hi, lo)
 uniform float u_dd;        // >0.5 = take the double-double path
 uniform float u_aspect;    // ROOM width/height - the shape, not the surface
 uniform float u_dbg;       // >0.5 = draw the normalised coordinate instead
+// ---- perturbation ----
+uniform float     u_pert;    // >0.5 = iterate the delta, not the point
+uniform vec2      u_dcoff;   // view centre MINUS the reference point
+uniform float     u_reflen;  // usable steps in the reference orbit
+uniform vec2      u_reftex;  // the reference texture's size, in texels
+uniform sampler2D u_ref;     // the reference orbit, 24-bit fixed point
 
 // the hard ceiling. GLSL ES wants a constant bound; u_iter breaks out
 // early, so this only sets the worst case the compiler must plan for.
-const int   MAX_I  = 512;
+const int   MAX_I  = 900;
 const float ESCAPE = 256.0;   // generous, so the smooth count is exact
 
 // ============================================================
@@ -149,6 +155,38 @@ vec2 dd_mul(vec2 a, vec2 b) {
     return dd_quick2sum(p, e + a.x * b.y + a.y * b.x);
 }
 
+// ============================================================
+// THE REFERENCE ORBIT
+// ============================================================
+// Z(n) for the reference point, computed on the CPU at double-double
+// precision and handed over as 24-BIT FIXED POINT in an RGB888 texture,
+// two texels per step (x then y). Nothing exotic: a float texture would
+// mean buffer_set_surface, whose byte order has burned this project
+// before, and 24 bits is the most a float32 shader could DECODE anyway
+// - reconstructing more needs sums past 2^24, which float32 cannot
+// represent. The twin confirms 24 bits renders identically to full
+// precision, so the two limits meeting costs nothing.
+//
+// |Z| never exceeds 2 for a reference that stays in the set, which is
+// the only kind worth having, so the fixed-point range is [-2, 2].
+float ref_at(float idx)
+{
+    float tx = mod(idx, u_reftex.x);
+    float ty = floor(idx / u_reftex.x);
+    vec4  t  = texture2D(u_ref, (vec2(tx, ty) + 0.5) / u_reftex);
+    // each channel comes back as byte/255, so multiplying by 255 gives
+    // the byte exactly; the largest sum is 16777215, just inside the
+    // 2^24 that float32 can still count without skipping
+    float v = t.r * 255.0 + t.g * 65280.0 + t.b * 16711680.0;
+    return v / 16777215.0 * 4.0 - 2.0;
+}
+
+vec2 ref_z(float m)
+{
+    float i = m * 2.0;
+    return vec2(ref_at(i), ref_at(i + 1.0));
+}
+
 // IQ's cosine palette: a + b*cos(2pi*(c*t + d)). Cheap, and continuous
 // by construction, so it never bands the way a ramp texture does.
 vec3 palette(float t)
@@ -184,10 +222,22 @@ void main()
     vec2 c = u_centre + uv * sc.x;
 
     // ---- exact interior tests (1): main cardioid, then period-2 bulb
-    float xm = c.x - 0.25;
-    float q  = xm * xm + c.y * c.y;
-    bool inside = (q * (q + xm) <= 0.25 * c.y * c.y)
-               || ((c.x + 1.0) * (c.x + 1.0) + c.y * c.y <= 0.0625);
+    // ⚖️ SKIPPED WHEN PERTURBING, and that is not an optimisation
+    // choice - it is correctness. The tests are exact in exact
+    // arithmetic, but they run on `c`, which is assembled in float32
+    // from a centre that only crosses the uniform to ~7 digits. At a
+    // 1e-26 span that makes them the right answer for a point 1e-7
+    // away - astronomically outside the view - and near the cardioid
+    // edge that is a wrong answer painted across the whole screen.
+    // Deep views therefore pay the full budget in the interior, which
+    // is the correct price for not lying about it.
+    bool inside = false;
+    if (u_pert <= 0.5) {
+        float xm = c.x - 0.25;
+        float q  = xm * xm + c.y * c.y;
+        inside = (q * (q + xm) <= 0.25 * c.y * c.y)
+              || ((c.x + 1.0) * (c.x + 1.0) + c.y * c.y <= 0.0625);
+    }
 
     float n   = 0.0;
     float mag = 0.0;
@@ -195,6 +245,54 @@ void main()
     vec2  dz  = vec2(1.0, 0.0);   // derivative, for the distance estimate
     vec2  old = vec2(0.0);        // periodicity reference
     float per = 0.0;
+
+    // ---- THE PERTURBATION PATH ----
+    // For c = C + d, writing z(n) = Z(n) + e(n) turns the iteration
+    // into  e(n+1) = 2*Z(n)*e(n) + e(n)^2 + d.  e and d are tiny at any
+    // depth, so THIS loop is plain float32 no matter how far in the
+    // view is - every digit of precision was spent once, on the CPU,
+    // computing Z. That is the whole idea: the cost moves off the
+    // per-pixel path entirely.
+    if (u_pert > 0.5 && !inside) {
+        vec2 dc = u_dcoff + uv * sc.x;
+        vec2 e  = vec2(0.0);
+        float m = 0.0;
+        for (int i = 0; i < MAX_I; i++) {
+            if (float(i) >= it) break;
+
+            vec2 Z = ref_z(m);
+            // e = 2*Z*e + e^2 + dc
+            e = vec2(2.0 * (Z.x * e.x - Z.y * e.y) + (e.x * e.x - e.y * e.y) + dc.x,
+                     2.0 * (Z.x * e.y + Z.y * e.x) + 2.0 * e.x * e.y       + dc.y);
+            m += 1.0;
+
+            vec2 zf = ref_z(m) + e;      // the actual point, reassembled
+            // the derivative rides the FULL value, so the rim glow works
+            // here exactly as it does on the shallow path
+            dz = 2.0 * vec2(zf.x * dz.x - zf.y * dz.y,
+                            zf.x * dz.y + zf.y * dz.x) + vec2(1.0, 0.0);
+
+            mag = dot(zf, zf);
+            if (mag > ESCAPE) { n = float(i); z = zf; break; }
+
+            // ⚖️ ZHUORAN'S REBASING. When the reassembled value drops
+            // BELOW the delta, the delta has stopped being small and
+            // the linearisation is spent - the classic symptom is a
+            // blotch of wrong colour, and the classic cure was to
+            // detect it and compute a second reference. Rebasing is
+            // better and shorter: restart against the head of the
+            // reference, carrying the full value as the new delta. One
+            // reference orbit covers the whole image, and running off
+            // the end of it is handled by the same line.
+            if (mag < dot(e, e) || m >= u_reflen - 1.0) {
+                e = zf;
+                m = 0.0;
+            }
+            n = float(i) + 1.0;
+            z = zf;
+        }
+        if (mag <= ESCAPE) inside = true;
+    }
 
     // ---- THE DEEP PATH ----
     // Double-double costs roughly eight times a float iteration, so it
@@ -206,7 +304,7 @@ void main()
     // answered for those pixels, and skipping that check here would run
     // the eight-times-more-expensive loop on precisely the region the
     // cheap exact test exists to eliminate.
-    if (u_dd > 0.5 && !inside) {
+    if (u_dd > 0.5 && !inside && u_pert <= 0.5) {
         vec2 cxd = dd_add(vec2(u_centre_dd.x, u_centre_dd.y),
                           dd_mul(u_scale_dd, vec2(uv.x, 0.0)));
         vec2 cyd = dd_add(vec2(u_centre_dd.z, u_centre_dd.w),
@@ -240,7 +338,7 @@ void main()
         dz = dzs;
         if (mag <= ESCAPE) inside = true;
     }
-    else if (!inside) {
+    else if (!inside && u_pert <= 0.5) {
         for (int i = 0; i < MAX_I; i++) {
             if (float(i) >= it) break;
 

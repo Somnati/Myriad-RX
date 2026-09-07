@@ -1,91 +1,117 @@
-/// rm_mandel's driver. The shader does the fractal (sh_mandel's header
-/// is where the technique lives); this owns the view, the input and the
-/// iteration budget.
+/// rm_mandel's driver. The shader draws the fractal (sh_mandel's header
+/// is where the per-pixel technique lives); this owns the view, the
+/// input, the iteration budget and - since the perturbation pass - the
+/// REFERENCE ORBIT the deep views are drawn relative to.
+///
+/// THE PRECISION LADDER, three tiers, each taking over where the last
+/// runs out. datafiles/mandel_twin.py proves all of it in python before
+/// any of it was written here, because it has to be written in two
+/// languages at once and Claude can run neither.
+///
+///   f32      down to 4e-6    plain single precision in the shader
+///   f32x2    down to 2e-13   the coordinate as a hi/lo float pair
+///   perturb  down to 1e-26   the per-pixel loop iterates the tiny
+///                            DELTA from a reference orbit, so it can
+///                            be float32 again - and the precision
+///                            lives here, on the CPU, where a GML
+///                            `real` is a float64 and a PAIR of them
+///                            is ~32 significant digits.
+///
+/// ⚖️ THE FINDING THAT SHAPED THIS: perturbation alone would have
+/// bought almost nothing. At the f32x2 floor of 2e-13 a float64 centre
+/// still has ~9 distinct values per pixel, and float64 does not bind
+/// until ~2.2e-14 - so moving the per-pixel loop to float32 removes the
+/// SHADER as the limit and immediately hits the CENTRE as the next one,
+/// one order of magnitude later. The depth comes from double-double on
+/// the CPU side; perturbation is what lets the GPU keep up with it.
 ///
 /// THE TWO THINGS THAT MAKE IT FEEL GOOD, both here rather than in the
 /// shader:
 ///
-/// 1. ZOOM TOWARD THE CURSOR. Zooming to the screen centre means
-///    chasing anything interesting with a drag after every step, which
-///    is most of why a fractal viewer feels bad. The fix is one line of
-///    algebra: keep the complex point under the pointer fixed, so the
-///    thing you are looking at stays exactly where you are looking.
-///
-/// 2. THE ZOOM IS EASED, NOT STEPPED. `scale` chases `scale_to`
-///    geometrically, so a wheel notch is a glide rather than a jump and
-///    holding the wheel down reads as a continuous dive.
-///
-/// THOSE TWO FIGHT EACH OTHER, and the first cut lost. It moved the
-/// centre ONCE, instantly, to where it belongs at the FINAL scale - and
-/// then glided the scale there over the next twenty frames, so the
-/// point under the cursor was correct only after the animation
-/// finished. It also measured the anchor against the live `scale` but
-/// compensated with a ratio of `scale_to`, mixing two frames of
-/// reference. Between them the view crawled away from wherever you
-/// aimed, which is exactly what he reported.
-///
-/// THE FIX IS TO STOP COMPUTING A CORRECTION AT ALL. A wheel notch
-/// records the complex point under the pointer and the screen pixel it
-/// must stay at; every frame after, the centre is DERIVED from that
-/// anchor at whatever the eased scale currently is. There is no
-/// accumulating correction to drift, the anchor is exact on every
-/// frame of the animation rather than only the last, and scrolling
-/// repeatedly just re-anchors under the cursor each time.
-///
-/// AND THE HONEST LIMIT: float32 runs out around 1e-5 of span. Rather
-/// than let the image melt into blocks and look broken, the zoom stops
-/// there and the readout says why. That boundary is a property of the
-/// number type, not of this code - going deeper means double-double
-/// emulation or perturbation theory, which is its own project.
+/// 1. ZOOM TOWARD THE CURSOR. A wheel notch records the complex point
+///    under the pointer and the pixel it must stay at; the centre is
+///    then DERIVED from that anchor every frame at whatever the eased
+///    scale currently is. Deriving rather than correcting is what
+///    makes it exact on every frame of the animation instead of only
+///    its last - the first cut corrected once, instantly, to where the
+///    centre belonged at the FINAL scale, and then took twenty frames
+///    to get there.
+/// 2. THE ZOOM IS EASED GEOMETRICALLY, so a notch is the same size at
+///    every depth.
 
-// ---- the view ----
-cx = -0.75;          // a centre that frames the whole set
-cy =  0.0;
-scale    = 1.35;     // half-height of the view, in complex units
+// ================= double-double, on GML's own float64 =================
+// The same error-free transformations the shader runs on float32
+// (Dekker, Knuth), one size up. `hi` is the value a float64 can hold
+// and `lo` is exactly what that rounding discarded, so the pair carries
+// ~32 significant digits - which is what a centre coordinate needs
+// before it is worth perturbing around.
+//
+// ⚖️ THE SPLIT CONSTANT IS 134217729 = 2^27+1 HERE, for float64's
+// 53-bit mantissa. The shader's is 4097 = 2^12+1 for float32's 24. Use
+// one for the other and it does not fail, it silently loses exactly the
+// precision the whole thing exists to buy.
+DD_SPLIT = 134217729;
+
+__ddq = function(_a, _b) {          // exact sum, given |a| >= |b|
+	var _s = _a + _b;
+	return [_s, _b - (_s - _a)];
+};
+__ddadd = function(_a, _b) {
+	var _s = _a[0] + _b[0];
+	var _v = _s - _a[0];
+	var _e = (_a[0] - (_s - _v)) + (_b[0] - _v);
+	return __ddq(_s, _e + _a[1] + _b[1]);
+};
+__ddsub = function(_a, _b) { return __ddadd(_a, [-_b[0], -_b[1]]); };
+__ddmul = function(_a, _b) {
+	var _ac = DD_SPLIT * _a[0]; var _ah = _ac - (_ac - _a[0]); var _al = _a[0] - _ah;
+	var _bc = DD_SPLIT * _b[0]; var _bh = _bc - (_bc - _b[0]); var _bl = _b[0] - _bh;
+	var _p  = _a[0] * _b[0];
+	var _e  = ((_ah * _bh - _p) + _ah * _bl + _al * _bh) + _al * _bl;
+	return __ddq(_p, _e + _a[0] * _b[1] + _a[1] * _b[0]);
+};
+// a plain real again. Only safe where the magnitude is small - a
+// DIFFERENCE of two nearby dd values, never an absolute coordinate.
+__ddflat = function(_a) { return _a[0] + _a[1]; };
+
+// ---- the view. The CENTRE is a dd pair; SCALE is not, and does not
+// need to be: a float64 represents 1e-26 perfectly well. It is the
+// centre, sitting at ~0.75 and needing to move by 1e-27, that runs out.
+cx = [-0.75, 0];
+cy = [0, 0];
+scale    = 1.35;
 scale_to = 1.35;
 
-// ---- the two precision floors ----
-// float32 (24-bit mantissa) stops resolving neighbouring pixels at
-// about 4e-6 of span. DOUBLE-DOUBLE carries the coordinate as a pair of
-// floats, hi + lo, for ~48 bits and about 2e-13 - forty million times
-// deeper. Written out longhand because GML's parser rejects scientific
-// literals outright (1e-13 is a syntax error, not a small number).
-SCALE_MIN_F32 = 0.000004;
-SCALE_MIN_DD  = 0.0000000000002;
-SCALE_MIN = SCALE_MIN_F32;   // live floor, swapped by __dd_on below
+// ---- the three floors ----
+// power() rather than a literal, because GML's parser rejects
+// scientific notation outright and 0.00000000000000000000000001 is a
+// typo waiting to happen.
+SCALE_MIN_F32  = 0.000004;
+SCALE_MIN_DD   = 0.0000000000002;
+SCALE_MIN_PERT = power(10, -26);
+SCALE_MIN = SCALE_MIN_F32;
 SCALE_MAX = 2.5;
 
-// where the deep path switches on. Comfortably ABOVE the f32 floor, so
-// the handover happens while single precision is still clean - crossing
-// exactly at the point it breaks would show the seam.
-DD_AT = 0.00002;
-
-// double-double is roughly eight times the cost per iteration, so it is
-// only paid once float32 has actually run out.
-__dd_on = function() { return (scale_to < DD_AT) || (scale < DD_AT); };
+DD_AT = 0.00002;   // below this, single precision is no longer enough
 
 // ---- input state ----
 drag    = false;
 drag_mx = 0;
 drag_my = 0;
-drag_cx = 0;
-drag_cy = 0;
-moved   = 0;         // pixels dragged, so a tap is not read as a pan
+drag_cx = [0, 0];
+drag_cy = [0, 0];
+moved   = 0;
 
 // ---- the zoom anchor ----
-// while on, the centre is DERIVED each frame so that the complex point
-// (anch_x, anch_y) stays under screen pixel (anch_px, anch_py). Any
-// pan or jump clears it, because those set the centre themselves.
+// while on, the centre is DERIVED each frame so the complex point
+// (anch_x, anch_y) stays under screen pixel (anch_px, anch_py).
 anch_on = false;
-anch_x  = 0;
-anch_y  = 0;
+anch_x  = [0, 0];
+anch_y  = [0, 0];
 anch_px = 0;
 anch_py = 0;
 
 // ---- look ----
-// the palette phase. Drifts very slowly on its own so a still image is
-// never quite still, and [c] cycles it through some hand-picked sets
-// rather than randomising - random palettes are mostly ugly.
 pal_set = 0;
 pal_list = [
 	{ r : 0.00, g : 0.10, b : 0.20, name : "ember"   },
@@ -97,48 +123,132 @@ pal_list = [
 pal_shift = 0;
 glow      = 0.55;
 show_hud  = true;
-// [v] paints the raw screen coordinate instead of the fractal. Every
-// way this coordinate has been wrong looks the same from outside - a
-// flat screen - so there is now a way to see the coordinate itself.
-dbg       = false;
+dbg       = false;   // [v] paints the raw screen coordinate
 
 // ---- the iteration budget ----
-// Detail costs iterations only as you zoom: at the default view a few
-// dozen already resolve everything visible, and past that the useful
-// budget grows with the LOG of the magnification. The +sqrt term is
-// what keeps deep views from going flat and blobby - the boundary needs
-// disproportionately more iterations exactly where it gets thinnest.
-// Capped at the shader's own ceiling; going past it silently would just
-// mean the picture stops improving while the cost keeps climbing.
+// Detail costs iterations only as you zoom, and the useful budget grows
+// with the LOG of the magnification. The sqrt term keeps deep views
+// from going blobby: the boundary needs disproportionately more
+// iterations exactly where it gets thinnest.
 __iter = function() {
-	var _mag = SCALE_MAX / max(scale, SCALE_MIN_DD);
-	return clamp(60 + 34 * log2(_mag) + 26 * sqrt(max(0, log2(_mag))), 60, 512);
+	var _mag = SCALE_MAX / max(scale, SCALE_MIN_PERT);
+	return clamp(60 + 26 * log2(_mag) + 22 * sqrt(max(0, log2(_mag))), 60, 900);
 };
 
-// ---- splitting a double into a float pair ----
-// ⚖️ THIS WORKS BECAUSE A GML `real` IS ALREADY A 64-BIT DOUBLE. The
-// precision the shader lacks is sitting right here in the view
-// variables; the only problem is getting it across, and a uniform is
-// float32. So the number is handed over as two floats: `hi` is the
-// value rounded to f32, `lo` is exactly what that rounding threw away.
-// The shader adds them back together with error-free arithmetic.
+// ================= THE REFERENCE ORBIT =================
+// Perturbation rewrites z(n+1) = z^2 + c for a point c = C + d as
+//     e(n+1) = 2*Z(n)*e(n) + e(n)^2 + d
+// where Z is the orbit of the reference point C. e and d are tiny, so
+// the shader can run that in float32 no matter how deep the view is -
+// all the precision is spent HERE, once per reference, instead of per
+// pixel per frame.
 //
-// The round-trip through a 4-byte buffer IS the f32 rounding - GML has
-// no float cast, and anything hand-rolled out of logs and powers would
-// be approximate, which would defeat the entire point. One buffer for
-// the whole run, made global so this object needs no CleanUp event to
-// avoid leaking it per room entry.
-if (!variable_global_exists("dd_buf")) g.dd_buf = buffer_create(4, buffer_fixed, 1);
-__split = function(_v) {
-	buffer_seek(g.dd_buf, buffer_seek_start, 0);
-	buffer_write(g.dd_buf, buffer_f32, _v);
-	buffer_seek(g.dd_buf, buffer_seek_start, 0);
-	var _hi = buffer_read(g.dd_buf, buffer_f32);
-	return [_hi, _v - _hi];   // hi + lo == _v, to the last bit
+// ⚖️ THE ORBIT IS STORED AS 24-BIT FIXED POINT IN AN RGB888 TEXTURE,
+// and the two limits meet exactly: 24 bits is what an RGB texel holds,
+// and it is also the most a float32 shader can DECODE, because
+// reconstructing more would need sums past 2^24. The twin confirms 24
+// bits renders identically to full precision. So no float surface and
+// no buffer_set_surface byte-order gamble - just ordinary draws.
+REF_W   = 256;    // texels across; two texels per orbit step (x then y)
+REF_MAX = 900;    // matches the iteration ceiling
+
+ref_surf  = -1;
+ref_len   = 0;
+ref_cx    = [0, 0];
+ref_cy    = [0, 0];
+ref_valid = false;
+ref_built = 0;    // how many times, for the readout
+
+// pack a value in [-2, 2] into a colour. |Z| never exceeds 2 for a
+// reference that stays in the set, which is the only kind worth having.
+__ref_pack = function(_v) {
+	var _u = clamp((_v + 2) / 4, 0, 1) * 16777215;
+	var _i = floor(_u);
+	var _r = _i mod 256;
+	var _g = (_i div 256) mod 256;
+	var _b = (_i div 65536) mod 256;
+	return make_colour_rgb(_r, _g, _b);
 };
 
-// the uniform handles, fetched ONCE - shader_get_uniform is a string
-// lookup and doing it per frame per uniform is a real cost for no gain
+// Compute the orbit at double-double precision and paint it into the
+// texture. Costs a few thousand draw calls, so it must NOT happen every
+// frame - see __ref_check.
+__ref_build = function() {
+	var _n = __iter();
+	var _lim = min(REF_MAX, max(64, ceil(_n * 1.15)));
+
+	// the orbit, in dd. Only the flattened value is kept: the shader
+	// needs Z to about 24 bits, not to 32 digits - the digits are for
+	// computing it accurately, not for storing it.
+	var _zx = [0, 0], _zy = [0, 0];
+	var _ox = array_create(_lim + 1, 0);
+	var _oy = array_create(_lim + 1, 0);
+	var _cnt = 0;                       // index 0 is Z0 = 0, already set
+	for (var _i = 1; _i <= _lim; _i++) {
+		var _zx2 = __ddmul(_zx, _zx);
+		var _zy2 = __ddmul(_zy, _zy);
+		var _nzy = __ddadd(__ddmul(__ddmul(_zx, _zy), [2, 0]), cy);
+		_zx = __ddadd(__ddsub(_zx2, _zy2), cx);
+		_zy = _nzy;
+		var _fx = __ddflat(_zx), _fy = __ddflat(_zy);
+		_ox[_i] = _fx;
+		_oy[_i] = _fy;
+		_cnt = _i;
+		// a reference that escapes is no use past the escape - and the
+		// centre of a view worth looking at is usually IN the set, so
+		// this mostly runs to the limit
+		if (_fx * _fx + _fy * _fy > 4) break;
+	}
+
+	// ---- paint it ----
+	// ceil, not a bare divide: REF_MAX*2/REF_W is 7.03, and asking for
+	// a surface 7.03 texels tall is asking for the last row of the
+	// orbit to land outside the texture.
+	if (!surface_exists(ref_surf))
+		ref_surf = surface_create(REF_W, ceil((REF_MAX + 1) * 2 / REF_W) + 1);
+	surface_set_target(ref_surf);
+	draw_clear_alpha(c_black, 1);
+	for (var _i = 0; _i <= _cnt; _i++) {
+		var _k = _i * 2;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
+			__ref_pack(_ox[_i]), 1);
+		_k += 1;
+		draw_sprite_ext(spr_pixel_1x1, 0, _k mod REF_W, _k div REF_W, 1, 1, 0,
+			__ref_pack(_oy[_i]), 1);
+	}
+	surface_reset_target();
+
+	ref_len   = _cnt;
+	ref_cx    = cx;
+	ref_cy    = cy;
+	ref_valid = true;
+	ref_built += 1;
+};
+
+// Rebuild only when the reference has stopped being useful: it drifted
+// out of the view, it is too short for the current budget, or the
+// surface was lost (they are volatile on windows). During a dive the
+// centre barely moves relative to the span, so this is rare - which is
+// what makes a few thousand draw calls an acceptable price.
+__ref_check = function() {
+	if (scale > DD_AT) return;                       // shallow: not needed
+	if (!surface_exists(ref_surf)) ref_valid = false;
+	if (!ref_valid) { __ref_build(); return; }
+	if (ref_len < __iter()) { __ref_build(); return; }
+	var _dx = __ddflat(__ddsub(cx, ref_cx));
+	var _dy = __ddflat(__ddsub(cy, ref_cy));
+	if (abs(_dx) > scale * 1.5 || abs(_dy) > scale * 1.5) __ref_build();
+};
+
+__pert_on = function() {
+	return (scale <= DD_AT) && ref_valid && surface_exists(ref_surf);
+};
+// the f32x2 path is the FALLBACK now: it covers the frame or two after
+// a view change when the reference has not been rebuilt yet, which is
+// exactly the gap that would otherwise show as a flicker of garbage.
+__dd_on = function() { return (scale <= DD_AT) && !__pert_on(); };
+
+// ---- uniform handles, fetched once ----
 u_centre = shader_get_uniform(sh_mandel, "u_centre");
 u_scale  = shader_get_uniform(sh_mandel, "u_scale");
 u_res    = shader_get_uniform(sh_mandel, "u_res");
@@ -151,36 +261,59 @@ u_sdd    = shader_get_uniform(sh_mandel, "u_scale_dd");
 u_dd     = shader_get_uniform(sh_mandel, "u_dd");
 u_aspect = shader_get_uniform(sh_mandel, "u_aspect");
 u_dbg    = shader_get_uniform(sh_mandel, "u_dbg");
+u_pert   = shader_get_uniform(sh_mandel, "u_pert");
+u_dcoff  = shader_get_uniform(sh_mandel, "u_dcoff");
+u_reflen = shader_get_uniform(sh_mandel, "u_reflen");
+u_reftex = shader_get_uniform(sh_mandel, "u_reftex");
+s_ref    = shader_get_sampler_index(sh_mandel, "u_ref");
 
-// AND CHECK THEM. shader_get_uniform returns -1 when a uniform is not
-// found, and shader_set_uniform_f on -1 is a SILENT no-op - so a name
-// that does not match, or one the shader compiler optimised away,
-// shows up only as a picture that is subtly or completely wrong. This
-// screen's failure mode for that is "one flat colour", which says
-// nothing about the cause; a named line in the log says everything.
+// AND CHECK THEM. shader_get_uniform returns -1 when a name does not
+// match or the compiler optimised it away, and shader_set_uniform_f on
+// -1 is a SILENT no-op - so the only evidence is a picture that is
+// wrong in a way that says nothing about the cause. Each one names
+// itself in the log instead.
 var _uni = [["u_centre", u_centre], ["u_scale", u_scale], ["u_res", u_res],
 	["u_iter", u_iter], ["u_time", u_time], ["u_pal", u_pal],
 	["u_glow", u_glow], ["u_centre_dd", u_cdd], ["u_scale_dd", u_sdd],
-	["u_dd", u_dd], ["u_aspect", u_aspect], ["u_dbg", u_dbg]];
+	["u_dd", u_dd], ["u_aspect", u_aspect], ["u_dbg", u_dbg],
+	["u_pert", u_pert], ["u_dcoff", u_dcoff], ["u_reflen", u_reflen],
+	["u_reftex", u_reftex], ["u_ref sampler", s_ref]];
 for (var _i = 0; _i < array_length(_uni); _i++)
 	if (_uni[_i][1] < 0)
 		show("sh_mandel > uniform NOT FOUND: " + _uni[_i][0]
 			+ " (the shader will fall back and the view will be wrong)");
 
-// screen pixel -> complex plane, at the CURRENT view. The one place
-// that conversion is written; the zoom-toward-cursor maths below and
-// any future click-to-do-something both go through it, so they cannot
-// disagree about where the pointer is.
+// ---- splitting a double for the SHADER's f32x2 path ----
+// Different job from the dd arithmetic above: that carries GML's own
+// float64s in pairs, this cuts one float64 into two float32s so it can
+// cross a uniform. The round-trip through a 4-byte buffer IS the f32
+// rounding - GML has no float cast, and anything built from logs and
+// powers would be approximate, which defeats the point.
+if (!variable_global_exists("dd_buf")) g.dd_buf = buffer_create(4, buffer_fixed, 1);
+__split = function(_v) {
+	buffer_seek(g.dd_buf, buffer_seek_start, 0);
+	buffer_write(g.dd_buf, buffer_f32, _v);
+	buffer_seek(g.dd_buf, buffer_seek_start, 0);
+	var _hi = buffer_read(g.dd_buf, buffer_f32);
+	return [_hi, _v - _hi];
+};
+
+// screen pixel -> complex plane, at the CURRENT view, in dd. THE one
+// place that conversion is written, so the anchor maths and anything
+// added later cannot disagree about where the pointer is.
 __at = function(_px, _py) {
 	var _ar = room_width / room_height;
 	return {
-		x : cx + ((_px / room_width)  - 0.5) * 2 * scale * _ar,
-		y : cy + ((_py / room_height) - 0.5) * 2 * scale,
+		x : __ddadd(cx, [((_px / room_width)  - 0.5) * 2 * scale * _ar, 0]),
+		y : __ddadd(cy, [((_py / room_height) - 0.5) * 2 * scale, 0]),
 	};
 };
 
-// a small set of places worth arriving at, for [space]. Hand-picked:
+// a small set of places worth arriving at, for [space]. Hand-picked -
 // the interesting parts of this set are not where you land by accident.
+// The coordinates are float64 literals, so these are shallow
+// destinations by construction; going deeper than ~1e-14 means steering
+// there yourself, where the anchor carries the full dd precision.
 tour = [
 	{ x : -0.75,               y :  0.0,                s : 1.35,     n : "the whole set" },
 	{ x : -0.7436438870371587, y :  0.1318259042053120, s : 0.00002,  n : "seahorse valley" },
