@@ -9,7 +9,23 @@ var _p  = pal_list[pal_set];
 shader_set(sh_mandel);
 shader_set_uniform_f(u_centre, cx, cy);
 shader_set_uniform_f(u_scale,  scale);
-shader_set_uniform_f(u_res,    room_width, room_height);
+// ⚖️ THE RENDER TARGET'S SIZE, NOT THE ROOM'S. gl_FragCoord counts
+// pixels of whatever surface is being drawn into, and
+// application_surface is sized to the WINDOW - so dividing it by the
+// room gave a coordinate wrong by the window/room ratio. That is what
+// made the picture a stretched crop AND made zoom-toward-cursor point
+// somewhere the cursor was not: GML normalises the mouse by the room,
+// so the two only agree when the shader normalises by its own target.
+var _rw = room_width, _rh = room_height;
+if (surface_exists(application_surface)) {
+	_rw = surface_get_width(application_surface);
+	_rh = surface_get_height(application_surface);
+}
+shader_set_uniform_f(u_res,    _rw, _rh);
+// the aspect is the ROOM's - it decides the shape the player sees, and
+// should not change if the surface is ever letterboxed
+shader_set_uniform_f(u_aspect, room_width / room_height);
+shader_set_uniform_f(u_dbg,    dbg ? 1 : 0);
 shader_set_uniform_f(u_iter,   _it);
 shader_set_uniform_f(u_time,   current_time / 1000);
 shader_set_uniform_f(u_pal,    _p.r, _p.g, _p.b, pal_shift);
@@ -24,26 +40,10 @@ var _ss = __split(scale);
 shader_set_uniform_f(u_cdd, _sx[0], _sx[1], _sy[0], _sy[1]);
 shader_set_uniform_f(u_sdd, _ss[0], _ss[1]);
 shader_set_uniform_f(u_dd,  _dd ? 1 : 0);
-// ⚖️ A HAND-BUILT QUAD, not draw_sprite_ext, and the texture
-// coordinates are the entire reason. A stretched sprite carries the UVs
-// of its ATLAS PAGE - for spr_pixel_1x1 that is one texel, effectively
-// constant across the screen - so the shader had nothing to work with.
-// Supplying the corners explicitly makes v_vTexcoord exactly 0..1
-// across the quad, in the room's own orientation, independent of the
-// atlas, of application_surface's size, and of whether the render
-// target counts y from the top or the bottom. That last part is what
-// makes the shader's pixel-to-complex mapping agree with __at()'s,
-// which is what makes zoom-toward-cursor land where the cursor is.
-// The texture is bound but never sampled; it is only here because
-// draw_vertex_texture needs one.
-draw_set_colour(c_white);
-draw_set_alpha(1);
-draw_primitive_begin_texture(pr_trianglestrip, sprite_get_texture(spr_pixel_1x1, 0));
-draw_vertex_texture(0,          0,           0, 0);
-draw_vertex_texture(room_width, 0,           1, 0);
-draw_vertex_texture(0,          room_height, 0, 1);
-draw_vertex_texture(room_width, room_height, 1, 1);
-draw_primitive_end();
+// a plain stretched sprite - this is the draw that demonstrably
+// renders. The shader takes its coordinate from gl_FragCoord, so
+// nothing here has to carry one.
+draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_white, 1);
 shader_reset();
 
 if (!show_hud) exit;
@@ -91,7 +91,7 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 draw_set_color(sett_ink);
 draw_set_alpha(.45);
 draw_text(_pad + 5, room_height - 22, "drag pan   wheel zoom   space tour");
-draw_text(_pad + 5, room_height - 12, "c palette   g glow   h hud   q back");
+draw_text(_pad + 5, room_height - 12, "c palette   g glow   h hud   v coords   q back");
 
 draw_set_alpha(1);
 draw_set_color(c_white);

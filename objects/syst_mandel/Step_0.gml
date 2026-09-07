@@ -84,6 +84,10 @@ if (keyboard_check_pressed(ord("G"))) {
 	play_sound_ext(snd_softclick, 1, 1.1, .4, 0);
 }
 if (keyboard_check_pressed(ord("H"))) show_hud = !show_hud;
+if (keyboard_check_pressed(ord("V"))) {
+	dbg = !dbg;
+	play_sound_ext(snd_softclick, 1, 1.1, .4, 0);
+}
 if (keyboard_check_pressed(vk_space)) {
 	// step the tour. Jumping the centre outright and letting only the
 	// SCALE ease reads as a cut followed by a dive, which is exactly

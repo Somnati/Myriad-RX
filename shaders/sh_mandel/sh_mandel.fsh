@@ -48,35 +48,35 @@
 //    fractal gradient is exactly what re-bands on the way out. Same
 //    temporal IGN dither the fog shader uses, for the same reason.
 //
-// ⚖️ THE QUAD COORDINATE IS HANDED IN, on the vertex stream. Three
-// ways to get it were tried and all three were wrong, each for its own
-// reason - worth listing, because the failures look identical on screen
-// and the causes are not:
+// ⚖️ THE SCREEN COORDINATE. Four attempts, and the history is worth
+// keeping because the failures look identical and the causes do not:
 //
-//   1. v_vTexcoord from a stretched spr_pixel_1x1. A 1x1 sprite's UVs
-//      are a single texel of its atlas page, so the value is very
-//      nearly constant across the whole screen. -> one flat colour.
-//   2. a coordinate computed in the VERTEX stage as in_Position/u_res.
-//      A uniform read in the vertex stage is not reliably populated by
-//      shader_set_uniform_f, so u_res was zero, the divide made NaN,
-//      and every NaN comparison is false - every pixel took the same
-//      branch. -> one flat colour, again.
-//   3. gl_FragCoord / room_size. gl_FragCoord is in RENDER TARGET
-//      pixels, and application_surface is sized to the WINDOW, not to
-//      the room. So the divisor was wrong by the window/room ratio:
-//      the picture was a stretched crop (which still looks like a
-//      mandelbrot, so it passed a glance) and - the real damage - the
-//      shader's pixel-to-complex mapping no longer agreed with the
-//      one __at() uses in GML. Zoom-toward-cursor computes the anchor
-//      in GML and the shader draws somewhere else, so it zooms at the
-//      wrong point no matter how correct the anchor maths is.
+//   1. v_vTexcoord off a stretched spr_pixel_1x1. A 1x1 sprite's UVs
+//      are one texel of its atlas page, so the value is near-constant
+//      across the screen. -> one flat colour.
+//   2. computed in the VERTEX stage as in_Position/u_res. Vertex-stage
+//      uniforms are not reliably populated by shader_set_uniform_f, so
+//      u_res was zero, the divide made NaN, and every NaN comparison
+//      is false. -> one flat colour.
+//   3. gl_FragCoord / ROOM size. This one RENDERED - it was the
+//      version he called "looks cool" - but the divisor was wrong:
+//      gl_FragCoord is in RENDER TARGET pixels and application_surface
+//      is sized to the WINDOW. So the picture was a stretched crop,
+//      and the shader's pixel-to-complex mapping disagreed with the
+//      one __at() uses in GML - which is why zoom-toward-cursor
+//      pointed somewhere else no matter how correct its algebra was.
+//   4. explicit texture coordinates on a hand-built primitive. Sound
+//      in principle, and it went flat again: whatever GM does with an
+//      immediate-mode primitive's texcoords under a custom shader, they
+//      did not arrive. -> one flat colour, with the real fractal
+//      flickering through during zooms.
 //
-// The cure for all three is to stop DERIVING the coordinate from
-// something that happens to be lying around. The draw call supplies it
-// on the vertex stream as explicit texture coordinates 0..1 (see
-// syst_mandel's Draw), which cannot disagree with anything: not with
-// the atlas, not with the surface size, not with the render target's
-// y-orientation, and therefore not with __at().
+// So: back to gl_FragCoord, which demonstrably renders, with the
+// divisor it always should have had - the RENDER TARGET's size, handed
+// in from GML. Both sides then normalise to the same 0..1 and the
+// mouse maths finally agrees with the picture. The aspect ratio is
+// passed separately, because it is a property of the ROOM (the shape
+// the player sees) and not of whatever surface it landed on.
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
@@ -92,6 +92,8 @@ uniform float u_glow;     // 0..1 strength of the distance-estimate rim
 uniform vec4  u_centre_dd; // (cx_hi, cx_lo, cy_hi, cy_lo)
 uniform vec2  u_scale_dd;  // (hi, lo)
 uniform float u_dd;        // >0.5 = take the double-double path
+uniform float u_aspect;    // ROOM width/height - the shape, not the surface
+uniform float u_dbg;       // >0.5 = draw the normalised coordinate instead
 
 // the hard ceiling. GLSL ES wants a constant bound; u_iter breaks out
 // early, so this only sets the worst case the compiler must plan for.
@@ -166,12 +168,28 @@ void main()
     vec2 sc  = (u_scale > 0.0) ? vec2(u_scale) : vec2(1.35);
     float it = (u_iter > 1.0) ? u_iter : 120.0;
 
-    // v_vTexcoord is EXACTLY 0..1 across the quad - the draw call put
-    // it there. u_res is now used only for the aspect ratio, never as
-    // a divisor for a screen position, so the window size cannot get
-    // into this maths at all.
-    vec2 uv = (v_vTexcoord - 0.5) * 2.0;
-    uv.x *= res.x / res.y;
+    // u_res is the RENDER TARGET's size, so this is 0..1 across the
+    // screen - the same 0..1 that mouse_x/room_width gives on the GML
+    // side, which is the whole point.
+    vec2 q = gl_FragCoord.xy / res;
+
+    // ---- THE DIAGNOSTIC VIEW ----
+    // Every failure of this coordinate has looked the same from the
+    // outside: a flat screen, or a picture subtly in the wrong place.
+    // [v] paints the coordinate itself - red rising left to right,
+    // green rising down the screen - so the next time it goes wrong
+    // the answer is one screenshot instead of another round of
+    // guessing. A flat result means the coordinate is dead; a green
+    // ramp running the wrong way means the render target counts y from
+    // the other end, which the fractal itself can never reveal because
+    // the set is symmetric about the real axis.
+    if (u_dbg > 0.5) {
+        gl_FragColor = vec4(q.x, q.y, 0.25, 1.0);
+        return;
+    }
+
+    vec2 uv = (q - 0.5) * 2.0;
+    uv.x *= (u_aspect > 0.01) ? u_aspect : (res.x / res.y);
     vec2 c = u_centre + uv * sc.x;
 
     // ---- exact interior tests (1): main cardioid, then period-2 bulb

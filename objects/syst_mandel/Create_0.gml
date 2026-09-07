@@ -97,6 +97,10 @@ pal_list = [
 pal_shift = 0;
 glow      = 0.55;
 show_hud  = true;
+// [v] paints the raw screen coordinate instead of the fractal. Every
+// way this coordinate has been wrong looks the same from outside - a
+// flat screen - so there is now a way to see the coordinate itself.
+dbg       = false;
 
 // ---- the iteration budget ----
 // Detail costs iterations only as you zoom: at the default view a few
@@ -145,6 +149,8 @@ u_glow   = shader_get_uniform(sh_mandel, "u_glow");
 u_cdd    = shader_get_uniform(sh_mandel, "u_centre_dd");
 u_sdd    = shader_get_uniform(sh_mandel, "u_scale_dd");
 u_dd     = shader_get_uniform(sh_mandel, "u_dd");
+u_aspect = shader_get_uniform(sh_mandel, "u_aspect");
+u_dbg    = shader_get_uniform(sh_mandel, "u_dbg");
 
 // AND CHECK THEM. shader_get_uniform returns -1 when a uniform is not
 // found, and shader_set_uniform_f on -1 is a SILENT no-op - so a name
@@ -155,7 +161,7 @@ u_dd     = shader_get_uniform(sh_mandel, "u_dd");
 var _uni = [["u_centre", u_centre], ["u_scale", u_scale], ["u_res", u_res],
 	["u_iter", u_iter], ["u_time", u_time], ["u_pal", u_pal],
 	["u_glow", u_glow], ["u_centre_dd", u_cdd], ["u_scale_dd", u_sdd],
-	["u_dd", u_dd]];
+	["u_dd", u_dd], ["u_aspect", u_aspect], ["u_dbg", u_dbg]];
 for (var _i = 0; _i < array_length(_uni); _i++)
 	if (_uni[_i][1] < 0)
 		show("sh_mandel > uniform NOT FOUND: " + _uni[_i][0]
