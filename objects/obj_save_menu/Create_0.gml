@@ -92,6 +92,19 @@ prof_info = array_create(4, undefined);  // each profile's MAIN save
 // nothing, and it stops "2 minutes ago" from quietly becoming a lie
 scan_tic = 0;
 
+// AN OS FILE DIALOG IS NEVER OPENED FROM INSIDE AN EVENT CALLBACK.
+// get_open_filename / get_save_filename are MODAL: they block the whole
+// game loop, and on Windows they fight an exclusive-fullscreen window
+// for the display. Firing one from inside the dialogue's option handler
+// meant the box that launched it was still on screen, undrawn-over,
+// when the OS took over - which is how he ended up looking at a file
+// manager over a frozen game he could not get back to.
+// So the button only ARMS a job here; the Step runs it once the
+// dialogue has closed AND a few clean frames have been drawn. Whatever
+// the OS then does, there is a live, correct game sitting behind it.
+pending   = "";  // "" / "export" / "import"
+pending_t = 0;   // frames of settled screen still owed
+
 // ---- reading the files ----
 // profile rows peek their MAIN save for name, colour, profit and
 // playtime. the SAVED name and colour are the profile's real identity,
@@ -329,26 +342,37 @@ dt_act_load_auto = function() {
 	goto_room(rm_clicker);
 };
 
+// the two transfer buttons only ARM their job (see `pending` above);
+// the Step opens the OS dialog on a clean frame
+dt_act_export = function() { pending = "export"; pending_t = 3; };
+dt_act_import = function() { pending = "import"; pending_t = 3; };
+
 // EXPORT reads the SELECTED profile's file and never flushes the live
 // run into it - save_export's `file` argument exists for exactly this,
 // because the flush would overwrite the very save being backed up.
-dt_act_export = function() {
+__do_export = function() {
 	var _f = save_slot_path(0, sel_prof);
 	if (!file_exists(_f)) { show("nothing to export > this profile has no save"); return; }
 	if (os_type == os_android) save_export_saf(_f); else save_export(_f);
 };
 
 // IMPORT lands on the selected profile and ADOPTS it, the same rule
-// dt_act_save follows: the file is written to that profile's main save
-// and loaded, so you are playing what you just imported. Pointing the
-// save system by hand (rather than through set_profile) is deliberate -
-// set_profile would game_reset an empty profile before the import could
-// land in it.
-dt_act_import = function() {
+// dt_act_save follows: you are playing what you just imported.
+// THE DESTINATION IS PASSED IN, never pre-assigned. The first cut of
+// this pointed g.profile and file_to_handle at the target BEFORE
+// opening the picker, so backing out of the dialog left the save system
+// aimed somewhere else - and syst_handle_save's Step first-saves any
+// file_to_handle that does not exist, which means a cancelled import
+// could quietly copy the live run into an empty profile. Nothing is
+// touched now until a file has actually been read and applied.
+__do_import = function() {
+	var _dest = save_slot_path(0, sel_prof);
+	// android's picker is ASYNCHRONOUS: the file has not arrived yet,
+	// so the apply AND the adoption happen in syst_handle_save's Async
+	// Social handler off the profile stashed here
+	if (os_type == os_android) { save_import_saf(sel_prof); return; }
+	if (!save_import(_dest)) return;  // cancelled or rejected: nothing moved
 	g.profile = sel_prof;
-	syst_handle_save.file_to_handle = save_slot_path(0);
-	var _ok = (os_type == os_android) ? save_import_saf() : save_import();
-	if (!_ok) return;
 	g.game_started = true;
 	__refresh_prof();
 	__refresh_slots();

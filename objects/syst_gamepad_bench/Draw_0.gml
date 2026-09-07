@@ -19,8 +19,7 @@ draw_set_alpha(.7);
 draw_text_transformed(106, bby + 5,
 	"plug in a pad - sticks, rebinds, rumble", .85, .85, 0);
 draw_set_alpha(1);
-draw_ui_button(room_width - 62, bby + 1, 56, 13, "back",
-	rgb(170, 190, 230), true, false);
+draw_ui_back(room_width - 62, bby + 1, 56, 13);
 
 // ---- left: device slots ----
 for (var _i = 0; _i < 12; _i++) {

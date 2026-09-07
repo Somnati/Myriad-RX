@@ -30,8 +30,7 @@ draw_text(6, bby + 8, ng_mode
 draw_set_alpha(1);
 
 var _bk = __back_rect();
-draw_ui_button(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1,
-	"back", _steel, true, false);
+draw_ui_back(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1);
 
 // ===================== the profile rail =====================
 // menu2's colour language, exactly as statistics uses it: identity pip

@@ -233,14 +233,8 @@ __draw_strip = function() {
 	draw_set_alpha(g.settings_hints ? .95 : .6);
 	draw_text(_hx + 1, _hy - 3, "?");
 
-	// [back]
-	draw_set_alpha(1);
-	draw_sprite_ext(spr_pixel_1x1, 0, room_width - 62, bby + 1, 56, 13, 0, c_black, .8);
-	draw_px_rect(room_width - 62, bby + 1, 56, 13, rgb(170, 190, 230), .9);
-	draw_set_halign(fa_center);
-	draw_set_color(c_white);
-	draw_set_alpha(.9);
-	draw_text(room_width - 34, bby + 4, "back");
+	// [back] - the one shape, shared by every menu screen
+	draw_ui_back(room_width - 62, bby + 1, 56, 13);
 
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);

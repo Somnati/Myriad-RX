@@ -8,6 +8,23 @@ if (scan_tic <= 0) {
 	__refresh_slots();
 }
 
+// THE DEFERRED OS DIALOG (see `pending` in Create). Hold while the
+// dialogue box is still unwinding, then let a few frames draw a settled
+// screen before handing the display to Windows. The job is cleared
+// BEFORE it runs, so a dialog that misbehaves can never re-arm itself.
+if (pending != "") {
+	if (instance_exists(obj_dialogue) && obj_dialogue.dialogue_active)
+		pending_t = 3;
+	else if (pending_t > 0)
+		pending_t -= delta;
+	else {
+		var _job = pending;
+		pending = "";
+		if (_job == "export") __do_export(); else __do_import();
+	}
+	exit;  // nothing else on this screen acts while a transfer is armed
+}
+
 // Region UI plays by syst_input's rules: input must be free (no
 // dialogue or menu up - begin-step timing would otherwise eat the very
 // click that picked a popup option) and no button instance may own the
@@ -92,8 +109,10 @@ if (mouse_check_button_pressed(mb_left)) {
 			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 			obj_dialogue.box_col_border = g.profile_color[sel_prof];
 			switch (_b.id) {
-				// export runs straight away: it only READS, and the file
-				// dialog it opens is its own confirmation
+				// export needs no confirm - it only READS, and the file
+				// dialog it opens is its own confirmation - but it still
+				// goes through the deferred lane, because the dialog is
+				// modal either way
 				case "export": dt_act_export(); break;
 				case "import": obj_dialogue.dialogue_start(dt_ask_import); break;
 				case "wipe":   obj_dialogue.dialogue_start(dt_ask_delete); break;

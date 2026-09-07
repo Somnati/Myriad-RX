@@ -17,14 +17,8 @@ draw_set_color(sett_ink);
 draw_set_alpha(.85);
 draw_text(6, bby + 4, "services (debug bench)");
 
-// [back]
-draw_set_alpha(1);
-draw_sprite_ext(spr_pixel_1x1, 0, room_width - 62, bby + 1, 56, 13, 0, c_black, .8);
-draw_px_rect(room_width - 62, bby + 1, 56, 13, rgb(170, 190, 230), .9);
-draw_set_halign(fa_center);
-draw_set_color(c_white);
-draw_set_alpha(.9);
-draw_text(room_width - 34, bby + 4, "back");
+// [back] - the one shape, shared by every menu screen
+draw_ui_back(room_width - 62, bby + 1, 56, 13);
 
 // ---- the button column ----
 for (var _i = 0; _i < array_length(rows); _i++) {

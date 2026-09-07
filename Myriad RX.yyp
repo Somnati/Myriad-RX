@@ -210,6 +210,7 @@
     {"id":{"name":"draw_row_collapsed","path":"scripts/draw_row_collapsed/draw_row_collapsed.yy",},},
     {"id":{"name":"draw_sprite_color","path":"scripts/draw_sprite_color/draw_sprite_color.yy",},},
     {"id":{"name":"draw_status_pill","path":"scripts/draw_status_pill/draw_status_pill.yy",},},
+    {"id":{"name":"draw_ui_back","path":"scripts/draw_ui_back/draw_ui_back.yy",},},
     {"id":{"name":"draw_ui_button","path":"scripts/draw_ui_button/draw_ui_button.yy",},},
     {"id":{"name":"float_text","path":"scripts/float_text/float_text.yy",},},
     {"id":{"name":"free_banner","path":"scripts/free_banner/free_banner.yy",},},
