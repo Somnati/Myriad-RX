@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"crunch_time_ago",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"crunch_time_ago",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

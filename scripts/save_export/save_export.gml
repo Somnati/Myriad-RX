@@ -1,12 +1,22 @@
-/// @description save_export();
-/// writes the current save out to a file the PLAYER can reach, dodging
+/// @description save_export([file]);
+/// @param [file]
+/// writes a save out to a file the PLAYER can reach, dodging
 /// the clipboard size limit that truncated big myriad saves on mobile.
 /// desktop: system save dialog, plain readable ini. mobile: clipboard
 /// fallback until the android SAF (file picker) extension lands.
 /// returns true if the save left the building.
-function save_export() {
+/// `file` defaults to the ACTIVE profile's save. The saves menu passes
+/// another profile's path to export THAT one - and the flush below is
+/// deliberately skipped in that case: writing the live run into a file
+/// we were only asked to read would overwrite the very profile the
+/// player wanted a backup of.
+function save_export(_file = "") {
 
-	// flush the live state to disk first, so the export is current
+	var _src = (_file == "") ? syst_handle_save.file_to_handle : _file;
+
+	// flush the live state to disk first so the export is current -
+	// but ONLY when the file being exported IS the live one
+	if (_src == syst_handle_save.file_to_handle)
 	with (syst_handle_save) {
 		action = sv_save;
 		handle_save();
@@ -14,7 +24,6 @@ function save_export() {
 		action = -1;
 	}
 
-	var _src = syst_handle_save.file_to_handle;
 	if (!file_exists(_src)) { show("export failed > no savefile"); return false; }
 
 	if (os_type == os_windows || os_type == os_macosx || os_type == os_linux) {

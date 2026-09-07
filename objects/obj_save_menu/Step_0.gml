@@ -1,96 +1,130 @@
-
-// kh slide between the two pages
-slide += (page - slide) * .2;
-if (abs(page - slide) < .002) slide = page;
-
-// refresh the profile cards whenever page 0 settles back in (a save
-// may have been created since)
-if (page == 1) prof_fresh = false;
-if (page == 0 && slide < .02 && !prof_fresh) {
-	for (var _i = 0; _i < 4; _i++) {
-		prof_info[_i] = save_slot_info(save_slot_path(0, _i));
-		if (prof_info[_i].valid) {
-			if (prof_info[_i].name != "") g.profile_name[_i]  = prof_info[_i].name;
-			if (prof_info[_i].color >= 0) g.profile_color[_i] = prof_info[_i].color;
-		}
-	}
-	prof_fresh = true;
+// The cards go stale on their own: the autosave clock fires every 60s
+// while this room is open, so a slow re-peek keeps "2 minutes ago"
+// honest. Nine small ini reads every 90 frames costs nothing.
+scan_tic -= delta;
+if (scan_tic <= 0) {
+	scan_tic = 90;
+	__refresh_prof();
+	__refresh_slots();
 }
 
-// region ui plays by syst_input's rules: input must be free (no
-// dialogue/menu up: begin-step timing also eats the click that picks
-// an option) and no button instance may own the pointer over a row
+// Region UI plays by syst_input's rules: input must be free (no
+// dialogue or menu up - begin-step timing would otherwise eat the very
+// click that picked a popup option) and no button instance may own the
+// pointer over a row.
 if (input_free())
 if (g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
 	var _mx = mouse_x;
 	var _my = mouse_y;
 
-	// back, top right (was MISSING - the title's load path stranded
-	// you here; the nav stack returns wherever you came from)
-	if (point_in_rectangle(_mx, _my, room_width - 62,
-		obj_ui_header.sprite_height + 1, room_width - 6,
-		obj_ui_header.sprite_height + 14)) {
+	// ---- back, top right of the strip ----
+	var _bk = __back_rect();
+	if (point_in_rectangle(_mx, _my, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
 		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
+		// on the difficulty page, back means back to the profiles -
+		// the run is not started and nothing has been deleted yet
+		if (page == 1) { page = 0; exit; }
 		back_room();
 		exit;
 	}
 
-	if (page == 0 && slide < .5) {
-		// ---- profile list ----
-		for (var _i = 0; _i < 4; _i++) {
-			var _ry = row_y0 + _i * row_sp;
-			if (point_in_rectangle(_mx, _my, row_x, _ry, row_x + row_w, _ry + row_h)) {
-				sel_prof = _i;
-				play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
-				// new-game mode: occupied slot = confirm the overwrite
-				// first; empty slot = straight to the difficulty page
-				if (ng_mode) {
-					var _has = !is_undefined(prof_info[_i]) && prof_info[_i].valid;
-					if (_has) {
-						obj_dialogue.box_col_border = g.profile_color[sel_prof];
-						obj_dialogue.dialogue_start(dt_ng_over);
-					} else page = 1;
-					break;
-				}
-				// refresh the slot cards for this profile
-				for (var _j = 0; _j < 5; _j++)
-					info[_j] = save_slot_info(save_slot_path(slot_of_row[_j], sel_prof));
-				page = 1;
-				break;
-			}
+	// ---- the profile rail: always live, on every page ----
+	// This is what the rail bought over the old two-page slide - you
+	// can switch profiles from anywhere without unwinding first.
+	var _tb = __tabs();
+	for (var _i = 0; _i < 4; _i++) {
+		var _t = _tb[_i];
+		if (!point_in_rectangle(_mx, _my, _t.x1, _t.y1, _t.x2, _t.y2)) continue;
+		if (_i != sel_prof) {
+			sel_prof = _i;
+			page = 0;   // a different profile means a different question
+			__refresh_slots();
+			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 		}
-	} else if (page == 1 && slide > .5) {
-		// new-game mode: page 1 is the difficulty picker - the pick
-		// pulls the trigger (wipe slot, reset run, first-save, play)
-		if (ng_mode) {
-			for (var _i = 0; _i < 4; _i++) {
-				var _ry = row_y0 + _i * row_sp;
-				if (!point_in_rectangle(_mx, _my, row_x, _ry, row_x + row_w, _ry + row_h)) continue;
-				ng_start(_i);
-				break;
+		exit;
+	}
+
+	// nothing below here lives in the rail
+	if (_mx < rail_w) exit;
+
+	// ---- page 1: the difficulty picker (ng_mode only) ----
+	// the pick pulls the trigger: wipe the slot, reset the run,
+	// first-save, play. Until this tap every file is still intact.
+	if (page == 1) {
+		for (var _i = 0; _i < 4; _i++) {
+			var _ry = __row_y(_i);
+			if (!point_in_rectangle(_mx, _my, rail_w, _ry, room_width, _ry + row_h)) continue;
+			ng_start(_i);
+			exit;
+		}
+		var _nb = __ngbtn();
+		if (point_in_rectangle(_mx, _my, _nb.x, _nb.y, _nb.x + _nb.w, _nb.y + _nb.h)) {
+			play_sound_ext(snd_matclick2, .8, .9, .5, 1);
+			page = 0;
+		}
+		exit;
+	}
+
+	// ---- the action band ----
+	if (ng_mode) {
+		var _nb = __ngbtn();
+		if (point_in_rectangle(_mx, _my, _nb.x, _nb.y, _nb.x + _nb.w, _nb.y + _nb.h)) {
+			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
+			// an occupied profile confirms the overwrite first; an
+			// empty one goes straight to the difficulty page
+			if (__phas(sel_prof)) {
+				obj_dialogue.box_col_border = g.profile_color[sel_prof];
+				obj_dialogue.dialogue_start(dt_ng_over);
+			} else page = 1;
+			exit;
+		}
+	} else {
+		var _bd = __band();
+		for (var _i = 0; _i < 3; _i++) {
+			var _b = _bd[_i];
+			if (!point_in_rectangle(_mx, _my, _b.x, _b.y, _b.x + _b.w, _b.y + _b.h)) continue;
+			// export and delete need a file to work on; import does not
+			if (_b.id != "import" && !__phas(sel_prof)) {
+				play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+				exit;
+			}
+			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
+			obj_dialogue.box_col_border = g.profile_color[sel_prof];
+			switch (_b.id) {
+				// export runs straight away: it only READS, and the file
+				// dialog it opens is its own confirmation
+				case "export": dt_act_export(); break;
+				case "import": obj_dialogue.dialogue_start(dt_ask_import); break;
+				case "wipe":   obj_dialogue.dialogue_start(dt_ask_delete); break;
 			}
 			exit;
 		}
-		// (back navigation is the framework obj_button_back now)
-		for (var _i = 0; _i < 5; _i++) {
-			var _ry = row_y0 + _i * row_sp;
-			if (!point_in_rectangle(_mx, _my, row_x, _ry, row_x + row_w, _ry + row_h)) continue;
-			var _slot = slot_of_row[_i];
+	}
 
-			if (_slot == 4) { show("rebirth slot > reserved"); break; }
+	// ---- the slot rows ----
+	// In new-game mode the rows are read-only: you are here to see what
+	// you would be overwriting, not to load it.
+	if (ng_mode) exit;
 
-			// clicking a slot opens the options popup: the dialogue
-			// trees (bound methods in create) do the actual work.
-			// the box wears the savefile's personal color
-			dlg_row = _i;
-			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
-			obj_dialogue.box_col_border = g.profile_color[sel_prof];
-			if (_slot == 0)
-				obj_dialogue.dialogue_start(info[_i].valid ? dt_slot_main : dt_slot_new);
-			else
-				obj_dialogue.dialogue_start(info[_i].valid ? dt_slot_auto : dt_slot_empty);
-			break;
-		}
+	for (var _i = 0; _i < 5; _i++) {
+		var _ry = __row_y(_i);
+		if (!point_in_rectangle(_mx, _my, rail_w, _ry, room_width, _ry + row_h)) continue;
+		var _slot = slot_of_row[_i];
+
+		// tapping a row opens the options popup; the dialogue trees
+		// (bound methods in Create) do the actual work. The box wears
+		// the savefile's personal colour.
+		dlg_row = _i;
+		play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
+		obj_dialogue.box_col_border = g.profile_color[sel_prof];
+		var _ok = !is_undefined(info[_i]) && info[_i].valid;
+		if (_slot == 0)
+			obj_dialogue.dialogue_start(_ok ? dt_slot_main : dt_slot_new);
+		else if (_slot == 4)
+			obj_dialogue.dialogue_start(_ok ? dt_slot_rebirth : dt_slot_rebirth_empty);
+		else
+			obj_dialogue.dialogue_start(_ok ? dt_slot_auto : dt_slot_empty);
+		exit;
 	}
 }

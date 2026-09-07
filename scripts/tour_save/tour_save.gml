@@ -50,23 +50,50 @@
 //                      player-reachable export/import: a system file
 //                      dialog on desktop (plain readable ini), the
 //                      clipboard on mobile until the SAF picker lands.
-//   save_slot_info     peek a file's name/colour/profit/playtime
-//                      (+ playtime_off; a pre-split save reads 0 there,
-//                      so its total simply equals its active time)
-//                      without loading it (the menu cards).
+//                      save_export takes an OPTIONAL file, so the menu
+//                      can export a profile that is not the one being
+//                      played - and it skips its freshness flush in
+//                      that case, or the flush would write the live run
+//                      over the very save being backed up.
+//   save_slot_info     peek a file WITHOUT loading it - name, colour,
+//                      profit, playtime (+ playtime_off; a pre-split
+//                      save reads 0 there, so its total simply equals
+//                      its active time), and since 2026-09-07 the four
+//                      that were on disk unread: DATETIME (the stamp
+//                      the menu now shows on every row), difficulty,
+//                      credits, rebirth total.
 //   set_profile(i)     switch profile: repoint, recover, load; a
 //                      fresh profile runs game_reset first.
 //   game_reset         THE fresh-run reset, in memory, no
 //                      game_restart. New systems add their reset here.
 //   clipboard_get / _set   the extension wrappers.
-//   obj_save_menu + obj_button_* + rm_saves   the KH-style menu:
-//                      page 0 = four profiles, page 1 = that
-//                      profile's slots (autosaves, main, rebirth).
-//                      obj_button_save / _load / _delete / _export /
-//                      _import act on the picked slot; obj_button_back
-//                      returns to the profile page.
-//                      Also the NEW GAME flow: pick slot -> overwrite
-//                      confirm -> difficulty -> game_reset -> save.
+//   obj_save_menu + rm_saves   the menu, REBUILT 2026-09-07 in the
+//                      settings room's shape: a LEFT RAIL of the four
+//                      profiles (colour-coded from their own files),
+//                      the selected profile's five slots as the
+//                      content band, and an action band under them
+//                      (export / import / delete profile) bound to the
+//                      profile on screen. Rows are the FILES, the band
+//                      is the PROFILE. Every row carries a stamp
+//                      (crunch_time_ago) - without one the three
+//                      rotating autosaves are indistinguishable.
+//                      Tapping a row opens a dialogue tree; the
+//                      REBIRTH row is a real restore point (it used to
+//                      say "reserved" while rebirth_do quietly wrote
+//                      it every time).
+//                      Also the NEW GAME flow: pick profile ->
+//                      overwrite confirm -> difficulty -> game_reset
+//                      -> save. Nothing is deleted until the
+//                      difficulty tap, so backing out is always safe.
+//                      RETIRED, kept dormant: obj_button_save / _load
+//                      / _delete / _export / _import / _export_saf /
+//                      _import_saf / _back. The first seven were
+//                      hard-placed in the room's bottom-right corner
+//                      and acted on syst_handle_save.file_to_handle -
+//                      the ACTIVE file, never the profile on screen -
+//                      and _delete wiped a save with no confirm at
+//                      all. They were also why rm_saves could not take
+//                      a portrait twin.
 
 // ============================ TRAPS =================================
 //   - Packed arbs ride the ini as plain reals. Floor them on load.

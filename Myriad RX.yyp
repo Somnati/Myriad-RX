@@ -180,6 +180,7 @@
     {"id":{"name":"credit_tick","path":"scripts/credit_tick/credit_tick.yy",},},
     {"id":{"name":"credits_init","path":"scripts/credits_init/credits_init.yy",},},
     {"id":{"name":"crunch_arb","path":"scripts/crunch_arb/crunch_arb.yy",},},
+    {"id":{"name":"crunch_time_ago","path":"scripts/crunch_time_ago/crunch_time_ago.yy",},},
     {"id":{"name":"crunch_time_long","path":"scripts/crunch_time_long/crunch_time_long.yy",},},
     {"id":{"name":"crunch_time","path":"scripts/crunch_time/crunch_time.yy",},},
     {"id":{"name":"debug_pro_watch","path":"scripts/debug_pro_watch/debug_pro_watch.yy",},},
