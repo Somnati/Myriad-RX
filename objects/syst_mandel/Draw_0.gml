@@ -28,7 +28,7 @@ shader_set_uniform_f(u_dbg,    dbg ? 1 : 0);
 // the shallow path reads the centre as plain floats. Flattening a dd
 // pair is safe here BECAUSE it is only reached above 2e-5, where a
 // float32 centre is fine anyway.
-shader_set_uniform_f(u_centre, __ddflat(cx), __ddflat(cy));
+shader_set_uniform_f(u_centre, __bnreal(cx), __bnreal(cy));
 shader_set_uniform_f(u_scale,  scale);
 shader_set_uniform_f(u_iter,   _it);
 shader_set_uniform_f(u_time,   current_time / 1000);
@@ -39,8 +39,8 @@ shader_set_uniform_f(u_glow,   glow);
 // Split every frame rather than cached: cx/cy move every frame while a
 // zoom eases, and a stale pair would put the deep view somewhere the
 // shallow one is not.
-var _sx = __split(__ddflat(cx));
-var _sy = __split(__ddflat(cy));
+var _sx = __split(__bnreal(cx));
+var _sy = __split(__bnreal(cy));
 var _ss = __split(scale);
 shader_set_uniform_f(u_cdd, _sx[0], _sx[1], _sy[0], _sy[1]);
 shader_set_uniform_f(u_sdd, _ss[0], _ss[1]);
@@ -54,8 +54,13 @@ shader_set_uniform_f(u_dd,  _dd ? 1 : 0);
 // crosses the uniform is a number small enough not to need any.
 shader_set_uniform_f(u_pert, _pert ? 1 : 0);
 if (_pert) {
+	// ⚖️ THE ONLY THING THAT CROSSES IS A DIFFERENCE. cx and ref_cx are
+	// both bignums with a hundred digits between them, and neither would
+	// survive a float uniform - but their DIFFERENCE is at most a view
+	// span, which is exactly the size a float carries perfectly. That is
+	// the whole reason perturbation makes the depth a CPU question.
 	shader_set_uniform_f(u_dcoff,
-		__ddflat(__ddsub(cx, ref_cx)), __ddflat(__ddsub(cy, ref_cy)));
+		__bnreal(__bnsub(cx, ref_cx)), __bnreal(__bnsub(cy, ref_cy)));
 	shader_set_uniform_f(u_reflen, ref_len);
 	shader_set_uniform_f(u_reftex, REF_W, surface_get_height(ref_surf));
 	texture_set_stage(s_ref, surface_get_texture(ref_surf));
@@ -97,7 +102,8 @@ var _mode = _pert ? "perturb" : (_dd ? "f32x2" : "f32");
 var _pad = 4;
 var _lines = [
 	"mandelbrot  -  " + _p.name,
-	"zoom " + _mag_s + "   iter " + string(round(_it)) + "   " + _mode,
+	"zoom " + _mag_s + "   iter " + string(round(_it)) + "   " + _mode
+		+ (_pert ? "  " + string(bn_L) + " limbs" : ""),
 ];
 // the reference's health is the thing to look at when a deep view
 // looks wrong or runs slow: a SHORT escaped orbit means the shader is
@@ -111,7 +117,7 @@ if (_pert) array_push(_lines,
 // the floor, and what would be needed to pass it
 var _at_floor = (scale_to <= SCALE_MIN * 1.001);
 if (_at_floor) array_push(_lines, _pert
-	? "f64x2 floor - deeper needs bignum references"
+	? "bignum floor - raise BN_MAX for more"
 	: (_dd ? "f32x2 floor" : "f32 floor"));
 
 var _w = 0;
@@ -123,7 +129,7 @@ draw_sprite_ext(spr_pixel_1x1, 0, _pad, _pad, _w + 10,
 for (var _i = 0; _i < array_length(_lines); _i++) {
 	var _c = sett_ink;
 	if (_i == 0) _c = c_gold;
-	if (_lines[_i] == "f64x2 floor - deeper needs bignum references"
+	if (_lines[_i] == "bignum floor - raise BN_MAX for more"
 	 || _lines[_i] == "f32x2 floor" || _lines[_i] == "f32 floor") _c = c_horange;
 	draw_set_color(_c);
 	draw_set_alpha((_i == 0) ? .95 : .8);

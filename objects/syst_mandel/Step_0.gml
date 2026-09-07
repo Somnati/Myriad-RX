@@ -8,6 +8,9 @@
 if (scale <= DD_AT) SCALE_MIN = __pert_on() ? SCALE_MIN_PERT : SCALE_MIN_DD;
 else                SCALE_MIN = SCALE_MIN_F32;
 
+// the limb count follows the zoom, before anything reads a coordinate
+__bn_check();
+
 // ---- the eased zoom ----
 // geometric, not linear: scale is a multiplicative quantity, so easing
 // it additively makes a dive start fast and crawl at the end. Working
@@ -28,8 +31,8 @@ if (scale != scale_to) {
 // something else takes the input mid-glide.
 if (anch_on) {
 	var _aa = room_width / room_height;
-	cx = __ddsub(anch_x, [((anch_px / room_width)  - .5) * 2 * scale * _aa, 0]);
-	cy = __ddsub(anch_y, [((anch_py / room_height) - .5) * 2 * scale, 0]);
+	cx = __bnsub(anch_x, __bnfrom(((anch_px / room_width)  - .5) * 2 * scale * _aa, bn_L));
+	cy = __bnsub(anch_y, __bnfrom(((anch_py / room_height) - .5) * 2 * scale, bn_L));
 }
 
 // the reference orbit, rebuilt only when it has stopped being useful.
@@ -97,8 +100,8 @@ if (drag && mouse_check_button(mb_left)) {
 	// the view span - so it is exact as a plain real; only its SUM with
 	// the centre needs the dd add.
 	var _ar = room_width / room_height;
-	cx = __ddsub(drag_cx, [((_mx - drag_mx) / room_width)  * 2 * scale * _ar, 0]);
-	cy = __ddsub(drag_cy, [((_my - drag_my) / room_height) * 2 * scale, 0]);
+	cx = __bnsub(drag_cx, __bnfrom(((_mx - drag_mx) / room_width)  * 2 * scale * _ar, bn_L));
+	cy = __bnsub(drag_cy, __bnfrom(((_my - drag_my) / room_height) * 2 * scale, bn_L));
 }
 if (mouse_check_button_released(mb_left)) drag = false;
 
@@ -125,8 +128,8 @@ if (keyboard_check_pressed(vk_space)) {
 	var _t = tour[tour_i];
 	anch_on   = false;   // the jump sets the centre outright
 	ref_valid = false;   // and invalidates any reference from elsewhere
-	cx = [_t.x, 0];
-	cy = [_t.y, 0];
+	cx = __bnfrom(_t.x, bn_L);
+	cy = __bnfrom(_t.y, bn_L);
 	scale_to = clamp(_t.s, SCALE_MIN, SCALE_MAX);
 	play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 }
