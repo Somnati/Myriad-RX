@@ -76,11 +76,17 @@ for (var _r = _lo; _r < _hi; _r++) {
 	var _tx = content_x - 2 + fav_t * 10 + max(0, _row.fdep - 1) * 10;
 
 	if (_row.kind == 1) {
-		// folder: section band + the +/- chip (his call: the signs
-		// read better than arrows) + tinted name
-		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, 2, _bh, 0, _row.c1, .9);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0, c_black, .45);
-		draw_px_rect(_tx, _ry + 2, 9, 9, _row.c1, .5);
+		// folder: the +/- chip (his call: the signs read better than
+		// arrows) + the name, both on flat black - the section colour
+		// is the gradient coming in from the right now (__row_panel),
+		// so the left edge band this used to draw would be a second
+		// answer to a question already answered, at the exact spot the
+		// new look is trying to keep clean.
+		// The chip's face lifts OFF black rather than filling with it:
+		// black on black was only ever its frame.
+		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ry + 2, 9, 9, 0,
+			merge_colour(_row.c1, c_black, .78), 1);
+		draw_px_rect(_tx, _ry + 2, 9, 9, _row.c1, .55);
 		draw_set_halign(fa_center);
 		draw_set_color(_row.c1);
 		draw_set_alpha(.95);

@@ -224,21 +224,37 @@ __row_panel = function(_r, _row, _ry, _bh) {
 	_c = merge_colour(_c, _back, .2); // == settings' .8-alpha wash, kept solid
 	draw_set_alpha(1);
 	if (_row.kind == 1) {
-		// FOLDER: dark furniture, ONE living element - the house law the
-		// dial rows already follow. The section colour used to wash 35%
-		// of the way across the WHOLE row, which on a 480-wide row is a
-		// big saturated field, and that is what he was looking at. The
-		// colour now lives only where it carries meaning: the edge
-		// accent, the +/- chip and the name. The panel keeps a whisper
-		// of it - a tenth, spent by a third of the way across - enough
-		// for the eye to group a section, not enough to shout.
-		// Folder rows also sit a shade proud of their children, so the
-		// hierarchy reads from brightness rather than from colour.
-		var _fd = merge_colour(_c, c_white, .05);
-		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, _fd, 1);
-		var _gl = merge_colour(_fd, _row.c1, .10);
-		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, rail_w, _ry,
-			_cw * .33, _bh, 0, _gl, _fd, _fd, _gl, 1);
+		// FOLDER: BLACK, with the section colour swelling in from the
+		// RIGHT (2026-09-07, his call - the previous look was "grey/
+		// bright" and he wanted "black with a gradient from the right").
+		//
+		// The two earlier attempts both put the colour where the TEXT
+		// is: a wash across the left third, over a panel raised a shade
+		// above its children. That is backwards twice over - it lights
+		// up the busiest part of the row, and it makes a header the
+		// brightest thing on a screen whose job is reading numbers.
+		//
+		// Inverted: the left half is flat black, so the +/- chip and the
+		// name sit on nothing at all and read at full contrast, and the
+		// colour lives in the EMPTY right half where a folder row has
+		// nothing to say. You still group a section by hue at a glance,
+		// but you group it out of the corner of your eye instead of
+		// through the words.
+		//
+		// The gradient runs black -> colour left to right across the
+		// right 62%, so there is no visible seam where it starts: it
+		// begins AT black, which is what the row already is.
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, c_black, 1);
+		var _gc = merge_colour(_row.c1, c_black, .42);
+		var _gw = _cw * .62;
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			rail_w + (_cw - _gw), _ry, _gw, _bh, 0,
+			c_black, _gc, _gc, c_black, 1);
+		// a bright lip on the right edge - the gradient's own end is
+		// soft by construction, and without this the row just fades out
+		// before it reaches the screen edge and looks unfinished
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w + _cw - 1, _ry, 1, _bh, 0,
+			merge_colour(_row.c1, c_white, .25), .9);
 	} else
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, _bh, 0, _c, 1);
 	// settings' gradient edge seams (top + bottom hairlines)
