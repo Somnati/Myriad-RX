@@ -35,6 +35,10 @@
 ///   derived  what this chain multiplies out to, as log10
 ///   ok       whether the two agree - false means update_dial moved and
 ///            this did not
+/// ⚖️ NO SCIENTIFIC LITERALS ANYWHERE IN HERE. GML's parser rejects
+/// 1e-9 and 1e9 alike, and the error it reports names the enclosing
+/// statement rather than the number - this file shipped broken twice
+/// on one `log10(max(_win, 1e-9))` guard that was not even needed.
 function dial_breakdown(_i) {
 	var _out = { steps : [], gps : 0, derived : 0, live_lg : 0, ok : true };
 	if (!variable_global_exists("dial")) return _out;
@@ -54,11 +58,6 @@ function dial_breakdown(_i) {
 	// multiplier on something else - it IS the something else - so its
 	// "multiplier" is its own value and its log is the bulk of the sum.
 	var _base_lg = (_d.b_gps >= arb(1)) ? arb_log10(_d.b_gps) : 0;
-	// ⚖️ THE NOTE IS BUILT OUT HERE, not inline in the struct below.
-	// A ternary's ":" inside a struct literal is ambiguous with the
-	// literal's own key separator and GML's parser refuses it - the
-	// whole script fails to compile, and the error points at the
-	// struct rather than at the "?".
 	var _hs   = dial_lvdiv(_i);
 	var _note = "lv " + string(_d.level);
 	if (_hs > 0) _note += " +" + string(_hs) + " tier";
@@ -80,7 +79,7 @@ function dial_breakdown(_i) {
 	array_push(_out.steps, {
 		name  : "cycle window",
 		note  : string_format(_cfg.cycle, 1, 0) + "s cycle",
-		mult  : _win, val : 0, lg : log10(max(_win, 1e-9)), share : 0,
+		mult  : _win, val : 0, lg : log10(_win), share : 0,
 		col   : c_steelblue,
 	});
 
@@ -91,7 +90,7 @@ function dial_breakdown(_i) {
 	array_push(_out.steps, {
 		name  : "cycles / sec",
 		note  : string_format(_cyt, 1, 1) + "s each",
-		mult  : _cps, val : 0, lg : log10(max(_cps, 1e-9)), share : 0,
+		mult  : _cps, val : 0, lg : log10(max(_cps, 0.000000001)), share : 0,
 		col   : c_steelblue,
 	});
 

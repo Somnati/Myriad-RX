@@ -303,6 +303,89 @@ for n, p in reg.items():
 check("every landscape room places the orientation marker", not marker,
       "; ".join(marker[:3]))
 
+# ------------------------------------------------- 8. GML syntax traps
+# This section exists because 2026-09-07 shipped TWO broken scripts in a
+# row, and every check above passed both times. The validator was
+# checking the .yy/.yyp skeleton and nothing at all about the code
+# inside it - which is most of what actually gets written.
+#
+# It is not a GML parser and never will be. It catches the specific,
+# mechanical traps that have really bitten, each one a pattern a regex
+# can see. Add to it whenever a new one costs a round trip.
+GML = [p for p in glob.glob("*/*/*.gml") if os.path.isfile(p)]
+
+
+def strip_gml(src):
+    """Comments and string bodies out, so a trap named in a comment (or
+    a legitimate colon inside a string) is not reported as code."""
+    out, i, n = [], 0, len(src)
+    while i < n:
+        c = src[i]
+        if c == "/" and i + 1 < n and src[i + 1] == "/":
+            while i < n and src[i] != "\n":
+                i += 1
+        elif c == "/" and i + 1 < n and src[i + 1] == "*":
+            i += 2
+            while i + 1 < n and not (src[i] == "*" and src[i + 1] == "/"):
+                i += 1
+            i += 2
+        elif c == '"':
+            out.append(' ')
+            i += 1
+            while i < n and src[i] != '"':
+                i += 2 if src[i] == "\\" else 1
+            i += 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+srcs = {p: strip_gml(open(p, encoding="utf-8", errors="replace").read())
+        for p in GML}
+
+# --- 8a. scientific literals. `1e9` and `1e-9` are parse errors in GML,
+# and the error the IDE reports names the enclosing statement rather
+# than the number, which is what makes it expensive to find.
+sci = []
+for p, s in srcs.items():
+    for m in re.finditer(r"(?<![A-Za-z0-9_.])\d+\.?\d*[eE][-+]?\d+", s):
+        sci.append(f"{p}: {m.group(0)}")
+check("no scientific number literals (1e9 is a GML parse error)",
+      not sci, "; ".join(sci[:3]))
+
+# --- 8c. brace / paren / bracket balance. Cheap, and a stray one turns
+# into a wall of errors pointing anywhere but at the real line.
+bal = []
+for p, s in srcs.items():
+    for o, c, what in (("{", "}", "braces"), ("(", ")", "parens"),
+                       ("[", "]", "brackets")):
+        if s.count(o) != s.count(c):
+            bal.append(f"{p}: {what} {s.count(o) - s.count(c):+d}")
+check("every .gml balances its braces, parens and brackets",
+      not bal, "; ".join(bal[:3]))
+
+# --- 8d. every settings global reachable by handle_settings needs a
+# BOOT default, or the very first load reads an unset global and the
+# game dies at the splash. settings_defaults() does not count: it only
+# runs when the player presses "reset settings". (Cost a round trip on
+# 2026-09-07 - see settings_content's four-part checklist.)
+hs = "scripts/handle_settings/handle_settings.gml"
+if os.path.exists(hs):
+    names = sorted(set(re.findall(r"g\.([A-Za-z_0-9]+)\s*=\s*handle\(",
+                                  open(hs, encoding="utf-8").read())))
+    unseeded = []
+    for nme in names:
+        pat = re.compile(r"(?:^|[^.\w])g\." + nme + r"\s*=(?!=)")
+        seeded = any(pat.search(s) for p, s in srcs.items()
+                     if "handle_settings" not in p
+                     and "settings_defaults" not in p
+                     and "settings_content" not in p)
+        if not seeded:
+            unseeded.append(nme)
+    check("every settings global has a boot default (not just settings_defaults)",
+          not unseeded, ", ".join(unseeded[:5]))
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")
