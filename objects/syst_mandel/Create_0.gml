@@ -44,10 +44,25 @@ cy =  0.0;
 scale    = 1.35;     // half-height of the view, in complex units
 scale_to = 1.35;
 
-// float32 stops resolving neighbouring pixels below about here (see the
-// header). Measured in the same units as `scale`.
-SCALE_MIN = 0.000004;
+// ---- the two precision floors ----
+// float32 (24-bit mantissa) stops resolving neighbouring pixels at
+// about 4e-6 of span. DOUBLE-DOUBLE carries the coordinate as a pair of
+// floats, hi + lo, for ~48 bits and about 2e-13 - forty million times
+// deeper. Written out longhand because GML's parser rejects scientific
+// literals outright (1e-13 is a syntax error, not a small number).
+SCALE_MIN_F32 = 0.000004;
+SCALE_MIN_DD  = 0.0000000000002;
+SCALE_MIN = SCALE_MIN_F32;   // live floor, swapped by __dd_on below
 SCALE_MAX = 2.5;
+
+// where the deep path switches on. Comfortably ABOVE the f32 floor, so
+// the handover happens while single precision is still clean - crossing
+// exactly at the point it breaks would show the seam.
+DD_AT = 0.00002;
+
+// double-double is roughly eight times the cost per iteration, so it is
+// only paid once float32 has actually run out.
+__dd_on = function() { return (scale_to < DD_AT) || (scale < DD_AT); };
 
 // ---- input state ----
 drag    = false;
@@ -92,8 +107,30 @@ show_hud  = true;
 // Capped at the shader's own ceiling; going past it silently would just
 // mean the picture stops improving while the cost keeps climbing.
 __iter = function() {
-	var _mag = SCALE_MAX / max(scale, SCALE_MIN);
-	return clamp(60 + 34 * log2(_mag) + 26 * sqrt(max(0, log2(_mag))), 60, 256);
+	var _mag = SCALE_MAX / max(scale, SCALE_MIN_DD);
+	return clamp(60 + 34 * log2(_mag) + 26 * sqrt(max(0, log2(_mag))), 60, 512);
+};
+
+// ---- splitting a double into a float pair ----
+// ⚖️ THIS WORKS BECAUSE A GML `real` IS ALREADY A 64-BIT DOUBLE. The
+// precision the shader lacks is sitting right here in the view
+// variables; the only problem is getting it across, and a uniform is
+// float32. So the number is handed over as two floats: `hi` is the
+// value rounded to f32, `lo` is exactly what that rounding threw away.
+// The shader adds them back together with error-free arithmetic.
+//
+// The round-trip through a 4-byte buffer IS the f32 rounding - GML has
+// no float cast, and anything hand-rolled out of logs and powers would
+// be approximate, which would defeat the entire point. One buffer for
+// the whole run, made global so this object needs no CleanUp event to
+// avoid leaking it per room entry.
+if (!variable_global_exists("dd_buf")) g.dd_buf = buffer_create(4, buffer_fixed, 1);
+__split = function(_v) {
+	buffer_seek(g.dd_buf, buffer_seek_start, 0);
+	buffer_write(g.dd_buf, buffer_f32, _v);
+	buffer_seek(g.dd_buf, buffer_seek_start, 0);
+	var _hi = buffer_read(g.dd_buf, buffer_f32);
+	return [_hi, _v - _hi];   // hi + lo == _v, to the last bit
 };
 
 // the uniform handles, fetched ONCE - shader_get_uniform is a string
@@ -105,6 +142,9 @@ u_iter   = shader_get_uniform(sh_mandel, "u_iter");
 u_time   = shader_get_uniform(sh_mandel, "u_time");
 u_pal    = shader_get_uniform(sh_mandel, "u_pal");
 u_glow   = shader_get_uniform(sh_mandel, "u_glow");
+u_cdd    = shader_get_uniform(sh_mandel, "u_centre_dd");
+u_sdd    = shader_get_uniform(sh_mandel, "u_scale_dd");
+u_dd     = shader_get_uniform(sh_mandel, "u_dd");
 
 // AND CHECK THEM. shader_get_uniform returns -1 when a uniform is not
 // found, and shader_set_uniform_f on -1 is a SILENT no-op - so a name
@@ -114,7 +154,8 @@ u_glow   = shader_get_uniform(sh_mandel, "u_glow");
 // nothing about the cause; a named line in the log says everything.
 var _uni = [["u_centre", u_centre], ["u_scale", u_scale], ["u_res", u_res],
 	["u_iter", u_iter], ["u_time", u_time], ["u_pal", u_pal],
-	["u_glow", u_glow]];
+	["u_glow", u_glow], ["u_centre_dd", u_cdd], ["u_scale_dd", u_sdd],
+	["u_dd", u_dd]];
 for (var _i = 0; _i < array_length(_uni); _i++)
 	if (_uni[_i][1] < 0)
 		show("sh_mandel > uniform NOT FOUND: " + _uni[_i][0]

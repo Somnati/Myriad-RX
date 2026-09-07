@@ -87,11 +87,65 @@ uniform float u_iter;     // iteration budget, from the zoom
 uniform float u_time;     // dither reseed
 uniform vec4  u_pal;      // rgb = palette phase, a = overall hue shift
 uniform float u_glow;     // 0..1 strength of the distance-estimate rim
+// the same view again, as hi/lo pairs, used only when u_dd is on. Split
+// on the GML side, where a `real` is already a 64-bit double.
+uniform vec4  u_centre_dd; // (cx_hi, cx_lo, cy_hi, cy_lo)
+uniform vec2  u_scale_dd;  // (hi, lo)
+uniform float u_dd;        // >0.5 = take the double-double path
 
 // the hard ceiling. GLSL ES wants a constant bound; u_iter breaks out
 // early, so this only sets the worst case the compiler must plan for.
-const int   MAX_I  = 256;
+const int   MAX_I  = 512;
 const float ESCAPE = 256.0;   // generous, so the smooth count is exact
+
+// ============================================================
+// DOUBLE-DOUBLE ARITHMETIC
+// ============================================================
+// Float32 has a 24-bit mantissa, which runs out at roughly 1e-6 of
+// span - past that neighbouring pixels stop being distinguishable and
+// the picture goes blocky. There is no f64 to reach for: GLSL ES 1.0
+// has no double type, GM does not expose HLSL's, and consumer GPUs run
+// f64 at a fraction rate anyway.
+//
+// So the number is carried as a PAIR of floats, hi + lo, where lo holds
+// the part hi could not represent. That is ~48 bits of mantissa, about
+// 1e-13 of span - roughly forty million times deeper than float32
+// alone. The operations below are the error-free transformations
+// (Dekker, Knuth) that keep the pair exact: each one computes the
+// rounded result AND the error it just made, and carries the error.
+//
+// ⚖️ THE SPLIT CONSTANT IS 4097, and it is specific to float32. It is
+// 2^ceil(p/2)+1 for a p-bit mantissa: float32 has p=24, so 2^12+1.
+// The 134217729 seen in double-precision code is the same formula for
+// p=53 and is WRONG here - it would silently lose the very precision
+// this is all for.
+const float DD_SPLIT = 4097.0;
+
+// exact sum of two floats: returns (rounded sum, exact error)
+vec2 dd_quick2sum(float a, float b) {
+    float s = a + b;
+    return vec2(s, b - (s - a));
+}
+
+vec2 dd_add(vec2 a, vec2 b) {
+    float s = a.x + b.x;
+    float v = s - a.x;
+    float e = (a.x - (s - v)) + (b.x - v);
+    return dd_quick2sum(s, e + a.y + b.y);
+}
+
+vec2 dd_neg(vec2 a) { return vec2(-a.x, -a.y); }
+vec2 dd_sub(vec2 a, vec2 b) { return dd_add(a, dd_neg(b)); }
+
+vec2 dd_mul(vec2 a, vec2 b) {
+    // Dekker's two-product: split both operands into halves that
+    // multiply exactly, so the rounding error of a.x*b.x is recovered
+    float ac = DD_SPLIT * a.x;  float ah = ac - (ac - a.x);  float al = a.x - ah;
+    float bc = DD_SPLIT * b.x;  float bh = bc - (bc - b.x);  float bl = b.x - bh;
+    float p  = a.x * b.x;
+    float e  = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
+    return dd_quick2sum(p, e + a.x * b.y + a.y * b.x);
+}
 
 // IQ's cosine palette: a + b*cos(2pi*(c*t + d)). Cheap, and continuous
 // by construction, so it never bands the way a ramp texture does.
@@ -133,7 +187,51 @@ void main()
     vec2  old = vec2(0.0);        // periodicity reference
     float per = 0.0;
 
-    if (!inside) {
+    // ---- THE DEEP PATH ----
+    // Double-double costs roughly eight times a float iteration, so it
+    // is not paid until float32 has actually run out. The branch is on
+    // a UNIFORM, so every pixel in the draw takes the same side of it
+    // and there is no divergence cost - shallow views run exactly as
+    // fast as they did before this existed.
+    // `&& !inside` matters: the cardioid and bulb tests have already
+    // answered for those pixels, and skipping that check here would run
+    // the eight-times-more-expensive loop on precisely the region the
+    // cheap exact test exists to eliminate.
+    if (u_dd > 0.5 && !inside) {
+        vec2 cxd = dd_add(vec2(u_centre_dd.x, u_centre_dd.y),
+                          dd_mul(u_scale_dd, vec2(uv.x, 0.0)));
+        vec2 cyd = dd_add(vec2(u_centre_dd.z, u_centre_dd.w),
+                          dd_mul(u_scale_dd, vec2(uv.y, 0.0)));
+        vec2 zxd = vec2(0.0), zyd = vec2(0.0);
+        // the derivative stays SINGLE precision on purpose: it only
+        // feeds the rim glow, its magnitude is large, and carrying it
+        // as a pair would cost as much again for no visible gain
+        vec2 dzs = vec2(1.0, 0.0);
+
+        for (int i = 0; i < MAX_I; i++) {
+            if (float(i) >= it) break;
+
+            float zx = zxd.x, zy = zyd.x;
+            dzs = 2.0 * vec2(zx * dzs.x - zy * dzs.y,
+                             zx * dzs.y + zy * dzs.x) + vec2(1.0, 0.0);
+
+            vec2 zx2 = dd_mul(zxd, zxd);
+            vec2 zy2 = dd_mul(zyd, zyd);
+            vec2 nzy = dd_add(dd_mul(dd_mul(zxd, zyd), vec2(2.0, 0.0)), cyd);
+            zxd = dd_add(dd_sub(zx2, zy2), cxd);
+            zyd = nzy;
+
+            // the escape test only needs the hi halves: by the time
+            // |z|^2 is near 256 the low words are far below the noise
+            mag = zx2.x + zy2.x;
+            if (mag > ESCAPE) { n = float(i); break; }
+            n = float(i) + 1.0;
+        }
+        z  = vec2(zxd.x, zyd.x);
+        dz = dzs;
+        if (mag <= ESCAPE) inside = true;
+    }
+    else if (!inside) {
         for (int i = 0; i < MAX_I; i++) {
             if (float(i) >= it) break;
 

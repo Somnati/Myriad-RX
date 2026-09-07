@@ -14,6 +14,16 @@ shader_set_uniform_f(u_iter,   _it);
 shader_set_uniform_f(u_time,   current_time / 1000);
 shader_set_uniform_f(u_pal,    _p.r, _p.g, _p.b, pal_shift);
 shader_set_uniform_f(u_glow,   glow);
+// the view again as hi/lo float pairs. Split every frame rather than
+// cached: cx/cy change every frame while a zoom is easing, and a stale
+// pair would put the deep view somewhere the shallow one is not.
+var _dd = __dd_on();
+var _sx = __split(cx);
+var _sy = __split(cy);
+var _ss = __split(scale);
+shader_set_uniform_f(u_cdd, _sx[0], _sx[1], _sy[0], _sy[1]);
+shader_set_uniform_f(u_sdd, _ss[0], _ss[1]);
+shader_set_uniform_f(u_dd,  _dd ? 1 : 0);
 // ⚖️ A HAND-BUILT QUAD, not draw_sprite_ext, and the texture
 // coordinates are the entire reason. A stretched sprite carries the UVs
 // of its ATLAS PAGE - for spr_pixel_1x1 that is one texel, effectively
@@ -51,14 +61,19 @@ var _mag_s = (_mag < 1000) ? string(round(_mag)) + "x" : crunch_arb(arb(round(_m
 var _pad = 4;
 var _lines = [
 	"mandelbrot  -  " + _p.name,
-	"zoom " + _mag_s + "   iter " + string(round(_it)),
+	"zoom " + _mag_s + "   iter " + string(round(_it))
+		+ "   " + (_dd ? "f32x2" : "f32"),
 ];
 // THE HONEST LIMIT. float32 stops resolving neighbouring pixels down
 // here, and past it the image goes blocky and looks broken. Saying so
 // is better than either letting it melt or silently refusing the wheel
 // with no explanation.
+// the floor now belongs to the double-double path, and past IT the
+// honest answer is perturbation theory rather than more mantissa
 var _at_floor = (scale_to <= SCALE_MIN * 1.001);
-if (_at_floor) array_push(_lines, "float32 floor - deeper needs f64");
+if (_at_floor) array_push(_lines, _dd
+	? "f32x2 floor - deeper needs perturbation"
+	: "f32 floor");
 
 var _w = 0;
 for (var _i = 0; _i < array_length(_lines); _i++)

@@ -5,6 +5,12 @@
 // it additively makes a dive start fast and crawl at the end. Working
 // in the ratio keeps every wheel notch feeling the same size at every
 // depth, which is the whole trick to a fractal zoom feeling right.
+// the live floor follows the precision in use: single precision stops
+// at 4e-6, the double-double path goes on to 2e-13. Evaluated before
+// the clamp below so a wheel notch that crosses DD_AT is allowed
+// through in the same frame it turns the deep path on.
+SCALE_MIN = __dd_on() ? SCALE_MIN_DD : SCALE_MIN_F32;
+
 if (scale != scale_to) {
 	var _r = scale_to / scale;
 	scale *= power(_r, min(1, .22 * delta));
