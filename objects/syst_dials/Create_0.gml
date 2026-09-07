@@ -181,7 +181,11 @@ qmode = -1;
 // feed a panel nobody can see is pure cost. The proxy is at depth 0 and
 // the drawer at -20, so on the frame the slide starts the capture still
 // runs FIRST and the snapshot is ready in time.
-__snap_cap = function() { if (sp > 0) pixel_snap(3); };
+// 3 room pixels a block, softened 4x. THE SECOND NUMBER IS THE KNOB he
+// asked about: 0 is the hard-edged pixelation he already liked, 4
+// rounds the block rims by a quarter of a block (and quarters the edge
+// step he did not like), 2 is properly soft.
+__snap_cap = function() { if (sp > 0) pixel_snap(3, 4); };
 snap_px = create_obj(0, 0, obj_draw_proxy);
 snap_px.owner = id;
 snap_px.depth = 0;

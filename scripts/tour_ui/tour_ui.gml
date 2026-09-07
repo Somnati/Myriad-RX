@@ -71,9 +71,20 @@
 // rectangle. Both give a panel something to sit on that is made of
 // whatever it is covering.
 //
-//   pixel_snap([cell])             capture, POINT sampled
-//   draw_pixel_region(x,y,w,h,[a]) draw it back in hard blocks
-//   -- IN USE: the dial drawer's backdrop, 3 room pixels a block.
+//   pixel_snap([cell], [soft])     capture, POINT sampled
+//   draw_pixel_region(x,y,w,h,[a]) draw it back as blocks
+//   -- IN USE: the dial drawer's backdrop, pixel_snap(3, 4).
+//   `soft` rounds the block rims WITHOUT losing the blocks: the
+//   snapshot is blown up point sampled by that factor first, so every
+//   block becomes a patch of identical texels and the draw's bilinear
+//   can only smear across one of them - a 1/soft fraction of a block.
+//   Bigger soft = crisper. 0 = hard edges. It also divides the
+//   backdrop's edge STEP by soft, because the texel grid the source
+//   rectangle snaps to got that much finer.
+//   ⚖️ Note what this is NOT: blurring a pixelation is not a better
+//   blur. Decimation has already thrown the other pixels away, so a
+//   blur afterwards smooths data that is gone. It is a LOOK, and a fix
+//   for the stepping - nothing more.
 //
 //   blur_snap([room_px])           capture, bilinear, halved down and
 //                                  doubled back up

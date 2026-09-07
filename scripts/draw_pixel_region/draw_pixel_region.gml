@@ -9,9 +9,12 @@
 /// false, so a screen without a capture degrades to whatever the caller
 /// draws next rather than breaking.
 ///
-/// ⚖️ POINT SAMPLED: the filter stays OFF so the blocks come back with
-/// hard edges. Turning it on here would soften exactly the thing the
-/// snapshot went to the trouble of keeping sharp.
+/// ⚖️ THE FILTER FOLLOWS THE SNAPSHOT. With pixel_snap's `soft` off,
+/// point sampling brings the blocks back with hard edges - turning the
+/// filter on would soften exactly what the snapshot kept sharp. With
+/// `soft` on, the snapshot is already blocks-as-patches, so bilinear
+/// can only smear across one texel: it rounds the rim and leaves the
+/// block. g.pix_soft carries which, so the two halves cannot disagree.
 /// ⚖️ ROOM COORDS ARE NOT SURFACE COORDS - the app surface is the
 /// WINDOW's size - so the rectangle scales through the snapshot's own
 /// dimensions. No hardcoded scale belongs here.
@@ -38,8 +41,9 @@ function draw_pixel_region(_x, _y, _w, _h, _a = 1) {
 	var _r = clamp(ceil((_x + _w) * _kx), _l + 1, _sw);
 	var _b = clamp(ceil((_y + _h) * _ky), _t + 1, _sh);
 
-	gpu_set_tex_filter(false);
+	gpu_set_tex_filter((variable_global_exists("pix_soft") ? g.pix_soft : 0) >= 2);
 	draw_surface_part_ext(g.pix_snap, _l, _t, _r - _l, _b - _t,
 		_l / _kx, _t / _ky, 1 / _kx, 1 / _ky, c_white, _a);
+	gpu_set_tex_filter(false);
 	return true;
 }
