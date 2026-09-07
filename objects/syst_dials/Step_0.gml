@@ -45,7 +45,7 @@ for (var _i = 0; _i < _n; _i++) {
 	var _d = g.dial[_i];
 	var _t = (_d.level > 0) ? sqr(__perc(_i, _d)) * (row_h * .5) : 0;
 	if (_d.paid) {
-		rd[_i] = row_h * .5 + 2;   // the pop
+		rv[_i] += WIG_PUSH;   // a KICK, not a jump - see the Create
 
 		// THE SPIT (DE's obj_dial do_spit): a completed cycle throws
 		// profit motes at the counter. They wear THE PROFIT COLOUR, not
@@ -65,7 +65,15 @@ for (var _i = 0; _i < _n; _i++) {
 		bezier_bits(_sx, _sy, _nb, g.profit_color, undefined, undefined, -1,
 			_d.paid_amt);
 	}
-	rd[_i] = min(trickle(rd[_i], _t, 4), row_h);
+	// the spring, both terms delta-correct
+	rv[_i] += (_t - rd[_i]) * WIG_K * delta;
+	rv[_i] *= power(WIG_DAMP, delta);
+	rv[_i]  = clamp(rv[_i], -10, 10);
+	rd[_i] += rv[_i] * delta;
+	// the floor absorbs rather than bounces: a dot resting at zero with
+	// a bounce in it would jitter forever
+	if (rd[_i] < 0) { rd[_i] = 0; rv[_i] = max(0, rv[_i]); }
+	rd[_i] = min(rd[_i], row_h);
 }
 
 // ---- the buy quotes (slow tick, and at once when the mode changes) ----

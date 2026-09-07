@@ -19,7 +19,11 @@ if alpha[l] > 0
 
 draw_sprite_ext(spr_banner_endcap,0,x+dx[l],dy[l]+y,1,1,0,c_black,alpha[l]*.9);
 
-draw_sprite_ext(spr_pixel_1x1,0,x+dx[l]-w[l],dy[l]+y+(h/2),3,1,0,c_text[l],1);
+// the little leading tick. Its alpha was hardcoded to 1 while every
+// other part of the line rides alpha[l], so it hung in the air at full
+// strength after the banner had faded out from under it (his report
+// 2026-09-06).
+draw_sprite_ext(spr_pixel_1x1,0,x+dx[l]-w[l],dy[l]+y+(h/2),3,1,0,c_text[l],alpha[l]);
 
 draw_set_alpha(alpha[l]);
 draw_set_color(c_text[l]);

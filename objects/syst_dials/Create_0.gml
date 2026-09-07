@@ -70,11 +70,29 @@ row_y1 = room_height - 40;
 // cycle by the same fraction, so the sim never forks.
 //   gps_perc = (cycle - autoeff) / (1 - autoeff)
 
-// per-dial spring radius for the docked dot (DE runs its own wiggle
-// spring on des_size; this is the same overshoot, kept view-side)
+// ⚖️ THE DOCKED DOT'S SPRING - Myriad DE's wiggle, rebuilt (his ask
+// 2026-09-06: bring back what it was TRYING to do, not the script).
+// What it was trying to do: give a payout WEIGHT. The dot does not
+// jump to a new size, it gets KICKED - a velocity impulse - so it
+// overshoots its target, comes back past it and settles. That lag and
+// overshoot is the whole feeling; a value that merely changes reads as
+// a number, a value with momentum reads as a thump.
+// rd = radius, rv = its velocity. DE's four scripts (set/push/do/get
+// _wiggle) collapse to those two arrays and five lines in the Step.
+// DE's tuning kept: recovery .05, damper .9, impulse 1.
+// FIXED vs DE: its integration multiplied the spring FORCE by delta but
+// added the velocity to the position RAW, so the dot moved faster the
+// higher your framerate - and it carried a `if delta > 4 reset
+// everything` hack to stop that exploding on a frame hitch. Both terms
+// take delta here, so the hack is not needed and the motion is the
+// same at any refresh rate.
 rd = [];
+rv = [];
 for (var _i = 0; _i < (variable_global_exists("dial_total") ? g.dial_total : 13); _i++)
-	rd[_i] = 0;
+	{ rd[_i] = 0; rv[_i] = 0; }
+WIG_K    = .05;  // spring pull toward the target
+WIG_DAMP = .9;   // velocity kept per frame - what stops it ringing
+WIG_PUSH = 1;    // the payout's kick
 
 // ---- gesture state (menu2's rule: taps land on RELEASE under a drag
 // budget, so a swipe never doubles as a tap) ----
