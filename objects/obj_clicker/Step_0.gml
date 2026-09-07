@@ -26,7 +26,24 @@ if (!variable_global_exists("click_gps")) exit;
 // DE rolls a crit here (and drops credits, and spawns bezier profit
 // particles that the counter waits on) - each of those re-enters at
 // this one site as its layer gets rebuilt.
-give_profit(g.click_gps);
+
+// ---- THE CRITICAL TAP (DE's give_click, base values kept) ----
+// 5% of taps pay a RANDOM multiple between 1.5x and 5x. The randomness
+// is the point: a fixed multiplier reads as a bigger number, a rolled
+// one reads as luck. do_scale rather than do_multi because the factor
+// is a fractional REAL - arb() cannot represent sub-1 values and
+// arb(1.5) would pack malformed (the house rule, see the save tour).
+var _pay  = g.click_gps;
+var _crit = false;
+var _cx   = 1;
+if (g.click_crit > 0 && roll_perc(g.click_crit)) {
+	_crit = true;
+	_cx   = random_range(g.click_critx_min, g.click_critx_max);
+	_pay  = do_scale(_pay, _cx);
+	g.total_crits++;
+}
+
+give_profit(_pay);
 g.total_taps++;
 
 // THE CREDIT ROLL (DE's give_click): a small chance per tap pulls a
@@ -41,9 +58,32 @@ pop = 1;
 // whatever font the room happened to leave set (his note 2026-09-06).
 // A float lands on top of the visualiser, which is the busiest thing
 // on screen - the outline is what keeps it readable there.
-float_text(mouse_x, mouse_y - 4, "+" + crunch_arb(g.click_gps),
-	g.profit_color, fnt_outline);
-play_sound_ext(snd_click, .95, 1.15, .35, 1);
+// A CRIT LOOKS DIFFERENT, DE's way: the float blends toward aqua and
+// comes up bigger (DE scales its crit float 1.75 and speeds its rise),
+// and it says the multiple it rolled - without that the number is just
+// large, with it you can see you got lucky. obj_float owns scale_ and
+// life as plain instance variables, so the crit dresses the float after
+// float_text builds it rather than growing that signature a tail of
+// optional arguments.
+var _fstr = "+" + crunch_arb(_pay);
+if (_crit) _fstr += "  x" + string_format(_cx, 1, 1);
+var _f = float_text(mouse_x, mouse_y - 4, _fstr,
+	_crit ? merge_colour(g.profit_color, c_aqua, .6) : g.profit_color,
+	fnt_outline);
+if (_crit) {
+	_f.scale_ = 1.75;
+	_f.life   = 45;
+	_f.life_  = 45;   // life_ is the rise's clock too - move both or the
+	                  // float drifts as if it were already old
+	_f.rise  *= 1.6;
+}
+
+// snd_orb was sitting unused in the project (only a tour comment named
+// it). The crit is the moment that wanted a sound of its own, and the
+// haptic goes to 3 - DE's own crit is silent, so this is the one place
+// the port deliberately adds rather than matches.
+if (_crit) play_sound_ext(snd_orb, .95, 1.05, .5, 3);
+else       play_sound_ext(snd_click, .95, 1.15, .35, 1);
 
 // THE SPIT: bezier profit bits fly from the tap to the counter. The
 // count is the techdemo's law - a tiny tap spits exactly as many bits
@@ -51,11 +91,13 @@ play_sound_ext(snd_click, .95, 1.15, .35, 1);
 // and once the number outgrows counting it settles into a 2-7 burst.
 // tic 0 = back-to-back, the tap's rapid-fire style.
 var _n = round(random_range(2, 7));
-if (arb(15) >= g.click_gps) _n = clamp(unarb(g.click_gps), 1, 7);
+if (arb(15) >= _pay) _n = clamp(unarb(_pay), 1, 7);
+if (_crit) _n = min(12, _n + 4);   // a crit throws a fatter handful
 // target omitted on purpose: bezier_bits already owns the counter's
 // seat as its default, so the two earners cannot aim at different
 // places - one constant, in the framework that draws them
 // the burst CARRIES this tap's profit: the counter holds it back
 // until the motes land (see obj_ui_header's Step)
-bezier_bits(mouse_x, mouse_y, _n, g.profit_color, undefined, undefined, 0,
-	g.click_gps);
+bezier_bits(mouse_x, mouse_y, _n,
+	_crit ? merge_colour(g.profit_color, c_aqua, .6) : g.profit_color,
+	undefined, undefined, 0, _pay);

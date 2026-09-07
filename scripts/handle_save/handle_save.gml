@@ -38,6 +38,17 @@ function handle_save(){
 		g.profit       = do_floor(g.profit);
 		g.total_profit = do_floor(g.total_profit);
 	}
+	// LIFETIME TAP COUNTERS. These were derived at boot and never
+	// written, so "lifetime taps" started at zero every launch - the
+	// statistics screen was reporting a session figure under a lifetime
+	// label. create_clicker still seeds them, and a load overwrites.
+	g.total_taps  = handle("total_taps",  g.total_taps);
+	g.total_crits = handle("total_crits", g.total_crits);
+	if (action == sv_load) {
+		g.total_taps  = max(0, floor(g.total_taps));
+		g.total_crits = max(0, floor(g.total_crits));
+	}
+
 	// run difficulty (0 easy .. 3 critical), picked at new game.
 	// stored only for now - future balance wiring reads it live
 	g.difficulty = handle("difficulty", g.difficulty);

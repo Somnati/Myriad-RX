@@ -11,5 +11,7 @@ function stats_session_base() {
 		profit   : variable_global_exists("profit")   ? g.profit   : 0,
 		units    : variable_global_exists("units")    ? g.units    : 0,
 		merges   : variable_global_exists("tiles")    ? g.tiles.merges : 0,
+		taps     : variable_global_exists("total_taps")  ? g.total_taps  : 0,
+		crits    : variable_global_exists("total_crits") ? g.total_crits : 0,
 	};
 }
