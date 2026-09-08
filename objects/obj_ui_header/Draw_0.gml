@@ -41,10 +41,24 @@ if (variable_global_exists("profit")) {
 	
 	prof_shown = _tgt;
 
-	// the target is the HELD-BACK figure, not the raw pile - Step
-	// subtracts what is still in flight so the count arrives with the
-	// motes (his ask, and DE's behaviour)
-	var _pv  = prof_shown;
+	// ⚖️ THE BIG NUMBER IS WHAT YOU CAN SPEND (his ask, 2026-09-08). It
+	// used to be the whole pile with the free figure in a small chip
+	// beside it, which put the number he could ACT on in the smaller
+	// type and left the headline reading 23.8m while 2.39m was
+	// purchasable. The counter is the wallet; the reserve is what the
+	// wallet is not.
+	//
+	// prof_shown stays the WHOLE pile, untouched - obj_bignum5 rides it
+	// and the blocks deliberately draw everything you own, reserve
+	// included (his earlier call). So the header and the visualiser now
+	// say two different true things on purpose: how much you can spend,
+	// and how much you have.
+	//
+	// Measured against prof_shown rather than g.profit so the split is
+	// of the SAME money the header is already withholding for motes in
+	// flight - and through profit_spendable's own pile argument, so
+	// there is still exactly one rule about where the line falls.
+	var _pv  = profit_spendable(prof_shown);
 	var _tlg = (_pv < arb(1)) ? -1 : arb_log10(_pv);
 
 	// the glide (move_to in log space; 12 ~ a fifth of a second)
@@ -76,13 +90,15 @@ if (variable_global_exists("profit")) {
 	// which is also exactly what the blocks draw. Nothing can be read as
 	// two totals any more. The held amount keeps its own line in
 	// statistics, where there is room to say what it is.
-	var _res = profit_reserved();
+	// The chip is now the COMPLEMENT of the big number, so the two add
+	// up to the pile and neither can be read as a rival total: what you
+	// can spend, in the headline, and what is held back, beside it.
+	var _res = profit_reserved(prof_shown);
 	if (_res >= arb(1)) {
-		var _free = profit_spendable();
 		draw_set_color(c_gold);
 		draw_set_alpha(.6);
 		draw_text(6 + string_width("profit ") + 3, 4,
-			((_free >= arb(1)) ? crunch_arb(_free) : "0") + " free");
+			crunch_arb(_res) + " held");
 		draw_set_color(sett_ink);
 		draw_set_alpha(.55);
 	}

@@ -105,11 +105,18 @@ __page_rows = function() {
 			name : "reserve",
 			on   : (_a.lock_pct > 0),
 			val  : _a.lock_pct,
-			sfx  : "% of profit",
+			// ⚖️ "% held", not "% of profit" (his report: "the slider feels
+			// backwards"). The behaviour was right - more slider, more
+			// reserve - but the readout never said WHICH side the number
+			// was. Every other percentage on this page is a spending CAP
+			// where bigger means spends more, so an unlabelled 90 sitting
+			// directly above a row of them reads as the same kind of
+			// number pointing the other way.
+			sfx  : "% held",
 			st   : -1,
 			col  : c_gold,
-			help : "this share of the PILE is held out of spending - turn "
-			     + "it down and the money is spendable at once",
+			help : "held out of spending: this share of the HIGHEST pile "
+			     + "you have held this run. turn it down to release it",
 		});
 		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));

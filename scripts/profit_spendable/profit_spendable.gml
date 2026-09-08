@@ -24,11 +24,18 @@
 /// That is the honest trade for being able to open it, and it is the
 /// right one here: the reserve exists so autobuy cannot eat the pile
 /// rebirth is calculated from, and a brake does that job.
-function profit_spendable() {
-	if (!variable_global_exists("autom")) return g.profit;
+/// @arg [pile]  which pile to measure - defaults to g.profit, the real
+///              one. The header passes its own DISPLAYED figure
+///              (prof_shown, the pile minus what is still riding motes)
+///              so the number on screen and the split beside it are
+///              always of the same money. Copying the rule there
+///              instead would have been two rules within a week.
+function profit_spendable(_pile = undefined) {
+	if (_pile == undefined) _pile = g.profit;
+	if (!variable_global_exists("autom")) return _pile;
 	var _p = clamp(g.autom.lock_pct, 0, 90);
-	if (_p <= 0) return g.profit;
-	if (!(g.profit >= arb(1))) return 0;
+	if (_p <= 0) return _pile;
+	if (!(_pile >= arb(1))) return 0;
 
 	// ⚖️ MEASURED AGAINST THE WATERMARK, NOT AGAINST THE PILE. Taking
 	// the percentage of what you hold RIGHT NOW reads like the same
@@ -48,7 +55,7 @@ function profit_spendable() {
 	// a watermark of zero is a real 0, not a packed arb, and do_subtract
 	// is only safe between packed values - this is the state straight
 	// after a rebirth, before the first earning has set a high point
-	if (!(_res >= arb(1))) return g.profit;
-	if (!(g.profit > _res)) return 0;   // the pile IS the reserve, or under it
-	return do_subtract(g.profit, _res);
+	if (!(_res >= arb(1))) return _pile;
+	if (!(_pile > _res)) return 0;      // the pile IS the reserve, or under it
+	return do_subtract(_pile, _res);
 }
