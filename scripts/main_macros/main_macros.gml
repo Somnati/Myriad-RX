@@ -223,6 +223,11 @@ function main_macros() {
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
 // keep the two in step, and tune in the twin.
+// the last pixel of the tile value's vertical seat - see syst_tiles'
+// __val_y. Sprite-font glyphs rarely fill their cell evenly, so this is
+// the one thing the arithmetic cannot derive.
+#macro TILE_TEXT_NUDGE   1
+
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds
 #macro TILE_BANK_BASE    10

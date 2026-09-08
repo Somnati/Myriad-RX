@@ -19,22 +19,27 @@ draw_set_color(rgb(195, 205, 235));
 draw_set_alpha(.85);
 draw_text(6, strip_y + 5, "tiles");
 
-// THE RATE RIDES THE STRIP'S RIGHT END (his ask), clear of the back
-// button at room_width-62. It was inside the drawer, which is exactly
-// the wrong place for the one number you want while playing the board -
-// you would have had to open a panel over the board to read how well
-// the board was doing.
+// THE SHARD COUNT TOP RIGHT (his ask), clear of the back button at
+// room_width-62, with the rate beside it. Both were inside the drawer,
+// which is the wrong place for the two numbers you want while playing
+// the board - you had to open a panel OVER the board to read how the
+// board was doing.
 draw_set_halign(fa_right);
 draw_set_color(c_aqua);
-draw_set_alpha(.9);
+draw_set_alpha(.95);
 draw_text(room_width - 68, strip_y + 5,
+	((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards");
+
+draw_set_color(merge_colour(c_aqua, c_white, .35));
+draw_set_alpha(.7);
+draw_text(room_width - 150, strip_y + 5,
 	"+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s");
 
-// the hopper sits beside it while it has anything in it
+// the hopper joins them while it has anything in it
 if (_t.stored > 0) {
 	draw_set_color((_t.stored >= _t.stored_max) ? c_horange : c_seagreen);
-	draw_set_alpha(.9);
-	draw_text(room_width - 148, strip_y + 5,
+	draw_set_alpha(.85);
+	draw_text(room_width - 216, strip_y + 5,
 		"hopper " + string(_t.stored) + "/" + string(_t.stored_max));
 }
 draw_set_halign(fa_left);
@@ -107,8 +112,7 @@ for (var _i = 0; _i < _t.slots; _i++) {
 			// draws afterwards inherits a setting from in here.
 			draw_set_color(txtcol[_i]);
 			draw_set_alpha(1);
-			draw_text_transformed(_x + tw * .5,
-				_y + (th - string_height(val_str[_i]) * val_sc[_i]) * .5,
+			draw_text_transformed(_x + tw * .5, __val_y(_y, val_sc[_i]),
 				val_str[_i], val_sc[_i], val_sc[_i], 0);
 		}
 		// hover feedback when nothing is held
@@ -146,8 +150,7 @@ if (grab_i != -1) {
 	// exactly where it sat in its slot - it was setting fa_middle and
 	// never putting it back, which shifted every piece of text drawn
 	// after it while a tile was up (his report)
-	draw_text_transformed(gx + tw * .5,
-		gy + (th - string_height(val_str[grab_i]) * val_sc[grab_i]) * .5,
+	draw_text_transformed(gx + tw * .5, __val_y(gy, val_sc[grab_i]),
 		val_str[grab_i],
 		val_sc[grab_i], val_sc[grab_i], 0);
 }
@@ -235,113 +238,3 @@ if (!is_undefined(_t.report)) {
 draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
-
-// THE DRAWER'S BACKDROP (his ask: the dial drawer's treatment).
-// pixel_snap grabs the screen as it stands and draw_pixel_region paints
-// the chunky copy back under the panel, so the board reads as being
-// behind frosted glass rather than simply covered.
-//
-// CAPTURED HERE, not from a draw proxy. The dial drawer can use a proxy
-// because the room it covers is drawn by OTHER objects; here the board
-// and the drawer are the same Draw event, so a proxy at any depth would
-// fire before the board existed and pixelate an empty room.
-if (dr_open > .001) pixel_snap(3, 4);
-
-// ================= THE UPGRADE DRAWER =================
-// Out from the LEFT on a swipe right (his ask). Drawn LAST so it slides
-// OVER the board rather than under it - a drawer that the thing it
-// covers draws through is not a drawer.
-if (dr_open > .001) {
-	var _fx = __dr_face();
-	var _tt = g.tiles;
-	draw_set_font(fnt);
-	draw_set_halign(fa_left);
-	draw_set_valign(fa_top);
-
-	// the body: the PIXELATED copy of what is behind it, then a dim over
-	// that - the dial drawer's treatment (his ask). The dim stays light
-	// because the pixelation already separates the drawer from the room;
-	// dimming hard on top of it just reads as a black panel again.
-	draw_pixel_region(_fx, strip_y, dr_w, room_height - strip_y, dr_open);
-	draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
-		0, c_black, .45 * dr_open);
-	draw_sprite_ext(spr_pixel_1x1, 0, _fx + dr_w - 1, strip_y, 1,
-		room_height - strip_y, 0, c_aqua, .35);
-
-	draw_set_color(c_aqua);
-	draw_set_alpha(.6 * dr_open);
-	draw_text(_fx + 6, strip_y + 5, "shards");
-	draw_set_halign(fa_right);
-	draw_set_color(c_white);
-	draw_set_alpha(.95 * dr_open);
-	draw_text(_fx + dr_w - 6, strip_y + 5,
-		(_tt.shards >= arb(1)) ? crunch_arb(_tt.shards) : "0");
-	draw_set_halign(fa_left);
-
-	var _ucfg = tile_upg_config();
-	for (var _k = 0; _k < array_length(_ucfg); _k++) {
-		var _ur = __upg_r(_k);
-		var _uq = (_k < array_length(uq)) ? uq[_k]
-			: { ok : false, cost : arb(1), lv : 0, txt : "-" };
-		var _uc = _ucfg[_k];
-		var _ua = dr_open;
-
-		var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
-		draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0,
-			_ucol, _ua);
-		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y,
-			_ur.w, 1, 0, _ucol, c_black, c_black, _ucol, .5 * _ua);
-		draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
-			(_uq.ok ? .9 : .3) * _ua);
-
-		draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-		draw_set_alpha(.95 * _ua);
-		draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
-		draw_set_halign(fa_right);
-		draw_set_color(rgb(120, 130, 150));
-		draw_set_alpha(.6 * _ua);
-		draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
-		draw_set_halign(fa_left);
-
-		var _bx2 = _ur.x + 6;
-		var _bw2 = _ur.w - 12;
-		draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
-			_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
-		draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
-			(_uq.ok ? .8 : .3) * _ua);
-		draw_set_halign(fa_center);
-		draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-		draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
-		draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
-		draw_set_halign(fa_left);
-	}
-
-	// (the per-second rate lives in the title strip now - see above)
-	if (!TILES_LIVE) {
-		draw_set_color(c_horange);
-		draw_set_alpha(.7 * dr_open);
-		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 6, "preview - the board");
-		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "is not saved yet");
-	}
-}
-
-// THE EDGE TAB - only while the drawer is SHUT. It was drawing at every
-// open state, and the open drawer's own right-edge hairline sits one
-// pixel from where the tab's line lands - which is the second, shorter
-// aqua line (his report). One handle, one edge, never both.
-if (dr_open < .999) {
-	var _tabx = __dr_face() + dr_w;
-	var _any = false;
-	for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
-	var _ta = 1 - dr_open;
-	draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
-		dr_tab, 60, 0, c_black, .8 * _ta);
-	draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
-		2, 60, 0, c_aqua,
-		(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
-}
-
-draw_set_alpha(1);
-draw_set_color(c_white);
-draw_set_halign(fa_left);
-draw_set_valign(fa_top);

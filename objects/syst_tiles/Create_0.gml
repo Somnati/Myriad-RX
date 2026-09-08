@@ -153,6 +153,141 @@ __upg_r = function(_k) {
 qtic = 0;
 uq   = [];
 
+// ==================================================================
+// THE DRAWER, ITS OWN DRAW SLOT
+// ==================================================================
+// ⚖️ IT CANNOT LIVE IN Draw_0 WITH THE BOARD, and the reason is
+// draw_pixel_region's contract: it needs pixel_snap to have run from a
+// draw slot DEEPER than the caller. Called inline in one event that is
+// impossible - the snapshot and the panel are the same slot - so the
+// region drew nothing at all and left only the dim. Which is exactly
+// what the bottom buttons' text was showing through (his report): it
+// was never above the blur, there was no blur.
+//
+// So the room draws in three slots, the house recipe:
+//   depth  0   the board, bars, strip, controls   (Draw_0)
+//   depth -25  pixel_snap                          (snap proxy)
+//   depth -50  the drawer and its tab              (this)
+__draw_drawer = function() {
+	// THE DRAWER'S BACKDROP (his ask: the dial drawer's treatment).
+	// pixel_snap grabs the screen as it stands and draw_pixel_region paints
+	// the chunky copy back under the panel, so the board reads as being
+	// behind frosted glass rather than simply covered.
+	//
+	// CAPTURED HERE, not from a draw proxy. The dial drawer can use a proxy
+	// because the room it covers is drawn by OTHER objects; here the board
+	// and the drawer are the same Draw event, so a proxy at any depth would
+	// fire before the board existed and pixelate an empty room.
+	if (dr_open > .001) pixel_snap(3, 4);
+
+	// ================= THE UPGRADE DRAWER =================
+	// Out from the LEFT on a swipe right (his ask). Drawn LAST so it slides
+	// OVER the board rather than under it - a drawer that the thing it
+	// covers draws through is not a drawer.
+	if (dr_open > .001) {
+		var _fx = __dr_face();
+		var _tt = g.tiles;
+		draw_set_font(fnt);
+		draw_set_halign(fa_left);
+		draw_set_valign(fa_top);
+
+		// the body: the PIXELATED copy of what is behind it, then a dim over
+		// that - the dial drawer's treatment (his ask). The dim stays light
+		// because the pixelation already separates the drawer from the room;
+		// dimming hard on top of it just reads as a black panel again.
+		draw_pixel_region(_fx, strip_y, dr_w, room_height - strip_y, dr_open);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
+			0, c_black, .45 * dr_open);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx + dr_w - 1, strip_y, 1,
+			room_height - strip_y, 0, c_aqua, .35);
+
+		// (the shard count and the rate live in the title strip now, where
+		// they can be read without opening anything)
+		draw_set_color(c_aqua);
+		draw_set_alpha(.6 * dr_open);
+		draw_text(_fx + 6, strip_y + 5, "tile upgrades");
+
+		var _ucfg = tile_upg_config();
+		for (var _k = 0; _k < array_length(_ucfg); _k++) {
+			var _ur = __upg_r(_k);
+			var _uq = (_k < array_length(uq)) ? uq[_k]
+				: { ok : false, cost : arb(1), lv : 0, txt : "-" };
+			var _uc = _ucfg[_k];
+			var _ua = dr_open;
+
+			var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0,
+				_ucol, _ua);
+			draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y,
+				_ur.w, 1, 0, _ucol, c_black, c_black, _ucol, .5 * _ua);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
+				(_uq.ok ? .9 : .3) * _ua);
+
+			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+			draw_set_alpha(.95 * _ua);
+			draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
+			draw_set_halign(fa_right);
+			draw_set_color(rgb(120, 130, 150));
+			draw_set_alpha(.6 * _ua);
+			draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
+			draw_set_halign(fa_left);
+
+			var _bx2 = _ur.x + 6;
+			var _bw2 = _ur.w - 12;
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
+				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
+			draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
+				(_uq.ok ? .8 : .3) * _ua);
+			draw_set_halign(fa_center);
+			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+			draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
+			draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
+			draw_set_halign(fa_left);
+		}
+
+		// (the per-second rate lives in the title strip now - see above)
+		if (!TILES_LIVE) {
+			draw_set_color(c_horange);
+			draw_set_alpha(.7 * dr_open);
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 6, "preview - the board");
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "is not saved yet");
+		}
+	}
+
+	// THE EDGE TAB - only while the drawer is SHUT. It was drawing at every
+	// open state, and the open drawer's own right-edge hairline sits one
+	// pixel from where the tab's line lands - which is the second, shorter
+	// aqua line (his report). One handle, one edge, never both.
+	if (dr_open < .999) {
+		var _tabx = __dr_face() + dr_w;
+		var _any = false;
+		for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
+		var _ta = 1 - dr_open;
+		draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
+			dr_tab, 60, 0, c_black, .8 * _ta);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
+			2, 60, 0, c_aqua,
+			(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
+	}
+
+	draw_set_alpha(1);
+	draw_set_color(c_white);
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+};
+
+// the two extra slots. obj_draw_proxy exists for exactly this: one
+// instance, more than one depth.
+snap_px = create_obj(0, 0, obj_draw_proxy);
+snap_px.owner = id;
+snap_px.depth = -25;
+snap_px.fn    = function() { if (dr_open > .001) pixel_snap(3, 4); };
+
+draw_px = create_obj(0, 0, obj_draw_proxy);
+draw_px.owner = id;
+draw_px.depth = -50;
+draw_px.fn    = __draw_drawer;
+
 
 // the drawer's rows start under the strip, and the board re-seats
 // itself whenever the slot count changes (a board-size upgrade)
@@ -161,6 +296,22 @@ __reseat = function() {
 	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
 	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
 	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
+};
+
+// ⚖️ WHERE A TILE'S VALUE SITS, and it is worth being deliberate about
+// because two guesses have already missed. fnt_large is a SPRITE font
+// on a 9x11 cell, drawn at FRACTIONAL scales to fit a 13px tile, and
+// neither fa_middle nor string_height(the whole string) centres that
+// reliably: valign against a fractional scale drifts, and a measured
+// string can carry line spacing the glyphs do not use.
+//
+// One glyph is the honest measure - every value is a single line, so
+// the tallest thing in it is one character. Centre THAT in the tile.
+// TILE_TEXT_NUDGE is the last word: sprite-font glyph art rarely fills
+// its cell evenly top and bottom, and no arithmetic can know by how
+// much. One number, and it is a pixel.
+__val_y = function(_y, _sc) {
+	return _y + (th - string_height("0") * _sc) * .5 + TILE_TEXT_NUDGE;
 };
 
 __slot_x = function(_i) { return bx + (_i % g.tiles.cols) * pw; };
