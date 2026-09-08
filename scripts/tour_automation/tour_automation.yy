@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_automation",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_automation",
+  "parent":{
+    "name":"automation",
+    "path":"folders/game/automation.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

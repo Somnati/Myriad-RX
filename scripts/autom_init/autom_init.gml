@@ -30,7 +30,13 @@
 ///   upg  { roll, buy, sell, pct, keep } - the upgrade table's
 ///        automation. keep is a PERCENTAGE, not a rarity: see
 ///        upgrade_keep_rarity for why that distinction is the whole
-///        point of it.
+///        point of it. It defaults to 50 rather than 100 because a
+///        filter that keeps everything is a switch that does nothing
+///        when you turn it on.
+///
+///   lock_pct  the reserve: what share of every earning is locked out
+///        of spending (give_profit does the split, profit_spendable
+///        reads it). 0 = off.
 function autom_init(_force = false) {
 	if (variable_global_exists("autom") && !_force) return;
 	var _dn = variable_global_exists("dial_total") ? g.dial_total : 13;
@@ -44,7 +50,13 @@ function autom_init(_force = false) {
 			p_on : false, p_oom  : 12,   // profit's exponent
 		},
 		upg  : { roll : false, buy : false, sell : false,
-		         pct : 50, keep : 100, st : 0 },
+		         pct : 50, keep : 50, st : 0 },
+		// THE RESERVE, as a percentage of every earning. 0 = off.
+		// It rides here rather than in its own global because it is a
+		// preference about automation: the reserve exists because
+		// autobuy would otherwise eat the pile rebirth is calculated
+		// from. See give_profit and profit_spendable.
+		lock_pct : 0,
 		tic  : 0,
 	};
 	repeat (_dn) array_push(g.autom.dial,

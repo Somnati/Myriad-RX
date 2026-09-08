@@ -180,6 +180,40 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- automation ----
+	if (variable_global_exists("autom"))
+	if (stats_v2_folder("automation", c_sblue)) {
+		var _ax = 0;
+		for (var _k = 0; _k < array_length(g.autom.dial); _k++)
+			if (g.autom.dial[_k].on) _ax++;
+		stats_v2_line("dials automated",
+			string(_ax) + " / " + string(array_length(g.autom.dial)), -1,
+			(_ax > 0) ? c_sblue : c_gray);
+		stats_v2_line("reserve", string(g.autom.lock_pct) + "% of earnings",
+			-1, (g.autom.lock_pct > 0) ? c_gold : c_gray,
+			"a share of everything earned is locked out of spending. it "
+			+ "is still profit and rebirth still counts it - autobuy just "
+			+ "cannot reach it.");
+		stats_v2_line("held back", (g.profit_lock >= arb(1))
+			? crunch_arb(g.profit_lock) : "0", -1,
+			(g.profit_lock >= arb(1)) ? c_gold : c_gray);
+		stats_v2_line("spendable", (profit_spendable() >= arb(1))
+			? crunch_arb(profit_spendable()) : "0", -1, g.profit_color);
+		var _rb = g.autom.reb;
+		var _rn = (_rb.t_on ? 1 : 0) + (_rb.u_on ? 1 : 0) + (_rb.g_on ? 1 : 0)
+			+ (_rb.c_on ? 1 : 0) + (_rb.p_on ? 1 : 0);
+		stats_v2_line("rebirth rails", (_rn > 0) ? (string(_rn) + " armed") : "off",
+			-1, (_rn > 0) ? c_hred : c_gray,
+			"every armed condition has to pass before an auto rebirth "
+			+ "fires. they are rails, not triggers.");
+		stats_v2_line("upgrade filter",
+			upgrade_rarity_info(upgrade_keep_rarity()).name + " and above",
+			-1, upgrade_rarity_info(upgrade_keep_rarity()).col,
+			"worked out from the live roll odds, so it still means the "
+			+ "same slice of what you actually see if the curve changes.");
+	}
+	stats_v2_folder_end();
+
 	// ---- time bank ----
 	if (variable_global_exists("timebank"))
 	if (stats_v2_folder("time bank", c_gold)) {

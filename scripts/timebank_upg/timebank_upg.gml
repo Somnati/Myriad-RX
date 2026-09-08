@@ -31,7 +31,7 @@ function timebank_upg(_kind, _commit = true) {
 	var _m    = max(1.1, g.tb_cost_mult / 100);
 	var _cost = do_ceil(log_to_arb(log10(_base) + _lv * log10(_m)));
 
-	if (!_commit) return { ok : (g.profit >= _cost), cost : _cost, maxed : false };
+	if (!_commit) return { ok : (profit_spendable() >= _cost), cost : _cost, maxed : false };
 	if (!spend_profit(_cost)) return { ok : false, cost : _cost, maxed : false };
 	if (_iscap) _tb.cap_lv  += 1;
 	else        _tb.rate_lv += 1;

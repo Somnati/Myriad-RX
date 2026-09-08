@@ -12,7 +12,7 @@ function dial_buy(_i, _n = 1) {
 
 	var _d    = g.dial[_i];
 	var _cost = dial_cost(_i, _d.level, _d.level + _n);
-	if (!(g.profit >= _cost)) return false;
+	if (!(profit_spendable() >= _cost)) return false;   // the reserve is not spendable
 
 	g.profit  = do_subtract(g.profit, _cost);
 	var _was = milestone_get(_i, _d.level);

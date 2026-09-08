@@ -8,7 +8,7 @@
 /// overdraft there, it is a hang.
 function spend_profit(_cost) {
 	if (!(_cost >= arb(1))) return true;   // free is always affordable
-	if (!(g.profit >= _cost)) return false;
+	if (!(profit_spendable() >= _cost)) return false;
 	g.profit = do_subtract(g.profit, _cost);
 	save_mark_dirty();
 	return true;

@@ -85,6 +85,9 @@ g.tap_sound = 0;
 // each frame - only works if the motes already exist when the sum
 // runs, and that depends on room instance order.
 g.profit_flight = 0;
+// THE RESERVE: the locked PORTION of g.profit (never a second pile -
+// see profit_spendable). Set by give_profit from g.autom.lock_pct.
+g.profit_lock = 0;
 g.trans_kind = 1;     // room transition: 0 circle wipe / 1 slice wipe
 	// (round 7's showcase; settings > display, latched per flight
 	// by goto_room)

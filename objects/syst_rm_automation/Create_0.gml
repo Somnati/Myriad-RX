@@ -54,7 +54,10 @@ trk_x = 0; trk_w = 150;
 __seat = function() {
 	tog_x = cont_x + 96;
 	trk_x = cont_x + 134;
-	trk_w = cont_w - 134 - 60;
+	// 96 rather than 60: a dial row shows BOTH a percentage readout and
+	// a verdict pill, and they were being right-aligned to the same
+	// pixel - the pill drew straight over the number
+	trk_w = cont_w - 134 - 96;
 };
 __seat();
 
@@ -79,6 +82,20 @@ __page_rows = function() {
 	var _a = g.autom;
 
 	if (tab == 0) {
+		// THE RESERVE sits at the top of this page (his ask), because it
+		// is the counterweight to everything under it: autobuy spends
+		// profit, and this is the share autobuy may not touch.
+		array_push(_o, {
+			kind : 1, lo : 0, hi : 90,
+			name : "reserve",
+			on   : (_a.lock_pct > 0),
+			val  : _a.lock_pct,
+			sfx  : "% locked",
+			st   : -1,
+			col  : c_gold,
+			help : "this share of every earning is kept out of spending",
+		});
+		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));
 		for (var _i = 0; _i < _n; _i++) {
 			var _p = _a.dial[_i];
@@ -90,6 +107,7 @@ __page_rows = function() {
 				sfx  : "%",
 				st   : _p.st,
 				col  : dial_color(_i),
+				help : "buys while the bill fits this share of spendable profit",
 			});
 		}
 	}
@@ -132,7 +150,15 @@ __page_rows = function() {
 // the toggle, per page and row
 __flip = function(_t, _i) {
 	var _a = g.autom;
-	if (_t == 0) { _a.dial[_i].on = !_a.dial[_i].on; if (!_a.dial[_i].on) _a.dial[_i].st = 0; return; }
+	// row 0 of the dials page is the reserve, which has no toggle - so
+	// a dial's row index is one further down than its dial index
+	if (_t == 0) {
+		if (_i < 1) return;
+		var _d = _a.dial[_i - 1];
+		_d.on = !_d.on;
+		if (!_d.on) _d.st = 0;
+		return;
+	}
 	if (_t == 1) {
 		var _r = _a.reb;
 		switch (_i) {
@@ -155,7 +181,11 @@ __flip = function(_t, _i) {
 // the slider, per page and row
 __set_slider = function(_t, _i, _v) {
 	var _a = g.autom;
-	if (_t == 0) { _a.dial[_i].pct = _v; return; }
+	if (_t == 0) {
+		if (_i == 0) _a.lock_pct = clamp(_v, 0, 90);
+		else         _a.dial[_i - 1].pct = _v;
+		return;
+	}
 	if (_t == 1) {
 		var _r = _a.reb;
 		switch (_i) {

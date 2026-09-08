@@ -40,15 +40,17 @@ function buy_resolve(_i, _from, _mode) {
 		_to = (_nx > _from) ? _nx : floor((_from + 100) / 100) * 100;
 	}
 	else if (_mode == "max") {
-		if (!(g.profit >= dial_cost(_i, _from, _from + 1))) return _from + 1;
+		// the RESERVE is not the wallet - see profit_spendable
+		var _wal = profit_spendable();
+		if (!(_wal >= dial_cost(_i, _from, _from + 1))) return _from + 1;
 		var _step = 1;
 		while (_step < 1000000
-			&& g.profit >= dial_cost(_i, _from, _from + _step * 2)) _step *= 2;
+			&& _wal >= dial_cost(_i, _from, _from + _step * 2)) _step *= 2;
 		var _lo = _from + _step;       // affordable
 		var _hi = _from + _step * 2;   // not (or the search cap)
 		while (_hi - _lo > 1) {
 			var _mid = (_lo + _hi) div 2;
-			if (g.profit >= dial_cost(_i, _from, _mid)) _lo = _mid;
+			if (_wal >= dial_cost(_i, _from, _mid)) _lo = _mid;
 			else _hi = _mid;
 		}
 		_to = _lo;   // the exact edge: cost(from, lo) fits, cost(from, lo+1) doesn't

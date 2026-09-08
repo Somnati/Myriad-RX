@@ -32,11 +32,17 @@ function handle_save(){
 	// THE CURRENCY: profit is a packed arb, which rides the ini as a
 	// plain real. both move in whole units, so floor on load heals any
 	// fraction-caught save
+	g.profit_lock  = handle("profit_lock",  g.profit_lock);
 	g.profit       = handle("profit",       g.profit);
 	g.total_profit = handle("total_profit", g.total_profit);
 	if (action == sv_load) {
 		g.profit       = do_floor(g.profit);
 		g.total_profit = do_floor(g.total_profit);
+		// the reserve is a PORTION of the pile, so it can never be more
+		// than the pile - a save written before it existed reads 0, and
+		// a hand-edited one heals here rather than at a spend site
+		if (!(g.profit_lock >= arb(1))) g.profit_lock = 0;
+		else if (g.profit_lock > g.profit) g.profit_lock = g.profit;
 	}
 	// LIFETIME TAP COUNTERS. These were derived at boot and never
 	// written, so "lifetime taps" started at zero every launch - the
@@ -167,6 +173,16 @@ function handle_save(){
 	g.autom.upg.sell  = handle("upg_sell",  g.autom.upg.sell);
 	g.autom.upg.pct   = handle("upg_pct",   g.autom.upg.pct);
 	g.autom.upg.keep  = handle("upg_keep",  g.autom.upg.keep);
+	g.autom.lock_pct  = handle("lock_pct",  g.autom.lock_pct);
+	if (action == sv_load) {
+		g.autom.lock_pct  = clamp(g.autom.lock_pct, 0, 90);
+		g.autom.upg.pct   = clamp(g.autom.upg.pct,  1, 100);
+		g.autom.upg.keep  = clamp(g.autom.upg.keep, 1, 100);
+		g.autom.reb.t_min = max(1, g.autom.reb.t_min);
+		g.autom.reb.u_min = max(1, g.autom.reb.u_min);
+		g.autom.reb.g_pct = max(1, g.autom.reb.g_pct);
+		g.autom.reb.p_oom = max(1, g.autom.reb.p_oom);
+	}
 
 	// ---- the time bank: the bank itself and the two purchase counts.
 	// The cap and the rate DERIVE from those counts (timebank_cap /

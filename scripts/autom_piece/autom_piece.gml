@@ -23,9 +23,13 @@
 /// Every purchase routes through dial_buy_ext, the pricing lawyer.
 /// Autobuy owns no cost math of its own and must never grow any.
 function autom_piece(_p, _i) {
-	// no wallet, no shopping (this also keeps do_scale off sub-1 arbs)
-	if (!(g.profit >= arb(1))) { _p.st = 1; return; }
-	var _budget = do_scale(g.profit, _p.pct / 100);
+	// no wallet, no shopping (this also keeps do_scale off sub-1 arbs).
+	// THE WALLET IS THE SPENDABLE PILE, never the whole one - budgeting
+	// against g.profit would let autobuy spend the reserve, which is
+	// the exact thing the reserve exists to stop.
+	var _wallet = profit_spendable();
+	if (!(_wallet >= arb(1))) { _p.st = 1; return; }
+	var _budget = do_scale(_wallet, _p.pct / 100);
 
 	var _q     = max(1, _p.q);
 	var _quote = dial_buy_ext(_i, _q, false);

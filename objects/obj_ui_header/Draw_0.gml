@@ -61,6 +61,20 @@ if (variable_global_exists("profit")) {
 	draw_set_alpha(.55);
 	draw_text(6, 4, "profit");
 
+	// THE RESERVE, said out loud. Money you cannot spend and cannot see
+	// is money the player thinks has gone missing - and the first thing
+	// they will do is check whether the game is broken. It rides the
+	// label's line, so it costs no room.
+	if (variable_global_exists("profit_lock"))
+	if (g.profit_lock >= arb(1)) {
+		draw_set_color(c_gold);
+		draw_set_alpha(.6);
+		draw_text(6 + string_width("profit ") + 3, 4,
+			crunch_arb(g.profit_lock) + " held");
+		draw_set_color(sett_ink);
+		draw_set_alpha(.55);
+	}
+
 	// DIGITS WHILE THEY MEAN SOMETHING, crunched after (DE's, see
 	// crunch_arb_full)
 	var _ptxt = (prof_lg == -1) ? "0" : crunch_arb_full(log_to_arb(prof_lg));

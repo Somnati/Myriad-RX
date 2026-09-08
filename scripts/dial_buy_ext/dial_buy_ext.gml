@@ -19,7 +19,7 @@ function dial_buy_ext(_i, _mode, _commit = true) {
 	var _from = _d.level;
 	var _to   = (_from <= 0) ? 1 : buy_resolve(_i, _from, _mode);
 	var _cost = dial_cost(_i, _from, _to);
-	var _ok   = (_to > _from) && (g.profit >= _cost);
+	var _ok   = (_to > _from) && (profit_spendable() >= _cost);
 
 	if (_ok && _commit) _ok = dial_buy(_i, _to - _from);
 

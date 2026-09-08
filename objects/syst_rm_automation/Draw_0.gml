@@ -5,6 +5,21 @@ draw_set_valign(fa_top);
 
 var _dim = rgb(120, 130, 150);
 
+// THE PAGE AND ITS HOVER, FIRST. The dials page fills the room with
+// fourteen rows and has no footer band left, so its help line has to
+// ride the title strip - which is drawn before the rows are. Building
+// both up here is what lets either band show it.
+var _rows = __page_rows();
+var _hov  = -1;
+if (input_free())
+for (var _i = 0; _i < array_length(_rows); _i++) {
+	var _hy = __row_y(_i);
+	if (point_in_rectangle(mouse_x, mouse_y, cont_x, _hy,
+		cont_x + cont_w, _hy + row_h)) _hov = _i;
+}
+var _help = (_hov >= 0 && variable_struct_exists(_rows[_hov], "help"))
+	? _rows[_hov].help : "";
+
 // ---- the title strip ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby + 15, room_width, 1, 0, sett_ink, .25);
@@ -16,7 +31,11 @@ if (tab == 0) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
 	draw_text(room_width - 70, bby + 5,
-		"one buy a second, while the bill fits the share");
+		(_help != "") ? _help
+		: ((g.autom.lock_pct > 0)
+			? ("reserve is holding " + ((g.profit_lock >= arb(1))
+				? crunch_arb(g.profit_lock) : "0") + " out of spending")
+			: "one buy a second, while the bill fits the share"));
 	draw_set_halign(fa_left);
 }
 
@@ -39,7 +58,6 @@ for (var _t = 0; _t < 3; _t++) {
 }
 
 // ---- the page ----
-var _rows = __page_rows();
 for (var _i = 0; _i < array_length(_rows); _i++) {
 	var _rw = _rows[_i];
 	var _ry = __row_y(_i);
@@ -89,7 +107,9 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		draw_set_halign(fa_right);
 		draw_set_color(_rw.on ? c_white : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);
-		draw_text(cont_x + cont_w - 4, _ry + 3, string(_rw.val) + _rw.sfx);
+		// clear of the verdict pill's column when there is one
+		draw_text(cont_x + cont_w - ((_rw.st >= 0) ? 48 : 4), _ry + 3,
+			string(_rw.val) + _rw.sfx);
 		draw_set_halign(fa_left);
 	}
 
@@ -105,10 +125,21 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	}
 }
 
-// ---- the page's footer note ----
+// ---- the footer, on the pages that have room for one ----
+// The hover line wins the slot when there is one: what the pointer is
+// on beats a standing note, because the standing note is the thing you
+// have already read.
 var _fy = room_height - 30;
 draw_set_color(_dim);
 draw_set_alpha(.55);
+
+if (tab != 0 && _help != "") {
+	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
+	draw_set_alpha(.75);
+	draw_text(cont_x, _fy, _help);
+	draw_set_color(_dim);
+	draw_set_alpha(.55);
+} else
 if (tab == 1) {
 	draw_text(cont_x, _fy,
 		"EVERY enabled condition must pass - they are rails, not triggers");

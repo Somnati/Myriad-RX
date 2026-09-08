@@ -99,7 +99,7 @@ for (var _i = 0; _i < _n; _i++) {
 	// ---- dormant: DE's unpurchased plate, price centred ----
 	if (_d.level <= 0) {
 		var _cost = dial_cost(_i, 0, 1);
-		var _can  = (g.profit >= _cost);
+		var _can  = (profit_spendable() >= _cost);
 		draw_sprite_ext(spr_dial, 2, _x, _y, 1, 1, 0,
 			merge_colour(c_black, _lc, .12), .9 * _oa);
 		draw_set_halign(fa_center);
