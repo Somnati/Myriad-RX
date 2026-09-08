@@ -209,7 +209,31 @@ function BignumVisRenderer() constructor {
         if (_a <= 0) return;
         if (grid_outer_over  == _over) draw_sprite_ext(grid_sprite, 2, _x, _y, _s, _s, 0, _col, _a * grid_outer_alpha);
         if (grid_inner_over  == _over) draw_sprite_ext(grid_sprite, 1, _x, _y, _s, _s, 0, _col, _a * grid_inner_alpha);
-        if (grid_border_over == _over) draw_sprite_ext(grid_sprite, 0, _x, _y, _s, _s, 0, _col, _a * grid_border_alpha);
+
+        // ⚖️ THE BORDER IS DRAWN AS A HAIRLINE, NOT AS THE SPRITE, and
+        // this is the fix for "the first square in a row goes slightly
+        // darker at some zoom levels" (his report).
+        //
+        // Frame 0 carries ink at block columns 0 and 100 ONLY - one
+        // source pixel on each edge - and it is the one grid piece
+        // flagged OVER the fills. Scaled by _s along with everything
+        // else, that single pixel becomes _s pixels wide on screen:
+        // ALWAYS exactly 10% of a square, laid down the left edge of the
+        // first square in every row, tinted _col_big - the tier ABOVE,
+        // a different colour from the squares it covers. Its alpha is a
+        // pure function of zoom (grid_fade), peaking near unit 1 and
+        // gone by 7.5, so the tint appears and disappears as you zoom
+        // and never moves off that column. Measured: a 4px band at .26
+        // alpha on a 40px square at unit 4.
+        //
+        // A border is meant to OUTLINE the block, and an outline does
+        // not get thicker because you zoomed in - the thickness was an
+        // artefact of scaling line art, not a design. One-pixel edges
+        // keep the border at every zoom and stop it colouring anything.
+        if (grid_border_over == _over && grid_border_alpha > 0) {
+            var _blk = _s * 100;   // the 100-block, in screen px
+            draw_px_rect(_x, _y, _blk, _blk, _col, _a * grid_border_alpha);
+        }
     };
 
     /// @func draw_square_clipped(spr, x, y, size, col, alpha)
