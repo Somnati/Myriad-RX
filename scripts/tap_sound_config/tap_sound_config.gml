@@ -25,7 +25,7 @@ function tap_sound_config() {
 	// DE's per-sound pitch and volume, from syst_production's Step_2
 	// where these same assets are calibrated against each other.
 	g.tap_snd_cfg = [
-		{ name : "click",     snd : snd_click,    pmn : .95, pmx : 1.15, vol : .35 },
+		{ name : "click",     snd : snd_tap_click1, pmn : .95, pmx : 1.1, vol : .5 },
 		{ name : "gold",      snd : snd_gold,     pmn : .8,  pmx : 1.5,  vol : .5  },
 		{ name : "gold two",  snd : snd_gold2,    pmn : .8,  pmx : 1.5,  vol : .5  },
 		{ name : "tap heavy", snd : snd_tapheavy, pmn : .8,  pmx : 1.5,  vol : .5  },
@@ -35,6 +35,16 @@ function tap_sound_config() {
 		{ name : "drum",      snd : snd_drum,     pmn : .8,  pmx : 1.5,  vol : .5  },
 		{ name : "cartian",   snd : snd_afripop2, pmn : .8,  pmx : 1.5,  vol : .5  },
 		{ name : "coin toss", snd : snd_cointoss, pmn : .8,  pmx : 1.5,  vol : .5  },
+		// ---- the UI pack (his three, 2026-09-08) ----
+		// APPENDED, because the save stores the index - see the header.
+		// The first of them REPLACED row 0 in place rather than being
+		// appended beside it: "the current default needs to go" is about
+		// the sound row 0 plays, and swapping the asset there retires it
+		// for everyone, saved preferences included, without moving a
+		// single index. snd_click itself stays in the project - the rest
+		// of the UI still uses it - it is only no longer a tap.
+		{ name : "click two",   snd : snd_tap_click2, pmn : .95, pmx : 1.1, vol : .5 },
+		{ name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1, vol : .5 },
 	];
 	return g.tap_snd_cfg;
 }
