@@ -23,12 +23,22 @@ tap_y1 = room_height;
 /// non-game rooms are off limits.
 __live = function() {
 	if (!variable_global_exists("game_started") || !g.game_started) return false;
-	// THE MONEY ROOM ONLY (his call 2026-09-06). It used to be live
-	// everywhere but the title / boot / quit rooms, so a tap while
-	// reading the statistics paid profit and threw bezier motes across
-	// the screen. in_room is orientation-aware, so this covers both
-	// shapes of the clicker.
-	return in_room(rm_clicker);
+	// EVERY GAME ROOM (his call, and DE's shape - DE parks obj_clicker
+	// on rm_load_ui, the persistent HUD layer, so the thumb earns
+	// wherever you are). It was narrowed to the money room on
+	// 2026-09-06 and widened again here.
+	//
+	// The one thing to know about the wide version: RX's menus are
+	// ROOMS where DE's are overlays, so DE's taps were held off by
+	// g.input_block and ours are not - a tap on a screen's own furniture
+	// will work the control AND pay for the tap. Everything the region
+	// pattern already blocks still blocks (the menu drawer, popups, any
+	// clickable widget, and the dial drawer's own bars via __consumes);
+	// what is missing is a __consumes for the settings / statistics /
+	// saves / upgrades tables. That is the fix if the double action
+	// grates - one method per screen, the shape syst_dials already has.
+	return !in_room(rm_titlescreen) && !in_room(rm_gameload)
+		&& !in_room(rm_quit);
 };
 
 pop = 0;  // a little press feedback the room can read

@@ -39,9 +39,12 @@ function upgrade_roll(_slot) {
 	// THE STAKE, taken before anything is rolled. See upgrade_roll_cost:
 	// without it, free rolling makes rarity pointless and a sellable
 	// offer makes credits infinite.
+	// (free while UPG_ROLL_COST is 0 - the whole block sits out)
 	var _price = upgrade_roll_cost();
-	if (!(g.credits >= arb(_price))) return -2;
-	g.credits = do_subtract(g.credits, arb(_price));
+	if (_price > 0) {
+		if (!(g.credits >= arb(_price))) return -2;
+		g.credits = do_subtract(g.credits, arb(_price));
+	}
 
 	// THE RARITY, drawn by walking upgrade_rarity_odds() - the same
 	// array the statistics screen draws as a bar. It used to be an

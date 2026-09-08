@@ -1,6 +1,11 @@
 
 visible = true;
-depth = 0;
+// ABOVE THE SCREENS (his report: it was drawing behind the upgrades
+// table). It sat at 0, which is the same depth every full-screen
+// controller draws its rows at, so which one won was down to instance
+// order. rm_clicker's plan is header -1000 / menu -520 / drawer -20, and
+// a banner is a system message: over the menu, under the header.
+depth = -540;
 
 desx = 0;
 x = move_to(x,desx,5);

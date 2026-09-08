@@ -119,25 +119,29 @@ for (var _i = 0; _i < _n; _i++) {
 		// EVERY SLOT HAS A PRICE NOW, an untouched offer included - it
 		// cost a stake to be here, so it is worth something to be rid
 		// of. "discard" is gone with it.
+		// a slot with nothing paid into it is worth nothing - see
+		// upgrade_sell_value. Say `discard` rather than quote a 0.
+		var _pv = upgrade_sell_value(_i);
 		draw_ui_button(_b.x, _b.y, _b.w, _b.h,
-			string(upgrade_sell_value(_i)), c_lavender, true, true);
+			(_pv > 0) ? string(_pv) : "discard", c_lavender, true, true);
 	}
 
 	// ---- THE HOLD BAR (DE's) ----
-	// A red wash sweeping across the WHOLE ROW rather than across the
+	// A wash sweeping across the WHOLE ROW rather than across the
 	// button, which is DE's shape and the right one: what is being
-	// consumed is the slot, so the row is the thing that should be
-	// visibly filling up.
+	// spent - or consumed - is the slot, so the row is the thing that
+	// should be visibly filling up.
 	//
-	// The fill is SQUARED, exactly as DE squares it for a sale
-	// (val = (hp/100)*(hp/100) against a plain hp/100 for a buy). It
-	// crawls at the start and rushes at the end, so a tap that was not
-	// meant to be a hold barely moves it - the commitment is legible
-	// before it is irreversible.
+	// GREEN AND LINEAR TO BUY, RED AND SQUARED TO SELL, exactly DE's
+	// split (val = hp/100 against (hp/100)*(hp/100)). The squared one
+	// crawls at the start, so a tap that was not meant to be a hold
+	// barely moves it - the commitment is legible before it is
+	// irreversible - while the linear one is a steady metronome you can
+	// count tiers against as it repeats.
 	if (hold_i == _i && hold_hp > 0) {
 		var _hf = hold_hp / 100;
-		_hf *= _hf;
-		var _hc = merge_colour(c_hred, c_black, .3);
+		if (mode == 1) _hf *= _hf;
+		var _hc = merge_colour((mode == 0) ? c_sgreen : c_hred, c_black, .3);
 		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w * _hf, row_h, 0, _hc, .6);
 	}
 
@@ -151,9 +155,10 @@ for (var _i = 0; _i < _n; _i++) {
 var _rr  = __roll_rect();
 var _rc  = upgrade_roll_cost();
 var _fs  = __free_slot();
-var _ra  = (_fs != -1) && (g.credits >= arb(_rc));
+var _ra  = (_fs != -1) && (_rc <= 0 || g.credits >= arb(_rc));
 draw_ui_button(_rr.x, _rr.y, _rr.w, _rr.h,
-	(_fs == -1) ? "no free slot" : ("roll a slot - " + string(_rc)),
+	(_fs == -1) ? "no free slot"
+	            : ((_rc > 0) ? ("roll a slot - " + string(_rc)) : "roll a slot"),
 	(_fs == -1) ? c_gray : (_ra ? c_sblue : c_hred), (_fs != -1), _ra);
 
 // ---- the footer: what all of it adds up to ----

@@ -44,5 +44,10 @@ function upgrade_sell_value(_slot) {
 	// plus every tier bought, on the curve it was bought on
 	for (var _t = 0; _t < _s.tier; _t++) _paid += upgrade_price_base(_slot, _t);
 
-	return max(1, floor(_paid * UPG_SELL_BACK));
+	// NO FLOOR. An offer with nothing paid into it is worth nothing, and
+	// with a free roll that is most offers - putting a 1-credit floor
+	// under it would turn "roll, sell, repeat" into a credit printer
+	// again, one credit at a time and forever. The row says so: the
+	// button reads `discard` at zero rather than quoting a price of 0.
+	return floor(_paid * UPG_SELL_BACK);
 }

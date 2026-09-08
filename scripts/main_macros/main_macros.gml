@@ -133,7 +133,12 @@ function main_macros() {
 #macro c_ap rgb(120,190,255)
 
 // ---- upgrades (game/upgrades) ----
-#macro UPG_SLOT_BASE 3     // slots you start with
+// EIGHT TO START (his call, so an end-game table can be looked at
+// now). The design wants 3 and the other five bought through the
+// "another slot" grant - put this back to 3 to restore that, and the
+// grant re-enters the roll pool by itself the moment it does, because
+// its avail closure is `upgrade_slots() < UPG_SLOT_MAX`.
+#macro UPG_SLOT_BASE 8     // slots you start with
 // EIGHT. It was cut to five when a row was 38px tall and eight ran off
 // the bottom of a 270-tall room; at 19px a row they all fit with space
 // to spare, so this is the original intent restored rather than a new
@@ -146,15 +151,27 @@ function main_macros() {
 // untouched. upgrade_bonus() itself stays truthful, so the screen shows
 // what the slots WOULD do. Flip this to turn the whole system on.
 #macro UPG_LIVE false
+
+// THE SPARK POOL's size - see syst_sparks. DE runs to 200 instances;
+// this is 200 preallocated structs in one object, and the number is a
+// hard ceiling rather than a target: the population cull means the
+// count settles well under it on its own.
+#macro SPARK_MAX 200
 #macro UPG_RARITY_N  8     // common .. ultimate, see upgrade_rarity_info
 // THE STAKE. What one roll into an empty slot costs in credits, before
 // difficulty and upgrade_inflation. It is what stops "sell instead of
 // discard" from being a credit printer, and what stops free rerolling
 // from making rarity meaningless - see upgrade_roll_cost.
-// Keep it >= 3: upgrade_sell_value floors its payout at 1 credit so no
-// slot is ever worthless, and at a stake of 2 or less that floor would
-// close the gap the sell-back fraction opens.
-#macro UPG_ROLL_COST 5
+// FREE (his call). Everything the stake was protecting still holds,
+// because the protection was never the price itself - it was that a
+// refund can only ever be a fraction of what was actually paid in. At
+// zero, an offer you never bought has had nothing paid into it and so
+// refunds nothing, which is arithmetic rather than a special case.
+// The cost of free rolling is that rerolling is unlimited, so rarity
+// only matters as long as you cannot be bothered to press the button
+// again; if that turns out to hurt, the honest fix is DE's - upgrades
+// arrive on a timer instead of on demand - rather than a price.
+#macro UPG_ROLL_COST 0
 // THE SHAPE OF THE LADDER, and the only knob that moves it. A roll is
 // floor(random(1)^POW * N), so a bigger power crushes more of the mass
 // onto the common end - 3 gives common 52% and about 1 in 20 ultimate,

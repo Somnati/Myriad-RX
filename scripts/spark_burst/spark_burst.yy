@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"spark_burst",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"spark_burst",
+  "parent":{
+    "name":"visualizer",
+    "path":"folders/engine/visualizer.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

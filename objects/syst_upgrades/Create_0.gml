@@ -38,15 +38,20 @@ sel  = -1;     // the slot under the pointer, for the hover wash
 // button, at 100 units per 40 frames, and trickles it back to zero the
 // moment you let go or slide off. The action fires when it lands.
 //
-// SELLING ONLY, deliberately. DE gates buying behind the same hold, and
-// on a purchase that is friction on the screen's main verb - you buy
-// tiers constantly. Selling is destructive and irreversible, and a
-// commitment gate on a destructive action is protection rather than
-// friction. Buy stays an instant click.
-hold_i  = -1;   // the slot filling, -1 = none
-hold_hp = 0;    // 0..100
-hold_lock = false;  // set on a completed hold: DE's `hp = -1`, cleared
-                    // on release, so one hold is one sale
+// BOTH MODES, as DE has it. The two fills differ exactly as DE's do:
+//   BUY   green, linear, and REPEATS while you keep holding - each
+//         landed buy raises hold_spd so the next one arrives sooner,
+//         to a ceiling of 7x. That is DE's bulk purchase: hold the
+//         row and watch the tiers stack, faster and faster.
+//   SELL  red, SQUARED, and once. A squared fill crawls at the start,
+//         so a tap that was not meant to be a hold barely moves it -
+//         the commitment is legible before it is irreversible - and
+//         the slot empties, so there is nothing left to repeat on.
+hold_i    = -1;   // the slot filling, -1 = none
+hold_hp   = 0;    // 0..100
+hold_spd  = 1;    // DE's hp_spd: the repeat ramp, 1..7
+hold_lock = false;  // set when a hold completes something that must not
+                    // repeat (DE's `hp = -1`), cleared on release
 
 __row_y = function(_i) { return list_y + 6 + _i * row_sp; };
 

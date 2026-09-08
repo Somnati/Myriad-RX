@@ -15,5 +15,6 @@
 /// It rides upgrade_inflation like every other price, so rolling does
 /// not quietly become free again as a run matures.
 function upgrade_roll_cost() {
+	if (UPG_ROLL_COST <= 0) return 0;   // free, and the callers all know it
 	return max(1, round(UPG_ROLL_COST * upgrade_diff_mult() * upgrade_inflation()));
 }

@@ -64,6 +64,13 @@ for (var _i = 0; _i < _n; _i++) {
 		if (_d.gpc >= arb(5)) _nb = round(random_range(1, 5));
 		bezier_bits(_sx, _sy, _nb, g.profit_color, undefined, undefined, -1,
 			_d.paid_amt);
+
+		// AND DE'S SPARKS (obj_eff_shardspark): one to three pixels
+		// thrown out of the same seat, wearing THE DIAL'S colour rather
+		// than the profit colour. That split is the whole point of
+		// having both - the motes are the money leaving, the sparks are
+		// the machine that made it.
+		spark_burst(_sx, _sy, choose(1, 2, 3), dial_color(_i));
 	}
 	// the spring, both terms delta-correct
 	rv[_i] += (_t - rd[_i]) * WIG_K * delta;

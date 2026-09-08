@@ -43,3 +43,7 @@ autosave_next  = current_time + autosave_delay;
 if (!instance_exists(syst_offline)) create_obj(0, 0, syst_offline);
 // the credit panel (game/credits): persistent, every room, self-hiding
 if (!instance_exists(obj_display_credits)) create_obj(0, 0, obj_display_credits);
+// the spark pool: persistent, allocated once, idle in every room that
+// never calls spark_burst (its Step and Draw both leave immediately on
+// an empty pool)
+if (!instance_exists(syst_sparks)) create_obj(0, 0, syst_sparks);
