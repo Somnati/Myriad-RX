@@ -239,6 +239,142 @@ for (var _r = _lo; _r < _hi; _r++) {
 		draw_set_halign(fa_left);
 		draw_set_alpha(1);
 	}
+	if (_row.kind == 8) {
+		// THE RARITY SPREAD (Techdemo II's rarity bar, in this room's
+		// language). TWO strips - the odds above, what has actually been
+		// rolled below - over an aligned list, because the interesting
+		// half of any ladder is its tail and a tail needs columns.
+		var _rx0 = _tx;
+		var _rw0 = val_x - _rx0;
+		var _ry0 = _ry + 4;
+		var _rsh = 8;                 // the expected strip
+		var _ren = _row.data;
+		var _rn  = is_array(_ren) ? array_length(_ren) : 0;
+
+		// the observed total, which decides whether the second strip
+		// exists at all - nothing rolled yet is not a distribution
+		var _rtot = 0;
+		for (var _rg = 0; _rg < _rn; _rg++)
+			_rtot += max(0, _ren[_rg][$ "seen"] ?? 0);
+
+		draw_set_alpha(1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _rx0, _ry0, _rw0, _rsh, 0, c_black, .35);
+		if (_rtot > 0)
+			draw_sprite_ext(spr_pixel_1x1, 0, _rx0, _ry0 + _rsh + 1, _rw0, 4, 0,
+				c_black, .35);
+
+		// pass one finds the segment under the pointer, so pass two can
+		// dim everything else - the hover has to be known before the
+		// first segment is painted
+		var _rhov = -1;
+		var _rcx  = _rx0;
+		for (var _rg = 0; _rg < _rn; _rg++) {
+			var _rsw = clamp(_ren[_rg].p, 0, 1) * _rw0;
+			var _rfx = floor(_rcx);
+			var _rfw = max(1, floor(_rcx + _rsw) - _rfx);
+			if (input_free())
+			if (point_in_rectangle(mouse_x, mouse_y, _rfx, _ry0, _rfx + _rfw,
+				_ry0 + _rsh)) _rhov = _rg;
+			_rcx += _rsw;
+		}
+
+		_rcx = _rx0;
+		var _rcx2 = _rx0;
+		for (var _rg = 0; _rg < _rn; _rg++) {
+			var _re  = _ren[_rg];
+			var _rc  = _re.col;
+			var _lit = (_rhov == _rg || _rhov == -1);
+			var _rsw = clamp(_re.p, 0, 1) * _rw0;
+			var _rfx = floor(_rcx);
+			var _rfw = max(1, floor(_rcx + _rsw) - _rfx);
+			draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _rfx, _ry0, _rfw, _rsh, 0,
+				merge_colour(_rc, c_white, .22), merge_colour(_rc, c_white, .22),
+				merge_colour(_rc, c_black, .3), merge_colour(_rc, c_black, .3),
+				_lit ? 1 : .3);
+			// a hairline between neighbours, so two similar colours do
+			// not read as one wider rung
+			if (_rg > 0)
+				draw_sprite_ext(spr_pixel_1x1, 0, _rfx, _ry0, 1, _rsh, 0, c_black, .55);
+			_rcx += _rsw;
+
+			// the rolled strip: the same colours, thinner and flat, so
+			// it reads as a SAMPLE of the curve above it rather than as
+			// a second statistic competing with it
+			if (_rtot > 0) {
+				var _rsn = max(0, _re[$ "seen"] ?? 0);
+				var _rw2 = (_rsn / _rtot) * _rw0;
+				var _rfx2 = floor(_rcx2);
+				if (_rsn > 0)
+					draw_sprite_ext(spr_pixel_1x1, 0, _rfx2, _ry0 + _rsh + 1,
+						max(1, floor(_rcx2 + _rw2) - _rfx2), 4, 0, _rc, _lit ? .85 : .25);
+				_rcx2 += _rw2;
+			}
+		}
+
+		// ---- the list, in fixed columns ----
+		var _rly = _ry0 + _rsh + ((_rtot > 0) ? 7 : 3);
+		var _rcA = _rx0 + _rw0 * .46;   // chance,  right-aligned
+		var _rcB = _rx0 + _rw0 * .66;   // 1 in N,  right-aligned
+		var _rcC = _rx0 + _rw0;         // rolled,  right-aligned
+
+		draw_set_halign(fa_right);
+		draw_set_color(_row.c2);
+		draw_set_alpha(.3);
+		draw_text(_rcA, _rly, "chance");
+		draw_text(_rcB, _rly, "1 in");
+		if (_rtot > 0) draw_text(_rcC, _rly, "rolled");
+		_rly += 8;
+
+		for (var _rg = 0; _rg < _rn; _rg++) {
+			if (_rly > _ry + _bh - 8) break;
+			var _re  = _ren[_rg];
+			var _lit = (_rhov == _rg || _rhov == -1);
+			var _rpc = clamp(_re.p, 0, 1) * 100;
+
+			// DECIMALS BY MAGNITUDE (Techdemo II's rule). A tail printed
+			// at one decimal is a tail printed as zero, and the tail is
+			// the only part of this list anybody reads twice.
+			var _rdec = 2;
+			if (_rpc >= 10)  _rdec = 1;
+			if (_rpc < .1)   _rdec = 3;
+			if (_rpc < .001) _rdec = 0;
+
+			// "1 in N", rounded to clean figures by magnitude - an exact
+			// 1 in 3127 says less than 1 in 3100 does
+			var _rinv = (_re.p > 0) ? (1 / _re.p) : 0;
+			var _rtxt = "-";
+			if (_rinv > 0) {
+				if (_rinv < 20)        _rinv = round(_rinv);
+				else if (_rinv < 100)  _rinv = round(_rinv / 5) * 5;
+				else if (_rinv < 1000) _rinv = round(_rinv / 10) * 10;
+				else                   _rinv = round(_rinv / 100) * 100;
+				_rtxt = string(_rinv);
+			}
+
+			draw_set_halign(fa_left);
+			draw_sprite_ext(spr_pixel_1x1, 0, _rx0, _rly + 2, 4, 4, 0, _re.col,
+				_lit ? .95 : .25);
+			draw_set_color(_re.col);
+			draw_set_alpha(_lit ? .9 : .25);
+			draw_text(_rx0 + 8, _rly, _re.name);
+
+			draw_set_halign(fa_right);
+			draw_set_color(_row.c2);
+			draw_set_alpha(_lit ? .8 : .25);
+			draw_text(_rcA, _rly, string_format(_rpc, 1, _rdec) + "%");
+			draw_set_alpha(_lit ? .45 : .18);
+			draw_text(_rcB, _rly, _rtxt);
+			if (_rtot > 0) {
+				var _rsn = max(0, _re[$ "seen"] ?? 0);
+				draw_set_color((_rsn > 0) ? _re.col : _row.c2);
+				draw_set_alpha(_lit ? ((_rsn > 0) ? .85 : .35) : .22);
+				draw_text(_rcC, _rly, string(_rsn));
+			}
+			_rly += 8;
+		}
+		draw_set_halign(fa_left);
+		draw_set_alpha(1);
+	}
 	if (_row.kind == 6) {
 		// the history graph: a filled AREA under a bright line, quarter
 		// gridlines, hi/lo labels in a right gutter and the live value

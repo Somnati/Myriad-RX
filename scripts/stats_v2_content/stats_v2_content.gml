@@ -119,6 +119,42 @@ function stats_v2_content() {
 			-1, (_ub.credit_luck > 0) ? c_lavender : c_gray);
 		stats_v2_line("rebirth units", "+" + string_format(_ub.rebirth_units, 1, 1) + "%",
 			-1, (_ub.rebirth_units > 0) ? c_hred : c_gray);
+
+		// ---- the rarity spread (Techdemo II's rarity bar) ----
+		// The odds a roll plays by, drawn straight from the array the
+		// roll walks, with the histogram of what has actually come out
+		// underneath it. Both halves matter: the first is the promise,
+		// the second is whether the promise is being kept.
+		if (stats_v2_folder("rarity", c_horange)) {
+			var _rod = upgrade_rarity_odds();
+			var _rent = [];
+			var _rbest = -1;
+			for (var _rk = 0; _rk < UPG_RARITY_N; _rk++) {
+				var _rif = upgrade_rarity_info(_rk);
+				var _rsn = (_rk < array_length(g.upg.seen)) ? g.upg.seen[_rk] : 0;
+				if (_rsn > 0) _rbest = _rk;
+				array_push(_rent, {
+					name : _rif.name,
+					col  : _rif.col,
+					p    : _rod[_rk],
+					seen : _rsn,
+				});
+			}
+			stats_v2_rarity("spread", _rent);
+			stats_v2_line("rolls", string(g.upg.rolls), -1, -1,
+				"every roll, ever - the tally beside each rung above adds "
+				+ "up to this. it survives rebirth, like the upgrades do.");
+			stats_v2_line("best rolled",
+				(_rbest >= 0) ? upgrade_rarity_info(_rbest).name : "-", -1,
+				(_rbest >= 0) ? upgrade_rarity_info(_rbest).col : c_gray);
+			stats_v2_line("value multiplier",
+				"x" + string_format(upgrade_rarity_mult(0), 1, 1) + " .. x"
+				+ string_format(upgrade_rarity_mult(UPG_RARITY_N - 1), 1, 1),
+				-1, -1, "what a rung is worth: it scales the rolled value, "
+				+ "the price and the tier ceiling by the same number, so a "
+				+ "rare rung is never simply a better version of a common one.");
+		}
+		stats_v2_folder_end();
 	}
 	stats_v2_folder_end();
 

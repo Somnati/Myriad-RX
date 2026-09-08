@@ -35,9 +35,20 @@ function upgrade_roll(_slot) {
 
 	var _pick = _ok[irandom(array_length(_ok) - 1)];
 
-	// rarity 0..6, weighted toward common. The cube pushes the mass
-	// down without ever making the top rung unreachable.
-	var _rar = floor(power(random(1), 3) * (UPG_RARITY_N - 0.0001));
+	// THE RARITY, drawn by walking upgrade_rarity_odds() - the same
+	// array the statistics screen draws as a bar. It used to be an
+	// inline floor(random(1)^3 * N) here and a picture of that curve
+	// somewhere else, which is two descriptions of one law and an
+	// invitation for them to drift; now the chart and the generator are
+	// the same numbers read twice.
+	var _odds = upgrade_rarity_odds();
+	var _u    = random(1);
+	var _acc  = 0;
+	var _rar  = UPG_RARITY_N - 1;   // the top rung catches rounding
+	for (var _q = 0; _q < UPG_RARITY_N; _q++) {
+		_acc += _odds[_q];
+		if (_u < _acc) { _rar = _q; break; }
+	}
 	var _mult = upgrade_rarity_mult(_rar);
 
 	var _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
@@ -53,6 +64,7 @@ function upgrade_roll(_slot) {
 		tier : 0,            // an offer, not yet owned
 	};
 	g.upg.rolls += 1;
+	g.upg.seen[_rar] += 1;   // the histogram - see upgrade_init
 	save_mark_dirty();
 	return g.upg.slot[_slot];
 }

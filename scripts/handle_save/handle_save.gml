@@ -134,6 +134,21 @@ function handle_save(){
 	g.upg.bought = handle("slots_bought", g.upg.bought);
 	g.upg.total  = handle("total",        g.upg.total);
 	g.upg.rolls  = handle("rolls",        g.upg.rolls);
+	// the rarity histogram, one comma string - a short fixed-length
+	// list has no business being one key per rung
+	var _seen_txt = "";
+	for (var _u = 0; _u < UPG_RARITY_N; _u++)
+		_seen_txt += ((_u > 0) ? "," : "") + string(g.upg.seen[_u]);
+	_seen_txt = handle("seen", _seen_txt);
+	if (action == sv_load) {
+		var _seen_p = string_split(_seen_txt, ",");
+		for (var _u = 0; _u < UPG_RARITY_N; _u++) {
+			// string_digits, not real(): a save edited by hand or a
+			// widened ladder must read as zero, never as an error
+			var _d = (_u < array_length(_seen_p)) ? string_digits(_seen_p[_u]) : "";
+			g.upg.seen[_u] = (_d == "") ? 0 : floor(real(_d));
+		}
+	}
 	for (var _u = 0; _u < UPG_SLOT_MAX; _u++) {
 		var _s = g.upg.slot[_u];
 		var _has = is_struct(_s);

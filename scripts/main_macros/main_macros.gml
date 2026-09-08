@@ -146,7 +146,14 @@ function main_macros() {
 // untouched. upgrade_bonus() itself stays truthful, so the screen shows
 // what the slots WOULD do. Flip this to turn the whole system on.
 #macro UPG_LIVE false
-#macro UPG_RARITY_N  7     // common .. ultimate, see upgrade_rarity_mult
+#macro UPG_RARITY_N  7     // common .. ultimate, see upgrade_rarity_info
+// THE SHAPE OF THE LADDER, and the only knob that moves it. A roll is
+// floor(random(1)^POW * N), so a bigger power crushes more of the mass
+// onto the common end - 3 gives common 52% and about 1 in 20 ultimate,
+// which the statistics screen's spread bar now shows honestly. The roll
+// and that bar both read upgrade_rarity_odds(), so they cannot disagree
+// about what this number did.
+#macro UPG_RARITY_POW 3
 #macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale
 
 #macro eid_crit_rate 0

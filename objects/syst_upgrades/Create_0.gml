@@ -50,18 +50,13 @@ __back_rect = function() {
 	return { x1 : room_width - 62, y1 : bby + 6, x2 : room_width - 6, y2 : bby + 22 };
 };
 
-// the rarity's name and colour. RX already carries DE's whole rarity
-// palette, so both of these are lookups rather than new colours to
-// invent for one screen.
-__rar_name = function(_r) {
-	var _t = ["common", "uncommon", "rare", "epic", "legendary", "elite", "ultimate"];
-	return _t[clamp(floor(_r), 0, array_length(_t) - 1)];
-};
-__rar_col = function(_r) {
-	var _t = [c_rarity_common, c_rarity_uncommon, c_rarity_rare, c_rarity_epic,
-		c_rarity_legendary, c_rarity_elite, c_rarity_ultimate];
-	return _t[clamp(floor(_r), 0, array_length(_t) - 1)];
-};
+// the rarity's name and colour, both from upgrade_rarity_info - which
+// is now the ONE ladder. These were a private pair of tables here, and
+// the statistics screen needed the same two answers; a second copy of a
+// ladder is a second order for it to be in, and this one had elite and
+// legendary the wrong way round against DE's.
+__rar_name = function(_r) { return upgrade_rarity_info(_r).name; };
+__rar_col  = function(_r) { return upgrade_rarity_info(_r).col;  };
 
 // a slot's effect, as the one string the row has room for
 __eff_str = function(_s) {

@@ -26,5 +26,14 @@ function upgrade_init(_force = false) {
 		bought : 0,   // extra slots bought (the "another slot" grant)
 		total  : 0,   // lifetime purchases, for the statistics screen
 		rolls  : 0,   // lifetime rolls, ditto
+
+		// ONE COUNT PER RARITY, and the single exception to the law at
+		// the top of this file. Everything else here is what you HOLD,
+		// from which the live numbers derive; this is what you have
+		// SEEN, and history is the one thing that cannot be derived
+		// from a present state. It is what lets the statistics screen
+		// draw the odds you were promised over the odds you actually
+		// got, which is the only honest way to show a distribution.
+		seen   : array_create(UPG_RARITY_N, 0),
 	};
 }
