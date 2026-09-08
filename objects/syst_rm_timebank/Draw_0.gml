@@ -48,7 +48,11 @@ draw_px_rect(_bx, _by, _bw, 5, c_sblue, .35);
 // ---- the speed row ----
 draw_set_color(sett_ink);
 draw_set_alpha(.55);
-draw_text(cx, spd_y - 12, "active speed - the bank pays the difference");
+// EVERY SPEED IS WORTH THE SAME TOTAL - x10 does not spend the bank
+// better than x2, it spends it faster (a banked second is one extra
+// simulated second whatever multiplier burns it; see timebank_twin's
+// invariant 2). Saying so stops the row reading as a power choice.
+draw_text(cx, spd_y - 12, "active speed - faster spends sooner, not further");
 draw_set_halign(fa_left);
 for (var _k = 0; _k < 6; _k++) {
 	var _px = spd_x0 + _k * (spd_w + spd_gap);
@@ -105,7 +109,7 @@ draw_set_color(rgb(120, 130, 150));
 draw_set_alpha(.5);
 draw_text(cx, room_height - 32, "while away, production runs AND time banks on top");
 draw_text(cx, room_height - 22,
-	"at x4, every second plays 4 - the bank pays the other 3");
+	"a banked second is one extra second played, at any speed");
 draw_set_halign(fa_left);
 
 draw_set_alpha(1);

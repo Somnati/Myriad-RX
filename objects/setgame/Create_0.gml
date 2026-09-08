@@ -85,10 +85,23 @@
 	// The invariant these numbers must respect: banked minutes per real
 	// hour stay under 60, so the rate and its ceiling are both minutes
 	// per hour and timebank_rate hard-clamps at 55 regardless.
+	// TUNED IN datafiles/timebank_twin.py - run it before touching these.
+	// The two knobs are COMPLEMENTS: rate decides how fast an absence
+	// banks, cap decides how much of it survives, and a purchase of
+	// either is only worth anything while the OTHER one is the binder.
+	// The twin's invariant 7 walks a real absence pattern and refuses a
+	// pairing where one of them is ever a dead buy.
 	g.tb_rate      = 5;    // minutes banked per hour away, at rate_lv 0
 	g.tb_rate_step = 2;    // per rate purchase
-	g.tb_rate_cap  = 40;   // the tuned ceiling (a hard 55 sits above it)
-	g.tb_cap       = 60;   // bank capacity in minutes, at cap_lv 0
+	// 45, not 40: 5 + 2n hits 45 exactly and skips over 40, so a 40
+	// ceiling was one the ladder could never actually reach (it stopped
+	// at 39 and the last level bought nothing).
+	g.tb_rate_cap  = 45;   // the tuned ceiling (a hard 55 sits above it)
+	// 30, not 60: at the base rate a 60-minute cap does not clip until
+	// TWELVE HOURS away, so the first capacity purchase bought nothing
+	// at all for anyone whose sessions are a normal day apart. At 30 it
+	// binds on an overnight, which is what makes it a purchase.
+	g.tb_cap       = 30;   // bank capacity in minutes, at cap_lv 0
 	g.tb_cap_step  = 30;   // per capacity purchase
 	g.tb_cost_mult = 350;  // percent per level - x3.5, a late-game sink
 	g.tb_cap_cost  = 100;  // percent of the 50k capacity base

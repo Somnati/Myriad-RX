@@ -13,6 +13,13 @@
 /// is worth the branch: a multiplier that vanished mid-second and left
 /// a sliver unspent would be a rounding error the player paid for.
 ///
+/// EVERY SPEED IS WORTH THE SAME TOTAL. Spending B banked seconds at
+/// multiplier m takes B/(m-1) real seconds and yields exactly B extra
+/// simulated ones - the m cancels. So the speed row is PACING, not
+/// power: it chooses how fast the bank drains, never how much it buys.
+/// The room says so out loud, because a segmented control that looks
+/// like a power ladder will be read as one.
+///
 /// DELIBERATELY NOT MULTIPLIED: anything on the wall clock (the credit
 /// dropper's cooldown is fine, it rides the same budget; the autosave
 /// timer and the away clock are not), render/delta, and the REBIRTH RUN
