@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"rarity_odds",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"rarity_odds",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

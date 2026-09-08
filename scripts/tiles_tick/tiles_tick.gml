@@ -26,6 +26,7 @@ function tiles_tick(_tmult = 1) {
 		} else {
 			_t.fab -= _t.fab_t;
 			_t.stored++;
+			_t.made++;   // lifetime, for the statistics
 			// away ledger (round 2): the tile room's own welcome-back
 			// window counts live fabrication too
 			if (variable_global_exists("away")) g.away.tiles.fab++;

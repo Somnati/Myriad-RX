@@ -184,6 +184,62 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- tiles ----
+	if (variable_global_exists("tiles"))
+	if (stats_v2_folder("tiles", c_aqua)) {
+		var _tl = g.tiles;
+		var _used = 0;
+		for (var _i = 0; _i < _tl.slots; _i++) if (_tl.tier[_i] != 0) _used++;
+
+		stats_v2_line("profit", "+" + ((_tl.gps >= arb(1)) ? crunch_arb(_tl.gps) : "0")
+			+ "/s", -1, c_gold,
+			"what the table pays. merging into higher tiers grows it fast "
+			+ "- a tier is worth far more than the two that made it.");
+		stats_v2_line("board", string(_used) + " / " + string(_tl.slots), -1,
+			(_used >= _tl.slots) ? c_horange : -1);
+		stats_v2_line("banked", string(_tl.stored) + " / " + string(_tl.stored_max),
+			-1, (_tl.stored >= _tl.stored_max) ? c_horange : -1,
+			"tiles fabricated while the board was full. they deal onto "
+			+ "open slots by themselves as space frees up - and at the cap "
+			+ "the fabricator WAITS rather than throwing production away.");
+		stats_v2_line("highest tier", string(_tl.highest), -1,
+			tile_color(_tl.highest));
+		stats_v2_line("tiles made", string(_tl.made));
+		stats_v2_line("merges", string(_tl.merges));
+		stats_v2_line("fabricator", string_format(_tl.fab_t / 60, 1, 1) + "s",
+			-1, -1, "how long one tile takes. the auto-merger runs on a "
+			+ "MULTIPLE of it, so anything that speeds fabrication speeds "
+			+ "merging too.");
+
+		// ---- the fabricator's luck, as a spread ----
+		if (stats_v2_folder("rarity", c_horange)) {
+			// TEN TIERS, not the ladder's full fourteen: past that the
+			// odds are far below a tenth of a percent and the rows are
+			// all the same shape. The bar's job is to show where the
+			// mass actually is.
+			var _tn = 10;
+			var _to = tile_tier_odds(_tn);
+			var _te = [];
+			for (var _i = 0; _i < _tn; _i++)
+				array_push(_te, {
+					name : "tier " + string(_i + 1),
+					col  : tile_color(_i + 1),
+					p    : _to[_i],
+				});
+			stats_v2_rarity("spread", _te);
+			stats_v2_line("fabricator luck", "+" + string(g.tile_rarity), -1,
+				(g.tile_rarity > 0) ? c_horange : c_gray,
+				"every fabricated tile rolls its tier through this. it "
+				+ "shifts the whole spread up, and past each 800 the "
+				+ "bottom tier stops being offered at all.");
+			if (variable_global_exists("ad_tilerarity"))
+			if (g.ad_tilerarity == 1)
+				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
+		}
+		stats_v2_folder_end();
+	}
+	stats_v2_folder_end();
+
 	// ---- automation ----
 	if (variable_global_exists("autom"))
 	if (stats_v2_folder("automation", c_sblue)) {

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_tier_odds",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_tier_odds",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

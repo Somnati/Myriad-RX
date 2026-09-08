@@ -167,6 +167,9 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 	// welcome-back from the ledger's own window when it's next opened
 	// (so closed-game time and live time elsewhere add up honestly)
 	if (!variable_global_exists("away")) away_init();
+	// lifetime AND the window, off the same settled figure - _made has
+	// had the never-materialised overflow taken back out by here
+	_t.made             += _made;
 	g.away.tiles.fab    += _made;
 	g.away.tiles.merges += _merges;
 

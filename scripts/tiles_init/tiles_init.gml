@@ -83,6 +83,11 @@ function tiles_init(_force = false) {
 		// rebuild their display caches
 		merges  : 0,
 		highest : 1,
+		// lifetime fabricated. The away ledger counts a WINDOW and the
+		// board only says what is on it right now, so neither could
+		// answer "how many tiles has this account ever made" - which is
+		// the one number a statistics screen is actually asked for.
+		made    : 0,
 		dirty   : true,
 		rev     : 0,
 		gps     : 0,

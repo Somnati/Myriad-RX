@@ -151,6 +151,7 @@ function handle_save(){
 	g.tiles.stored  = handle("stored",  g.tiles.stored);
 	g.tiles.highest = handle("highest", g.tiles.highest);
 	g.tiles.merges  = handle("merges",  g.tiles.merges);
+	g.tiles.made    = handle("made",    g.tiles.made);
 	if (action == sv_load) {
 		var _tp = string_split(_tt, ",");
 		for (var _k = 0; _k < g.tiles.slots; _k++) {
@@ -161,6 +162,7 @@ function handle_save(){
 		g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);
 		g.tiles.highest = max(1, floor(g.tiles.highest));
 		g.tiles.merges  = max(0, floor(g.tiles.merges));
+		g.tiles.made    = max(0, floor(g.tiles.made));
 	}
 
 	// ---- automation: PREFERENCES only. The q/h pacing ramps are
