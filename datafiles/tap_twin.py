@@ -31,6 +31,9 @@ Run:  python datafiles/tap_twin.py
 """
 import math
 
+TAP_HOLD_WAIT = 15     # main_macros
+TAP_FX_TIC    = 5      # main_macros
+
 FPS_CASES  = [30, 60, 90, 144, 240]
 RATE_CASES = [0.5, 1, 8, 59, 60, 61, 250, 1000, 12345]
 SECONDS    = 60
@@ -126,7 +129,55 @@ def check():
               % (rate, got, naive, 100.0 * naive / got))
 
     print()
-    print("HOLDS" if worst <= 0 and ok4 and ok5 else "FAILS")
+    print("INVARIANT 6  a TAP is one tap (his report: two taps per tap)")
+    # A human tap holds the button 80-150ms. At 8/s the accumulator
+    # crosses 1 inside 125ms, so without a wait an ordinary tap paid the
+    # press tap AND its first hold tap.
+    def press_of(ms, rate, wait_frames):
+        frames = int(60 * ms / 1000.0)
+        taps, acc, wait = 1, 0.0, wait_frames      # the press tap itself
+        for _ in range(frames):
+            wait -= 1
+            if wait <= 0:
+                acc += rate / 60.0
+                if acc >= 1:
+                    taps += math.floor(acc); acc -= math.floor(acc)
+        return taps
+    ok6 = True
+    for ms in (80, 120, 150, 200):
+        no_wait = press_of(ms, 8, 0)
+        with_wait = press_of(ms, 8, TAP_HOLD_WAIT)
+        if with_wait != 1: ok6 = False
+        print("   a %3dms tap  ->  %d taps without the wait, %d with"
+              % (ms, no_wait, with_wait))
+    held = press_of(2000, 8, TAP_HOLD_WAIT)
+    print("   a 2s hold    ->  %d taps (1 press + ~%d at 8/s past the wait)"
+          % (held, held - 1))
+    ok6 = ok6 and held > 10
+
+    print()
+    print("INVARIANT 7  the ceremony clock counts FRAMES, not batches")
+    # It used to be decremented inside the payout branch, so it counted
+    # BATCHES: one effect every TAP_FX_TIC batches. At 8 taps a second
+    # that is 1.3 floats a second - the money was right, the show was
+    # rationed eight times too hard, and the show is what you can see.
+    def effects(rate, per_frame):
+        acc, tic, fx = 0.0, 0.0, 0
+        for _ in range(60):
+            if per_frame: tic -= 1
+            acc += rate / 60.0
+            if acc >= 1:
+                acc -= math.floor(acc)
+                if not per_frame: tic -= 1
+                if tic <= 0: fx += 1; tic = TAP_FX_TIC
+        return fx
+    was, now = effects(8, False), effects(8, True)
+    print("   at 8 taps a second: %d effects/s counting batches (shipped),"
+          " %d counting frames (fixed)" % (was, now))
+    ok7 = (now >= 7 and was <= 2)
+
+    print()
+    print("HOLDS" if worst <= 0 and ok4 and ok5 and ok6 and ok7 and ok4 and ok5 else "FAILS")
 
 
 print(__doc__.strip().splitlines()[0])
