@@ -15,6 +15,13 @@ img = 0;
 // still works: swap this back to obj_ui_menu to return to it
 create_obj(x,y,obj_ui_menu2);
 
+// the settings gear, left of the burger (his ask, 2026-09-08). It is a
+// DOOR rather than a menu line: settings is the one destination you
+// reach mid-anything, and making it the only thing you can get to
+// without opening a list is what that is worth. Its own line came out
+// of menu2_content the same day.
+create_obj(x,y,obj_ui_gear);
+
 // ---- the profit counter (top-left, every room with a header) ----
 // the SHOWN number glides to the real one, move_to-style, but in LOG
 // SPACE so one easing works at any arb magnitude (packed arbs can't

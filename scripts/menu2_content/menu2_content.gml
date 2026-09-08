@@ -19,7 +19,6 @@ function menu2_content() {
 	menu2_button("automation",   rm_automation,    c_sblue);
 	menu2_button("time bank",    rm_timebank,      c_gold);
 	menu2_button("statistics",   rm_statistics_v2, c_sgreen);  // myriad
-	menu2_button("settings",     rm_settings,      c_white);
 	menu2_button("titlescreen",  rm_titlescreen,   c_gray);
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 
