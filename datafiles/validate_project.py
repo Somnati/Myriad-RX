@@ -354,6 +354,88 @@ for p, s in srcs.items():
 check("no scientific number literals (1e9 is a GML parse error)",
       not sci, "; ".join(sci[:3]))
 
+# --- 8b. CHAINED TERNARIES. GML will not parse `a ? b : c ? d : e` -
+# a ternary's ELSE branch cannot itself be a bare ternary, it has to be
+# parenthesised. The IDE reports "got '?' expected ',' or ')'" against
+# the enclosing line, which reads like a typo in the argument list
+# rather than a precedence rule, so it costs a round trip to find.
+# (It cost one on 2026-09-08, in syst_rm_automation's Draw.)
+#
+# The walk tracks paren depth and, once a ternary's `:` has closed at
+# some depth, watches for another `?` at that SAME depth before a comma,
+# a semicolon, or the paren closing. Two ternaries side by side in one
+# argument list are fine - a comma separates them - and a nested one
+# inside parentheses is fine, because it sits deeper. That distinction
+# is exactly what the rule is about, so the walk has to model it rather
+# than pattern-match.
+def _chained_ternary(src):
+    """-> the 1-based line of the first chained ternary, or 0."""
+    depth = 0
+    line = 1
+    pend = []        # paren depths with a ternary awaiting its ':'
+    inelse = set()   # depths sitting in a ternary's else branch
+    i, n = 0, len(src)
+    while i < n:
+        c = src[i]
+        if c == "\n":
+            line += 1
+            i += 1
+            continue
+        # skip what is not code: strings, // and /* */
+        if c == '"':
+            i += 1
+            while i < n and src[i] != '"':
+                if src[i] == "\\\\":
+                    i += 1
+                elif src[i] == "\n":
+                    line += 1
+                i += 1
+            i += 1
+            continue
+        if c == "/" and i + 1 < n and src[i + 1] == "/":
+            while i < n and src[i] != "\n":
+                i += 1
+            continue
+        if c == "/" and i + 1 < n and src[i + 1] == "*":
+            i += 2
+            while i + 1 < n and not (src[i] == "*" and src[i + 1] == "/"):
+                if src[i] == "\n":
+                    line += 1
+                i += 1
+            i += 2
+            continue
+        if c in "([":
+            depth += 1
+        elif c in ")]":
+            for d in [x for x in inelse if x >= depth]:
+                inelse.discard(d)
+            while pend and pend[-1] >= depth:
+                pend.pop()
+            depth -= 1
+        elif c in ",;":
+            inelse.discard(depth)
+        elif c == "?":
+            if i + 1 < n and src[i + 1] == "?":   # null-coalescing, not a ternary
+                i += 2
+                continue
+            if depth in inelse:
+                return line
+            pend.append(depth)
+        elif c == ":":
+            if pend and pend[-1] == depth:
+                pend.pop()
+                inelse.add(depth)
+        i += 1
+    return 0
+
+tern = []
+for p, s in srcs.items():
+    ln = _chained_ternary(s)
+    if ln:
+        tern.append(p + ":" + str(ln))
+check("no chained ternaries (GML needs the nested one in parens)",
+      not tern, "; ".join(tern[:3]))
+
 # --- 8c. brace / paren / bracket balance. Cheap, and a stray one turns
 # into a wall of errors pointing anywhere but at the real line.
 bal = []

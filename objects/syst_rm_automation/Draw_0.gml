@@ -117,10 +117,13 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	if (_rw.st >= 0) {
 		var _px = cont_x + cont_w - 4;
 		draw_set_halign(fa_right);
-		draw_set_color((_rw.st == 2) ? c_sgreen : (_rw.st == 1) ? c_horange : _dim);
+		// GML will not parse a ternary whose ELSE branch is itself a bare
+		// ternary - the nested one has to be parenthesised
+		draw_set_color((_rw.st == 2) ? c_sgreen
+			: ((_rw.st == 1) ? c_horange : _dim));
 		draw_set_alpha((_rw.st == 0) ? .35 : .8);
 		draw_text(_px, _ry + 3,
-			(_rw.st == 2) ? "buying" : (_rw.st == 1) ? "waiting" : "off");
+			(_rw.st == 2) ? "buying" : ((_rw.st == 1) ? "waiting" : "off"));
 		draw_set_halign(fa_left);
 	}
 }
