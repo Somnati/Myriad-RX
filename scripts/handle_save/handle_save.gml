@@ -129,6 +129,45 @@ function handle_save(){
 	// derives from these at read time (upgrade_bonus), so this is the
 	// whole of it - and a rebalance of any value reaches old saves for
 	// free, which it could not if the effects had been written down. ----
+	// ---- automation: PREFERENCES only. The q/h pacing ramps are
+	// session state by design (autom_init) - a ramp is a guess about
+	// the current wallet, and the wallet is not the same after a load ----
+	section = "automation";
+	autom_init();
+	var _an = array_length(g.autom.dial);
+	// one string for the toggles, one for the percentages: thirteen
+	// dials is thirteen keys twice over otherwise
+	var _aon = "", _apc = "";
+	for (var _k = 0; _k < _an; _k++) {
+		_aon += ((_k > 0) ? "," : "") + (g.autom.dial[_k].on ? "1" : "0");
+		_apc += ((_k > 0) ? "," : "") + string(g.autom.dial[_k].pct);
+	}
+	_aon = handle("dial_on",  _aon);
+	_apc = handle("dial_pct", _apc);
+	if (action == sv_load) {
+		var _p1 = string_split(_aon, ",");
+		var _p2 = string_split(_apc, ",");
+		for (var _k = 0; _k < _an; _k++) {
+			g.autom.dial[_k].on = (_k < array_length(_p1)) && (_p1[_k] == "1");
+			var _d2 = (_k < array_length(_p2)) ? string_digits(_p2[_k]) : "";
+			g.autom.dial[_k].pct = (_d2 == "") ? 50 : clamp(real(_d2), 1, 100);
+		}
+	}
+	g.autom.reb.t_on  = handle("reb_t_on",  g.autom.reb.t_on);
+	g.autom.reb.t_min = handle("reb_t_min", g.autom.reb.t_min);
+	g.autom.reb.u_on  = handle("reb_u_on",  g.autom.reb.u_on);
+	g.autom.reb.u_min = handle("reb_u_min", g.autom.reb.u_min);
+	g.autom.reb.g_on  = handle("reb_g_on",  g.autom.reb.g_on);
+	g.autom.reb.g_pct = handle("reb_g_pct", g.autom.reb.g_pct);
+	g.autom.reb.c_on  = handle("reb_c_on",  g.autom.reb.c_on);
+	g.autom.reb.p_on  = handle("reb_p_on",  g.autom.reb.p_on);
+	g.autom.reb.p_oom = handle("reb_p_oom", g.autom.reb.p_oom);
+	g.autom.upg.roll  = handle("upg_roll",  g.autom.upg.roll);
+	g.autom.upg.buy   = handle("upg_buy",   g.autom.upg.buy);
+	g.autom.upg.sell  = handle("upg_sell",  g.autom.upg.sell);
+	g.autom.upg.pct   = handle("upg_pct",   g.autom.upg.pct);
+	g.autom.upg.keep  = handle("upg_keep",  g.autom.upg.keep);
+
 	// ---- the time bank: the bank itself and the two purchase counts.
 	// The cap and the rate DERIVE from those counts (timebank_cap /
 	// timebank_rate), so a tuning change reaches saves that exist ----

@@ -23,6 +23,8 @@ function game_reset(_diff = 1) {
 	// dials + the tap: create_dials hard-resets the whole layer and
 	// re-derives it (levels, cycles, the tap's own power)
 	rebirth_init(true); // a NEW GAME wipes the bank; a rebirth never does
+	autom_init(true);    // preferences: a new game forgets them, a
+	                     // rebirth does not
 	timebank_init(true); // meta, like the credits: rebirth keeps it, a
 	                     // new game does not
 	credits_init(true); // and the credits (DE: they survive rebirth, not a new game)
