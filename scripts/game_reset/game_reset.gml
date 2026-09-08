@@ -19,7 +19,6 @@ function game_reset(_diff = 1) {
 	g.profit        = 0;
 	g.total_profit  = 0;
 	g.profit_flight = 0;
-	g.profit_lock   = 0;
 
 	// dials + the tap: create_dials hard-resets the whole layer and
 	// re-derives it (levels, cycles, the tap's own power)

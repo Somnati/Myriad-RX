@@ -65,12 +65,12 @@ if (variable_global_exists("profit")) {
 	// is money the player thinks has gone missing - and the first thing
 	// they will do is check whether the game is broken. It rides the
 	// label's line, so it costs no room.
-	if (variable_global_exists("profit_lock"))
-	if (g.profit_lock >= arb(1)) {
+	var _res = profit_reserved();
+	if (_res >= arb(1)) {
 		draw_set_color(c_gold);
 		draw_set_alpha(.6);
 		draw_text(6 + string_width("profit ") + 3, 4,
-			crunch_arb(g.profit_lock) + " held");
+			crunch_arb(_res) + " held");
 		draw_set_color(sett_ink);
 		draw_set_alpha(.55);
 	}

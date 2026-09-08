@@ -105,10 +105,11 @@ __page_rows = function() {
 			name : "reserve",
 			on   : (_a.lock_pct > 0),
 			val  : _a.lock_pct,
-			sfx  : "% locked",
+			sfx  : "% of profit",
 			st   : -1,
 			col  : c_gold,
-			help : "this share of every earning is kept out of spending",
+			help : "this share of the PILE is held out of spending - turn "
+			     + "it down and the money is spendable at once",
 		});
 		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));

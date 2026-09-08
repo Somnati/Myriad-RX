@@ -3,29 +3,31 @@
 /// reserve. THE ONE READER - every affordability test in the game goes
 /// through this, so there is one definition of "can I afford it".
 ///
-/// THE RESERVE IS NOT A SECOND CURRENCY, and that decision is the whole
-/// design. g.profit_lock is a PORTION OF g.profit, not a pile beside
-/// it. So:
-///   - rebirth_calc, the header, the statistics, the offline report and
-///     every future reader of "profit held" keep working untouched,
-///     because the reserve is already inside the number they read. That
-///     is the answer to "does it get added into main profit when
-///     rebirth is calculated" - it never left, so there is nothing to
-///     add back and nothing that can be forgotten.
-///   - only the SPEND sites change, and they all change here.
-/// A second variable would have needed folding in at rebirth, in the
-/// counter, in the away report, in the rebirth bar's fill, and in
-/// everything not yet written - and the first one anybody forgot would
-/// be a silent loss of the player's savings.
+/// ⚖️ THE RESERVE IS DERIVED, NOT ACCUMULATED (his call), and that is a
+/// correction. The first version added a slice of every earning into a
+/// stored g.profit_lock, which held money back exactly as intended and
+/// then had NO WAY OUT: lowering the slider changed what future
+/// earnings did and left everything already locked sitting there
+/// forever. A control you can only turn one way is a trap.
 ///
-/// A RELATIVE FLOOR COULD NOT HAVE DONE THIS. "never spend below 20% of
-/// profit" sounds equivalent and is not: spending lowers the balance,
-/// which lowers the floor, so the pile drains asymptotically to nothing.
-/// A reserve has to be an accumulated AMOUNT, which is why it is a
-/// number rather than a percentage.
+/// So the reserve is simply a percentage OF WHAT YOU HOLD, worked out
+/// fresh every read:
+///     spendable = profit x (1 - pct/100)
+/// Move the slider down and the money is spendable that instant. There
+/// is no second variable, nothing to migrate at rebirth, nothing to
+/// save, and nothing that can drift out of step with the pile it is a
+/// fraction of.
+///
+/// WHAT THAT COSTS, stated plainly: a ratio floor can always be spent
+/// against. Spending lowers the pile, which lowers the reserve, which
+/// frees a little more - so the reserve is not a vault, it is a brake.
+/// That is the honest trade for being able to open it, and it is the
+/// right one here: the reserve exists so autobuy cannot eat the pile
+/// rebirth is calculated from, and a brake does that job.
 function profit_spendable() {
-	if (!variable_global_exists("profit_lock")) return g.profit;
-	if (!(g.profit_lock >= arb(1)))  return g.profit;
-	if (!(g.profit > g.profit_lock)) return 0;
-	return do_subtract(g.profit, g.profit_lock);
+	if (!variable_global_exists("autom")) return g.profit;
+	var _p = clamp(g.autom.lock_pct, 0, 90);
+	if (_p <= 0) return g.profit;
+	if (!(g.profit >= arb(1))) return 0;
+	return do_scale(g.profit, (100 - _p) / 100);
 }

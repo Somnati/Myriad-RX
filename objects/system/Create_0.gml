@@ -85,9 +85,6 @@ g.tap_sound = 0;
 // each frame - only works if the motes already exist when the sum
 // runs, and that depends on room instance order.
 g.profit_flight = 0;
-// THE RESERVE: the locked PORTION of g.profit (never a second pile -
-// see profit_spendable). Set by give_profit from g.autom.lock_pct.
-g.profit_lock = 0;
 // THE UPGRADE LUCK RATE (DE's g.upgrade_rarity). It slides the whole
 // rarity window upward - past one UPG_RARITY_CUT the bottom rung stops
 // being offered at all. Nothing raises it yet; a luck modifier feeds it

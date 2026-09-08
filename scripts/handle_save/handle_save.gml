@@ -32,18 +32,12 @@ function handle_save(){
 	// THE CURRENCY: profit is a packed arb, which rides the ini as a
 	// plain real. both move in whole units, so floor on load heals any
 	// fraction-caught save
-	g.profit_lock  = handle("profit_lock",  g.profit_lock);
 	g.upgrade_rarity = handle("upgrade_rarity", g.upgrade_rarity);
 	g.profit       = handle("profit",       g.profit);
 	g.total_profit = handle("total_profit", g.total_profit);
 	if (action == sv_load) {
 		g.profit       = do_floor(g.profit);
 		g.total_profit = do_floor(g.total_profit);
-		// the reserve is a PORTION of the pile, so it can never be more
-		// than the pile - a save written before it existed reads 0, and
-		// a hand-edited one heals here rather than at a spend site
-		if (!(g.profit_lock >= arb(1))) g.profit_lock = 0;
-		else if (g.profit_lock > g.profit) g.profit_lock = g.profit;
 	}
 	// LIFETIME TAP COUNTERS. These were derived at boot and never
 	// written, so "lifetime taps" started at zero every launch - the

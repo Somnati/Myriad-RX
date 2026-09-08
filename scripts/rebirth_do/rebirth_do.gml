@@ -37,7 +37,6 @@ function rebirth_do() {
 	// ---- 3. the clean slate ----
 	g.profit        = 0;
 	g.profit_flight = 0;
-	g.profit_lock   = 0;   // the reserve was profit, and profit is gone
 	create_dials();   // levels 0, cycles 0, then update_dials -> update_click
 	g.buy_lv = 1;
 

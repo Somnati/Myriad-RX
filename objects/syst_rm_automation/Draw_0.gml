@@ -33,8 +33,8 @@ if (tab == 0) {
 	draw_text(room_width - 70, bby + 5,
 		(_help != "") ? _help
 		: ((g.autom.lock_pct > 0)
-			? ("reserve is holding " + ((g.profit_lock >= arb(1))
-				? crunch_arb(g.profit_lock) : "0") + " out of spending")
+			? ("reserve is holding " + ((profit_reserved() >= arb(1))
+				? crunch_arb(profit_reserved()) : "0") + " out of spending")
 			: "the % is a CAP: the most one buy may cost, out of spendable profit"));
 	draw_set_halign(fa_left);
 }

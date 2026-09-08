@@ -285,6 +285,7 @@
     {"id":{"name":"port_vis_line","path":"scripts/port_vis_line/port_vis_line.yy",},},
     {"id":{"name":"port_vis_square","path":"scripts/port_vis_square/port_vis_square.yy",},},
     {"id":{"name":"prod_dials","path":"scripts/prod_dials/prod_dials.yy",},},
+    {"id":{"name":"profit_reserved","path":"scripts/profit_reserved/profit_reserved.yy",},},
     {"id":{"name":"profit_spendable","path":"scripts/profit_spendable/profit_spendable.yy",},},
     {"id":{"name":"rarity_label","path":"scripts/rarity_label/rarity_label.yy",},},
     {"id":{"name":"rarity_odds","path":"scripts/rarity_odds/rarity_odds.yy",},},

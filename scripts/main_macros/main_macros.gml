@@ -226,7 +226,7 @@ function main_macros() {
 // the last pixel of the tile value's vertical seat - see syst_tiles'
 // __val_y. Sprite-font glyphs rarely fill their cell evenly, so this is
 // the one thing the arithmetic cannot derive.
-#macro TILE_TEXT_NUDGE   1
+#macro TILE_TEXT_NUDGE   2
 
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds

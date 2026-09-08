@@ -133,6 +133,13 @@ dr_open = 0;     // 0 closed .. 1 open, eased
 dr_want = 0;
 sw_x    = -1;    // a swipe in progress: where it started
 sw_y    = -1;
+// ⚖️ A SWIPE ONLY COUNTS IF IT STARTED AT THIS DRAWER'S EDGE (his
+// report: dragging tiles around kept opening it). A drawer that any
+// horizontal movement anywhere can open is a drawer that fights the
+// thing it shares the room with - and on a board whose whole verb is
+// dragging, that is most of what you do. The edge band is where the
+// drawer actually lives, so a pull from there reads as pulling IT.
+sw_edge = 64;
 
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 26;

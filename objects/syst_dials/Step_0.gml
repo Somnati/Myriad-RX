@@ -102,11 +102,18 @@ if (input_free()) {
 if (!input_free()) { press_x = -1; drag_on = false; exit; }
 
 if (mouse_check_button_pressed(mb_left)) {
-	press_x    = mouse_x;
-	press_y    = mouse_y;
-	drag_from  = sp;
-	drag_on    = false;
-	hold_fired = false;
+	// ARMED ONLY FROM THE RIGHT EDGE BAND, unless the drawer is already
+	// out - then a press anywhere may push it back, so it can never be
+	// stuck open. Gating the ARMING rather than the whole event matters:
+	// an early exit here would also skip the row taps, the core picker
+	// and the buy buttons that the rest of this Step owns.
+	if (mouse_x >= room_width - SW_EDGE || stage > 0) {
+		press_x    = mouse_x;
+		press_y    = mouse_y;
+		drag_from  = sp;
+		drag_on    = false;
+		hold_fired = false;
+	} else press_x = -1;
 }
 
 // pressed faces for the two buttons (DE's frame 1 while held)

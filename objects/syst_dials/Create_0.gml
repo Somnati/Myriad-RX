@@ -14,6 +14,14 @@
 // syst_dials -20 | obj_clicker 0 | obj_bignum5 50 | Background 100.
 depth = -20;
 
+// ⚖️ A SWIPE ONLY COUNTS IF IT STARTED AT THIS DRAWER'S EDGE (his
+// report). The room-wide swipe was fine when the visualiser was the
+// only thing under it; it is not fine beside anything you drag. The
+// band is measured from the RIGHT edge, which is where this drawer
+// lives, and an open drawer accepts a push from anywhere so it can
+// always be shut.
+SW_EDGE = 64;
+
 // ---- the drawer ----
 stage  = 0;   // 0 docked / 1 list / 2 buy
 sp     = 0;   // the eased position between stages

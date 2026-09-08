@@ -33,7 +33,13 @@ if (abs(dr_want - dr_open) < .004) dr_open = dr_want;
 __reseat();   // a board-size upgrade re-centres the table at once
 
 if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
-	if (mouse_check_button_pressed(mb_left)) { sw_x = mouse_x; sw_y = mouse_y; }
+	// the press only ARMS a swipe if it landed in the left edge band -
+	// or anywhere at all while the drawer is already open, so it can
+	// always be pushed back shut
+	if (mouse_check_button_pressed(mb_left)) {
+		if (mouse_x <= sw_edge || dr_want > 0) { sw_x = mouse_x; sw_y = mouse_y; }
+		else sw_x = -1;
+	}
 	if (mouse_check_button_released(mb_left) && sw_x >= 0) {
 		var _dx = mouse_x - sw_x;
 		var _dy = mouse_y - sw_y;

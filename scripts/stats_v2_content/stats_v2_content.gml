@@ -271,14 +271,18 @@ function stats_v2_content() {
 		stats_v2_line("dials automated",
 			string(_ax) + " / " + string(array_length(g.autom.dial)), -1,
 			(_ax > 0) ? c_sblue : c_gray);
-		stats_v2_line("reserve", string(g.autom.lock_pct) + "% of earnings",
+		stats_v2_line("reserve", string(g.autom.lock_pct) + "% of profit",
 			-1, (g.autom.lock_pct > 0) ? c_gold : c_gray,
-			"a share of everything earned is locked out of spending. it "
-			+ "is still profit and rebirth still counts it - autobuy just "
-			+ "cannot reach it.");
-		stats_v2_line("held back", (g.profit_lock >= arb(1))
-			? crunch_arb(g.profit_lock) : "0", -1,
-			(g.profit_lock >= arb(1)) ? c_gold : c_gray);
+			"this share of the pile is held out of spending. it is still "
+			+ "profit and rebirth still counts it - autobuy just cannot "
+			+ "reach it.");
+		var _resv = profit_reserved();
+		stats_v2_line("held back", (_resv >= arb(1)) ? crunch_arb(_resv) : "0",
+			-1, (_resv >= arb(1)) ? c_gold : c_gray,
+			"a percentage of what you hold, worked out fresh - so turning "
+			+ "the slider down releases it that instant. it is a brake on "
+			+ "spending, not a vault: spending lowers the pile, which "
+			+ "lowers the reserve with it.");
 		stats_v2_line("spendable", (profit_spendable() >= arb(1))
 			? crunch_arb(profit_spendable()) : "0", -1, g.profit_color);
 		var _rb = g.autom.reb;
