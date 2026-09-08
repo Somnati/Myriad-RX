@@ -142,41 +142,48 @@ function handle_save(){
 	// - gps, the merge timer's period, the colour of anything - derives
 	// on the next tick ----
 	section = "tiles";
-	tiles_init();
-	var _tt = "";
-	for (var _k = 0; _k < g.tiles.slots; _k++)
-		_tt += ((_k > 0) ? "," : "") + string(g.tiles.tier[_k]);
-	_tt = handle("board", _tt);
-	g.tiles.fab     = handle("fab",     g.tiles.fab);
-	g.tiles.stored  = handle("stored",  g.tiles.stored);
-	g.tiles.highest = handle("highest", g.tiles.highest);
-	g.tiles.merges  = handle("merges",  g.tiles.merges);
-	g.tiles.made    = handle("made",    g.tiles.made);
-	g.tiles.shards  = handle("shards",  g.tiles.shards);
-	g.tiles.earned  = handle("earned",  g.tiles.earned);
-	// the four upgrade levels. Everything they DO derives (tiles_sync),
-	// so the levels are the whole of what a save carries about them.
-	var _tuc = tile_upg_config();
-	for (var _k = 0; _k < array_length(_tuc); _k++) {
-		var _tid = _tuc[_k].id;
-		g.tiles.upg[$ _tid] = handle("upg_" + _tid, g.tiles.upg[$ _tid] ?? 0);
-		if (action == sv_load)
-			g.tiles.upg[$ _tid] = max(0, floor(g.tiles.upg[$ _tid]));
-	}
-	if (action == sv_load) {
-		var _tp = string_split(_tt, ",");
-		for (var _k = 0; _k < g.tiles.slots; _k++) {
-			var _d5 = (_k < array_length(_tp)) ? string_digits(_tp[_k]) : "";
-			g.tiles.tier[_k] = (_d5 == "") ? 0 : max(0, floor(real(_d5)));
+	// NOT WHILE THE TABLE IS BEING FINALISED (TILES_LIVE). A system
+	// whose state shape is still moving has no business in a real
+	// savefile: every iteration would churn the section, and a
+	// half-finished writer is how a save gets corrupted rather than
+	// merely stale.
+	if (TILES_LIVE) {
+		tiles_init();
+		var _tt = "";
+		for (var _k = 0; _k < g.tiles.slots; _k++)
+			_tt += ((_k > 0) ? "," : "") + string(g.tiles.tier[_k]);
+		_tt = handle("board", _tt);
+		g.tiles.fab     = handle("fab",     g.tiles.fab);
+		g.tiles.stored  = handle("stored",  g.tiles.stored);
+		g.tiles.highest = handle("highest", g.tiles.highest);
+		g.tiles.merges  = handle("merges",  g.tiles.merges);
+		g.tiles.made    = handle("made",    g.tiles.made);
+		g.tiles.shards  = handle("shards",  g.tiles.shards);
+		g.tiles.earned  = handle("earned",  g.tiles.earned);
+		// the four upgrade levels. Everything they DO derives (tiles_sync),
+		// so the levels are the whole of what a save carries about them.
+		var _tuc = tile_upg_config();
+		for (var _k = 0; _k < array_length(_tuc); _k++) {
+			var _tid = _tuc[_k].id;
+			g.tiles.upg[$ _tid] = handle("upg_" + _tid, g.tiles.upg[$ _tid] ?? 0);
+			if (action == sv_load)
+				g.tiles.upg[$ _tid] = max(0, floor(g.tiles.upg[$ _tid]));
 		}
-		g.tiles.fab     = clamp(g.tiles.fab, 0, g.tiles.fab_t);
-		g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);
-		g.tiles.highest = max(1, floor(g.tiles.highest));
-		g.tiles.merges  = max(0, floor(g.tiles.merges));
-		g.tiles.made    = max(0, floor(g.tiles.made));
-		if (!(g.tiles.shards >= arb(1))) g.tiles.shards = 0;
-		if (!(g.tiles.earned >= arb(1))) g.tiles.earned = 0;
-		tiles_sync();   // the board takes the loaded levels' shape
+		if (action == sv_load) {
+			var _tp = string_split(_tt, ",");
+			for (var _k = 0; _k < g.tiles.slots; _k++) {
+				var _d5 = (_k < array_length(_tp)) ? string_digits(_tp[_k]) : "";
+				g.tiles.tier[_k] = (_d5 == "") ? 0 : max(0, floor(real(_d5)));
+			}
+			g.tiles.fab     = clamp(g.tiles.fab, 0, g.tiles.fab_t);
+			g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);
+			g.tiles.highest = max(1, floor(g.tiles.highest));
+			g.tiles.merges  = max(0, floor(g.tiles.merges));
+			g.tiles.made    = max(0, floor(g.tiles.made));
+			if (!(g.tiles.shards >= arb(1))) g.tiles.shards = 0;
+			if (!(g.tiles.earned >= arb(1))) g.tiles.earned = 0;
+			tiles_sync();   // the board takes the loaded levels' shape
+		}
 	}
 
 	// ---- automation: PREFERENCES only. The q/h pacing ramps are

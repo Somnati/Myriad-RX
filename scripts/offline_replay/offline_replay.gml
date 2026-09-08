@@ -51,9 +51,11 @@ function offline_replay(_secs) {
 
 	// THE TILE TABLE, replayed exactly: tiles_fastforward walks the
 	// absence as a histogram rather than a loop, so a month away costs
-	// the same as a minute. It pays its own profit as it goes, which is
-	// why it runs INSIDE the before/after window below.
-	if (variable_global_exists("tiles")) tiles_fastforward(_secs);
+	// the same as a minute. Behind TILES_LIVE while the table is being
+	// finalised - a bug in the tile replay must not be able to break a
+	// LOAD, which is the one path a player cannot route around.
+	if (TILES_LIVE)
+		if (variable_global_exists("tiles")) tiles_fastforward(_secs);
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)

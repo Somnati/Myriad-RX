@@ -201,6 +201,25 @@ function main_macros() {
 // FINAL tier is multiplied by, and it is deliberately large: it makes
 // finishing a slot an event rather than an increment, which is the
 // whole reason a cap is interesting.
+// ⚖️ WIRED, NOT TIED IN (his call, while the table is being finalised).
+// The tiles work completely - fabricate, merge, earn shards, buy their
+// four upgrades - but they touch NOTHING the base game depends on:
+//
+//   the SAVE           no tiles section is written or read, so the
+//                      board is a session and an iteration on its
+//                      shape cannot churn or corrupt a real savefile
+//   OFFLINE            offline_replay does not call tiles_fastforward,
+//                      so a bug in the tile replay cannot break a load
+//   the ECONOMY        already separate by design: the table earns
+//                      SHARDS and is not in all_gps, so profit and
+//                      rebirth never see it (see tiles_init)
+//   BOOT               nothing spawns the engine until you open the
+//                      room; leave it alone and it does not exist
+//
+// Flip this to true to tie it in - that is the whole switch, and the
+// tile screen says out loud which side of it we are on.
+#macro TILES_LIVE false
+
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
 // keep the two in step, and tune in the twin.

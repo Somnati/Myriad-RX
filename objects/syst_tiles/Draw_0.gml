@@ -104,6 +104,16 @@ draw_set_color(c_aqua);
 draw_set_alpha(.55);
 draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 4,
 	"+" + ((_tt.gps >= arb(1)) ? crunch_arb(_tt.gps) : "0") + " a second");
+
+// ⚖️ AND SAY WHICH SIDE OF THE SWITCH WE ARE ON. A board that quietly
+// forgets itself between launches is a bug report waiting to happen;
+// said out loud it is a stated condition of testing.
+if (!TILES_LIVE) {
+	draw_set_color(c_horange);
+	draw_set_alpha(.7);
+	draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 15, "preview - the board");
+	draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 24, "is not saved yet");
+}
 draw_set_alpha(1);
 
 draw_set_font(fnt_large);

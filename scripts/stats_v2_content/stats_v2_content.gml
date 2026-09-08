@@ -188,6 +188,11 @@ function stats_v2_content() {
 	if (variable_global_exists("tiles"))
 	if (stats_v2_folder("tiles", c_aqua)) {
 		var _tl = g.tiles;
+		if (!TILES_LIVE)
+			stats_v2_line("preview", "not saved", -1, c_horange,
+				"the tile table is finished but not tied in yet: it is "
+				+ "kept out of the savefile, out of the offline replay "
+				+ "and out of profit. one macro turns all three on.");
 		var _used = 0;
 		for (var _i = 0; _i < _tl.slots; _i++) if (_tl.tier[_i] != 0) _used++;
 

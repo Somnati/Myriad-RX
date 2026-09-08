@@ -94,7 +94,10 @@
 	// rather than dying at the first roll.
 	g.ad_tilerarity = 0;   // +400 fabricator luck
 	g.ad_hotswap    = 0;   // pick a tile straight off the board
-	tiles_init();
+	// no tiles_init() here on purpose: while TILES_LIVE is false the
+	// table is lazy - syst_tiles' Create builds it when you open the
+	// room, and until then the engine does not exist to tick
+	if (TILES_LIVE) tiles_init();
 
 	credits_init();
 
