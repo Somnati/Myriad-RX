@@ -212,6 +212,43 @@ function BignumVisRenderer() constructor {
         if (grid_border_over == _over) draw_sprite_ext(grid_sprite, 0, _x, _y, _s, _s, 0, _col, _a * grid_border_alpha);
     };
 
+    /// @func cell_edge(base, index, size)
+    /// @desc THE SHARED EDGE. Quad k's far edge and quad k+1's near edge
+    ///       must be the SAME NUMBER, or the seam between them lands on
+    ///       a fraction of a pixel and the rasteriser either covers it
+    ///       twice or not at all. Twice composites the colour twice and
+    ///       reads DARKER; not at all shows the background and also
+    ///       reads darker. Which seams it hits depends on where
+    ///       base + k*size falls relative to the pixel grid, so it
+    ///       changes as you zoom - which is exactly the symptom.
+    ///
+    ///       Flooring BOTH edges through one function makes them agree
+    ///       by construction. Widths then vary by a pixel between
+    ///       neighbours, which is correct: that is where the fractional
+    ///       part actually belongs, spread across the row instead of
+    ///       smeared into every seam.
+    ///
+    ///       It telescopes, so the field keeps its exact span: edge 0 is
+    ///       floor(base) and edge 10 is floor(base + unit), which is the
+    ///       parent square's own floored rectangle. The invisible zoom
+    ///       handoff - 100 children pixel-identical to one parent -
+    ///       survives, because both are floored the same way.
+    static cell_edge = function(_base, _i, _size) {
+        return floor(_base + _i * _size);
+    };
+
+    /// @func draw_cell(spr, x0, y0, x1, y1, col, alpha)
+    /// @desc A quad from two PRE-SNAPPED edges rather than a position
+    ///       and a size - see cell_edge. Clips in double precision
+    ///       first, for the same reason draw_square_clipped does.
+    static draw_cell = function(_spr, _x0, _y0, _x1, _y1, _col, _a) {
+        if (_a <= 0) return;
+        var _cx = max(_x0, -64), _cy = max(_y0, -64);
+        var _dx = min(_x1, room_width + 64), _dy = min(_y1, room_height + 64);
+        if (_dx <= _cx || _dy <= _cy) return;
+        draw_sprite_ext(_spr, 0, _cx, _cy, _dx - _cx, _dy - _cy, 0, _col, _a);
+    };
+
     /// @func draw_square_clipped(spr, x, y, size, col, alpha)
     /// @desc Solid square clipped to a screen margin before drawing.
     ///       Giant spanning squares at deep zoom carry raw coordinates
@@ -388,15 +425,23 @@ function BignumVisRenderer() constructor {
         // full squares: one draw call each, left to right, top to bottom.
         // The newest settles in as the assembling square fills behind it
         for (var s = 0; s < _full; s++) {
-            var _sx = _x0 + (s mod per_row) * _sq_size;
-            var _sy = _y0 + (s div per_row) * _sq_size;
+            var _cc = s mod per_row;
+            var _cr = s div per_row;
+            // both edges through cell_edge, so this square's right edge
+            // IS its neighbour's left edge - no seam to double-cover
+            var _e0 = cell_edge(_x0, _cc,     _sq_size);
+            var _e1 = cell_edge(_x0, _cc + 1, _sq_size);
+            var _f0 = cell_edge(_y0, _cr,     _sq_size);
+            var _f1 = cell_edge(_y0, _cr + 1, _sq_size);
             if (spawn_fx && s == _full - 1 && _full < 100) {
+                // the newborn is deliberately inset and shrunk, so it
+                // tiles with nothing and wants the old path
                 var _t  = settle_t((_d[3] * 10 + _d[4]) / 100 + (_d[5] * 10 + _d[6]) / 10000);
-                var _ss = _sq_size * lerp(spawn_scale, 1, _t);
-                var _so = (_sq_size - _ss) * 0.5;
-                draw_square_clipped(square_sprite, _sx + _so, _sy + _so, _ss, _col_full, _alpha * lerp(spawn_alpha, 1, _t));
+                var _ss = (_e1 - _e0) * lerp(spawn_scale, 1, _t);
+                var _so = ((_e1 - _e0) - _ss) * 0.5;
+                draw_square_clipped(square_sprite, _e0 + _so, _f0 + _so, _ss, _col_full, _alpha * lerp(spawn_alpha, 1, _t));
             } else {
-                draw_square_clipped(square_sprite, _sx, _sy, _sq_size, _col_full, _alpha);
+                draw_cell(square_sprite, _e0, _f0, _e1, _f1, _col_full, _alpha);
             }
         }
 
@@ -423,20 +468,28 @@ function BignumVisRenderer() constructor {
                 if (spawn_fx && r == _rows - 1) {
                     _ra *= lerp(spawn_alpha, 1, settle_t((_rem * 10 + _d[5]) / 100));
                 }
-                port_vis_line(line_sprite, _px, _py + r * _unit, _unit, _col_part, _ra);
+                // rows stack, so their horizontal seams need the shared
+                // edge too - a row sprite is 10x1, hence the x span is
+                // ten units and the y span is one
+                draw_cell(line_sprite,
+                    cell_edge(_px, 0, _unit), cell_edge(_py, r,     _unit),
+                    cell_edge(_px, per_row, _unit), cell_edge(_py, r + 1, _unit),
+                    _col_part, _ra);
             }
 
             // newest unit settles by alpha and centered scale
             for (var u = 0; u < _rem; u++) {
-                var _ux = _px + u * _unit;
-                var _uy = _py + _rows * _unit;
+                var _u0 = cell_edge(_px, u,     _unit);
+                var _u1 = cell_edge(_px, u + 1, _unit);
+                var _v0 = cell_edge(_py, _rows,     _unit);
+                var _v1 = cell_edge(_py, _rows + 1, _unit);
                 if (spawn_fx && u == _rem - 1) {
                     var _ut = settle_t((_d[5] * 10 + _d[6]) / 100);
-                    var _us = _unit * lerp(spawn_scale, 1, _ut);
-                    var _uo = (_unit - _us) * 0.5;
-                    port_vis_square(square_sprite, _ux + _uo, _uy + _uo, _us, _col_part, _alpha * _fill_a * lerp(spawn_alpha, 1, _ut));
+                    var _us = (_u1 - _u0) * lerp(spawn_scale, 1, _ut);
+                    var _uo = ((_u1 - _u0) - _us) * 0.5;
+                    port_vis_square(square_sprite, _u0 + _uo, _v0 + _uo, _us, _col_part, _alpha * _fill_a * lerp(spawn_alpha, 1, _ut));
                 } else {
-                    port_vis_square(square_sprite, _ux, _uy, _unit, _col_part, _alpha * _fill_a);
+                    draw_cell(square_sprite, _u0, _v0, _u1, _v1, _col_part, _alpha * _fill_a);
                 }
             }
 
