@@ -19,11 +19,6 @@ depth = 50; // BEHIND the dial column (-20) and the header (-1000) but
 
 salpha = 0; // the entrance fade
 
-// continuous swipe-zoom state (see Step)
-swipe_oy = -1;      // press-origin y (-1 = no press)
-swipe_py = 0;       // last frame's y
-swipe_on = false;   // engaged once travel beats the drag budget
-swipe_sens = 0.02;  // OOMs per px: ~60px swipe = 1.2 OOM
 
 vis = bignum_visualizer_create();
 vis.renderer.grid_sprite = spr_vis_grid2; // 3 subimages: border/inner/outer

@@ -49,11 +49,19 @@ if (instance_exists(syst_dials))
 // ---- THE PRESS ----
 if (mouse_check_button_pressed(mb_left)) {
 	hold_on = _ok;
-	hold_x  = mouse_x;
-	hold_y  = mouse_y;
-	tap_acc = 0;
 	fx_tic  = 0;
-	hold_wait = TAP_HOLD_WAIT;
+	// ⚖️ THE PRESS TAP IS THE HOLD'S FIRST TAP, not an extra one, and
+	// seeding the accumulator at -1 is what says so. It replaces a
+	// quarter-second dead wait, which caused his second complaint: the
+	// tap landed, nothing happened for a beat, then the rate started.
+	//
+	// The debt is exactly one tap, so the grace period is exactly one
+	// tap interval and SCALES WITH THE RATE. At 8 a second an ordinary
+	// 80-150ms tap never climbs back to 1, so a tap stays one tap; at
+	// 1000 a second the debt clears in 2ms, so a hold loses nothing to
+	// it. A fixed wait could not do both - it either double-paid slow
+	// taps or threw away a quarter second of a fast hold.
+	tap_acc = -1;
 	if (hold_on) {
 		array_push(tap_log, TPS_WINDOW);
 		tap_fire(1, mouse_x, mouse_y, true);
@@ -62,62 +70,52 @@ if (mouse_check_button_pressed(mb_left)) {
 }
 
 // ---- THE HOLD ----
-// ⚖️ A HOLD IS ONLY A HOLD WHERE IT STARTED, AND ONLY WHILE IT STAYS
-// STILL. Every gesture in this game is also a held button - the dial
-// drawer's swipe, the tile drag, the visualiser's zoom swipe - so a
-// hold that paid wherever the finger happened to be would charge the
-// player's own gestures back at them as taps, and would open a drawer
-// while paying for the privilege. The PRESS decides once whether this
-// is a tap surface (hold_on, above); travelling past the drag budget
-// hands the press over to whatever gesture wanted it. It is the same
-// law the drawers were given on 2026-09-07, for the same reason.
+// ⚖️ NO DRAG BUDGET (his report: "my hold to tap turns off when i move
+// the mouse"). It used to cancel the hold once the pointer travelled
+// 12px, because a held button was ALSO the visualiser's swipe-zoom -
+// the tap surface is the whole room, so holding to tap and swiping to
+// zoom were the same input and the tapper had to defend itself. The
+// zoom gesture is gone now, and the only thing left in this room that
+// wants a held drag is the dial drawer, which arms ONLY from its own
+// right-edge band (syst_dials' press gate) - a press that starts on the
+// tap surface can never reach it. So a hold survives the pointer
+// wandering, which is what a hold is.
+//
+// The press still decides ONCE whether this is a tap surface (hold_on,
+// above), so a press that began on a widget never becomes a hold.
 if (!mouse_check_button(mb_left)) {
 	hold_on = false;
 	tap_acc = 0;
 } else if (hold_on) {
-	if (point_distance(hold_x, hold_y, mouse_x, mouse_y) > TAP_HOLD_DRAG) {
-		hold_on = false;
-		tap_acc = 0;
-	} else {
-		// ⚖️ A TAP IS NOT A SHORT HOLD (his report: "it does two taps
-		// when i tap"). A human tap holds the button for 80-150ms, and
-		// at 8 a second the accumulator crosses 1 inside 125ms - so an
-		// ordinary tap paid the press tap AND its first hold tap. The
-		// button has to be down past TAP_HOLD_WAIT before the hold means
-		// anything, which is longer than any tap and shorter than any
-		// deliberate hold.
-		hold_wait -= delta;
+	// ⚖️ THE CEREMONY CLOCK TICKS ON FRAMES, NOT ON BATCHES, which was
+	// the other half of an earlier report ("it says 8tps but it's closer
+	// to 1tps"). It used to be decremented inside the payout branch, so
+	// it counted BATCHES: one effect every six, which at 8 taps a second
+	// is 1.3 floats a second. The money was always right; the show was
+	// rationed eight times too hard, and the show is the only part you
+	// can see.
+	fx_tic -= delta;
 
-		// ⚖️ THE CEREMONY CLOCK TICKS ON FRAMES, NOT ON BATCHES, and
-		// that was the other half of his report ("it says 8tps but it's
-		// closer to 1tps"). It used to be decremented inside the payout
-		// branch, so it counted BATCHES: one effect every six batches,
-		// which at 8 taps a second is 1.3 floats a second. The money was
-		// always right - the show was rationed eight times too hard, and
-		// the show is the only thing you can see.
-		fx_tic -= delta;
+	// DE's click_v2 accumulator, verbatim in law: fractional taps at
+	// rate/60 a frame, and the whole part paid in ONE call. This is the
+	// entire reason a rate of 1000 is exact on a 60fps machine instead
+	// of being silently clipped to 60 - see tap_fire. The press seeded
+	// this at -1, so the first hold tap lands one interval after the tap
+	// you already got, and a tap that never lasts that long stays a tap.
+	tap_acc += (tap_rate() / 60) * delta;
+	if (tap_acc >= 1) {
+		var _feed = floor(tap_acc);
+		tap_acc -= _feed;
 
-		if (hold_wait <= 0) {
-			// DE's click_v2 accumulator, verbatim in law: fractional
-			// taps at rate/60 a frame, and the whole part paid in ONE
-			// call. This is the entire reason a rate of 1000 is exact on
-			// a 60fps machine instead of being silently clipped to 60.
-			tap_acc += (tap_rate() / 60) * delta;
-			if (tap_acc >= 1) {
-				var _feed = floor(tap_acc);
-				tap_acc -= _feed;
+		// THE CEREMONY IS RATIONED, THE MONEY IS NOT. Past a dozen taps
+		// a second the floats stop being readable and the motes only
+		// fight the population cap, so the show runs on its own clock
+		// while every tap is paid in full.
+		var _fx = (fx_tic <= 0);
+		if (_fx) fx_tic = TAP_FX_TIC;
 
-				// THE CEREMONY IS RATIONED, THE MONEY IS NOT. Past a
-				// dozen taps a second the floats stop being readable and
-				// the motes only fight the population cap, so the show
-				// runs on its own clock while every tap is paid in full.
-				var _fx = (fx_tic <= 0);
-				if (_fx) fx_tic = TAP_FX_TIC;
-
-				tap_fire(_feed, mouse_x, mouse_y, _fx);
-				pop = 1;
-			}
-		}
+		tap_fire(_feed, mouse_x, mouse_y, _fx);
+		pop = 1;
 	}
 }
 
@@ -128,9 +126,7 @@ if (!mouse_check_button(mb_left)) {
 // contributing - one number for "how fast is this earning right now",
 // however the taps are being produced.
 var _target = _manual;
-// only once the hold is actually paying - reporting a rate during the
-// wait would be the readout lying about money that is not being earned
-if (hold_on && hold_wait <= 0) _target += tap_rate();
+if (hold_on) _target += tap_rate();
 var _sc = 3;
 if (mouse_check_button(mb_left)) _sc = 1.5;
 tps = trickle(tps, _target, _sc);

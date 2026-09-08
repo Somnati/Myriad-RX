@@ -161,16 +161,6 @@ function main_macros() {
                           // upgrades. DE's base is 6 and an ability grants
                           // it; RX hands it over from the start because
                           // there is no deck to draw it from yet.
-#macro TAP_HOLD_DRAG 12   // px of travel that turns a hold into a GESTURE
-                          // and stops it paying - menu2's drag budget, the
-                          // same number on purpose.
-#macro TAP_HOLD_WAIT 15   // frames the button must be DOWN before the hold
-                          // starts paying. A TAP IS NOT A SHORT HOLD: a
-                          // human tap lasts 80-150ms, which at 8 a second
-                          // is long enough to earn a hold tap on top of
-                          // the press tap - so every tap paid twice (his
-                          // report, 2026-09-08). A quarter second is past
-                          // any tap and well short of a deliberate hold.
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

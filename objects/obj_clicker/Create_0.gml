@@ -46,12 +46,10 @@ pop = 0;  // a little press feedback the room can read
 // ---- THE HOLD (Myriad DE's click_v2 accumulator) ----
 tap_acc = 0;      // fractional taps banked by the current hold. The whole
                   // part is paid and subtracted every frame it reaches 1,
-                  // which is what makes a rate past 60 exact - see tap_fire
+                  // which is what makes a rate past 60 exact - see tap_fire.
+                  // A press SEEDS IT AT -1 - see the Step.
 hold_on = false;  // did THIS press land somewhere that pays?
-hold_x  = 0;      // and where, so travel can be measured against the
-hold_y  = 0;      // drag budget
 fx_tic  = 0;      // the ceremony clock, so floats stay readable at rate
-hold_wait = 0;    // frames left before this press counts as a hold
 
 // ---- THE RATE READOUT (DE's obj_tps + obj_draw_clickgps) ----
 tap_log = [];     // remaining life of each MANUAL tap, in delta units

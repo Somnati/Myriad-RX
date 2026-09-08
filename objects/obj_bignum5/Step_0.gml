@@ -17,20 +17,18 @@ vis.set_focus_value(_g);
 if mouse_wheel_up() vis.set_zoom_input(-0.5);
 if mouse_wheel_down() vis.set_zoom_input(0.5);
 
-// mobile swipe zoom, round 2 (his device report: the old flick
-// detector re-fired through one flick and read the tail's direction
-// flip - double zooms, opposite zooms, missed slow swipes). now
-// CONTINUOUS: after 12px of vertical travel from the press (the
-// drag budget - taps and tap-holds stay taps) the zoom follows the
-// finger frame by frame. up = in, down = out, matching the old
-// grammar; direction can reverse mid-drag; nothing re-fires.
-// swipe_sens = OOMs per px of finger travel (the feel knob).
-if mouse_check_button(mb_left) {
-	if swipe_oy = -1 { swipe_oy = mouse_y; swipe_py = mouse_y; }
-	if abs(mouse_y - swipe_oy) > 12 swipe_on = true;
-	if swipe_on vis.set_zoom_input((mouse_y - swipe_py) * swipe_sens);
-	swipe_py = mouse_y;
-} else { swipe_oy = -1; swipe_on = false; }
+// ⚖️ SWIPE-ZOOM IS GONE (his call, 2026-09-08). It read a held button
+// as a zoom gesture, which put it in direct competition with the thing
+// the room is FOR: the tap surface is the whole room, so holding to tap
+// and swiping to zoom were the same input. The tapper had to defend
+// itself with a drag budget - move the mouse and the hold died - and
+// that was the worse bug of the two, because the hold is a mechanic and
+// the zoom was a convenience.
+//
+// The wheel still zooms, and the camera still follows the value on its
+// own. WHAT THIS COSTS: a touch device now has no manual zoom at all.
+// If that matters, it wants a gesture that cannot be confused with a
+// hold - two fingers, or a pinch - not a one-finger drag.
 
 // parent the vis to this object: the assembling square centers on x/y
 vis.set_position(x, y);

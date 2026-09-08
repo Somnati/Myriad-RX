@@ -93,10 +93,13 @@ if (array_length(g.abi_draft) > 0) {
 
 	if (input_free())
 	if (mouse_check_button_pressed(mb_left)) {
+		// did the press land on ANY card? tracked separately from the
+		// pick, because a press on a card still mid-flip is a press on a
+		// card - it must not claim, and it must not dismiss either
+		var _onany = false;
 		for (var _d = 0; _d < array_length(draft_ids); _d++) {
 			var _c2 = draft_ids[_d];
 			if (!instance_exists(_c2)) continue;
-			if (_c2.rot_y > 60) continue; // still flipping: not claimable
 			// obj_card sits in syst_input's owner families, so a
 			// hovered card OWNS the click - the old `owner == noone`
 			// gate rejected every card tap. accept ownership, or a
@@ -108,11 +111,23 @@ if (array_length(g.abi_draft) > 0) {
 			var _in = point_in_rectangle(mouse_x, mouse_y,
 				_c2.x - _c2.card_w * .5, _c2.y - _c2.card_h * .5,
 				_c2.x + _c2.card_w * .5, _c2.y + _c2.card_h * .5);
-			if (_own || (_freeclk && _in)) {
-				deck_draft_pick(g.abi_draft[_d]);
-				break;
-			}
+			if (!(_own || (_freeclk && _in))) continue;
+			_onany = true;
+			if (_c2.rot_y > 60) break;    // still flipping: not claimable
+			deck_draft_pick(g.abi_draft[_d]);
+			break;
 		}
+
+		// ⚖️ A CLICK OFF THE CARDS CLOSES THE DRAFT (his ask). It is the
+		// picker pattern the core and charger popups already use, and it
+		// is safe here for a reason worth stating: deck_draft_roll SPENDS
+		// NOTHING - only deck_draft_pick does - and the trio is rolled
+		// from a seed of (abi_seed + unlocked count), so reopening deals
+		// THE SAME THREE. Its own header promises exactly that. Backing
+		// out therefore costs nothing and hides nothing; without it the
+		// screen was a modal with no way out but a purchase, which is a
+		// thing to do to a player only on purpose.
+		if (!_onany) g.abi_draft = [];
 	}
 	exit; // nothing else in the room takes input under a draft
 } else if (array_length(draft_ids) > 0) {

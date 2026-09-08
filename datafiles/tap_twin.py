@@ -31,7 +31,6 @@ Run:  python datafiles/tap_twin.py
 """
 import math
 
-TAP_HOLD_WAIT = 15     # main_macros
 TAP_FX_TIC    = 5      # main_macros
 
 FPS_CASES  = [30, 60, 90, 144, 240]
@@ -129,31 +128,35 @@ def check():
               % (rate, got, naive, 100.0 * naive / got))
 
     print()
-    print("INVARIANT 6  a TAP is one tap (his report: two taps per tap)")
-    # A human tap holds the button 80-150ms. At 8/s the accumulator
-    # crosses 1 inside 125ms, so without a wait an ordinary tap paid the
-    # press tap AND its first hold tap.
-    def press_of(ms, rate, wait_frames):
+    print("INVARIANT 6  a TAP is one tap, a HOLD loses nothing to that")
+    # The press pays one tap and SEEDS THE ACCUMULATOR AT -1, so the
+    # press tap IS the hold's first tap rather than an extra one. The
+    # grace period is therefore exactly one tap interval and scales with
+    # the rate - which a fixed wait cannot do: it either double-pays slow
+    # taps or throws away a quarter second of a fast hold.
+    def press_of(ms, rate, seed):
         frames = int(60 * ms / 1000.0)
-        taps, acc, wait = 1, 0.0, wait_frames      # the press tap itself
+        taps, acc = 1, float(seed)          # the press tap itself
         for _ in range(frames):
-            wait -= 1
-            if wait <= 0:
-                acc += rate / 60.0
-                if acc >= 1:
-                    taps += math.floor(acc); acc -= math.floor(acc)
+            acc += rate / 60.0
+            if acc >= 1:
+                taps += math.floor(acc); acc -= math.floor(acc)
         return taps
     ok6 = True
     for ms in (80, 120, 150, 200):
-        no_wait = press_of(ms, 8, 0)
-        with_wait = press_of(ms, 8, TAP_HOLD_WAIT)
-        if with_wait != 1: ok6 = False
-        print("   a %3dms tap  ->  %d taps without the wait, %d with"
-              % (ms, no_wait, with_wait))
-    held = press_of(2000, 8, TAP_HOLD_WAIT)
-    print("   a 2s hold    ->  %d taps (1 press + ~%d at 8/s past the wait)"
-          % (held, held - 1))
-    ok6 = ok6 and held > 10
+        if press_of(ms, 8, -1) != 1: ok6 = False
+        print("   a %3dms tap at 8/s  ->  %d taps seeded 0 (the old double),"
+              " %d seeded -1" % (ms, press_of(ms, 8, 0), press_of(ms, 8, -1)))
+    # THE DEBT COSTS ONE TAP, FLAT, at every rate - that is the whole
+    # point of paying it in taps rather than in seconds. The second tap
+    # of slack is the accumulator's own carry: a fraction still banked on
+    # the last frame is paid on the next one, not lost (see invariant 5).
+    print("   %8s  %10s  %10s  %s" % ("rate", "2s hold", "rate x 2s", "shortfall"))
+    for rate in (8, 60, 1000, 12345):
+        got = press_of(2000, rate, -1)
+        want = rate * 2
+        print("   %8d  %10d  %10d  %d (debt + carry)" % (rate, got, want, want - got))
+        if want - got > 2: ok6 = False
 
     print()
     print("INVARIANT 7  the ceremony clock counts FRAMES, not batches")
