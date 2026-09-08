@@ -19,31 +19,53 @@ draw_set_color(rgb(195, 205, 235));
 draw_set_alpha(.85);
 draw_text(6, strip_y + 5, "tiles");
 
-// the hopper's contents ride the strip, clear of the back button
+// THE RATE RIDES THE STRIP'S RIGHT END (his ask), clear of the back
+// button at room_width-62. It was inside the drawer, which is exactly
+// the wrong place for the one number you want while playing the board -
+// you would have had to open a panel over the board to read how well
+// the board was doing.
+draw_set_halign(fa_right);
+draw_set_color(c_aqua);
+draw_set_alpha(.9);
+draw_text(room_width - 68, strip_y + 5,
+	"+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s");
+
+// the hopper sits beside it while it has anything in it
 if (_t.stored > 0) {
-	draw_set_halign(fa_right);
 	draw_set_color((_t.stored >= _t.stored_max) ? c_horange : c_seagreen);
 	draw_set_alpha(.9);
-	draw_text(room_width - 70, strip_y + 5,
+	draw_text(room_width - 148, strip_y + 5,
 		"hopper " + string(_t.stored) + "/" + string(_t.stored_max));
-	draw_set_halign(fa_left);
 }
+draw_set_halign(fa_left);
 
-// ---- THE FABRICATOR BARS, snug under the strip (his ask) ----
-// Myriad DE's spr_progressbar, drawn DE's way: frame 0 sliced with
-// draw_sprite_part_ext is the fill, frame 1 is the leading-edge cap
-// riding its right end. The sprite is 70 wide and gets stretched to
-// the room, which is what every Myriad meter does with it.
-var _psw = sprite_get_width(spr_progressbar);
-var _xs  = room_width / _psw;
-
+// ---- THE FABRICATOR BARS, snug under the strip ----
+// ⚖️ THIS IS DE'S MODULE METER, and it is NOT spr_progressbar - I used
+// that sprite first and it does not match, because DE's module room
+// (syst_rm_modules' Draw) builds its bars from spr_pixel_1x1 with a
+// TWO-TONE TRICKLE:
+//   a WHITE bar tracking the fill on a SLOW trickle, drawn first
+//   the GREEN bar tracking it on a FAST trickle, drawn over
+// While the bar climbs the green covers the white entirely. The moment
+// a tile is fabricated the green snaps back to nothing and the white is
+// left standing - a remnant that melts away over the next second. That
+// remnant IS the effect: it is how you see that something just landed
+// without looking away from the board.
 var _fp = clamp(_t.fab / _t.fab_t, 0, 1);
-draw_sprite_ext(spr_progressbar, 0, 0, bar_y, _xs, 1, 0, c_black, .8);
-draw_sprite_part_ext(spr_progressbar, 0, 0, 0, _fp * (_psw - 1), bar_h,
-	0, bar_y, _xs, 1, c_seagreen, .95);
-if (_fp > .01 && _fp < 1)
-	draw_sprite_ext(spr_progressbar, 1, _fp * (room_width - _xs), bar_y,
-		_xs, 1, 0, merge_colour(c_seagreen, c_white, .5), .95);
+// DE's own guard: a fill that has gone BACKWARDS means the bar reset,
+// so the slow tone snaps down to meet it instead of sliding
+if (_fp < bar_slow) { bar_slow = _fp; bar_fast -= 1; }
+// trickle's fourth argument is a SNAP TOLERANCE, not a flag - DE passes
+// `false` here, which is 0, meaning "never snap early". Written as 0 so
+// nobody reads it as a boolean and helpfully turns it on.
+bar_fast = trickle(bar_fast, _fp, 1,  0);
+bar_slow = trickle(bar_slow, _fp, 12, 0);
+
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y, room_width, 3, 0, c_black, .8);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y,
+	room_width * clamp(bar_slow, 0, 1), 3, 0, c_white, .9);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y,
+	room_width * clamp(bar_fast, 0, 1), 3, 0, c_seagreen, 1);
 
 if (_t.automerge) {
 	// the merger cools from steelblue toward red as the pool starves
@@ -51,12 +73,9 @@ if (_t.automerge) {
 	var _amthr = _t[$ "thr_am"] ?? 1;
 	var _ac = merge_colour(c_hred, c_steelblue, _amthr);
 	var _ap = clamp(_t.am_tic / _t.am_tic_, 0, 1);
-	draw_sprite_ext(spr_progressbar, 0, 0, bar_y + bar_h, _xs, 1, 0, c_black, .8);
-	draw_sprite_part_ext(spr_progressbar, 0, 0, 0, _ap * (_psw - 1), bar_h,
-		0, bar_y + bar_h, _xs, 1, _ac, .95);
-	if (_ap > .01 && _ap < 1)
-		draw_sprite_ext(spr_progressbar, 1, _ap * (room_width - _xs),
-			bar_y + bar_h, _xs, 1, 0, merge_colour(_ac, c_white, .5), .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y + 3, room_width, 3, 0, c_black, .8);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y + 3,
+		room_width * _ap, 3, 0, _ac, .95);
 }
 draw_set_halign(fa_center);
 
@@ -78,18 +97,19 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
 		if (!_held && val_str[_i] != "") {
-			// ⚖️ CENTRED ON THE TILE, both ways (his report). It was
-			// TOP-aligned at a fixed +3, and every tile's value is
-			// downscaled by a DIFFERENT amount to fit - so the taller
-			// the string, the further from centre it sat. Middle
-			// alignment against the tile's own centre is invariant to
-			// the scale, which is the only way a grid of them lines up.
-			draw_set_valign(fa_middle);
+			// ⚖️ CENTRED BY ARITHMETIC, NOT BY valign. fnt_large is a
+			// SPRITE font, and the house note is explicit that those
+			// take integer scales - the tile values are drawn at
+			// FRACTIONAL ones to fit, and fa_middle against a fractional
+			// scale is where the vertical went wrong. Measuring the
+			// string and halving the leftover works whatever the font
+			// is, and it leaves the align state alone, so nothing that
+			// draws afterwards inherits a setting from in here.
 			draw_set_color(txtcol[_i]);
 			draw_set_alpha(1);
-			draw_text_transformed(_x + tw * .5, _y + th * .5, val_str[_i],
-				val_sc[_i], val_sc[_i], 0);
-			draw_set_valign(fa_top);
+			draw_text_transformed(_x + tw * .5,
+				_y + (th - string_height(val_str[_i]) * val_sc[_i]) * .5,
+				val_str[_i], val_sc[_i], val_sc[_i], 0);
 		}
 		// hover feedback when nothing is held
 		if (grab_i == -1 && _i == _hov)
@@ -122,8 +142,13 @@ if (grab_i != -1) {
 		merge_colour(col[grab_i], c_black, .6), 1);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);
-	draw_set_valign(fa_middle);
-	draw_text_transformed(gx + tw * .5, gy + th * .5, val_str[grab_i],
+	// the same arithmetic as the board's, so a held tile's number sits
+	// exactly where it sat in its slot - it was setting fa_middle and
+	// never putting it back, which shifted every piece of text drawn
+	// after it while a tile was up (his report)
+	draw_text_transformed(gx + tw * .5,
+		gy + (th - string_height(val_str[grab_i]) * val_sc[grab_i]) * .5,
+		val_str[grab_i],
 		val_sc[grab_i], val_sc[grab_i], 0);
 }
 draw_set_font(fnt);
@@ -211,6 +236,17 @@ draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
 
+// THE DRAWER'S BACKDROP (his ask: the dial drawer's treatment).
+// pixel_snap grabs the screen as it stands and draw_pixel_region paints
+// the chunky copy back under the panel, so the board reads as being
+// behind frosted glass rather than simply covered.
+//
+// CAPTURED HERE, not from a draw proxy. The dial drawer can use a proxy
+// because the room it covers is drawn by OTHER objects; here the board
+// and the drawer are the same Draw event, so a proxy at any depth would
+// fire before the board existed and pixelate an empty room.
+if (dr_open > .001) pixel_snap(3, 4);
+
 // ================= THE UPGRADE DRAWER =================
 // Out from the LEFT on a swipe right (his ask). Drawn LAST so it slides
 // OVER the board rather than under it - a drawer that the thing it
@@ -222,9 +258,13 @@ if (dr_open > .001) {
 	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
 
-	// the body, to the bottom edge - the house drawer shape
+	// the body: the PIXELATED copy of what is behind it, then a dim over
+	// that - the dial drawer's treatment (his ask). The dim stays light
+	// because the pixelation already separates the drawer from the room;
+	// dimming hard on top of it just reads as a black panel again.
+	draw_pixel_region(_fx, strip_y, dr_w, room_height - strip_y, dr_open);
 	draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
-		0, c_black, .9 * min(1, dr_open * 2));
+		0, c_black, .45 * dr_open);
 	draw_sprite_ext(spr_pixel_1x1, 0, _fx + dr_w - 1, strip_y, 1,
 		room_height - strip_y, 0, c_aqua, .35);
 
@@ -276,28 +316,30 @@ if (dr_open > .001) {
 		draw_set_halign(fa_left);
 	}
 
-	draw_set_color(c_aqua);
-	draw_set_alpha(.55 * dr_open);
-	draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 4,
-		"+" + ((_tt.gps >= arb(1)) ? crunch_arb(_tt.gps) : "0") + " a second");
+	// (the per-second rate lives in the title strip now - see above)
 	if (!TILES_LIVE) {
 		draw_set_color(c_horange);
 		draw_set_alpha(.7 * dr_open);
-		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "preview - the board");
-		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 24, "is not saved yet");
+		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 6, "preview - the board");
+		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "is not saved yet");
 	}
 }
 
-// THE EDGE TAB, always. A drawer nobody can see is a drawer nobody
-// opens, so the handle stays on screen and pulses gently while there is
-// something affordable behind it.
-var _tabx = __dr_face() + dr_w;
-var _any = false;
-for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
-draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
-	dr_tab, 60, 0, c_black, .8);
-draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
-	2, 60, 0, c_aqua, _any ? (.55 + .35 * dsin(current_time * .25)) : .35);
+// THE EDGE TAB - only while the drawer is SHUT. It was drawing at every
+// open state, and the open drawer's own right-edge hairline sits one
+// pixel from where the tab's line lands - which is the second, shorter
+// aqua line (his report). One handle, one edge, never both.
+if (dr_open < .999) {
+	var _tabx = __dr_face() + dr_w;
+	var _any = false;
+	for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
+	var _ta = 1 - dr_open;
+	draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
+		dr_tab, 60, 0, c_black, .8 * _ta);
+	draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
+		2, 60, 0, c_aqua,
+		(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
+}
 
 draw_set_alpha(1);
 draw_set_color(c_white);

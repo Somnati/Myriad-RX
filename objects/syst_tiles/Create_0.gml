@@ -52,7 +52,11 @@ bby     = obj_ui_header.sprite_height;   // 29
 strip_y = bby;
 strip_h = 16;
 bar_y   = strip_y + strip_h;             // snug, no gap
-bar_h   = sprite_get_height(spr_progressbar);   // 5
+bar_h   = 3;                             // DE's module meter is 3px
+// the two tones of DE's meter - see the Draw. bar_fast leads, bar_slow
+// lags and is what you actually notice when a tile lands.
+bar_fast = 0;
+bar_slow = 0;
 
 // the board's band: everything under the bars, above the bottom edge
 board_top = bar_y + bar_h * 2 + 6;
@@ -133,7 +137,13 @@ sw_y    = -1;
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 26;
 upg_n = 4;
-__dr_face = function() { return -dr_w + (dr_w + dr_tab) * dr_open; };
+// ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
+// put the CLOSED drawer's right edge at 0 - so the tab was off screen -
+// and the OPEN one's left edge at +9, leaving a strip of room showing
+// down the side of a drawer that is supposed to be flush with it. The
+// two positions are the only two facts here, so lerp between them and
+// let nothing else be inferred.
+__dr_face = function() { return lerp(dr_tab - dr_w, 0, dr_open); };
 __upg_r = function(_k) {
 	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
 	         w : dr_w - 8, h : upg_h };
@@ -142,6 +152,7 @@ __upg_r = function(_k) {
 // and the price only moves when something is bought
 qtic = 0;
 uq   = [];
+
 
 // the drawer's rows start under the strip, and the board re-seats
 // itself whenever the slot count changes (a board-size upgrade)

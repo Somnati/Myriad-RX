@@ -489,7 +489,6 @@
     {"id":{"name":"spr_pixel_1x1","path":"sprites/spr_pixel_1x1/spr_pixel_1x1.yy",},},
     {"id":{"name":"spr_pixel_2x2","path":"sprites/spr_pixel_2x2/spr_pixel_2x2.yy",},},
     {"id":{"name":"spr_progressbar","path":"sprites/spr_progressbar/spr_progressbar.yy",},},
-    {"id":{"name":"spr_progressbar","path":"sprites/spr_progressbar/spr_progressbar.yy",},},
     {"id":{"name":"spr_rebirth_btn","path":"sprites/spr_rebirth_btn/spr_rebirth_btn.yy",},},
     {"id":{"name":"spr_scrollbar","path":"sprites/spr_scrollbar/spr_scrollbar.yy",},},
     {"id":{"name":"spr_star_glow","path":"sprites/spr_star_glow/spr_star_glow.yy",},},
