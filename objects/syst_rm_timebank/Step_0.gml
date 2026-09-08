@@ -1,15 +1,17 @@
 /// the room's pulse: refresh the quotes on the slow tick, then the
 /// taps. Region law - every hit here mirrors Draw's geometry exactly.
 
+burn_hp = max(0, burn_hp - delta);
+
 qtic -= delta;
 if (qtic <= 0) {
 	qtic = 15;
 	var _qc = timebank_upg("cap", false);
 	q_cap  = { ok : _qc.ok, cost : _qc.cost, maxed : false,
-		txt : crunch_arb(_qc.cost) };
+		txt : crunch_time_long(_qc.cost * 60) };
 	var _qr = timebank_upg("rate", false);
 	q_rate = { ok : _qr.ok, cost : _qr.cost, maxed : _qr.maxed,
-		txt : _qr.maxed ? "max" : crunch_arb(_qr.cost) };
+		txt : _qr.maxed ? "max" : crunch_time_long(_qr.cost * 60) };
 }
 
 if (!input_free()) exit;
@@ -28,7 +30,7 @@ if (point_in_rectangle(mouse_x, mouse_y, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
 // timebank_spend on the very next frame, so it buzzes instead of
 // pretending to work.
 if (mouse_y >= spd_y && mouse_y < spd_y + 16)
-for (var _k = 0; _k < 6; _k++) {
+for (var _k = 0; _k < NSPD; _k++) {
 	var _px = spd_x0 + _k * (spd_w + spd_gap);
 	if (mouse_x < _px || mouse_x >= _px + spd_w) continue;
 	if (g.timebank.spd == spds[_k]) exit;
@@ -43,6 +45,31 @@ for (var _k = 0; _k < 6; _k++) {
 	exit;
 }
 
+// ---- THE BURN BUTTONS ----
+// Each spends its own length of bank at once. One you cannot afford
+// refuses with the buzz rather than paying a partial amount: half of
+// ten minutes is not what the button said.
+if (mouse_y >= burn_y && mouse_y < burn_y + 16)
+for (var _k = 0; _k < NBURN; _k++) {
+	var _bx = burn_x0 + _k * (burn_w + burn_gap);
+	if (mouse_x < _bx || mouse_x >= _bx + burn_w) continue;
+	var _want = burns[_k];
+	if (g.timebank.bank < _want) {
+		play_sound_ext(snd_matclick, .6, .75, .35, 1);
+		float_text(_bx + burn_w * .5, burn_y - 8, "not banked", c_hred);
+		exit;
+	}
+	var _got = timebank_burn(_want);
+	play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
+	float_text(_bx + burn_w * .5, burn_y - 8,
+		"+" + ((_got > 0) ? crunch_arb(_got) : "0"), g.profit_color,
+		fnt_outline);
+	burn_msg = "burned " + crunch_time_long(_want * 60) + " for "
+		+ ((_got > 0) ? crunch_arb(_got) : "0") + " profit";
+	burn_hp = 240;
+	exit;
+}
+
 // ---- the two upgrade buttons ----
 for (var _r = 0; _r < 2; _r++) {
 	var _ry = upg_y + _r * upg_h;
@@ -53,8 +80,8 @@ for (var _r = 0; _r < 2; _r++) {
 			qtic = 0;   // requote at once - the price just moved
 			play_sound_ext(snd_matclick2, 1.05, 1.25, .5, 1);
 			float_text(upg_x + upg_w - 32, _ry - 6,
-				(_r == 0) ? "+" + string(g.tb_cap_step) + "m cap"
-				          : "+" + string(g.tb_rate_step) + "m/hr",
+				(_r == 0) ? "capacity up"
+				          : ("+" + string(g.tb_rate_step) + "m/hr"),
 				c_sgreen, fnt_outline);
 		} else play_sound_ext(snd_matclick, .7, .8, .35, 1);
 		exit;

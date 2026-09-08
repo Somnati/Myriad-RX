@@ -343,6 +343,7 @@
     {"id":{"name":"tap_sound_config","path":"scripts/tap_sound_config/tap_sound_config.yy",},},
     {"id":{"name":"tap_sound_play","path":"scripts/tap_sound_play/tap_sound_play.yy",},},
     {"id":{"name":"timebank_add","path":"scripts/timebank_add/timebank_add.yy",},},
+    {"id":{"name":"timebank_burn","path":"scripts/timebank_burn/timebank_burn.yy",},},
     {"id":{"name":"timebank_cap","path":"scripts/timebank_cap/timebank_cap.yy",},},
     {"id":{"name":"timebank_init","path":"scripts/timebank_init/timebank_init.yy",},},
     {"id":{"name":"timebank_rate","path":"scripts/timebank_rate/timebank_rate.yy",},},

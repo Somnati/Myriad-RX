@@ -228,7 +228,10 @@ function handle_save(){
 		g.timebank.rate_lv = max(0, floor(g.timebank.rate_lv));
 		// a bank saved under a bigger cap must not survive a tune-down
 		g.timebank.bank = clamp(g.timebank.bank, 0, timebank_cap());
-		g.timebank.spd  = clamp(floor(g.timebank.spd), 1, 10);
+		// 50, not 10: the speed row is [off x2 x4 x10 x50] (his set), and
+		// a clamp written against the old ladder would silently demote
+		// anyone who had saved on the top one
+		g.timebank.spd  = clamp(floor(g.timebank.spd), 1, 50);
 		g.timebank.live_m = 1;
 	}
 

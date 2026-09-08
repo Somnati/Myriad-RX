@@ -101,11 +101,35 @@
 	// TWELVE HOURS away, so the first capacity purchase bought nothing
 	// at all for anyone whose sessions are a normal day apart. At 30 it
 	// binds on an overnight, which is what makes it a purchase.
-	g.tb_cap       = 30;   // bank capacity in minutes, at cap_lv 0
-	g.tb_cap_step  = 30;   // per capacity purchase
-	g.tb_cost_mult = 350;  // percent per level - x3.5, a late-game sink
-	g.tb_cap_cost  = 100;  // percent of the 50k capacity base
-	g.tb_rate_cost = 100;  // percent of the 250k rate base
+	g.tb_cap       = 30;   // bank capacity in MINUTES, at cap_lv 0
+
+	// ⚖️ THE BANK PAYS FOR ITSELF (his call). Both upgrades cost BANKED
+	// TIME, not profit, which makes the bank a currency with two uses:
+	// spend it as speed now, or invest it in banking more later. That is
+	// a real decision every time, where a profit price was just another
+	// line on the profit sink pile.
+	//
+	// AND IT FORCES THE COST CURVE'S SHAPE. You can never hold more than
+	// the cap, so any price above it is a price you can never save for -
+	// a geometric cost against a linear cap would have gone unbuyable
+	// two or three levels in. So both prices are a FRACTION OF THE
+	// CURRENT CAP, always affordable with a full bank and never with
+	// much less, and it is the CAP that grows geometrically instead.
+	g.tb_cap_mult  = 150;  // percent: capacity x1.5 a level
+	// ⚖️ THE TWO FEES ARE EQUAL, and that is a fix rather than laziness.
+	// Both are priced off the same capacity, so a cheaper one is
+	// cheaper at EVERY level - and the twin's invariant 7 showed a
+	// player following the cheaper price buying capacity fourteen times
+	// running while the rate stayed the binder and the bank never moved.
+	// A price that is always lower on the option that is usually wrong
+	// is a trap, not a choice. Equal fees put the decision back where it
+	// belongs: which of the two is actually limiting you, which the
+	// screen now says on the rows.
+	g.tb_cap_cost  = 80;   // a capacity level costs 80% of current capacity
+	g.tb_rate_cost = 80;   // and so does a rate level
+	// The wall-clock price is what actually decelerates: cost/rate hours
+	// of absence, with the cap geometric and the rate capped at 45 min
+	// per hour. datafiles/timebank_twin.py walks it - run that first.
 	timebank_init();
 
 	create_dials();

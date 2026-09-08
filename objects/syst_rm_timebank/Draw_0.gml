@@ -31,14 +31,14 @@ draw_set_font(fnt);
 var _cap = timebank_cap();
 draw_set_color(rgb(120, 130, 150));
 draw_set_alpha(.6);
-draw_text(cx, bank_y + 20, "+"
+draw_text(cx, bank_y + 18, "+"
 	+ string(min(g.tb_rate + _tb.rate_lv * g.tb_rate_step, g.tb_rate_cap, 55))
 	+ "m banked per hour away   -   cap " + crunch_time_long(_cap * 60));
 
 // the fill toward the cap
 var _bw = 180;
 var _bx = cx - _bw * .5;
-var _by = bank_y + 33;
+var _by = bank_y + 30;
 draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by, _bw, 5, 0, c_black, .8);
 draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by,
 	_bw * clamp(_tb.bank / max(1, _cap), 0, 1), 5, 0,
@@ -54,18 +54,42 @@ draw_set_alpha(.55);
 // invariant 2). Saying so stops the row reading as a power choice.
 draw_text(cx, spd_y - 12, "active speed - faster spends sooner, not further");
 draw_set_halign(fa_left);
-for (var _k = 0; _k < 6; _k++) {
+for (var _k = 0; _k < NSPD; _k++) {
 	var _px = spd_x0 + _k * (spd_w + spd_gap);
 	var _on = (_tb.spd == spds[_k]);
-	draw_ui_button(_px, spd_y, spd_w, 16, "x" + string(spds[_k]),
+	// x1 is "off" on the face, because that is what it is - the row
+	// reads as a switch with four settings rather than five speeds
+	draw_ui_button(_px, spd_y, spd_w, 16,
+		(spds[_k] == 1) ? "off" : ("x" + string(spds[_k])),
 		_on ? c_gold : rgb(170, 190, 230), true, _on);
 }
 if (_spending) {
 	draw_set_halign(fa_center);
 	draw_set_color(c_gold);
 	draw_set_alpha(.6 + .25 * dsin(current_time * .35));
-	draw_text(cx, spd_y + 22,
-		"spending " + string(_tb.spd - 1) + "s of bank per second");
+	draw_text(cx, spd_y + 19, "spending " + string(_tb.spd - 1)
+		+ "s of bank per second   -   "
+		+ crunch_time_long((_tb.bank / (_tb.spd - 1)) * 60) + " left at this speed");
+	draw_set_halign(fa_left);
+}
+
+// ---- THE BURN ROW: spend a lump at once (his ask) ----
+draw_set_halign(fa_center);
+draw_set_color(sett_ink);
+draw_set_alpha(.55);
+draw_text(cx, burn_y - 12, "or spend it all at once - runs as if you had been away");
+draw_set_halign(fa_left);
+for (var _k = 0; _k < NBURN; _k++) {
+	var _bx2 = burn_x0 + _k * (burn_w + burn_gap);
+	var _aff = (_tb.bank >= burns[_k]);
+	draw_ui_button(_bx2, burn_y, burn_w, 16, burn_lbl[_k],
+		_aff ? c_sgreen : c_gray, _aff, _aff);
+}
+if (burn_hp > 0 && burn_msg != "") {
+	draw_set_halign(fa_center);
+	draw_set_color(g.profit_color);
+	draw_set_alpha(.8 * min(1, burn_hp / 60));
+	draw_text(cx, burn_y + 19, burn_msg);
 	draw_set_halign(fa_left);
 }
 
@@ -80,24 +104,43 @@ for (var _r = 0; _r < 2; _r++) {
 	draw_set_alpha(.9);
 	if (_r == 0) {
 		draw_text(upg_x + 6, _ry + 5,
-			"capacity " + string(g.tb_cap + _tb.cap_lv * g.tb_cap_step) + "m");
+			"capacity " + crunch_time_long(timebank_cap() * 60));
 		draw_set_color(c_sgreen);
 		draw_set_alpha(.7);
-		draw_text(upg_x + 110, _ry + 5, "+" + string(g.tb_cap_step) + "m");
+		// what the NEXT level would give, so the price has something to
+		// be weighed against
+		draw_text(upg_x + 108, _ry + 5, "x"
+			+ string_format(max(1.01, g.tb_cap_mult / 100), 1, 2));
+		// ⚖️ WHICH ONE IS BINDING, because the price no longer says.
+		// Both fees are the same share of the same capacity (see
+		// setgame), so nothing about the numbers hints at which upgrade
+		// would actually do something. This does: how long an absence
+		// this capacity can hold, at the rate you currently have.
+		draw_set_color(_tb.last_full ? c_horange : rgb(120, 130, 150));
+		draw_set_alpha(.65);
+		draw_text(upg_x + 148, _ry + 5, "holds "
+			+ string_format(timebank_cap() / 60 / max(1, timebank_rate() * 60), 1, 1)
+			+ "h away" + (_tb.last_full ? "  (last one overflowed)" : ""));
 	} else {
 		draw_text(upg_x + 6, _ry + 5, "rate "
 			+ string(min(g.tb_rate + _tb.rate_lv * g.tb_rate_step,
 				g.tb_rate_cap, 55)) + "m/hr");
 		draw_set_color(c_sgreen);
 		draw_set_alpha(_q.maxed ? 0 : .7);
-		draw_text(upg_x + 110, _ry + 5, "+" + string(g.tb_rate_step) + "m");
+		draw_text(upg_x + 108, _ry + 5, "+" + string(g.tb_rate_step) + "m");
+		draw_set_color(rgb(120, 130, 150));
+		draw_set_alpha(.65);
+		draw_text(upg_x + 148, _ry + 5,
+			_q.maxed ? "at the ceiling" : "fills the bank faster");
 	}
 	var _bbx = upg_x + upg_w - 62;
 	draw_sprite_ext(spr_pixel_1x1, 0, _bbx, _ry + 1, 60, 14, 0,
 		_en ? merge_colour(c_black, c_sgreen, .18) : c_black, .85);
 	draw_px_rect(_bbx, _ry + 1, 60, 14, _en ? c_sgreen : c_gray, _en ? .8 : .3);
 	draw_set_halign(fa_center);
-	draw_set_color(c_gold);
+	// PAID IN BANKED TIME, so the price wears the bank's colour rather
+	// than profit's gold - it is the one thing on this screen you spend
+	draw_set_color(_q.maxed ? c_gray : c_sblue);
 	draw_set_alpha(_en ? .95 : .45);
 	draw_text(_bbx + 30, _ry + 4, (_q.txt != "") ? _q.txt : "-");
 	draw_set_halign(fa_left);
@@ -109,7 +152,7 @@ draw_set_color(rgb(120, 130, 150));
 draw_set_alpha(.5);
 draw_text(cx, room_height - 32, "while away, production runs AND time banks on top");
 draw_text(cx, room_height - 22,
-	"a banked second is one extra second played, at any speed");
+	"the upgrades are paid in banked time - spend it, or invest it");
 draw_set_halign(fa_left);
 
 draw_set_alpha(1);

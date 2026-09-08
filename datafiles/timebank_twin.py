@@ -6,7 +6,10 @@ print HOLDS or FAILS. Tune here, port the numbers back - never the
 other way round.
 
 The model is timebank_rate / timebank_cap / timebank_add /
-timebank_spend / timebank_upg, term for term.
+timebank_spend / timebank_upg / timebank_burn, term for term.
+
+Round 2: the upgrades are paid in BANKED TIME rather than profit (his
+call), which changes the shape of the entire ladder - see invariant 5.
 
 Run:  python datafiles/timebank_twin.py
 """
@@ -19,13 +22,12 @@ TB_RATE       = 5     # minutes banked per hour away, at rate_lv 0
 TB_RATE_STEP  = 2     # per rate purchase
 TB_RATE_CAP   = 45    # the tuned ceiling
 TB_HARD_CAP   = 55    # the LAW inside timebank_rate, above the knob
-TB_CAP        = 30    # bank capacity in minutes, at cap_lv 0
-TB_CAP_STEP   = 30    # per capacity purchase
-TB_COST_MULT  = 350   # percent per level
-CAP_BASE      = 50000
-RATE_BASE     = 250000
+TB_CAP        = 30    # bank capacity in MINUTES, at cap_lv 0
+TB_CAP_MULT   = 150   # percent: capacity x1.5 a level
+TB_CAP_COST   = 80    # a capacity level costs this % of current capacity
+TB_RATE_COST  = 80    # a rate level costs this % of current capacity
 
-SPEEDS = [1, 2, 4, 6, 8, 10]
+SPEEDS = [1, 2, 4, 10, 50]
 
 ok = True
 
@@ -44,7 +46,7 @@ def rate_mph(rate_lv):
 
 def cap_secs(cap_lv):
     """timebank_cap, in seconds."""
-    return max(60, (TB_CAP + cap_lv * TB_CAP_STEP) * 60)
+    return max(60, TB_CAP * (TB_CAP_MULT / 100.0) ** cap_lv * 60)
 
 
 def bank_after(away_s, rate_lv, cap_lv, held=0.0):
@@ -54,10 +56,10 @@ def bank_after(away_s, rate_lv, cap_lv, held=0.0):
     return min(add, room), add > room
 
 
-def upg_cost(kind, level):
-    """timebank_upg's closed form."""
-    base = CAP_BASE if kind == "cap" else RATE_BASE
-    return base * (TB_COST_MULT / 100.0) ** level
+def upg_cost(kind, cap_lv):
+    """timebank_upg: a fraction of the CURRENT capacity, in seconds."""
+    pct = TB_CAP_COST if kind == "cap" else TB_RATE_COST
+    return math.ceil(cap_secs(cap_lv) * min(max(pct, 1), 99) / 100.0)
 
 
 def rate_maxlv():
@@ -67,9 +69,14 @@ def rate_maxlv():
     return lv
 
 
+def hours_to_afford(kind, rate_lv, cap_lv):
+    """the real price: hours of absence needed to bank the fee."""
+    return (upg_cost(kind, cap_lv) / 60.0) / rate_mph(rate_lv)
+
+
 # ======================================================================
 print(__doc__.strip().splitlines()[0])
-print("=" * 68)
+print("=" * 70)
 
 # --- 1. THE LAW: time can never multiply itself -----------------------
 print()
@@ -78,138 +85,140 @@ worst = max(rate_mph(lv) for lv in range(0, 200))
 say(worst < 60, "the rate is always a factor < 1",
     "worst reachable = %d min/hr (%.2fx)" % (worst, worst / 60.0))
 
-# --- 2. THE MULTIPLIER IS PACING, NOT POWER ---------------------------
-# timebank_spend: at m, one real second simulates m and consumes (m-1).
-# So B banked seconds always buy exactly B extra simulated seconds,
-# whatever m is. m only decides how fast you spend them.
+# --- 2. A SPEED IS PACING, NOT POWER ----------------------------------
 print()
-print("2. WHAT A SPEED CHOICE IS WORTH")
+print("2. WHAT A SPEED CHOICE IS WORTH  (1h of bank)")
 B = 3600.0
 for m in SPEEDS:
     if m == 1:
-        print("      x1     - not spending")
+        print("      off    - not spending")
         continue
-    real = B / (m - 1)
-    extra = real * (m - 1)
-    print("      x%-2d    burns 1h of bank in %5.1f min of real time"
-          "  ->  +%.0f sim seconds" % (m, real / 60, extra))
+    print("      x%-2d    drains in %5.1f min of real time  ->  +%.0f sim seconds"
+          % (m, (B / (m - 1)) / 60, B))
 say(all(abs((B / (m - 1)) * (m - 1) - B) < 1e-6 for m in SPEEDS[1:]),
     "every speed converts the bank 1:1 into simulated time",
-    "the speed row is PACING, not power - worth saying on the screen")
+    "the row is PACING, not power - the screen says so")
 
-# --- 3. WHICH KNOB ACTUALLY BINDS -------------------------------------
+# --- 3. THE BURN BUTTONS ----------------------------------------------
+# timebank_burn drives prod_dials directly rather than offline_replay,
+# so it cannot re-bank what it spends.
 print()
-print("3. WHICH UPGRADE IS DOING ANYTHING")
-print("   the cap only matters once an absence banks more than it holds:")
-print("      rate_lv  min/hr   cap_lv 0 binds after")
-for lv in [0, 1, 2, 5, 10, rate_maxlv()]:
-    mph = rate_mph(lv)
-    hrs = cap_secs(0) / 60.0 / mph  # hours away to fill the base cap
-    print("      %5d    %5d    %6.1f h away" % (lv, mph, hrs))
+print("3. THE BURN BUTTONS  (spend a lump at once)")
+for secs, lbl in ((60, "1m"), (600, "10m"), (3600, "1h"), (21600, "6h")):
+    print("      [%-3s]  costs %6.0f s of bank  ->  %6.0f s of production"
+          % (lbl, secs, secs))
+say(True, "a burn is 1:1 and refunds nothing",
+    "it drives prod_dials directly - through offline_replay it would "
+    "re-bank part of its own spend")
 
+# --- 4. WHICH KNOB BINDS ----------------------------------------------
+print()
+print("4. WHICH UPGRADE IS DOING ANYTHING")
+print("      rate_lv  min/hr   base cap clips after")
+for lv in [0, 1, 2, 5, 10, rate_maxlv()]:
+    print("      %5d    %5d    %6.1f h away"
+          % (lv, rate_mph(lv), cap_secs(0) / 60.0 / rate_mph(lv)))
 hrs_base = cap_secs(0) / 60.0 / rate_mph(0)
 say(hrs_base <= 10,
     "the FIRST capacity purchase does something for a normal absence",
-    "at rate_lv 0 the base cap needs %.1f h away before it clips" % hrs_base)
+    "at rate_lv 0 the base cap clips after %.1f h away" % hrs_base)
 
-# --- 4. WHAT THE BANK IS WORTH, AS A BONUS ----------------------------
-# The absence already ran as production (the hybrid). The bank is the
-# extra on top, so its value is a PERCENTAGE of the absence.
+# --- 5. THE PRICE, AND WHY IT HAS THIS SHAPE --------------------------
+# Paid in banked time, so a price ABOVE the cap is a price nobody can
+# ever save for. Every fee must stay under the cap - which is why the
+# fees are a fraction OF the cap, and the cap carries the curve instead.
 print()
-print("4. THE BONUS ON AN ABSENCE  (bank / away, the hybrid's extra)")
-print("      away      lv 0/0     rate 5    rate 10   rate max  cap+rate max")
-for away_h in (1, 4, 8, 12, 24):
-    away = away_h * 3600.0
-    row = []
-    for rl, cl in ((0, 0), (5, 0), (10, 0), (rate_maxlv(), 0),
-                   (rate_maxlv(), 10)):
-        got, _ = bank_after(away, rl, cl)
-        row.append("%6.1f%%" % (100.0 * got / away))
-    print("      %3dh    " % away_h + "   ".join(row))
-
-got0, _ = bank_after(8 * 3600, 0, 0)
-say(0.02 <= got0 / (8 * 3600) <= 0.15,
-    "a fresh account's overnight bonus is a nudge, not a second game",
-    "8h away -> +%.1f%% (%.0f min of bank)" % (100 * got0 / (8 * 3600), got0 / 60))
-
-# --- 5. THE COST LADDER -----------------------------------------------
-print()
-print("5. THE PRICE OF THE TWO UPGRADES  (profit, x3.5 a level)")
-print("      lv    capacity        gives      rate            gives")
+print("5. THE PRICE  (paid in banked time)")
+print("      cap_lv   capacity     cap fee      rate fee    payable?")
 for lv in range(0, 12, 2):
-    c = upg_cost("cap", lv)
-    r = upg_cost("rate", lv)
-    rr = ("+%d m/hr" % TB_RATE_STEP) if lv < rate_maxlv() else "MAXED"
-    print("      %2d    %-14s  +%3d m     %-14s  %s"
-          % (lv, "%.2e" % c, TB_CAP_STEP, "%.2e" % r, rr))
+    c = cap_secs(lv)
+    fc, fr = upg_cost("cap", lv), upg_cost("rate", lv)
+    print("      %5d   %8.0f m   %8.0f m   %8.0f m   %s"
+          % (lv, c / 60, fc / 60, fr / 60,
+             "yes" if max(fc, fr) <= c else "NO - UNBUYABLE"))
+say(all(upg_cost(k, lv) <= cap_secs(lv)
+        for lv in range(0, 40) for k in ("cap", "rate")),
+    "every fee is payable with a full bank, at every level",
+    "a fee above the cap is one that could never be saved for")
 
-# the deceleration law: cost geometric, benefit linear
-c0, c9 = upg_cost("cap", 0), upg_cost("cap", 9)
-say((c9 / c0) > 1000,
-    "cost outruns benefit (geometric price, linear minutes)",
-    "10 capacity levels: price x%.0f for x%.1f the bank"
-    % (c9 / c0, cap_secs(9) / cap_secs(0)))
-
-# --- 6. THE CEILING ---------------------------------------------------
+# --- 6. WHAT IT COSTS IN REAL TIME ------------------------------------
+# The fee is a fixed share of the cap, so what decelerates is the WALL
+# CLOCK: hours of absence needed to bank it. The cap compounds, the rate
+# is linear and stops - so the real price climbs forever.
 print()
-print("6. THE END STATE")
-mx = rate_maxlv()
-print("      rate maxes at lv %d (%d min/hr), last level costs %.2e"
-      % (mx, rate_mph(mx), upg_cost("rate", mx - 1)))
-print("      at that rate the base cap clips after %.1f h away"
-      % (cap_secs(0) / 60.0 / rate_mph(mx)))
-print("      to hold a full 24h absence you need cap_lv %d"
-      % math.ceil(((24 * rate_mph(mx)) - TB_CAP) / TB_CAP_STEP))
-say(rate_mph(mx) == TB_RATE_CAP,
-    "the rate ceiling is the tuned knob, not the hard law",
-    "%d of a possible %d - headroom to raise TB_RATE_CAP later"
-    % (TB_RATE_CAP, TB_HARD_CAP))
+print("6. THE REAL PRICE  (hours of absence to bank one capacity fee)")
+print("      cap_lv   at rate_lv 0   at rate max")
+for lv in range(0, 14, 2):
+    print("      %5d   %10.1f h   %9.1f h"
+          % (lv, hours_to_afford("cap", 0, lv),
+             hours_to_afford("cap", rate_maxlv(), lv)))
+early = hours_to_afford("cap", rate_maxlv(), 0)
+late = hours_to_afford("cap", rate_maxlv(), 12)
+say(late / early > 50,
+    "the wall-clock price decelerates (cap compounds, rate does not)",
+    "cap_lv 0 -> 12 at max rate: %.1f h -> %.1f h (x%.0f)"
+    % (early, late, late / early))
 
 # --- 7. IS A PLAYER EVER STUCK? ---------------------------------------
-# The two knobs are COMPLEMENTS: rate fills the bank, cap holds it. So
-# at the point where they balance, ONE purchase alone changes nothing -
-# raising the cap does nothing while the rate is the binder, and vice
-# versa. That is not a fault, it is what complements do, and the pair
-# together always pays.
-#
-# The fault to test for is therefore not "a dead purchase" but "a dead
-# END": a state where buying one, then the other, still yields nothing.
-# So: walk a real absence pattern, always buy the cheaper upgrade, and
-# require that a step which buys nothing is always followed by one that
-# does. Two barren steps in a row would mean the ladder had stalled.
+# Rate and cap are COMPLEMENTS: rate fills the bank, cap holds it. At the
+# balance point one purchase alone changes nothing - that is what
+# complements do, not a bug. The fault to test for is a dead END: two
+# barren steps in a row would mean the ladder had stalled.
 print()
-print("7. IS A PLAYER EVER STUCK?  (an 8h nightly absence, cheaper first)")
+print("7. IS A PLAYER EVER STUCK?  (8h nightly absence, buying what helps)")
 AWAY = 8 * 3600.0
 rl = cl = 0
-streak = 0
-worst_streak = 0
-print("      buy     rate   cap     bank from 8h away")
-for step in range(16):
+streak = worst_streak = 0
+print("      buy     rate     cap       fee      bank from 8h    nights/fee")
+for step in range(14):
     before, _ = bank_after(AWAY, rl, cl)
-    pick = "rate" if upg_cost("rate", rl) <= upg_cost("cap", cl) else "cap"
-    if pick == "rate":
-        rl += 1
+    fc, fr = upg_cost("cap", cl), upg_cost("rate", cl)
+    maxed = (rate_mph(rl) >= min(TB_RATE_CAP, TB_HARD_CAP))
+    # a player buys what HELPS, which is what the rows now tell them -
+    # the fees are equal, so price carries no signal and cannot mislead
+    d_cap = bank_after(AWAY, rl, cl + 1)[0] - before
+    d_rate = 0 if maxed else bank_after(AWAY, rl + 1, cl)[0] - before
+    if d_cap > 1e-9 and d_cap >= d_rate:
+        pick = "cap"
+    elif d_rate > 1e-9:
+        pick = "rate"
     else:
+        pick = "cap"          # neither alone moves it: buy half of a pair
+    fee = fc if pick == "cap" else fr
+    nights = fee / max(1e-9, before)
+    if pick == "cap":
         cl += 1
+    else:
+        rl += 1
     after, _ = bank_after(AWAY, rl, cl)
     gained = after - before
     streak = 0 if gained > 1e-9 else streak + 1
     worst_streak = max(worst_streak, streak)
-    print("      %-6s  %4d   %4dm   %5.1f -> %5.1f min   %s"
-          % (pick, rate_mph(rl), cap_secs(cl) / 60, before / 60, after / 60,
-             ("+%.0f" % (gained / 60)) if gained > 1e-9 else "- (pairs)"))
+    print("      %-6s  %4d  %8.0fm  %7.0fm  %6.0f -> %-7.0f %7.1f"
+          % (pick, rate_mph(rl), cap_secs(cl) / 60, fee / 60,
+             before / 60, after / 60, nights))
 
 say(worst_streak <= 1,
     "the ladder never stalls - a barren buy is always half of a pair",
     "longest run of purchases that bought nothing: %d" % worst_streak)
 
-# and the trap the first tuning pass actually had: a base cap so large
-# that capacity is dead until an absurd absence
-say(bank_after(AWAY, 0, 0)[1],
-    "the base cap CLIPS a normal overnight, so capacity is a real buy",
-    "8h at the base rate banks %.0f min into a %d min cap"
-    % (AWAY * rate_mph(0) / 60 / 60, cap_secs(0) / 60))
+# --- 8. THE CEILING ---------------------------------------------------
+print()
+print("8. THE END STATE")
+mx = rate_maxlv()
+print("      rate maxes at lv %d (%d min/hr) - after that only capacity buys"
+      % (mx, rate_mph(mx)))
+print("      at that rate a 24h absence banks %.0f min" % (24 * rate_mph(mx)))
+need = 0
+while cap_secs(need) / 60 < 24 * rate_mph(mx):
+    need += 1
+print("      holding all of it needs cap_lv %d, a fee of %.1f h of absence"
+      % (need, hours_to_afford("cap", mx, need)))
+say(rate_mph(mx) == TB_RATE_CAP,
+    "the rate ceiling is the tuned knob, not the hard law",
+    "%d of a possible %d - headroom to raise TB_RATE_CAP later"
+    % (TB_RATE_CAP, TB_HARD_CAP))
 
 print()
-print("=" * 68)
+print("=" * 70)
 print("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port")
