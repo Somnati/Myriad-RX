@@ -146,7 +146,15 @@ function main_macros() {
 // untouched. upgrade_bonus() itself stays truthful, so the screen shows
 // what the slots WOULD do. Flip this to turn the whole system on.
 #macro UPG_LIVE false
-#macro UPG_RARITY_N  7     // common .. ultimate, see upgrade_rarity_info
+#macro UPG_RARITY_N  8     // common .. ultimate, see upgrade_rarity_info
+// THE STAKE. What one roll into an empty slot costs in credits, before
+// difficulty and upgrade_inflation. It is what stops "sell instead of
+// discard" from being a credit printer, and what stops free rerolling
+// from making rarity meaningless - see upgrade_roll_cost.
+// Keep it >= 3: upgrade_sell_value floors its payout at 1 credit so no
+// slot is ever worthless, and at a stake of 2 or less that floor would
+// close the gap the sell-back fraction opens.
+#macro UPG_ROLL_COST 5
 // THE SHAPE OF THE LADDER, and the only knob that moves it. A roll is
 // floor(random(1)^POW * N), so a bigger power crushes more of the mass
 // onto the common end - 3 gives common 52% and about 1 in 20 ultimate,

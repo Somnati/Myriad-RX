@@ -1,9 +1,10 @@
 /// @description upgrade_roll(slot);
 /// @param slot
-/// Rolls a fresh offer into an empty slot: pick a kind that is
-/// currently available, pick a rarity, roll a value inside that kind's
-/// band scaled by the rarity. Returns the offer, or -1 if nothing can
-/// be offered yet.
+/// Rolls a fresh offer into an empty slot: pay the stake, pick a kind
+/// that is currently available, pick a rarity, roll a value inside that
+/// kind's band scaled by the rarity, and roll how DEEP it goes.
+/// Returns the offer, -1 if nothing can be offered yet, or -2 if the
+/// stake cannot be paid.
 ///
 /// ⚖️ AVAILABILITY IS A GATE, NOT A FILTER ON THE RESULT. Each roster
 /// entry carries its own `avail` closure and a kind that fails it is
@@ -35,6 +36,13 @@ function upgrade_roll(_slot) {
 
 	var _pick = _ok[irandom(array_length(_ok) - 1)];
 
+	// THE STAKE, taken before anything is rolled. See upgrade_roll_cost:
+	// without it, free rolling makes rarity pointless and a sellable
+	// offer makes credits infinite.
+	var _price = upgrade_roll_cost();
+	if (!(g.credits >= arb(_price))) return -2;
+	g.credits = do_subtract(g.credits, arb(_price));
+
 	// THE RARITY, drawn by walking upgrade_rarity_odds() - the same
 	// array the statistics screen draws as a bar. It used to be an
 	// inline floor(random(1)^3 * N) here and a picture of that curve
@@ -49,7 +57,19 @@ function upgrade_roll(_slot) {
 		_acc += _odds[_q];
 		if (_u < _acc) { _rar = _q; break; }
 	}
+	// A GRANT ROLLS AT COMMON, always. Rarity scales an upgrade's VALUE
+	// and its price together; a grant has no value to scale - "one more
+	// slot" is one more slot at every rung - so a rare one would be the
+	// identical thing at sixteen times the price. Nothing about that is
+	// a reward.
+	if (_pick.stat == "") _rar = 0;
 	var _mult = upgrade_rarity_mult(_rar);
+
+	// HOW DEEP THIS ONE GOES, rolled once and kept: DE's per-rarity
+	// table, then clamped by the roster's own ceiling so a grant stays
+	// one tier however lucky the roll was. This is what the dots under
+	// the row are counting.
+	var _cap = min(upgrade_roll_tiers(_rar), _pick.cap);
 
 	var _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
 	// two decimals: the exact number is noise, and a readout that
@@ -61,6 +81,7 @@ function upgrade_roll(_slot) {
 		stat : _pick.stat,
 		rar  : _rar,
 		val  : _val,
+		cap  : _cap,         // how many tiers it can ever take
 		tier : 0,            // an offer, not yet owned
 	};
 	g.upg.rolls += 1;

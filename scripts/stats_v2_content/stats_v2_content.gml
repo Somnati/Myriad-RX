@@ -99,6 +99,24 @@ function stats_v2_content() {
 		stats_v2_line("slots", string(_held) + " / " + string(upgrade_slots()));
 		stats_v2_line("bought", string(g.upg.total));
 		stats_v2_line("rolled", string(g.upg.rolls));
+		stats_v2_line("roll price", string(upgrade_roll_cost()) + " credits",
+			-1, c_lavender, "what one roll into an empty slot costs. it "
+			+ "rides the same drift the buy prices do.");
+		stats_v2_line("price drift",
+			"x" + string_format(upgrade_inflation(), 1, 2), -1, -1,
+			"every upgrade ever bought makes the next one dearer - three "
+			+ "percent per hundred, up to three times. sell prices are "
+			+ "quoted off the original base and never see it.");
+		// what the whole table would fetch, which is the one number the
+		// sell mode cannot show you: it is a per-row button
+		var _sv = 0;
+		for (var _i = 0; _i < upgrade_slots(); _i++)
+			if (is_struct(g.upg.slot[_i])) _sv += upgrade_sell_value(_i);
+		stats_v2_line("table value", string(_sv) + " credits", -1,
+			(_sv > 0) ? c_lavender : c_gray,
+			"selling every slot right now would pay this. it counts the "
+			+ "stake on each roll plus " + string(round(UPG_SELL_BACK * 100))
+			+ "% of every tier bought into it.");
 		stats_v2_line();
 		// the derived totals, which is the only place they exist
 		stats_v2_line("tap profit",    "+" + string_format(_ub.tap_profit, 1, 1) + "%",

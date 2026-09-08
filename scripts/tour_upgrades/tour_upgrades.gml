@@ -29,15 +29,23 @@
 //                      lifetime totals. THE WHOLE SAVED STATE.
 //   upgrade_bonus      THE ONE READ POINT. Walks the slots and returns
 //                      every accumulator fresh.
-//   upgrade_roll       fills an empty slot: an available kind, a
-//                      weighted rarity, a value rolled in the band.
+//   upgrade_roll       fills an empty slot: pay the stake, pick an
+//                      available kind, roll a rarity, a value in the
+//                      band, and how DEEP the offer goes.
+//   upgrade_roll_cost  THE STAKE. What a roll costs.
+//   upgrade_roll_tiers DE's per-rarity table for how many tiers an
+//                      offer can take, plus DE's wealth bonus rolls.
+//                      This is what the dots under a row count.
 //   upgrade_buy/_sell  the two transactions.
-//   upgrade_cost       DE's curve: base x rarity x (1 + (.2+.1t)*t).
-//   upgrade_sell_value re-derives what was PAID from that same curve
-//                      and returns a fraction of it, so the refund can
-//                      never quote a price that no longer exists.
-//   upgrade_cap        rarity widens the tier ceiling as well as the
-//                      value, so a good roll is deeper AND stronger.
+//   upgrade_price_base ONE tier's price, UN-INFLATED - the single owner
+//                      of DE's curve base x rarity x (1 + (.2+.1t)*t).
+//   upgrade_cost       that, times upgrade_inflation.
+//   upgrade_inflation  DE's drift: +3% per hundred upgrades bought,
+//                      ceiling 3x. QUOTES ONLY.
+//   upgrade_sell_value SELL_BACK x (the stake + every tier bought), all
+//                      of it un-inflated.
+//   upgrade_cap        how many tiers this offer can take - ROLLED with
+//                      it now, not derived from the rarity.
 //   upgrade_diff_mult  THE DIFFICULTY SEAT - see below.
 //   syst_upgrades      the screen. One row per slot, ONE LINE each; a
 //                      row is EMPTY, an OFFER (tier 0) or OWNED
@@ -66,7 +74,8 @@
 //   not doing it.
 //
 //   DERIVED, NEVER ACCUMULATED. A slot stores id / rarity / value /
-//   tier and nothing else; every effective number comes from
+//   depth / tier and nothing else - all of which is what the offer IS,
+//   never what it does; every effective number comes from
 //   upgrade_bonus at read time. DE does `g.u_tapprofit += val` inside
 //   buy_upgrade instead, so its live numbers depend on the HISTORY of
 //   purchases. Three things follow from deriving that do not follow
@@ -96,6 +105,31 @@
 //   the PRESENCE layer - earned by being here and tapping - running
 //   parallel to rebirth's PROGRESS layer. game_reset wipes it;
 //   rebirth_do never touches it.
+//
+//   ROLLING COSTS CREDITS, and two separate things depend on it.
+//   Without a stake there is no reason to keep a common - you press the
+//   button again - so the entire rarity ladder collapses into "reroll
+//   until ultimate". And once an unwanted offer can be SOLD instead of
+//   discarded (his call), a free roll is a credit printer: roll, sell,
+//   repeat. The stake is the gamble's price and the sell value is the
+//   recovery, which is what keeps the second one honest.
+//
+//   A SELL CAN NEVER PAY OUT MORE THAN WENT IN, and this is provable
+//   rather than tuned. Both terms of upgrade_sell_value are quoted off
+//   upgrade_price_base, which never sees upgrade_inflation, while every
+//   price actually PAID was that same base times an inflation factor
+//   that only ever grows. So sell <= SELL_BACK x paid < paid, for every
+//   rarity, every depth and every moment in a run. That has to hold at
+//   the MAXIMUM and not merely on average: the player sees the roll
+//   before deciding whether to sell it, so a distribution that merely
+//   leans negative would still be farmable by only selling the good
+//   ones. It is also why the difficulty multiplier appears on both
+//   sides - it has to cancel.
+//
+//   GRANTS ROLL AT COMMON. Rarity scales an upgrade's value and its
+//   price together, and a grant has no value to scale: "one more slot"
+//   is one more slot at every rung, so an ultimate one would be the
+//   identical thing at sixteen times the price.
 //
 //   AVAILABILITY IS A GATE ON THE DRAW. A kind whose `avail` is false
 //   is not in the roll at all, so the roster can name upgrades for

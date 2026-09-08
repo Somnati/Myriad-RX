@@ -19,6 +19,20 @@ x = 0;
 ystart = 46;
 y = ystart;
 
+// ---- THE REQUEST SLOTS (Myriad DE's desy) ----
+// Any screen may ask the panel for something on the frame it wants it,
+// by writing these in its own Step. Both are CONSUMED AND CLEARED at
+// the end of the panel's Step, which is the whole trick: a screen that
+// stops asking releases the panel automatically, so nothing has to
+// remember to undo itself when a room changes or a drawer closes.
+//   pin   hold the panel out this frame, ignoring the drop timer
+//   desy  the y it should glide to (-1 = back to ystart)
+// DE's own version of this is a single `desy` reset to -1 every step
+// and trickled at 5; the pin is the second half of the same idea, since
+// a panel forced to a position also wants to be forced visible.
+pin  = false;
+desy = -1;
+
 hp_  = 3;     // seconds the panel stays out after a drop
 hp   = 0;
 move = 0;     // 0 tucked away .. 1 fully out (eased)

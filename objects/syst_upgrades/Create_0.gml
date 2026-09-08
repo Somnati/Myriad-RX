@@ -63,7 +63,35 @@ __eff_str = function(_s) {
 	var _sfx = (_s.id == "crit_multi") ? "x" : "%";
 	if (_s.tier > 0)
 		return "+" + string_format(_s.val * _s.tier, 1, 2) + _sfx;
-	return "+" + string_format(_s.val, 1, 2) + _sfx + " / tier";
+	return "+" + string_format(_s.val, 1, 2) + _sfx;
+};
+
+// THE TIER DOTS (Myriad DE's bubbles, obj_upgrade_slot's Draw). One per
+// tier the offer can ever take, lit for the ones bought - so how deep a
+// slot goes is a thing you SEE rather than a fraction you read. They sit
+// on the row's bottom edge and spill a pixel into the gap below it,
+// which is DE's seat (y + sprite_height - 3) and reads as belonging to
+// the row without eating a line of it.
+//
+// DE hides them on a finished upgrade and on a one-tier one, and both
+// rules earn their keep: a full row of lit dots says nothing the tier
+// column has not already said, and the eye should be drawn to the slots
+// with something left in them.
+__dots = function(_i, _ry) {
+	var _s = g.upg.slot[_i];
+	if (!is_struct(_s)) return;
+	var _cap = upgrade_cap(_i);
+	if (_cap <= 1) return;
+	if (_s.tier >= _cap) return;
+
+	var _dx = row_x + 7;
+	var _dy = _ry + row_h - 2;
+	for (var _d = 0; _d < _cap; _d++) {
+		var _on = (_s.tier > _d);
+		draw_sprite_ext(spr_pixel_1x1, 0, _dx, _dy, 3, 3, 0,
+			_on ? c_lavender : merge_colour(c_lavender, c_black, .72), 1);
+		_dx += 4;
+	}
 };
 
 upgrade_init();

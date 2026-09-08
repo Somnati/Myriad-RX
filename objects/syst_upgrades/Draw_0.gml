@@ -45,14 +45,12 @@ for (var _m = 0; _m < 2; _m++) {
 	draw_text(_r.x + _r.w / 2 + 1, _r.y + 2, _mname[_m]);
 }
 
-// the purse, right where the prices are
-draw_set_halign(fa_right);
-draw_set_color(c_lavender);
-draw_set_alpha(.95);
-draw_text(room_width - 70, bby + 5,
-	((g.credits >= arb(1)) ? crunch_arb(g.credits) : "0") + " credits");
-draw_set_halign(fa_left);
-draw_set_alpha(1);
+// THE PURSE IS NOT DRAWN HERE ANY MORE (his call, DE's behaviour). The
+// credit panel is a real object that already knows how to draw a
+// balance, glide it, and flash on a drop; a second copy of the number
+// painted into this screen's title strip is a second thing to keep in
+// step and it cannot animate. The Step pins the panel instead - see the
+// obj_display_credits block there.
 
 var _bk = __back_rect();
 draw_ui_back(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1);
@@ -85,7 +83,13 @@ for (var _i = 0; _i < _n; _i++) {
 		draw_set_color(_dim);
 		draw_set_alpha(.5);
 		draw_text(row_x + 7, _ry + 4, "empty slot");
-		draw_ui_button(_b.x, _b.y, _b.w, _b.h, "roll", c_sblue, true, true);
+		// THE STAKE IS ON THE BUTTON. A roll costs credits now, so the
+		// button has to say so before it is pressed - a price you only
+		// discover from the balance going down is a price you resent.
+		var _rc = upgrade_roll_cost();
+		var _ra = (g.credits >= arb(_rc));
+		draw_ui_button(_b.x, _b.y, _b.w, _b.h, "roll " + string(_rc),
+			_ra ? c_sblue : c_hred, true, _ra);
 		continue;
 	}
 
@@ -118,11 +122,14 @@ for (var _i = 0; _i < _n; _i++) {
 			(_cost < 0) ? "maxed" : string(_cost),
 			_afford ? c_sgreen : c_hred, _cost > 0, _afford);
 	} else {
-		var _pay = upgrade_sell_value(_i);
+		// EVERY SLOT HAS A PRICE NOW, an untouched offer included - it
+		// cost a stake to be here, so it is worth something to be rid
+		// of. "discard" is gone with it.
 		draw_ui_button(_b.x, _b.y, _b.w, _b.h,
-			(_s.tier > 0) ? string(_pay) : "discard",
-			c_lavender, true, _s.tier > 0);
+			string(upgrade_sell_value(_i)), c_lavender, true, true);
 	}
+
+	__dots(_i, _ry);
 }
 
 // ---- the footer: what all of it adds up to ----

@@ -156,13 +156,21 @@ function handle_save(){
 		var _rar = handle("u" + string(_u) + "_rar",  _has ? _s.rar  : 0);
 		var _val = handle("u" + string(_u) + "_val",  _has ? _s.val  : 0);
 		var _tir = handle("u" + string(_u) + "_tier", _has ? _s.tier : 0);
+		// how deep the offer rolled - part of its identity, like the
+		// rarity. 0 means "saved before offers had a depth"; upgrade_cap
+		// reads that as absent and falls back to the old formula.
+		var _cp  = handle("u" + string(_u) + "_cap",  _has ? (_s[$ "cap"] ?? 0) : 0);
 		if (action == sv_load) {
 			// an id the roster no longer carries costs a SLOT, never the
 			// savefile - a retired upgrade must fail softly
 			var _e = (_id == "") ? -1 : upgrade_entry(_id);
 			g.upg.slot[_u] = (_e == -1) ? -1
 				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
-				    tier : max(0, floor(_tir)) };
+				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)) };
+			// a zero cap is the pre-depth marker, and upgrade_cap only
+			// recognises it as absent - so drop the field entirely
+			if (is_struct(g.upg.slot[_u]) && g.upg.slot[_u].cap <= 0)
+				variable_struct_remove(g.upg.slot[_u], "cap");
 		}
 	}
 	if (action == sv_load) {

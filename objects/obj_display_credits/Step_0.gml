@@ -15,6 +15,10 @@ if (add_hp <= 0) add_val = 0;
 // rebirth overlay puts it away
 var _menu   = instance_exists(obj_ui_menu2) && obj_ui_menu2.open;
 var _drawer = instance_exists(syst_dials) && syst_dials.sp > .5;
+// a screen holding the panel open outranks the drop timer entirely -
+// see `pin` in the Create. A room whose every price is in credits wants
+// the balance up the whole time, not for three seconds after a drop.
+if (pin) hp = hp_;
 if (_menu) hp = hp_;
 if (in_room(rm_clicker) && !_drawer && variable_global_exists("persist_popups") && g.persist_popups) hp = hp_;
 if (!_menu && _drawer) hp = 0;
@@ -42,8 +46,17 @@ tw = string_width(text) + 15;
 
 // the slide: tucked = fully off the left edge, out = flush with it
 x_ = -(tw + 2) + (tw + 2) * move;
-y  = ystart;
 visible = (move > 0);
+
+// the vertical seat: whatever was asked for this frame, else home. It
+// GLIDES rather than jumps, so a screen that moves it is a slide and
+// not a teleport, and two screens disagreeing across a room change look
+// like one movement.
+y = trickle(y, (desy == -1) ? ystart : desy, 5);
 
 seat_x = 5 + 3;
 seat_y = y + 4;
+
+// consumed. Whoever wants it next frame asks again.
+pin  = false;
+desy = -1;

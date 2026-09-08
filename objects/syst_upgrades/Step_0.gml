@@ -1,3 +1,15 @@
+// THE CREDIT PANEL IS PINNED HERE (his call, DE's obj_display_credits).
+// Every price on this screen is in credits, so the balance has to be
+// visible the whole time rather than for three seconds after a drop.
+// desy is DE's protocol: a REQUEST, consumed and cleared by the panel
+// each frame, so a screen that stops asking releases it without having
+// to remember to. It sits under the table rather than at its default
+// y 46, where it would land on top of the second row.
+if (instance_exists(obj_display_credits)) {
+	obj_display_credits.pin  = true;
+	obj_display_credits.desy = room_height - 24;
+}
+
 // region UI by syst_input's rules: input free, nothing else owns the
 // pointer. Every action here is a credit transaction, so none of it may
 // fire under a menu or a dialogue.
@@ -43,8 +55,11 @@ for (var _i = 0; _i < _n; _i++) {
 	// EMPTY: roll an offer into it, in either mode - an empty slot has
 	// nothing to sell, so [roll] is the only thing it could mean
 	if (!is_struct(_s)) {
-		if (upgrade_roll(_i) == -1)
+		var _r0 = upgrade_roll(_i);
+		if (_r0 == -1)
 			assign_banner("nothing to offer yet", c_gray, c_black);
+		else if (_r0 == -2)
+			assign_banner("not enough credits to roll", c_hred, c_black);
 		else
 			play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
 		exit;
@@ -56,12 +71,11 @@ for (var _i = 0; _i < _n; _i++) {
 		exit;
 	}
 
-	// SELL - refund part and free the slot. An unbought offer refunds
-	// nothing, so in sell mode this is also how a bad roll is discarded:
-	// DE's own answer to an offer you do not want, and the reason the
-	// table can never stall on one.
+	// SELL - pay out part of what went in and free the slot. An offer
+	// you never bought still refunds part of its STAKE, so this is also
+	// the answer to a roll you do not want, and the reason the table can
+	// never stall on one. Nothing on this screen is discarded any more.
 	var _pay = upgrade_sell(_i);
-	assign_banner(_pay > 0 ? "sold for " + string(_pay) + " credits"
-	                       : "offer discarded", c_lavender, c_black);
+	assign_banner("sold for " + string(_pay) + " credits", c_lavender, c_black);
 	exit;
 }
