@@ -155,6 +155,8 @@ function bignum_visualizer_create() {
             // when it IS drawing they are redundant paint - and redundant
             // paint over a crossfading layer is a colour that moves with
             // the camera. See BignumVisRenderer's _above_drawn.
+            renderer.dbg_row = 0;   // the field ledger stacks per frame
+
             var _present = {};
             for (var i = 0; i < _n; i++) {
                 variable_struct_set(_present, string(_layers[i].offset), true);

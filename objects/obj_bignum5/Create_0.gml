@@ -72,6 +72,12 @@ vis.renderer.set_tier_color_callback(function(_oom) {
 	);
 });
 
+// THE FIELD LEDGER: uncomment to print one line per field per frame -
+// offset, layer alpha, unit px, recursion mix, counts, and the two
+// colours it paints with. That is the whole set that decides its pixels,
+// so a screenshot with this on says which field painted what.
+// vis.renderer.debug = true;
+
 // block labels through the house crunch ladder: a block is
 // count x 10^tier - pack that magnitude as an arb via its log10 and let
 // crunch_arb speak, instead of the renderer's raw "Ne M" fallback

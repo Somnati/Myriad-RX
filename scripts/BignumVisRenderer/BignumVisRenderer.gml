@@ -111,7 +111,8 @@ function BignumVisRenderer() constructor {
                          // way (if des_cs > .05). Full squares and grids
                          // are unaffected (they self-limit by size)
 
-    debug         = false;
+    debug         = false;  // see the debug block at the end of draw_window
+    dbg_row       = 0;      // host resets this each frame
     tier_color_cb = undefined;   // host-supplied: function(tier) -> color
     label_cb      = undefined;   // host-supplied: function(tier, count) -> string
 
@@ -210,6 +211,17 @@ function BignumVisRenderer() constructor {
         if (grid_outer_over  == _over) draw_sprite_ext(grid_sprite, 2, _x, _y, _s, _s, 0, _col, _a * grid_outer_alpha);
         if (grid_inner_over  == _over) draw_sprite_ext(grid_sprite, 1, _x, _y, _s, _s, 0, _col, _a * grid_inner_alpha);
         if (grid_border_over == _over) draw_sprite_ext(grid_sprite, 0, _x, _y, _s, _s, 0, _col, _a * grid_border_alpha);
+    };
+
+    /// @func __dbg_col(col)
+    /// @desc A colour as "r.g.b" for the field ledger. Screenshots are how
+    ///       this project reports, so the number has to be readable IN the
+    ///       screenshot - a swatch would just be another colour to argue
+    ///       about, which is the thing being debugged.
+    static __dbg_col = function(_c) {
+        return string(colour_get_red(_c)) + "."
+             + string(colour_get_green(_c)) + "."
+             + string(colour_get_blue(_c));
     };
 
     /// @func draw_square_clipped(spr, x, y, size, col, alpha)
@@ -555,11 +567,34 @@ function BignumVisRenderer() constructor {
             draw_window(_win, _offset - 2, _unit / 10, _px, _py, _alpha * _rec_a, true, false);
         }
 
+        // ---- THE FIELD LEDGER (debug) ----
+        // Claude cannot run the game, so when a colour is wrong on screen
+        // and provably right in the source, the missing evidence is what
+        // the numbers actually were. This prints one line per field per
+        // frame - offset, layer alpha, unit px, recursion mix, the counts,
+        // and the two colours the field is painting with - which is
+        // exactly the set that decides every pixel it draws.
+        //
+        // Turn it on in obj_bignum5's Create: vis.renderer.debug = true;
         if (debug) {
-            draw_set_alpha(_alpha);
             var _w = per_row * _sq_size;
+            draw_set_alpha(_alpha * 0.5);
             draw_rectangle(_x0, _y0, _x0 + _w, _y0 + _w, true);
+
             draw_set_alpha(1);
+            draw_set_color(c_white);
+            draw_set_font(label_font);
+            draw_text(4, 40 + dbg_row * 10,
+                (_as_child ? "  ch " : "top ")
+                + "o" + string(_offset)
+                + " a" + string_format(_alpha, 1, 2)
+                + " u" + string_format(_unit, 1, 2)
+                + " r" + string_format(_rec_a, 1, 2)
+                + " f" + string(_full) + "/" + string(_raw3)
+                + " p" + string(_partial)
+                + " sq " + __dbg_col(_col_full)
+                + " un " + __dbg_col(_col_part));
+            dbg_row++;
         }
     };
 }
