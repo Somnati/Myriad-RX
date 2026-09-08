@@ -39,7 +39,12 @@ function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 		_tx = obj_display_credits.seat_x;
 		_ty = obj_display_credits.seat_y;
 	}
-	bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, 1, 0);
+	// motes 0 = pay in silence. The tap uses that outside the money
+	// room, where a burst of lavender pixels across a settings page is
+	// noise rather than feedback. The panel still pops and glows, so
+	// the drop is still announced - just where the balance lives.
+	if (_motes > 0)
+		bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, 1, 0);
 
 	show("[credits +" + string(_n) + "]");
 	return _n;

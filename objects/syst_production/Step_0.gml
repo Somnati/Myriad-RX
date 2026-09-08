@@ -7,6 +7,14 @@
 /// - the same code, never a fork.
 
 if (!variable_global_exists("dial")) exit;
-prod_dials();
-credit_tick();      // the dropper's pool + cooldown, same clock
+// THE BUDGET, once a frame and before anything ticks. At x1 this is
+// simply delta/60 and the sim runs as it always did; above x1 the bank
+// pays the difference and every lane below gets the bigger number. That
+// is the whole trick: x10 for a minute is the SAME call the offline
+// replay makes for ten minutes, so live acceleration and offline
+// catch-up cannot drift apart - they are one code path.
+var _secs = timebank_spend();
+
+prod_dials(_secs);
+credit_tick(_secs);   // the dropper's pool + cooldown, same clock
 stats_hist_tick();  // the statistics screen's history, same clock

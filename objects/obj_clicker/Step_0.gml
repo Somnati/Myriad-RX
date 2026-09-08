@@ -54,10 +54,18 @@ g.total_taps++;
 // THE CREDIT ROLL (DE's give_click): a small chance per tap pulls a
 // few credits from the dropper's pool - refused by credit_drop while
 // its cooldown runs, so a hot streak can't drain it
+// THE MONEY ROOM IS THE ONLY ROOM WITH A CEREMONY (his call). The tap
+// pays everywhere; it only PERFORMS here. Outside it the motes would
+// fly across a settings page and the floats would land on a table of
+// numbers, so both are off and the profit goes straight to the counter.
+var _show = in_room(rm_clicker);
+
 if (variable_global_exists("credit_tap_chance"))
 if (roll_perc(g.credit_tap_chance * (1 + _ub.credit_luck / 100)))
-	credit_drop(mouse_x, mouse_y, -1);
+	credit_drop(mouse_x, mouse_y, -1, _show ? 8 : 0);
 pop = 1;
+
+
 
 // fnt_outline: float_text's own header names it as the tap floats'
 // font and no caller was passing one, so they had been drawing in
@@ -71,23 +79,46 @@ pop = 1;
 // life as plain instance variables, so the crit dresses the float after
 // float_text builds it rather than growing that signature a tail of
 // optional arguments.
+if (!_show) {
+	// STRAIGHT INTO THE COUNTER. give_profit registers every earn as
+	// "in flight" so the header can withhold it until the motes
+	// carrying it land - and with no motes spawning, that hold would
+	// never be released and the counter would sit frozen below the real
+	// balance forever. Releasing it here is the same line offline_replay
+	// uses for the same reason: nothing is carrying this profit, so
+	// nothing should be waiting on it.
+	g.profit_flight = (g.profit_flight > _pay)
+		? do_subtract(g.profit_flight, _pay) : 0;
+	if (_crit) play_sound_ext(snd_orb, .95, 1.05, .5, 3);
+	else       tap_sound_play();
+	exit;
+}
+
 var _fstr = "+" + crunch_arb(_pay);
 if (_crit) _fstr += "  x" + string_format(_cx, 1, 1);
+// A CRIT IS GOLD, A LITTLE BIGGER, AND HANGS ABOUT (his correction -
+// DE's crit = 2 branch: its own colour, a bumped scale and hp_ * 2).
+// The first cut blended toward aqua at 1.75 scale, which read as a
+// different KIND of event rather than a lucky one. Gold is already the
+// game's word for money and the size only has to be noticeable, not
+// loud; the extra dwell is what actually sells it, because a number you
+// get to read is a number you remember.
 var _f = float_text(mouse_x, mouse_y - 4, _fstr,
-	_crit ? merge_colour(g.profit_color, c_aqua, .6) : g.profit_color,
-	fnt_outline);
+	_crit ? c_gold : g.profit_color, fnt_outline);
 if (_crit) {
-	_f.scale_ = 1.75;
-	_f.life   = 45;
-	_f.life_  = 45;   // life_ is the rise's clock too - move both or the
+	_f.scale_ = 1.3;
+	_f.life   = 60;   // DE doubles the float's hp on a crit
+	_f.life_  = 60;   // life_ is the rise's clock too - move both or the
 	                  // float drifts as if it were already old
-	_f.rise  *= 1.6;
 }
 
 // snd_orb was sitting unused in the project (only a tour comment named
 // it). The crit is the moment that wanted a sound of its own, and the
 // haptic goes to 3 - DE's own crit is silent, so this is the one place
 // the port deliberately adds rather than matches.
+// The SOUND plays in every room - it is the feedback that the tap
+// landed, and a silent tap reads as a broken button. Only the visuals
+// are the money room's.
 if (_crit) play_sound_ext(snd_orb, .95, 1.05, .5, 3);
 else       tap_sound_play();   // settings > audio > tap sound
 
@@ -105,5 +136,5 @@ if (_crit) _n = min(12, _n + 4);   // a crit throws a fatter handful
 // the burst CARRIES this tap's profit: the counter holds it back
 // until the motes land (see obj_ui_header's Step)
 bezier_bits(mouse_x, mouse_y, _n,
-	_crit ? merge_colour(g.profit_color, c_aqua, .6) : g.profit_color,
+	_crit ? c_gold : g.profit_color,
 	undefined, undefined, 0, _pay);

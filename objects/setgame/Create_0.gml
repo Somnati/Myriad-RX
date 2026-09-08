@@ -80,6 +80,21 @@
 	g.credit_cool_max   = 8;    //   this range (halved one time in ten)
 	credits_init();
 
+	// ---- THE TIME BANK (Techdemo II's, ported) ----
+	// away time banks ON TOP of production and is spent live as speed.
+	// The invariant these numbers must respect: banked minutes per real
+	// hour stay under 60, so the rate and its ceiling are both minutes
+	// per hour and timebank_rate hard-clamps at 55 regardless.
+	g.tb_rate      = 5;    // minutes banked per hour away, at rate_lv 0
+	g.tb_rate_step = 2;    // per rate purchase
+	g.tb_rate_cap  = 40;   // the tuned ceiling (a hard 55 sits above it)
+	g.tb_cap       = 60;   // bank capacity in minutes, at cap_lv 0
+	g.tb_cap_step  = 30;   // per capacity purchase
+	g.tb_cost_mult = 350;  // percent per level - x3.5, a late-game sink
+	g.tb_cap_cost  = 100;  // percent of the 50k capacity base
+	g.tb_rate_cost = 100;  // percent of the 250k rate base
+	timebank_init();
+
 	create_dials();
 
 	// THE BUY MODE (Myriad DE's g.buy_lv): 1 / 10 / 100 / 1000 / "max"

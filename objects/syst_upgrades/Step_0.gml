@@ -67,8 +67,8 @@ if (hold_i == -1) {
 			else { hold_i = -1; hold_lock = true; }
 		} else {
 			var _pay = upgrade_sell(hold_i);
-			assign_banner(_pay > 0 ? "sold for " + string(_pay) + " credits"
-			                       : "offer discarded", c_lavender, c_black);
+			assign_banner("sold for " + string(_pay) + " credits",
+				c_lavender, c_black);
 			hold_i = -1;
 			// DE's hp = -1: spent until the button comes up, so one
 			// press is one sale however long it is held

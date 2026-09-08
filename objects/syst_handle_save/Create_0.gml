@@ -47,3 +47,6 @@ if (!instance_exists(obj_display_credits)) create_obj(0, 0, obj_display_credits)
 // never calls spark_burst (its Step and Draw both leave immediately on
 // an empty pool)
 if (!instance_exists(syst_sparks)) create_obj(0, 0, syst_sparks);
+// the time bank's burn indicator: persistent, shows itself only in the
+// money room and only while a multiplier is running
+if (!instance_exists(syst_timebank)) create_obj(0, 0, syst_timebank);

@@ -34,6 +34,13 @@ function offline_replay(_secs) {
 	g.time_played_offline += _secs;
 	save_mark_dirty();
 
+	// THE TIME BANK, on top (the hybrid - see timebank_init). The
+	// absence is about to be replayed as production exactly as it always
+	// was; this banks a slice of it as spendable speed as well. It
+	// deliberately double-counts, and it is safe because the slice is
+	// always under an hour per hour.
+	var _banked = timebank_add(_secs);
+
 	if (!variable_global_exists("dial")) return;
 
 	var _before = g.profit;
@@ -53,7 +60,8 @@ function offline_replay(_secs) {
 		g.profit_flight = (g.profit_flight > _gain)
 			? do_subtract(g.profit_flight, _gain) : 0;
 
-	g.offline_report = { secs : _secs, gain : _gain, rate : _rate, shown : false };
+	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
+		banked : _banked, bank_full : g.timebank.last_full, shown : false };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }

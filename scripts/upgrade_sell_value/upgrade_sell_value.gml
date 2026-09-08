@@ -39,15 +39,29 @@ function upgrade_sell_value(_slot) {
 	if (!is_struct(_s)) return 0;
 	if (upgrade_entry(_s.id) == -1) return 0;
 
-	// the stake: what was put on the table to have this offer at all
+	// ---- THE OFFER'S OWN WORTH (DE's rolled u_sell, restored) ----
+	// roll_upgrade stores ceil(base/5 + max_tiers * base/10) with the
+	// upgrade, and that number is what its sell button shows whether or
+	// not a tier was ever bought. His call, twice over: a slot always
+	// has a price, and "discard" is not one.
+	// It scales with rarity (through base) and with depth (through the
+	// dots), so an ultimate offer with eight tiers in it is worth real
+	// money the moment it lands - which is the point of finding one.
+	var _base = upgrade_price_base(_slot, 0);
+	var _cap  = upgrade_cap(_slot);
+	var _worth = ceil(_base / 5 + _cap * (_base / 10));
+
+	// ---- PLUS WHAT YOU PUT IN ----
+	// the stake (free at the moment, so usually nothing), then every
+	// tier bought, on the curve it was bought on
 	var _paid = UPG_ROLL_COST * upgrade_diff_mult();
-	// plus every tier bought, on the curve it was bought on
 	for (var _t = 0; _t < _s.tier; _t++) _paid += upgrade_price_base(_slot, _t);
 
-	// NO FLOOR. An offer with nothing paid into it is worth nothing, and
-	// with a free roll that is most offers - putting a 1-credit floor
-	// under it would turn "roll, sell, repeat" into a credit printer
-	// again, one credit at a time and forever. The row says so: the
-	// button reads `discard` at zero rather than quoting a price of 0.
-	return floor(_paid * UPG_SELL_BACK);
+	// NOTE, and it is not a small one: with rolling free, an offer that
+	// is worth something the instant it exists means roll -> sell ->
+	// repeat pays credits forever. DE never had that hole because DE's
+	// upgrades ARRIVE on a timer rather than on a button. If it needs
+	// closing, the two honest doors are a stake (UPG_ROLL_COST) or DE's
+	// timer - not shaving this number, which only makes the farm slower.
+	return max(0, _worth + floor(_paid * UPG_SELL_BACK));
 }

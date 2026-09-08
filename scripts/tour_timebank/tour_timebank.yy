@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tour_timebank",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tour_timebank",
+  "parent":{
+    "name":"timebank",
+    "path":"folders/game/timebank.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

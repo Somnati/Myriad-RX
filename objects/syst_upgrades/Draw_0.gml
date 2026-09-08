@@ -119,11 +119,9 @@ for (var _i = 0; _i < _n; _i++) {
 		// EVERY SLOT HAS A PRICE NOW, an untouched offer included - it
 		// cost a stake to be here, so it is worth something to be rid
 		// of. "discard" is gone with it.
-		// a slot with nothing paid into it is worth nothing - see
-		// upgrade_sell_value. Say `discard` rather than quote a 0.
-		var _pv = upgrade_sell_value(_i);
+		// every slot quotes a price, DE's way - see upgrade_sell_value
 		draw_ui_button(_b.x, _b.y, _b.w, _b.h,
-			(_pv > 0) ? string(_pv) : "discard", c_lavender, true, true);
+			string(upgrade_sell_value(_i)), c_lavender, true, true);
 	}
 
 	// ---- THE HOLD BAR (DE's) ----

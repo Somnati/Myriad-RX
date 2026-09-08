@@ -180,6 +180,26 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- time bank ----
+	if (variable_global_exists("timebank"))
+	if (stats_v2_folder("time bank", c_gold)) {
+		var _tb = g.timebank;
+		stats_v2_line("banked", (_tb.bank >= 1)
+			? crunch_time_long(_tb.bank * 60) : "empty", -1,
+			(_tb.bank >= 1) ? c_gold : c_gray);
+		stats_v2_line("capacity", crunch_time_long(timebank_cap() * 60));
+		stats_v2_line("rate", string(round(timebank_rate() * 3600))
+			+ " sec / hour away", -1, -1,
+			"how much of an absence banks as spendable speed. it stays "
+			+ "under an hour per hour by law - time never multiplies "
+			+ "itself, it only becomes available later.");
+		stats_v2_line("active speed", "x" + string(_tb.spd), -1,
+			(_tb.spd > 1) ? c_gold : c_gray);
+		stats_v2_line("capacity buys", string(_tb.cap_lv));
+		stats_v2_line("rate buys", string(_tb.rate_lv));
+	}
+	stats_v2_folder_end();
+
 	// ---- credits ----
 	if (variable_global_exists("credits"))
 	if (stats_v2_folder("credits", c_lavender)) {

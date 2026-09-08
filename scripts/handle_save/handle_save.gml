@@ -129,6 +129,24 @@ function handle_save(){
 	// derives from these at read time (upgrade_bonus), so this is the
 	// whole of it - and a rebalance of any value reaches old saves for
 	// free, which it could not if the effects had been written down. ----
+	// ---- the time bank: the bank itself and the two purchase counts.
+	// The cap and the rate DERIVE from those counts (timebank_cap /
+	// timebank_rate), so a tuning change reaches saves that exist ----
+	section = "timebank";
+	timebank_init();
+	g.timebank.bank    = handle("bank",    g.timebank.bank);
+	g.timebank.cap_lv  = handle("cap_lv",  g.timebank.cap_lv);
+	g.timebank.rate_lv = handle("rate_lv", g.timebank.rate_lv);
+	g.timebank.spd     = handle("spd",     g.timebank.spd);
+	if (action == sv_load) {
+		g.timebank.cap_lv  = max(0, floor(g.timebank.cap_lv));
+		g.timebank.rate_lv = max(0, floor(g.timebank.rate_lv));
+		// a bank saved under a bigger cap must not survive a tune-down
+		g.timebank.bank = clamp(g.timebank.bank, 0, timebank_cap());
+		g.timebank.spd  = clamp(floor(g.timebank.spd), 1, 10);
+		g.timebank.live_m = 1;
+	}
+
 	section = "upgrades";
 	upgrade_init();
 	g.upg.bought = handle("slots_bought", g.upg.bought);

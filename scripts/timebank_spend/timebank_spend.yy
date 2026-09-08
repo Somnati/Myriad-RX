@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"timebank_spend",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"timebank_spend",
+  "parent":{
+    "name":"timebank",
+    "path":"folders/game/timebank.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

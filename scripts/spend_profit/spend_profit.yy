@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"spend_profit",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"spend_profit",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

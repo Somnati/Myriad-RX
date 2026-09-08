@@ -20,6 +20,15 @@ if (_r.secs < REPORT_MIN) exit;
 // assign_banner pushes onto the TOP of the stack, so the last line
 // assigned is the first one read - DE's order, verbatim. hp x3 keeps
 // each line up three times longer than a passing toast.
+// the time bank's slice, only when there is one to report - a line
+// saying "banked 0s" is a line about nothing
+var _bk = _r[$ "banked"] ?? 0;
+if (_bk >= 1) {
+	assign_banner("banked " + crunch_time_long(_bk * 60)
+		+ ((_r[$ "bank_full"] ?? false) ? " - bank full" : ""),
+		c_gold, c_black);
+	syst_banner.hp[0] *= 3;
+}
 assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0"),
 	g.profit_color, c_black);
 syst_banner.hp[0] *= 3;
