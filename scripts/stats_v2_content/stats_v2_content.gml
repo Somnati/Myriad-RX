@@ -68,6 +68,16 @@ function stats_v2_content() {
 				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);
 		if (variable_global_exists("click_gps"))
 			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
+		stats_v2_line("hold rate", string(floor(tap_rate())) + " a second", -1, c_gray,
+			"hold the tap surface and it taps at this rate. taps bank as a "
+			+ "fraction each frame and the whole part is paid in one go, so "
+			+ "a rate past the frame rate is paid exactly rather than "
+			+ "quietly capped at 60.");
+		if (instance_exists(obj_clicker))
+			stats_v2_line("taps a second", string(floor(obj_clicker.tps)), -1,
+				(obj_clicker.tps >= 1) ? g.profit_color : c_gray,
+				"what you are actually managing right now - your own taps "
+				+ "over the last second, plus the hold rate while you hold.");
 	}
 	stats_v2_folder_end();
 

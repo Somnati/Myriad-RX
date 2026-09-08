@@ -17,6 +17,7 @@ function upgrade_bonus() {
 
 	var _b = {
 		tap_profit    : 0,
+		tap_rate      : 0,
 		crit_rate     : 0,
 		crit_multi    : 0,
 		dial_profit   : 0,

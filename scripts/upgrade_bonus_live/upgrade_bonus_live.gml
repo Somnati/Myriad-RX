@@ -17,6 +17,7 @@ function upgrade_bonus_live() {
 	if (UPG_LIVE) return upgrade_bonus();
 	return {
 		tap_profit    : 0,
+		tap_rate      : 0,
 		crit_rate     : 0,
 		crit_multi    : 0,
 		dial_profit   : 0,

@@ -156,6 +156,19 @@ function main_macros() {
 // this is 200 preallocated structs in one object, and the number is a
 // hard ceiling rather than a target: the population cull means the
 // count settles well under it on its own.
+// ---- THE TAP RATE (DE's get_tps + click_v2's accumulator) ----
+#macro TAP_HOLD_BASE  8   // taps a second while the button is HELD, before
+                          // upgrades. DE's base is 6 and an ability grants
+                          // it; RX hands it over from the start because
+                          // there is no deck to draw it from yet.
+#macro TAP_HOLD_DRAG 12   // px of travel that turns a hold into a GESTURE
+                          // and stops it paying - menu2's drag budget, the
+                          // same number on purpose.
+#macro TAP_FX_TIC     5   // frames between tap floats while holding. The
+                          // money is never rationed, only the show.
+#macro TPS_WINDOW    60   // delta units a manual tap counts toward the
+                          // shown rate. DE's tsec: one second.
+
 #macro SPARK_MAX 200
 
 // WHERE THE PROFIT COUNTER STOPS SPELLING ITSELF OUT. Below this

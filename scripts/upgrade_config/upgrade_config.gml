@@ -98,6 +98,16 @@ function upgrade_config() {
 				return variable_global_exists("rebirth") && g.rebirth.total > 0;
 			},
 		},
+		{
+			// the hold's rate, DE's u_tps lane. A percentage rather than
+			// DE's flat points because tap_rate is fractional here and a
+			// percentage keeps its value as the base grows through
+			// abilities and gear later.
+			id : "tap_rate", name : "tap speed", stat : "tap_rate",
+			band : [6, 14], cap : 12, cost : 7, col : c_gold,
+			help : "holding taps faster",
+			avail : function() { return true; },
+		},
 
 		// ---- GRANTS ----
 		// ⚖️ A GRANT IS NOT A MODIFIER, and mixing the two is what forced
