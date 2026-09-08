@@ -9,7 +9,13 @@ function profit_reserved() {
 	var _p = clamp(g.autom.lock_pct, 0, 90);
 	if (_p <= 0) return 0;
 	if (!(g.profit >= arb(1))) return 0;
+	// derived from the same one rule profit_spendable uses, so the two
+	// can never disagree about where the line is - which they would
+	// within a week if each did its own arithmetic. Clamped to the pile:
+	// the watermark can outrun what you actually hold (spend to the
+	// floor and the two meet), and a reserve larger than the money is a
+	// number nobody can act on.
 	var _s = profit_spendable();
-	if (!(g.profit > _s)) return 0;
+	if (!(_s >= arb(1))) return g.profit;
 	return do_subtract(g.profit, _s);
 }

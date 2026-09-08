@@ -219,6 +219,7 @@ function handle_save(){
 	g.autom.upg.pct   = handle("upg_pct",   g.autom.upg.pct);
 	g.autom.upg.keep  = handle("upg_keep",  g.autom.upg.keep);
 	g.autom.lock_pct  = handle("lock_pct",  g.autom.lock_pct);
+	g.autom.lock_peak = handle("lock_peak", g.autom.lock_peak);
 
 	// THE FILTER. Rarities are a fixed-length row of flags, so a comma
 	// string of 0/1 says it exactly. KINDS are keyed BY ID and only the
@@ -251,6 +252,14 @@ function handle_save(){
 	}
 	if (action == sv_load) {
 		g.autom.lock_pct  = clamp(g.autom.lock_pct, 0, 90);
+		// the watermark is a packed arb, and a save written before it
+		// existed reads whatever handle's default was. Heal by taking
+		// the pile itself: a run already in progress has held at least
+		// what it is holding, so the reserve starts honest rather than
+		// at zero (which would have made the whole pile spendable on
+		// the first load after the update).
+		if (!(g.autom.lock_peak >= arb(1))) g.autom.lock_peak = 0;
+		if (g.profit > g.autom.lock_peak)   g.autom.lock_peak = g.profit;
 		g.autom.upg.pct   = clamp(g.autom.upg.pct,  1, 100);
 		g.autom.upg.keep  = clamp(g.autom.upg.keep, 1, 100);
 		g.autom.reb.t_min = max(1, g.autom.reb.t_min);

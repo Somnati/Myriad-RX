@@ -71,6 +71,15 @@ function autom_init(_force = false) {
 		// autobuy would otherwise eat the pile rebirth is calculated
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
+		// THE WATERMARK the reserve is measured against: the highest
+		// pile ever held on this run. It exists because a reserve
+		// measured against the CURRENT pile is not a floor - spending
+		// lowers the pile, which lowers the reserve, which frees a
+		// little more, and autobuy's one-second pulse walks straight
+		// through it. datafiles/reserve_twin.py: 60 pulses leave 0.2%
+		// of what was promised. Raised only by give_profit, and only
+		// upward, so spending cannot erode it.
+		lock_peak : 0,
 		tic  : 0,
 	};
 	repeat (_dn) array_push(g.autom.dial,

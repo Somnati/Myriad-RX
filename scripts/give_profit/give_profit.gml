@@ -13,9 +13,15 @@ function give_profit(_amt) {
 	if (!(_amt >= arb(1))) return;
 	g.profit       = do_add(g.profit, _amt);
 
-	// (the reserve is not taken here any more - it is a PERCENTAGE OF
-	// WHAT YOU HOLD, derived at read time by profit_spendable, which is
-	// what lets the slider let go again. See that script.)
+	// THE RESERVE'S WATERMARK. Nothing is taken here - the reserve is
+	// still fully DERIVED, which is what lets the slider let go again -
+	// but it is measured against the highest pile you have held rather
+	// than the pile you hold this instant, and this is where that high
+	// point is noticed. Earning is the only thing that may raise it;
+	// spending must not lower it, or the floor walks down with every
+	// purchase (see profit_spendable, and reserve_twin.py).
+	if (variable_global_exists("autom"))
+	if (g.profit > g.autom.lock_peak) g.autom.lock_peak = g.profit;
 	g.profit_flight = do_add(g.profit_flight, _amt);
 	g.total_profit = do_add(g.total_profit, _amt);
 	save_mark_dirty();

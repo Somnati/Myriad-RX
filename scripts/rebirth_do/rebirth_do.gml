@@ -37,6 +37,12 @@ function rebirth_do() {
 	// ---- 3. the clean slate ----
 	g.profit        = 0;
 	g.profit_flight = 0;
+	// the reserve's watermark is RUN-scoped: automation prefs survive a
+	// rebirth (they are preferences, not progress) but the high point
+	// the reserve is measured against is a fact about the pile, and the
+	// pile just went to zero. Leaving it would hold the whole of the
+	// next run's early profit against a number from the last one.
+	if (variable_global_exists("autom")) g.autom.lock_peak = 0;
 	create_dials();   // levels 0, cycles 0, then update_dials -> update_click
 	g.buy_lv = 1;
 

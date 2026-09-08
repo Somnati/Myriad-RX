@@ -29,5 +29,26 @@ function profit_spendable() {
 	var _p = clamp(g.autom.lock_pct, 0, 90);
 	if (_p <= 0) return g.profit;
 	if (!(g.profit >= arb(1))) return 0;
-	return do_scale(g.profit, (100 - _p) / 100);
+
+	// ⚖️ MEASURED AGAINST THE WATERMARK, NOT AGAINST THE PILE. Taking
+	// the percentage of what you hold RIGHT NOW reads like the same
+	// rule and behaves nothing like it: every purchase lowers the pile,
+	// which lowers the reserve, which frees a little more. It is a
+	// geometric series, and autobuy's one-second pulse walks it to
+	// zero - datafiles/reserve_twin.py measures 60 pulses leaving 0.2%
+	// of the reserve the player was promised. A reserve you can drain
+	// by spending is not a reserve.
+	//
+	// The watermark only rises (give_profit), so spending cannot move
+	// the floor. Everything the derived version was FOR still holds:
+	// nothing is accumulated, the slider still releases the whole lot
+	// the instant it drops, and there is no second pile to migrate at
+	// rebirth - only a high point to reset with the run.
+	var _res = do_scale(g.autom.lock_peak, _p / 100);
+	// a watermark of zero is a real 0, not a packed arb, and do_subtract
+	// is only safe between packed values - this is the state straight
+	// after a rebirth, before the first earning has set a high point
+	if (!(_res >= arb(1))) return g.profit;
+	if (!(g.profit > _res)) return 0;   // the pile IS the reserve, or under it
+	return do_subtract(g.profit, _res);
 }

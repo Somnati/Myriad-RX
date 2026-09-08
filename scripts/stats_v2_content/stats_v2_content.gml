@@ -281,11 +281,18 @@ function stats_v2_content() {
 		stats_v2_line("dials automated",
 			string(_ax) + " / " + string(array_length(g.autom.dial)), -1,
 			(_ax > 0) ? c_sblue : c_gray);
-		stats_v2_line("reserve", string(g.autom.lock_pct) + "% of profit",
+		stats_v2_line("reserve", string(g.autom.lock_pct) + "% of the peak",
 			-1, (g.autom.lock_pct > 0) ? c_gold : c_gray,
-			"this share of the pile is held out of spending. it is still "
-			+ "profit and rebirth still counts it - autobuy just cannot "
-			+ "reach it.");
+			"this share of the HIGHEST pile you have held this run is kept "
+			+ "out of spending. measured against the peak rather than the "
+			+ "pile so that spending cannot walk it down - it is still "
+			+ "profit and rebirth still counts it, autobuy just cannot "
+			+ "reach it. turn the slider down and it releases at once.");
+		stats_v2_line("run peak", (g.autom.lock_peak >= arb(1))
+			? crunch_arb(g.autom.lock_peak) : "0", -1, c_gray,
+			"the highest profit held this run - what the reserve is a "
+			+ "percentage of. rises with earnings, never with spending, "
+			+ "and resets at rebirth.");
 		var _resv = profit_reserved();
 		stats_v2_line("held back", (_resv >= arb(1)) ? crunch_arb(_resv) : "0",
 			-1, (_resv >= arb(1)) ? c_gold : c_gray,
