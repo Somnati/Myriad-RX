@@ -174,6 +174,36 @@ function handle_save(){
 	g.autom.upg.pct   = handle("upg_pct",   g.autom.upg.pct);
 	g.autom.upg.keep  = handle("upg_keep",  g.autom.upg.keep);
 	g.autom.lock_pct  = handle("lock_pct",  g.autom.lock_pct);
+
+	// THE FILTER. Rarities are a fixed-length row of flags, so a comma
+	// string of 0/1 says it exactly. KINDS are keyed BY ID and only the
+	// ones switched to SELL are written - a roster entry added later
+	// then defaults to keep rather than inheriting a flag from whatever
+	// happened to sit at its index, which is the same reason the slots
+	// store an id and not a position.
+	var _fr = "";
+	for (var _k = 0; _k < UPG_RARITY_N; _k++)
+		_fr += ((_k > 0) ? "," : "") + (g.autom.upg.rar[_k] ? "1" : "0");
+	_fr = handle("upg_rar", _fr);
+
+	var _fk = "";
+	var _kn = variable_struct_get_names(g.autom.upg.kind);
+	for (var _k = 0; _k < array_length(_kn); _k++)
+		if (!g.autom.upg.kind[$ _kn[_k]])
+			_fk += ((_fk == "") ? "" : "|") + _kn[_k];
+	_fk = handle("upg_sellkinds", _fk);
+
+	if (action == sv_load) {
+		var _p3 = string_split(_fr, ",");
+		for (var _k = 0; _k < UPG_RARITY_N; _k++)
+			g.autom.upg.rar[_k] = (_k < array_length(_p3)) ? (_p3[_k] == "1") : true;
+		g.autom.upg.kind = {};
+		if (_fk != "") {
+			var _p4 = string_split(_fk, "|");
+			for (var _k = 0; _k < array_length(_p4); _k++)
+				if (_p4[_k] != "") g.autom.upg.kind[$ _p4[_k]] = false;
+		}
+	}
 	if (action == sv_load) {
 		g.autom.lock_pct  = clamp(g.autom.lock_pct, 0, 90);
 		g.autom.upg.pct   = clamp(g.autom.upg.pct,  1, 100);

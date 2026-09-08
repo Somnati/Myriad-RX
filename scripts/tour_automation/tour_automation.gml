@@ -14,7 +14,11 @@
 //   autom_piece         one dial's autobuy pulse (Myriad's ramp law).
 //   autom_upgrades      the upgrade table: sell, roll, buy, in that
 //                       order.
-//   upgrade_keep_rarity the sell filter, derived from a percentage.
+//   upgrade_autosell_wants THE SELL RULE. Two explicit filters, rarity
+//                       and kind, either of which is enough.
+//   upgrade_keep_rarity a percentage -> a rarity rung, off the LIVE
+//                       odds. It is the quick-set behind the auto-sell
+//                       slider, not a standing rule.
 //   profit_spendable    the reserve's one reader.
 //   syst_rm_automation  the screen.
 
@@ -44,12 +48,27 @@
 //   bind a person. Conditions are AND-ed because they are rails, not
 //   triggers - someone setting "30 minutes" and "5 units" means both.
 //
-//   THE UPGRADE FILTER IS A PERCENTAGE, NOT A RARITY. See
-//   upgrade_keep_rarity: a fixed rung rots the moment the distribution
-//   moves, and then the automation silently does nothing while the
-//   player believes it is filtering. It also applies to SELLING ONLY -
-//   filtering the buy too would mean that with autosell off, autobuy
-//   refused to level a common the player had chosen to keep.
+//   THE UPGRADE FILTER IS TWO EXPLICIT LISTS (his call): a keep/sell
+//   flag per rarity rung and one per roster id. They are not redundant
+//   - rarity asks "how good is this roll", kind asks "do I want this
+//   stat at all", and a player finished with credit luck wants every
+//   credit-luck roll gone however lucky it was.
+//
+//   THE PERCENTAGE SURVIVES AS A QUICK-SET, not as a rule. Dragging the
+//   auto-sell slider writes the rarity flags from upgrade_keep_rarity,
+//   which reads the LIVE odds - so the self-adjusting logic is still
+//   there as a one-drag way to configure, while the flags stay the
+//   thing the runner reads. A standing percentage would have quietly
+//   stopped matching anything the day the distribution moved; a
+//   percentage you APPLY cannot.
+//
+//   THE FILTER SELLS, IT DOES NOT GATE BUYING. Filtering the buy too
+//   would mean that with autosell off, autobuy refused to level a
+//   common the player had chosen to keep.
+//
+//   KINDS ARE SAVED BY ID, and only the ones set to SELL are written -
+//   so a roster entry added later defaults to keep rather than
+//   inheriting a flag from whatever sat at its index.
 //
 //   THE RESERVE IS A PORTION OF g.profit, NOT A SECOND PILE. See
 //   profit_spendable for the full argument. In one line: everything
@@ -63,8 +82,15 @@
 
 // ============================ TRAPS =================================
 //   - The dials page's row 0 is the RESERVE, so a dial's row index is
-//     one more than its dial index. __flip and __set_slider both
-//     account for it; anything new that indexes that page must too.
+//     one more than its dial index. The filter page's row 0 is the
+//     rarity chip strip, so a roster row is one more than its config
+//     index. __flip and __set_slider account for both; anything new
+//     that indexes those pages must too.
+//   - Every footer band on this screen is ONE LINE DEEP and the hover
+//     help shares it. Each page's note must be an `else if` in that
+//     chain - a bare `if` paints straight through the hover line, which
+//     is exactly what it did on the upgrades page (his report,
+//     2026-09-08).
 //   - A row's help string is drawn in the title strip on the dials
 //     page and in the footer on the others, because fourteen rows
 //     leave the dials page no footer band.

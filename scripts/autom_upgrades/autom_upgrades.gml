@@ -7,11 +7,9 @@
 /// taking three. Buying last means it only ever spends on what survived
 /// the filter this same pulse - never on something about to be sold.
 ///
-/// SELL uses upgrade_keep_rarity, which is a PERCENTAGE of the live
-/// distribution rather than a fixed rung - read that script for why
-/// that matters more than it sounds. It never sells a slot with tiers
-/// bought into it: that is an investment the player made deliberately,
-/// and a filter that liquidates it is a filter that stole something.
+/// SELL asks upgrade_autosell_wants, which is the one place the rule
+/// lives - two filters, rarity and kind, either of which is enough. It
+/// never sells a slot with tiers bought into it.
 ///
 /// BUY spends credits while the bill is at most pct% of the CURRENT
 /// balance, cheapest slot first - cheapest maximises tiers per credit,
@@ -23,16 +21,13 @@ function autom_upgrades() {
 	if (!(_u.roll || _u.buy || _u.sell)) { _u.st = 0; return; }
 	_u.st = 1;
 
-	var _n     = upgrade_slots();
-	var _floor = upgrade_keep_rarity();
+	var _n = upgrade_slots();
 
-	// ---- SELL what the filter rejects ----
+	// ---- SELL what the filter rejects (upgrade_autosell_wants is the
+	// ---- one rule; the room previews it through the same call) ----
 	if (_u.sell)
 	for (var _i = 0; _i < _n; _i++) {
-		var _s = g.upg.slot[_i];
-		if (!is_struct(_s)) continue;
-		if (_s.tier > 0) continue;        // bought into: not ours to sell
-		if (_s.rar >= _floor) continue;
+		if (!upgrade_autosell_wants(_i)) continue;
 		upgrade_sell(_i);
 		_u.st = 2;
 	}

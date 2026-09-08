@@ -23,8 +23,22 @@ cont_x  = rail_w + 6;
 cont_w  = room_width - cont_x - 8;
 
 tab   = 0;
-tabs  = ["dials", "rebirth", "upgrades"];
-tcol  = [c_sblue, c_hred, c_lavender];
+tabs  = ["dials", "rebirth", "upgrades", "filter"];
+tcol  = [c_sblue, c_hred, c_lavender, c_horange];
+NTAB  = 4;
+
+// THE RARITY CHIPS on the filter page: eight of them across one row,
+// seated off the content band so they fit whatever the ladder grows to.
+chip_x0 = 0; chip_w = 0; chip_gap = 3;
+__chip_seat = function() {
+	var _n = max(1, UPG_RARITY_N);
+	chip_x0 = cont_x + 56;
+	chip_w  = floor((cont_x + cont_w - chip_x0 - (_n - 1) * chip_gap) / _n);
+};
+__chip_r = function(_k, _ry) {
+	return { x : chip_x0 + _k * (chip_w + chip_gap), y : _ry + 2,
+	         w : chip_w, h : row_h - 4 };
+};
 
 row_h = 14;
 row_p = 16;
@@ -60,6 +74,7 @@ __seat = function() {
 	trk_w = cont_w - 134 - 96;
 };
 __seat();
+__chip_seat();
 
 __row_y  = function(_i) { return top_y + _i * row_p; };
 __tog_r  = function(_i) { return { x : tog_x, y : __row_y(_i) + 2, w : tog_w, h : 11 }; };
@@ -104,10 +119,13 @@ __page_rows = function() {
 				name : "dial " + dial_config(_i).name,
 				on   : _p.on,
 				val  : _p.pct,
-				sfx  : "%",
+				// "max 50%" rather than "50%" (his report: the slider did
+				// not say what it did). The number alone could be a rate,
+				// a chance or a target; the word says it is a ceiling.
+				sfx  : "% cap",
 				st   : _p.st,
 				col  : dial_color(_i),
-				help : "buys while the bill fits this share of spendable profit",
+				help : "the most one buy may cost, as a share of spendable profit",
 			});
 		}
 	}
@@ -135,14 +153,36 @@ __page_rows = function() {
 		var _u = _a.upg;
 		array_push(_o, { kind : 0, name : "auto roll",
 			on : _u.roll, val : 0, sfx : "", st : -1, col : c_sblue,
-			help : "fill every empty slot" });
+			help : "fills every empty slot, once a second" });
 		array_push(_o, { kind : 2, lo : 1, hi : 100, name : "auto buy",
-			on : _u.buy, val : _u.pct, sfx : "% of credits", st : -1,
-			col : c_sgreen, help : "buy tiers while the bill fits the budget" });
+			on : _u.buy, val : _u.pct, sfx : "% cap", st : -1,
+			col : c_sgreen,
+			help : "buys a tier while its price fits that share of credits" });
 		array_push(_o, { kind : 2, lo : 1, hi : 100, name : "auto sell",
-			on : _u.sell, val : _u.keep, sfx : "% kept", st : -1,
+			on : _u.sell, val : _u.keep, sfx : "% quick-set", st : -1,
 			col : c_lavender,
-			help : "sell offers outside the best " + string(_u.keep) + "%" });
+			help : "sells what the filter page rejects - drag to set the "
+			     + "rarity flags from the live odds" });
+	}
+
+	// ---- THE FILTER PAGE ----
+	// One row of rarity chips, then one row per roster entry. Both are
+	// explicit keep/sell flags rather than a threshold, because "I am
+	// done with credit luck" is not a statement about rarity and no
+	// single number can express it.
+	if (tab == 3) {
+		var _u = _a.upg;
+		array_push(_o, { kind : 3, name : "rarity", on : true, val : 0,
+			sfx : "", st : -1, col : c_horange,
+			help : "chips lit are kept - the dark ones get sold" });
+		var _cfg = upgrade_config();
+		for (var _i = 0; _i < array_length(_cfg); _i++) {
+			var _e = _cfg[_i];
+			array_push(_o, { kind : 4, name : _e.name,
+				on : (_u.kind[$ _e.id] ?? true), val : 0, sfx : "",
+				st : -1, col : _e.col, id : _e.id,
+				help : _e.help });
+		}
 	}
 	return _o;
 };
@@ -170,12 +210,41 @@ __flip = function(_t, _i) {
 		}
 		return;
 	}
-	var _u = _a.upg;
-	switch (_i) {
-		case 0: _u.roll = !_u.roll; break;
-		case 1: _u.buy  = !_u.buy;  break;
-		case 2: _u.sell = !_u.sell; break;
+	if (_t == 2) {
+		var _u = _a.upg;
+		switch (_i) {
+			case 0: _u.roll = !_u.roll; break;
+			case 1: _u.buy  = !_u.buy;  break;
+			case 2: _u.sell = !_u.sell; break;
+		}
+		return;
 	}
+
+	// the filter page: row 0 is the chip strip (handled by __flip_chip),
+	// every row under it is one roster entry, addressed BY ID
+	var _cfg = upgrade_config();
+	var _k = _i - 1;
+	if (_k < 0 || _k >= array_length(_cfg)) return;
+	var _id = _cfg[_k].id;
+	g.autom.upg.kind[$ _id] = !(g.autom.upg.kind[$ _id] ?? true);
+};
+
+// one rarity chip
+__flip_chip = function(_k) {
+	var _r = g.autom.upg.rar;
+	if (_k < 0 || _k >= array_length(_r)) return;
+	_r[_k] = !_r[_k];
+};
+
+// THE QUICK-SET. Dragging the auto-sell slider writes the rarity flags
+// from upgrade_keep_rarity, which reads the LIVE odds - so the
+// self-adjusting logic survives as a way to configure the flags in one
+// drag, while the flags themselves stay the thing the runner reads. A
+// standing percentage would have quietly stopped matching anything the
+// day the distribution moved; a percentage you APPLY cannot.
+__quickset = function() {
+	var _fl = upgrade_keep_rarity();
+	for (var _k = 0; _k < UPG_RARITY_N; _k++) g.autom.upg.rar[_k] = (_k >= _fl);
 };
 
 // the slider, per page and row
@@ -199,6 +268,6 @@ __set_slider = function(_t, _i, _v) {
 	var _u = _a.upg;
 	switch (_i) {
 		case 1: _u.pct  = _v; break;
-		case 2: _u.keep = _v; break;
+		case 2: _u.keep = _v; __quickset(); break;
 	}
 };

@@ -35,7 +35,7 @@ if (tab == 0) {
 		: ((g.autom.lock_pct > 0)
 			? ("reserve is holding " + ((g.profit_lock >= arb(1))
 				? crunch_arb(g.profit_lock) : "0") + " out of spending")
-			: "one buy a second, while the bill fits the share"));
+			: "the % is a CAP: the most one buy may cost, out of spendable profit"));
 	draw_set_halign(fa_left);
 }
 
@@ -45,7 +45,7 @@ draw_ui_back(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1);
 // ---- the rail ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
 	c_black, .55);
-for (var _t = 0; _t < 3; _t++) {
+for (var _t = 0; _t < NTAB; _t++) {
 	var _r  = __tab_rect(_t);
 	var _on = (tab == _t);
 	draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, _r.h, 0,
@@ -76,8 +76,30 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	draw_set_alpha(_rw.on ? .95 : .6);
 	draw_text(cont_x + 7, _ry + 3, _rw.name);
 
+	// the rarity chips, in place of everything else on their row
+	if (_rw.kind == 3) {
+		for (var _k = 0; _k < UPG_RARITY_N; _k++) {
+			var _ch = __chip_r(_k, _ry);
+			var _ri = upgrade_rarity_info(_k);
+			var _kp = g.autom.upg.rar[_k];
+			draw_sprite_ext(spr_pixel_1x1, 0, _ch.x, _ch.y, _ch.w, _ch.h, 0,
+				_kp ? merge_colour(_ri.col, c_black, .55) : c_black,
+				_kp ? .95 : .6);
+			draw_px_rect(_ch.x, _ch.y, _ch.w, _ch.h, _ri.col, _kp ? .9 : .25);
+			draw_set_halign(fa_center);
+			draw_set_color(_kp ? c_white : _dim);
+			draw_set_alpha(_kp ? .95 : .5);
+			// three letters: eight full rarity names do not fit a row,
+			// and the colour is carrying most of the identity anyway
+			draw_text(_ch.x + _ch.w / 2 + 1, _ch.y + 2,
+				string_copy(_ri.name, 1, 3));
+			draw_set_halign(fa_left);
+		}
+		continue;
+	}
+
 	// the toggle
-	if (_rw.kind == 0 || _rw.kind == 2) {
+	if (_rw.kind == 0 || _rw.kind == 2 || _rw.kind == 4) {
 		var _tg = __tog_r(_i);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tg.x, _tg.y, _tg.w, _tg.h, 0,
 			_rw.on ? merge_colour(_rw.col, c_black, .5) : c_black,
@@ -86,7 +108,8 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		draw_set_halign(fa_center);
 		draw_set_color(_rw.on ? c_white : _dim);
 		draw_set_alpha(_rw.on ? .95 : .6);
-		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 2, _rw.on ? "on" : "off");
+		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 2,
+			(_rw.kind == 4) ? (_rw.on ? "keep" : "sell") : (_rw.on ? "on" : "off"));
 		draw_set_halign(fa_left);
 	}
 
@@ -153,20 +176,42 @@ if (tab == 1) {
 		+ (_c.can ? ("+" + crunch_arb(_c.units) + " units") : "nothing yet")
 		+ "   run " + crunch_time_long(_c.run_s * 60)
 		+ (_c.cool > 0 ? ("   cooldown " + string(ceil(_c.cool)) + "s") : ""));
-}
+} else
+// ⚖️ `else if`, NOT a second `if` (his report: the text overlapped).
+// The hover line and this note share one y, so a bare `if` here painted
+// the standing note straight through whatever the pointer was
+// explaining. Every band on this screen is one line deep; anything that
+// wants the slot has to take it from something else.
 if (tab == 2) {
-	// SAY WHAT THE PERCENTAGE MEANS. "keep the best 25%" is only a
-	// useful control if the screen also tells you which rung that is
-	// today - the whole point of a relative filter is that the answer
-	// moves, and a moving answer you cannot see is a mystery.
-	var _fl = upgrade_keep_rarity();
-	draw_text(cont_x, _fy, "keeping " + upgrade_rarity_info(_fl).name
-		+ " and above - " + string(g.autom.upg.keep)
-		+ "% of rolls, worked out from the live odds");
+	// SAY WHAT THE QUICK-SET WOULD DO. A percentage is only a useful
+	// control if the screen also says which rung it lands on today - the
+	// whole point of reading the live odds is that the answer moves, and
+	// a moving answer you cannot see is a mystery.
+	draw_text(cont_x, _fy, "quick-set lands on "
+		+ upgrade_rarity_info(upgrade_keep_rarity()).name
+		+ " and above - the filter page holds the flags it writes");
 	draw_set_color(c_horange);
 	draw_set_alpha(.6);
 	draw_text(cont_x, _fy + 10,
 		"it never sells a slot you have bought tiers into");
+} else
+if (tab == 3) {
+	// WHAT THE FILTER WOULD DO RIGHT NOW, through the same call the
+	// runner uses - a preview computed a second way is a preview that
+	// will eventually be wrong.
+	var _would = 0;
+	if (variable_global_exists("upg"))
+		for (var _i = 0; _i < upgrade_slots(); _i++)
+			if (upgrade_autosell_wants(_i)) _would += 1;
+	draw_text(cont_x, _fy,
+		"a slot goes if EITHER its rarity or its kind is switched to sell");
+	draw_set_color((_would > 0) ? c_horange : _dim);
+	draw_set_alpha(.7);
+	draw_text(cont_x, _fy + 10, (_would > 0)
+		? (string(_would) + " slot" + ((_would == 1) ? "" : "s")
+			+ " on the table would be sold"
+			+ (g.autom.upg.sell ? "" : " - auto sell is off"))
+		: "nothing on the table matches the filter");
 }
 
 draw_set_alpha(1);

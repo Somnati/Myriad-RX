@@ -27,12 +27,11 @@
 ///        turning on "at least 30 minutes" and "at least 5 units" means
 ///        both, and an OR would fire on the weaker one and feel broken.
 ///
-///   upg  { roll, buy, sell, pct, keep } - the upgrade table's
-///        automation. keep is a PERCENTAGE, not a rarity: see
-///        upgrade_keep_rarity for why that distinction is the whole
-///        point of it. It defaults to 50 rather than 100 because a
-///        filter that keeps everything is a switch that does nothing
-///        when you turn it on.
+///   upg  { roll, buy, sell, pct, keep, rar[], kind } - the upgrade
+///        table's automation. rar[] and kind are the FILTER: one
+///        keep/sell flag per rarity rung and one per roster id. keep is
+///        a percentage that SETS rar[] from the live odds when dragged
+///        (see upgrade_keep_rarity) rather than a standing rule.
 ///
 ///   lock_pct  the reserve: what share of every earning is locked out
 ///        of spending (give_profit does the split, profit_spendable
@@ -49,8 +48,23 @@ function autom_init(_force = false) {
 			c_on : false,                // only while the timeclamp is done
 			p_on : false, p_oom  : 12,   // profit's exponent
 		},
+		// THE UPGRADE FILTER IS TWO EXPLICIT LISTS now (his ask):
+		//   rar[]  one keep/sell flag per rarity rung
+		//   kind   one keep/sell flag per roster id, keyed BY ID because
+		//          the roster's order is not a contract and its ids are
+		//          (the same discipline the save follows)
+		// Everything defaults to KEEP, so switching the autosell on does
+		// nothing until you have told it what you do not want - the safe
+		// direction for a control that destroys things.
+		//
+		// `keep` survives as a QUICK-SET rather than a rule: dragging it
+		// writes rar[] from the live odds through upgrade_keep_rarity,
+		// so the self-adjusting logic is still there as a one-drag way
+		// to configure the flags. The flags themselves are the truth.
 		upg  : { roll : false, buy : false, sell : false,
-		         pct : 50, keep : 50, st : 0 },
+		         pct : 50, keep : 50, st : 0,
+		         rar : array_create(UPG_RARITY_N, true),
+		         kind : {} },
 		// THE RESERVE, as a percentage of every earning. 0 = off.
 		// It rides here rather than in its own global because it is a
 		// preference about automation: the reserve exists because

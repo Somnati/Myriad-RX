@@ -206,11 +206,22 @@ function stats_v2_content() {
 			-1, (_rn > 0) ? c_hred : c_gray,
 			"every armed condition has to pass before an auto rebirth "
 			+ "fires. they are rails, not triggers.");
+		// the filter, as what it actually rejects rather than as a
+		// threshold - it stopped being one when the flags went explicit
+		var _fs = 0;
+		for (var _k = 0; _k < UPG_RARITY_N; _k++)
+			if (!g.autom.upg.rar[_k]) _fs++;
+		var _fkn = variable_struct_get_names(g.autom.upg.kind);
+		var _fk = 0;
+		for (var _k = 0; _k < array_length(_fkn); _k++)
+			if (!g.autom.upg.kind[$ _fkn[_k]]) _fk++;
 		stats_v2_line("upgrade filter",
-			upgrade_rarity_info(upgrade_keep_rarity()).name + " and above",
-			-1, upgrade_rarity_info(upgrade_keep_rarity()).col,
-			"worked out from the live roll odds, so it still means the "
-			+ "same slice of what you actually see if the curve changes.");
+			(_fs + _fk > 0) ? (string(_fs) + " rarities, " + string(_fk) + " kinds")
+			                : "keeping everything",
+			-1, (_fs + _fk > 0) ? c_horange : c_gray,
+			"what the autosell throws away. a slot goes if either its "
+			+ "rarity or its kind is switched to sell - set both on the "
+			+ "automation room's filter page.");
 	}
 	stats_v2_folder_end();
 
