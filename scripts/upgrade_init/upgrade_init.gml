@@ -37,13 +37,28 @@ function upgrade_init(_force = false) {
 		seen   : array_create(UPG_RARITY_N, 0),
 
 		// THE COMPLETED LEDGER. A slot that reaches its last tier is
-		// CLEARED (DE's behaviour) and the finished upgrade moves here,
-		// where upgrade_bonus still reads it. DE can free the slot for
-		// nothing because its effects were accumulated into globals on
-		// the way in; ours are derived, so the finished thing has to
-		// keep existing somewhere. It keeps existing as DATA - id,
-		// rarity, value, tier - so everything derivation buys us
-		// survives. See upgrade_complete.
-		done   : [],
+		// CLEARED (DE's behaviour) and the finished upgrade's
+		// contribution moves here, where upgrade_bonus still reads it.
+		// DE can free the slot for nothing because its effects were
+		// accumulated into globals on the way in; ours are derived, so
+		// the finished thing has to keep existing somewhere.
+		//
+		// ⚖️ IT IS TOTALLED PER ID, NOT LISTED PER UPGRADE, and that is
+		// a size decision with a real number behind it. As a list it
+		// grew forever - about 26 bytes of savefile per completed
+		// upgrade, all of it inside ONE ini value, so a thousand
+		// completions meant a 25KB string that dwarfed the entire rest
+		// of the file. Totalled by id it is bounded by the ROSTER: ten
+		// entries, about 200 bytes, however long the account runs.
+		//
+		// Nothing is lost by summing. upgrade_bonus only ever wanted
+		// the sum of val x tier per stat, and `val` was the value ROLLED
+		// at the time - already frozen history, not something a
+		// rebalance could reach. So the per-entry detail was never
+		// feeding derivation; it was only ever a collection nobody
+		// displays. If a collection screen ever wants it, that is the
+		// moment to decide what it costs.
+		//   done[$ id] = { stat, sum, n }
+		done   : {},
 	};
 }

@@ -98,8 +98,12 @@ function stats_v2_content() {
 			if (is_struct(g.upg.slot[_i]) && g.upg.slot[_i].tier > 0) _held++;
 		stats_v2_line("slots", string(_held) + " / " + string(upgrade_slots()));
 		stats_v2_line("bought", string(g.upg.total));
-		stats_v2_line("completed", string(array_length(g.upg.done)), -1,
-			(array_length(g.upg.done) > 0) ? c_gold : c_gray,
+		var _dnk = variable_struct_get_names(g.upg.done);
+		var _dc  = 0;
+		for (var _i = 0; _i < array_length(_dnk); _i++)
+			_dc += g.upg.done[$ _dnk[_i]].n;
+		stats_v2_line("completed", string(_dc), -1,
+			(_dc > 0) ? c_gold : c_gray,
 			"upgrades taken to their last tier. they free their slot and "
 			+ "keep paying out - the totals below count them.");
 		stats_v2_line("rolled", string(g.upg.rolls));

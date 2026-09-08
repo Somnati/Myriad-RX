@@ -252,35 +252,50 @@ function handle_save(){
 			g.upg.seen[_u] = (_d == "") ? 0 : floor(real(_d));
 		}
 	}
-	// THE COMPLETED LEDGER, one string - a finished upgrade is four
-	// numbers and an id, and a list of them has no business being one
-	// ini key each. "id:rar:val:tier|id:rar:val:tier|..."
+	// THE COMPLETED LEDGER, one string, one entry per ROSTER ID:
+	// "id:sum:count|id:sum:count|...". Bounded by the roster however
+	// long the account runs - see upgrade_init for the size argument
+	// this shape exists to win. As a list it was ~26 bytes of savefile
+	// per completed upgrade, all inside ONE ini value.
 	var _done_txt = "";
-	for (var _u = 0; _u < array_length(g.upg.done); _u++) {
-		var _dn = g.upg.done[_u];
-		_done_txt += ((_u > 0) ? "|" : "") + _dn.id + ":" + string(_dn.rar)
-			+ ":" + string(_dn.val) + ":" + string(_dn.tier);
+	var _dk = variable_struct_get_names(g.upg.done);
+	for (var _u = 0; _u < array_length(_dk); _u++) {
+		var _dn = g.upg.done[$ _dk[_u]];
+		if (!is_struct(_dn)) continue;
+		_done_txt += ((_done_txt == "") ? "" : "|") + _dk[_u] + ":"
+			+ string_format(_dn.sum, 1, 4) + ":" + string(_dn.n);
 	}
 	_done_txt = handle("done", _done_txt);
 	if (action == sv_load) {
-		g.upg.done = [];
+		g.upg.done = {};
 		if (_done_txt != "") {
 			var _dp = string_split(_done_txt, "|");
 			for (var _u = 0; _u < array_length(_dp); _u++) {
 				var _f = string_split(_dp[_u], ":");
-				if (array_length(_f) < 4) continue;
+				if (array_length(_f) < 3) continue;
 				// an id the roster has retired drops out of the ledger
 				// rather than taking the savefile with it - the same
 				// rule the slots follow
 				var _de = upgrade_entry(_f[0]);
 				if (_de == -1) continue;
-				array_push(g.upg.done, {
-					id   : _f[0],
-					stat : _de.stat,
-					rar  : max(0, floor(real(_f[1]))),
-					val  : real(_f[2]),
-					tier : max(1, floor(real(_f[3]))),
-				});
+
+				// MIGRATION. The old shape was one entry per completed
+				// upgrade - "id:rar:val:tier", four fields where this is
+				// three. Each of those folds into its id's total as it
+				// is read, so an existing save keeps every bonus it
+				// earned and simply arrives in the smaller form.
+				var _old = (array_length(_f) >= 4);
+				var _sum = _old ? (real(_f[2]) * max(1, floor(real(_f[3]))))
+				                : real(_f[1]);
+				var _cnt = _old ? 1 : max(1, floor(real(_f[2])));
+
+				var _cur = g.upg.done[$ _f[0]];
+				if (!is_struct(_cur)) {
+					_cur = { stat : _de.stat, sum : 0, n : 0 };
+					g.upg.done[$ _f[0]] = _cur;
+				}
+				_cur.sum += _sum;
+				_cur.n   += _cnt;
 			}
 		}
 	}

@@ -27,23 +27,29 @@ function upgrade_bonus() {
 		rebirth_units : 0,
 	};
 
-	// THE SLOTS, then THE COMPLETED LEDGER. Two lists, one rule: an
-	// upgrade contributes value x tier whether it is still sitting in a
-	// slot or was finished and filed. A completed upgrade leaves its
-	// slot (DE clears it) but not the game - see upgrade_complete for
-	// why that needs a ledger here and costs DE nothing there.
-	var _src = [g.upg.slot, g.upg.done];
-	for (var _k = 0; _k < 2; _k++) {
-		var _a = _src[_k];
-		var _n = array_length(_a);
-		for (var _i = 0; _i < _n; _i++) {
-			var _s = _a[_i];
-			if (!is_struct(_s)) continue;
-			if (_s.tier <= 0) continue;          // an offer, not yet bought
-			if (_s.stat == "") continue;         // a grant; it has no accumulator
-			if (!variable_struct_exists(_b, _s.stat)) continue;
-			_b[$ _s.stat] += _s.val * _s.tier;
-		}
+	// ---- THE SLOTS ----
+	var _n = array_length(g.upg.slot);
+	for (var _i = 0; _i < _n; _i++) {
+		var _s = g.upg.slot[_i];
+		if (!is_struct(_s)) continue;
+		if (_s.tier <= 0) continue;          // an offer, not yet bought
+		if (_s.stat == "") continue;         // a grant; it has no accumulator
+		if (!variable_struct_exists(_b, _s.stat)) continue;
+		_b[$ _s.stat] += _s.val * _s.tier;
+	}
+
+	// ---- THEN THE COMPLETED LEDGER ----
+	// One rule for both: an upgrade contributes value x tier whether it
+	// is still sitting in a slot or was finished and filed. A completed
+	// upgrade leaves its slot (DE clears it) but not the game. The
+	// ledger arrives pre-summed per id - see upgrade_init for why.
+	var _dn = variable_struct_get_names(g.upg.done);
+	for (var _i = 0; _i < array_length(_dn); _i++) {
+		var _d = g.upg.done[$ _dn[_i]];
+		if (!is_struct(_d)) continue;
+		if (_d.stat == "") continue;
+		if (!variable_struct_exists(_b, _d.stat)) continue;
+		_b[$ _d.stat] += _d.sum;
 	}
 
 	// ⚖️ THE ONE CAPPED STAT. Everything else is happy to run away -

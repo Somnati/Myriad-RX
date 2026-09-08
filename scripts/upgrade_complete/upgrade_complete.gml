@@ -23,13 +23,16 @@ function upgrade_complete(_slot) {
 	var _s = g.upg.slot[_slot];
 	if (!is_struct(_s)) return;
 
-	array_push(g.upg.done, {
-		id   : _s.id,
-		stat : _s.stat,
-		rar  : _s.rar,
-		val  : _s.val,
-		tier : _s.tier,
-	});
+	// fold it into this id's running total (see upgrade_init for why
+	// this is a total rather than a list)
+	var _d = g.upg.done[$ _s.id];
+	if (!is_struct(_d)) {
+		_d = { stat : _s.stat, sum : 0, n : 0 };
+		g.upg.done[$ _s.id] = _d;
+	}
+	_d.sum += _s.val * _s.tier;
+	_d.n   += 1;
+
 	g.upg.slot[_slot] = -1;
 
 	assign_banner("upgrade complete - slot freed", c_gold, c_black);

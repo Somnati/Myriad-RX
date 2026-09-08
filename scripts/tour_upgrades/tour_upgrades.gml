@@ -115,11 +115,19 @@
 //   only ever a receipt. We derive from the slots, so clearing one
 //   would delete the upgrade you just finished paying for. The finished
 //   thing moves to a LEDGER instead (g.upg.done), which upgrade_bonus
-//   walks beside the slots. It is still data - id, rarity, value, tier
-//   - so a rebalance still reaches old saves and nothing is ever
-//   accumulated. This is the one place where deriving costs an extra
-//   moving part, and it is worth it: the alternative is DE's, where
-//   every number depends on the history of purchases.
+//   walks beside the slots. This is the one place where deriving costs
+//   an extra moving part, and it is worth it: the alternative is DE's,
+//   where every number depends on the history of purchases.
+//
+//   THE LEDGER IS TOTALLED PER ID, NOT LISTED PER UPGRADE, and that is
+//   a savefile decision. As a list it grew forever - about 26 bytes per
+//   completed upgrade, all of it inside ONE ini value, so a thousand
+//   completions was a 25KB string bigger than the whole rest of the
+//   file. Per id it is bounded by the roster at roughly 200 bytes
+//   however long the account runs. Nothing is lost: upgrade_bonus only
+//   ever wanted the sum of val x tier, and `val` was already frozen at
+//   roll time, so the per-entry detail was never feeding derivation.
+//   handle_save migrates the old four-field rows as it reads them.
 //
 //   SELLING IS A HOLD, BUYING IS A CLICK. DE gates both behind a bar
 //   that fills over 40 frames while the pointer is down. We keep it for
