@@ -15,6 +15,19 @@
 //   offline_replay(secs)   the calculator: prod_dials(secs), then the
 //                    report {secs, gain, rate} queued in
 //                    g.offline_report. Profit lands immediately.
+//   stats_hist_offline THE GRAPHS GET THE ABSENCE TOO. They sample off
+//                    syst_production's heartbeat, which does not run
+//                    while the game is closed, so an absence used to
+//                    land as a vertical cliff between two adjacent
+//                    samples - and the axis label (samples x step)
+//                    claimed a duration that ignored every hour the
+//                    account had spent shut. Nothing is bought while
+//                    away, so p/s and units are CONSTANT across the
+//                    gap and profit accumulates LINEARLY between two
+//                    endpoints offline_replay already measured: the
+//                    fill is the analytic solution, not invented data.
+//                    Leaving the hole was not "no claim" - it was the
+//                    false claim that no time passed.
 //   syst_offline     persistent watcher, spawned by syst_handle_save.
 //                    Step 1: a gap of 5 s or more between two steps
 //                    means the app was suspended (phone background,

@@ -60,6 +60,11 @@ function offline_replay(_secs) {
 		g.profit_flight = (g.profit_flight > _gain)
 			? do_subtract(g.profit_flight, _gain) : 0;
 
+	// THE GRAPHS GET THE ABSENCE TOO. Everything it needs was measured
+	// right here and nowhere else: how long, what the pile was, what the
+	// replay paid, and the rate it paid at.
+	stats_hist_offline(_secs, _before, _gain, _rate);
+
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
 		banked : _banked, bank_full : g.timebank.last_full, shown : false };
 	show("offline > away " + crunch_time_long(_secs * 60)

@@ -164,6 +164,13 @@ function main_macros() {
 // to 99,999,999 and crunched from a hundred million, which is roughly
 // where the low digits stop meaning anything.
 #macro PROFIT_DIGIT_MAX 8
+
+// The backstop on stats_hist_offline's fill loop. The loop's real exit
+// is the cursor reaching the end of the absence, and because the
+// interval doubles every time the buffer fills, that is 861 pushes for
+// a month away and 1277 for ten years (measured - see that script).
+// This is here for a corrupt step, not for the normal case.
+#macro HIST_FILL_MAX 4000
 #macro UPG_RARITY_N  8     // common .. ultimate, see upgrade_rarity_info
 // THE STAKE. What one roll into an empty slot costs in credits, before
 // difficulty and upgrade_inflation. It is what stops "sell instead of

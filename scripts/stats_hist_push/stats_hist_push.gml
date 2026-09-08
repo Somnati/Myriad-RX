@@ -2,6 +2,7 @@
 /// @param key
 /// @param value
 /// @param [cap]
+/// @param [force] the caller's call IS a sample - see below
 /// THE FEEDER for the statistics screen's spark rows. stats_v2_spark
 /// draws whatever it finds at g.stats_hist[$ key]; this is the only
 /// thing that puts anything there.
@@ -26,7 +27,7 @@
 /// exactly the axis an idle curve wants. A graph of raw packed profit
 /// is a log plot for free, and min/max/lerp over packed values stay
 /// meaningful because the packing is monotonic.
-function stats_hist_push(_key, _val, _cap = 120) {
+function stats_hist_push(_key, _val, _cap = 120, _force = false) {
 	if (!variable_global_exists("stats_hist")) g.stats_hist = {};
 	if (!variable_global_exists("hist_meta"))  g.hist_meta  = {};
 
@@ -39,10 +40,17 @@ function stats_hist_push(_key, _val, _cap = 120) {
 
 	// one call is one second - stats_hist_tick guarantees that - so the
 	// interval is counted in calls rather than in wall time, which keeps
-	// a stalled frame from inventing samples that were never taken
-	_m.acc += 1;
-	if (_m.acc < _m.step) return;
-	_m.acc = 0;
+	// a stalled frame from inventing samples that were never taken.
+	//
+	// _force skips that gate: the caller is stats_hist_offline, which is
+	// replaying an absence and knows that ITS call already represents a
+	// whole interval rather than a second. Nothing else may use it - the
+	// gate is what keeps a stall from inventing history.
+	if (!_force) {
+		_m.acc += 1;
+		if (_m.acc < _m.step) return;
+		_m.acc = 0;
+	}
 
 	var _a = g.stats_hist[$ _key];
 	if (!is_array(_a)) {

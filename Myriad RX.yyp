@@ -326,6 +326,7 @@
     {"id":{"name":"show","path":"scripts/show/show.yy",},},
     {"id":{"name":"spark_burst","path":"scripts/spark_burst/spark_burst.yy",},},
     {"id":{"name":"spend_profit","path":"scripts/spend_profit/spend_profit.yy",},},
+    {"id":{"name":"stats_hist_offline","path":"scripts/stats_hist_offline/stats_hist_offline.yy",},},
     {"id":{"name":"stats_hist_push","path":"scripts/stats_hist_push/stats_hist_push.yy",},},
     {"id":{"name":"stats_hist_tick","path":"scripts/stats_hist_tick/stats_hist_tick.yy",},},
     {"id":{"name":"stats_session_base","path":"scripts/stats_session_base/stats_session_base.yy",},},
