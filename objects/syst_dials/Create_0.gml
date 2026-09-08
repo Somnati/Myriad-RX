@@ -120,6 +120,11 @@ hold_row   = -1;   // which row the finger is holding, -1 none
 hold_t     = 0;    // frames held, drives BOTH the speed and the fade
 hold_ct    = 0;    // countdown to the next repeat
 hold_fired = false;// a repeat happened, so the release must not buy again
+
+// the dial CYCLE sound's clock - see the payout in Step. Counted in
+// frames and ticked by delta, so the throttle is a wall-clock rate
+// rather than a frame rate.
+sfx_tic = 0;
 HOLD_LEAD  = 25;   // DE's lead-in before the first repeat, ~0.4s
 SWIPE   = 26;   // a flick this far throws the drawer a whole stage
 BUDGET  = 6;    // under this, the press was a tap

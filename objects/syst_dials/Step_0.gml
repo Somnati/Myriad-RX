@@ -40,12 +40,27 @@ if (!variable_global_exists("dial")) exit;
 
 // the docked dot's spring: the radius chases the cycle (DE's des_size
 // = progress SQUARED) and gets a kick on payout, then settles
+sfx_tic -= delta;
+
 var _n = __rows();
 for (var _i = 0; _i < _n; _i++) {
 	var _d = g.dial[_i];
 	var _t = (_d.level > 0) ? sqr(__perc(_i, _d)) * (row_h * .5) : 0;
 	if (_d.paid) {
 		rv[_i] += WIG_PUSH;   // a KICK, not a jump - see the Create
+
+		// ⚖️ THE CYCLE SOUND, RATE LIMITED (his ask, 2026-09-08). Chosen
+		// in settings > audio, OFF by default, and throttled here rather
+		// than in sfx_play because the limit belongs to the EVENT and not
+		// to the roster: a late fleet finishes several cycles a second
+		// across every dial at once, so without a clock this is six
+		// samples stacking per frame and the mix disappears under it.
+		// One sound per window however many dials landed in it - the
+		// feedback is "the fleet paid", not "dial D paid".
+		if (sfx_tic <= 0) {
+			sfx_tic = SFX_DIAL_TIC;
+			sfx_play("dial");
+		}
 
 		// THE SPIT (DE's obj_dial do_spit): a completed cycle throws
 		// profit motes at the counter. They wear THE PROFIT COLOUR, not

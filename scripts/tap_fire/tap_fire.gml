@@ -75,12 +75,14 @@ function tap_fire(_n, _x, _y, _fx = true) {
 
 	// THE SOUND plays in every room - it is the feedback that the tap
 	// landed, and a silent tap reads as a broken button. Only the
-	// visuals are the money room's. snd_orb + haptic 3 on a crit is the
+	// visuals are the money room's. A crit having its own sound is the
 	// one place this port deliberately ADDS rather than matches: DE's
-	// crit is silent, and the moment wanted a sound of its own.
+	// crit is silent, and the moment wanted one.
 	if (_fx) {
-		if (_crit) play_sound_ext(snd_orb, .95, 1.05, .5, 3);
-		else       tap_sound_play();   // settings > audio > tap sound
+		// both are the player's choice now (settings > audio). The crit
+		// keeps its haptic: it is the one tap you want to FEEL differently.
+		if (_crit) { sfx_play("crit"); vibrate(30, 3); }
+		else         sfx_play("tap");
 	}
 
 	if (!_show) {

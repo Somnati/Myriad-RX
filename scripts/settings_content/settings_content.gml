@@ -247,29 +247,83 @@ function settings_content() {
 		"%", 1,
 		"clicks, dice, ui. release the knob to hear it.");
 
-	// THE TAP SOUND (DE's "gen sound"). The pill builds itself from
-	// tap_sound_config, so adding a sound is one row in that file and
-	// nothing here. Picking one PLAYS it - a sound you have to leave the
-	// menu to hear is a sound you pick by name and regret.
-	settings_pill("tap sound", "tapsnd",
-		tap_sound_config()[clamp(g.tap_sound, 0,
-			array_length(tap_sound_config()) - 1)].name,
+	// ---- THE THREE SWAPPABLE SOUNDS (DE's "gen sound", generalised) ----
+	// Each pill builds itself from sfx_config, so adding a sound is one
+	// row in that file and nothing here. Picking one PLAYS it - a sound
+	// you have to leave the menu to hear is a sound you pick by name and
+	// then regret.
+	//
+	// THE PILL HANDS BACK THE ID, not the row number. It used to hand
+	// back an index straight into g.tap_sound, which is what made the
+	// roster append-only; ids let him delete from the middle (his ask,
+	// 2026-09-08) without repointing anybody's saved choice.
+	//
+	// ⚖️ WRITTEN OUT THREE TIMES ON PURPOSE. The obvious tidy is one
+	// helper taking the kind, but GML closures do not capture locals, so
+	// the kind would have to ride method({k:...}, fn) - and that rebinds
+	// `self` to the struct, while set_pill pushes onto the OWNER's
+	// _pills. The helper would have crashed the moment a pillbox opened.
+	// Literal kinds in a declarative content script are the cheaper
+	// mistake, and this file is a list of literal rows already.
+	settings_pill("tap sound", "sfxtap",
+		sfx_config("tap")[sfx_index("tap")].name,
 		function() {
-			var _l = tap_sound_config();
+			var _l = sfx_config("tap");
+			var _sel = sfx_index("tap");
 			for (var _j = 0; _j < array_length(_l); _j++) {
-				var _on = (_j == g.tap_sound);
-				set_pill(_l[_j].name, {
-					val : _j,
-					col : _on ? c_gold : sett_ink,
-					enabled : _on,
-				});
+				var _on = (_j == _sel);
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : _on ? c_gold : sett_ink, enabled : _on });
 			}
 		},
-		function(_v) {
-			g.tap_sound = _v;
-			tap_sound_play();
+		function(_v) { g.sfx_pick.tap = _v; sfx_play("tap"); },
+		"what a tap sounds like. myriad de's list, minus the three he cut.");
+
+	settings_pill("dial sound", "sfxdial",
+		sfx_config("dial")[sfx_index("dial")].name,
+		function() {
+			var _l = sfx_config("dial");
+			var _sel = sfx_index("dial");
+			for (var _j = 0; _j < array_length(_l); _j++) {
+				var _on = (_j == _sel);
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : _on ? c_gold : sett_ink, enabled : _on });
+			}
 		},
-		"what a tap sounds like. myriad de's list, ported whole.");
+		function(_v) { g.sfx_pick.dial = _v; sfx_play("dial"); },
+		"what a finished dial cycle sounds like. OFF by default on "
+		+ "purpose: a late fleet finishes several cycles a second, and a "
+		+ "sound on every one of them stops being feedback. rate limited "
+		+ "whichever you pick.");
+
+	settings_pill("critical sound", "sfxcrit",
+		sfx_config("crit")[sfx_index("crit")].name,
+		function() {
+			var _l = sfx_config("crit");
+			var _sel = sfx_index("crit");
+			for (var _j = 0; _j < array_length(_l); _j++) {
+				var _on = (_j == _sel);
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : _on ? c_gold : sett_ink, enabled : _on });
+			}
+		},
+		function(_v) { g.sfx_pick.crit = _v; sfx_play("crit"); },
+		"what a critical tap sounds like. it rides the tap fader - a "
+		+ "critical is a tap.");
+
+	// THE TWO FADERS (his ask). They sit under the effects volume they
+	// both feed: one is a thing you are DOING and one is a thing that
+	// HAPPENS, which is the whole reason one effects slider could not
+	// settle it. Releasing the knob plays the sound, like the pills.
+	settings_slider("tap volume", 0, 100,
+		function() { return g.vol_tap; },
+		function(_v) { g.vol_tap = _v; sfx_play("tap"); },
+		"%", 1, "taps and criticals, as a share of the effects volume.");
+
+	settings_slider("dial volume", 0, 100,
+		function() { return g.vol_dial; },
+		function(_v) { g.vol_dial = _v; sfx_play("dial"); },
+		"%", 1, "finished dial cycles, as a share of the effects volume.");
 
 	// music lands later - when it does, this is the whole hookup:
 	// settings_slider("music volume", 0, 100,

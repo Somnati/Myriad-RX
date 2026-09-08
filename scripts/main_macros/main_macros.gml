@@ -161,6 +161,10 @@ function main_macros() {
                           // upgrades. DE's base is 6 and an ability grants
                           // it; RX hands it over from the start because
                           // there is no deck to draw it from yet.
+#macro SFX_DIAL_TIC  14   // frames between DIAL CYCLE sounds. A late fleet
+                          // lands several cycles a second across every
+                          // dial at once; the feedback wanted is "the
+                          // fleet paid", not "dial D paid".
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

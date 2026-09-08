@@ -60,7 +60,14 @@ function handle_settings(_method) {
 	g.display_gps  = handle("display_gps",  g.display_gps); // the view button's pick
 	g.buy_round    = handle("buy_round",    g.buy_round);   // rounded bulk buys
 	g.persist_popups = handle("persist_popups", g.persist_popups); // the credit panel stays out
-	g.tap_sound    = handle("tap_sound",    g.tap_sound);   // which tap sample
+	// the swappable sounds, BY ID. Three keys rather than one struct
+	// because handle() speaks primitives, and three strings in an ini is
+	// a thing a person can read and fix by hand.
+	g.sfx_pick.tap  = handle("sfx_tap",  g.sfx_pick.tap);
+	g.sfx_pick.dial = handle("sfx_dial", g.sfx_pick.dial);
+	g.sfx_pick.crit = handle("sfx_crit", g.sfx_pick.crit);
+	g.vol_tap      = handle("vol_tap",      g.vol_tap);
+	g.vol_dial     = handle("vol_dial",     g.vol_dial);
 
 	// MYRIAD RX: the "balance" section returns when the DE parity
 	// rebuild lands its balance_init - every knob a rebuilt system

@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"tap_sound_play",
+  "%Name":"sfx_volume",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"tap_sound_play",
+  "name":"sfx_volume",
   "parent":{
     "name":"audio",
     "path":"folders/engine/audio.yy",

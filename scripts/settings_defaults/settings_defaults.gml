@@ -39,5 +39,9 @@ function settings_defaults() {
 	g.display_gps  = 0;          // dial rate readout: per cycle
 	g.buy_round    = true;       // DE's round-up bulk buys
 	g.persist_popups = false;    // DE's credit panel: only after a drop
-	g.tap_sound      = 0;        // index into tap_sound_config
+	// the three swappable sounds, stored BY ID - see sfx_config
+	g.sfx_pick       = { tap : "click1", dial : "off", crit : "orb" };
+	g.vol_tap        = 100;      // the two faders he asked for: one for
+	g.vol_dial       = 100;      // a thing you do, one for a thing that
+	                             // happens (sfx_volume)
 }
