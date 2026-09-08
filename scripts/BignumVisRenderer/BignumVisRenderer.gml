@@ -318,25 +318,66 @@ function BignumVisRenderer() constructor {
         var _col_full = get_tier_color(_offset + 2);  // one square = 10^(offset+2)
         var _col_part = get_tier_color(_offset);      // one unit  = 10^offset
 
-        // saturation whitening: when a top-level field's RAW count runs
-        // past its 100-square capacity (the redundant leading-chunk case,
-        // only possible for layers below the content field), its mass
-        // blends toward the tier above. At or below capacity it stays
-        // pure tier color, so filling and handoff mass look unchanged;
-        // past capacity it condenses to the color of the square it has
-        // become, reaching pure by count 140 as the fade window closes.
-        // Keeps completed squares reading as THEIR tier at every zoom,
-        // with subdivision expressed by grid lines, like the old vis.
-        // Whitening is a pure function of the COUNT, never of alpha or
-        // camera state: it completes over the 3 counts past the hundred,
-        // identically at every zoom. Tying it to alpha (a previous
-        // attempt) made color zoom-coupled: flicker while zooming, and a
-        // permanent ghost tint at zoom levels where the layer rests
-        // below full opacity. The 3 is the condense speed in counts.
-        var _raw   = _as_child ? _full : _raw3;
-        var _sat_t = clamp((_raw - 100) / 3, 0, 1);
-        if (_sat_t > 0) {
-            _col_full = merge_colour(_col_full, get_tier_color(_offset + 4), _sat_t);
+        // ⚖️ A CLAMPED FIELD WEARS ITS PARENT'S COLOUR, FLATLY. This is
+        // the fix for "the same square shows up in different colours at
+        // different zoom levels" (his three screenshots, 102M profit,
+        // one completed square, measured orange / gold / peach).
+        //
+        // WHAT IS ACTUALLY HAPPENING. A field at offset o-2 spans
+        // unit_for(o-2) * 10 * 10 px, and the field at offset o draws its
+        // squares at unit_for(o) * 10 px. Those are THE SAME NUMBER - it
+        // is the whole telescoping design, 100 squares here being exactly
+        // 1 square there. Both fields anchor at the same x0/y0, so the
+        // lower field's entire 100-square block lands precisely on the
+        // upper field's FIRST square (which is why he saw it on the first
+        // square in a row and nowhere else), and it paints SECOND, since
+        // visible_layers walks largest offset first.
+        //
+        // So that one square is painted twice, and the two colours have
+        // to agree or the square is whatever the overdraw makes it. They
+        // did not agree. The lower field's colour ramped from its OWN
+        // tier to its parent's over three counts past the hundred, which
+        // means at counts 100, 101 and 102 - a leading mantissa of 1.00
+        // to 1.02, entirely ordinary numbers to be sitting on - it
+        // painted a BLEND of two tiers over a square that had already
+        // been painted its own single correct tier. At 102M that blend is
+        // two thirds of the way from tier(6) to tier(8): a third of a
+        // purple square laid over a gold one.
+        //
+        // And the amount of it you see is the lower layer's LOD alpha,
+        // which is a pure function of the camera. Hence the same square,
+        // the same value, three zoom levels, three colours.
+        //
+        // THE RAMP WAS SOFTENING A POP THAT DOES NOT EXIST. Crossing 100
+        // is a real tier change and both layers make it on the same
+        // count: at 99 the field above shows 99 units of tier(o), at 100
+        // it shows 1 square of tier(o+2), and the field below completes
+        // its hundredth square in the same instant. There was nothing to
+        // ease. All the ramp did was hold the two layers in disagreement
+        // for three counts. Clamped means redundant means it IS one
+        // square of the tier above - so it says so, immediately.
+        //
+        // It also makes the overdraw harmless in a second way: two
+        // opaque paints of the SAME colour cannot show a seam between
+        // them, whichever way the sub-pixel edges round.
+        // The colour to wear is the colour of THE TOP SQUARE, and that is
+        // one number for the whole picture: the value's most significant
+        // digit sits at magnitude mag (an exact integer from the digit
+        // window, no log rounding), fields sit on even offsets, so the
+        // largest completed square is magnitude mag rounded down to the
+        // grid. Every clamped field, however deep, is a subdivision of
+        // that same square and says so.
+        //
+        // Paying tier(_offset + 4) instead - the field immediately above
+        // - is right for the shallowest clamped field and WRONG for the
+        // ones under it, which are subdivisions of a subdivision. Zoom
+        // in far enough (lower fields go fully opaque by design, they
+        // are the world being zoomed into) and each one would repaint
+        // the same square a rung lower. datafiles/vis_twin.py enumerates
+        // every stacked pair and fails on exactly that.
+        if (!_as_child && _raw3 >= 100) {
+            var _top_sq = 2 * (max(_win.magnitude(), 0) div 2);
+            _col_full   = get_tier_color(_top_sq);
         }
 
         // recurse into the assembling square while units stay legible:
