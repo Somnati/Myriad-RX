@@ -126,10 +126,46 @@ __deck_card_face = function() {
 	draw_set_font(fnt_large);
 	draw_set_color(face.col);
 	draw_set_alpha(1);
-	// fit-scale long names (Myriad's rule)
-	var _sw = string_width(face.name);
-	var _sc = (_sw > card_w - 8) ? (card_w - 8) / _sw : 1;
-	draw_text_transformed(card_w * .5, 8, face.name, _sc, _sc, 0);
+	// ⚖️ THE TITLE IS RE-FITTED, NEVER SCALED (his report, 2026-09-08:
+	// "the title of this card has warped text"). fnt_large is a SPRITE
+	// font, and sprite fonts take INTEGER scales - at the 0.6 a
+	// fourteen-character name needed, some glyph columns get duplicated
+	// and others dropped, which is the warp. The description five lines
+	// below already learned exactly this and says so in its own comment;
+	// the title was simply left on the old fit-scale.
+	//
+	// The ladder is all integers, so a long name changes WEIGHT rather
+	// than shape: the big font if it fits, the small font if it does
+	// not, two wrapped lines of the small font if it still does not.
+	// Each rung is placed to sit in the same band above the rarity word.
+	var _tw   = card_w - 8;
+	var _name = face.name;
+	if (string_width(_name) <= _tw) {
+		draw_text(card_w * .5, 8, _name);
+	} else {
+		draw_set_font(fnt);
+		if (string_width(_name) <= _tw) {
+			draw_text(card_w * .5, 10, _name);
+		} else {
+			// break at the last word that still fits
+			var _ws = string_split(_name, " ");
+			var _l1 = "";
+			for (var _i2 = 0; _i2 < array_length(_ws); _i2++) {
+				var _t2 = (_l1 == "") ? _ws[_i2] : _l1 + " " + _ws[_i2];
+				if (string_width(_t2) > _tw && _l1 != "") break;
+				_l1 = _t2;
+			}
+			var _l2 = string_delete(_name, 1, string_length(_l1) + 1);
+			if (_l2 == "") {
+				// one word wider than the card: centred overflow beats a
+				// shredded glyph, and it bleeds evenly on both sides
+				draw_text(card_w * .5, 10, _l1);
+			} else {
+				draw_text(card_w * .5, 5,  _l1);
+				draw_text(card_w * .5, 13, _l2);
+			}
+		}
+	}
 	draw_set_font(fnt);
 	draw_set_alpha(.7);
 	draw_text(card_w * .5, 22, face.rword);
