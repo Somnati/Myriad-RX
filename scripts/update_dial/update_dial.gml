@@ -45,6 +45,18 @@ function update_dial(_i) {
 	// give x p_ms_profit)
 	if (_ms.profit > 1) _d.gpc = do_scale(_d.gpc, _ms.profit);
 
+	// ---- UPGRADES, RESULT-SIDE ----
+	// dial profit multiplies the per-cycle pay; dial speed divides the
+	// cycle, which is the same seat a SPEED milestone uses, so the two
+	// stack the way the player expects rather than one overriding the
+	// other.
+	var _ub = upgrade_bonus();
+	if (_ub.dial_profit > 0) _d.gpc = do_scale(_d.gpc, 1 + _ub.dial_profit / 100);
+	if (_ub.dial_speed > 0) {
+		_d.cycle_t /= (1 + _ub.dial_speed / 100);
+		_d.cps = 1 / _d.cycle_t;
+	}
+
 	// THE REBIRTH BOOST (DE's update_auto: give x total_rebirth_boost) -
 	// 1 + units, on the per-cycle pay, dials only (the tap takes the
 	// units flat instead, see update_click)

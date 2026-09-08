@@ -31,4 +31,12 @@ function update_click() {
 
 	if (g.tapsyphon_pull >= arb(1))
 		g.click_gps = do_add(g.click_gps, g.tapsyphon_pull);
+
+	// ---- UPGRADES, RESULT-SIDE ----
+	// The adapter contract: multiply what was just derived, never the
+	// inputs it was derived from. Folded into all_level or tapsyphon
+	// instead, this would compound with itself on the next resync.
+	var _ub = upgrade_bonus();
+	if (_ub.tap_profit > 0)
+		g.click_gps = do_scale(g.click_gps, 1 + _ub.tap_profit / 100);
 }

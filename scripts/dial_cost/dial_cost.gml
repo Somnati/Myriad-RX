@@ -67,5 +67,16 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 		}
 	}
 
+	// ---- UPGRADES: the discount, result-side and LAST ----
+	// After the milestone premium on purpose, so a discount reduces the
+	// whole bill rather than only its base - and the raw quotes the
+	// milestone loop takes above are untouched by it, which is what
+	// keeps that recursion from discounting itself twice.
+	if (!_raw) {
+		var _ub = upgrade_bonus();
+		if (_ub.dial_cost > 0)
+			_cost = do_scale(_cost, 1 - _ub.dial_cost / 100);
+	}
+
 	return do_ceil(_cost);
 }

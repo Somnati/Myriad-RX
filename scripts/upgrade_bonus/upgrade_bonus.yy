@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"upgrade_bonus",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"upgrade_bonus",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

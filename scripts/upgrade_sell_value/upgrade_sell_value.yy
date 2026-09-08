@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"upgrade_sell_value",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"upgrade_sell_value",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

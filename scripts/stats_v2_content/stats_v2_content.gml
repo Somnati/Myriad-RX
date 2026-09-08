@@ -84,6 +84,39 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- upgrades ----
+	if (variable_global_exists("upg"))
+	if (stats_v2_folder("upgrades", c_lavender)) {
+		var _ub = upgrade_bonus();
+		var _held = 0;
+		for (var _i = 0; _i < upgrade_slots(); _i++)
+			if (is_struct(g.upg.slot[_i]) && g.upg.slot[_i].tier > 0) _held++;
+		stats_v2_line("slots", string(_held) + " / " + string(upgrade_slots()));
+		stats_v2_line("bought", string(g.upg.total));
+		stats_v2_line("rolled", string(g.upg.rolls));
+		stats_v2_line();
+		// the derived totals, which is the only place they exist
+		stats_v2_line("tap profit",    "+" + string_format(_ub.tap_profit, 1, 1) + "%",
+			-1, (_ub.tap_profit > 0) ? c_gold : c_gray);
+		stats_v2_line("crit chance",   "+" + string_format(_ub.crit_rate, 1, 1) + "%",
+			-1, (_ub.crit_rate > 0) ? c_horange : c_gray);
+		stats_v2_line("crit payout",   "+" + string_format(_ub.crit_multi, 1, 2) + "x",
+			-1, (_ub.crit_multi > 0) ? c_horange : c_gray);
+		stats_v2_line("dial profit",   "+" + string_format(_ub.dial_profit, 1, 1) + "%",
+			-1, (_ub.dial_profit > 0) ? c_sgreen : c_gray);
+		stats_v2_line("dial speed",    "+" + string_format(_ub.dial_speed, 1, 1) + "%",
+			-1, (_ub.dial_speed > 0) ? c_sblue : c_gray);
+		stats_v2_line("dial discount", "-" + string_format(_ub.dial_cost, 1, 1) + "%",
+			-1, (_ub.dial_cost > 0) ? c_steelblue : c_gray);
+		stats_v2_line("credit refill", "+" + string_format(_ub.credit_rate, 1, 1) + "%",
+			-1, (_ub.credit_rate > 0) ? c_lavender : c_gray);
+		stats_v2_line("credit luck",   "+" + string_format(_ub.credit_luck, 1, 1) + "%",
+			-1, (_ub.credit_luck > 0) ? c_lavender : c_gray);
+		stats_v2_line("rebirth units", "+" + string_format(_ub.rebirth_units, 1, 1) + "%",
+			-1, (_ub.rebirth_units > 0) ? c_hred : c_gray);
+	}
+	stats_v2_folder_end();
+
 	// ---- credits ----
 	if (variable_global_exists("credits"))
 	if (stats_v2_folder("credits", c_lavender)) {

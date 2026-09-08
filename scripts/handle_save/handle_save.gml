@@ -84,6 +84,37 @@ function handle_save(){
 		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
 	}
 
+	// ---- upgrades: the SLOTS and nothing else. Every effective number
+	// derives from these at read time (upgrade_bonus), so this is the
+	// whole of it - and a rebalance of any value reaches old saves for
+	// free, which it could not if the effects had been written down. ----
+	section = "upgrades";
+	upgrade_init();
+	g.upg.bought = handle("slots_bought", g.upg.bought);
+	g.upg.total  = handle("total",        g.upg.total);
+	g.upg.rolls  = handle("rolls",        g.upg.rolls);
+	for (var _u = 0; _u < UPG_SLOT_MAX; _u++) {
+		var _s = g.upg.slot[_u];
+		var _has = is_struct(_s);
+		var _id  = handle("u" + string(_u) + "_id",   _has ? _s.id   : "");
+		var _rar = handle("u" + string(_u) + "_rar",  _has ? _s.rar  : 0);
+		var _val = handle("u" + string(_u) + "_val",  _has ? _s.val  : 0);
+		var _tir = handle("u" + string(_u) + "_tier", _has ? _s.tier : 0);
+		if (action == sv_load) {
+			// an id the roster no longer carries costs a SLOT, never the
+			// savefile - a retired upgrade must fail softly
+			var _e = (_id == "") ? -1 : upgrade_entry(_id);
+			g.upg.slot[_u] = (_e == -1) ? -1
+				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
+				    tier : max(0, floor(_tir)) };
+		}
+	}
+	if (action == sv_load) {
+		g.upg.bought = clamp(floor(g.upg.bought), 0, UPG_SLOT_MAX - UPG_SLOT_BASE);
+		g.upg.total  = max(0, floor(g.upg.total));
+		g.upg.rolls  = max(0, floor(g.upg.rolls));
+	}
+
 	// ---- dials: the LEVEL is the only owned number (every rate, cost
 	// and payout derives from it via update_dials), plus the in-flight
 	// cycle so a save never quietly refunds progress ----

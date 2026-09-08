@@ -33,12 +33,17 @@ if (!variable_global_exists("click_gps")) exit;
 // one reads as luck. do_scale rather than do_multi because the factor
 // is a fractional REAL - arb() cannot represent sub-1 values and
 // arb(1.5) would pack malformed (the house rule, see the save tour).
+// upgrades ride the tap result-side too: chance and payout are both
+// ADDED to the base roll rather than replacing it, so the DE values
+// stay the floor and an upgrade reads as a bonus on top of them
+var _ub   = upgrade_bonus();
+var _rate = g.click_crit + _ub.crit_rate;
 var _pay  = g.click_gps;
 var _crit = false;
 var _cx   = 1;
-if (g.click_crit > 0 && roll_perc(g.click_crit)) {
+if (_rate > 0 && roll_perc(_rate)) {
 	_crit = true;
-	_cx   = random_range(g.click_critx_min, g.click_critx_max);
+	_cx   = random_range(g.click_critx_min, g.click_critx_max) + _ub.crit_multi;
 	_pay  = do_scale(_pay, _cx);
 	g.total_crits++;
 }
@@ -50,7 +55,8 @@ g.total_taps++;
 // few credits from the dropper's pool - refused by credit_drop while
 // its cooldown runs, so a hot streak can't drain it
 if (variable_global_exists("credit_tap_chance"))
-if (roll_perc(g.credit_tap_chance)) credit_drop(mouse_x, mouse_y, -1);
+if (roll_perc(g.credit_tap_chance * (1 + _ub.credit_luck / 100)))
+	credit_drop(mouse_x, mouse_y, -1);
 pop = 1;
 
 // fnt_outline: float_text's own header names it as the tap floats'

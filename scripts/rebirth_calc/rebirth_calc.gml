@@ -86,6 +86,15 @@ function rebirth_calc() {
 	if (_tc < .01) _units = 0;
 	if (_start > 0 && _tc == 1 && !(_units >= arb(1))) _units = arb(1);
 
+	// ---- UPGRADES, RESULT-SIDE and AFTER THE TIMECLAMP ----
+	// Deliberately last. Before the clamp, an upgrade would partly buy
+	// back the penalty for rebirthing too early, which is the one thing
+	// the clamp exists to prevent; after it, an upgrade multiplies what
+	// the run actually earned and the clamp still bites at full strength.
+	var _ub = upgrade_bonus();
+	if (_ub.rebirth_units > 0 && _units >= arb(1))
+		_units = do_floor(do_scale(_units, 1 + _ub.rebirth_units / 100));
+
 	_out.units = _units;
 	_out.can   = (_units >= arb(1));
 	return _out;

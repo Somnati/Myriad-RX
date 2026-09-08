@@ -132,6 +132,18 @@ function main_macros() {
 
 #macro c_ap rgb(120,190,255)
 
+// ---- upgrades (game/upgrades) ----
+#macro UPG_SLOT_BASE 3     // slots you start with
+// ⚖️ FIVE, BECAUSE THE ROOM IS 270 TALL. At 38px a row, eight slots run
+// to y=355 and the last three would be drawn off the bottom and be
+// unreachable - a slot you cannot see is worse than a slot you cannot
+// buy. Fewer slots also sharpens the thing the design is FOR: the whole
+// tension is that a slot is scarce, so 3 -> 5 is a real progression
+// where 3 -> 8 would have been a formality.
+#macro UPG_SLOT_MAX  5     // and the most the "another slot" grant can reach
+#macro UPG_RARITY_N  7     // common .. ultimate, see upgrade_rarity_mult
+#macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale
+
 #macro eid_crit_rate 0
 #macro eid_luck 1
 #macro eid_mod_rarity 2

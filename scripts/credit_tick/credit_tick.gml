@@ -19,6 +19,10 @@ function credit_tick(_secs = -1) {
 		return;
 	}
 
-	g.credit_pool = clamp(g.credit_pool + (g.credit_refill / 3600) * _secs, 1, g.credit_cap);
+	// upgrades, result-side: a faster refill, never a bigger pool - the
+	// cap is what makes the dropper feel like a trickle, and raising it
+	// here would quietly change the shape of the whole credit economy
+	var _rf = g.credit_refill * (1 + upgrade_bonus().credit_rate / 100);
+	g.credit_pool = clamp(g.credit_pool + (_rf / 3600) * _secs, 1, g.credit_cap);
 	g.credit_cool = max(0, g.credit_cool - _secs);
 }

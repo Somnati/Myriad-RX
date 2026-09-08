@@ -24,6 +24,9 @@ function game_reset(_diff = 1) {
 	// re-derives it (levels, cycles, the tap's own power)
 	rebirth_init(true); // a NEW GAME wipes the bank; a rebirth never does
 	credits_init(true); // and the credits (DE: they survive rebirth, not a new game)
+	upgrade_init(true); // the upgrades ride with the credits - the same
+	                    // PRESENCE layer, wiped by a new game and never
+	                    // by a rebirth
 	create_dials(true);
 	g.buy_lv = 1; // DE resets the buy mode with the run
 
