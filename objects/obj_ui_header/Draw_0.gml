@@ -61,16 +61,28 @@ if (variable_global_exists("profit")) {
 	draw_set_alpha(.55);
 	draw_text(6, 4, "profit");
 
-	// THE RESERVE, said out loud. Money you cannot spend and cannot see
-	// is money the player thinks has gone missing - and the first thing
-	// they will do is check whether the game is broken. It rides the
-	// label's line, so it costs no room.
+	// THE RESERVE, said out loud - as the number you can ACT on.
+	//
+	// ⚖️ IT USED TO PRINT THE HELD FIGURE, and that reads as a second
+	// pile sitting beside the first. It is not one: the reserve is a
+	// PERCENTAGE OF the pile, so "121M" over "109M held" means 12M
+	// spendable, not 230M owned. He read his own header the additive way
+	// and went to the visualiser looking for a second hundred-million
+	// square (2026-09-08). When the person who designed the feature
+	// misreads the readout, the readout is what is wrong.
+	//
+	// So the chip states the FREE figure - the only one a purchase is
+	// ever measured against - and the big number stays the whole pile,
+	// which is also exactly what the blocks draw. Nothing can be read as
+	// two totals any more. The held amount keeps its own line in
+	// statistics, where there is room to say what it is.
 	var _res = profit_reserved();
 	if (_res >= arb(1)) {
+		var _free = profit_spendable();
 		draw_set_color(c_gold);
 		draw_set_alpha(.6);
 		draw_text(6 + string_width("profit ") + 3, 4,
-			crunch_arb(_res) + " held");
+			((_free >= arb(1)) ? crunch_arb(_free) : "0") + " free");
 		draw_set_color(sett_ink);
 		draw_set_alpha(.55);
 	}
