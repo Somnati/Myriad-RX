@@ -47,6 +47,33 @@ sel  = -1;     // the slot under the pointer, for the hover wash
 //         so a tap that was not meant to be a hold barely moves it -
 //         the commitment is legible before it is irreversible - and
 //         the slot empties, so there is nothing left to repeat on.
+// ---- THE DESCRIPTION PANEL, bottom right (his ask) ----
+// A row is one line, which is the right shape for SCANNING a table and
+// the wrong shape for understanding one entry: there is no room on it
+// to say what the thing actually modifies, what it is worth now, or
+// what the rest of your table already gives you for the same stat. So
+// tapping a row PICKS it and this panel answers all three, once, in the
+// space under the table where nothing was using the pixels.
+pick    = -1;
+desc_x  = 236;
+desc_y  = 190;
+desc_w  = room_width - desc_x - 8;
+desc_h  = room_height - desc_y - 8;
+
+// ---- THE STATUS LINE ----
+// This screen used the house banner, which stacks down the RIGHT edge
+// from the top - directly over the eight rows it was reporting on. Its
+// messages are about one screen and belong on it (assign_banner now
+// refuses in this room entirely).
+msg     = "";
+msg_col = c_white;
+msg_hp  = 0;
+__say = function(_t, _c) {
+	msg = _t;
+	msg_col = _c;
+	msg_hp = 150;   // ~2.5 seconds, then it fades on its own
+};
+
 hold_i    = -1;   // the slot filling, -1 = none
 hold_hp   = 0;    // 0..100
 hold_spd  = 1;    // DE's hp_spd: the repeat ramp, 1..7
@@ -69,6 +96,15 @@ __btn = function(_i) {
 // answer. One button, and it fills the first slot that is free.
 __roll_rect = function() {
 	return { x : row_x, y : __row_y(upgrade_slots()) + 2, w : 118, h : 15 };
+};
+
+// the row's body - everything left of its button. Tapping HERE picks
+// the row for the panel; tapping the button acts on it. Two meanings on
+// one row, told apart by geometry rather than by a mode, because
+// reading about a thing should never be able to buy it.
+__body = function(_i) {
+	var _b = __btn(_i);
+	return { x : row_x, y : __row_y(_i), w : _b.x - row_x - 2, h : row_h };
 };
 
 // the slot a roll would land in: the first free one, top down, so the

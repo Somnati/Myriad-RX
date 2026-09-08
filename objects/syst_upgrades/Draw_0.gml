@@ -76,6 +76,12 @@ for (var _i = 0; _i < _n; _i++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, 2, row_h, 0, _col, _has ? .9 : .3);
 	if (sel == _i)
 		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, row_h, 0, c_white, .04);
+	// the PICKED row keeps a brighter wash and a lit band, so the panel
+	// below always has a visible owner
+	if (pick == _i) {
+		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, row_h, 0, c_white, .07);
+		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, 2, row_h, 0, c_white, .85);
+	}
 
 	var _b = __btn(_i);
 
@@ -159,29 +165,125 @@ draw_ui_button(_rr.x, _rr.y, _rr.w, _rr.h,
 	            : ((_rc > 0) ? ("roll a slot - " + string(_rc)) : "roll a slot"),
 	(_fs == -1) ? c_gray : (_ra ? c_sblue : c_hred), (_fs != -1), _ra);
 
+// ---- the status line: what just happened, on the screen it happened on
+var _sy = __row_y(_n) + 21;
+if (msg_hp > 0 && msg != "") {
+	draw_set_color(msg_col);
+	draw_set_alpha(.9 * min(1, msg_hp / 40));
+	draw_text(row_x + 2, _sy, msg);
+}
+
 // ---- the footer: what all of it adds up to ----
 // The screen is a list of individual purchases and the thing a player
-// actually wants is the total. Without this the only place to see it is
-// the statistics screen, a room away.
-var _fy = __row_y(_n) + 22;   // clear of the roll button
-if (_fy < room_height - 20) {
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(row_x + 7, _fy,
-		"tap +" + string_format(_ub.tap_profit, 1, 0) + "%"
-		+ "   dials +" + string_format(_ub.dial_profit, 1, 0) + "%"
-		+ "   speed +" + string_format(_ub.dial_speed, 1, 0) + "%"
-		+ "   crit +" + string_format(_ub.crit_rate, 1, 0) + "%"
-		+ "   cost -" + string_format(_ub.dial_cost, 1, 0) + "%");
+// actually wants is the total. Two short lines in the left column now,
+// because the right half belongs to the description panel.
+draw_set_color(_dim);
+draw_set_alpha(.6);
+draw_text(row_x + 2, _sy + 11,
+	"tap +" + string_format(_ub.tap_profit, 1, 0) + "%"
+	+ "   dials +" + string_format(_ub.dial_profit, 1, 0) + "%"
+	+ "   speed +" + string_format(_ub.dial_speed, 1, 0) + "%");
+draw_text(row_x + 2, _sy + 20,
+	"crit +" + string_format(_ub.crit_rate, 1, 0) + "%"
+	+ "   cost -" + string_format(_ub.dial_cost, 1, 0) + "%"
+	+ "   credits +" + string_format(_ub.credit_rate, 1, 0) + "%");
 
-	// ⚖️ AND SAY SO WHILE IT IS OFF. A screen that quotes bonuses the
-	// game is not applying, without saying so, is a screen that lies.
-	if (!UPG_LIVE) {
-		draw_set_color(c_horange);
-		draw_set_alpha(.75);
-		draw_text(row_x + 7, _fy + 11,
-			"preview - upgrades are not affecting the game yet");
+// ⚖️ AND SAY SO WHILE IT IS OFF. A screen that quotes bonuses the game
+// is not applying, without saying so, is a screen that lies.
+if (!UPG_LIVE) {
+	draw_set_color(c_horange);
+	draw_set_alpha(.75);
+	draw_text(row_x + 2, _sy + 29,
+		"preview - not affecting the game yet");
+}
+
+// ================= THE DESCRIPTION PANEL =================
+draw_set_alpha(1);
+draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, desc_h, 0,
+	merge_colour(c_hsv(168, 160, 5), c_black, .35), 1);
+draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, desc_x, desc_y, desc_w, 1, 0,
+	c_white, c_white, c_black, c_black, .18);
+draw_px_rect(desc_x, desc_y, desc_w, desc_h, sett_ink, .18);
+
+var _px = desc_x + 7;
+var _pr = desc_x + desc_w - 7;
+
+// && short-circuits, so an out-of-range pick never indexes the array -
+// which it can be for a frame after the slot count changes
+var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
+if (!_has_pick) {
+	draw_set_color(_dim);
+	draw_set_alpha(.45);
+	draw_text(_px, desc_y + 8, "tap a slot to read it");
+	draw_text(_px, desc_y + 19, "the panel says what it changes,");
+	draw_text(_px, desc_y + 28, "and what you already have of it");
+} else {
+	var _ps = g.upg.slot[pick];
+	var _pe = upgrade_entry(_ps.id);
+	var _pc = __rar_col(_ps.rar);
+
+	// the name, and the rarity right-aligned against it
+	draw_set_halign(fa_left);
+	draw_set_color(c_white);
+	draw_set_alpha(.95);
+	draw_text(_px, desc_y + 5, (_pe == -1) ? _ps.id : _pe.name);
+	draw_set_halign(fa_right);
+	draw_set_color(_pc);
+	draw_set_alpha(.85);
+	draw_text(_pr, desc_y + 5, __rar_name(_ps.rar));
+	draw_set_halign(fa_left);
+	draw_sprite_ext(spr_pixel_1x1, 0, _px, desc_y + 15, desc_w - 14, 1, 0,
+		sett_ink, .15);
+
+	// WHAT IT MODIFIES - the roster's own sentence, which existed all
+	// along and had nowhere to be shown once rows went to one line
+	draw_set_color(sett_ink);
+	draw_set_alpha(.7);
+	draw_text(_px, desc_y + 19, (_pe == -1) ? "no longer in the roster" : _pe.help);
+
+	if (_pe != -1 && _pe.stat != "") {
+		// THE TOTAL YOU ALREADY HOLD for this stat, and this slot's
+		// share of it. The total is the number that decides whether
+		// another tier here is worth buying; the share is what you lose
+		// if you sell. Neither means much without the other.
+		var _tot = _ub[$ _pe.stat];
+		var _mine = _ps.val * _ps.tier;
+		var _sfx = (_ps.id == "crit_multi") ? "x" : "%";
+
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(_px, desc_y + 33, "you have");
+		draw_set_halign(fa_right);
+		draw_set_color(_pe.col);
+		draw_set_alpha(.95);
+		draw_text(_pr, desc_y + 33, "+" + string_format(_tot, 1, 2) + _sfx);
+
+		draw_set_halign(fa_left);
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(_px, desc_y + 43, "this slot");
+		draw_set_halign(fa_right);
+		draw_set_color((_mine > 0) ? c_white : _dim);
+		draw_set_alpha(.9);
+		draw_text(_pr, desc_y + 43,
+			(_ps.tier > 0) ? ("+" + string_format(_mine, 1, 2) + _sfx)
+			               : "nothing yet");
+		draw_set_halign(fa_left);
+	} else {
+		draw_set_color(c_white);
+		draw_set_alpha(.8);
+		draw_text(_px, desc_y + 35, "a one-off - it is spent when bought");
 	}
+
+	// the mechanical line: how deep it goes, what a tier is worth, and
+	// what it would fetch
+	draw_set_color(_dim);
+	draw_set_alpha(.55);
+	draw_text(_px, desc_y + 55, "tier " + string(_ps.tier) + " / "
+		+ string(upgrade_cap(pick))
+		+ "    +" + string_format(_ps.val, 1, 2) + " a tier");
+	draw_text(_px, desc_y + 64,
+		"sells for " + string(upgrade_sell_value(pick)) + " credits");
 }
 
 draw_set_alpha(1);

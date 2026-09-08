@@ -29,3 +29,15 @@ ratchet_real = prof_shown;   // DE's decade-boundary ratchet
 ratchet_tgt  = prof_shown;
 if (prof_shown >= arb(1)) prof_lg = arb_log10(prof_shown);
 prof_last = prof_shown;
+
+// ---- THE GAIN FLOAT, and there is only ever ONE of it ----
+// Profit arrives as bezier motes and the counter rises as each one
+// lands, so a float per rise is a float per MOTE - a payout burst threw
+// a dozen and a tap streak threw one a frame. Myriad DE's answer, from
+// create_click_effects: while a float is still alive, ADD to it and
+// refresh its life instead of spawning a second one. So a burst reads
+// as one number counting up, and a tap streak grows a single running
+// total you can actually watch - which is the only way the tapper's
+// contribution is visible at all.
+gain_f   = noone;   // the live float, or noone
+gain_val = 0;       // what it is currently showing

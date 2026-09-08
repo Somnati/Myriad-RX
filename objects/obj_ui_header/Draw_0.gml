@@ -47,18 +47,6 @@ if (variable_global_exists("profit")) {
 	var _pv  = prof_shown;
 	var _tlg = (_pv < arb(1)) ? -1 : arb_log10(_pv);
 
-	// gain pop: profit LANDED (a sale) - spending only glides down
-	if (_pv > prof_last)
-		// ABOVE THE HEADER, not in the float band: this pop spawns at
-		// y 16, which is INSIDE the header's own 29px opaque bar - at
-		// the band's -100 against the header's -1000 it was drawn and
-		// then painted straight over, so it has never been visible
-		// (his audit, 2026-09-06). It belongs to the header, so it
-		// rides just above it.
-		float_text(48, 16, "+" + crunch_arb(do_subtract(_pv, prof_last)),
-			g.profit_color, fnt_outline, depth - 10);
-	prof_last = _pv;
-
 	// the glide (move_to in log space; 12 ~ a fifth of a second)
 	if (_tlg == -1) prof_lg = -1;
 	else {
@@ -72,9 +60,44 @@ if (variable_global_exists("profit")) {
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);
 	draw_text(6, 4, "profit");
+
+	// DIGITS WHILE THEY MEAN SOMETHING, crunched after (DE's, see
+	// crunch_arb_full)
+	var _ptxt = (prof_lg == -1) ? "0" : crunch_arb_full(log_to_arb(prof_lg));
 	draw_set_color(g.profit_color);
 	draw_set_alpha(.95);
-	draw_text(6, 14, (prof_lg == -1) ? "0" : crunch_arb(log_to_arb(prof_lg)));
+	draw_text(6, 14, _ptxt);
+
+	// ---- the gain float: profit LANDED (spending only glides down) ----
+	// It seats itself just past the counter, so it never lands on the
+	// number it is describing however wide that number has grown.
+	// ABOVE THE HEADER by necessity: it spawns at y 16, inside the
+	// header's own opaque bar, so at the float band's -100 against the
+	// header's -1000 it was drawn and painted straight over - invisible
+	// (his audit, 2026-09-06). The short rise keeps it in the header's
+	// neighbourhood instead of sailing up over the room.
+	if (_pv > prof_last) {
+		var _gain = do_subtract(_pv, prof_last);
+		if (instance_exists(gain_f)) {
+			// STACK: one float, counting up (see the Create)
+			gain_val = do_add(gain_val, _gain);
+			with (gain_f) {
+				text = "+" + crunch_arb(other.gain_val);
+				life = life_;                 // it earned another turn
+				if (fnt_use != -1) draw_set_font(fnt_use);
+				sw = string_width(text);      // width is cached at spawn
+				if (fnt_use != -1) draw_set_font(fnt);
+			}
+		} else {
+			gain_val = _gain;
+			gain_f = float_text(6 + string_width(_ptxt) + 8, 16,
+				"+" + crunch_arb(gain_val), g.profit_color, fnt_outline,
+				depth - 10);
+			gain_f.rise *= .5;
+		}
+	}
+	prof_last = _pv;
+
 	draw_set_alpha(1);
 	draw_set_color(c_white);
 }

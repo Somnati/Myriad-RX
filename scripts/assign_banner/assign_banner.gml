@@ -4,7 +4,14 @@
 /// @param c_back
 function assign_banner() {
 
-
+	// NOT IN THE UPGRADE ROOM (his report). Banners stack down the right
+	// edge from the top, which is exactly where eight full-width slot
+	// rows live - so every purchase covered the table it was reporting
+	// on. Refusing at the SOURCE rather than hiding the draw matters:
+	// a suppressed-but-queued banner would simply appear on the next
+	// screen, announcing something that happened somewhere else.
+	// The screen says these things itself now, on its own status line.
+	if (in_room(rm_upgrades)) exit;
 
 	if instance_exists(syst_banner){
 	o_sb = syst_banner;

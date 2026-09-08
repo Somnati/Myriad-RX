@@ -7,8 +7,10 @@
 // y 46, where it would land on top of the second row.
 if (instance_exists(obj_display_credits)) {
 	obj_display_credits.pin  = true;
-	obj_display_credits.desy = room_height - 24;
+	obj_display_credits.desy = room_height - 22;
 }
+
+msg_hp = max(0, msg_hp - delta);
 
 // region UI by syst_input's rules: input free, nothing else owns the
 // pointer. Every action here is a credit transaction, so none of it may
@@ -63,12 +65,23 @@ if (hold_i == -1) {
 			// faster the longer you hold it. The hold survives; it ends
 			// by itself when the slot completes, empties or runs out of
 			// credits, because the scan above stops offering it.
-			if (upgrade_buy(hold_i)) hold_spd = min(7, hold_spd + .5);
-			else { hold_i = -1; hold_lock = true; }
+			var _was = hold_i;
+			if (upgrade_buy(hold_i)) {
+				hold_spd = min(7, hold_spd + .5);
+				pick = _was;
+				// the last tier files the upgrade and frees the slot
+				// (upgrade_complete). The banner that used to announce
+				// that is refused in this room, so say it here.
+				if (!is_struct(g.upg.slot[_was])) {
+					__say("complete - slot freed", c_gold);
+					pick   = -1;
+					hold_i = -1;
+				}
+			} else { hold_i = -1; hold_lock = true; }
 		} else {
 			var _pay = upgrade_sell(hold_i);
-			assign_banner("sold for " + string(_pay) + " credits",
-				c_lavender, c_black);
+			__say("sold for " + string(_pay) + " credits", c_lavender);
+			if (pick == hold_i) pick = -1;
 			hold_i = -1;
 			// DE's hp = -1: spent until the button comes up, so one
 			// press is one sale however long it is held
@@ -98,21 +111,37 @@ for (var _m = 0; _m < 2; _m++) {
 	exit;
 }
 
+// ---- PICKING A ROW for the description panel ----
+// Before the buttons, and it does not consume the press: a tap on a
+// row's body picks it, a tap on its button still acts. An EMPTY row
+// picks nothing - there is nothing to describe - but it clears the
+// panel, which is the honest answer to "what is in this slot".
+for (var _i = 0; _i < _n; _i++) {
+	var _bd = __body(_i);
+	if (!point_in_rectangle(_mx, _my, _bd.x, _bd.y, _bd.x + _bd.w, _bd.y + _bd.h))
+		continue;
+	pick = is_struct(g.upg.slot[_i]) ? _i : -1;
+	play_sound_ext(snd_softclick, 1.1, 1.2, .3, 0);
+	exit;
+}
+
 // ---- THE ONE ROLL BUTTON ----
 var _rr = __roll_rect();
 if (point_in_rectangle(_mx, _my, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
 	var _fs = __free_slot();
 	if (_fs == -1) {
-		assign_banner("no free slot", c_gray, c_black);
+		__say("no free slot", c_gray);
 		exit;
 	}
 	var _r0 = upgrade_roll(_fs);
 	if (_r0 == -1)
-		assign_banner("nothing to offer yet", c_gray, c_black);
+		__say("nothing to offer yet", c_gray);
 	else if (_r0 == -2)
-		assign_banner("not enough credits to roll", c_hred, c_black);
-	else
+		__say("not enough credits to roll", c_hred);
+	else {
 		play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
+		pick = _fs;   // a fresh roll is the thing you want to read about
+	}
 	exit;
 }
 
@@ -128,10 +157,14 @@ for (var _i = 0; _i < _n; _i++) {
 	// complain when the row could never fill: the scan above silently
 	// skips an unaffordable or finished slot, and silence on a button
 	// you are pressing reads as the screen being broken.
+	pick = _i;   // the button is part of the row - reading it too
 	if (mode == 0) {
 		var _c1 = upgrade_cost(_i);
-		if (_c1 < 0 || !(g.credits >= arb(_c1)))
+		if (_c1 < 0 || !(g.credits >= arb(_c1))) {
 			play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+			__say((_c1 < 0) ? "already at its last tier"
+			                : "not enough credits", c_hred);
+		}
 	}
 	exit;
 }

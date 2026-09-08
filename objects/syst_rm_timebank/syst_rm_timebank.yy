@@ -31,7 +31,7 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteMaskId":null,
   "spriteId":null,
+  "spriteMaskId":null,
   "visible":true,
 }

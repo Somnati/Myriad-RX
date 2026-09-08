@@ -157,6 +157,13 @@ function main_macros() {
 // hard ceiling rather than a target: the population cull means the
 // count settles well under it on its own.
 #macro SPARK_MAX 200
+
+// WHERE THE PROFIT COUNTER STOPS SPELLING ITSELF OUT. Below this
+// exponent it draws every digit with thousands separators (DE's
+// behaviour); at and above it, crunch_arb takes over. 8 = full digits
+// to 99,999,999 and crunched from a hundred million, which is roughly
+// where the low digits stop meaning anything.
+#macro PROFIT_DIGIT_MAX 8
 #macro UPG_RARITY_N  8     // common .. ultimate, see upgrade_rarity_info
 // THE STAKE. What one roll into an empty slot costs in credits, before
 // difficulty and upgrade_inflation. It is what stops "sell instead of
