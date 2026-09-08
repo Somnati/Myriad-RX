@@ -186,13 +186,23 @@ function main_macros() {
 // again; if that turns out to hurt, the honest fix is DE's - upgrades
 // arrive on a timer instead of on demand - rather than a price.
 #macro UPG_ROLL_COST 0
-// THE SHAPE OF THE LADDER, and the only knob that moves it. A roll is
-// floor(random(1)^POW * N), so a bigger power crushes more of the mass
-// onto the common end - 3 gives common 52% and about 1 in 20 ultimate,
-// which the statistics screen's spread bar now shows honestly. The roll
-// and that bar both read upgrade_rarity_odds(), so they cannot disagree
-// about what this number did.
-#macro UPG_RARITY_POW 3
+// THE RARITY LADDER's shape (upgrade_rarity_odds - Techdemo II's
+// calculate_rarity). SCALE is how wide a band is against the one below
+// it, GROW steepens that per rung and stops at rung 5 (the tech demo's
+// fix - unclamped, DE's top rungs collapse to unreachable), CUT is the
+// luck rate at which the bottom rung has fallen off entirely.
+#macro UPG_RARITY_SCALE .3
+#macro UPG_RARITY_GROW  .03
+#macro UPG_RARITY_CUT   800
+
+// THE TIER CURVE (upgrade_tier_value). RAMP is how much more each tier
+// is worth than the one before it - gentle compounding, so a slot you
+// keep feeding gets better rather than merely bigger. LAST is what the
+// FINAL tier is multiplied by, and it is deliberately large: it makes
+// finishing a slot an event rather than an increment, which is the
+// whole reason a cap is interesting.
+#macro UPG_TIER_RAMP .15
+#macro UPG_TIER_LAST 3
 #macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale
 
 #macro eid_crit_rate 0

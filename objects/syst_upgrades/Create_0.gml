@@ -55,10 +55,26 @@ sel  = -1;     // the slot under the pointer, for the hover wash
 // tapping a row PICKS it and this panel answers all three, once, in the
 // space under the table where nothing was using the pixels.
 pick    = -1;
+// ⚖️ IT SITS UNDER THE TABLE, NOT ON IT. The header is 29 tall, not 16,
+// so list_y is 45 and the eighth row runs to y 200 - the panel was at
+// 190 and covered the last slot (his report). It starts where the rows
+// actually end now.
 desc_x  = 236;
-desc_y  = 190;
 desc_w  = room_width - desc_x - 8;
-desc_h  = room_height - desc_y - 8;
+desc_y  = 0;   // seated below, once __row_y exists
+desc_h  = 0;
+
+// THE RARITY GRADIENT. A rung's colour bleeds in from the left edge,
+// and BOTH how far it reaches and how strong it is scale with the rung
+// - so a common is a hint and an ultimate is unmistakable across the
+// room. Returns { w, col } for a panel of width _w.
+__rar_grad = function(_rar, _w, _base_col) {
+	var _t = clamp(_rar / max(1, UPG_RARITY_N - 1), 0, 1);
+	return {
+		w   : _w * (.28 + .62 * _t),
+		col : merge_colour(_base_col, __rar_col(_rar), .12 + .34 * _t),
+	};
+};
 
 // ---- THE STATUS LINE ----
 // This screen used the house banner, which stacks down the RIGHT edge
@@ -81,6 +97,12 @@ hold_lock = false;  // set when a hold completes something that must not
                     // repeat (DE's `hp = -1`), cleared on release
 
 __row_y = function(_i) { return list_y + 6 + _i * row_sp; };
+
+// the panel starts where the LAST ROW ENDS, off the same function the
+// rows use, so it can never be seated by a number that happens to look
+// right (it was, and it covered slot eight)
+desc_y = __row_y(UPG_SLOT_MAX) + 2;
+desc_h = room_height - desc_y - 6;
 
 // the row's one button, right-aligned so every row's action sits in the
 // same column no matter how long its name is. An EMPTY row has none any
@@ -133,11 +155,29 @@ __rar_name = function(_r) { return upgrade_rarity_info(_r).name; };
 __rar_col  = function(_r) { return upgrade_rarity_info(_r).col;  };
 
 // a slot's effect, as the one string the row has room for
-__eff_str = function(_s) {
+__eff_str = function(_i) {
+	var _s = g.upg.slot[_i];
 	var _sfx = (_s.id == "crit_multi") ? "x" : "%";
 	if (_s.tier > 0)
-		return "+" + string_format(_s.val * _s.tier, 1, 2) + _sfx;
+		return "+" + string_format(
+			upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i)), 1, 2) + _sfx;
 	return "+" + string_format(_s.val, 1, 2) + _sfx;
+};
+
+// what the NEXT tier would add - the marginal value, which is the
+// number a buy button is actually offering. It is not _s.val any more:
+// the ramp makes each tier worth more than the last and the final one
+// worth a great deal more, so "a tier" is a moving quantity and the
+// screen has to quote the one being sold.
+__next_str = function(_i) {
+	var _s = g.upg.slot[_i];
+	var _c = upgrade_cap(_i);
+	if (_s.tier >= _c) return "";
+	var _d = upgrade_tier_value(_s.val, _s.tier + 1, _c)
+	       - upgrade_tier_value(_s.val, _s.tier, _c);
+	return "+" + string_format(_d, 1, 2)
+		+ ((_s.id == "crit_multi") ? "x" : "%")
+		+ ((_s.tier + 1 >= _c) ? " to finish" : " next");
 };
 
 // THE TIER DOTS (Myriad DE's bubbles, obj_upgrade_slot's Draw). One per

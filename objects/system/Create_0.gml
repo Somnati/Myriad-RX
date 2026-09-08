@@ -88,6 +88,11 @@ g.profit_flight = 0;
 // THE RESERVE: the locked PORTION of g.profit (never a second pile -
 // see profit_spendable). Set by give_profit from g.autom.lock_pct.
 g.profit_lock = 0;
+// THE UPGRADE LUCK RATE (DE's g.upgrade_rarity). It slides the whole
+// rarity window upward - past one UPG_RARITY_CUT the bottom rung stops
+// being offered at all. Nothing raises it yet; a luck modifier feeds it
+// when one lands, and the odds bar in the statistics reads it live.
+g.upgrade_rarity = 0;
 g.trans_kind = 1;     // room transition: 0 circle wipe / 1 slice wipe
 	// (round 7's showcase; settings > display, latched per flight
 	// by goto_room)

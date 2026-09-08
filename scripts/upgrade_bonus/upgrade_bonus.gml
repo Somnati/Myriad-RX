@@ -35,7 +35,8 @@ function upgrade_bonus() {
 		if (_s.tier <= 0) continue;          // an offer, not yet bought
 		if (_s.stat == "") continue;         // a grant; it has no accumulator
 		if (!variable_struct_exists(_b, _s.stat)) continue;
-		_b[$ _s.stat] += _s.val * _s.tier;
+		// the tier curve, not a flat multiply - see upgrade_tier_value
+		_b[$ _s.stat] += upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i));
 	}
 
 	// ---- THEN THE COMPLETED LEDGER ----

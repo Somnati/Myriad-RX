@@ -14,9 +14,11 @@
 /// accumulating the tail probability; the answer is the lowest rung
 /// whose tail still fits inside N%. At today's cube law and 25%, that
 /// is legendary and above - about one roll in five. Change the curve,
-/// change UPG_RARITY_POW, add rungs, or hand the player a luck stat
-/// that reshapes the distribution entirely, and the same 25% still
-/// means "the best fifth of what you actually see".
+/// raise g.upgrade_rarity, add rungs, or reshape the band ladder
+/// entirely, and the same 25% still means "the best fifth of what you
+/// actually see". That is not hypothetical: the luck rate slides the
+/// window so the bottom rung stops being offered at all, which is
+/// exactly the case a fixed rung could not survive.
 ///
 /// 100% keeps everything (the autosell is off in all but name), and 1%
 /// keeps only the top rung.

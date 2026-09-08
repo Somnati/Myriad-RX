@@ -30,7 +30,9 @@ function upgrade_complete(_slot) {
 		_d = { stat : _s.stat, sum : 0, n : 0 };
 		g.upg.done[$ _s.id] = _d;
 	}
-	_d.sum += _s.val * _s.tier;
+	// the FULL curve, completion bonus and all - the slot is being
+	// filed at its last tier, which is the tier worth the most
+	_d.sum += upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_slot));
 	_d.n   += 1;
 
 	g.upg.slot[_slot] = -1;

@@ -69,6 +69,14 @@ for (var _i = 0; _i < _n; _i++) {
 	// the panel: statistics' recipe, opaque with gradient seams
 	var _c = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
 	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, row_h, 0, _c, 1);
+	// THE RARITY WASH, bleeding in from the colour band. It fades to the
+	// panel colour rather than to transparent, because the panel is
+	// opaque and a colour fade needs no second alpha to read cleanly.
+	if (_has) {
+		var _gr = __rar_grad(_s.rar, row_w, _c);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			row_x, _ry, _gr.w, row_h, 0, _gr.col, _c, _c, _gr.col, 1);
+	}
 	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x, _ry, row_w, 1, 0,
 		_c, c_black, c_black, _c, .52);
 	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x, _ry + row_h - 1,
@@ -103,7 +111,7 @@ for (var _i = 0; _i < _n; _i++) {
 
 	draw_set_color(_col);
 	draw_set_alpha(_s.tier > 0 ? .95 : .6);
-	draw_text(_cx_eff, _ry + 4, (_e == -1) ? "retired" : __eff_str(_s));
+	draw_text(_cx_eff, _ry + 4, (_e == -1) ? "retired" : __eff_str(_i));
 
 	draw_set_color(_dim);
 	draw_set_alpha(.8);
@@ -198,9 +206,25 @@ if (!UPG_LIVE) {
 }
 
 // ================= THE DESCRIPTION PANEL =================
+// TWO HALVES (his layout): the TOP says what the thing is, in words,
+// and the BOTTOM is a little ledger of banded rows about the bonus -
+// darkest at the bottom, where the total lives. The two jobs wanted
+// separating: one is read once, the other is read every time.
 draw_set_alpha(1);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, desc_h, 0,
-	merge_colour(c_hsv(168, 160, 5), c_black, .35), 1);
+var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .35);
+draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, desc_h, 0, _dc, 1);
+
+// && short-circuits, so an out-of-range pick never indexes the array -
+// which it can be for a frame after the slot count changes
+var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
+
+// the same rarity wash the rows wear, so the panel is visibly ABOUT the
+// row you tapped rather than a separate thing that happens to agree
+if (_has_pick) {
+	var _dg = __rar_grad(g.upg.slot[pick].rar, desc_w, _dc);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+		desc_x, desc_y, _dg.w, desc_h, 0, _dg.col, _dc, _dc, _dg.col, 1);
+}
 draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, desc_x, desc_y, desc_w, 1, 0,
 	c_white, c_white, c_black, c_black, .18);
 draw_px_rect(desc_x, desc_y, desc_w, desc_h, sett_ink, .18);
@@ -208,82 +232,84 @@ draw_px_rect(desc_x, desc_y, desc_w, desc_h, sett_ink, .18);
 var _px = desc_x + 7;
 var _pr = desc_x + desc_w - 7;
 
-// && short-circuits, so an out-of-range pick never indexes the array -
-// which it can be for a frame after the slot count changes
-var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
 if (!_has_pick) {
 	draw_set_color(_dim);
 	draw_set_alpha(.45);
 	draw_text(_px, desc_y + 8, "tap a slot to read it");
-	draw_text(_px, desc_y + 19, "the panel says what it changes,");
-	draw_text(_px, desc_y + 28, "and what you already have of it");
+	draw_text(_px, desc_y + 19, "what it changes, what it gives you,");
+	draw_text(_px, desc_y + 28, "and what you hold of it in total");
 } else {
 	var _ps = g.upg.slot[pick];
 	var _pe = upgrade_entry(_ps.id);
 	var _pc = __rar_col(_ps.rar);
+	var _pcap = upgrade_cap(pick);
 
-	// the name, and the rarity right-aligned against it
+	// ---- the top half: what it IS ----
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
-	draw_text(_px, desc_y + 5, (_pe == -1) ? _ps.id : _pe.name);
+	draw_text(_px, desc_y + 4, (_pe == -1) ? _ps.id : _pe.name);
 	draw_set_halign(fa_right);
 	draw_set_color(_pc);
 	draw_set_alpha(.85);
-	draw_text(_pr, desc_y + 5, __rar_name(_ps.rar));
+	draw_text(_pr, desc_y + 4, __rar_name(_ps.rar) + "  "
+		+ string(_ps.tier) + "/" + string(_pcap));
 	draw_set_halign(fa_left);
-	draw_sprite_ext(spr_pixel_1x1, 0, _px, desc_y + 15, desc_w - 14, 1, 0,
-		sett_ink, .15);
-
-	// WHAT IT MODIFIES - the roster's own sentence, which existed all
-	// along and had nowhere to be shown once rows went to one line
 	draw_set_color(sett_ink);
 	draw_set_alpha(.7);
-	draw_text(_px, desc_y + 19, (_pe == -1) ? "no longer in the roster" : _pe.help);
+	draw_text(_px, desc_y + 14, (_pe == -1) ? "no longer in the roster" : _pe.help);
 
+	// ---- the bottom half: the ledger ----
+	// Three banded rows, each darker than the last, ending on the total.
+	// The order is deliberate: what the NEXT tier buys, then what this
+	// slot is giving, then what you hold across everything. Reading down
+	// is reading outward.
+	var _rows_txt = [];
 	if (_pe != -1 && _pe.stat != "") {
-		// THE TOTAL YOU ALREADY HOLD for this stat, and this slot's
-		// share of it. The total is the number that decides whether
-		// another tier here is worth buying; the share is what you lose
-		// if you sell. Neither means much without the other.
-		var _tot = _ub[$ _pe.stat];
-		var _mine = _ps.val * _ps.tier;
-		var _sfx = (_ps.id == "crit_multi") ? "x" : "%";
-
-		draw_set_color(_dim);
-		draw_set_alpha(.6);
-		draw_text(_px, desc_y + 33, "you have");
-		draw_set_halign(fa_right);
-		draw_set_color(_pe.col);
-		draw_set_alpha(.95);
-		draw_text(_pr, desc_y + 33, "+" + string_format(_tot, 1, 2) + _sfx);
-
-		draw_set_halign(fa_left);
-		draw_set_color(_dim);
-		draw_set_alpha(.6);
-		draw_text(_px, desc_y + 43, "this slot");
-		draw_set_halign(fa_right);
-		draw_set_color((_mine > 0) ? c_white : _dim);
-		draw_set_alpha(.9);
-		draw_text(_pr, desc_y + 43,
-			(_ps.tier > 0) ? ("+" + string_format(_mine, 1, 2) + _sfx)
-			               : "nothing yet");
-		draw_set_halign(fa_left);
+		var _sfx  = (_ps.id == "crit_multi") ? "x" : "%";
+		var _mine = upgrade_tier_value(_ps.val, _ps.tier, _pcap);
+		var _nxt  = __next_str(pick);
+		array_push(_rows_txt,
+			{ k : (_ps.tier + 1 >= _pcap) ? "final tier" : "next tier",
+			  v : (_nxt == "") ? "complete" : _nxt, c : c_sgreen });
+		array_push(_rows_txt,
+			{ k : "this upgrade",
+			  v : (_ps.tier > 0)
+			      ? ("+" + string_format(_mine, 1, 2) + _sfx)
+			      : ("+0" + _sfx + " until bought"),
+			  c : (_ps.tier > 0) ? c_white : _dim });
+		array_push(_rows_txt,
+			{ k : "total " + _pe.name,
+			  v : "+" + string_format(_ub[$ _pe.stat], 1, 2) + _sfx,
+			  c : _pe.col });
 	} else {
-		draw_set_color(c_white);
-		draw_set_alpha(.8);
-		draw_text(_px, desc_y + 35, "a one-off - it is spent when bought");
+		array_push(_rows_txt,
+			{ k : "a one-off", v : "spent when bought", c : _dim });
+		array_push(_rows_txt,
+			{ k : "gives", v : (_pe == -1) ? "-" : _pe.help, c : c_white });
+		array_push(_rows_txt,
+			{ k : "slots", v : string(upgrade_slots()) + " / "
+			  + string(UPG_SLOT_MAX), c : c_white });
 	}
 
-	// the mechanical line: how deep it goes, what a tier is worth, and
-	// what it would fetch
-	draw_set_color(_dim);
-	draw_set_alpha(.55);
-	draw_text(_px, desc_y + 55, "tier " + string(_ps.tier) + " / "
-		+ string(upgrade_cap(pick))
-		+ "    +" + string_format(_ps.val, 1, 2) + " a tier");
-	draw_text(_px, desc_y + 64,
-		"sells for " + string(upgrade_sell_value(pick)) + " credits");
+	var _lh = 11;
+	var _ly = desc_y + desc_h - 4 - array_length(_rows_txt) * _lh;
+	for (var _q = 0; _q < array_length(_rows_txt); _q++) {
+		var _rr = _rows_txt[_q];
+		// light to dark down the stack, so the eye lands on the total
+		draw_sprite_ext(spr_pixel_1x1, 0, desc_x + 1, _ly, desc_w - 2, _lh - 1,
+			0, c_black, .12 + .16 * _q);
+		draw_set_halign(fa_left);
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(_px, _ly + 2, _rr.k);
+		draw_set_halign(fa_right);
+		draw_set_color(_rr.c);
+		draw_set_alpha(.95);
+		draw_text(_pr, _ly + 2, _rr.v);
+		_ly += _lh;
+	}
+	draw_set_halign(fa_left);
 }
 
 draw_set_alpha(1);

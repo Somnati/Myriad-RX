@@ -20,13 +20,18 @@ hh = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 16;
 
 // ---- layout (region law: Step's hits and Draw share these) ----
 cx      = room_width * .5;
-bank_y  = 58;
+// ⚖️ THE STRIP ENDS AT hh + 16, AND hh IS 29, NOT 16. The header sprite
+// is 29 tall, so the title band runs to y 45 - and the "banked time"
+// caption, which sits 16 above the big readout, was landing inside it
+// (his report). Everything below is measured from that 45 now instead
+// of from numbers that happened to look right.
+bank_y  = 68;
 
 // THE SPEED ROW. His set: off / x2 / x4 / x10 / x50. The gaps widen as
 // they climb because the choice is about PACE, not power - every speed
 // converts the bank one for one (timebank_twin's invariant 2), so what
 // the ladder is really offering is "how long do you want this to last".
-spd_y   = 108;
+spd_y   = 116;
 spd_w   = 44;
 spd_gap = 5;
 spds    = [1, 2, 4, 10, 50];
@@ -35,7 +40,7 @@ spd_x0  = cx - (NSPD * spd_w + (NSPD - 1) * spd_gap) * .5;
 
 // THE BURN ROW (his ask): spend a lump at once and have it happen, the
 // way an absence of that length would have. See timebank_burn.
-burn_y  = 150;
+burn_y  = 152;
 burn_w  = 52;
 burn_gap = 6;
 burns   = [60, 600, 3600, 21600];
@@ -43,7 +48,7 @@ burn_lbl = ["1m", "10m", "1h", "6h"];
 NBURN   = 4;
 burn_x0 = cx - (NBURN * burn_w + (NBURN - 1) * burn_gap) * .5;
 
-upg_y   = 180;
+upg_y   = 182;
 upg_h   = 24;
 upg_x   = 70;
 upg_w   = room_width - 140;

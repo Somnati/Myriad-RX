@@ -33,6 +33,7 @@ function handle_save(){
 	// plain real. both move in whole units, so floor on load heals any
 	// fraction-caught save
 	g.profit_lock  = handle("profit_lock",  g.profit_lock);
+	g.upgrade_rarity = handle("upgrade_rarity", g.upgrade_rarity);
 	g.profit       = handle("profit",       g.profit);
 	g.total_profit = handle("total_profit", g.total_profit);
 	if (action == sv_load) {
