@@ -39,4 +39,5 @@ function settings_defaults() {
 	g.display_gps  = 0;          // dial rate readout: per cycle
 	g.buy_round    = true;       // DE's round-up bulk buys
 	g.persist_popups = false;    // DE's credit panel: only after a drop
+	g.tap_sound      = 0;        // index into tap_sound_config
 }

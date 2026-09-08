@@ -80,16 +80,10 @@ for (var _i = 0; _i < _n; _i++) {
 	var _b = __btn(_i);
 
 	if (!_has) {
+		// no button: rolling is ONE control under the table now
 		draw_set_color(_dim);
 		draw_set_alpha(.5);
 		draw_text(row_x + 7, _ry + 4, "empty slot");
-		// THE STAKE IS ON THE BUTTON. A roll costs credits now, so the
-		// button has to say so before it is pressed - a price you only
-		// discover from the balance going down is a price you resent.
-		var _rc = upgrade_roll_cost();
-		var _ra = (g.credits >= arb(_rc));
-		draw_ui_button(_b.x, _b.y, _b.w, _b.h, "roll " + string(_rc),
-			_ra ? c_sblue : c_hred, true, _ra);
 		continue;
 	}
 
@@ -129,14 +123,44 @@ for (var _i = 0; _i < _n; _i++) {
 			string(upgrade_sell_value(_i)), c_lavender, true, true);
 	}
 
+	// ---- THE HOLD BAR (DE's) ----
+	// A red wash sweeping across the WHOLE ROW rather than across the
+	// button, which is DE's shape and the right one: what is being
+	// consumed is the slot, so the row is the thing that should be
+	// visibly filling up.
+	//
+	// The fill is SQUARED, exactly as DE squares it for a sale
+	// (val = (hp/100)*(hp/100) against a plain hp/100 for a buy). It
+	// crawls at the start and rushes at the end, so a tap that was not
+	// meant to be a hold barely moves it - the commitment is legible
+	// before it is irreversible.
+	if (hold_i == _i && hold_hp > 0) {
+		var _hf = hold_hp / 100;
+		_hf *= _hf;
+		var _hc = merge_colour(c_hred, c_black, .3);
+		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w * _hf, row_h, 0, _hc, .6);
+	}
+
 	__dots(_i, _ry);
 }
+
+// ---- THE ONE ROLL BUTTON ----
+// Under the table, where a control that acts on the WHOLE table belongs.
+// It says the stake and what it will do with it; when every slot is
+// taken it says so instead of pretending to be pressable.
+var _rr  = __roll_rect();
+var _rc  = upgrade_roll_cost();
+var _fs  = __free_slot();
+var _ra  = (_fs != -1) && (g.credits >= arb(_rc));
+draw_ui_button(_rr.x, _rr.y, _rr.w, _rr.h,
+	(_fs == -1) ? "no free slot" : ("roll a slot - " + string(_rc)),
+	(_fs == -1) ? c_gray : (_ra ? c_sblue : c_hred), (_fs != -1), _ra);
 
 // ---- the footer: what all of it adds up to ----
 // The screen is a list of individual purchases and the thing a player
 // actually wants is the total. Without this the only place to see it is
 // the statistics screen, a room away.
-var _fy = __row_y(_n) + 4;
+var _fy = __row_y(_n) + 22;   // clear of the roll button
 if (_fy < room_height - 20) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);

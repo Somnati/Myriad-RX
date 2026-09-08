@@ -33,12 +33,45 @@ row_w  = room_width - 16;
 mode = 0;      // 0 = buy, 1 = sell
 sel  = -1;     // the slot under the pointer, for the hover wash
 
+// ---- THE HOLD-TO-SELL BAR (Myriad DE's obj_upgrade_slot hp) ----
+// DE fills a bar across the row while the pointer is held on the
+// button, at 100 units per 40 frames, and trickles it back to zero the
+// moment you let go or slide off. The action fires when it lands.
+//
+// SELLING ONLY, deliberately. DE gates buying behind the same hold, and
+// on a purchase that is friction on the screen's main verb - you buy
+// tiers constantly. Selling is destructive and irreversible, and a
+// commitment gate on a destructive action is protection rather than
+// friction. Buy stays an instant click.
+hold_i  = -1;   // the slot filling, -1 = none
+hold_hp = 0;    // 0..100
+hold_lock = false;  // set on a completed hold: DE's `hp = -1`, cleared
+                    // on release, so one hold is one sale
+
 __row_y = function(_i) { return list_y + 6 + _i * row_sp; };
 
 // the row's one button, right-aligned so every row's action sits in the
-// same column no matter how long its name is
+// same column no matter how long its name is. An EMPTY row has none any
+// more - see __roll_rect.
 __btn = function(_i) {
 	return { x : row_x + row_w - 56, y : __row_y(_i) + 2, w : 54, h : 13 };
+};
+
+// THE ONE ROLL BUTTON (his call), under the table. Eight identical
+// [roll] buttons in a column was eight controls for a decision that has
+// no per-row content: a roll does not care WHICH empty slot it lands
+// in, so making the player pick one was asking a question with no
+// answer. One button, and it fills the first slot that is free.
+__roll_rect = function() {
+	return { x : row_x, y : __row_y(upgrade_slots()) + 2, w : 118, h : 15 };
+};
+
+// the slot a roll would land in: the first free one, top down, so the
+// table fills in reading order. -1 = the table is full.
+__free_slot = function() {
+	for (var _i = 0; _i < upgrade_slots(); _i++)
+		if (!is_struct(g.upg.slot[_i])) return _i;
+	return -1;
 };
 
 // the mode pills, in the title strip beside the screen's name

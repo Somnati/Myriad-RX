@@ -89,7 +89,7 @@ if (_crit) {
 // haptic goes to 3 - DE's own crit is silent, so this is the one place
 // the port deliberately adds rather than matches.
 if (_crit) play_sound_ext(snd_orb, .95, 1.05, .5, 3);
-else       play_sound_ext(snd_click, .95, 1.15, .35, 1);
+else       tap_sound_play();   // settings > audio > tap sound
 
 // THE SPIT: bezier profit bits fly from the tap to the counter. The
 // count is the techdemo's law - a tiny tap spits exactly as many bits

@@ -14,11 +14,18 @@ function upgrade_sell(_slot) {
 
 	var _pay = upgrade_sell_value(_slot);
 	g.upg.slot[_slot] = -1;
-	if (_pay > 0) {
-		g.credits = (g.credits >= arb(1)) ? do_add(g.credits, arb(_pay)) : arb(_pay);
-		g.total_credits = (g.total_credits >= arb(1))
-			? do_add(g.total_credits, arb(_pay)) : arb(_pay);
-	}
+
+	// THE PAYOUT GOES THROUGH THE DROPPER, at the pointer. DE's sale is
+	// `drop_credits(mouse_x, mouse_y, acost, 20, -1)` - the credits are
+	// not just added, they FLY from where you were looking to the credit
+	// panel, which is the same ceremony a tap drop gets. Routing it
+	// through credit_drop rather than adding to g.credits by hand also
+	// means the sale is counted, banked and saved by the one script that
+	// already knows how to do all three.
+	// The mote cap is DE's 20 rather than a tap's 8: a sale is a bigger
+	// event and should look like one.
+	if (_pay > 0) credit_drop(mouse_x, mouse_y, _pay, 20);
+
 	update_dials();
 	save_mark_dirty();
 	play_sound_ext(snd_softclick, .85, .95, .5, 1);

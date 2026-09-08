@@ -149,6 +149,39 @@ function handle_save(){
 			g.upg.seen[_u] = (_d == "") ? 0 : floor(real(_d));
 		}
 	}
+	// THE COMPLETED LEDGER, one string - a finished upgrade is four
+	// numbers and an id, and a list of them has no business being one
+	// ini key each. "id:rar:val:tier|id:rar:val:tier|..."
+	var _done_txt = "";
+	for (var _u = 0; _u < array_length(g.upg.done); _u++) {
+		var _dn = g.upg.done[_u];
+		_done_txt += ((_u > 0) ? "|" : "") + _dn.id + ":" + string(_dn.rar)
+			+ ":" + string(_dn.val) + ":" + string(_dn.tier);
+	}
+	_done_txt = handle("done", _done_txt);
+	if (action == sv_load) {
+		g.upg.done = [];
+		if (_done_txt != "") {
+			var _dp = string_split(_done_txt, "|");
+			for (var _u = 0; _u < array_length(_dp); _u++) {
+				var _f = string_split(_dp[_u], ":");
+				if (array_length(_f) < 4) continue;
+				// an id the roster has retired drops out of the ledger
+				// rather than taking the savefile with it - the same
+				// rule the slots follow
+				var _de = upgrade_entry(_f[0]);
+				if (_de == -1) continue;
+				array_push(g.upg.done, {
+					id   : _f[0],
+					stat : _de.stat,
+					rar  : max(0, floor(real(_f[1]))),
+					val  : real(_f[2]),
+					tier : max(1, floor(real(_f[3]))),
+				});
+			}
+		}
+	}
+
 	for (var _u = 0; _u < UPG_SLOT_MAX; _u++) {
 		var _s = g.upg.slot[_u];
 		var _has = is_struct(_s);

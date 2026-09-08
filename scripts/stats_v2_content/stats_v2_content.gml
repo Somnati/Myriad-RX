@@ -98,6 +98,10 @@ function stats_v2_content() {
 			if (is_struct(g.upg.slot[_i]) && g.upg.slot[_i].tier > 0) _held++;
 		stats_v2_line("slots", string(_held) + " / " + string(upgrade_slots()));
 		stats_v2_line("bought", string(g.upg.total));
+		stats_v2_line("completed", string(array_length(g.upg.done)), -1,
+			(array_length(g.upg.done) > 0) ? c_gold : c_gray,
+			"upgrades taken to their last tier. they free their slot and "
+			+ "keep paying out - the totals below count them.");
 		stats_v2_line("rolled", string(g.upg.rolls));
 		stats_v2_line("roll price", string(upgrade_roll_cost()) + " credits",
 			-1, c_lavender, "what one roll into an empty slot costs. it "

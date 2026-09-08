@@ -1,4 +1,4 @@
-/// @description credit_drop(x, y, [amount]) - THE ONE SITE credits are
+/// @description credit_drop(x, y, [amount], [motes]) - THE ONE SITE credits are
 /// earned (Myriad DE's drop_credits). amount = -1 (default) PULLS from
 /// the dropper's pool: refused while the cooldown runs or the pool is
 /// at its floor; otherwise a random 1..pool, capped by credit_maxpull,
@@ -11,7 +11,7 @@
 /// left edge to receive them (obj_display_credits). Credits land the
 /// same frame; the motes are cosmetic, as in DE (drop_credits pays
 /// before emit_bezier_profit).
-function credit_drop(_x, _y, _amount = -1) {
+function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 	credits_init();
 	var _n = _amount;
 
@@ -39,7 +39,7 @@ function credit_drop(_x, _y, _amount = -1) {
 		_tx = obj_display_credits.seat_x;
 		_ty = obj_display_credits.seat_y;
 	}
-	bezier_bits(_x, _y, clamp(_n, 1, 8), c_lavender, _tx, _ty, 1, 0);
+	bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, 1, 0);
 
 	show("[credits +" + string(_n) + "]");
 	return _n;

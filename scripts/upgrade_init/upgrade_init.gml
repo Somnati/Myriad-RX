@@ -35,5 +35,15 @@ function upgrade_init(_force = false) {
 		// draw the odds you were promised over the odds you actually
 		// got, which is the only honest way to show a distribution.
 		seen   : array_create(UPG_RARITY_N, 0),
+
+		// THE COMPLETED LEDGER. A slot that reaches its last tier is
+		// CLEARED (DE's behaviour) and the finished upgrade moves here,
+		// where upgrade_bonus still reads it. DE can free the slot for
+		// nothing because its effects were accumulated into globals on
+		// the way in; ours are derived, so the finished thing has to
+		// keep existing somewhere. It keeps existing as DATA - id,
+		// rarity, value, tier - so everything derivation buys us
+		// survives. See upgrade_complete.
+		done   : [],
 	};
 }

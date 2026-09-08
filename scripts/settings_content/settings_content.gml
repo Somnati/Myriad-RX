@@ -247,6 +247,30 @@ function settings_content() {
 		"%", 1,
 		"clicks, dice, ui. release the knob to hear it.");
 
+	// THE TAP SOUND (DE's "gen sound"). The pill builds itself from
+	// tap_sound_config, so adding a sound is one row in that file and
+	// nothing here. Picking one PLAYS it - a sound you have to leave the
+	// menu to hear is a sound you pick by name and regret.
+	settings_pill("tap sound", "tapsnd",
+		tap_sound_config()[clamp(g.tap_sound, 0,
+			array_length(tap_sound_config()) - 1)].name,
+		function() {
+			var _l = tap_sound_config();
+			for (var _j = 0; _j < array_length(_l); _j++) {
+				var _on = (_j == g.tap_sound);
+				set_pill(_l[_j].name, {
+					val : _j,
+					col : _on ? c_gold : sett_ink,
+					enabled : _on,
+				});
+			}
+		},
+		function(_v) {
+			g.tap_sound = _v;
+			tap_sound_play();
+		},
+		"what a tap sounds like. myriad de's list, ported whole.");
+
 	// music lands later - when it does, this is the whole hookup:
 	// settings_slider("music volume", 0, 100,
 	//     function() { return g.vol_music; },

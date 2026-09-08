@@ -31,6 +31,12 @@ function upgrade_buy(_slot) {
 		g.upg.slot[_slot] = -1;
 		assign_banner("upgrade slot gained", c_white, c_black);
 		play_sound_ext(snd_diamond, 1, 1.05, .6, 2);
+	} else if (_s.tier >= upgrade_cap(_slot)) {
+		// THE LAST TIER FREES THE SLOT (DE's behaviour). The upgrade
+		// moves to the completed ledger, where it keeps paying out -
+		// see upgrade_complete for why that indirection is needed here
+		// and is not needed in DE.
+		upgrade_complete(_slot);
 	} else {
 		play_sound_ext(snd_pop, .95, 1.15, .5, 1);
 	}

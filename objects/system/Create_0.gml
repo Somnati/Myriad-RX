@@ -75,6 +75,10 @@ g.buy_round = true;
 // ALWAYS SHOW POPUPS (DE's persist_popups): the credit panel stays out
 // in the money room instead of showing only after a drop
 g.persist_popups = false;
+// THE TAP SOUND: an INDEX into tap_sound_config, never a sound asset -
+// asset ids move when the resource tree changes and a saved preference
+// would silently become a different sound. Settings > audio.
+g.tap_sound = 0;
 // profit earned but not yet DELIVERED by its motes. Registered by
 // give_profit and released as each mote lands, so the counter can hold
 // it back. A global, because the alternative - summing the live motes

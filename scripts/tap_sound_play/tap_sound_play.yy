@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tap_sound_play",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tap_sound_play",
+  "parent":{
+    "name":"audio",
+    "path":"folders/engine/audio.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

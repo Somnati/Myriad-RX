@@ -37,6 +37,9 @@
 //                      offer can take, plus DE's wealth bonus rolls.
 //                      This is what the dots under a row count.
 //   upgrade_buy/_sell  the two transactions.
+//   upgrade_complete   the last tier CLEARS THE SLOT (DE's behaviour)
+//                      and files the upgrade in g.upg.done, which
+//                      upgrade_bonus reads alongside the slots.
 //   upgrade_price_base ONE tier's price, UN-INFLATED - the single owner
 //                      of DE's curve base x rarity x (1 + (.2+.1t)*t).
 //   upgrade_cost       that, times upgrade_inflation.
@@ -105,6 +108,30 @@
 //   the PRESENCE layer - earned by being here and tapping - running
 //   parallel to rebirth's PROGRESS layer. game_reset wipes it;
 //   rebirth_do never touches it.
+//
+//   A FINISHED UPGRADE LEAVES ITS SLOT BUT NOT THE GAME. DE clears the
+//   slot on the last tier and loses nothing, because buy_upgrade
+//   already added the effect into a global on the way in - the slot was
+//   only ever a receipt. We derive from the slots, so clearing one
+//   would delete the upgrade you just finished paying for. The finished
+//   thing moves to a LEDGER instead (g.upg.done), which upgrade_bonus
+//   walks beside the slots. It is still data - id, rarity, value, tier
+//   - so a rebalance still reaches old saves and nothing is ever
+//   accumulated. This is the one place where deriving costs an extra
+//   moving part, and it is worth it: the alternative is DE's, where
+//   every number depends on the history of purchases.
+//
+//   SELLING IS A HOLD, BUYING IS A CLICK. DE gates both behind a bar
+//   that fills over 40 frames while the pointer is down. We keep it for
+//   the sale only: a commitment gate on a destructive, irreversible
+//   action is protection, and the same gate on the screen's main verb
+//   is friction. The fill is squared (DE squares the sell fill and not
+//   the buy fill), so a mis-tap barely moves it.
+//
+//   ROLLING IS ONE BUTTON, not one per row. A roll does not care which
+//   empty slot receives it, so eight identical buttons were asking a
+//   question with no answer. The button takes the first free slot, top
+//   down.
 //
 //   ROLLING COSTS CREDITS, and two separate things depend on it.
 //   Without a stake there is no reason to keep a common - you press the

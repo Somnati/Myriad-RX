@@ -59,7 +59,10 @@ if (_dp > 0) {
 // PROGRESS - the same number the bar shows, so the dot is a readable
 // dial in its own right.
 if (_da > 0) {
-	var _dx = room_width - dock_w * .5;
+	// his report: the column sat too tight against the right edge. Three
+	// pixels in from the strip's centre - the dots still mark the
+	// drawer's edge, they just stop touching the screen's.
+	var _dx = room_width - dock_w * .5 - 3;
 	for (var _i = 0; _i < _n; _i++) {
 		var _d  = g.dial[_i];
 		var _c  = dial_color(_i);
