@@ -41,6 +41,23 @@ _aw.merges = 0;
 _aw.hi = g.tiles.highest;
 save_mark_dirty();
 
+// ---- THE ROOM'S BANDS ----
+// The header is 29 tall, then a TITLE STRIP like every other screen in
+// the game (his ask - settings, statistics, upgrades and the time bank
+// all have one, and the tiles were the odd room out). The fabricator
+// bars sit SNUG under it: DE stacks its module meters immediately below
+// the strip with no gap, and a gap is what made them read as floating
+// debris here.
+bby     = obj_ui_header.sprite_height;   // 29
+strip_y = bby;
+strip_h = 16;
+bar_y   = strip_y + strip_h;             // snug, no gap
+bar_h   = sprite_get_height(spr_progressbar);   // 5
+
+// the board's band: everything under the bars, above the bottom edge
+board_top = bar_y + bar_h * 2 + 6;
+board_bot = room_height - 8;
+
 // board geometry: spr_tile at 1x (30x13) with a 4px gutter - the
 // Myriad sizing exactly. the table is CENTERED in the play band
 // between the fab/automerge bars (under the 29px header) and the
@@ -51,10 +68,11 @@ th = sprite_get_height(spr_tile) * tsc;
 pw = tw + 4;
 ph = th + 4;
 var _rows = ceil(g.tiles.slots / g.tiles.cols);
-// centred in what is LEFT of the room once the upgrade column has its
-// share, so the board never slides under the prices
-bx = ((room_width - 170) - (g.tiles.cols * pw - 4)) * .5;
-by = 40 + ((240 - 40) - (_rows * ph - 4)) * .5;
+// CENTRED IN THE ROOM (his ask). The upgrades are a drawer now, so
+// nothing permanently occupies a side and the board can sit where a
+// board should.
+bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
+by = board_top + ((board_bot - board_top) - (_rows * ph - 4)) * .5;
 
 // grab state: which slot rides the mouse and where its ghost floats.
 // the struct mirror (g.tiles.grab) tells the ENGINE to keep its hands
@@ -101,23 +119,38 @@ slot_col = merge_colour(c_black, rgb(25, 51, 77), .4);
 
 // slot -> screen and screen -> slot: these three functions replace
 // the entire obj_module_mouse broker
-// ---- THE UPGRADE COLUMN (the shard sink) ----
-// The board is four columns of 30px and sits centred, so it leaves
-// about 170px clear on each side. The upgrades take the right one:
-// beside the thing they change rather than a room away, because every
-// one of them is a judgement about the board you are looking at.
-upg_x = room_width - 158;
-upg_w = 150;
-upg_y = 44;
+// ---- THE UPGRADE DRAWER (his ask: out from the LEFT on a swipe
+// right). It used to be a fixed column on the right, which cost the
+// board 170px of room it needed and clipped everything into everything
+// else. As a drawer it costs nothing until it is asked for.
+dr_w    = 158;   // open width
+dr_tab  = 9;     // the edge tab when closed
+dr_open = 0;     // 0 closed .. 1 open, eased
+dr_want = 0;
+sw_x    = -1;    // a swipe in progress: where it started
+sw_y    = -1;
+
+upg_y = 0;       // seated below, once the strip is known
 upg_h = 26;
 upg_n = 4;
+__dr_face = function() { return -dr_w + (dr_w + dr_tab) * dr_open; };
 __upg_r = function(_k) {
-	return { x : upg_x, y : upg_y + _k * (upg_h + 4), w : upg_w, h : upg_h };
+	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
+	         w : dr_w - 8, h : upg_h };
 };
 // the quote cache: tile_upg walks a log-space series and packs an arb,
 // and the price only moves when something is bought
 qtic = 0;
 uq   = [];
+
+// the drawer's rows start under the strip, and the board re-seats
+// itself whenever the slot count changes (a board-size upgrade)
+upg_y = bar_y + bar_h * 2 + 8;
+__reseat = function() {
+	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
+	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
+	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
+};
 
 __slot_x = function(_i) { return bx + (_i % g.tiles.cols) * pw; };
 __slot_y = function(_i) { return by + (_i div g.tiles.cols) * ph; };

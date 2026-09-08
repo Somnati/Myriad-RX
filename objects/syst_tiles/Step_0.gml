@@ -24,6 +24,33 @@ while (array_length(_t.ev) > 0) {
 }
 
 // ---- input (region pattern: fully arbitrated) ----
+// ---- THE DRAWER: a swipe RIGHT opens it, a swipe LEFT closes it ----
+// The gesture is judged on RELEASE by total travel, which is what keeps
+// a drag of a TILE from being read as a swipe: a tile drag ends on a
+// slot and travels little, a swipe crosses the room.
+dr_open += (dr_want - dr_open) * min(1, .22 * delta);
+if (abs(dr_want - dr_open) < .004) dr_open = dr_want;
+__reseat();   // a board-size upgrade re-centres the table at once
+
+if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
+	if (mouse_check_button_pressed(mb_left)) { sw_x = mouse_x; sw_y = mouse_y; }
+	if (mouse_check_button_released(mb_left) && sw_x >= 0) {
+		var _dx = mouse_x - sw_x;
+		var _dy = mouse_y - sw_y;
+		if (abs(_dx) >= 40 && abs(_dx) > abs(_dy)) dr_want = (_dx > 0) ? 1 : 0;
+		sw_x = -1;
+	}
+	// and the edge tab is a plain tap, for anyone who would rather not
+	// swipe at all
+	if (mouse_check_button_pressed(mb_left))
+	if (dr_want == 0)
+	if (point_in_rectangle(mouse_x, mouse_y, 0, strip_y + strip_h + 24,
+		dr_tab + 2, strip_y + strip_h + 84)) {
+		dr_want = 1;
+		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
+	}
+}
+
 // ---- the upgrade quotes, on the slow tick ----
 qtic -= delta;
 if (qtic <= 0) {
@@ -40,6 +67,7 @@ if (qtic <= 0) {
 // ---- the upgrade buttons. BEFORE the board's own input, because a
 // press on the panel must never also be a press on a tile ----
 if (input_free())
+if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
 	var _uc3 = tile_upg_config();
@@ -56,6 +84,9 @@ if (mouse_check_button_pressed(mb_left)) {
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
 		exit;
 	}
+	// anywhere else on an open drawer swallows the press, so the board
+	// underneath never receives it
+	if (mouse_x < __dr_face() + dr_w) exit;
 }
 
 if (input_free())

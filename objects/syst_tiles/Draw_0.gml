@@ -8,114 +8,61 @@ var _t = g.tiles;
 draw_set_font(fnt);
 draw_set_halign(fa_center);
 
-// ---- fabricator + automerge bars: slivers right under the 29px
-// header (they used to sit AT y24, i.e. behind it). green = progress
-// to the next fabricated tile, steelblue = the auto-merge cadence ----
-draw_sprite_ext(spr_pixel_1x1, 0, 0, 29, room_width, 3, 0, c_black, .8);
-draw_sprite_ext(spr_pixel_1x1, 0, 0, 29,
-	room_width * clamp(_t.fab / _t.fab_t, 0, 1), 3, 0, c_seagreen, .9);
-if (_t.automerge) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, 32, room_width, 2, 0, c_black, .8);
-	// the merger is a powered machine: its bar cools from steelblue
-	// toward red as the battery pool starves it (thr_am, power_tick) -
-	// the fill also crawls slower, this makes the WHY readable
-	var _amthr = _t[$ "thr_am"] ?? 1;
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, 32,
-		room_width * clamp(_t.am_tic / _t.am_tic_, 0, 1), 2, 0,
-		merge_colour(c_hred, c_steelblue, _amthr), .9);
-}
+// ---- THE TITLE STRIP, the same one every other screen wears ----
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y, room_width, strip_h, 0,
+	c_hsv(169, 186, 5), 1);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + strip_h - 1, room_width, 1, 0,
+	sett_ink, .25);
+draw_set_color(rgb(195, 205, 235));
+draw_set_alpha(.85);
+draw_text(6, strip_y + 5, "tiles");
+
+// the hopper's contents ride the strip, clear of the back button
 if (_t.stored > 0) {
-	// left of the back button (room_width-86..-6, y30-54) - it drew
-	// underneath it at the right edge
 	draw_set_halign(fa_right);
 	draw_set_color((_t.stored >= _t.stored_max) ? c_horange : c_seagreen);
 	draw_set_alpha(.9);
-	draw_text(room_width - 92, 36,
-		"stored x" + string(_t.stored) + "/" + string(_t.stored_max));
-	draw_set_halign(fa_center);
+	draw_text(room_width - 70, strip_y + 5,
+		"hopper " + string(_t.stored) + "/" + string(_t.stored_max));
+	draw_set_halign(fa_left);
 }
 
-// title
-draw_set_color(c_aqua);
-draw_set_alpha(.85);
-draw_text(240, 40, "tiles");
+// ---- THE FABRICATOR BARS, snug under the strip (his ask) ----
+// Myriad DE's spr_progressbar, drawn DE's way: frame 0 sliced with
+// draw_sprite_part_ext is the fill, frame 1 is the leading-edge cap
+// riding its right end. The sprite is 70 wide and gets stretched to
+// the room, which is what every Myriad meter does with it.
+var _psw = sprite_get_width(spr_progressbar);
+var _xs  = room_width / _psw;
+
+var _fp = clamp(_t.fab / _t.fab_t, 0, 1);
+draw_sprite_ext(spr_progressbar, 0, 0, bar_y, _xs, 1, 0, c_black, .8);
+draw_sprite_part_ext(spr_progressbar, 0, 0, 0, _fp * (_psw - 1), bar_h,
+	0, bar_y, _xs, 1, c_seagreen, .95);
+if (_fp > .01 && _fp < 1)
+	draw_sprite_ext(spr_progressbar, 1, _fp * (room_width - _xs), bar_y,
+		_xs, 1, 0, merge_colour(c_seagreen, c_white, .5), .95);
+
+if (_t.automerge) {
+	// the merger cools from steelblue toward red as the pool starves
+	// it (thr_am) - the fill crawls slower too, this says WHY
+	var _amthr = _t[$ "thr_am"] ?? 1;
+	var _ac = merge_colour(c_hred, c_steelblue, _amthr);
+	var _ap = clamp(_t.am_tic / _t.am_tic_, 0, 1);
+	draw_sprite_ext(spr_progressbar, 0, 0, bar_y + bar_h, _xs, 1, 0, c_black, .8);
+	draw_sprite_part_ext(spr_progressbar, 0, 0, 0, _ap * (_psw - 1), bar_h,
+		0, bar_y + bar_h, _xs, 1, _ac, .95);
+	if (_ap > .01 && _ap < 1)
+		draw_sprite_ext(spr_progressbar, 1, _ap * (room_width - _xs),
+			bar_y + bar_h, _xs, 1, 0, merge_colour(_ac, c_white, .5), .95);
+}
+draw_set_halign(fa_center);
 
 // ---- the board ----
 var _am0 = __aim(); // the drop's true target (mouse or tile center)
 var _hov = __slot_at(_am0[0], _am0[1]);
-// ================= THE SHARD PANEL =================
-// What the table has earned, and the four things it buys. Drawn before
-// the board so a dragged tile passes OVER it rather than under.
-var _tt = g.tiles;
-draw_set_font(fnt);
-draw_set_halign(fa_left);
-draw_set_valign(fa_top);
-
-draw_set_color(c_aqua);
-draw_set_alpha(.6);
-draw_text(upg_x, 30, "shards");
-draw_set_halign(fa_right);
-draw_set_color(c_white);
-draw_set_alpha(.95);
-draw_text(upg_x + upg_w, 30,
-	(_tt.shards >= arb(1)) ? crunch_arb(_tt.shards) : "0");
-draw_set_halign(fa_left);
-
-var _ucfg = tile_upg_config();
-for (var _k = 0; _k < array_length(_ucfg); _k++) {
-	var _ur = __upg_r(_k);
-	var _uq = (_k < array_length(uq)) ? uq[_k]
-		: { ok : false, cost : arb(1), lv : 0, txt : "-" };
-	var _uc = _ucfg[_k];
-
-	// the row surface, the statistics recipe
-	var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0, _ucol, 1);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y, _ur.w, 1, 0,
-		_ucol, c_black, c_black, _ucol, .5);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
-		_uq.ok ? .9 : .3);
-
-	draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-	draw_set_alpha(.95);
-	draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
-	draw_set_halign(fa_right);
-	draw_set_color(rgb(120, 130, 150));
-	draw_set_alpha(.6);
-	draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
-	draw_set_halign(fa_left);
-
-	// the cost button, the house cost-inside language
-	var _bx2 = _ur.x + 6;
-	var _bw2 = _ur.w - 12;
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
-		_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85);
-	draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
-		_uq.ok ? .8 : .3);
-	draw_set_halign(fa_center);
-	draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-	draw_set_alpha(_uq.ok ? .95 : .5);
-	draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
-	draw_set_halign(fa_left);
-}
-
-// what the board is worth per second, under the prices it pays for
-draw_set_color(c_aqua);
-draw_set_alpha(.55);
-draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 4,
-	"+" + ((_tt.gps >= arb(1)) ? crunch_arb(_tt.gps) : "0") + " a second");
-
-// ⚖️ AND SAY WHICH SIDE OF THE SWITCH WE ARE ON. A board that quietly
-// forgets itself between launches is a bug report waiting to happen;
-// said out loud it is a stated condition of testing.
-if (!TILES_LIVE) {
-	draw_set_color(c_horange);
-	draw_set_alpha(.7);
-	draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 15, "preview - the board");
-	draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 24, "is not saved yet");
-}
-draw_set_alpha(1);
-
 draw_set_font(fnt_large);
 for (var _i = 0; _i < _t.slots; _i++) {
 	var _x = __slot_x(_i);
@@ -131,12 +78,18 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
 		if (!_held && val_str[_i] != "") {
-			// Myriad's value placement: centered, TOP-aligned at +3,
-			// fractionally downscaled to fit the tile
+			// ⚖️ CENTRED ON THE TILE, both ways (his report). It was
+			// TOP-aligned at a fixed +3, and every tile's value is
+			// downscaled by a DIFFERENT amount to fit - so the taller
+			// the string, the further from centre it sat. Middle
+			// alignment against the tile's own centre is invariant to
+			// the scale, which is the only way a grid of them lines up.
+			draw_set_valign(fa_middle);
 			draw_set_color(txtcol[_i]);
 			draw_set_alpha(1);
-			draw_text_transformed(_x + tw * .5, _y + 3, val_str[_i],
+			draw_text_transformed(_x + tw * .5, _y + th * .5, val_str[_i],
 				val_sc[_i], val_sc[_i], 0);
+			draw_set_valign(fa_top);
 		}
 		// hover feedback when nothing is held
 		if (grab_i == -1 && _i == _hov)
@@ -169,7 +122,8 @@ if (grab_i != -1) {
 		merge_colour(col[grab_i], c_black, .6), 1);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);
-	draw_text_transformed(gx + tw * .5, gy + 3, val_str[grab_i],
+	draw_set_valign(fa_middle);
+	draw_text_transformed(gx + tw * .5, gy + th * .5, val_str[grab_i],
 		val_sc[grab_i], val_sc[grab_i], 0);
 }
 draw_set_font(fnt);
@@ -256,3 +210,96 @@ if (!is_undefined(_t.report)) {
 draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
+
+// ================= THE UPGRADE DRAWER =================
+// Out from the LEFT on a swipe right (his ask). Drawn LAST so it slides
+// OVER the board rather than under it - a drawer that the thing it
+// covers draws through is not a drawer.
+if (dr_open > .001) {
+	var _fx = __dr_face();
+	var _tt = g.tiles;
+	draw_set_font(fnt);
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+
+	// the body, to the bottom edge - the house drawer shape
+	draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
+		0, c_black, .9 * min(1, dr_open * 2));
+	draw_sprite_ext(spr_pixel_1x1, 0, _fx + dr_w - 1, strip_y, 1,
+		room_height - strip_y, 0, c_aqua, .35);
+
+	draw_set_color(c_aqua);
+	draw_set_alpha(.6 * dr_open);
+	draw_text(_fx + 6, strip_y + 5, "shards");
+	draw_set_halign(fa_right);
+	draw_set_color(c_white);
+	draw_set_alpha(.95 * dr_open);
+	draw_text(_fx + dr_w - 6, strip_y + 5,
+		(_tt.shards >= arb(1)) ? crunch_arb(_tt.shards) : "0");
+	draw_set_halign(fa_left);
+
+	var _ucfg = tile_upg_config();
+	for (var _k = 0; _k < array_length(_ucfg); _k++) {
+		var _ur = __upg_r(_k);
+		var _uq = (_k < array_length(uq)) ? uq[_k]
+			: { ok : false, cost : arb(1), lv : 0, txt : "-" };
+		var _uc = _ucfg[_k];
+		var _ua = dr_open;
+
+		var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0,
+			_ucol, _ua);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y,
+			_ur.w, 1, 0, _ucol, c_black, c_black, _ucol, .5 * _ua);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
+			(_uq.ok ? .9 : .3) * _ua);
+
+		draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+		draw_set_alpha(.95 * _ua);
+		draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
+		draw_set_halign(fa_right);
+		draw_set_color(rgb(120, 130, 150));
+		draw_set_alpha(.6 * _ua);
+		draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
+		draw_set_halign(fa_left);
+
+		var _bx2 = _ur.x + 6;
+		var _bw2 = _ur.w - 12;
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
+			_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
+		draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
+			(_uq.ok ? .8 : .3) * _ua);
+		draw_set_halign(fa_center);
+		draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+		draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
+		draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
+		draw_set_halign(fa_left);
+	}
+
+	draw_set_color(c_aqua);
+	draw_set_alpha(.55 * dr_open);
+	draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 4,
+		"+" + ((_tt.gps >= arb(1)) ? crunch_arb(_tt.gps) : "0") + " a second");
+	if (!TILES_LIVE) {
+		draw_set_color(c_horange);
+		draw_set_alpha(.7 * dr_open);
+		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "preview - the board");
+		draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 24, "is not saved yet");
+	}
+}
+
+// THE EDGE TAB, always. A drawer nobody can see is a drawer nobody
+// opens, so the handle stays on screen and pulses gently while there is
+// something affordable behind it.
+var _tabx = __dr_face() + dr_w;
+var _any = false;
+for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
+draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
+	dr_tab, 60, 0, c_black, .8);
+draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
+	2, 60, 0, c_aqua, _any ? (.55 + .35 * dsin(current_time * .25)) : .35);
+
+draw_set_alpha(1);
+draw_set_color(c_white);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);

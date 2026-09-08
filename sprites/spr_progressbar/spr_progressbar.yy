@@ -28,8 +28,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"dials",
-    "path":"folders/game/dials.yy",
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
