@@ -149,10 +149,23 @@ function bignum_visualizer_create() {
             var _x0 = vx - cam_x;
             var _y0 = vy - cam_y;
 
+            // which offsets are in this frame's list, so each field can
+            // be told whether the field above it is drawing. A clamped
+            // field's squares exactly cover that field's first square, so
+            // when it IS drawing they are redundant paint - and redundant
+            // paint over a crossfading layer is a colour that moves with
+            // the camera. See BignumVisRenderer's _above_drawn.
+            var _present = {};
+            for (var i = 0; i < _n; i++) {
+                variable_struct_set(_present, string(_layers[i].offset), true);
+            }
+
             for (var i = 0; i < _n; i++) {
                 var _L = _layers[i];
                 var _u = renderer.unit_for(_L.offset, _wm);
-                renderer.draw_window(display_win, _L.offset, _u, _x0, _y0, _L.alpha * alpha);
+                var _ab = variable_struct_exists(_present, string(_L.offset + 2));
+                renderer.draw_window(display_win, _L.offset, _u, _x0, _y0,
+                                     _L.alpha * alpha, false, _ab);
             }
 
             // additive glow, centered on the focal point. Color is a

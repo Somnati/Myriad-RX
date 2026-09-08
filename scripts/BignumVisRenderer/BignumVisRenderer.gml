@@ -281,7 +281,7 @@ function BignumVisRenderer() constructor {
     ///         is the parent's partial by construction, never 100+.
     ///         Reading the 3rd digit would count the parent's completed
     ///         squares too and falsely saturate the child solid.
-    static draw_window = function(_win, _offset, _unit, _x0, _y0, _alpha, _as_child = false) {
+    static draw_window = function(_win, _offset, _unit, _x0, _y0, _alpha, _as_child = false, _above_drawn = false) {
         if (_alpha <= 0) return;
 
         // extent cull: a field entirely outside a generous screen margin
@@ -426,9 +426,33 @@ function BignumVisRenderer() constructor {
             }
         }
 
+        // ⚖️ A CLAMPED FIELD DRAWS NO FILLS WHEN THE FIELD ABOVE IS ALSO
+        // BEING DRAWN. Its 100 squares span exactly that field's first
+        // square, which that field has already painted - they are pure
+        // redundancy, and redundant paint is the whole hazard: two paints
+        // of one rectangle are only invisible while they agree, and what
+        // you see when they disagree is decided by LOD alpha, which is the
+        // camera. Painting once makes the agreement structural instead of
+        // a promise, and skips up to 100 draw calls a layer.
+        //
+        // SAFE BY THE EXTENT CULL, not by hope: every field shares _x0/_y0
+        // and a higher offset has a LARGER extent, so any field that
+        // survives the cull is survived by every field above it. And a
+        // field above a clamped one always has at least one full square
+        // (that is what clamped MEANS), so slot 0 is always painted. When
+        // the host says the field above is absent - the layer cull can
+        // drop middles - the fills draw, in the colour set below.
+        // NOTHING DIMS, and that is provable rather than hoped: layer
+        // alpha rises with offset, so the field above is never fainter -
+        // and it is never merely fainter either. alpha(o+2) < 1 needs
+        // wm > o + 2.85, alpha(o) > 0 needs wm < o + 1.15, and no camera
+        // is in both places. Whenever a clamped field can be seen at all,
+        // the field above it is at alpha exactly 1. One opaque paint.
+        var _fill_n = (!_as_child && _full >= 100 && _above_drawn) ? 0 : _full;
+
         // full squares: one draw call each, left to right, top to bottom.
         // The newest settles in as the assembling square fills behind it
-        for (var s = 0; s < _full; s++) {
+        for (var s = 0; s < _fill_n; s++) {
             var _sx = _x0 + (s mod per_row) * _sq_size;
             var _sy = _y0 + (s div per_row) * _sq_size;
             if (spawn_fx && s == _full - 1 && _full < 100) {
@@ -528,7 +552,7 @@ function BignumVisRenderer() constructor {
 
         if (_recurse) {
             // sub-field on top, fading with _rec_a, counted in child mode
-            draw_window(_win, _offset - 2, _unit / 10, _px, _py, _alpha * _rec_a, true);
+            draw_window(_win, _offset - 2, _unit / 10, _px, _py, _alpha * _rec_a, true, false);
         }
 
         if (debug) {

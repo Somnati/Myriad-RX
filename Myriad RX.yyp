@@ -75,6 +75,7 @@
     {"$GMIncludedFile":"","%Name":"tiles_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"tiles_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"timebank_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"timebank_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"validate_project.py","CopyToMask":-1,"filePath":"datafiles","name":"validate_project.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"vis_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"vis_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
   ],
   "isEcma":false,
   "LibraryEmitters":[],
