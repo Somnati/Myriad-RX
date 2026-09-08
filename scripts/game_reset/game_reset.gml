@@ -24,6 +24,8 @@ function game_reset(_diff = 1) {
 	// dials + the tap: create_dials hard-resets the whole layer and
 	// re-derives it (levels, cycles, the tap's own power)
 	rebirth_init(true); // a NEW GAME wipes the bank; a rebirth never does
+	tiles_init(true);    // the board, the fabricator and the bank
+	away_init(true);     // and the per-room away ledgers with it
 	autom_init(true);    // preferences: a new game forgets them, a
 	                     // rebirth does not
 	timebank_init(true); // meta, like the credits: rebirth keeps it, a

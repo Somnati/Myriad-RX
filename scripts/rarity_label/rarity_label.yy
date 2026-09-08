@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"rarity_label",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"rarity_label",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -78,6 +78,20 @@
 	g.credit_tap_chance = 2;    // percent chance per tap
 	g.credit_cool_min   = 5;    // seconds between drops, rolled in
 	g.credit_cool_max   = 8;    //   this range (halved one time in ten)
+	// ---- THE TILE TABLE (Techdemo II's, ported whole) ----
+	// tile_rarity is the fabricator's luck: every fabricated tile rolls
+	// its tier through calculate_rarity with this as the rate, so
+	// raising it slides the whole tier window up. rarity_rate is the
+	// general-purpose one the same engine reads for anything else.
+	g.tile_rarity   = 0;
+	g.rarity_rate   = 0;
+	// two ability-deck flags the tech demo's tile code reads. Nothing
+	// grants them yet; they are here so the ported code finds them
+	// rather than dying at the first roll.
+	g.ad_tilerarity = 0;   // +400 fabricator luck
+	g.ad_hotswap    = 0;   // pick a tile straight off the board
+	tiles_init();
+
 	credits_init();
 
 	// ---- THE TIME BANK (Techdemo II's, ported) ----

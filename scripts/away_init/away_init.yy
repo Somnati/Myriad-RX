@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"away_init",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"away_init",
+  "parent":{
+    "name":"offline",
+    "path":"folders/game/offline.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

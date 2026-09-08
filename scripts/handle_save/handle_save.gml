@@ -136,6 +136,33 @@ function handle_save(){
 	// derives from these at read time (upgrade_bonus), so this is the
 	// whole of it - and a rebalance of any value reaches old saves for
 	// free, which it could not if the effects had been written down. ----
+	// ---- the tile table. THE FLAT TIER ARRAY IS THE WHOLE GAME STATE
+	// (tiles_init's own law: 0 = an empty slot, controllers are views
+	// over it), so one comma string carries the board. Everything else
+	// - gps, the merge timer's period, the colour of anything - derives
+	// on the next tick ----
+	section = "tiles";
+	tiles_init();
+	var _tt = "";
+	for (var _k = 0; _k < g.tiles.slots; _k++)
+		_tt += ((_k > 0) ? "," : "") + string(g.tiles.tier[_k]);
+	_tt = handle("board", _tt);
+	g.tiles.fab     = handle("fab",     g.tiles.fab);
+	g.tiles.stored  = handle("stored",  g.tiles.stored);
+	g.tiles.highest = handle("highest", g.tiles.highest);
+	g.tiles.merges  = handle("merges",  g.tiles.merges);
+	if (action == sv_load) {
+		var _tp = string_split(_tt, ",");
+		for (var _k = 0; _k < g.tiles.slots; _k++) {
+			var _d5 = (_k < array_length(_tp)) ? string_digits(_tp[_k]) : "";
+			g.tiles.tier[_k] = (_d5 == "") ? 0 : max(0, floor(real(_d5)));
+		}
+		g.tiles.fab     = clamp(g.tiles.fab, 0, g.tiles.fab_t);
+		g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);
+		g.tiles.highest = max(1, floor(g.tiles.highest));
+		g.tiles.merges  = max(0, floor(g.tiles.merges));
+	}
+
 	// ---- automation: PREFERENCES only. The q/h pacing ramps are
 	// session state by design (autom_init) - a ramp is a guess about
 	// the current wallet, and the wallet is not the same after a load ----

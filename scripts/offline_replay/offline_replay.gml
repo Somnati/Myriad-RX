@@ -49,6 +49,12 @@ function offline_replay(_secs) {
 	prod_dials(_secs);
 	credit_tick(_secs);   // the dropper's pool refills over the absence too
 
+	// THE TILE TABLE, replayed exactly: tiles_fastforward walks the
+	// absence as a histogram rather than a loop, so a month away costs
+	// the same as a minute. It pays its own profit as it goes, which is
+	// why it runs INSIDE the before/after window below.
+	if (variable_global_exists("tiles")) tiles_fastforward(_secs);
+
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)
 	for (var _i = 0; _i < g.dial_total; _i++) g.dial[_i].paid = false;
