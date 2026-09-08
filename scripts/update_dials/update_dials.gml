@@ -20,13 +20,10 @@ function update_dials() {
 		if (_d.gps >= arb(1)) g.all_gps = do_add(g.all_gps, _d.gps);
 	}
 
-	// THE TILE TABLE EARNS TOO, so it belongs in the fleet's rate - the
-	// header reads all_gps, the offline report quotes it, and rebirth
-	// prices a run against it. Leaving the table out would have made
-	// every one of those quietly understate the game.
-	if (variable_global_exists("tiles"))
-		if (g.tiles.gps >= arb(1))
-			g.all_gps = do_add(g.all_gps, g.tiles.gps);
+	// (the tile table is NOT in here. It earns SHARDS, its own currency,
+	// so it has no business in the profit fleet's rate - and keeping it
+	// out is what stops rebirth, which prices a run off profit held,
+	// from quietly measuring the tile board. See tiles_init.)
 
 	update_click();
 }

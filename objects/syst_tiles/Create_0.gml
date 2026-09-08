@@ -51,7 +51,9 @@ th = sprite_get_height(spr_tile) * tsc;
 pw = tw + 4;
 ph = th + 4;
 var _rows = ceil(g.tiles.slots / g.tiles.cols);
-bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
+// centred in what is LEFT of the room once the upgrade column has its
+// share, so the board never slides under the prices
+bx = ((room_width - 170) - (g.tiles.cols * pw - 4)) * .5;
 by = 40 + ((240 - 40) - (_rows * ph - 4)) * .5;
 
 // grab state: which slot rides the mouse and where its ghost floats.
@@ -99,6 +101,24 @@ slot_col = merge_colour(c_black, rgb(25, 51, 77), .4);
 
 // slot -> screen and screen -> slot: these three functions replace
 // the entire obj_module_mouse broker
+// ---- THE UPGRADE COLUMN (the shard sink) ----
+// The board is four columns of 30px and sits centred, so it leaves
+// about 170px clear on each side. The upgrades take the right one:
+// beside the thing they change rather than a room away, because every
+// one of them is a judgement about the board you are looking at.
+upg_x = room_width - 158;
+upg_w = 150;
+upg_y = 44;
+upg_h = 26;
+upg_n = 4;
+__upg_r = function(_k) {
+	return { x : upg_x, y : upg_y + _k * (upg_h + 4), w : upg_w, h : upg_h };
+};
+// the quote cache: tile_upg walks a log-space series and packs an arb,
+// and the price only moves when something is bought
+qtic = 0;
+uq   = [];
+
 __slot_x = function(_i) { return bx + (_i % g.tiles.cols) * pw; };
 __slot_y = function(_i) { return by + (_i div g.tiles.cols) * ph; };
 __slot_at = function(_mx, _my) {

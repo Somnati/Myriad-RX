@@ -19,7 +19,7 @@ function tiles_init(_force = false) {
 	if (variable_global_exists("tiles") && is_struct(g.tiles) && !_force)
 		return g.tiles;
 
-	var _n = 16;
+	var _n = TILE_SLOTS_BASE;
 	g.tiles = {
 		// board
 		slots : _n,
@@ -31,9 +31,9 @@ function tiles_init(_force = false) {
 		// stored is HARD-capped: at the cap the fab timer sits full
 		// and waits (Myriad's clamp) - production never evaporates
 		fab        : 0,
-		fab_t      : 60 * 10,
+		fab_t      : TILE_FAB_T,
 		stored     : 0,
-		stored_max : 10,
+		stored_max : TILE_BANK_BASE,
 
 		// auto-merge, timed the Myriad way: the merge interval is a
 		// MULTIPLE of the fab interval (get_fab_time's tic_ = fab x1.5),
@@ -88,6 +88,17 @@ function tiles_init(_force = false) {
 		// answer "how many tiles has this account ever made" - which is
 		// the one number a statistics screen is actually asked for.
 		made    : 0,
+
+		// ⚖️ THE TABLE HAS ITS OWN CURRENCY (his call). It used to pay
+		// profit, which made it a third faucet on a pile that already
+		// had two and gave the board's state no consequence of its own -
+		// and it entangled rebirth, which prices a run off profit held.
+		// SHARDS close the loop instead: the board is the only source,
+		// tile upgrades are the only sink, and board decisions are the
+		// only way to move either.
+		shards  : 0,
+		earned  : 0,   // lifetime, for the statistics
+		upg     : { speed : 0, luck : 0, slots : 0, bank : 0 },
 		dirty   : true,
 		rev     : 0,
 		gps     : 0,
@@ -110,5 +121,6 @@ function tiles_init(_force = false) {
 	// two starter tiles so the very first visit can drag-merge
 	g.tiles.tier[0] = 1;
 	g.tiles.tier[1] = 1;
+	tiles_sync();   // the levels take effect immediately, load included
 	return g.tiles;
 }

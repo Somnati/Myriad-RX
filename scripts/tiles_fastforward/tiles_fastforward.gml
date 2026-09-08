@@ -161,6 +161,19 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 		_t.fab = _t.fab_t;
 	}
 
+	// SHARDS FOR THE ABSENCE. The board's rate is recomputed by the next
+	// tick, so the honest figure over a stretch where the board was
+	// changing is its rate at the END times the span - the same
+	// approximation the tick makes every second, applied once.
+	var _sh = 0;
+	for (var _i2 = 0; _i2 < _t.slots; _i2++)
+		if (_t.tier[_i2] != 0) _sh = do_add(_sh, tile_gps(_t.tier[_i2]));
+	if (_sh >= arb(1) && _secs >= 1) {
+		var _sadd = do_scale(_sh, floor(_secs));
+		_t.shards = (_t.shards >= arb(1)) ? do_add(_t.shards, _sadd) : _sadd;
+		_t.earned = (_t.earned >= arb(1)) ? do_add(_t.earned, _sadd) : _sadd;
+	}
+
 	_t.dirty = true;
 	// round 2 (per-mechanic popups): no direct report anymore - the
 	// replay feeds the tile room's AWAY LEDGER, and the room builds its

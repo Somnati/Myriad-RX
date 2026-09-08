@@ -201,6 +201,17 @@ function main_macros() {
 // FINAL tier is multiplied by, and it is deliberately large: it makes
 // finishing a slot an event rather than an increment, which is the
 // whole reason a cap is interesting.
+// THE TILE TABLE's base shape and what one upgrade level moves. Every
+// one of these is read by tiles_sync and by datafiles/tiles_twin.py -
+// keep the two in step, and tune in the twin.
+#macro TILE_SLOTS_BASE   16
+#macro TILE_FAB_T        600    // frames: 10 seconds
+#macro TILE_BANK_BASE    10
+#macro TILE_SPEED_FACTOR .88    // fab period x this a level
+#macro TILE_LUCK_STEP    60
+#macro TILE_SLOT_STEP    2
+#macro TILE_BANK_STEP    8
+
 #macro UPG_TIER_RAMP .15
 #macro UPG_TIER_LAST 3
 #macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale

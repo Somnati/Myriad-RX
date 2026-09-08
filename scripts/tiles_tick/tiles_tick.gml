@@ -6,6 +6,8 @@
 /// presentation stays out: board changes push events onto g.tiles.ev
 /// and the room view drains them into glow/sounds when one is around.
 function tiles_tick(_tmult = 1) {
+	tiles_sync();   // slots / period / hopper / luck all derive from the
+	                // upgrade levels - see tiles_sync
 	var _t = g.tiles;
 
 	// ---- fabricator: fills, banks, drains into the first free slot.

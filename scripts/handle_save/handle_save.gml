@@ -152,6 +152,17 @@ function handle_save(){
 	g.tiles.highest = handle("highest", g.tiles.highest);
 	g.tiles.merges  = handle("merges",  g.tiles.merges);
 	g.tiles.made    = handle("made",    g.tiles.made);
+	g.tiles.shards  = handle("shards",  g.tiles.shards);
+	g.tiles.earned  = handle("earned",  g.tiles.earned);
+	// the four upgrade levels. Everything they DO derives (tiles_sync),
+	// so the levels are the whole of what a save carries about them.
+	var _tuc = tile_upg_config();
+	for (var _k = 0; _k < array_length(_tuc); _k++) {
+		var _tid = _tuc[_k].id;
+		g.tiles.upg[$ _tid] = handle("upg_" + _tid, g.tiles.upg[$ _tid] ?? 0);
+		if (action == sv_load)
+			g.tiles.upg[$ _tid] = max(0, floor(g.tiles.upg[$ _tid]));
+	}
 	if (action == sv_load) {
 		var _tp = string_split(_tt, ",");
 		for (var _k = 0; _k < g.tiles.slots; _k++) {
@@ -163,6 +174,9 @@ function handle_save(){
 		g.tiles.highest = max(1, floor(g.tiles.highest));
 		g.tiles.merges  = max(0, floor(g.tiles.merges));
 		g.tiles.made    = max(0, floor(g.tiles.made));
+		if (!(g.tiles.shards >= arb(1))) g.tiles.shards = 0;
+		if (!(g.tiles.earned >= arb(1))) g.tiles.earned = 0;
+		tiles_sync();   // the board takes the loaded levels' shape
 	}
 
 	// ---- automation: PREFERENCES only. The q/h pacing ramps are

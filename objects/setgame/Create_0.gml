@@ -83,6 +83,10 @@
 	// its tier through calculate_rarity with this as the rate, so
 	// raising it slides the whole tier window up. rarity_rate is the
 	// general-purpose one the same engine reads for anything else.
+	// the fabricator's BASE luck. tiles_sync adds the alloy-quality
+	// upgrade on top and writes the total into g.tile_rarity, so this is
+	// the seat any future modifier feeds rather than the live value.
+	g.tile_luck_base = 0;
 	g.tile_rarity   = 0;
 	g.rarity_rate   = 0;
 	// two ability-deck flags the tech demo's tile code reads. Nothing

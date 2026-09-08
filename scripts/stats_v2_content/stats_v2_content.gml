@@ -191,10 +191,18 @@ function stats_v2_content() {
 		var _used = 0;
 		for (var _i = 0; _i < _tl.slots; _i++) if (_tl.tier[_i] != 0) _used++;
 
-		stats_v2_line("profit", "+" + ((_tl.gps >= arb(1)) ? crunch_arb(_tl.gps) : "0")
-			+ "/s", -1, c_gold,
-			"what the table pays. merging into higher tiers grows it fast "
-			+ "- a tier is worth far more than the two that made it.");
+		stats_v2_line("shards", (_tl.shards >= arb(1)) ? crunch_arb(_tl.shards) : "0",
+			-1, c_aqua,
+			"the table's own currency, and the only thing tile upgrades "
+			+ "cost. it deliberately does NOT feed profit: the board is "
+			+ "the only source and the upgrades are the only sink, so "
+			+ "what happens on the board is the only thing that moves it.");
+		stats_v2_line("per second", "+"
+			+ ((_tl.gps >= arb(1)) ? crunch_arb(_tl.gps) : "0"), -1, c_aqua,
+			"merging into higher tiers grows this fast - a tier is worth "
+			+ "about 2.8x the one below, and it only costs two of them.");
+		stats_v2_line("lifetime shards",
+			(_tl.earned >= arb(1)) ? crunch_arb(_tl.earned) : "0");
 		stats_v2_line("board", string(_used) + " / " + string(_tl.slots), -1,
 			(_used >= _tl.slots) ? c_horange : -1);
 		stats_v2_line("banked", string(_tl.stored) + " / " + string(_tl.stored_max),
@@ -210,6 +218,15 @@ function stats_v2_content() {
 			-1, -1, "how long one tile takes. the auto-merger runs on a "
 			+ "MULTIPLE of it, so anything that speeds fabrication speeds "
 			+ "merging too.");
+
+		// the four upgrades, as levels - what they DO is on the rows
+		// above, derived by tiles_sync, so this is only the ladder
+		var _tuc2 = tile_upg_config();
+		for (var _k = 0; _k < array_length(_tuc2); _k++) {
+			var _lv2 = g.tiles.upg[$ _tuc2[_k].id] ?? 0;
+			stats_v2_line(_tuc2[_k].name, "lv " + string(_lv2), -1,
+				(_lv2 > 0) ? c_aqua : c_gray, _tuc2[_k].help);
+		}
 
 		// ---- the fabricator's luck, as a spread ----
 		if (stats_v2_folder("rarity", c_horange)) {

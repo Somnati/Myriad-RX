@@ -24,6 +24,40 @@ while (array_length(_t.ev) > 0) {
 }
 
 // ---- input (region pattern: fully arbitrated) ----
+// ---- the upgrade quotes, on the slow tick ----
+qtic -= delta;
+if (qtic <= 0) {
+	qtic = 15;
+	var _uc2 = tile_upg_config();
+	uq = [];
+	for (var _k = 0; _k < array_length(_uc2); _k++) {
+		var _q2 = tile_upg(_uc2[_k].id, false);
+		array_push(uq, { ok : _q2.ok, cost : _q2.cost, lv : _q2.lv,
+			txt : crunch_arb(_q2.cost) });
+	}
+}
+
+// ---- the upgrade buttons. BEFORE the board's own input, because a
+// press on the panel must never also be a press on a tile ----
+if (input_free())
+if (!variable_global_exists("click_owner") || g.click_owner == noone)
+if (mouse_check_button_pressed(mb_left)) {
+	var _uc3 = tile_upg_config();
+	for (var _k = 0; _k < array_length(_uc3); _k++) {
+		var _ur2 = __upg_r(_k);
+		if (!point_in_rectangle(mouse_x, mouse_y, _ur2.x, _ur2.y,
+			_ur2.x + _ur2.w, _ur2.y + _ur2.h)) continue;
+		var _r2 = tile_upg(_uc3[_k].id, true);
+		if (_r2.ok) {
+			qtic = 0;
+			play_sound_ext(snd_tierup, .9, 1.1, .5, 1);
+			float_text(_ur2.x + _ur2.w * .5, _ur2.y - 6,
+				_uc3[_k].name + " up", c_aqua, fnt_outline);
+		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
+		exit;
+	}
+}
+
 if (input_free())
 if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 

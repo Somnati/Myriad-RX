@@ -43,6 +43,69 @@ draw_text(240, 40, "tiles");
 // ---- the board ----
 var _am0 = __aim(); // the drop's true target (mouse or tile center)
 var _hov = __slot_at(_am0[0], _am0[1]);
+// ================= THE SHARD PANEL =================
+// What the table has earned, and the four things it buys. Drawn before
+// the board so a dragged tile passes OVER it rather than under.
+var _tt = g.tiles;
+draw_set_font(fnt);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
+
+draw_set_color(c_aqua);
+draw_set_alpha(.6);
+draw_text(upg_x, 30, "shards");
+draw_set_halign(fa_right);
+draw_set_color(c_white);
+draw_set_alpha(.95);
+draw_text(upg_x + upg_w, 30,
+	(_tt.shards >= arb(1)) ? crunch_arb(_tt.shards) : "0");
+draw_set_halign(fa_left);
+
+var _ucfg = tile_upg_config();
+for (var _k = 0; _k < array_length(_ucfg); _k++) {
+	var _ur = __upg_r(_k);
+	var _uq = (_k < array_length(uq)) ? uq[_k]
+		: { ok : false, cost : arb(1), lv : 0, txt : "-" };
+	var _uc = _ucfg[_k];
+
+	// the row surface, the statistics recipe
+	var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
+	draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0, _ucol, 1);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y, _ur.w, 1, 0,
+		_ucol, c_black, c_black, _ucol, .5);
+	draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
+		_uq.ok ? .9 : .3);
+
+	draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+	draw_set_alpha(.95);
+	draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
+	draw_set_halign(fa_right);
+	draw_set_color(rgb(120, 130, 150));
+	draw_set_alpha(.6);
+	draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
+	draw_set_halign(fa_left);
+
+	// the cost button, the house cost-inside language
+	var _bx2 = _ur.x + 6;
+	var _bw2 = _ur.w - 12;
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
+		_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85);
+	draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
+		_uq.ok ? .8 : .3);
+	draw_set_halign(fa_center);
+	draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+	draw_set_alpha(_uq.ok ? .95 : .5);
+	draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
+	draw_set_halign(fa_left);
+}
+
+// what the board is worth per second, under the prices it pays for
+draw_set_color(c_aqua);
+draw_set_alpha(.55);
+draw_text(upg_x, upg_y + upg_n * (upg_h + 4) + 4,
+	"+" + ((_tt.gps >= arb(1)) ? crunch_arb(_tt.gps) : "0") + " a second");
+draw_set_alpha(1);
+
 draw_set_font(fnt_large);
 for (var _i = 0; _i < _t.slots; _i++) {
 	var _x = __slot_x(_i);
