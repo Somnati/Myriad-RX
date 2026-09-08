@@ -84,6 +84,47 @@ function handle_save(){
 		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
 	}
 
+	// ---- history: the spark graphs, which are LIFETIME (his call) and
+	// therefore have to outlive the session. A series is 120 reals and a
+	// step, joined with pipes - 3 series is about 4KB of ini, which is
+	// the whole price of a graph that reaches back months.
+	// The buffer decimates itself (stats_hist_push), so this never grows
+	// no matter how long the account runs. ----
+	section = "history";
+	if (!variable_global_exists("stats_hist")) g.stats_hist = {};
+	if (!variable_global_exists("hist_meta"))  g.hist_meta  = {};
+	var _hk = ["h_profit", "h_units", "h_ps"];
+	for (var _h = 0; _h < array_length(_hk); _h++) {
+		var _k = _hk[_h];
+		var _arr = g.stats_hist[$ _k];
+		var _mt  = g.hist_meta[$ _k];
+		var _stp = is_struct(_mt) ? _mt.step : 1;
+
+		// serialise. string_format, NOT string(): GM's default gives two
+		// decimals, and a packed arb carries its coefficient in the
+		// fraction - two decimals would flatten every curve to steps.
+		var _s = "";
+		if (is_array(_arr))
+			for (var _i = 0; _i < array_length(_arr); _i++)
+				_s += (_i > 0 ? "|" : "") + string_format(_arr[_i], 1, 5);
+
+		_s   = handle(_k + "_buf",  _s);
+		_stp = handle(_k + "_step", _stp);
+
+		if (action == sv_load) {
+			var _out = [];
+			if (is_string(_s) && _s != "") {
+				var _parts = string_split(_s, "|");
+				for (var _i = 0; _i < array_length(_parts); _i++) {
+					var _v = real(_parts[_i]);
+					if (is_real(_v)) array_push(_out, _v);
+				}
+			}
+			g.stats_hist[$ _k] = _out;
+			g.hist_meta[$ _k]  = { step : max(1, floor(_stp)), acc : 0 };
+		}
+	}
+
 	// ---- upgrades: the SLOTS and nothing else. Every effective number
 	// derives from these at read time (upgrade_bonus), so this is the
 	// whole of it - and a rebalance of any value reaches old saves for

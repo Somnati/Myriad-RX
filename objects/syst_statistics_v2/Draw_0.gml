@@ -265,6 +265,15 @@ for (var _r = _lo; _r < _hi; _r++) {
 		}
 		else {
 			var _nn = array_length(_arr);
+			// ⚖️ THE X AXIS IS NOT ONE SAMPLE A SECOND ANY MORE. The
+			// buffer halves itself as it fills and doubles its interval,
+			// so the window grows to cover the account's whole lifetime -
+			// and a graph that still printed "120s" under six weeks of
+			// history would be the most confident kind of wrong. Every
+			// duration below is samples x THIS series' step.
+			var _hm = (variable_global_exists("hist_meta"))
+				? g.hist_meta[$ _row.val] : -1;
+			var _hs = is_struct(_hm) ? _hm.step : 1;
 			var _vmn = _arr[0]; var _vmx = _arr[0];
 			for (var _s = 1; _s < _nn; _s++) {
 				_vmn = min(_vmn, _arr[_s]);
@@ -330,7 +339,8 @@ for (var _r = _lo; _r < _hi; _r++) {
 			draw_text(_gx + 4, _gy + _gh - 10, crunch_arb(_lmn));
 			draw_set_halign(fa_right);
 			draw_set_alpha(.3);
-			draw_text(_gx + _gw - 4, _gy + _gh - 10, string(_nn) + "s");
+			draw_text(_gx + _gw - 4, _gy + _gh - 10,
+				crunch_time_long(_nn * _hs * 60));
 			// THE LIVE VALUE at the value column, on the title line
 			draw_set_color(_row.c1);
 			draw_set_alpha(.95);
@@ -350,8 +360,11 @@ for (var _r = _lo; _r < _hi; _r++) {
 					1, _gh - 2, 0, c_white, .25);
 				draw_sprite_ext(spr_pixel_1x1, 0, _gx + _px2 - 1, _cy2 - 1,
 					4, 4, 0, c_white, .9);
+				// how long ago in the SERIES' own time, not in samples -
+				// crunch_time_long takes frames, hence the x60
+				var _ago = round(((_nn - 1) - _sf2) * _hs);
 				var _stx = crunch_arb(_v2) + "  -"
-					+ string(round((_nn - 1) - _sf2)) + "s";
+					+ ((_ago <= 0) ? "now" : crunch_time_long(_ago * 60));
 				var _stw = string_width(_stx) + 8;
 				var _sx2 = clamp(_gx + _px2 + 8, _gx, _gx + _gw - _stw);
 				draw_sprite_ext(spr_pixel_1x1, 0, _sx2, _gy + 2, _stw, 11, 0,

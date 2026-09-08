@@ -27,6 +27,11 @@ function game_reset(_diff = 1) {
 	upgrade_init(true); // the upgrades ride with the credits - the same
 	                    // PRESENCE layer, wiped by a new game and never
 	                    // by a rebirth
+	// the lifetime graphs belong to the ACCOUNT, so a new game starts
+	// them over - and a rebirth deliberately does not, because a rebirth
+	// cliff is the most interesting thing on the profit line
+	g.stats_hist = {};
+	g.hist_meta  = {};
 	create_dials(true);
 	g.buy_lv = 1; // DE resets the buy mode with the run
 

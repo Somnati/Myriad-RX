@@ -76,11 +76,16 @@ function stats_v2_content() {
 	// stats_hist_tick off the production heartbeat, so a graph is
 	// always the last two minutes and always of the run you are in.
 	// Session view changes nothing here: a history IS a session view.
+	// LIFETIME, not session (his call): the buffer decimates itself so
+	// the window covers the whole account, and it is saved. The session
+	// view deliberately changes nothing here - a lifetime graph that
+	// reset when you asked for a session view would be answering a
+	// different question than the one on the label.
 	if (variable_global_exists("stats_hist"))
 	if (stats_v2_folder("history", c_steelblue)) {
-		stats_v2_spark("profit / sec", "h_ps",     c_sgreen,  4);
-		stats_v2_spark("per tap",      "h_tap",    c_gold,    4);
-		stats_v2_spark("profit held",  "h_profit", c_sblue,   4);
+		stats_v2_spark("profit held",  "h_profit", c_sblue,  4);
+		stats_v2_spark("rebirth units", "h_units", c_hred,   4);
+		stats_v2_spark("profit / sec", "h_ps",     c_sgreen, 4);
 	}
 	stats_v2_folder_end();
 
