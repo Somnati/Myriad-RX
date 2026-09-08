@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"send_ability",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"send_ability",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

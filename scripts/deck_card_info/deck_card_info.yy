@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"deck_card_info",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"deck_card_info",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

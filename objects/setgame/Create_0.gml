@@ -155,6 +155,23 @@
 
 	create_dials();
 
+	// ---- THE ABILITY DECK (techdemo II port, 2026-09-08) ----
+	// ⚖️ A PLACEHOLDER, and deliberately an inert one (his words: "as a
+	// placeholder until im ready"). The screen, the draft, the AP budget
+	// and the card art all work; the ROSTER is still the techdemo's -
+	// survey / fleet / colony / combat abilities for systems Myriad does
+	// not have - so every ad_* flag it sets is currently read by nothing.
+	// That is the point of landing it now: the six-touchpoint shape in
+	// create_new_deck's header is what a Myriad roster gets written INTO,
+	// and it is much easier to rewrite a roster than to port a framework.
+	//
+	// NOT SAVED YET, on purpose. handle_save has no "abilities" section,
+	// so a deck resets every launch and abi_seed rolls fresh - which is
+	// the right trade while the roster is going to be thrown away. The
+	// section is one handle() block when the roster is real; until then a
+	// save would only be persisting names that are about to change.
+	create_new_deck();
+
 	// THE BUY MODE (Myriad DE's g.buy_lv): 1 / 10 / 100 / 1000 / "max"
 	// ("next" joins when milestones land). Session-only in DE too - it
 	// is never saved, a fresh boot is x1

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"unlock_ability",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"unlock_ability",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

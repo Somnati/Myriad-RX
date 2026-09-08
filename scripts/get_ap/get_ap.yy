@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"get_ap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"get_ap",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"fetch_new_ability",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"fetch_new_ability",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

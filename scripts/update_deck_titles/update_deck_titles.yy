@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"update_deck_titles",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"update_deck_titles",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

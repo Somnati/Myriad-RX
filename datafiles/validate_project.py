@@ -536,6 +536,46 @@ for p in GLSL:
             scopes.pop()
 check("no GLSL name declared twice in one scope", not dup, "; ".join(dup[:3]))
 
+# ==================================================================
+# 12. THE .YYP RESOURCE ORDER
+# ==================================================================
+# The IDE rewrites this list on every save, and a hand-registered
+# resource in the wrong slot is the one edit that survives the load and
+# then quietly reorders the whole file the next time he opens the
+# project - which turns a one-line diff into a four-hundred-line one and
+# buries whatever else was in that commit.
+#
+# ⚖️ THE RULE, derived from the file itself and checked against all 420
+# entries it had when this was written: resources are grouped BY TYPE in
+# a fixed order, and within a type sorted case-insensitively with ONE
+# quirk - '_' sorts BELOW the end of a name, everything else above it.
+# That single rule explains both halves of the thing that keeps catching
+# us out: `arb_log10` precedes `arb` (the extra part starts with '_'),
+# while `snd_gold` precedes `snd_gold2` (it starts with a digit).
+def _yyp_key(n):
+    return [0 if c == "_" else ord(c) + 2 for c in n.lower()] + [1]
+
+
+_yyp = load(YYP)
+_seen, _segs = None, []
+for _e in _yyp.get("resources", []):
+    _k = _e["id"]["path"].split("/")[0]
+    if _k != _seen:
+        _segs.append((_k, []))
+        _seen = _k
+    _segs[-1][1].append(_e["id"]["name"])
+_bad = []
+_types = [k for k, _ in _segs]
+if len(_types) != len(set(_types)):
+    _bad.append("a resource TYPE appears in two blocks: " + ",".join(_types))
+for _k, _names in _segs:
+    _want = sorted(_names, key=_yyp_key)
+    for _i, _n in enumerate(_names):
+        if _n != _want[_i]:
+            _bad.append(f"{_k}: '{_n}' should be '{_want[_i]}'")
+            break
+check("the .yyp resource list is in GM's own order", not _bad, "; ".join(_bad[:3]))
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")

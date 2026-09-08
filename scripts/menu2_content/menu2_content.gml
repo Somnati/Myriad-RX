@@ -15,6 +15,7 @@ function menu2_content() {
 	menu2_button("rebirth",      function() { rebirth_open(); }, c_hred); // myriad
 	menu2_button("upgrades",     rm_upgrades,      c_lavender); // myriad
 	menu2_button("tiles",        rm_tiles,         c_aqua);     // myriad
+	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
 	menu2_button("automation",   rm_automation,    c_sblue);
 	menu2_button("time bank",    rm_timebank,      c_gold);
 	menu2_button("statistics",   rm_statistics_v2, c_sgreen);  // myriad

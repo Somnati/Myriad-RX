@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"debug_pro_log",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"debug_pro_log",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
