@@ -36,7 +36,7 @@ if (!variable_global_exists("click_gps")) exit;
 // upgrades ride the tap result-side too: chance and payout are both
 // ADDED to the base roll rather than replacing it, so the DE values
 // stay the floor and an upgrade reads as a bonus on top of them
-var _ub   = upgrade_bonus();
+var _ub   = upgrade_bonus_live();
 var _rate = g.click_crit + _ub.crit_rate;
 var _pay  = g.click_gps;
 var _crit = false;

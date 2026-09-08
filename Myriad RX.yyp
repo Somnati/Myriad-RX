@@ -353,6 +353,7 @@
     {"id":{"name":"update_click","path":"scripts/update_click/update_click.yy",},},
     {"id":{"name":"update_dial","path":"scripts/update_dial/update_dial.yy",},},
     {"id":{"name":"update_dials","path":"scripts/update_dials/update_dials.yy",},},
+    {"id":{"name":"upgrade_bonus_live","path":"scripts/upgrade_bonus_live/upgrade_bonus_live.yy",},},
     {"id":{"name":"upgrade_bonus","path":"scripts/upgrade_bonus/upgrade_bonus.yy",},},
     {"id":{"name":"upgrade_buy","path":"scripts/upgrade_buy/upgrade_buy.yy",},},
     {"id":{"name":"upgrade_cap","path":"scripts/upgrade_cap/upgrade_cap.yy",},},

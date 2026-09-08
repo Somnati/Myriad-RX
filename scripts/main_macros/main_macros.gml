@@ -134,13 +134,18 @@ function main_macros() {
 
 // ---- upgrades (game/upgrades) ----
 #macro UPG_SLOT_BASE 3     // slots you start with
-// ⚖️ FIVE, BECAUSE THE ROOM IS 270 TALL. At 38px a row, eight slots run
-// to y=355 and the last three would be drawn off the bottom and be
-// unreachable - a slot you cannot see is worse than a slot you cannot
-// buy. Fewer slots also sharpens the thing the design is FOR: the whole
-// tension is that a slot is scarce, so 3 -> 5 is a real progression
-// where 3 -> 8 would have been a formality.
-#macro UPG_SLOT_MAX  5     // and the most the "another slot" grant can reach
+// EIGHT. It was cut to five when a row was 38px tall and eight ran off
+// the bottom of a 270-tall room; at 19px a row they all fit with space
+// to spare, so this is the original intent restored rather than a new
+// decision. One number if you want it tighter.
+#macro UPG_SLOT_MAX  8     // and the most the "another slot" grant can reach
+
+// ⚖️ WIRED, NOT LIVE (his call, while the screen is being polished).
+// Every consumer reads upgrade_bonus_live(), which returns zeros while
+// this is false - so the seats stay written and the economy is
+// untouched. upgrade_bonus() itself stays truthful, so the screen shows
+// what the slots WOULD do. Flip this to turn the whole system on.
+#macro UPG_LIVE false
 #macro UPG_RARITY_N  7     // common .. ultimate, see upgrade_rarity_mult
 #macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale
 

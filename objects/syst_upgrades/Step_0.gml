@@ -23,38 +23,45 @@ if (point_in_rectangle(_mx, _my, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
 	exit;
 }
 
-for (var _i = 0; _i < _n; _i++) {
-	var _ry = __row_y(_i);
-	var _s  = g.upg.slot[_i];
-	// two buttons on a filled slot (buy + sell/discard), one on an empty
-	// one (roll). The count drives the seat, so both must agree.
-	var _bn = is_struct(_s) ? 2 : 1;
-	for (var _b = 0; _b < _bn; _b++) {
-		var _r = __btn(_b, _bn);
-		if (!point_in_rectangle(_mx, _my, _r.x, _ry + 16, _r.x + _r.w, _ry + 16 + _r.h))
-			continue;
+// ---- the mode toggle ----
+for (var _m = 0; _m < 2; _m++) {
+	var _r = __mode_rect(_m);
+	if (!point_in_rectangle(_mx, _my, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) continue;
+	if (mode != _m) {
+		mode = _m;
+		play_sound_ext(snd_softclick, 1, 1.1, .45, 0);
+	}
+	exit;
+}
 
-		if (!is_struct(_s)) {
-			// EMPTY: roll an offer into it
-			if (upgrade_roll(_i) == -1)
-				assign_banner("nothing to offer yet", c_gray, c_black);
-			else
-				play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
-			exit;
-		}
-		if (_b == 0) {
-			// BUY - level it by one tier
-			if (!upgrade_buy(_i))
-				play_sound_ext(snd_matclick2, .7, .8, .35, 0);
-			exit;
-		}
-		// SELL - refund part and free the slot. An unbought offer sells
-		// for nothing, so this is also how you discard a roll you do not
-		// want: DE's own answer to a bad offer, and the reason the table
-		// never stalls on one.
-		var _pay = upgrade_sell(_i);
-		assign_banner(_pay > 0 ? "sold for " + string(_pay) + " credits"
-		                       : "offer discarded", c_lavender, c_black);
+// ---- the rows ----
+for (var _i = 0; _i < _n; _i++) {
+	var _r = __btn(_i);
+	if (!point_in_rectangle(_mx, _my, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) continue;
+	var _s = g.upg.slot[_i];
+
+	// EMPTY: roll an offer into it, in either mode - an empty slot has
+	// nothing to sell, so [roll] is the only thing it could mean
+	if (!is_struct(_s)) {
+		if (upgrade_roll(_i) == -1)
+			assign_banner("nothing to offer yet", c_gray, c_black);
+		else
+			play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
 		exit;
 	}
+
+	if (mode == 0) {
+		// BUY - one more tier
+		if (!upgrade_buy(_i)) play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+		exit;
+	}
+
+	// SELL - refund part and free the slot. An unbought offer refunds
+	// nothing, so in sell mode this is also how a bad roll is discarded:
+	// DE's own answer to an offer you do not want, and the reason the
+	// table can never stall on one.
+	var _pay = upgrade_sell(_i);
+	assign_banner(_pay > 0 ? "sold for " + string(_pay) + " credits"
+	                       : "offer discarded", c_lavender, c_black);
+	exit;
 }

@@ -14,9 +14,7 @@
 // sunk cost - which is a decision. A list of everything at a fixed
 // price is a chore you work down.
 //
-// You start with 3 slots and can buy up to 5. Five is not an arbitrary
-// number: the room is 270 tall and a sixth row would draw off the
-// bottom. Scarcity is the point anyway.
+// You start with 3 slots and can buy up to 8.
 
 // ========================== THE FILES ===============================
 //   upgrade_config     EDIT HERE, and only here, to add an upgrade.
@@ -41,10 +39,31 @@
 //   upgrade_cap        rarity widens the tier ceiling as well as the
 //                      value, so a good roll is deeper AND stronger.
 //   upgrade_diff_mult  THE DIFFICULTY SEAT - see below.
-//   syst_upgrades      the screen. One row per slot; a row is EMPTY,
-//                      an OFFER (tier 0) or OWNED (tier 1+).
+//   syst_upgrades      the screen. One row per slot, ONE LINE each; a
+//                      row is EMPTY, an OFFER (tier 0) or OWNED
+//                      (tier 1+), and it has ONE button whose meaning
+//                      comes from the [buy]/[sell] toggle above.
+//                      His call, and DE's shape: a buy AND a sell
+//                      button on every line is two controls competing
+//                      for the same glance on eight rows, and the
+//                      second is used once an hour. The toggle moves
+//                      that decision up a level - the row does one
+//                      thing, and the rare action is a mode you enter
+//                      deliberately rather than a button beside the one
+//                      you meant to press.
+//   upgrade_bonus_live THE GATE. Every consumer reads this, and it
+//                      returns zeros while UPG_LIVE is false.
 
 // ======================= THE LAWS THAT MATTER =======================
+//
+//   WIRED, NOT LIVE, while the screen is being polished (his call).
+//   UPG_LIVE in main_macros is the whole switch: every consumer seat
+//   reads upgrade_bonus_live(), which returns a zeroed struct while it
+//   is false, so the seats stay written and reviewed and the economy is
+//   untouched. upgrade_bonus() itself stays truthful - the screen and
+//   the statistics page read that, so you can see exactly what the
+//   slots WOULD be doing, and the screen says out loud that they are
+//   not doing it.
 //
 //   DERIVED, NEVER ACCUMULATED. A slot stores id / rarity / value /
 //   tier and nothing else; every effective number comes from

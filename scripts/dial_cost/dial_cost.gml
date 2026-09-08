@@ -73,7 +73,7 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 	// milestone loop takes above are untouched by it, which is what
 	// keeps that recursion from discounting itself twice.
 	if (!_raw) {
-		var _ub = upgrade_bonus();
+		var _ub = upgrade_bonus_live();
 		if (_ub.dial_cost > 0)
 			_cost = do_scale(_cost, 1 - _ub.dial_cost / 100);
 	}

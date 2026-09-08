@@ -50,7 +50,7 @@ function update_dial(_i) {
 	// cycle, which is the same seat a SPEED milestone uses, so the two
 	// stack the way the player expects rather than one overriding the
 	// other.
-	var _ub = upgrade_bonus();
+	var _ub = upgrade_bonus_live();
 	if (_ub.dial_profit > 0) _d.gpc = do_scale(_d.gpc, 1 + _ub.dial_profit / 100);
 	if (_ub.dial_speed > 0) {
 		_d.cycle_t /= (1 + _ub.dial_speed / 100);

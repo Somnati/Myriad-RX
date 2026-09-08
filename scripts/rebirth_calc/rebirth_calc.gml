@@ -91,7 +91,7 @@ function rebirth_calc() {
 	// back the penalty for rebirthing too early, which is the one thing
 	// the clamp exists to prevent; after it, an upgrade multiplies what
 	// the run actually earned and the clamp still bites at full strength.
-	var _ub = upgrade_bonus();
+	var _ub = upgrade_bonus_live();
 	if (_ub.rebirth_units > 0 && _units >= arb(1))
 		_units = do_floor(do_scale(_units, 1 + _ub.rebirth_units / 100));
 
