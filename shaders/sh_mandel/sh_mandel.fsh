@@ -112,7 +112,7 @@ uniform sampler2D u_ref;     // the reference orbit, 24-bit fixed point
 // 1e-26 the budget formula asks for 2546 and 900 was a third of it; at
 // 1e-130 it asks for 11780. A number precise enough to address a place
 // you cannot resolve is not depth, it is arithmetic.
-const int   MAX_I    = 3000;    // the perturbation loop
+const int   MAX_I    = 12000;   // the perturbation loop
 const int   MAX_SHAL = 400;     // f32 and f32x2
 const float ESCAPE = 256.0;   // generous, so the smooth count is exact
 

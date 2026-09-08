@@ -114,6 +114,14 @@ if (keyboard_check_pressed(ord("G"))) {
 	glow = (glow > 0) ? 0 : .55;
 	play_sound_ext(snd_softclick, 1, 1.1, .4, 0);
 }
+// the iteration budget by hand. The formula is calibrated on one
+// location and the requirement is genuinely local, so a knob beside the
+// automatic number is the honest answer rather than a better formula.
+// O and P rather than [ and ]: GML has no vk_lbracket, and ord("[") is
+// the ASCII code, not the Windows virtual key - neither reaches the
+// bracket keys.
+if (keyboard_check_pressed(ord("P"))) iter_mult = min(iter_mult * 1.5, 8);
+if (keyboard_check_pressed(ord("O"))) iter_mult = max(iter_mult / 1.5, 0.15);
 if (keyboard_check_pressed(ord("H"))) show_hud = !show_hud;
 if (keyboard_check_pressed(ord("V"))) {
 	dbg = !dbg;

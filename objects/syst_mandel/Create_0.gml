@@ -182,7 +182,7 @@ __bnmul = function(_a, _b) {
 // shallow view pay for depth it is not using - 24 limbs costs twelve
 // times what 7 does, and 7 already reaches 1e-26.
 __bn_want = function() {
-	var _dig = -log10(max(scale, power(10, -360))) + 8;
+	var _dig = -log10(max(scale, power(10, -110))) + 8;
 	return clamp(ceil(_dig / 6.02) + 2, 4, BN_MAX);
 };
 
@@ -201,7 +201,12 @@ scale_to = 1.35;
 // waiting to happen.
 SCALE_MIN_F32  = 0.000004;
 SCALE_MIN_DD   = 0.0000000000002;
-SCALE_MIN_PERT = power(10, -350);
+// ⚖️ power(10, -350) IS EXACTLY ZERO. A float64 stops at ~5e-324 even
+// counting denormals, so the old floor was not a small number, it was
+// no floor at all - clamp(scale, 0, ...) let the scale run to zero, and
+// then log2(2.5/0) and log10(0) are what the "glitch when zooming
+// really low" actually was. Nothing below ~1e-308 can be a double.
+SCALE_MIN_PERT = power(10, -100);
 SCALE_MIN = SCALE_MIN_F32;
 SCALE_MAX = 2.5;
 
@@ -228,6 +233,11 @@ anch_py = 0;
 // is a viewer whose depth is theoretical.
 dive_t = 0;
 
+// manual iteration scaling, o and p. The budget formula is calibrated
+// on one location and the requirement is genuinely local, so the honest
+// answer is a knob next to the automatic one.
+iter_mult = 1;
+
 // ---- look ----
 pal_set = 0;
 pal_list = [
@@ -243,9 +253,25 @@ show_hud  = true;
 dbg       = false;   // [v] paints the raw screen coordinate
 
 // ---- the iteration budget ----
+// ⚖️ THIS FORMULA WAS FIVE TIMES TOO SHY, and that was the "all
+// pixelated" report. Measured in datafiles/mandel_twin.py: at a 1e-20
+// span, 1500 and 4000 iterations both give a completely FLAT column -
+// every pixel lands on the same escape count - and detail only appears
+// at ~10000. The old formula asked for 2000 there. A deep view was not
+// losing precision, it was being drawn with a budget that cannot tell
+// its pixels apart, which looks exactly like a resolution problem.
+//
+// The cost of being generous is small and lands where it should: a
+// pixel that escapes stops early no matter what the ceiling is, so only
+// INTERIOR pixels pay the full budget - and deep views are mostly
+// boundary. The shallow tiers keep their own much lower ceiling.
+//
+// o/p scale it by hand, because the right budget is a property of
+// where you are standing and no formula gets that right everywhere.
 __iter = function() {
 	var _mag = SCALE_MAX / max(scale, SCALE_MIN_PERT);
-	return clamp(60 + 26 * log2(_mag) + 22 * sqrt(max(0, log2(_mag))), 60, MAX_ITER);
+	var _l = max(0, log2(_mag));
+	return clamp((60 + 90 * _l + 30 * power(_l, 1.25)) * iter_mult, 60, MAX_ITER);
 };
 
 // ================= THE REFERENCE ORBIT =================
@@ -262,8 +288,8 @@ __iter = function() {
 // precision, so no float surface and no buffer_set_surface byte-order
 // gamble - ordinary draws.
 REF_W    = 256;
-REF_MAX  = 3000;   // must reach MAX_ITER, or deep views rebase constantly
-MAX_ITER = 3000;   // matches sh_mandel's MAX_I
+REF_MAX  = 12000;  // must reach MAX_ITER, or deep views rebase constantly
+MAX_ITER = 12000;  // matches sh_mandel's MAX_I
 
 ref_surf  = -1;
 ref_len   = 0;
@@ -533,7 +559,16 @@ __split = function(_v) {
 
 // ================= THE RENDER SURFACE =================
 // See Draw's header for why. The state is here so it survives the frame.
+// ⚖️ AT DISPLAY RESOLUTION, NOT ROOM RESOLUTION. Rendering into a
+// 480x270 surface and stretching it to the window is a visibly softer
+// picture than drawing to the display was - his "all pixelated" was
+// partly this. The progressive renderer is what makes the full
+// resolution affordable: the pixel count went up eight times and the
+// per-frame cost did not, because the bands absorb it.
+// Capped so a 4K display does not ask for 8M pixels of fractal.
 rend_surf  = -1;
+rend_w     = room_width;
+rend_h     = room_height;
 rend_dirty = true;
 rend_band  = 0;
 // the signature the renderer compares against to notice a change
@@ -559,7 +594,7 @@ __shade = function(_iter, _p, _pert, _dd) {
 	// by the room gave a coordinate wrong by the window/room ratio -
 	// which made the picture a stretched crop and made zoom-toward-
 	// cursor point somewhere the cursor was not.
-	shader_set_uniform_f(u_res,    room_width, room_height);
+	shader_set_uniform_f(u_res,    rend_w, rend_h);
 	shader_set_uniform_f(u_aspect, room_width / room_height);
 	shader_set_uniform_f(u_dbg,    dbg ? 1 : 0);
 

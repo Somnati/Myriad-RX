@@ -5,14 +5,11 @@
 /// that large cannot be spent every frame. Two things make it
 /// affordable, and neither is a compromise on the image:
 ///
-/// 1. IT RENDERS INTO A ROOM-SIZED SURFACE, not to the screen.
-///    gl_FragCoord counts render-target pixels, so drawing straight to
-///    the display meant computing the fractal at WINDOW resolution -
-///    about eight times the pixels for a picture that is then shown at
-///    room scale anyway. (Drawing "to the screen" in GM is already
-///    drawing into application_surface, so this changes nothing about
-///    orientation or coordinates - it is the same kind of target, a
-///    better size.)
+/// 1. IT RENDERS INTO ITS OWN SURFACE at display resolution. Drawing
+///    "to the screen" in GM is already drawing into
+///    application_surface, so owning the target changes nothing about
+///    orientation or coordinates - it just makes the render
+///    interruptible, which is the entire point.
 /// 2. IT SPENDS THE BUDGET ACROSS FRAMES. While the view moves, one
 ///    cheap pass at a capped iteration count keeps a whole image on
 ///    screen. The moment it settles, the full budget is paid a BAND at
@@ -25,9 +22,22 @@ var _p    = pal_list[pal_set];
 var _pert = __pert_on();
 var _dd   = __dd_on();
 
-// ---- the surface ----
-if (!surface_exists(rend_surf)) {
-	rend_surf  = surface_create(room_width, room_height);
+// ---- the surface, at DISPLAY resolution ----
+// Rendering at room size and stretching was a visibly softer picture
+// than drawing to the display had been. The progressive pass is what
+// makes full resolution affordable: the pixel count goes up eightfold
+// and the per-frame cost does not, because the bands absorb it. Capped
+// so a 4K panel does not ask for eight million pixels of fractal.
+var _tw = room_width, _th = room_height;
+if (surface_exists(application_surface)) {
+	_tw = min(surface_get_width(application_surface), 1920);
+	_th = min(surface_get_height(application_surface), 1080);
+}
+if (!surface_exists(rend_surf) || _tw != rend_w || _th != rend_h) {
+	if (surface_exists(rend_surf)) surface_free(rend_surf);
+	rend_w = _tw;
+	rend_h = _th;
+	rend_surf  = surface_create(rend_w, rend_h);
 	rend_dirty = true;
 }
 
@@ -47,17 +57,24 @@ if (scale != rend_k_scale || _kx != rend_k_dx || _ky != rend_k_dy
 	rend_k_ref   = ref_built; rend_k_pert = _pert; rend_k_it = _it;
 }
 
-// bands scale with the cost, so one band is always about the same
-// amount of work no matter how deep the view is
-var _bands = clamp(ceil(_it / 120), 1, 30);
+// ⚖️ BANDS ARE DERIVED FROM THE ACTUAL WORK - pixels times iterations -
+// not from the iteration count alone. At the deep end that product is
+// twelve billion pixel-iterations for one exact frame, which no frame
+// can pay; split into bands of a fixed size it becomes a few seconds of
+// visible sharpening instead. Tuned so a band is roughly 40 million
+// pixel-iterations, which is a few milliseconds on anything modern.
+var _bands = clamp(ceil(rend_w * rend_h * _it / 40000000), 1, 400);
 
 surface_set_target(rend_surf);
 if (rend_dirty) {
-	// one coarse pass over the whole surface, so there is never a
-	// half-drawn screen - a moving view gets an approximate picture
-	// immediately and the refine below makes it exact once it stops
-	__shade(min(_it, 260), _p, _pert, _dd);
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_white, 1);
+	// One coarse pass over the whole surface, so there is never a
+	// half-drawn screen. It is deliberately cheap, and at depth it will
+	// be FLAT - 200 iterations cannot tell deep pixels apart - which is
+	// correct behaviour rather than a failure: a moving view gets a
+	// whole image immediately, and the refine below is what has the
+	// budget to resolve it once you stop.
+	__shade(min(_it, 200), _p, _pert, _dd);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, rend_w, rend_h, 0, c_white, 1);
 	shader_reset();
 	rend_dirty = false;
 	rend_band  = 0;
@@ -65,15 +82,15 @@ if (rend_dirty) {
 	// the refine: full budget, one band, drawn at its real y so
 	// gl_FragCoord still reports the whole-surface position
 	__shade(_it, _p, _pert, _dd);
-	var _y0 = floor(room_height * rend_band / _bands);
-	var _y1 = floor(room_height * (rend_band + 1) / _bands);
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, _y0, room_width, _y1 - _y0, 0, c_white, 1);
+	var _y0 = floor(rend_h * rend_band / _bands);
+	var _y1 = floor(rend_h * (rend_band + 1) / _bands);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, _y0, rend_w, _y1 - _y0, 0, c_white, 1);
 	shader_reset();
 	rend_band += 1;
 }
 surface_reset_target();
 
-draw_surface(rend_surf, 0, 0);
+draw_surface_stretched(rend_surf, 0, 0, room_width, room_height);
 
 if (!show_hud) exit;
 
@@ -97,7 +114,8 @@ var _mode = _pert ? "perturb" : (_dd ? "f32x2" : "f32");
 var _pad = 4;
 var _lines = [
 	"mandelbrot  -  " + _p.name,
-	"zoom " + _mag_s + "   iter " + string(round(_it)) + "   " + _mode
+	"zoom " + _mag_s + "   iter " + string(round(_it))
+		+ (iter_mult != 1 ? " x" + string_format(iter_mult, 1, 2) : "") + "   " + _mode
 		+ (_pert ? "  " + string(bn_L) + " limbs" : ""),
 ];
 // the reference's health, and whether a job is running. This is what to
@@ -137,7 +155,8 @@ draw_set_color(sett_ink);
 draw_set_alpha(.45);
 draw_text(_pad + 5, room_height - 22,
 	"drag pan   wheel zoom   HOLD RIGHT dive (+shift out)   space tour");
-draw_text(_pad + 5, room_height - 12, "c palette   g glow   h hud   v coords   q back");
+draw_text(_pad + 5, room_height - 12,
+	"c palette   g glow   o/p iterations   h hud   v coords   q back");
 
 draw_set_alpha(1);
 draw_set_color(c_white);
