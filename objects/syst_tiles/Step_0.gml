@@ -33,25 +33,28 @@ if (abs(dr_want - dr_open) < .004) dr_open = dr_want;
 __reseat();   // a board-size upgrade re-centres the table at once
 
 if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
-	// the press only ARMS a swipe if it landed in the left edge band -
+	// the press only ARMS a swipe if it landed in the RIGHT edge band -
 	// or anywhere at all while the drawer is already open, so it can
-	// always be pushed back shut
+	// always be pushed back shut. Mirrored with the drawer (his ask):
+	// it comes from the right now, so a swipe LEFT pulls it out.
 	if (mouse_check_button_pressed(mb_left)) {
-		if (mouse_x <= sw_edge || dr_want > 0) { sw_x = mouse_x; sw_y = mouse_y; }
+		if (mouse_x >= room_width - sw_edge || dr_want > 0) {
+			sw_x = mouse_x; sw_y = mouse_y;
+		}
 		else sw_x = -1;
 	}
 	if (mouse_check_button_released(mb_left) && sw_x >= 0) {
 		var _dx = mouse_x - sw_x;
 		var _dy = mouse_y - sw_y;
-		if (abs(_dx) >= 40 && abs(_dx) > abs(_dy)) dr_want = (_dx > 0) ? 1 : 0;
+		if (abs(_dx) >= 40 && abs(_dx) > abs(_dy)) dr_want = (_dx < 0) ? 1 : 0;
 		sw_x = -1;
 	}
 	// and the edge tab is a plain tap, for anyone who would rather not
 	// swipe at all
 	if (mouse_check_button_pressed(mb_left))
 	if (dr_want == 0)
-	if (point_in_rectangle(mouse_x, mouse_y, 0, strip_y + strip_h + 24,
-		dr_tab + 2, strip_y + strip_h + 84)) {
+	if (point_in_rectangle(mouse_x, mouse_y, room_width - dr_tab - 2,
+		strip_y + strip_h + 24, room_width, strip_y + strip_h + 84)) {
 		dr_want = 1;
 		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 	}
@@ -91,8 +94,8 @@ if (mouse_check_button_pressed(mb_left)) {
 		exit;
 	}
 	// anywhere else on an open drawer swallows the press, so the board
-	// underneath never receives it
-	if (mouse_x < __dr_face() + dr_w) exit;
+	// underneath never receives it (the drawer is the RIGHT side now)
+	if (mouse_x > __dr_face()) exit;
 }
 
 if (input_free())
@@ -174,22 +177,23 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 // down, even if a popup opened mid-drag ----
 if (grab_i != -1) {
 	z  = trickle(z, 3, 5);
-	// ⚖️ THE AIM TOGGLE MOVES THE TILE TOO (his ask). It only ever
-	// changed which POINT the drop resolved from, so both modes looked
-	// identical while held and the setting read as doing nothing.
-	//   aim: tile center - the tile sits ON the cursor, and its own
-	//                      middle is what picks the slot
-	//   aim: mouse       - the tile hangs off the cursor, so the cursor
-	//                      stays visible and IS the aim point
-	// __aim() already returns those two points; this makes the hold
-	// match, so what you see is what will land.
-	if (g.tiles.aim_center) {
-		gx = trickle(gx, mouse_x - tw * .5, 5);
-		gy = trickle(gy, (mouse_y - th * .5) - z * 2, 5);
-	} else {
-		gx = trickle(gx, mouse_x + TILE_AIM_OFF, 5);
-		gy = trickle(gy, (mouse_y + TILE_AIM_OFF) - z * 2, 5);
-	}
+	// ⚖️ CENTRED ON THE CURSOR IN BOTH MODES (his correction). I had the
+	// "aim: mouse" mode hang the tile off the pointer so the pointer
+	// stayed visible as the aim point - which reads exactly as he
+	// described it, a tile dangling by its top-left corner.
+	//
+	// The offset was solving a problem that no longer exists: obj_cursor
+	// draws the pointer at depth -20000, above everything including a
+	// held tile, so the aim point is visible whatever is under it.
+	//
+	// And the toggle still MEANS something with both modes centred,
+	// because the tile LAGS - it trickles toward the cursor rather than
+	// snapping to it. During a fast drag those two points are genuinely
+	// apart: "mouse" drops where the pointer is NOW, "tile center" drops
+	// where the tile has actually got to. That was the original design
+	// and the lag is what makes it real.
+	gx = trickle(gx, mouse_x - tw * .5, 5);
+	gy = trickle(gy, (mouse_y - th * .5) - z * 2, 5);
 
 	if (!mouse_check_button(mb_left)) {
 		var _am = __aim(); // mouse or tile-center, the room's toggle

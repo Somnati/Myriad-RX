@@ -35,12 +35,25 @@ function tile_upg_config() {
 	g.tile_upg_cfg = [
 		{
 			id : "profit", name : "profit boost", base : 1000, mult : 3,
+			// WHAT A LEVEL IS WORTH, as a string (his ask: show the
+			// current bonus and what the next buy gains). It lives here
+			// because only the roster knows an upgrade's units - the
+			// drawer just prints fmt(lv) and fmt(lv + 1) and stays
+			// ignorant of percentages and seconds alike.
+			fmt : function(_lv) {
+				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
+			},
 			help : "+10% shards a second, per level. it multiplies what "
 			     + "the whole board earns, so it is worth more the more "
 			     + "tiles are on it",
 		},
 		{
 			id : "fab", name : "fabrication speed", base : 10000, mult : 3,
+			fmt : function(_lv) {
+				return string_format(
+					max(TILE_FAB_MIN, TILE_FAB_T - TILE_FAB_STEP * _lv) / 60,
+					1, 1) + "s";
+			},
 			help : "-0.1s off the fabricator, per level. the auto-merger "
 			     + "rides the same clock, so this speeds both - it floors "
 			     + "at " + string(TILE_FAB_MIN / 60) + "s",

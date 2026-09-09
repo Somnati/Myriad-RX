@@ -156,9 +156,12 @@ if (grab_i != -1) {
 }
 draw_set_font(fnt);
 
-// ---- info box, right column, width fitted to its longest line ----
+// ---- info box, LEFT column, width fitted to its longest line ----
+// It swapped sides with the drawer (his ask): the upgrades own the right
+// edge now, so the readout takes the left rather than sitting under
+// whatever slides over it.
 var _lines = __info_lines();
-var _ix = room_width - 6 - info_w;
+var _ix = 6;
 var _iy = 60;
 var _ih = array_length(_lines) * 11 + 8;
 draw_sprite_ext(spr_pixel_1x1, 0, _ix, _iy, info_w, _ih, 0, c_black, .8);

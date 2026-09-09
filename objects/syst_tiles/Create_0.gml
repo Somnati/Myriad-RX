@@ -142,7 +142,8 @@ sw_y    = -1;
 sw_edge = 64;
 
 upg_y = 0;       // seated below, once the strip is known
-upg_h = 26;
+upg_h = 36;   // name+level, the BONUS line, then the buy button (his
+              // ask: show what you have and what the next buy gives)
 upg_n = 4;
 // ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
 // put the CLOSED drawer's right edge at 0 - so the tab was off screen -
@@ -150,10 +151,17 @@ upg_n = 4;
 // down the side of a drawer that is supposed to be flush with it. The
 // two positions are the only two facts here, so lerp between them and
 // let nothing else be inferred.
-__dr_face = function() { return lerp(dr_tab - dr_w, 0, dr_open); };
+// ⚖️ THE DRAWER IS ON THE RIGHT NOW (his ask, 2026-09-08) and the info
+// box swapped to the left with it. The face is still the drawer's INNER
+// edge, so everything downstream reads the same way - only the sums
+// changed: closed leaves dr_tab poking in from the room's right edge,
+// open puts the face dr_w in from it.
+__dr_face = function() {
+	return lerp(room_width - dr_tab, room_width - dr_w, dr_open);
+};
 __upg_r = function(_k) {
 	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
-	         w : dr_w - 8, h : upg_h };
+	         w : dr_w - 8 - 4, h : upg_h };
 };
 // the quote cache: tile_upg walks a log-space series and packs an arb,
 // and the price only moves when something is bought
@@ -191,7 +199,7 @@ uq   = [];
 /// Buttons entirely clear of the drawer's travel keep full alpha.
 __btn_a = function(_x1, _x2) {
 	if (dr_open <= .001) return 1;
-	if (_x1 >= __dr_face() + dr_w) return 1;
+	if (_x2 <= __dr_face()) return 1;   // entirely LEFT of the drawer now
 	return clamp(1 - dr_open, 0, 1);
 };
 
@@ -225,7 +233,9 @@ __draw_drawer = function() {
 		draw_pixel_region(_fx, strip_y, dr_w, room_height - strip_y, dr_open);
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
 			0, c_black, .45 * dr_open);
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx + dr_w - 1, strip_y, 1,
+		// the accent runs down the drawer's INNER edge, which is its left
+		// one now that it comes from the right
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, 1,
 			room_height - strip_y, 0, c_aqua, .35);
 
 		// (the shard count and the rate live in the title strip now, where
@@ -259,16 +269,35 @@ __draw_drawer = function() {
 			draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
 			draw_set_halign(fa_left);
 
+			// WHAT YOU HAVE, AND WHAT THIS BUYS (his ask). The roster
+			// formats both - it is the only thing that knows whether an
+			// upgrade is measured in percent or seconds - so this prints
+			// fmt(lv) then fmt(lv + 1) and never has to care.
+			if (variable_struct_exists(_uc, "fmt")) {
+				var _now = _uc.fmt(_uq.lv);
+				var _nxt = _uc.fmt(_uq.lv + 1);
+				draw_set_color(c_aqua);
+				draw_set_alpha(.75 * _ua);
+				draw_text(_ur.x + 7, _ur.y + 13, _now);
+				var _aw = string_width(_now);
+				draw_set_color(rgb(120, 130, 150));
+				draw_set_alpha(.5 * _ua);
+				draw_text(_ur.x + 7 + _aw + 4, _ur.y + 13, ">");
+				draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+				draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
+				draw_text(_ur.x + 7 + _aw + 13, _ur.y + 13, _nxt);
+			}
+
 			var _bx2 = _ur.x + 6;
 			var _bw2 = _ur.w - 12;
-			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 13, _bw2, 11, 0,
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23, _bw2, 11, 0,
 				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
-			draw_px_rect(_bx2, _ur.y + 13, _bw2, 11, _uq.ok ? c_aqua : c_gray,
+			draw_px_rect(_bx2, _ur.y + 23, _bw2, 11, _uq.ok ? c_aqua : c_gray,
 				(_uq.ok ? .8 : .3) * _ua);
 			draw_set_halign(fa_center);
 			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
 			draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
-			draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 15, _uq.txt);
+			draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 25, _uq.txt);
 			draw_set_halign(fa_left);
 		}
 
@@ -286,13 +315,16 @@ __draw_drawer = function() {
 	// pixel from where the tab's line lands - which is the second, shorter
 	// aqua line (his report). One handle, one edge, never both.
 	if (dr_open < .999) {
-		var _tabx = __dr_face() + dr_w;
+		// the tab hangs off the room's RIGHT edge now, and its accent is
+		// the INNER side - which is where the open drawer's own hairline
+		// lands, so the two are still one edge rather than two
+		var _tabx = room_width - dr_tab;
 		var _any = false;
 		for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
 		var _ta = 1 - dr_open;
-		draw_sprite_ext(spr_pixel_1x1, 0, _tabx - dr_tab, strip_y + strip_h + 24,
+		draw_sprite_ext(spr_pixel_1x1, 0, _tabx, strip_y + strip_h + 24,
 			dr_tab, 60, 0, c_black, .8 * _ta);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tabx - 2, strip_y + strip_h + 24,
+		draw_sprite_ext(spr_pixel_1x1, 0, _tabx, strip_y + strip_h + 24,
 			2, 60, 0, c_aqua,
 			(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
 	}

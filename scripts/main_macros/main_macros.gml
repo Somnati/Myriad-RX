@@ -265,10 +265,6 @@ function main_macros() {
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds
 #macro TILE_BANK_BASE    10
-#macro TILE_AIM_OFF       5  // px the held tile hangs off the cursor in
-                             // "aim: mouse" mode - far enough that the
-                             // pointer stays visible, which is the whole
-                             // reason that mode exists
 #macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
                              // level (his number), applied result-side
                              // in tiles_tick
