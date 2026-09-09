@@ -50,6 +50,7 @@ tap_acc = 0;      // fractional taps banked by the current hold. The whole
                   // A press SEEDS IT AT -1 - see the Step.
 hold_on = false;  // did THIS press land somewhere that pays?
 fx_tic  = 0;      // the ceremony clock, so floats stay readable at rate
+hold_lead = 0;    // frames until this press starts PAYING as a hold
 
 // ---- THE RATE READOUT (DE's obj_tps + obj_draw_clickgps) ----
 tap_log = [];     // remaining life of each MANUAL tap, in delta units

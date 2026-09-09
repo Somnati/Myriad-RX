@@ -55,18 +55,26 @@ if (instance_exists(syst_dials))
 if (mouse_check_button_pressed(mb_left)) {
 	hold_on = _ok;
 	fx_tic  = 0;
-	// ⚖️ THE PRESS TAP IS THE HOLD'S FIRST TAP, not an extra one, and
-	// seeding the accumulator at -1 is what says so. It replaces a
-	// quarter-second dead wait, which caused his second complaint: the
-	// tap landed, nothing happened for a beat, then the rate started.
+	// ⚖️ THE LEAD, not a debt (his report: the hold has "a wind up after
+	// the first tap"). The previous version seeded the accumulator at -1
+	// so the press tap paid for the interval it started; that scales
+	// with the rate, but at 8 a second it means the second tap lands two
+	// intervals out - a quarter second of nothing, which is exactly the
+	// wind-up he can feel.
 	//
-	// The debt is exactly one tap, so the grace period is exactly one
-	// tap interval and SCALES WITH THE RATE. At 8 a second an ordinary
-	// 80-150ms tap never climbs back to 1, so a tap stays one tap; at
-	// 1000 a second the debt clears in 2ms, so a hold loses nothing to
-	// it. A fixed wait could not do both - it either double-paid slow
-	// taps or threw away a quarter second of a fast hold.
-	tap_acc = -1;
+	// Now the accumulator starts at ZERO and RUNS from the press, but
+	// payment is held for TAP_HOLD_LEAD frames. When the lead expires it
+	// pays everything banked in one go, so:
+	//   - the rhythm starts at ~183ms instead of 250ms, and the first
+	//     hold tap arrives with a full interval already behind it
+	//   - nothing is lost at any rate: at 1000/s the lead banks 183 taps
+	//     and pays all of them the frame it ends
+	//   - a tap still stays one tap, because 183ms clears a slow one
+	// Some threshold is unavoidable here: the tap interval at 8/s is
+	// 125ms and a human tap lasts 80-150, so the two genuinely overlap
+	// and only a floor above both can separate them.
+	tap_acc   = 0;
+	hold_lead = TAP_HOLD_LEAD;
 	if (hold_on) {
 		array_push(tap_log, TPS_WINDOW);
 		tap_fire(1, mouse_x, mouse_y, true);
@@ -108,7 +116,8 @@ if (!mouse_check_button(mb_left)) {
 	// this at -1, so the first hold tap lands one interval after the tap
 	// you already got, and a tap that never lasts that long stays a tap.
 	tap_acc += (tap_rate() / 60) * delta;
-	if (tap_acc >= 1) {
+	hold_lead -= delta;
+	if (hold_lead <= 0 && tap_acc >= 1) {
 		var _feed = floor(tap_acc);
 		tap_acc -= _feed;
 

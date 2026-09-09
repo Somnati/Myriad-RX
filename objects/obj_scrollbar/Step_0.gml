@@ -47,6 +47,19 @@ if instance_exists(syst_settings) {
 
 
 
+if i = scrl_menu2
+if instance_exists(syst_menu2) {
+	// PIXEL MODE: slot_height 1, so input/ty are px rather than rows.
+	// The drawer scrolls a content height, and it slides - so x has to
+	// follow panel_x every frame (syst_menu2's Step does that).
+	mn = syst_menu2.scr_band;
+	mx = syst_menu2.scr_ch;
+	input = syst_menu2.scr;
+	slot_height = 1;
+	depth = syst_menu2.depth - 1;
+}
+
+
 //if mx < mn mx = mn;// disable to enable fall effect
 
 //bar sprite
@@ -97,6 +110,7 @@ if not selected
 // output \\
 if i = scrl_statistics g.stats_page = clamp_min(input, 0);
 if i = scrl_settings g.settings_page = clamp_min(input, 0);
+if i = scrl_menu2 if instance_exists(syst_menu2) syst_menu2.scr = clamp_min(input, 0);
 //if in_room(rm_modules) global.module_page = clamp_min(input,0);
 /*
 if i = 4 if instance_exists(obj_statistics_infodraw)  obj_statistics_infodraw.mp = clamp_min(input,0);

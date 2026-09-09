@@ -25,6 +25,22 @@ am = 0; // fold, 0..1
 // (the blur is ui_blur_tick's now, off system's Begin Step: three
 // things sit over the room and only one of them was building it here)
 
+// ---- the real scrollbar (his ask, 2026-09-08) ----
+// The drawer used to scroll with its own drag maths and draw a 2px
+// whisper for a bar, which snapped: no inertia, no grab, and nothing
+// telling you how much list there was. obj_scrollbar already does all
+// three for settings and statistics, so it does them here too - lane
+// scrl_menu2, pixel mode.
+//
+// It has to live above the menu's own input block (the drawer raises
+// one) and ride panel_x, because unlike every other bar in the game
+// this one's owner MOVES.
+sb = create_obj(0, 0, obj_scrollbar);
+sb.i        = scrl_menu2;
+sb.in_menu  = true;
+sb.ui_layer = ui_layer_menu;
+sb.depth    = depth - 1;
+
 // the dark backing lives BEHIND the blur so the gaussian smooths it
 create_obj(0, 0, obj_menu2_bck);
 
@@ -62,6 +78,18 @@ foot_h = 20;      // pinned time-played band. It held profit AND the
 // font the previous event happened to leave set would let those two
 // disagree, which the one-geometry-authority rule exists to prevent - so
 // the measure sets the house font itself and puts back what was there.
+// what the scrollbar lane reads (pixel mode): the content height and
+// the height of the band it scrolls through. Published from __layout,
+// which is the only thing that knows either.
+scr_ch   = 0;
+scr_band = 1;
+
+// per-BUTTON hover ease, indexed by the button's own index so it
+// survives the list being rebuilt every frame. The gradient wipe reads
+// off it (see the Draw) - one number, eased, rather than a boolean that
+// snaps the colour on the frame the pointer arrives (his report).
+hov = array_create(array_length(btns), 0);
+
 btn_w = -1;       // -1 = not measured yet
 __btn_w = function() {
 	if (btn_w > 0) return btn_w;
@@ -146,7 +174,10 @@ __layout = function() {
 	// Set HERE rather than in the Create because __layout runs in both
 	// Step and Draw every frame, so pw can never be stale, and because
 	// __btn_w needs the font measured before there is a width to derive.
-	pw = __btn_w() + 2;
+	// +3: a 2px gap on the LEFT of the rows (his measure) and 1px on the
+	// right. The rows are right-anchored, so the left gap is the one you
+	// actually see against the room.
+	pw = __btn_w() + 3;
 	var _pw = pw;
 	panel_x = room_width - _pw * __ease(am);
 	var _top = hdr_h + 2;
@@ -170,6 +201,8 @@ __layout = function() {
 		if (btns[_i][$ "lbl"] ?? false) _nl++;
 	var _ch = (_n - _nl) * (_bh + _gap) + _nl * (_lh + _gap)
 		+ array_length(secs) * _sh;
+	scr_ch   = _ch;         // the scrollbar lane reads both of these
+	scr_band = max(1, _bot - _top);
 	scr_max = max(0, _ch - (_bot - _top));
 	scr = clamp(scr, 0, scr_max);
 	var _y = _top - scr;
@@ -179,7 +212,12 @@ __layout = function() {
 	// moves right. The section's rule still runs out to the panel edge.
 	var _bw  = __btn_w();
 	var _rx2 = panel_x + _pw - 1;   // 1px gap to the panel's right edge
-	var _rx1 = _rx2 - _bw;          // and the rows fill everything left
+	// ⚖️ THE ROOM YOU ARE IN IS WIDER (his ask). Every other row gives up
+	// HERE_TRIM px from its left edge, and the current one keeps the full
+	// width - so "here" is a shape you can find without reading, and the
+	// panel does not have to grow to hold the difference. Sections and
+	// info labels stay on the short edge with the rows they head.
+	var _rx1 = _rx2 - (_bw - MENU_HERE_TRIM);
 	for (var _i = 0; _i < _n; _i++) {
 		// x2 anchors to panel_x + _pw (== room_width when fully open,
 		// identical geometry) so rows RIDE the slide instead of
@@ -197,8 +235,11 @@ __layout = function() {
 			_y += _lh + _gap;
 			continue;
 		}
+		// the current room's row reaches further left than its neighbours
+		var _hx1 = _rx1;
+		if (!is_method(btns[_i].rm) && in_room(btns[_i].rm)) _hx1 = _rx2 - _bw;
 		array_push(_it, { kind : 0, idx : _i, name : btns[_i].name, col : btns[_i].col,
-			x1 : _rx1, y1 : _y, x2 : _rx2, y2 : _y + _bh });
+			x1 : _hx1, y1 : _y, x2 : _rx2, y2 : _y + _bh });
 		_y += _bh + _gap;
 	}
 	return _it;

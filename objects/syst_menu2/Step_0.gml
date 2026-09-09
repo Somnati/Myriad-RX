@@ -14,6 +14,31 @@ if (!open && am < .01) { kill; exit; }
 // to on so the look is unchanged for anyone who never touches it.
 // (blur: ui_blur_tick reads `am` off this instance every frame)
 
+// the bar rides the sliding edge and the fold - it is the only
+// scrollbar in the game whose owner moves
+if (instance_exists(sb)) {
+	sb.x = panel_x + 1;
+	sb.y = hdr_h + 2;
+	sb.image_yscale = (room_height - hdr_h - foot_h - 4)
+		/ sprite_get_height(spr_scrollbar);
+	sb.visible = (am > .9);
+	sb.enabled = (am > .9);
+}
+
+// per-button hover ease: the gradient wipe reads off this, so pointing
+// at a row is a state that ARRIVES rather than a colour that appears
+// (his report: "i dont want it to instantly change colors"). adj 3 is
+// about a third of the remaining distance a frame - quick, but a frame
+// of it is still visible, which is the whole point.
+var _hit = __layout();
+for (var _q = 0; _q < array_length(btns); _q++) hov[_q] = move_to(hov[_q], 0, 3);
+for (var _q = 0; _q < array_length(_hit); _q++) {
+	var _r = _hit[_q];
+	if (_r.kind != 0) continue;
+	if (!point_in_rectangle(mousex, mousey, _r.x1, _r.y1, _r.x2, _r.y2)) continue;
+	hov[_r.idx] = move_to(hov[_r.idx], 1, 3);
+}
+
 // ---- input: touch-list semantics. presses only ARM; drags scroll
 // the list; the tap itself lands on RELEASE inside the drag budget
 if (am > .5)

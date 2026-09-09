@@ -119,6 +119,12 @@ function main_macros() {
 // (5 was scrl_batstation - retired with the station room, 2026-07-12;
 // 6/7 were scrl_dials/scrl_prod - retired round 29 with their rooms)
 #macro scrl_goals 8
+#macro MENU_HERE_TRIM 6  // px every menu row gives up from its left
+                         // edge so the room you are IN can keep the
+                         // full width and read as wider than the rest
+#macro scrl_menu2 9   // the hamburger drawer. PIXEL mode (slot_height 1)
+                      // like the old stats lanes - the menu scrolls a
+                      // content HEIGHT, not a row index.
 
 // settings framework (syst_settings + settings_* scripts) row kinds
 #macro sett_kind_section 0
@@ -165,6 +171,16 @@ function main_macros() {
                           // lands several cycles a second across every
                           // dial at once; the feedback wanted is "the
                           // fleet paid", not "dial D paid".
+#macro TAP_HOLD_LEAD 11   // frames the button must be DOWN before the
+                          // hold starts PAYING - about 183ms. Some
+                          // threshold is unavoidable: at 8 taps a second
+                          // the interval is 125ms and a human tap lasts
+                          // 80-150, so without one an ordinary tap earns
+                          // a hold tap on top of the press tap. This is
+                          // the shortest number that clears a slow tap.
+                          // The accumulator RUNS during the lead and
+                          // pays what it banked the moment it expires,
+                          // so nothing is lost and there is no dead gap.
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

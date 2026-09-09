@@ -86,6 +86,7 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 	}
 
 	var _b = btns[_o.idx];
+	var _hv = hov[_o.idx];   // eased in the Step
 	// method destinations are never "here" (comparing a method to a
 	// room id can throw - guard first)
 	var _here = !is_method(_b.rm) && in_room(_b.rm);
@@ -98,11 +99,19 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 	// known ground whatever the blurred room behind happens to be doing.
 	draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0, c_black, 1);
 
-	// the hue goes ON TOP of the plate, and only when it means
-	// something: pointed at, or the room you are in.
-	if (_hov && !_here)
-		draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0,
-			merge_colour(_b.col, c_black, .70), .85);
+	// ⚖️ THE HIGHLIGHT IS A WIPE, NOT A SWAP (his report: "i dont want it
+	// to instantly change colors"). The hue enters from the LEFT and
+	// fades into black across the row, and the lit part GROWS with the
+	// hover ease - so pointing at a row is something that happens over a
+	// few frames in a direction, rather than a colour that is suddenly
+	// there. It leaves the same way, at the same rate.
+	if (_hv > .01) {
+		var _gc = merge_colour(_b.col, c_black, .55);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_o.x1, _o.y1, _w * _hv, _h, 0,
+			_gc, c_black, c_black, _gc, .92);
+	}
+	// the room you are in keeps a steady ground under all of that
 	if (_here)
 		draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0,
 			merge_colour(_b.col, c_black, .82), .9);
@@ -110,7 +119,7 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 	// THE PIP is the whole colour story now: 2px at rest, 3 when
 	// pointed at, and gold-capped on the room you are in - one mark
 	// carrying identity, hover and location between them.
-	var _pw2 = _hov ? 3 : 2;
+	var _pw2 = (_hv > .5) ? 3 : 2;
 	if (_here) _pw2 = 3;
 	draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _pw2, _h, 0,
 		merge_colour(_b.col, c_white, .2), 1);
@@ -119,7 +128,7 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 			c_gold, .95);
 
 	draw_set_halign(fa_left);
-	var _tc = merge_colour(_b.col, c_white, _hov ? .8 : .6);
+	var _tc = merge_colour(_b.col, c_white, .6 + .2 * _hv);
 	if (_here) _tc = c_white;
 	draw_set_color(_tc);
 	draw_set_alpha(_here ? 1 : .92);
@@ -178,15 +187,10 @@ if (_off >= 60) _tp += " +" + crunch_time(_off * 60);
 draw_text(panel_x + 4, room_height - foot_h + 11, _tp);
 draw_set_halign(fa_left);
 
-// scrollbar whisper (rides the panel edge too)
-if (scr_max > 0) {
-	var _bandh = room_height - hdr_h - foot_h - 4;
-	var _sbh = max(14, _bandh * _bandh / (_bandh + scr_max));
-	var _sby = hdr_h + 2 + (scr / scr_max) * (_bandh - _sbh);
-	// on the panel's LEFT edge now: the rows reach to pw-1, so the old
-	// seat at pw-3 would sit on top of them
-	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, _sby, 1, _sbh, 0, _slate, .45);
-}
+// (the scrollbar is a real obj_scrollbar now - lane scrl_menu2, spawned
+// in the Create and seated on the sliding edge each Step. The 2px
+// whisper that used to be drawn here could show a position but never a
+// PROPORTION, and it could not be grabbed or thrown.)
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);
