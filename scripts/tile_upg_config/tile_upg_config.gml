@@ -6,41 +6,44 @@
 /// FIELDS: id (the save key - never change one), name, base cost in
 /// SHARDS, mult (cost x this a level), help.
 ///
-/// ⚖️ THE COSTS ARE TUNED IN datafiles/tiles_twin.py AND NOWHERE ELSE.
-/// This is a closed positive-feedback loop - the table earns shards,
-/// shards buy upgrades, upgrades make the table earn more - so the cost
-/// curve is the only brake there is. The twin's first pass had bases in
-/// the tens and multipliers under 2.5, and the table bought every
-/// upgrade it could reach in SIX MINUTES. Shards accrue at tile_gps
-/// rates, which reach hundreds a second within minutes and climb like
-/// t^1.5, so the bases belong in the hundreds of thousands and the
-/// multipliers above 3. Run the twin before touching a number here; it
-/// prints HOLDS or FAILS and it has been wrong about this once already.
+/// ⚖️ CUT TO TWO (his call, 2026-09-08). The roster was fabricator /
+/// alloy quality / board size / hopper, tuned in tiles_twin against a
+/// board that is not finalised - four knobs on a system whose feel is
+/// still being decided is four things to re-tune every time the feel
+/// changes. These two are the ones he wants to steer with while the
+/// board settles: what it earns, and how fast it fills.
+///
+/// The retired ids (speed, luck, slots, bank) are NOT reused. A save
+/// holding levels in them keeps them harmlessly - tiles_sync simply
+/// stops reading them, so the board falls back to its base shape rather
+/// than to a level meaning something new.
+///
+/// COST GROWTH IS x3 A LEVEL, and the twin picked it rather than I did.
+/// Both effects are LINEAR in the level (+10% each, -0.1s each) against
+/// a geometric price, which made x1.5 look obviously safe - it is not.
+/// The LOOP compounds even when the effect does not: more shards buy
+/// more upgrades which earn more shards. tiles_twin swept 1.5 / 1.8 /
+/// 2.2 / 2.6 / 3.0 and everything under 3 left the next purchase costing
+/// well under an hour of current income, which is a formality rather
+/// than a decision. x3 is the first that holds all five invariants.
+///
+/// The BASES are his and deliberately low - a knob you cannot reach
+/// teaches nothing about how the board feels - so the multiplier is
+/// carrying the whole brake. Run the twin before touching either.
 function tile_upg_config() {
 	if (variable_global_exists("tile_upg_cfg")) return g.tile_upg_cfg;
 	g.tile_upg_cfg = [
 		{
-			id : "speed", name : "fabricator", base : 500000, mult : 3.4,
-			help : "a tile every " + string(TILE_SPEED_FACTOR * 100)
-			     + "% of the time - and the auto-merger rides the same "
-			     + "clock, so this speeds both",
+			id : "profit", name : "profit boost", base : 1000, mult : 3,
+			help : "+10% shards a second, per level. it multiplies what "
+			     + "the whole board earns, so it is worth more the more "
+			     + "tiles are on it",
 		},
 		{
-			id : "luck", name : "alloy quality", base : 1200000, mult : 3.9,
-			help : "+" + string(TILE_LUCK_STEP) + " fabricator luck. it "
-			     + "shifts the whole spread up, and past each 800 the "
-			     + "bottom tier stops spawning at all",
-		},
-		{
-			id : "slots", name : "board size", base : 4000000, mult : 4.4,
-			help : "+" + string(TILE_SLOT_STEP) + " slots. more room is "
-			     + "more pairs in play, which is the merge rate itself",
-		},
-		{
-			id : "bank", name : "hopper", base : 800000, mult : 3.6,
-			help : "+" + string(TILE_BANK_STEP) + " banked tiles. at the "
-			     + "cap the fabricator WAITS rather than losing output, "
-			     + "so this is how long a full board can coast",
+			id : "fab", name : "fabrication speed", base : 10000, mult : 3,
+			help : "-0.1s off the fabricator, per level. the auto-merger "
+			     + "rides the same clock, so this speeds both - it floors "
+			     + "at " + string(TILE_FAB_MIN / 60) + "s",
 		},
 	];
 	return g.tile_upg_cfg;

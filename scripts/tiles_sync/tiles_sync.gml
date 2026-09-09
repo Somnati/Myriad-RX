@@ -31,7 +31,13 @@ function tiles_sync() {
 		_t.dirty = true;
 	}
 
-	_t.fab_t      = TILE_FAB_T * power(TILE_SPEED_FACTOR, _t.upg[$ "speed"] ?? 0);
+	// FABRICATION SPEED: a flat -0.1s a level (his spec), floored so the
+	// fabricator can never reach zero and spin. Subtractive rather than
+	// the old multiplicative factor because he asked for a fixed step -
+	// which also means the LAST levels are the valuable ones, where a
+	// multiplier's would have been the first.
+	_t.fab_t = max(TILE_FAB_MIN,
+		TILE_FAB_T - TILE_FAB_STEP * (_t.upg[$ "fab"] ?? 0));
 	_t.stored_max = TILE_BANK_BASE + TILE_BANK_STEP * (_t.upg[$ "bank"] ?? 0);
 
 	// the fabricator's luck: a base knob (nothing sets it yet) plus what

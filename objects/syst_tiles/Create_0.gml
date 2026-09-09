@@ -175,6 +175,26 @@ uq   = [];
 //   depth  0   the board, bars, strip, controls   (Draw_0)
 //   depth -25  pixel_snap                          (snap proxy)
 //   depth -50  the drawer and its tab              (this)
+/// @func __btn_a(x1, x2)
+/// @desc How visible a bottom-row button is, given where the drawer is.
+///
+/// ⚖️ THE DRAWER COVERS THEM, SO THEY LEAVE (his report: their text was
+/// still drawing over the blur). The layering was already right - the
+/// board draws at depth 0, the snapshot at -25, the drawer at -50 - and
+/// I could not make the order fail on paper. What I could do is remove
+/// the possibility: a button the drawer reaches fades out as it opens,
+/// so there is nothing of theirs left to appear over anything. It is
+/// also the better behaviour on its own terms. With the drawer out you
+/// are in the upgrades, not on the board, and a control you cannot
+/// reach should not be sitting there looking pressable.
+///
+/// Buttons entirely clear of the drawer's travel keep full alpha.
+__btn_a = function(_x1, _x2) {
+	if (dr_open <= .001) return 1;
+	if (_x1 >= __dr_face() + dr_w) return 1;
+	return clamp(1 - dr_open, 0, 1);
+};
+
 __draw_drawer = function() {
 	// THE DRAWER'S BACKDROP (his ask: the dial drawer's treatment).
 	// pixel_snap grabs the screen as it stands and draw_pixel_region paints

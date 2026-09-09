@@ -180,29 +180,50 @@ draw_set_color(c_white);
 draw_set_alpha(.9);
 draw_text(_bbx + 28, 34, "back");
 
-draw_sprite_ext(spr_pixel_1x1, 0, 6, 246, 100, 14, 0, c_black, .6);
-draw_px_rect(6, 246, 100, 14, _t.automerge ? c_gold : c_white, _t.automerge ? .7 : .3);
-draw_set_color(_t.automerge ? c_gold : c_white);
-draw_set_alpha(.85);
-draw_text(56, 248, _t.automerge ? "auto merge on" : "auto merge off");
+// THE BOTTOM ROW. Each button's alpha rides __btn_a, so anything the
+// drawer reaches fades out as it opens rather than drawing over it -
+// see the Create for why that is the fix rather than a depth change.
+var _ba = __btn_a(6, 106);
+if (_ba > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 6, 246, 100, 14, 0, c_black, .6 * _ba);
+	draw_px_rect(6, 246, 100, 14, _t.automerge ? c_gold : c_white,
+		(_t.automerge ? .7 : .3) * _ba);
+	draw_set_color(_t.automerge ? c_gold : c_white);
+	draw_set_alpha(.85 * _ba);
+	draw_text(56, 248, _t.automerge ? "auto merge on" : "auto merge off");
+}
 
-draw_sprite_ext(spr_pixel_1x1, 0, 112, 246, 60, 14, 0, c_black, .6);
-draw_px_rect(112, 246, 60, 14, c_white, .3);
-draw_set_color(c_white);
-draw_text(142, 248, "sort");
+_ba = __btn_a(112, 172);
+if (_ba > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 112, 246, 60, 14, 0, c_black, .6 * _ba);
+	draw_px_rect(112, 246, 60, 14, c_white, .3 * _ba);
+	draw_set_color(c_white);
+	draw_set_alpha(.85 * _ba);
+	draw_text(142, 248, "sort");
+}
 
 // the destructive one wears red
-draw_sprite_ext(spr_pixel_1x1, 0, 178, 246, 60, 14, 0, c_black, .6);
-draw_px_rect(178, 246, 60, 14, c_hred, .7);
-draw_set_color(c_hred);
-draw_text(208, 248, "reset");
+_ba = __btn_a(178, 238);
+if (_ba > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 178, 246, 60, 14, 0, c_black, .6 * _ba);
+	draw_px_rect(178, 246, 60, 14, c_hred, .7 * _ba);
+	draw_set_color(c_hred);
+	draw_set_alpha(.85 * _ba);
+	draw_text(208, 248, "reset");
+}
 
-// drop-aim anchor (round 2 toggle)
+// drop-aim anchor: it moves the HELD TILE as well as the drop point
 var _amc = g.tiles.aim_center;
-draw_sprite_ext(spr_pixel_1x1, 0, 244, 246, 90, 14, 0, c_black, .6);
-draw_px_rect(244, 246, 90, 14, _amc ? c_aqua : c_white, _amc ? .7 : .3);
-draw_set_color(_amc ? c_aqua : c_white);
-draw_text(289, 248, _amc ? "aim: tile center" : "aim: mouse");
+_ba = __btn_a(244, 334);
+if (_ba > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 244, 246, 90, 14, 0, c_black, .6 * _ba);
+	draw_px_rect(244, 246, 90, 14, _amc ? c_aqua : c_white,
+		(_amc ? .7 : .3) * _ba);
+	draw_set_color(_amc ? c_aqua : c_white);
+	draw_set_alpha(.85 * _ba);
+	draw_text(289, 248, _amc ? "aim: tile center" : "aim: mouse");
+}
+draw_set_alpha(1);
 
 // ---- welcome-back report: what the fabricator and automerger did
 // while the game was closed (tiles_fastforward). any tap dismisses ----

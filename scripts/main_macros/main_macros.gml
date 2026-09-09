@@ -265,6 +265,18 @@ function main_macros() {
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds
 #macro TILE_BANK_BASE    10
+#macro TILE_AIM_OFF       5  // px the held tile hangs off the cursor in
+                             // "aim: mouse" mode - far enough that the
+                             // pointer stays visible, which is the whole
+                             // reason that mode exists
+#macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
+                             // level (his number), applied result-side
+                             // in tiles_tick
+#macro TILE_FAB_STEP      6  // fabrication speed: -0.1s a level, in
+                             // FRAMES at 60hz (his number)
+#macro TILE_FAB_MIN      30  // ...floored at half a second. A fabricator
+                             // at zero would fire every frame, which is
+                             // not fast, it is broken.
 #macro TILE_SPEED_FACTOR .88    // fab period x this a level
 #macro TILE_LUCK_STEP    60
 #macro TILE_SLOT_STEP    2

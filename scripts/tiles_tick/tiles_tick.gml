@@ -118,6 +118,13 @@ function tiles_tick(_tmult = 1) {
 		var _sum = 0;
 		for (var _i = 0; _i < _t.slots; _i++)
 			if (_t.tier[_i] != 0) _sum = do_add(_sum, tile_gps(_t.tier[_i]));
+		// PROFIT BOOST: +10% a level, applied to the BOARD's total
+		// rather than to each tile - same number either way, one
+		// do_scale instead of one per tile, and it says what it is.
+		// Result-side, so the upgrade can never compound into itself.
+		var _pl = _t.upg[$ "profit"] ?? 0;
+		if (_pl > 0 && _sum >= arb(1))
+			_sum = do_scale(_sum, 1 + TILE_PROFIT_STEP * _pl);
 		_t.gps = _sum;
 		_t.rev++;
 		save_mark_dirty();

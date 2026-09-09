@@ -174,8 +174,22 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 // down, even if a popup opened mid-drag ----
 if (grab_i != -1) {
 	z  = trickle(z, 3, 5);
-	gx = trickle(gx, mouse_x - tw * .5, 5);
-	gy = trickle(gy, (mouse_y - th * .5) - z * 2, 5);
+	// ⚖️ THE AIM TOGGLE MOVES THE TILE TOO (his ask). It only ever
+	// changed which POINT the drop resolved from, so both modes looked
+	// identical while held and the setting read as doing nothing.
+	//   aim: tile center - the tile sits ON the cursor, and its own
+	//                      middle is what picks the slot
+	//   aim: mouse       - the tile hangs off the cursor, so the cursor
+	//                      stays visible and IS the aim point
+	// __aim() already returns those two points; this makes the hold
+	// match, so what you see is what will land.
+	if (g.tiles.aim_center) {
+		gx = trickle(gx, mouse_x - tw * .5, 5);
+		gy = trickle(gy, (mouse_y - th * .5) - z * 2, 5);
+	} else {
+		gx = trickle(gx, mouse_x + TILE_AIM_OFF, 5);
+		gy = trickle(gy, (mouse_y + TILE_AIM_OFF) - z * 2, 5);
+	}
 
 	if (!mouse_check_button(mb_left)) {
 		var _am = __aim(); // mouse or tile-center, the room's toggle

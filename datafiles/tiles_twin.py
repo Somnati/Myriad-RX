@@ -35,14 +35,28 @@ R_SCALE, R_GROW, R_CUT = .3, .03, 800
 # outran its own prices. Shards accrue at tile_gps rates, which reach
 # hundreds per second within minutes and climb as t^1.5, so the bases
 # belong in the hundreds of thousands and the multipliers above 3.
+# CUT TO TWO (2026-09-08, his call), and the cost story changed with
+# them. The old four were MULTIPLICATIVE in effect - a speed FACTOR, a
+# luck step that shifted a whole spread - so they compounded and needed
+# multipliers above 3 to stay ahead. These two are LINEAR (+10% of the
+# rate a level, -0.1s a level) against a geometric price, so the loop
+# decelerates by construction and x1.5 is enough. The bases are his,
+# deliberately reachable.
 UPG = {
-    #             base         mult    what a level gives
-    "speed":  {"base": 500000,  "mult": 3.4},   # fab_t x .88
-    "luck":   {"base": 1200000, "mult": 3.9},   # tile_rarity + 60
-    "slots":  {"base": 4000000, "mult": 4.4},   # +2 board slots
-    "bank":   {"base": 800000,  "mult": 3.6},   # +8 banked tiles
+    #            base      mult    what a level gives
+    "profit": {"base": 1000,  "mult": 3.0},   # gps x (1 + .10 * lv)
+    "fab":    {"base": 10000, "mult": 3.0},   # fab_t - 6 frames, floor 30
 }
 SPEED_FACTOR = .88
+# ⚖️ SECONDS HERE, FRAMES IN THE GAME. main_macros stores TILE_FAB_STEP
+# as 6 and TILE_FAB_MIN as 30 because tiles_tick counts delta (frames at
+# 60hz); this twin has always worked in seconds, so they are /60. Getting
+# this wrong once already cost a run: FAB_MIN of 30 read as 30 SECONDS
+# and floored the fabricator above its own base, so the upgrade did
+# nothing and the twin cheerfully reported it as bought ten times.
+FAB_STEP     = 0.1    # main_macros TILE_FAB_STEP (6 frames)
+FAB_MIN      = 0.5    # main_macros TILE_FAB_MIN  (30 frames)
+PROFIT_STEP  = .10    # main_macros TILE_PROFIT_STEP
 LUCK_STEP    = 60
 SLOT_STEP    = 2
 BANK_STEP    = 8
@@ -125,13 +139,18 @@ class Table:
         self.merges = 0
 
     # derived, never stored - the same law the GML follows
-    def slots(self):   return SLOTS_BASE + SLOT_STEP * self.lv["slots"]
-    def fab_t(self):   return FAB_T_BASE * SPEED_FACTOR ** self.lv["speed"]
-    def bank_max(self): return STORED_MAX + BANK_STEP * self.lv["bank"]
-    def luck(self):    return LUCK_STEP * self.lv["luck"]
+    # the retired knobs are FIXED now - the board keeps its base shape
+    # and only the two live upgrades move
+    def slots(self):    return SLOTS_BASE
+    def fab_t(self):    return max(FAB_MIN, FAB_T_BASE - FAB_STEP * self.lv["fab"])
+    def bank_max(self): return STORED_MAX
+    def luck(self):     return 0
+    def gps_mult(self): return 1 + PROFIT_STEP * self.lv["profit"]
 
     def gps(self):
-        return sum(tile_gps(t) for t in self.tier)
+        # the profit boost multiplies the BOARD's total, as tiles_tick
+        # does - result-side, so it can never compound into itself
+        return sum(tile_gps(t) for t in self.tier) * self.gps_mult()
 
     def free(self):
         return self.slots() - len(self.tier)
