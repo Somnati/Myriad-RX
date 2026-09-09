@@ -33,7 +33,14 @@ if (!__live()) {
 // ---- IS THE POINTER SOMEWHERE THAT PAYS? ----
 // arbitrated region pattern: a press the menu, a popup or any clickable
 // widget already claimed is not ours
-var _ok = input_free()
+// ⚖️ ui_layer_overlay, NOT layer 0 (his fix, 2026-09-09). The note
+// below was right about the intention and wrong about the code: a
+// full-screen overlay raised the SAME rung a dropdown does, so bare
+// input_free() went false the moment settings opened and the tapper was
+// silently dead in there for a day. Asking at the overlay rung clears a
+// panel and nothing else - a dropdown, the menu drawer, a dialogue and
+// the rebirth overlay all sit above it and still mute the tap.
+var _ok = input_free(ui_layer_overlay)
 	&& (g.click_owner == noone)
 	&& (mouse_y >= tap_y0)
 	&& (mouse_y <= tap_y1)
@@ -47,9 +54,10 @@ if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
 // NOTE, since it looks like an omission: settings is NOT excluded. He
 // wants the tapper live in there too (2026-09-08) - it is only pillbox
-// presses that must not pay, and syst_input already handles those by
-// raising g.input_block to ui_layer_popup for as long as a box exists.
-// input_free() above is that guard; nothing extra is needed here.
+// presses that must not pay, and syst_input handles those by raising
+// g.input_block to ui_layer_popup for as long as a box exists. The
+// input_free(ui_layer_overlay) above is that guard: it clears the
+// panel's own rung and stops dead at the dropdown's.
 
 // ---- THE PRESS ----
 if (mouse_check_button_pressed(mb_left)) {

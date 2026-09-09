@@ -11,6 +11,17 @@
 /// fully modal: nothing beats it, its input runs internally.
 /// syst_input recomputes g.input_block every begin step.
 
+/// ⚖️ THE OVERLAY RUNG (2026-09-09). Settings and statistics used to
+/// raise ui_layer_popup, the same rung a dropdown does, and that one
+/// collision is what made the tapper dead inside settings while a
+/// comment in obj_clicker insisted it was live. They are not the same
+/// kind of busy: a dropdown is a thing you must answer before anything
+/// else happens, a full-screen panel is a thing you are standing in
+/// front of while the game carries on behind it. Splitting them lets
+/// the tapper ask for exactly "the panel may be up, a dropdown may not"
+/// - which is the rule he actually described - without re-deriving the
+/// blocker ladder at the call site.
+#macro ui_layer_overlay 100
 #macro ui_layer_popup 200
 #macro ui_layer_menu  500
 #macro ui_layer_modal 1000

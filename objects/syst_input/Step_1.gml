@@ -11,8 +11,13 @@ g.input_block = 0;
 // under them should be clickable. Their own furniture rides
 // ui_layer_popup to listen through this. ui_overlay is the one place
 // that knows which panels count.
+// ...at ui_layer_overlay, one rung UNDER a dropdown (2026-09-09): the
+// room behind is still held (plain layer-0 ui never clears 100), but
+// something can now be granted "runs while a panel is open" without
+// also being granted "runs while a dropdown is open". The tapper is the
+// one customer - see obj_clicker.
 if (ui_overlay() != noone)
-	g.input_block = ui_layer_popup;
+	g.input_block = ui_layer_overlay;
 if (instance_exists(obj_pillbox))
 	g.input_block = ui_layer_popup;
 if (instance_exists(syst_settings) && syst_settings.confirm_active)
