@@ -442,6 +442,7 @@
     {"id":{"name":"tour_util","path":"scripts/tour_util/tour_util.yy",},},
     {"id":{"name":"tour_visualizer","path":"scripts/tour_visualizer/tour_visualizer.yy",},},
     {"id":{"name":"trickle","path":"scripts/trickle/trickle.yy",},},
+    {"id":{"name":"ui_blur_tick","path":"scripts/ui_blur_tick/ui_blur_tick.yy",},},
     {"id":{"name":"ui_overlay_close","path":"scripts/ui_overlay_close/ui_overlay_close.yy",},},
     {"id":{"name":"ui_overlay","path":"scripts/ui_overlay/ui_overlay.yy",},},
     {"id":{"name":"unarb","path":"scripts/unarb/unarb.yy",},},

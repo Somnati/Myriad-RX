@@ -11,9 +11,14 @@
 /// the screen still stacks by DEPTH (settings' recipe): rows HERE ->
 /// widgets (depth-1) -> the title strip proxy (depth-2) -> menu -520.
 
-// backdrop: fully opaque - panels composite on a known surface
+// backdrop: BLACK AND SLIGHTLY OPEN (his ask, 2026-09-08) so the
+// menu_blur layer under it reads through. It was fully opaque because
+// the screen was a room and there was nothing behind it worth seeing;
+// as an overlay the softened room IS the thing behind it. The row
+// panels stay opaque, so what shows through is the gaps between them -
+// which is exactly where a blur wants to be seen.
 draw_sprite_ext(spr_pixel_1x1, 0, 0, obj_ui_header.sprite_height - 2,
-	room_width, room_height, 0, c_hsv(169, 186, 5), 1);
+	room_width, room_height, 0, c_black, .72);
 
 draw_set_font(fnt);
 
@@ -62,7 +67,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 
 	// hover wash on the tappable rows (settings has one; match it)
 	if (_row.kind == 1 || _row.kind == 4 || _row.kind == 5)
-	if (input_free())
+	if (input_free(ui_layer_popup))
 	if (mouse_y >= list_y)
 	if (mouse_x >= rail_w)
 	if (point_in_rectangle(mouse_x, mouse_y, rail_w, _ry, room_width, _ry + _bh - 1))
@@ -184,7 +189,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 				var _sc0 = _sg[_g].col;
 				var _fx0 = floor(_cx0);
 				var _fw0 = max(1, floor(_cx0 + _sw) - _fx0);
-				if (input_free())
+				if (input_free(ui_layer_popup))
 				if (point_in_rectangle(mouse_x, mouse_y, _fx0, _by0,
 					_fx0 + _fw0, _by0 + _bh0)) _hovi = _g;
 				var _lit = (_hovi == _g);
@@ -272,7 +277,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 			var _rsw = clamp(_ren[_rg].p, 0, 1) * _rw0;
 			var _rfx = floor(_rcx);
 			var _rfw = max(1, floor(_rcx + _rsw) - _rfx);
-			if (input_free())
+			if (input_free(ui_layer_popup))
 			if (point_in_rectangle(mouse_x, mouse_y, _rfx, _ry0, _rfx + _rfw,
 				_ry0 + _rsh)) _rhov = _rg;
 			_rcx += _rsw;
@@ -484,7 +489,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 
 			// hover scrub (display only - claims no clicks; hidden
 			// while a menu/popup owns the input)
-			if (input_free())
+			if (input_free(ui_layer_popup))
 			if (point_in_rectangle(mouse_x, mouse_y, _gx, _gy, _gx + _gw, _gy + _gh)) {
 				var _px2 = clamp(mouse_x - _gx - 1, 0, _gw - 3);
 				var _sf2 = (_px2 / max(1, _gw - 3)) * (_nn - 1);

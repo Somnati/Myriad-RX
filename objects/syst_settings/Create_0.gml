@@ -49,11 +49,13 @@ row_h  = 15; // th 7 + spc 8, the house rhythm
 // is still behind it. rm_settings survives as a dead room; nothing
 // routes there any more.
 //
-// DEPTH -400: over the room and over the dial drawer (-320), under the
-// menu drawer (-520) and the header (-1000). The header staying above
+// DEPTH -510: ABOVE the menu_blur layer at -500, which is what keeps
+// the panel sharp while the room under it softens - anything deeper
+// than -500 is what the gaussian eats. Under the menu drawer (-520) and
+// the header (-1000), over everything else. The header staying above
 // is deliberate - the screen has always drawn from bby down, so the
 // profit counter and the burger remain live exactly as they were.
-depth = -400;
+depth = -510;
 
 // the header's bottom edge, or a bare band where there is no header -
 // the title screen has none, and settings must open there too

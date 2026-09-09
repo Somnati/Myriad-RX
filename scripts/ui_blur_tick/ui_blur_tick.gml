@@ -1,0 +1,49 @@
+/// @description ui_blur_tick() - the menu blur, once a frame, for
+/// everything that sits over the room.
+///
+/// ⚖️ IT DERIVES, IT IS NOT PUSHED. syst_menu2 used to own the blur: it
+/// built the layer in its Create and set the intensity from its own fold
+/// in its Step. That worked while the drawer was the only thing over the
+/// room - then settings and statistics became overlays (2026-09-08) and
+/// there was no blur behind either, because the object that owned it was
+/// not on screen. Three owners of one effect is three ways to leave it
+/// on. So this reads the target off whatever is actually up and runs
+/// from system's Begin Step, which always exists.
+///
+/// IT ALSO SELF-HEALS PER ROOM, which the Create-time build could not:
+/// layers are room-scoped, so a room without a "menu_blur" layer gets
+/// one here on its first frame rather than only when a menu opens in it.
+///
+/// The blur layer sits at -500. Anything that must stay SHARP has to be
+/// above it - the drawer at -520, the overlays at -510, the header at
+/// -1000. Anything below is what gets blurred, which is the room.
+function ui_blur_tick() {
+	if (!layer_exists("menu_blur")) {
+		var _l  = layer_create(-500, "menu_blur");
+		var _nf = fx_create("_effect_gaussian_blur");
+		fx_set_parameter(_nf, "g_numPasses", 4);
+		fx_set_parameter(_nf, "g_numDownsamples", 1);
+		fx_set_parameter(_nf, "g_intensity", 0);
+		layer_set_fx(_l, _nf);
+	}
+	var _fx = layer_get_fx("menu_blur");
+	if (_fx == -1) return;
+
+	// what wants the room softened, and how much
+	var _t = 0;
+	if (instance_exists(syst_menu2)) _t = max(_t, syst_menu2.am);
+	if (ui_overlay() != noone)       _t = 1;
+
+	// eased so the blur arrives with the panel rather than snapping on
+	// under it; settles exactly, so a resting screen is not spending a
+	// gaussian pass on 0.003 of an effect
+	if (!variable_global_exists("ui_blur_a")) g.ui_blur_a = 0;
+	g.ui_blur_a = move_to(g.ui_blur_a, _t, 3);
+	if (abs(g.ui_blur_a - _t) < .01) g.ui_blur_a = _t;
+
+	// settings > display owns the master switch (his 2026-09-06 report:
+	// the toggle existed and was read by nothing)
+	var _on = (variable_global_exists("blur") ? g.blur : true) && (g.ui_blur_a > .002);
+	layer_set_visible("menu_blur", _on);
+	fx_set_parameter(_fx, "g_intensity", _on ? g.ui_blur_a : 0);
+}

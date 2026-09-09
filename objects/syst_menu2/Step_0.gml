@@ -12,11 +12,7 @@ if (!open && am < .01) { kill; exit; }
 // defaulted, and read by nothing, so the toggle did nothing at all
 // (his report 2026-09-06). It gates the layer now; the default flipped
 // to on so the look is unchanged for anyone who never touches it.
-if (blur_fx != -1) {
-	var _bl = (variable_global_exists("blur") ? g.blur : true) && (am > 0);
-	layer_set_visible("menu_blur", _bl);
-	fx_set_parameter(blur_fx, "g_intensity", _bl ? am : 0);
-}
+// (blur: ui_blur_tick reads `am` off this instance every frame)
 
 // ---- input: touch-list semantics. presses only ARM; drags scroll
 // the list; the tap itself lands on RELEASE inside the drag budget

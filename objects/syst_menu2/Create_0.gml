@@ -22,16 +22,8 @@ depth = -520; // above the blur layer (-500): the panel stays sharp
 open = true;
 am = 0; // fold, 0..1
 
-// ---- persistent blur: build the fx layer where a room lacks it ----
-if (!layer_exists("menu_blur")) {
-	var _l = layer_create(-500, "menu_blur");
-	var _fx = fx_create("_effect_gaussian_blur");
-	fx_set_parameter(_fx, "g_numPasses", 4);
-	fx_set_parameter(_fx, "g_numDownsamples", 1);
-	fx_set_parameter(_fx, "g_intensity", 0);
-	layer_set_fx(_l, _fx);
-}
-blur_fx = layer_get_fx("menu_blur");
+// (the blur is ui_blur_tick's now, off system's Begin Step: three
+// things sit over the room and only one of them was building it here)
 
 // the dark backing lives BEHIND the blur so the gaussian smooths it
 create_obj(0, 0, obj_menu2_bck);

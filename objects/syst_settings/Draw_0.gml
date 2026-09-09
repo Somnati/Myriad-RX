@@ -8,9 +8,13 @@
 
 draw_set_font(fnt);
 
-// backdrop (the statistics_v2 deep teal)
+// backdrop: BLACK AND SLIGHTLY OPEN (his ask, 2026-09-08) so the
+// menu_blur layer under it reads through. It was a near-opaque teal
+// because the screen was a room with nothing behind it; as an overlay
+// the softened room IS what is behind it, and the rows composite on top
+// unchanged.
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby - 2, room_width, room_height, 0,
-	c_hsv(169, 186, 5), .95);
+	c_black, .72);
 
 // ---- the active tab's rows, windowed ----
 var _n = array_length(view);

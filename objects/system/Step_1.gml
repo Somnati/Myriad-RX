@@ -1,4 +1,9 @@
 
+// the menu blur, for the drawer AND the settings / statistics overlays.
+// It derives from whatever is up rather than being pushed by each of
+// them, and it rebuilds the layer per room - see ui_blur_tick.
+ui_blur_tick();
+
 return_status = os_paused();
 if quit = true game_end();
 

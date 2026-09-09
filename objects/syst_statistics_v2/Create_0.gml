@@ -56,11 +56,12 @@ widgets     = []; // widgets in the CURRENT build (positioned)
 // it. rm_statistics_v2 survives as a dead room; the menu routes here
 // through statistics_open now.
 //
-// DEPTH -400, matching settings: over the room and the dial drawer
-// (-320), under the menu drawer (-520) and the header (-1000). The
+// DEPTH -510, matching settings: ABOVE the menu_blur layer at -500, so
+// the panel stays sharp while the room under it softens. Under the menu
+// drawer (-520) and the header (-1000). The
 // screen has always drawn from the header's edge down, so the profit
 // counter and the burger stay live exactly as they were.
-depth = -400;
+depth = -510;
 
 widgets_all = []; // every widget ever registered (all get parked)
 fav_rows    = []; // pinned-line copies captured during the walk
