@@ -42,7 +42,8 @@ var _best = infinity;
 // every family whose members call mouse_over(). a new clickable family
 // is one entry here; par_* children are swept through their parent
 var _fams = [par_button, par_toggle, par_toggle_single, par_slider,
-             obj_scrollbar, obj_deb_menu, obj_pillbox, syst_rebirth];
+             obj_scrollbar, obj_deb_menu, obj_pillbox, syst_rebirth,
+             obj_puck];
 
 for (var _i = 0; _i < array_length(_fams); _i++) {
 	with (_fams[_i]) {

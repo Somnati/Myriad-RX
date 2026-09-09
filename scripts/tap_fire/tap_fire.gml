@@ -25,7 +25,14 @@
 ///              a noise you did not ask for and cannot see the source
 ///              of. The press keeps its sound in every room - that one
 ///              is feedback that your input landed.
-function tap_fire(_n, _x, _y, _fx = true, _hold = false) {
+/// @arg [stat]  false = this batch is NOT taps. The puck's bounces pay
+///              profit and roll crits exactly like a tap, but a bounce
+///              is not something you tapped and must not inflate the
+///              lifetime counter or the crit RATE derived against it.
+///              DE expressed this by sniffing the caller's identity
+///              (give_click's `is_cube`); saying it at the call site is
+///              the same law, declared instead of inferred.
+function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (_n < 1) return;
 	if (!variable_global_exists("click_gps")) return;
 
@@ -57,12 +64,17 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false) {
 		// crit; a BATCH that crits is credited its expected share, so
 		// the lifetime crit RATE stays honest against total_taps
 		// instead of reading 100% the moment a hold starts landing.
-		if (_n == 1) g.total_crits += 1;
-		else         g.total_crits += max(1, floor(_n * _rate / 100));
+		// ...against total_taps, so a batch that does not count as taps
+		// must not count as crits either - the lifetime crit RATE is
+		// derived from the pair and would climb past 100% otherwise
+		if (_stat) {
+			if (_n == 1) g.total_crits += 1;
+			else         g.total_crits += max(1, floor(_n * _rate / 100));
+		}
 	}
 
 	give_profit(_pay);
-	g.total_taps += _n;
+	if (_stat) g.total_taps += _n;
 
 	// THE CREDIT ROLL (DE's give_click): a small chance per tap pulls a
 	// few credits from the dropper's pool - refused by credit_drop while

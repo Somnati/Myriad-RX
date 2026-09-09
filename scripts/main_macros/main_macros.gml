@@ -286,6 +286,47 @@ function main_macros() {
 #macro UI_IN_SLIDE   17    // px the title strip drops out from behind
                            // the header, and the rail slides in by
 
+// ---- THE PUCK (obj_puck - Myriad DE's throwable, rebuilt) ----
+// Read obj_puck's Create for what each mechanic is FOR; these are the
+// numbers that shape it. Everything is in room px and 60hz frames.
+#macro PUCK_D           19  // diameter. Odd, so the disc has a true
+                            // centre row and reads symmetrical
+#macro PUCK_FOLLOW       5  // trickle divisor toward the cursor. THE
+                            // weight knob: lower is snappier, and at 1
+                            // the puck stops feeling like an object
+#macro PUCK_DRAG_R      60  // ...past this cursor distance the follow
+#macro PUCK_DRAG_MAX     7  // slows by up to this factor. The stretch
+                            // when you yank it is entirely these two
+#macro PUCK_CANNON_LOCK 22  // frames the cannon locks in hard before it
+                            // switches to slow aiming (arming should
+                            // feel decisive, aiming deliberate)
+#macro PUCK_SNAP_R      50  // a dock only speaks if the puck was at
+                            // least this far from it - or sitting in a
+                            // corner retriggers the sound every frame
+#macro PUCK_MIN_PULL     3  // under this, a release is a place-down
+#macro PUCK_TIER_SPD    .5  // launch speed per power tier
+#macro PUCK_TIER_RESIST  2  // ...and combo bounces per tier. A stronger
+                            // shot is also a LONGER one, which is what
+                            // makes charging worth the wait
+#macro PUCK_TIERS        2  // aim tiers above zero (deck cards raise it)
+#macro PUCK_FRIC_SLOW  .975 // per-frame speed decay when crawling...
+#macro PUCK_FRIC_FAST   .98 // ...and when flying. Fast keeps more, so a
+                            // throw decays gently then falls off a
+                            // cliff - the last bounces are the tense
+                            // ones
+#macro PUCK_BNC_SLOW   .972 // restitution, same split
+#macro PUCK_BNC_FAST   .985
+#macro PUCK_STUN         3  // frames of impact freeze at full speed.
+                            // Friction is OFF for the duration - that
+                            // is what makes a bounce punch instead of
+                            // squelch
+#macro PUCK_RESIST       3  // near-frictionless bounces a throw banks
+#macro PUCK_STOP        .4  // below this it has stopped
+#macro PUCK_CATCH        3  // a mid-air catch pays this many bounces
+#macro PUCK_PAY_MIN     .8  // a bounce pays between these multiples of
+#macro PUCK_PAY_MAX      2  // tap_rate(). See puck_pay - the puck has
+                            // no scale of its own BY DESIGN
+
 #macro TILES_LIVE false
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every

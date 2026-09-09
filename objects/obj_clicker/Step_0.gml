@@ -52,6 +52,14 @@ var _ok = input_free(ui_layer_overlay)
 if (_ok)
 if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
+// THE PUCK is a syst_input family member, so a press ON it already
+// sets g.click_owner and the check above excludes it for free. What
+// that cannot cover is AIMING: the cannon parks the puck at the bottom
+// edge while your cursor is halfway up the room, and every one of those
+// frames is a press landing on empty tap surface. Holding it is the
+// gesture; nothing inside it is also a tap.
+if (_ok && instance_exists(obj_puck) && obj_puck.held) _ok = false;
+
 // THE DICE claim their own presses the same way (ported 2026-09-09).
 // obj_dice checks a scoop radius rather than a rectangle and never
 // writes g.click_owner, so it cannot be arbitrated the usual way -
