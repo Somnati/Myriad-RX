@@ -163,7 +163,21 @@ function main_macros() {
 // hard ceiling rather than a target: the population cull means the
 // count settles well under it on its own.
 // ---- THE TAP RATE (DE's get_tps + click_v2's accumulator) ----
-#macro TAP_HOLD_BASE  8   // taps a second while the button is HELD, before
+#macro TAP_HOLD_BASE  6   // ⚖️ THIS IS ALSO THE TAP/HOLD SEPARATOR. DE
+                          // starts at 6, which makes the hold interval
+                          // 167ms - longer than a human tap (80-150ms),
+                          // so an ordinary press finishes before the
+                          // hold has earned anything and a tap is one
+                          // tap for free. At 8 the interval is 125ms and
+                          // a lingering press earns two, exactly as DE
+                          // does once you have bought a faster thumb.
+                          // SET TO DE'S 6 (2026-09-08) because it is
+                          // the number that answers both of his reports
+                          // at once: no lead to feel, and a slow press
+                          // still worth exactly one tap. Raising it
+                          // trades the second for a faster hold, which
+                          // is the trade an upgrade is supposed to make.
+                          // taps a second while the button is HELD, before
                           // upgrades. DE's base is 6 and an ability grants
                           // it; RX hands it over from the start because
                           // there is no deck to draw it from yet.
@@ -171,16 +185,6 @@ function main_macros() {
                           // lands several cycles a second across every
                           // dial at once; the feedback wanted is "the
                           // fleet paid", not "dial D paid".
-#macro TAP_HOLD_LEAD 11   // frames the button must be DOWN before the
-                          // hold starts PAYING - about 183ms. Some
-                          // threshold is unavoidable: at 8 taps a second
-                          // the interval is 125ms and a human tap lasts
-                          // 80-150, so without one an ordinary tap earns
-                          // a hold tap on top of the press tap. This is
-                          // the shortest number that clears a slow tap.
-                          // The accumulator RUNS during the lead and
-                          // pays what it banked the moment it expires,
-                          // so nothing is lost and there is no dead gap.
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

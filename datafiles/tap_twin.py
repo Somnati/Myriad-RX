@@ -32,7 +32,6 @@ Run:  python datafiles/tap_twin.py
 import math
 
 TAP_FX_TIC    = 5      # main_macros
-TAP_HOLD_LEAD = 11     # main_macros
 
 FPS_CASES  = [30, 60, 90, 144, 240]
 RATE_CASES = [0.5, 1, 8, 59, 60, 61, 250, 1000, 12345]
@@ -129,36 +128,48 @@ def check():
               % (rate, got, naive, 100.0 * naive / got))
 
     print()
-    print("INVARIANT 6  a tap is one tap; a hold loses nothing to the lead")
-    # The press pays one tap and starts a LEAD: the accumulator runs from
-    # the press but payment is held for TAP_HOLD_LEAD frames, then pays
-    # everything banked at once. Some threshold is unavoidable - at 8/s
-    # the interval is 125ms and a human tap lasts 80-150ms, so the two
-    # genuinely overlap.
-    def press_of(ms, rate, lead):
-        frames = int(60 * ms / 1000.0)
-        taps, acc, ld = 1, 0.0, lead
-        for _ in range(frames):
+    print("INVARIANT 6  DE's shape: one accumulator, no lead")
+    # click_v2 does not special-case the press. It adds ONE WHOLE TAP to
+    # the same accumulator the hold rate feeds, and a single payout sees
+    # it cross 1 that frame. So the press pays instantly and the first
+    # hold tap lands exactly one interval later - the soonest it can,
+    # without charging twice for one instant. There is no lead to tune.
+    def press_of(ms, rate):
+        acc, taps = 1.0, 0                       # the press banks a tap
+        if acc >= 1: taps += math.floor(acc); acc -= math.floor(acc)
+        for _ in range(int(60 * ms / 1000.0)):
             acc += rate / 60.0
-            ld -= 1
-            if ld <= 0 and acc >= 1:
-                taps += math.floor(acc); acc -= math.floor(acc)
+            if acc >= 1: taps += math.floor(acc); acc -= math.floor(acc)
         return taps
+    # WHAT KEEPS A TAP WORTH ONE TAP IS THE RATE, not a threshold: the
+    # hold interval has to outlast a human tap (80-150ms).
+    print("   %6s  %9s  %s" % ("rate", "interval", "taps from a press of..."))
+    print("   %6s  %9s  %5s %5s %5s %5s" % ("", "", "80ms", "120ms", "150ms", "200ms"))
     ok6 = True
-    for ms in (80, 120, 150, 180, 200):
-        no_lead = press_of(ms, 8, 0)
-        with_lead = press_of(ms, 8, TAP_HOLD_LEAD)
-        if ms <= 150 and with_lead != 1: ok6 = False
-        print("   a %3dms tap at 8/s  ->  %d taps with no lead, %d with"
-              % (ms, no_lead, with_lead))
-    print("   %8s  %10s  %10s  %s" % ("rate", "2s hold", "rate x 2s", "shortfall"))
+    for rate in (6, 7, 8, 12):
+        row = [press_of(ms, rate) for ms in (80, 120, 150, 200)]
+        print("   %6d  %7.0fms  %5d %5d %5d %5d" % (rate, 1000.0 / rate, *row))
+    # DE's own default separates cleanly; that is the property to keep
+    if press_of(150, 6) != 1: ok6 = False
+    print("   at DE's rate of 6 a 150ms tap is %d tap - the interval (167ms)"
+          % press_of(150, 6))
+    print("   outlasts the tap. At 8 it is %d, which is what DE also does"
+          % press_of(150, 8))
+    print("   once you have bought a faster thumb.")
+
+    # and the hold still loses nothing at any rate
+    def hold_of(ms, rate):
+        acc, taps = 1.0, 0
+        if acc >= 1: taps += math.floor(acc); acc -= math.floor(acc)
+        for _ in range(int(60 * ms / 1000.0)):
+            acc += rate / 60.0
+            if acc >= 1: taps += math.floor(acc); acc -= math.floor(acc)
+        return taps
+    print("   %8s  %10s  %10s  %s" % ("rate", "2s hold", "1 + rate x 2", "diff"))
     for rate in (8, 60, 1000, 12345):
-        got  = press_of(2000, rate, TAP_HOLD_LEAD)
-        want = rate * 2
+        got, want = hold_of(2000, rate), 1 + rate * 2
         print("   %8d  %10d  %10d  %d" % (rate, got, want, want - got))
-        # the lead BANKS rather than discards, so the only shortfall is
-        # the accumulator's own carry on the final frame
-        if want - got > 2: ok6 = False
+        if abs(want - got) > 2: ok6 = False
 
     print()
     print("INVARIANT 7  the ceremony clock counts FRAMES, not batches")

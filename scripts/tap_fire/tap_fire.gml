@@ -18,7 +18,14 @@
 /// obj_clicker owns the accumulator; this owns what a batch is worth.
 ///
 /// `effects` rations the ceremony, never the money - see the caller.
-function tap_fire(_n, _x, _y, _fx = true) {
+/// @arg [hold]  true = this batch came from the HOLD rather than from a
+///              press. Outside the money room a held tap goes SILENT
+///              (his ask): the tap still pays everywhere, but a rate
+///              ticking away under a settings page or a stats table is
+///              a noise you did not ask for and cannot see the source
+///              of. The press keeps its sound in every room - that one
+///              is feedback that your input landed.
+function tap_fire(_n, _x, _y, _fx = true, _hold = false) {
 	if (_n < 1) return;
 	if (!variable_global_exists("click_gps")) return;
 
@@ -78,7 +85,10 @@ function tap_fire(_n, _x, _y, _fx = true) {
 	// visuals are the money room's. A crit having its own sound is the
 	// one place this port deliberately ADDS rather than matches: DE's
 	// crit is silent, and the moment wanted one.
-	if (_fx) {
+	// A HELD TAP IS SILENT OUTSIDE THE MONEY ROOM (his ask). _show is
+	// already "are we in the clicker", so this reuses it rather than
+	// asking the room a second question.
+	if (_fx && (!_hold || _show)) {
 		// both are the player's choice now (settings > audio). The crit
 		// keeps its haptic: it is the one tap you want to FEEL differently.
 		if (_crit) { sfx_play("crit"); vibrate(30, 3); }

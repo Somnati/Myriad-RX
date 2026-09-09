@@ -55,82 +55,69 @@ if (instance_exists(syst_dials))
 if (mouse_check_button_pressed(mb_left)) {
 	hold_on = _ok;
 	fx_tic  = 0;
-	// ⚖️ THE LEAD, not a debt (his report: the hold has "a wind up after
-	// the first tap"). The previous version seeded the accumulator at -1
-	// so the press tap paid for the interval it started; that scales
-	// with the rate, but at 8 a second it means the second tap lands two
-	// intervals out - a quarter second of nothing, which is exactly the
-	// wind-up he can feel.
-	//
-	// Now the accumulator starts at ZERO and RUNS from the press, but
-	// payment is held for TAP_HOLD_LEAD frames. When the lead expires it
-	// pays everything banked in one go, so:
-	//   - the rhythm starts at ~183ms instead of 250ms, and the first
-	//     hold tap arrives with a full interval already behind it
-	//   - nothing is lost at any rate: at 1000/s the lead banks 183 taps
-	//     and pays all of them the frame it ends
-	//   - a tap still stays one tap, because 183ms clears a slow one
-	// Some threshold is unavoidable here: the tap interval at 8/s is
-	// 125ms and a human tap lasts 80-150, so the two genuinely overlap
-	// and only a floor above both can separate them.
-	tap_acc   = 0;
-	hold_lead = TAP_HOLD_LEAD;
+	tap_acc = 0;
 	if (hold_on) {
+		// ⚖️ DE'S SHAPE, EXACTLY (his ask - the lead was still a wind-up).
+		// click_v2 does not special-case the press at all: it adds ONE
+		// WHOLE TAP to the same accumulator the hold rate feeds, and the
+		// single payout below sees it cross 1 on that very frame. So the
+		// press pays instantly and the first hold tap lands exactly one
+		// interval later - which is the soonest it can land without
+		// charging twice for the same instant. There is no lead left to
+		// feel, because there is no lead.
+		//
+		// What DE relies on to keep an ordinary tap worth one tap is its
+		// RATE: cc starts at 6, so the interval is 167ms and a human tap
+		// (80-150ms) finishes inside it. TAP_HOLD_BASE is the same knob
+		// here. Above about 7 a second the interval drops under a slow
+		// tap and a lingering press earns two - which is what DE does
+		// too, once you have bought a faster thumb.
+		tap_acc  += 1;
+		tap_press = true;
 		array_push(tap_log, TPS_WINDOW);
-		tap_fire(1, mouse_x, mouse_y, true);
-		pop = 1;
 	}
 }
 
 // ---- THE HOLD ----
 // ⚖️ NO DRAG BUDGET (his report: "my hold to tap turns off when i move
 // the mouse"). It used to cancel the hold once the pointer travelled
-// 12px, because a held button was ALSO the visualiser's swipe-zoom -
-// the tap surface is the whole room, so holding to tap and swiping to
-// zoom were the same input and the tapper had to defend itself. The
-// zoom gesture is gone now, and the only thing left in this room that
-// wants a held drag is the dial drawer, which arms ONLY from its own
-// right-edge band (syst_dials' press gate) - a press that starts on the
-// tap surface can never reach it. So a hold survives the pointer
-// wandering, which is what a hold is.
-//
-// The press still decides ONCE whether this is a tap surface (hold_on,
-// above), so a press that began on a widget never becomes a hold.
+// 12px, because a held button was ALSO the visualiser's swipe-zoom. The
+// zoom gesture is gone, and the only thing left in this room that wants
+// a held drag is the dial drawer, which arms ONLY from its own
+// right-edge band - a press that starts on the tap surface can never
+// reach it. So a hold survives the pointer wandering, which is what a
+// hold is.
 if (!mouse_check_button(mb_left)) {
 	hold_on = false;
-	tap_acc = 0;
+	tap_acc = 0;   // DE's `if released tap[dev] = 0`
 } else if (hold_on) {
-	// ⚖️ THE CEREMONY CLOCK TICKS ON FRAMES, NOT ON BATCHES, which was
-	// the other half of an earlier report ("it says 8tps but it's closer
-	// to 1tps"). It used to be decremented inside the payout branch, so
-	// it counted BATCHES: one effect every six, which at 8 taps a second
-	// is 1.3 floats a second. The money was always right; the show was
-	// rationed eight times too hard, and the show is the only part you
-	// can see.
+	// THE CEREMONY CLOCK TICKS ON FRAMES, NOT ON BATCHES. It used to be
+	// decremented inside the payout branch, so it counted batches: one
+	// effect every six, which at 8 taps a second is 1.3 floats a second.
 	fx_tic -= delta;
-
-	// DE's click_v2 accumulator, verbatim in law: fractional taps at
-	// rate/60 a frame, and the whole part paid in ONE call. This is the
-	// entire reason a rate of 1000 is exact on a 60fps machine instead
-	// of being silently clipped to 60 - see tap_fire. The press seeded
-	// this at -1, so the first hold tap lands one interval after the tap
-	// you already got, and a tap that never lasts that long stays a tap.
 	tap_acc += (tap_rate() / 60) * delta;
-	hold_lead -= delta;
-	if (hold_lead <= 0 && tap_acc >= 1) {
-		var _feed = floor(tap_acc);
-		tap_acc -= _feed;
+}
 
-		// THE CEREMONY IS RATIONED, THE MONEY IS NOT. Past a dozen taps
-		// a second the floats stop being readable and the motes only
-		// fight the population cap, so the show runs on its own clock
-		// while every tap is paid in full.
-		var _fx = (fx_tic <= 0);
-		if (_fx) fx_tic = TAP_FX_TIC;
+// ---- ONE PAYOUT, press and hold alike ----
+// DE's click_v2 has a single `if (tap[dev] >= 1)` and so does this. The
+// press reaches it with a whole tap already banked; the hold reaches it
+// whenever the rate has earned one. Same call, same crit roll, same
+// batching - and nothing has to decide which kind of tap it was except
+// the SHOW.
+if (hold_on && tap_acc >= 1) {
+	var _feed = floor(tap_acc);
+	tap_acc -= _feed;
 
-		tap_fire(_feed, mouse_x, mouse_y, _fx);
-		pop = 1;
+	// THE CEREMONY IS RATIONED, THE MONEY IS NOT - except a press, which
+	// always performs. It is the one tap the player actually made.
+	var _fx = tap_press;
+	if (!_fx && fx_tic <= 0) {
+		_fx = true;
+		fx_tic = TAP_FX_TIC;
 	}
+	tap_fire(_feed, mouse_x, mouse_y, _fx, !tap_press);
+	tap_press = false;
+	pop = 1;
 }
 
 // ---- THE READOUT ----
