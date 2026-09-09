@@ -3,8 +3,8 @@
 ///
 ///   resting   spd == 0, nobody holding
 ///   held      the pointer owns it, chasing the cursor
-///   docked    held AND locked to one of the six magnets
-///   cannon    docked specifically to the bottom-centre one - aiming
+///   docked    held AND locked to a magnet (there is one - the cannon)
+///   cannon    that magnet, armed: aiming
 ///   flying    spd > 0, bouncing off the tray
 ///
 /// Order matters here: sparks decay, then input, then the follow, then
@@ -90,10 +90,10 @@ if (held) {
 	var _py = mousey - grip_y;
 	var _reach = point_distance(__cx(), __cy(), mousex, mousey);
 
-	// ---- the docks ----
-	// Nearest wins, and the cannon is last in the list so a cursor in
-	// the bottom-centre region resolves to the cannon rather than to a
-	// bottom corner whose radius it also happens to be inside.
+	// ---- the dock ----
+	// A list of one (see __docks for why), but it stays a list: the
+	// loop is four lines, and the day a second magnet earns its place
+	// it is a row in that function rather than a rewrite here.
 	var _dk = __docks();
 	var _dki = -1;
 	for (var _i = 0; _i < array_length(_dk); _i++) {
@@ -172,7 +172,13 @@ if (held) {
 		var _launch = cannon;
 		was_cannon = _launch;
 
-		if (_reach > PUCK_MIN_PULL && (!docked || _launch)) {
+		// ⚖️ NO `!docked` HERE ANY MORE. That condition is what ate his
+		// throws: docked and not the cannon meant the release did
+		// nothing at all. With the cannon as the only dock, docked
+		// IMPLIES _launch and the test could not fail - so rather than
+		// leave a condition that is true by construction and will read
+		// as load-bearing to whoever finds it next, it is gone.
+		if (_reach > PUCK_MIN_PULL) {
 			dir = point_direction(__cx(), __cy(), mousex, mousey);
 			// speed from pull length, with a mild bonus for long pulls -
 			// DE's _band term, which stops a full-screen drag from being

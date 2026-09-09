@@ -30,9 +30,11 @@
 ///   the cursor is vertically, so it reads as holding a physical object
 ///   by a shifting grip rather than dragging a sprite.
 ///
-///   SIX DOCKS. Four corners, top-centre, and bottom-centre (the
-///   cannon). Each with a sound, each refusing to re-fire while you are
-///   already sitting in it.
+///   THE CANNON DOCK. Bottom-centre, with a sound, refusing to re-fire
+///   while you are already sitting in it. DE had six magnets; the other
+///   five were removed on his report - see __docks for why they were a
+///   bug rather than a taste, and why they were vestigial to begin
+///   with.
 ///
 ///   HIT-STUN, and the thing that makes it work: for the two or three
 ///   frames after a bounce, friction is lerped OFF entirely. The
@@ -211,22 +213,35 @@ __grip = function() {
 };
 
 /// @func __docks()
-/// @desc The six magnet points, as {x, y, cannon, snd} in puck
-///       TOP-LEFT coordinates, plus the radius each one catches from.
-///       Ordered so the cannon is LAST: a cursor in the bottom-centre
-///       region is inside the bottom corners' reach too, and the one
-///       you want is the one you aimed for.
+/// @desc The magnet points, as {x, y, cannon, snd} in puck TOP-LEFT
+///       coordinates, plus the radius each catches from.
+///
+/// ⚖️ THERE IS EXACTLY ONE NOW, AND IT IS THE CANNON (his report,
+/// 2026-09-09: "im accidentally putting it in a corner snap when i try
+/// to throw it"). He is describing a real bug, not a preference. Every
+/// NON-cannon dock silently ate the throw: releasing while docked hit
+/// the `!docked` gate below, so you pulled back toward a corner, let
+/// go, and the puck simply sat there. The corners were only where he
+/// met it first - top-centre had the identical failure, and throwing
+/// upward is at least as common as throwing into a corner.
+///
+/// They were vestigial anyway. In DE these docks snapped the game
+/// WINDOW to the edges of the desktop, which is a feature of the
+/// window-throwing mode this in-room puck does not have. Six magnets
+/// were ported because they were there; only one of them ever did
+/// anything, and it is the one that turns the puck into a cannon.
+///
+/// If a parking dock is ever wanted back, the fix is not a smaller
+/// radius - it is letting a release throw FROM a dock, so a dock parks
+/// you when you let go without pulling and throws you when you pull.
+/// A radius small enough not to catch a throw is a radius too small to
+/// catch a park.
 __docks = function() {
 	var _t = __tray();
-	var _cx = (room_width - d) * .5;
-	var _big = max(room_width, room_height);
 	return [
-		{ x : _t.x1, y : _t.y1, r : _big * .15, cannon : false, snd : snd_popclick },
-		{ x : _t.x2, y : _t.y1, r : _big * .15, cannon : false, snd : snd_popclick },
-		{ x : _cx,   y : _t.y1, r : _big * .12, cannon : false, snd : snd_pop      },
-		{ x : _t.x1, y : _t.y2, r : _big * .10, cannon : false, snd : snd_matclick },
-		{ x : _t.x2, y : _t.y2, r : _big * .10, cannon : false, snd : snd_matclick },
-		{ x : _cx,   y : _t.y2, r : _big * .12, cannon : true,  snd : snd_autostart },
+		{ x : (room_width - d) * .5, y : _t.y2,
+		  r : max(room_width, room_height) * .12,
+		  cannon : true, snd : snd_autostart },
 	];
 };
 
