@@ -12,15 +12,22 @@
 
 var _cx = __cx();
 var _cy = __cy();
-// ⚖️ THE DISC SNAPS, THE SOFT THINGS DO NOT. r is 9.5 on a 19px puck,
-// and x arrives from a trickle, so an unfloored span lands on a half
-// pixel: the edge shimmers and the width jitters by one as it moves.
-// Hard-edged pixel art has to sit on the grid. The shadow, the smear
-// and the sparks are all soft or sub-pixel by nature and stay
-// fractional - snapping THOSE is what makes slow motion stutter (the
-// title screen's rule, in the other direction).
-var _px0 = floor(_cx);
-var _py0 = floor(_cy);
+// ⚖️ NOTHING HERE SNAPS TO A PIXEL (his ask, 2026-09-09: "no pixel
+// snapping plz"). It used to, and the reason was sound at the time: the
+// puck was a stack of hard-edged pixel SPANS, and a span whose left
+// edge lands on a half pixel has its width jitter by one as it moves.
+//
+// That reason died with the flat draw. The solid's crispness now comes
+// from sh_puck quantizing the quad COORDINATE - one exact ray per cell,
+// and the cell grid is anchored to the quad, so it travels WITH the
+// puck instead of the puck sliding across a fixed screen grid. The
+// blocks stay razor-sharp at any sub-pixel position, and the floor was
+// doing nothing but chopping the motion into whole-pixel steps.
+//
+// obj_dice never floored its quad either, for exactly this reason -
+// this had simply outlived its own justification. Same conclusion the
+// title screen reached from the other direction: snap what has to sit
+// on the grid, and nothing else.
 var _mx = max(room_width, room_height);
 var _fr = clamp(spd / _mx, 0, 1);
 
@@ -105,7 +112,7 @@ if (!held && _fr > .18) {
 draw_set_alpha(1);
 var _qh = r * PUCK_QP;
 shader_set(sh_puck);
-shader_set_uniform_f(u_quad_p, _px0 - _qh, _py0 - _qh, _qh * 2, _qh * 2);
+shader_set_uniform_f(u_quad_p, _cx - _qh, _cy - _qh, _qh * 2, _qh * 2);
 shader_set_uniform_f(u_yaw_p, degtorad(yaw));
 shader_set_uniform_f(u_light_p, -.42, -.62, .66);
 shader_set_uniform_f(u_col_p,
@@ -121,7 +128,7 @@ shader_set_uniform_f(u_ring_p,
 shader_set_uniform_f(u_metal_p, cannon ? lerp(.06, .5, clamp(aim / 120, 0, 1)) : .06);
 shader_set_uniform_f(u_pad_p, PUCK_QP);
 shader_set_uniform_f(u_cells_p, _qh * 2);   // one cell per room pixel
-draw_sprite_ext(spr_pixel_1x1, 0, _px0 - _qh, _py0 - _qh,
+draw_sprite_ext(spr_pixel_1x1, 0, _cx - _qh, _cy - _qh,
 	_qh * 2, _qh * 2, 0, c_white, 1);
 shader_reset();
 
@@ -134,8 +141,8 @@ if (resist > 0) {
 	for (var _i = 0; _i < min(resist, 12); _i++) {
 		var _pa = -90 + (_i / max(1, min(resist0, 12))) * 360;
 		draw_sprite_ext(spr_pixel_1x1, 0,
-			floor(_px0 + lengthdir_x(r + 2, _pa)) - 1,
-			floor(_py0 + lengthdir_y(r + 2, _pa)) - 1,
+			_cx + lengthdir_x(r + 2, _pa) - 1,
+			_cy + lengthdir_y(r + 2, _pa) - 1,
 			2, 2, 0, c_gold, .85);
 	}
 }
