@@ -180,6 +180,11 @@
 	// is that gate; 0 = always shown (his ask, 2026-09-03)
 	g.buylv_unlock = 0;
 
+// THE POINTER (his sprite). Seated once from here because setgame runs
+// in the boot room before anything else; obj_cursor is persistent, so
+// this is the only time it is ever created.
+create_obj(0, 0, obj_cursor);
+
 // ---- THE BOOT SOUND (his ask) ----
 // A wood-and-metal cue, take one spliced out of the same six-take
 // library file the continue sound came from.
