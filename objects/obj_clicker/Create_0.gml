@@ -57,4 +57,15 @@ tap_press = false;// the pending payout came from a PRESS, so it always
 tap_log = [];     // remaining life of each MANUAL tap, in delta units
 tps     = 0;      // the eased, shown rate
 tps_a   = 0;      // its fade
+// DE's obj_draw_clickgps state, ported with the readout (2026-09-09).
+// It SLIDES to its seat rather than appearing at it (DE trickles y to
+// desy), and the crunched string is rebuilt only when the whole number
+// changes - crunch_arb on a rate that moves every frame is a string
+// built 60 times a second to say the same thing.
+tps_y   = 99999;  // seeded off-screen; the Draw clamps it to the live
+                  // room's bottom edge on frame one. A plain literal:
+                  // GML will not parse 1e9 (validator check)
+tps_sm  = 0;      // the SMOOTHED rate the readout shows (DE's __tps)
+tps_i   = -1;     // last whole rate the string was built from
+tps_txt = "0";    // ...and the string itself
 

@@ -5,7 +5,7 @@
 // than approaching them forever - __in_off short-circuits on oa >= .999
 // and the input gate below waits for exactly that, so the screen has to
 // genuinely reach "nothing is offset" or it never accepts a click.
-oa = move_to(oa, closing ? 0 : 1, UI_IN_SPD);
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 
 // closed: the panel is done, and the CleanUp sweeps its furniture

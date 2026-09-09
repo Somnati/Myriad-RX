@@ -64,12 +64,34 @@ if (calc.cool > 0 && calc.can) {
 }
 
 // ---- the banner: DE's sprite popping in y, the fill centre-out ----
+//
+// ⚖️ TWO THINGS WERE NOT DE'S (his report: it does not match the look).
+// Both were mine, and both were the same mistake - treating the sprite
+// as a frame to decorate rather than as the button itself.
+//
+//   THE OUTLINE IS GONE. There was a draw_px_rect around the whole
+//   banner. DE draws no border at all: spr_buttontype_4 (imported here
+//   as spr_rebirth_btn - same 144x17 art) already carries its own edge,
+//   so the rect was a second border drawn on top of the first, and it
+//   is what made the banner read as a UI box instead of as the one
+//   physical control on the screen.
+//
+//   THE FILL IS FLUSH AND FULL HEIGHT. It was inset a pixel and drawn
+//   15 tall inside a 17px button, which left a dark hairline top and
+//   bottom - the fill looked like a progress bar sitting IN the button.
+//   DE fills the button's whole rect (y, sprite_height): the button
+//   itself charges up, which is what "hold to rebirth" should look
+//   like.
+//
+// The pop offset stays 8.5 because that IS DE's sprite_height/2, and
+// the fill height is the sprite's real height rather than a literal, so
+// re-cutting the art cannot silently reintroduce the hairline.
 var _ba = balpha * alpha;
+var _bh = sprite_get_height(sprite_index);
 draw_sprite_ext(sprite_index, 0, bx, by + (8.5 * (1 - balpha)), image_xscale,
 	scale, 0, merge_colour(_blend, c_black, .8), _ba);
-draw_sprite_ext(spr_pixel_1x1, 0, bx + bw * (1 - _fill) * .5, by + 1,
-	bw * _fill, 15, 0, merge_colour(_blend, c_black, .5), _ba);
-draw_px_rect(bx, by, bw, 17, _blend, .8 * _ba);
+draw_sprite_ext(spr_pixel_1x1, 0, bx + bw * (1 - _fill) * .5, by,
+	bw * _fill, _bh, 0, merge_colour(_blend, c_black, .5), _ba);
 draw_set_font(fnt_large);
 draw_set_color(_blend);
 draw_set_alpha(_ba);

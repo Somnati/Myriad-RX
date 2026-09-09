@@ -261,6 +261,15 @@ function main_macros() {
                            // SLOWER). Raised from 5 once the rows began
                            // fading as well - a dissolve reads as slow
                            // at a speed a slide reads as sluggish at
+#macro UI_OUT_SPD     3    // ...and the divisor on the way OUT (his
+                           // ask: speed the fade-out up). CLOSING IS
+                           // NOT OPENING PLAYED BACKWARDS. An entrance
+                           // is worth watching once - it tells you a
+                           // screen arrived and roughly what is on it.
+                           // An exit is a thing standing between you
+                           // and the room you asked to get back to, and
+                           // every frame of it is a frame of waiting.
+                           // ~13 frames against the entrance's 35
 #macro UI_IN_STAGGER .05   // how far behind the previous part each one
                            // starts, as a fraction of the whole ease
 #macro UI_IN_STEPS    7    // ...and how many parts deep the stagger

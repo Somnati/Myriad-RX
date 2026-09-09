@@ -7,7 +7,7 @@ draw_set_font(fnt); // the "?" zone + pillbox widths measure text
 // rather than approaching them forever: __in_off short-circuits on
 // oa >= .999, and the whole screen has to reach a state where nothing
 // is offset at all or the hit tests below never line up with the rows.
-oa = move_to(oa, closing ? 0 : 1, UI_IN_SPD);
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 
 // an open dropdown goes NOW, not in the CleanUp: obj_pillbox draws at
