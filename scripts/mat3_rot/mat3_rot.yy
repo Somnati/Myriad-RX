@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"mat3_rot",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mat3_rot",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

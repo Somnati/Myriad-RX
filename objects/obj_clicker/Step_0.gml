@@ -52,6 +52,22 @@ var _ok = input_free(ui_layer_overlay)
 if (_ok)
 if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
+// THE DICE claim their own presses the same way (ported 2026-09-09).
+// obj_dice checks a scoop radius rather than a rectangle and never
+// writes g.click_owner, so it cannot be arbitrated the usual way -
+// this asks the same question its own grab asks, off the same
+// mousex/mousey pair, so a press can never be both a scoop and a tap.
+// g.dice_scoop covers the rest of the drag, not just the first frame.
+if (_ok && instance_exists(obj_dice)) {
+	if (g.dice_scoop) _ok = false;
+	else {
+		var _die = instance_nearest(mousex, mousey, obj_dice);
+		if (_die != noone)
+		if (point_distance(mousex, mousey, _die.x, _die.y) < _die.scoop_r)
+			_ok = false;
+	}
+}
+
 // NOTE, since it looks like an omission: settings is NOT excluded. He
 // wants the tapper live in there too (2026-09-08) - it is only pillbox
 // presses that must not pay, and syst_input handles those by raising
