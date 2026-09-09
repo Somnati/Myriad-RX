@@ -39,14 +39,23 @@ if (mouse_check_button_pressed(mb_left)) {
 			goto_room(rm_saves);
 		}
 		if (_i == 1 && has_save) { // continue: boot already loaded it
-			// CONTINUE GETS ITS OWN SOUND (his ask): a device powering
-			// up, from the sci-fi pack. Not the interface click every
-			// other button here makes - this is the one press that ends
-			// the title screen and starts the run, and it is long enough
-			// (1.4s) to carry the wipe rather than finishing before it.
-			// Pitched flat on purpose: the buttons roll their pitch so a
-			// repeated press stays alive, and this one is never repeated.
-			play_sound_ext(snd_continue, 1, 1, .55, 1);
+			// CONTINUE GETS ITS OWN SOUND (his file: a digital
+			// rainstick). Not the interface click every other button
+			// here makes - this is the one press that ends the title
+			// screen and starts the run.
+			//
+			// IT IS 24 SECONDS AND THAT IS THE POINT, not an oversight:
+			// it plays through the wipe and keeps going well into the
+			// clicker, so arriving has a sound rather than the room
+			// simply appearing. GameMaker does not stop a sound at a
+			// room change, which is the behaviour being relied on here.
+			// If it outstays its welcome the fix is the volume below, or
+			// audio_stop_sound(snd_continue) on the clicker's first tap.
+			//
+			// Pitched FLAT on purpose: the other buttons roll their
+			// pitch so a repeated press stays alive, and this one is
+			// never repeated - a rolled pitch would only detune it.
+			play_sound_ext(snd_continue, 1, 1, .45, 1);
 			g.game_started = true;
 			g.room_hist = [];
 			goto_room(rm_clicker);
