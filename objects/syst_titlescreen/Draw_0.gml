@@ -99,8 +99,14 @@ draw_sprite_ext(spr_pixel_1x1, 0, rule_x, 44, 2, 46, 0, c_gold, .55);
 draw_set_font(fnt_large);
 draw_set_color(merge_colour(c_gold, c_white, .55));
 draw_set_alpha(1);
-draw_text_transformed(lm, 46, "myriad", 2, 2, 0);
-var _nw = string_width("myriad") * 2;
+// ONE literal, measured once (his ask: capitalise the first letter).
+// The width for seating "rx" used to re-type the wordmark two lines
+// down, so the two could disagree the next time it changes - and a
+// capital M is not the width of a lowercase one, which is exactly the
+// change that would have caught it.
+var _nm = "Myriad";
+draw_text_transformed(lm, 46, _nm, 2, 2, 0);
+var _nw = string_width(_nm) * 2;
 draw_set_color(c_gold);
 draw_text_transformed(lm + _nw + 8, 46, "rx", 2, 2, 0);
 
