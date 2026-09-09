@@ -82,6 +82,8 @@ or stic < 0 {
 // (mouse_over() is arbitrated, so a NEW grab can't start behind an
 // open menu/popup - the input_free drop releases a grab that was
 // already held when the blocker came up)
+if selected was_sel = true;             // see the Create: the latch
+if not touching_screen was_sel = false; // outlives the release frame
 if mouse_check_button_released(mb_left) selected = false
 if not input_free(in_menu ? ui_layer_menu : 0) selected = false;
 if mouse_over()
@@ -141,9 +143,11 @@ if i = 6 g.equipment_stats_page = clamp_min(input,0);
 //(positive when dragging UP), so a right-edge bar inside the touch
 //region fed BOTH drag paths with opposite signs and the release
 //snapped the list to the far end
+if touch_scroll                           // owners with their own drag opt out
 if input_free(in_menu ? ui_layer_menu : 0) // the list behind an open menu/popup must not scroll
 if touching_screen
 if selected = false
+if was_sel = false                        // and not on the release frame
 if check_touch_bounds(touch_x_, touch_y_, sprite_width, y, room_width, ystart + sh)
 if touching = false
 if mx > mn {
@@ -171,12 +175,14 @@ if touching = true {
 if os_type != os_android
 if enabled
 if input_free(in_menu ? ui_layer_menu : 0) { // wheel is unowned input: gate it or it scrolls behind menus
+	// 2.5 a notch, halved from 5 (his call): one wheel click was moving
+	// most of a short list at once
 	if mouse_wheel_up() {
-		ty_speed_actual -= 5;
+		ty_speed_actual -= 2.5;
 		ty_friction = ty_mouse_friction;
 	}
 	if mouse_wheel_down() {
-		ty_speed_actual += 5;
+		ty_speed_actual += 2.5;
 		ty_friction = ty_mouse_friction;
 	}
 }

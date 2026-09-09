@@ -17,12 +17,26 @@ if (!open && am < .01) { kill; exit; }
 // the bar rides the sliding edge and the fold - it is the only
 // scrollbar in the game whose owner moves
 if (instance_exists(sb)) {
-	sb.x = panel_x + 1;
+	// TIED TO THE DRAWER'S RIGHT EDGE (his call) - the panel was widened
+	// by exactly the bar's width so the rows still end clear of it
+	sb.x = panel_x + pw - sprite_get_width(spr_scrollbar);
 	sb.y = hdr_h + 2;
 	sb.image_yscale = (room_height - hdr_h - foot_h - 4)
 		/ sprite_get_height(spr_scrollbar);
 	sb.visible = (am > .9);
 	sb.enabled = (am > .9);
+	// AND IT WEARS THE ROOM YOU ARE IN. The bar sits beside a column of
+	// colour-coded rows, so a white thumb was the one thing in the
+	// drawer with no identity - it carries the current room's hue now,
+	// which is the same mark the wide row and the gold pip are making.
+	var _bc = c_white;
+	for (var _q = 0; _q < array_length(btns); _q++) {
+		if (is_method(btns[_q].rm)) continue;
+		if (!in_room(btns[_q].rm)) continue;
+		_bc = merge_colour(btns[_q].col, c_white, .25);
+		break;
+	}
+	sb.col = _bc;
 }
 
 // per-button hover ease: the gradient wipe reads off this, so pointing
@@ -59,8 +73,10 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 
 	// wheel scrolls too
 	if (scr_max > 0) {
-		if (mouse_wheel_up())   scr = clamp(scr - 24, 0, scr_max);
-		if (mouse_wheel_down()) scr = clamp(scr + 24, 0, scr_max);
+		// 12px a notch, halved from 24 (his call): one click was moving
+		// most of a short list. The bar's own wheel step halved with it.
+		if (mouse_wheel_up())   scr = clamp(scr - 12, 0, scr_max);
+		if (mouse_wheel_down()) scr = clamp(scr + 12, 0, scr_max);
 	}
 
 	if (pressed && !mouse_check_button(mb_left)) {

@@ -40,6 +40,11 @@ sb.i        = scrl_menu2;
 sb.in_menu  = true;
 sb.ui_layer = ui_layer_menu;
 sb.depth    = depth - 1;
+// THE DRAWER DOES ITS OWN LIST DRAGGING, so the bar keeps the grab and
+// gives up the rest: two drag paths writing one scroll value is double
+// speed at best, and its touch bounds are screen-wide, which over a
+// right-edge panel is the whole room.
+sb.touch_scroll = false;
 
 // the dark backing lives BEHIND the blur so the gaussian smooths it
 create_obj(0, 0, obj_menu2_bck);
@@ -174,10 +179,12 @@ __layout = function() {
 	// Set HERE rather than in the Create because __layout runs in both
 	// Step and Draw every frame, so pw can never be stale, and because
 	// __btn_w needs the font measured before there is a width to derive.
-	// +3: a 2px gap on the LEFT of the rows (his measure) and 1px on the
-	// right. The rows are right-anchored, so the left gap is the one you
-	// actually see against the room.
-	pw = __btn_w() + 3;
+	// +3 for the gaps: 2px on the LEFT of the rows (his measure) and 1px
+	// on the right. Plus the scrollbar's own width, because the bar is
+	// tied to the drawer's right edge (his call) and the rows must not
+	// run under it - so the panel grows by exactly the bar rather than
+	// the rows shrinking to make room.
+	pw = __btn_w() + 3 + sprite_get_width(spr_scrollbar);
 	var _pw = pw;
 	panel_x = room_width - _pw * __ease(am);
 	var _top = hdr_h + 2;
@@ -211,7 +218,8 @@ __layout = function() {
 	// section headers above them - so the group holds together when it
 	// moves right. The section's rule still runs out to the panel edge.
 	var _bw  = __btn_w();
-	var _rx2 = panel_x + _pw - 1;   // 1px gap to the panel's right edge
+	// the rows stop short of the bar, which owns the panel's right edge
+	var _rx2 = panel_x + _pw - 1 - sprite_get_width(spr_scrollbar);
 	// ⚖️ THE ROOM YOU ARE IN IS WIDER (his ask). Every other row gives up
 	// HERE_TRIM px from its left edge, and the current one keeps the full
 	// width - so "here" is a shape you can find without reading, and the
