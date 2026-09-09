@@ -2,11 +2,16 @@
 /// left shadow -> panel bg -> list rows -> pinned header/foot bands OVER
 /// them (scrolled rows slide underneath).
 ///
-/// ⚖️ THE OVERHAUL (2026-09-08, his ask: overhaul it but keep the size
-/// so it still ports to mobile). Nothing here is bigger or smaller than
-/// it was - a 14px row is ~56 real px on a 1080p phone, over the touch
-/// minimum, and that was never the problem. What changed is what is
-/// drawn inside those boxes:
+/// ⚖️ THE OVERHAUL (2026-09-08), in two passes. The first kept every
+/// dimension and changed only what was drawn inside them. The second is
+/// his correction to the premise: this drawer is a PC control, so it did
+/// not need a phone's width at all. The panel derives from the rows now
+/// (__layout) instead of the rows fitting a hand-picked 148px, and 60-odd
+/// pixels of dead teal went with it. ROW HEIGHT is still untouched at
+/// 14px - about 56 real px on a 1080p phone, over the touch minimum -
+/// so the day this does want a phone, only the width is the question.
+///
+/// What changed inside the boxes:
 ///
 ///   THE ROWS ARE FLAT. Every row used to be a filled gradient bar
 ///   running black -> its own hue at the right edge. Fourteen of those
@@ -87,15 +92,20 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 	var _w = _o.x2 - _o.x1;
 	var _h = _o.y2 - _o.y1;
 
-	// the ground: nothing at rest. Hover tints the row in its own hue,
-	// which is where the colour identity earns its place instead of
-	// being painted across every row at all times.
+	// SOLID BLACK GROUND (his ask). Every row is its own black plate, so
+	// the column reads as a stack of discrete buttons against the panel
+	// rather than as text floating on a tint - and it gives the label a
+	// known ground whatever the blurred room behind happens to be doing.
+	draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0, c_black, 1);
+
+	// the hue goes ON TOP of the plate, and only when it means
+	// something: pointed at, or the room you are in.
 	if (_hov && !_here)
 		draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0,
-			merge_colour(_b.col, c_black, .74), .9);
+			merge_colour(_b.col, c_black, .70), .85);
 	if (_here)
 		draw_sprite_ext(spr_pixel_1x1, 0, _o.x1, _o.y1, _w, _h, 0,
-			merge_colour(_b.col, c_black, .84), .9);
+			merge_colour(_b.col, c_black, .82), .9);
 
 	// THE PIP is the whole colour story now: 2px at rest, 3 when
 	// pointed at, and gold-capped on the room you are in - one mark
@@ -123,7 +133,7 @@ draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, hdr_h, 0,
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, 1, hdr_h, 0, _slate, .28);
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x + 4, hdr_h - 1, pw - 8, 1, 0,
 	_slate, .22);
-var _px2 = panel_x + 9;
+var _px2 = panel_x + 4;
 draw_set_halign(fa_left);
 // WHERE YOU ARE leads, because that is what you opened a menu to change
 // - the profile is context under it rather than the headline
@@ -136,30 +146,28 @@ if (variable_global_exists("profile_name")) {
 	draw_text(_px2, 20, g.profile_name[g.profile]);
 }
 
-// ---- pinned foot band: profit (left, gold) + time played (right,
-// right-aligned) - his layout, 2026-07-10 ----
+// ---- pinned foot band: time played, and nothing else ----
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x, room_height - foot_h, pw,
 	foot_h, 0, c_hsv(169, 186, 7), 1);
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x, room_height - foot_h, 1, foot_h, 0, _slate, .28);
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x + 4, room_height - foot_h, pw - 8,
 	1, 0, _slate, .22);
+// THE PROFIT LINE IS GONE (his call). It sat here because the drawer
+// was wide enough to hold two columns; the header shows profit in every
+// room anyway, so it was the same number twice and the narrow panel has
+// no space to spend on saying things twice. The clock stays, because
+// nothing else anywhere reports it.
+//
+// Anchored on the PANEL's left edge, not the room's - the "time text
+// doesn't move with the drawer" fix, now that the panel is narrow
+// enough that a right-aligned clock would sit on the rows' edge.
 draw_set_halign(fa_left);
 draw_set_color(_slate);
-draw_set_alpha(.45 * am);
-draw_text(panel_x + 9, room_height - foot_h + 4, "profit");
-draw_set_color(c_gold);
-draw_set_alpha(.9 * am);
-draw_text(panel_x + 9, room_height - foot_h + 14,
-	variable_global_exists("profit") ? crunch_arb(g.profit) : "0");
-// right-aligned on the PANEL's right edge (panel_x + pw), not the
-// room's - this is the "time text doesn't move with the drawer" fix
-draw_set_halign(fa_right);
-draw_set_color(_slate);
-draw_set_alpha(.45 * am);
-draw_text(panel_x + pw - 6, room_height - foot_h + 4, "time played");
+draw_set_alpha(.4 * am);
+draw_text(panel_x + 4, room_height - foot_h + 3, "time played");
 draw_set_color(_ink);
-draw_set_alpha(.9 * am);
+draw_set_alpha(.85 * am);
 // the precise ACTIVE clock, then the away time as a compact tail:
 // "00d 02h 14m 03s +5h" reads as what you played plus what accrued
 // while you were gone, and their sum is the save's whole life. Below a
@@ -167,7 +175,7 @@ draw_set_alpha(.9 * am);
 var _tp = __playtime_str();
 var _off = variable_global_exists("time_played_offline") ? g.time_played_offline : 0;
 if (_off >= 60) _tp += " +" + crunch_time(_off * 60);
-draw_text(panel_x + pw - 6, room_height - foot_h + 14, _tp);
+draw_text(panel_x + 4, room_height - foot_h + 11, _tp);
 draw_set_halign(fa_left);
 
 // scrollbar whisper (rides the panel edge too)
@@ -175,7 +183,9 @@ if (scr_max > 0) {
 	var _bandh = room_height - hdr_h - foot_h - 4;
 	var _sbh = max(14, _bandh * _bandh / (_bandh + scr_max));
 	var _sby = hdr_h + 2 + (scr / scr_max) * (_bandh - _sbh);
-	draw_sprite_ext(spr_pixel_1x1, 0, panel_x + pw - 3, _sby, 2, _sbh, 0, _slate, .4);
+	// on the panel's LEFT edge now: the rows reach to pw-1, so the old
+	// seat at pw-3 would sit on top of them
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, _sby, 1, _sbh, 0, _slate, .45);
 }
 
 draw_set_halign(fa_left);

@@ -48,7 +48,10 @@ pw = 148;         // panel width. EVERYTHING in the drawer anchors to
 	// anchoring made rows shrink into the room edge mid-slide and the
 	// time text sit still (his 2026-07-12 report)
 hdr_h = 44;       // pinned header band
-foot_h = 26;      // pinned time-played band
+foot_h = 20;      // pinned time-played band. It held profit AND the
+                  // clock side by side; profit is gone (his call - the
+                  // header carries it everywhere anyway) so the band
+                  // needs one line less and the list gets the 6px.
 
 // THE ROW WIDTH (his ask, 2026-09-04): nav rows are only as wide as the
 // LONGEST menu label plus room, and they sit against the panel's RIGHT
@@ -67,10 +70,23 @@ __btn_w = function() {
 	var _m = 0;
 	for (var _i = 0; _i < array_length(btns); _i++)
 		_m = max(_m, string_width(btns[_i].name));
+	// ⚖️ THE CLOCK IS PART OF THE MEASURE. The panel derives from this
+	// number, and the foot band has to hold "00d 00h 00m 00s +00h" - so
+	// if only the labels were measured, a short roster would shrink the
+	// drawer until the time played clipped off its own edge. Measured
+	// against the WIDEST form the string can take rather than today's
+	// value, which is two digits shorter and would clip on day 100.
+	_m = max(_m, string_width("00d 00h 00m 00s +00h") - 12);
 	draw_set_font(_f);
 	// 9px text inset + the label + room past it: the "you are here"
 	// pip lives in the row's last 7px and must not touch the text
-	btn_w = min(pw - 12, ceil(_m) + 20);
+	// ⚖️ NO PANEL CAP ANY MORE. This used to be min(pw - 12, ...): the
+	// rows fitted a 148px panel that had been picked by hand. The panel
+	// derives from the ROWS now (see __layout), so the measure is free
+	// to be exactly what the longest label needs - a drawer this wide
+	// was mobile thinking on a control that is only ever used with a
+	// mouse (his call, 2026-09-08).
+	btn_w = ceil(_m) + 20;
 	return btn_w;
 };
 
@@ -121,6 +137,16 @@ __playtime_str = function() {
 __layout = function() {
 	var _it = [];
 	var _n = array_length(btns);
+	// ⚖️ THE PANEL DERIVES FROM THE ROWS (his call): width = the longest
+	// label's row plus a 1px gap on each side. It was a hand-picked
+	// 148px, which is a phone's drawer on a control that is only ever
+	// driven with a mouse - and a wide panel with narrow rows in it left
+	// a column of dead teal doing nothing but taking the room away.
+	//
+	// Set HERE rather than in the Create because __layout runs in both
+	// Step and Draw every frame, so pw can never be stale, and because
+	// __btn_w needs the font measured before there is a width to derive.
+	pw = __btn_w() + 2;
 	var _pw = pw;
 	panel_x = room_width - _pw * __ease(am);
 	var _top = hdr_h + 2;
@@ -152,8 +178,8 @@ __layout = function() {
 	// section headers above them - so the group holds together when it
 	// moves right. The section's rule still runs out to the panel edge.
 	var _bw  = __btn_w();
-	var _rx2 = panel_x + _pw - 6;
-	var _rx1 = _rx2 - _bw;
+	var _rx2 = panel_x + _pw - 1;   // 1px gap to the panel's right edge
+	var _rx1 = _rx2 - _bw;          // and the rows fill everything left
 	for (var _i = 0; _i < _n; _i++) {
 		// x2 anchors to panel_x + _pw (== room_width when fully open,
 		// identical geometry) so rows RIDE the slide instead of
@@ -161,7 +187,7 @@ __layout = function() {
 		if (btns[_i].sec != _sec) {
 			_sec = btns[_i].sec;
 			array_push(_it, { kind : 2, idx : -1, name : _sec, col : c_white,
-				x1 : _rx1, y1 : _y, x2 : panel_x + _pw - 8, y2 : _y + _sh });
+				x1 : _rx1, y1 : _y, x2 : _rx2, y2 : _y + _sh });
 			_y += _sh;
 		}
 		// kind 3 = info label (menu2_label): dim text, never a tap
