@@ -133,9 +133,18 @@ __layout = function() {
 	panel_x = room_width - _pw * __ease(am);
 	var _top = hdr_h + 2;
 	var _bot = room_height - foot_h - 2;
-	var _bh = 14;
+	var _bh = 14;   // ROW HEIGHT IS NOT NEGOTIABLE: the room scales
+	                // wholesale, so 14px lands around 56 real px on a
+	                // 1080p phone - over the 44px touch minimum. The
+	                // overhaul (2026-09-08) changed what is drawn inside
+	                // these boxes, never the boxes.
 	var _gap = 2;
-	var _sh = 11;
+	var _sh = 17;   // section labels. GROUPING IS WHITESPACE, not rules:
+	                // with fourteen destinations at one weight nothing is
+	                // findable, and six extra pixels above each heading
+	                // chunks the list without adding a single line of
+	                // chrome. The label draws at the BOTTOM of this band
+	                // so the space lands above it, where it groups.
 	var _lh = 10; // info label rows (menu2_label) run tighter
 	// content height, for the scroll clamp (labels count separately)
 	var _nl = 0;
