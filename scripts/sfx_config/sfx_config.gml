@@ -37,9 +37,12 @@ function sfx_config(_kind) {
 			//   - pop and coin toss stay OUT OF THE TAP list. He pulled
 			//     them from the tapper and said they stay pulled; they
 			//     are still offered everywhere else.
-			//   - "off" is not offered for the TAP. A tap with no sound
-			//     reads as a broken button, and the effects fader already
-			//     goes to zero for anyone who wants silence.
+			//   - "none" sits LAST in the tap list rather than first. A
+			//     tap with no sound reads as a broken button, so it is an
+			//     option rather than a default (his ask: every kind gets
+			//     one). Its ID is still "off" - that string is the save
+			//     key, and renaming it would repoint every save that had
+			//     already chosen silence.
 			//
 			// The rosters are written out rather than sharing one array
 			// because THE LEVELS ARE THE POINT: the same sample wants
@@ -63,9 +66,10 @@ function sfx_config(_kind) {
 				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : .45 },
 				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .2  },
 				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .5  },
+				{ id : "off",    name : "none",      snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 
-			// OFF IS FIRST AND IS THE DEFAULT here, which is a judgement
+			// NONE IS FIRST AND IS THE DEFAULT here, which is a judgement
 			// about FREQUENCY rather than taste: a late fleet finishes
 			// several cycles a second across every dial, and a sound on
 			// each stops being feedback inside a minute. syst_dials rate
@@ -73,7 +77,7 @@ function sfx_config(_kind) {
 			// on purpose - this is not something you are doing, it is
 			// something happening.
 			dial : [
-				{ id : "off",    name : "off",        snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
+				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 				{ id : "soft",   name : "soft click", snd : snd_softclick,  pmn : .9,  pmx : 1.2,  vol : .18 },
 				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : .18 },
 				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : .18 },
@@ -112,7 +116,7 @@ function sfx_config(_kind) {
 				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : .45 },
 				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .2  },
 				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .5  },
-				{ id : "off",    name : "off",        snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
+				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 
 			// THE CREDIT DROP (his ask). credit_drop played snd_diamond
@@ -136,7 +140,7 @@ function sfx_config(_kind) {
 				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : .5  },
 				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .15 },
 				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .3  },
-				{ id : "off",    name : "off",        snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
+				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 		};
 	}

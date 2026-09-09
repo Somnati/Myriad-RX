@@ -39,7 +39,14 @@ if (mouse_check_button_pressed(mb_left)) {
 			goto_room(rm_saves);
 		}
 		if (_i == 1 && has_save) { // continue: boot already loaded it
-			play_sound_ext(snd_matclick2, 1.05, 1.25, .6, 1);
+			// CONTINUE GETS ITS OWN SOUND (his ask): a device powering
+			// up, from the sci-fi pack. Not the interface click every
+			// other button here makes - this is the one press that ends
+			// the title screen and starts the run, and it is long enough
+			// (1.4s) to carry the wipe rather than finishing before it.
+			// Pitched flat on purpose: the buttons roll their pitch so a
+			// repeated press stays alive, and this one is never repeated.
+			play_sound_ext(snd_continue, 1, 1, .55, 1);
 			g.game_started = true;
 			g.room_hist = [];
 			goto_room(rm_clicker);

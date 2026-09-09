@@ -486,6 +486,7 @@
     {"id":{"name":"snd_autostart","path":"sounds/snd_autostart/snd_autostart.yy",},},
     {"id":{"name":"snd_click","path":"sounds/snd_click/snd_click.yy",},},
     {"id":{"name":"snd_cointoss","path":"sounds/snd_cointoss/snd_cointoss.yy",},},
+    {"id":{"name":"snd_continue","path":"sounds/snd_continue/snd_continue.yy",},},
     {"id":{"name":"snd_diamond","path":"sounds/snd_diamond/snd_diamond.yy",},},
     {"id":{"name":"snd_drum","path":"sounds/snd_drum/snd_drum.yy",},},
     {"id":{"name":"snd_gold","path":"sounds/snd_gold/snd_gold.yy",},},
