@@ -5,9 +5,9 @@
 /// day this landed.
 ///
 /// TWO HOMES, one object, and they want different corners:
-///   in game    it rides the OPEN drawer's left edge, sliding in with
-///              it. Closed, there is no gear at all - the header keeps
-///              the burger alone (his call, 2026-09-08).
+///   in game    it rides the OPEN drawer's left edge at the BOTTOM,
+///              sliding in with it. Closed, there is no gear at all -
+///              the header keeps the burger alone (his call).
 ///   title      bottom right, where nothing else lives (the version
 ///              strings hold the bottom LEFT).
 /// Nothing here gates on g.game_started the way obj_ui_menu2 does:
@@ -18,7 +18,13 @@ depth = instance_exists(obj_ui_header) ? obj_ui_header.depth - 1 : -1001;
 hot = false;
 tic = 0;   // press debounce, obj_ui_menu2's
 rip = 0;   // press ripple, 1 -> 0
-spin = 0;  // it turns a little when you are on it, because a cog should
+spin = 0;  // hover ease, 0..1 - drives how FAST it turns
+ang  = 0;  // the cog's actual angle. It spins about its own middle,
+           // which is spr_gear's origin doing the work rather than a
+           // half-width subtraction: draw_sprite_ext rotates about the
+           // ORIGIN, so with the imported top-left origin the icon
+           // orbited its corner instead of turning on the spot (his
+           // report: "i dont like the animation it has")
 
 /// where the gear sits this frame, and how visible it is.
 /// `a` 0 means it is not there at all - Step and Draw both leave on it,
@@ -37,7 +43,11 @@ __seat = function() {
 	var _m = syst_menu2;
 	return {
 		x : _m.panel_x - 16,
-		y : 22,                                   // level with the burger's X
+		// THE BOTTOM of the drawer (his call, 2026-09-08): level with
+		// the pinned time-played band rather than the header, so the
+		// icon sits with the panel's furniture instead of competing
+		// with the burger's X directly across from it.
+		y : room_height - _m.foot_h * .5,
 		a : clamp((room_width - _m.panel_x) / _m.pw, 0, 1),
 	};
 };
