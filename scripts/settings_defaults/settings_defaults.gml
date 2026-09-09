@@ -19,6 +19,7 @@ function settings_defaults() {
 	g.orient                = -1;   // -1 auto / 0 portrait / 1 landscape
 	g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
 	g.vis_glow              = 15;   // visualiser glow intensity, %
+	g.dice_mat              = "random"; // dice finish (dice_mat_config)
 
 	// audio
 	g.vol_master = 100;

@@ -227,6 +227,23 @@ function settings_content() {
 		"how room changes look: slice = staggered slats snapping across, "
 		+ "circle = the classic closing wipe.");
 
+	// the dice on the tap table. The roster is dice_mat_config - adding
+	// a finish is one row there and this pill grows on its own. Stays
+	// open, like the sound pills: picking a material is browsing, and
+	// the dice repaint live on the frame you choose.
+	settings_pill("dice material", "dicemat",
+		dice_mat_name(),
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == g.dice_mat) });
+		},
+		function(_v) { g.dice_mat = _v; },
+		"what the dice on the tap table are made of. random rolls a "
+		+ "different hue and finish for every die, which is the default.",
+		-1, true);
+
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);

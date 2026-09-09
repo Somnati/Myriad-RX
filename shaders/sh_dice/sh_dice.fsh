@@ -14,10 +14,27 @@ uniform vec3  u_light; // direction TO the light, view space
 uniform vec3  u_col;   // body tint 0..1
 uniform vec3  u_ink;   // pip color (gml picks black/white by contrast)
 uniform float u_metal; // finish: 0 = matte, 1 = metallic
+uniform float u_iri;   // iridescence 0..1 (pearl, oil, opal). 0 = off,
+                       // and off is bit-identical to before it existed
 uniform float u_pad;   // quad half-extent in die half-extents
 uniform float u_cells; // pixel cells across the quad. 0 = off
 
 const float RD = 0.17; // edge rounding (die half-extent = 1)
+
+// ⚖️ IRIDESCENCE, added for the material roster (2026-09-09). The
+// matte<->metal slide had no vocabulary for pearl: pearl is not a
+// duller metal, it is a surface whose HUE depends on the angle you see
+// it from, and no amount of u_metal produces that.
+//
+// This is the cheap film approximation, not a real thin-film integral:
+// sweep a hue by the facing term and hand it back as a colour. Three
+// cosines 120 degrees apart is the standard trick and it costs almost
+// nothing. The point is not physical accuracy - it is that turning the
+// die changes its colour, which is the entire read of a pearl.
+vec3 iri_hue(float t)
+{
+    return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
+}
 
 float sd_die(vec3 p)
 {
@@ -120,10 +137,25 @@ void main()
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), nv);
     float sp = pow(clamp(dot(rf, u_light), 0.0, 1.0), mix(9.0, 36.0, u_metal));
     vec3 spc = mix(vec3(1.0), clamp(u_col * 1.2 + vec3(0.12), 0.0, 1.0), u_metal);
-    col += spc * sp * mix(0.22, 0.95, u_metal) * (1.0 - m * 0.35);
     // metals also pick up a cool sheen at grazing angles
     float fr = pow(1.0 - clamp(nv.z, 0.0, 1.0), 3.0);
-    col += spc * fr * 0.22 * u_metal;
+
+    // the film: hue driven by how edge-on this pixel is, so the colour
+    // travels across the die as it tumbles rather than sitting still on
+    // it. Blended into the SPECULAR rather than the body, because that
+    // is where a real film lives - a pearl's body stays pale and only
+    // its sheen shifts.
+    if (u_iri > 0.0) {
+        vec3 ih = iri_hue(fr * 0.85 + df * 0.35);
+        spc = mix(spc, ih, u_iri);
+        // and a soft wash of it on the body, so the die reads coloured
+        // even on the faces pointing straight at you
+        col = mix(col, mix(col, ih * (0.45 + 0.55 * dfw), 0.35), u_iri);
+    }
+
+    col += spc * sp * mix(0.22, 0.95, u_metal) * (1.0 - m * 0.35);
+    // ...and the rim, which iridescence rides hardest of all
+    col += spc * fr * mix(0.22 * u_metal, 0.5, u_iri);
 
     gl_FragColor = vec4(col, 1.0);
 }

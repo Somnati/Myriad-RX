@@ -41,6 +41,7 @@ function handle_settings(_method) {
 	g.orient = handle("orient",g.orient); // -1 auto / 0 portrait / 1 landscape
 	g.vis_grid_alpha = handle("vis_grid_alpha",g.vis_grid_alpha); // grid %
 	g.vis_glow = handle("vis_glow",g.vis_glow); // glow fx layer intensity %
+	g.dice_mat = handle("dice_mat",g.dice_mat); // dice finish, by roster id
 	g.trans_kind = handle("trans_kind",g.trans_kind); // room transition style
 
 	section = "audio";

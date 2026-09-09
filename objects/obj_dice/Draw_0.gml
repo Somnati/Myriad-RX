@@ -23,6 +23,7 @@ shader_set_uniform_f(u_col2,
 	colour_get_blue(tint) / 255);
 shader_set_uniform_f(u_ink2, ink[0], ink[1], ink[2]);
 shader_set_uniform_f(u_metal2, metal);
+shader_set_uniform_f(u_iri2, iri);
 shader_set_uniform_f(u_pad2, QP);
 shader_set_uniform_f(u_cells2, px_cell > 0 ? (_qh * 2) / px_cell : 0);
 draw_sprite_ext(spr_pixel_1x1, 0, x - _qh, y - _qh, _qh * 2, _qh * 2, 0, c_white, 1);

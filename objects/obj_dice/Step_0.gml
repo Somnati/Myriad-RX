@@ -2,6 +2,13 @@
 stic -= delta;
 lean -= delta;
 
+// the finish is a SETTING, so it can change while a die is sitting on
+// the table. Repaint on the frame it changes rather than at the next
+// room load - a settings pill you have to leave the screen to see the
+// effect of is a pill nobody trusts. One string compare a frame.
+if (variable_global_exists("dice_mat"))
+if (g.dice_mat != mat_id) dice_mat_apply();
+
 // ================= scoop input =================
 // press near a die starts the scoop (arbitrated region pattern)
 if (input_free())

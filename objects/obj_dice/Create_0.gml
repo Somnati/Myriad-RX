@@ -51,12 +51,19 @@ QP = 2;        // draw quad half-extent in half-extents
 px_cell = 1;   // pixel-shader cell size in room px
 
 // body from the house random-color roll; finish anywhere on the
-// matte..metallic slide; pips flip to white when black would drown
-tint  = color_set_random();
-metal = random(1);
-var _lum = (.299 * colour_get_red(tint) + .587 * colour_get_green(tint)
-	+ .114 * colour_get_blue(tint)) / 255;
-ink = (_lum < .42) ? [.94, .94, .97] : [.08, .08, .12];
+// ⚖️ THE MATERIAL COMES FROM THE ROSTER NOW (his ask, 2026-09-09:
+// settings for gold / silver / copper / pearlescent). The tech demo
+// rolled a random hue and a random point on the matte-metal slide per
+// die and never named a single combination; dice_mat_config is that
+// same system with the good ones written down, and "random" is still
+// the default because two dice that never match is genuinely the most
+// charming option.
+//
+// mat_id is remembered so the Step can notice the setting changing and
+// repaint dice already on the table - see there.
+tint = c_white; metal = 0; iri = 0; ink = [0, 0, 0];
+mat_id = "";
+dice_mat_apply();
 
 // ---- rigid body ----
 pz = r + 20 + irandom(20); // drops in from above the table
@@ -169,6 +176,7 @@ u_pad2   = shader_get_uniform(sh_dice, "u_pad");
 u_cells2 = shader_get_uniform(sh_dice, "u_cells");
 u_ink2   = shader_get_uniform(sh_dice, "u_ink");
 u_metal2 = shader_get_uniform(sh_dice, "u_metal");
+u_iri2   = shader_get_uniform(sh_dice, "u_iri");
 
 // impact clack, pitch/volume by impulse, throttled
 __clack = function(_j) {

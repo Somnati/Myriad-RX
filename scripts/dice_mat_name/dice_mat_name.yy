@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dice_mat_name",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dice_mat_name",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
