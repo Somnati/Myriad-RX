@@ -255,18 +255,25 @@ function main_macros() {
 // ---- THE OVERLAY OPEN ANIMATION (settings / statistics) ----
 // His report: they "just pop in". Read ui_anim_in for the shape; these
 // are the five numbers that govern it.
-#macro UI_IN_SPD      5    // move_to divisor for the master ease. 5 is
-                           // ~21 frames to settle - long enough to read
-                           // as an arrival, short enough that opening
-                           // settings twice in a row never feels slow
+#macro UI_IN_SPD      8    // move_to divisor for the master ease. 8 is
+                           // ~35 frames, a little over half a second
+                           // (his ask: the rows should move into place
+                           // SLOWER). Raised from 5 once the rows began
+                           // fading as well - a dissolve reads as slow
+                           // at a speed a slide reads as sluggish at
 #macro UI_IN_STAGGER .05   // how far behind the previous part each one
                            // starts, as a fraction of the whole ease
 #macro UI_IN_STEPS    7    // ...and how many parts deep the stagger
                            // goes before they all share the last delay
-#macro UI_IN_DEAL   150    // px a list row travels up into its seat.
-                           // Bigger than the list so a waiting row is
-                           // genuinely off-screen rather than visibly
-                           // parked below the fold
+#macro UI_IN_DEAL    14    // px a list row rises into its seat. SHORT
+                           // (his ask: "just a smooth move into place
+                           // as it fades in"). It was 150 - a deal from
+                           // off-screen - which the opacity has now
+                           // made unnecessary and, next to a fade, read
+                           // as the list being thrown rather than
+                           // settling. A row now barely moves: the
+                           // dissolve is the arrival, the drift is only
+                           // what stops it being a cross-fade
 #macro UI_IN_SLIDE   17    // px the title strip drops out from behind
                            // the header, and the rail slides in by
 

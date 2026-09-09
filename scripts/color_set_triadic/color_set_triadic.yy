@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"color_set_triadic",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"color_set_triadic",
+  "parent":{
+    "name":"util",
+    "path":"folders/engine/util.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

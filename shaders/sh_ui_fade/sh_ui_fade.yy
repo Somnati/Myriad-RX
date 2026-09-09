@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_ui_fade",
+  "name":"sh_ui_fade",
+  "parent":{
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

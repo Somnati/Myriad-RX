@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ui_fade_set",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ui_fade_set",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

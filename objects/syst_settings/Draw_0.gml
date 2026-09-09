@@ -29,6 +29,10 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 	var _ry = __row_y(_r);
 	if (_ry + row_h < list_y) continue;
 	if (_ry > room_height) break;
+	// the row's own opacity, on the same stagger as its rise. ONE call
+	// in front of the row instead of a multiply on each of the eleven
+	// alphas below - see ui_fade_set for why that is not laziness
+	ui_fade_set(ui_anim_in(oa, _r - floor(g.settings_page)));
 
 	// zebra block (the statistics_v2 look, gradient edge seams)
 	var _c  = (_r & 1) ? c_hsv(168, 158, 18) : c_hsv(168, 160, 4);
@@ -83,6 +87,7 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 		draw_text(val_x, _ry + 4, ">");
 	}
 }
+ui_fade_set(1);   // never leave the shader on for the next drawer
 
 // ---- the category rail (menu2's color language: identity pip at the
 // left edge, active = solid fill + white, others sink toward black) ----
@@ -97,6 +102,7 @@ var _rp = ui_anim_in(oa, 1);
 var _ro = -(1 - _rp) * (rail_w + UI_IN_SLIDE);
 if (_ro != 0)
 	matrix_set(matrix_world, matrix_build(_ro, 0, 0, 0, 0, 0, 1, 1, 1));
+ui_fade_set(_rp);   // it fades as it slides, like everything else here
 
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
@@ -129,6 +135,7 @@ for (var _i = 0; _i < array_length(_tb); _i++) {
 	draw_text(_t.x1 + 7, _t.y1 + ((_th - 7) div 2), _s.name);
 }
 
+ui_fade_set(1);
 if (_ro != 0) matrix_set(matrix_world, matrix_build_identity());
 
 draw_set_halign(fa_left);

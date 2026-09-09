@@ -133,16 +133,16 @@ oa      = 0;
 closing = false;
 
 /// @func __in_off(i)
-/// @desc How far row _i still has to travel, in px. Rows DEAL IN from
-///       below, and that choice is what makes this cheap: the row loop
-///       already stops drawing past room_height, so a row waiting its
-///       turn is genuinely off-screen with no clipping and no alpha.
+/// @desc How far row _i still has to rise into its seat, in px.
 ///
-///       ⚖️ NO ALPHA ON ROWS, deliberately. Widgets are separate live
-///       instances that paint themselves opaque, so a faded row under a
-///       solid toggle would look broken - and giving every widget an
-///       alpha means touching shared framework objects for one screen's
-///       animation. Motion costs nothing and reads better anyway.
+///       ⚖️ THE MOTION IS SMALL AND THE OPACITY DOES THE WORK (his
+///       correction: rows should "move in place slower as well as fade
+///       in/out"). The first pass dealt rows in from 150px below and
+///       did not fade them at all, on the reasoning that widgets are
+///       separate opaque instances a faded row would look wrong under.
+///       That was solving the problem the wrong way round: the fix is
+///       to fade the widgets too (the Step hands each one an
+///       image_alpha), not to give up the fade.
 ///
 ///       The index is the row's position ON SCREEN, not its absolute
 ///       index, so the cascade always starts at the top of what you can
@@ -251,6 +251,7 @@ __draw_strip = function() {
 	var _so = -(1 - _sp) * UI_IN_SLIDE;
 	if (_so != 0)
 		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
+	ui_fade_set(_sp);
 
 	draw_set_font(fnt);
 	draw_set_alpha(1);
@@ -312,9 +313,11 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
 	draw_set_alpha(1);
-	// PUT IT BACK, unconditionally. A world matrix left set does not
-	// belong to this proxy - it leaks into every draw the frame makes
-	// after it, which is the whole rest of the game.
+	// PUT THEM BOTH BACK, unconditionally. A world matrix or a shader
+	// left set does not belong to this proxy - they leak into every
+	// draw the frame makes after it, which is the whole rest of the
+	// game.
+	ui_fade_set(1);
 	if (_so != 0) matrix_set(matrix_world, matrix_build_identity());
 };
 

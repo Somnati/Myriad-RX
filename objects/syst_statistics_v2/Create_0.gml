@@ -222,12 +222,9 @@ oa      = 0;
 closing = false;
 
 /// @func __in_off(i)
-/// @desc How far row _i still has to travel on the way in, in px. Rows
-///       DEAL IN from below: the row loop already stops past
-///       room_height, so a row waiting its turn is genuinely off-screen
-///       - no clipping, and no alpha, which matters because the widgets
-///       are separate opaque instances and a faded row under a solid
-///       spark chart would read as broken.
+/// @desc How far row _i still has to rise into its seat, in px. A short
+///       drift (his correction) - the row's OPACITY is what carries the
+///       arrival, through ui_fade_set in the Draw.
 ///
 ///       The index is the row's position ON SCREEN, so the cascade
 ///       starts at the top of what you can see rather than at row 0 of
@@ -392,6 +389,7 @@ __draw_strip = function() {
 	var _so = -(1 - _sp) * UI_IN_SLIDE;
 	if (_so != 0)
 		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
+	ui_fade_set(_sp);
 
 	var _bby = obj_ui_header.sprite_height;
 	draw_set_font(fnt);
@@ -446,8 +444,9 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
 	draw_set_alpha(1);
-	// PUT IT BACK, unconditionally: a world matrix left set leaks into
-	// every draw the rest of the frame makes.
+	// PUT THEM BOTH BACK, unconditionally: a world matrix or a shader
+	// left set leaks into every draw the rest of the frame makes.
+	ui_fade_set(1);
 	if (_so != 0) matrix_set(matrix_world, matrix_build_identity());
 };
 

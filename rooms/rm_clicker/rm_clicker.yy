@@ -10,6 +10,7 @@
     {"name":"inst_CLK00003","path":"rooms/rm_clicker/rm_clicker.yy",},
     {"name":"inst_CLK00004","path":"rooms/rm_clicker/rm_clicker.yy",},
     {"name":"inst_CLK00005","path":"rooms/rm_clicker/rm_clicker.yy",},
+    {"name":"inst_CLK0PTAP","path":"rooms/rm_clicker/rm_clicker.yy",},
   ],
   "isDnd":false,
   "layers":[
@@ -23,6 +24,7 @@
         {"$GMRInstance":"v4","%Name":"inst_CLK00003","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00003","objectId":{"name":"syst_dials","path":"objects/syst_dials/syst_dials.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_CLK00004","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00004","objectId":{"name":"obj_bignum5","path":"objects/obj_bignum5/obj_bignum5.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
         {"$GMRInstance":"v4","%Name":"inst_CLK00005","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK00005","objectId":{"name":"syst_rebirth","path":"objects/syst_rebirth/syst_rebirth.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
+        {"$GMRInstance":"v4","%Name":"inst_CLK0PTAP","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_CLK0PTAP","objectId":{"name":"obj_draw_pertap","path":"objects/obj_draw_pertap/obj_draw_pertap.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"4.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
       ],"layers":[],"name":"Instances","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},
     {"$GMREffectLayer":"","%Name":"vignette","depth":40,"effectEnabled":true,"effectType":"_filter_vignette","gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"layers":[],"name":"vignette","properties":[
         {"name":"g_VignetteEdges","type":0,"value":"0.95",},

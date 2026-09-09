@@ -124,6 +124,12 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 	if (_row.inst == noone || !instance_exists(_row.inst)) continue;
 	var _ry = __row_y(_r);
 	if (_ry + row_h < list_y) continue; // fully gone: stay parked
+	// ⚖️ THE WIDGET FADES WITH ITS ROW. The rows dissolve through a
+	// shader, but a widget is a separate instance drawing in its own
+	// event, so the shader never reaches it - image_alpha is the lane
+	// that does. Toggles and radios have no Draw at all and honour it
+	// for free; obj_set_slider paints by hand and multiplies it in.
+	_row.inst.image_alpha = ui_anim_in(oa, _r - floor(g.settings_page));
 	switch (_row.kind) {
 		case sett_kind_toggle: _row.inst.x = val_x - 18; _row.inst.y = _ry + 3; break;
 		case sett_kind_radio:  _row.inst.x = val_x - 10; _row.inst.y = _ry + 3; break;
