@@ -13,6 +13,6 @@
 /// second syst_settings would give you two backdrops, two scrollbars
 /// and two sets of widgets fighting over the same pool keys.
 function settings_open() {
-	if (instance_exists(syst_settings)) return;
+	if (ui_overlay() != noone) return;   // one panel at a time
 	create_obj(0, 0, syst_settings);
 }

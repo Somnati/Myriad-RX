@@ -18,7 +18,9 @@ function menu2_content() {
 	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
 	menu2_button("automation",   rm_automation,    c_sblue);
 	menu2_button("time bank",    rm_timebank,      c_gold);
-	menu2_button("statistics",   rm_statistics_v2, c_sgreen);  // myriad
+	// an OVERLAY now, so it is a method destination: syst_menu2 folds the
+	// drawer and runs the closure instead of changing room
+	menu2_button("statistics",   function() { statistics_open(); }, c_sgreen);
 	menu2_button("titlescreen",  rm_titlescreen,   c_gray);
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 

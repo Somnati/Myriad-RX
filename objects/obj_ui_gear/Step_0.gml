@@ -15,8 +15,8 @@ hot = point_in_rectangle(mousex, mousey, _s.x - 11, _s.y - 11, _s.x + 11, _s.y +
 // animation, and it unwinds at exactly the same rate on the way out.
 spin = move_to(spin, hot ? 1 : 0, 3);
 
-// already up: the burger is the X that closes it, not this
-if (instance_exists(syst_settings)) exit;
+// a panel is already up: the burger is the X that closes it, not this
+if (ui_overlay() != noone) exit;
 
 // the trigger lives at the MENU layer so it stays clickable next to the
 // open drawer, which raises the modal block behind it (obj_ui_menu2's

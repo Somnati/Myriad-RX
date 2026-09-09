@@ -20,6 +20,12 @@ function stats_v2_widget(_name, _inst, _span = 2) {
 		for (var _w = 0; _w < array_length(widgets_all); _w++)
 			if (widgets_all[_w] == _inst) { _known = true; break; }
 		if (!_known) array_push(widgets_all, _inst);
+		// the screen is an OVERLAY and raises g.input_block; its own
+		// widgets listen through that rather than bailing on it.
+		// Set HERE because this is the one funnel every widget passes
+		// through - stats_v2_content creates them, this registers them.
+		_inst.ui_layer = ui_layer_popup;
+		if (variable_instance_exists(_inst, "in_menu")) _inst.in_menu = true;
 	}
 
 	// widgets never appear in search results or inside closed folders

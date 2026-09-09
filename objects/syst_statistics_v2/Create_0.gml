@@ -50,6 +50,18 @@ rows        = [];  // the WHOLE build: every folder, open or not
 view        = [];  // the active tab's slice - what the screen shows
 sections    = [];  // {name, col, row} - the depth-0 folders, ie the rail
 widgets     = []; // widgets in the CURRENT build (positioned)
+// ⚖️ AN OVERLAY, NOT A ROOM (his ask, 2026-09-08 - settings first, then
+// this). Spawned over whatever room you are standing in and destroyed on
+// close, so there is no transition and the game is still running behind
+// it. rm_statistics_v2 survives as a dead room; the menu routes here
+// through statistics_open now.
+//
+// DEPTH -400, matching settings: over the room and the dial drawer
+// (-320), under the menu drawer (-520) and the header (-1000). The
+// screen has always drawn from the header's edge down, so the profit
+// counter and the burger stay live exactly as they were.
+depth = -400;
+
 widgets_all = []; // every widget ever registered (all get parked)
 fav_rows    = []; // pinned-line copies captured during the walk
 dump        = []; // the full tree as text rows. Still WRITTEN by the
@@ -320,10 +332,16 @@ g.stats_page = clamp(g.stats_page, 0, max(0, mx - full_rows));
 // the scrollbar, hugging the right edge, sized to the list band.
 // seed its touch position from the remembered page, or its first
 // step would snap the list back to the top
-var _sb = create_obj(room_width - sprite_get_width(spr_scrollbar) - 1, list_y, obj_scrollbar);
-_sb.i = scrl_statistics;
-_sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
-_sb.ty = g.stats_page * row_h;
+// kept on instance variables rather than locals: the CleanUp has to
+// take them with us, and an overlay is destroyed far more often than a
+// room is left
+sb = create_obj(room_width - sprite_get_width(spr_scrollbar) - 1, list_y, obj_scrollbar);
+sb.i = scrl_statistics;
+sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
+sb.ty = g.stats_page * row_h;
+sb.depth    = depth - 3;      // rows, widgets, strip proxy, scrollbar
+sb.ui_layer = ui_layer_popup; // listens through the block this screen
+sb.in_menu  = true;           // raises - see the Create note above
 
 // ---- the title strip, drawn by a PROXY at depth-2 ----
 // rows draw in this instance's Draw_0, widgets ride at depth-1, so
@@ -388,7 +406,7 @@ __draw_strip = function() {
 	draw_set_alpha(1);
 };
 
-var _px = create_obj(0, 0, obj_draw_proxy);
-_px.owner = id;
-_px.depth = depth - 2;
-_px.fn    = __draw_strip;
+strip_px = create_obj(0, 0, obj_draw_proxy);
+strip_px.owner = id;
+strip_px.depth = depth - 2;
+strip_px.fn    = __draw_strip;

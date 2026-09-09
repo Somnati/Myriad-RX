@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"statistics_close",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"statistics_close",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/engine/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

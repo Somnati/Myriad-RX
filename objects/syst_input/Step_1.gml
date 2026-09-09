@@ -6,11 +6,12 @@
 // ---- blockers ----
 // listed in ascending layer order: later, stronger blockers overwrite
 g.input_block = 0;
-// the settings OVERLAY holds the room behind it: it draws over
-// everything from the header down, so nothing under it should be
-// clickable. Its own furniture rides ui_layer_popup to listen through
-// this (see syst_settings' Create).
-if (instance_exists(syst_settings))
+// A FULL-SCREEN OVERLAY holds the room behind it: settings and
+// statistics both draw over everything from the header down, so nothing
+// under them should be clickable. Their own furniture rides
+// ui_layer_popup to listen through this. ui_overlay is the one place
+// that knows which panels count.
+if (ui_overlay() != noone)
 	g.input_block = ui_layer_popup;
 if (instance_exists(obj_pillbox))
 	g.input_block = ui_layer_popup;

@@ -78,7 +78,13 @@ for (var _r = _lo; _r < min(array_length(view), _first + visible_rows + 1 + _wre
 }
 
 // ---- input (region pattern, fully arbitrated) ----
-if (input_free())
+// escape closes, matching settings and the menu drawer. It never OPENS
+// anything, so rooms using escape for their own purpose stay safe.
+if (keyboard_check_pressed(vk_escape)) { statistics_close(); exit; }
+
+// through the overlay's OWN block: the room behind is held at
+// ui_layer_popup and the screen that raised the line has to be above it
+if (input_free(ui_layer_popup))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
 	var _bby = obj_ui_header.sprite_height;
@@ -97,7 +103,9 @@ if (mouse_check_button_pressed(mb_left)) {
 	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62,
 		_bby + 6, room_width - 6, _bby + 22)) {
 		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		back_room();
+		// CLOSE, not navigate - the screen is an overlay now and the
+		// room you came from never left
+		statistics_close();
 		exit;
 	}
 

@@ -1,6 +1,6 @@
 /// @description the cog
 
-if (instance_exists(syst_settings)) exit;
+if (ui_overlay() != noone) exit;
 
 var _s = __seat();
 if (_s.a <= .01) exit;
