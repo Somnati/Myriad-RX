@@ -272,12 +272,18 @@ function settings_content() {
 			var _sel = sfx_index("tap");
 			for (var _j = 0; _j < array_length(_l); _j++) {
 				var _on = (_j == _sel);
+				// ONE palette for every pill: `enabled` decides lit or
+				// unlit, which is what lets a staying box relight by
+				// flipping that one flag (syst_settings' pick handler).
+				// Baking the colour per state instead would have meant
+				// rebuilding the list on every audition.
 				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : _on ? c_gold : sett_ink, enabled : _on });
+					col : c_gold, enabled : _on });
 			}
 		},
 		function(_v) { g.sfx_pick.tap = _v; sfx_play("tap"); },
-		"what a tap sounds like. myriad de's list, minus the three he cut.");
+		"what a tap sounds like. myriad de's list, minus the three he cut.",
+		-1, true);   // stays open: this list is for auditioning
 
 	settings_pill("dial sound", "sfxdial",
 		sfx_config("dial")[sfx_index("dial")].name,
@@ -286,15 +292,21 @@ function settings_content() {
 			var _sel = sfx_index("dial");
 			for (var _j = 0; _j < array_length(_l); _j++) {
 				var _on = (_j == _sel);
+				// ONE palette for every pill: `enabled` decides lit or
+				// unlit, which is what lets a staying box relight by
+				// flipping that one flag (syst_settings' pick handler).
+				// Baking the colour per state instead would have meant
+				// rebuilding the list on every audition.
 				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : _on ? c_gold : sett_ink, enabled : _on });
+					col : c_gold, enabled : _on });
 			}
 		},
 		function(_v) { g.sfx_pick.dial = _v; sfx_play("dial"); },
 		"what a finished dial cycle sounds like. OFF by default on "
 		+ "purpose: a late fleet finishes several cycles a second, and a "
 		+ "sound on every one of them stops being feedback. rate limited "
-		+ "whichever you pick.");
+		+ "whichever you pick.",
+		-1, true);
 
 	settings_pill("critical sound", "sfxcrit",
 		sfx_config("crit")[sfx_index("crit")].name,
@@ -303,13 +315,19 @@ function settings_content() {
 			var _sel = sfx_index("crit");
 			for (var _j = 0; _j < array_length(_l); _j++) {
 				var _on = (_j == _sel);
+				// ONE palette for every pill: `enabled` decides lit or
+				// unlit, which is what lets a staying box relight by
+				// flipping that one flag (syst_settings' pick handler).
+				// Baking the colour per state instead would have meant
+				// rebuilding the list on every audition.
 				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : _on ? c_gold : sett_ink, enabled : _on });
+					col : c_gold, enabled : _on });
 			}
 		},
 		function(_v) { g.sfx_pick.crit = _v; sfx_play("crit"); },
 		"what a critical tap sounds like. it rides the tap fader - a "
-		+ "critical is a tap.");
+		+ "critical is a tap.",
+		-1, true);
 
 	// THE TWO FADERS (his ask). They sit under the effects volume they
 	// both feed: one is a thing you are DOING and one is a thing that

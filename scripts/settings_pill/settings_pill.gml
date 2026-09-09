@@ -14,11 +14,19 @@
 ///           worry about saving - the controller marks dirty for you
 ///           (confirm picks save when kept/reverted instead)
 /// runs in syst_settings' scope.
-function settings_pill(_label, _kind, _current, _build, _pick, _help = "", _col = -1) {
+/// @arg [stay]  true = the box STAYS OPEN after a pick and closes on an
+///              outside tap instead (do_pillbox type 1). For lists you
+///              AUDITION rather than set: the sound rows play what you
+///              pick, and closing the box after every one made comparing
+///              two of them a four-tap job (his ask, 2026-09-08).
+///              Everything else keeps the default - a resolution pick
+///              opens a keep/revert popup, and a dropdown hanging over
+///              that would be its own bug.
+function settings_pill(_label, _kind, _current, _build, _pick, _help = "", _col = -1, _stay = false) {
 	array_push(rows, {
 		kind : sett_kind_pill, name : _label, val : string(_current),
 		col : (_col == -1) ? sett_ink : _col,
 		help : _help, ind : 0, inst : noone,
-		data : { kind : _kind, build : _build, pick : _pick },
+		data : { kind : _kind, build : _build, pick : _pick, stay : _stay },
 	});
 }

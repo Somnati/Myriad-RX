@@ -45,6 +45,12 @@ var _ok = input_free()
 if (_ok)
 if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
+// settings is a TABLE OF CONTROLS: every pixel under the header does
+// something, so none of it is a tap surface. Same question, same
+// pattern - see syst_settings' __consumes.
+if (_ok)
+if (instance_exists(syst_settings))
+	if (syst_settings.__consumes(mouse_x, mouse_y)) _ok = false;
 
 // ---- THE PRESS ----
 if (mouse_check_button_pressed(mb_left)) {

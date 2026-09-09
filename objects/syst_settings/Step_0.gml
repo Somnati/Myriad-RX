@@ -10,19 +10,33 @@ g.settings_page = clamp(g.settings_page, 0, max(0, mx - full_rows));
 // to the pill row that owns the open box's kind tag ----
 if (_pselid != -1 && pill_kind != "") {
 	var _pk = pill_kind;
-	pill_kind = "";
+	var _stay = false;
 	for (var _i = 0; _i < array_length(rows); _i++) {
 		var _pr = rows[_i];
 		if (_pr.kind == sett_kind_pill && _pr.data.kind == _pk) {
 			_pr.data.pick(_pselval);
+			_stay = _pr.data.stay;
 			break;
 		}
 	}
+	// ⚖️ A STAYING BOX KEEPS ITS KIND TAG, or the next pick has nothing
+	// to route to and the box goes deaf after one choice. It also has to
+	// RELIGHT by hand: the pills are structs the spawned instances hold
+	// references to (set_pill's contract), so flipping `enabled` is the
+	// whole update - no rebuild, no respawn, no flicker.
+	pill_kind = _stay ? _pk : "";
+	if (_stay)
+		for (var _q = 0; _q < array_length(_pills); _q++)
+			_pills[_q].enabled = (_pills[_q].val == _pselval);
 	_pselid = -1;
 	// picks that opened a keep/revert popup save when that resolves;
 	// everything else saves now
 	if (!confirm_active) dirty_tic = 45;
-	play_sound_ext(snd_matclick2, 1, 1.2, .5, 1);
+	// AN AUDITION ROW MAKES NO UI CLICK. Picking a sound already plays
+	// that sound, and laying the interface's own click over it is the
+	// same complaint he made about the tapper: something else talking
+	// while he is trying to hear the thing he picked.
+	if (!_stay) play_sound_ext(snd_matclick2, 1, 1.2, .5, 1);
 }
 
 // ---- the keep/revert countdown ----
@@ -179,7 +193,7 @@ if (mouse_check_button_pressed(mb_left)) {
 					pillbox_init();
 					pill_kind = _hr.data.kind;
 					_hr.data.build();
-					do_pillbox(mouse_x, mouse_y);
+					do_pillbox(mouse_x, mouse_y, _hr.data.stay ? 1 : 0);
 					// pills spawn at owner depth-1, which the strip proxy
 					// (-2) and scrollbar (-3) would cover - lift OUR box
 					// above both (the menu at -520 still tops it)
