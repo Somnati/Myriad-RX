@@ -329,6 +329,22 @@ function settings_content() {
 		+ "critical is a tap.",
 		-1, true);
 
+	settings_pill("credit sound", "sfxcredit",
+		sfx_config("credit")[sfx_index("credit")].name,
+		function() {
+			var _l = sfx_config("credit");
+			var _sel = sfx_index("credit");
+			for (var _j = 0; _j < array_length(_l); _j++) {
+				var _on = (_j == _sel);
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : _on });
+			}
+		},
+		function(_v) { g.sfx_pick.credit = _v; sfx_play("credit"); },
+		"what a credit drop sounds like. it rides the tap fader - a "
+		+ "credit drop is something your tap did.",
+		-1, true);
+
 	// THE TWO FADERS (his ask). They sit under the effects volume they
 	// both feed: one is a thing you are DOING and one is a thing that
 	// HAPPENS, which is the whole reason one effects slider could not

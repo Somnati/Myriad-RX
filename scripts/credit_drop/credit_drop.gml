@@ -32,7 +32,10 @@ function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 	save_mark_dirty();
 
 	// the ceremony
-	play_sound_ext(snd_diamond, .8, 1.2, .3, 0);
+	// the player's choice now (settings > audio). snd_diamond was hard
+	// coded here the same way snd_orb was hard coded on the crit, so it
+	// is row 0 of the credit roster and nothing changes by default.
+	sfx_play("credit");
 	var _tx = 8, _ty = 50;
 	if (instance_exists(obj_display_credits)) {
 		obj_display_credits.__pop(_n);

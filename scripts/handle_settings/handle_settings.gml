@@ -66,6 +66,7 @@ function handle_settings(_method) {
 	g.sfx_pick.tap  = handle("sfx_tap",  g.sfx_pick.tap);
 	g.sfx_pick.dial = handle("sfx_dial", g.sfx_pick.dial);
 	g.sfx_pick.crit = handle("sfx_crit", g.sfx_pick.crit);
+	g.sfx_pick.credit = handle("sfx_credit", g.sfx_pick.credit);
 	g.vol_tap      = handle("vol_tap",      g.vol_tap);
 	g.vol_dial     = handle("vol_dial",     g.vol_dial);
 
