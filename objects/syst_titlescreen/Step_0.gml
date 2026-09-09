@@ -55,7 +55,17 @@ if (mouse_check_button_pressed(mb_left)) {
 			// Pitched FLAT on purpose: the other buttons roll their
 			// pitch so a repeated press stays alive, and this one is
 			// never repeated - a rolled pitch would only detune it.
-			play_sound_ext(snd_continue, 1, 1, .55, 1);
+			//
+			// QUIET (his report: too loud). It is the one number worth
+			// knowing here, because the asset itself is HOT: the library
+			// mastered this cue at 0.116 peak and the import normalised
+			// it to 0.85, which is right for keeping the noise floor
+			// down but leaves it louder than everything around it. The
+			// rest of the buttons on this screen sit at .5-.6 of samples
+			// that were already near full scale, so matching them by
+			// number would not match them by ear. .25 is about 7dB under
+			// where it was.
+			play_sound_ext(snd_continue, 1, 1, .25, 1);
 			g.game_started = true;
 			g.room_hist = [];
 			goto_room(rm_clicker);
