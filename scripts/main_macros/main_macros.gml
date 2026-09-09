@@ -324,6 +324,13 @@ function main_macros() {
 #macro PUCK_STOP        .4  // below this it has stopped
 #macro PUCK_CATCH        3  // a mid-air catch pays this many bounces
 #macro PUCK_PAY_MIN     .8  // a bounce pays between these multiples of
+#macro PUCK_QP         1.3  // draw-quad half-extent in puck RADII. Room
+                            // for the rounded rim plus a margin; too
+                            // tight and the SDF clips its own silhouette
+#macro PUCK_SPIN         14 // deg/frame of yaw at full-speed release.
+                            // The knurled edge is what makes rotation
+                            // visible at all, and this is what makes
+                            // the knurl move
 #macro PUCK_PAY_MAX      2  // tap_rate(). See puck_pay - the puck has
                             // no scale of its own BY DESIGN
 

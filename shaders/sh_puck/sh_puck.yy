@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_puck",
+  "name":"sh_puck",
+  "parent":{
+    "name":"fidget",
+    "path":"folders/game/fidget.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

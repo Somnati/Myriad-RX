@@ -1,11 +1,14 @@
 /// the puck, its aim UI and its impact sparks. Draw-only: every number
 /// here was decided in the Step.
 ///
-/// ⚖️ EVERYTHING IS DRAWN FROM spr_pixel_1x1 SPANS, including the disc.
-/// The house rule is hard pixels only - draw_circle's smooth vector ring
-/// was the one shape in this game that did not match anything around it
-/// (the settings "?" button is built the same way for the same reason).
-/// The disc table is baked in the Create.
+/// ⚖️ THE PUCK IS A RAYMARCHED SOLID; EVERYTHING AROUND IT IS PIXEL
+/// SPANS. It was spans too until it became 3D - the flat version stacked
+/// a baked half-width table into a shaded circle, and that table is gone
+/// with it. The house rule it was obeying still holds, though, and
+/// sh_puck obeys it a different way: quantizing the QUAD COORDINATE
+/// gives one exact ray per cell, so the solid is as hard-edged as the
+/// spans were. A smooth 3D render dropped into a pixel game is the thing
+/// that would not have matched anything around it.
 
 var _cx = __cx();
 var _cy = __cy();
@@ -85,30 +88,42 @@ if (!held && _fr > .18) {
 	}
 }
 
-// ---- THE DISC ----
-// horizontal spans from the baked half-width table, mirrored about the
-// centre row. Two passes: the body, then a lighter core inset by 3, so
-// the puck reads as a rim and a face rather than as a flat blob.
+// ---- THE PUCK ITSELF ----
+// ⚖️ A RAYMARCHED SOLID, not a stack of pixel spans (his ask: make it 3D
+// like the dice). obj_dice's exact construction with a different SDF -
+// draw one quad, let sh_puck cast an orthographic ray per CELL, and the
+// silhouette, the shading, the knurled edge and the stamped crown all
+// fall out of the same distance field. The cell quantizer is why this
+// is still hard-edged pixel art rather than a smooth 3D render sitting
+// in a pixel game: one exact sample per cell, never averaged.
+//
+// The stamp carries the throw's colour and the BODY stays black rubber.
+// A puck that changes body colour stops looking like a puck; a puck
+// with a coloured ring stamped in it still tells you which throw you
+// are watching. State still reads at a glance, because tint (red
+// stunned, aqua docked) is what feeds the ring.
 draw_set_alpha(1);
-var _rim  = merge_colour(tint, c_black, .35);
-var _face = merge_colour(tint, c_white, .30);
-for (var _dy = -(d div 2); _dy <= (d div 2); _dy++) {
-	var _hw = disc[abs(_dy)];
-	// ⚖️ ZERO IS A ROW, NOT AN ABSENCE. A half-width of 0 still draws
-	// one pixel (_hw * 2 + 1), and that is the disc's cap row. Skipping
-	// it made a 19-wide, 17-tall puck - an ellipse nobody asked for.
-	if (_hw < 0) continue;
-	draw_sprite_ext(spr_pixel_1x1, 0, _px0 - _hw, _py0 + _dy,
-		_hw * 2 + 1, 1, 0, _rim, 1);
-	var _iw = _hw - 3;
-	if (_iw > 0)
-		draw_sprite_ext(spr_pixel_1x1, 0, _px0 - _iw, _py0 + _dy,
-			_iw * 2 + 1, 1, 0, _face, 1);
-}
-// the specular pip: one bright mark up and left, the whole reason the
-// disc reads as convex rather than as a printed circle
-draw_sprite_ext(spr_pixel_1x1, 0, _px0 - 3, _py0 - 4, 2, 2, 0,
-	merge_colour(tint, c_white, .8), .85);
+var _qh = r * PUCK_QP;
+shader_set(sh_puck);
+shader_set_uniform_f(u_quad_p, _px0 - _qh, _py0 - _qh, _qh * 2, _qh * 2);
+shader_set_uniform_f(u_yaw_p, degtorad(yaw));
+shader_set_uniform_f(u_light_p, -.42, -.62, .66);
+shader_set_uniform_f(u_col_p,
+	colour_get_red(rubber) / 255,
+	colour_get_green(rubber) / 255,
+	colour_get_blue(rubber) / 255);
+shader_set_uniform_f(u_ring_p,
+	colour_get_red(tint) / 255,
+	colour_get_green(tint) / 255,
+	colour_get_blue(tint) / 255);
+// rubber, unless the cannon is charging - a shot winding up polishes
+// itself, which is a free tell that something is about to happen
+shader_set_uniform_f(u_metal_p, cannon ? lerp(.06, .5, clamp(aim / 120, 0, 1)) : .06);
+shader_set_uniform_f(u_pad_p, PUCK_QP);
+shader_set_uniform_f(u_cells_p, _qh * 2);   // one cell per room pixel
+draw_sprite_ext(spr_pixel_1x1, 0, _px0 - _qh, _py0 - _qh,
+	_qh * 2, _qh * 2, 0, c_white, 1);
+shader_reset();
 
 // ---- the combo ring ----
 // While a throw still has bounce-resist banked, an arc of pips rides the

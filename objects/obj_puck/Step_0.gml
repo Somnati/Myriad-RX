@@ -25,6 +25,21 @@ for (var _i = array_length(sparks) - 1; _i >= 0; _i--) {
 stun = max(0, stun - delta);
 if (cannon) cannon_t += delta; else cannon_t = 0;
 
+// ⚖️ THE SPIN IS WHAT SELLS THE SOLID. A dark cylinder rotating about
+// its own axis is invisibly rotating - it is the shader's knurled edge
+// that turns yaw into something the eye can see, and it is the spin
+// that turns the knurl from a texture into motion. Neither is worth
+// much without the other.
+//
+// It decays on its own clock rather than riding the puck's friction:
+// a puck that stops sliding is still spinning for a moment afterwards,
+// and that half-second of residual rotation is most of what makes it
+// read as a heavy object coming to rest rather than a sprite stopping.
+yaw += yaw_spd * delta;
+if (yaw >= 360 || yaw < 0) yaw -= 360 * floor(yaw / 360);
+yaw_spd *= power(.985, delta);
+if (abs(yaw_spd) < .02) yaw_spd = 0;
+
 var _t   = __tray();
 var _max = max(room_width, room_height);   // the speed scale, DE's _mxspd
 
@@ -171,12 +186,24 @@ if (held) {
 				// makes charging worth the wait rather than just louder
 				spd *= 1 + PUCK_TIER_SPD * (tier + 1);
 				resist += PUCK_TIER_RESIST * tier;
+				yaw_spd *= 1.6;   // a cannon shot leaves spinning hard
 				y = _t.y2;
 				play_sound_ext(snd_tierup, .9, 1.1, .55, 2);
 				__burst(20, 120, 4.2);
 			} else {
 				play_sound_ext(snd_softclick, .9, 1.1, .35, 1);
 			}
+
+			// SPIN FROM THE THROW, signed by which way the release
+			// crossed the puck. A flick that passes to the left of the
+			// centre spins it one way and to the right the other, which
+			// is what a real wrist does - and it means two throws down
+			// the same line can still look different.
+			var _cross = dsin(point_direction(__cx(), __cy(), mousex, mousey)
+				- point_direction(gx + r, gy + r, __cx(), __cy()));
+			yaw_spd = (spd / max(1, _max)) * PUCK_SPIN
+				* ((_cross == 0) ? choose(-1, 1) : sign(_cross))
+				* random_range(.6, 1.4);
 
 			resist0 = max(1, resist);
 			stun = 0;
@@ -237,6 +264,11 @@ if (!held && spd > 0) {
 
 		// each wall spends one point of the throw's combo budget
 		resist = max(0, resist - 1);
+
+		// a wall kicks the spin as well as the direction - a puck that
+		// bounces without its rotation changing reads as a sprite being
+		// reflected rather than as an object hitting something
+		yaw_spd = yaw_spd * -.55 + (_frac * PUCK_SPIN * .5 * choose(-1, 1));
 
 		play_sound_ext(voice, lerp(.6, 1.5, _frac), lerp(.8, 1.9, _frac),
 			lerp(.15, .6, _frac), 1);

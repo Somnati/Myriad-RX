@@ -125,6 +125,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	if (mouse_x >= room_width - SW_EDGE || stage > 0) {
 		press_x    = mouse_x;
 		press_y    = mouse_y;
+		press_t    = 0;
 		drag_from  = sp;
 		drag_on    = false;
 		hold_fired = false;
@@ -200,6 +201,7 @@ else { hold_row = -1; hold_t = 0; hold_ct = HOLD_LEAD; }
 // finger, so the pull has weight in the hand instead of happening
 // after the fact
 if (press_x >= 0 && mouse_check_button(mb_left)) {
+	press_t += delta;
 	var _tr = press_x - mouse_x;             // pulling LEFT opens
 	if (!drag_on && abs(_tr) > BUDGET) drag_on = true;
 	if (drag_on) sp = clamp(drag_from + _tr / DRAG_PX, 0, 2);
@@ -212,13 +214,21 @@ press_x = -1;
 
 var _dx = mouse_x - _px;
 
+// ⚖️ WAS IT ACTUALLY A FLICK? Distance alone said yes to a hand drifting
+// sideways over half a second, which is why the drawer kept opening on
+// him. A flick is short AND fast; averaging the speed across the whole
+// gesture is what separates it from a slow drag that ends with a
+// twitch. Below the threshold the gesture is still a DRAG - it just
+// settles where the finger left it instead of being thrown a stage.
+var _flick = (abs(_dx) / max(1, press_t)) >= SWIPE_V;
+
 // RELEASING A DRAG: a decisive flick throws it a whole stage from
 // where the drag STARTED; anything gentler settles at the nearest
 // stage to where the finger left it. Either way the ease takes over
 // from the drawer's current position, so nothing jumps.
 if (drag_on) {
 	drag_on = false;
-	if (abs(_dx) >= SWIPE)
+	if (_flick && abs(_dx) >= SWIPE)
 		stage = clamp(drag_from + ((_dx < 0) ? 1 : -1), 0, 2);
 	else
 		stage = clamp(round(sp), 0, 2);
@@ -229,9 +239,12 @@ if (drag_on) {
 	exit;                                    // a drag is never a tap
 }
 
-// a flick that never became a drag still throws the drawer
-if (_dx <= -SWIPE) { stage = min(2, stage + 1); exit; }
-if (_dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
+// a flick that never became a drag still throws the drawer - but only
+// if it was genuinely a flick. This is the path that was firing by
+// accident: no drag ever started, so nothing on screen moved to warn
+// him, and then the drawer jumped a whole stage on release.
+if (_flick && _dx <= -SWIPE) { stage = min(2, stage + 1); exit; }
+if (_flick && _dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
 
 // under the drag budget it was a TAP
 if (point_distance(_px, _py, mouse_x, mouse_y) > BUDGET) exit;

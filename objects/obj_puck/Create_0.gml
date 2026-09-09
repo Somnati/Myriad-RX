@@ -99,6 +99,30 @@ r  = PUCK_D * .5;
 col = c_gold;          // re-rolled on every grab
 tint = col;            // the live blend (red stunned, aqua docked)
 
+// ---- THE SOLID (his ask: 3D like the dice, and a hockey puck) ----
+// sh_puck raymarches a rounded cylinder, the same construction obj_dice
+// uses for its d6. It takes ONE angle instead of an orientation matrix,
+// because a puck lying on a table has exactly one degree of freedom -
+// see the shader for why that is nine uniforms and nine dot products a
+// ray cheaper.
+yaw     = random(360);   // where its knurl happens to be pointing
+yaw_spd = 0;             // deg per 60hz frame
+
+// black vulcanised rubber, and it stays black: the per-throw colour
+// lives in the STAMPED RING on the crown instead. A puck that changes
+// body colour stops being a puck; a puck with a coloured stamp is still
+// obviously a puck and still tells you which throw you are watching.
+rubber = rgb(26, 26, 32);
+
+u_quad_p  = shader_get_uniform(sh_puck, "u_quad");
+u_yaw_p   = shader_get_uniform(sh_puck, "u_yaw");
+u_light_p = shader_get_uniform(sh_puck, "u_light");
+u_col_p   = shader_get_uniform(sh_puck, "u_col");
+u_ring_p  = shader_get_uniform(sh_puck, "u_ring");
+u_metal_p = shader_get_uniform(sh_puck, "u_metal");
+u_pad_p   = shader_get_uniform(sh_puck, "u_pad");
+u_cells_p = shader_get_uniform(sh_puck, "u_cells");
+
 // ---- motion (polar: DE's model) ----
 spd  = 0;
 dir  = 0;
@@ -234,13 +258,9 @@ __roll_voice = function() {
 	voice = snd_pool[irandom(array_length(snd_pool) - 1)];
 };
 
-// ---- THE DISC, baked ----
-// Half-width per |dy| for a filled radius-9 circle: floor(sqrt(r^2-dy^2)).
-// Drawn as horizontal spans of spr_pixel_1x1, per the house rule that
-// says hard pixels only - draw_circle's smooth vector ring is the one
-// shape in this game that would not match anything around it (the
-// settings "?" button is built the same way, for the same reason).
-disc = [9, 8, 8, 8, 8, 7, 6, 5, 4, 0];
+// (the baked half-width disc table is gone with the flat draw - the
+// silhouette comes from the SDF now, and the shader's cell quantizer
+// keeps it just as hard-edged as the pixel spans were)
 
 // seed on the tray floor, centred, so a fresh room never starts it
 // half off an edge

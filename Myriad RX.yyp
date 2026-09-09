@@ -498,6 +498,7 @@
     {"id":{"name":"sh_dice","path":"shaders/sh_dice/sh_dice.yy",},},
     {"id":{"name":"sh_fog_dither","path":"shaders/sh_fog_dither/sh_fog_dither.yy",},},
     {"id":{"name":"sh_mandel","path":"shaders/sh_mandel/sh_mandel.yy",},},
+    {"id":{"name":"sh_puck","path":"shaders/sh_puck/sh_puck.yy",},},
     {"id":{"name":"sh_ui_fade","path":"shaders/sh_ui_fade/sh_ui_fade.yy",},},
     {"id":{"name":"snd_ability_common","path":"sounds/snd_ability_common/snd_ability_common.yy",},},
     {"id":{"name":"snd_ability_epic","path":"sounds/snd_ability_epic/snd_ability_epic.yy",},},

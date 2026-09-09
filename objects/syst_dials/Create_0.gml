@@ -127,6 +127,19 @@ hold_fired = false;// a repeat happened, so the release must not buy again
 sfx_tic = 0;
 HOLD_LEAD  = 25;   // DE's lead-in before the first repeat, ~0.4s
 SWIPE   = 26;   // a flick this far throws the drawer a whole stage
+// ⚖️ ...AND FAST ENOUGH TO BE A FLICK (his report, 2026-09-09: "im
+// constantly accidentally opening it"). SWIPE was a pure DISTANCE test,
+// so a slow horizontal drift while tapping - a hand resting, a mouse
+// sliding 26px over half a second - read identically to a deliberate
+// throw. Distance alone cannot tell those apart; SPEED can, and it is
+// the axis a flick is actually defined on.
+//
+// Average speed across the whole gesture, not instantaneous: a flick is
+// short AND fast, and averaging rejects the long slow drag that happens
+// to end with a twitch. 1.6 px/frame is ~96 px/s - well under a real
+// swipe and well over anything a hand does by accident.
+SWIPE_V = 1.6;  // px per 60hz frame, averaged over the gesture
+press_t = 0;    // frames the current press has been held
 BUDGET  = 6;    // under this, the press was a tap
 
 // THE DRAWER FOLLOWS THE FINGER. Waiting for release before moving is
