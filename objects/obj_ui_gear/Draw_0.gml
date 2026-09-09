@@ -20,7 +20,11 @@ if (hot || rip > 0) {
 // Doing it the other way - top-left origin, half-width subtracted -
 // still rotates about the origin, so the icon swung around its own
 // corner instead of turning on the spot.
-draw_sprite_ext(spr_gear, 0, _s.x, _s.y, 1, 1,
-	ang,                                         // turns while hovered
+// a quarter turn and a little bigger, both off the one hover ease.
+// 90 degrees because a cog has fourfold symmetry - it lands looking
+// like itself, so the turn reads as a movement rather than as a tilt.
+var _sc = 1 + .15 * spin;
+draw_sprite_ext(spr_gear, 0, _s.x, _s.y, _sc, _sc,
+	spin * 90,                                   // there, and back
 	hot ? c_white : rgb(190, 200, 225),          // the burger's two tones
 	(.85 + .15 * spin) * _s.a);

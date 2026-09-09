@@ -18,13 +18,14 @@ depth = instance_exists(obj_ui_header) ? obj_ui_header.depth - 1 : -1001;
 hot = false;
 tic = 0;   // press debounce, obj_ui_menu2's
 rip = 0;   // press ripple, 1 -> 0
-spin = 0;  // hover ease, 0..1 - drives how FAST it turns
-ang  = 0;  // the cog's actual angle. It spins about its own middle,
-           // which is spr_gear's origin doing the work rather than a
-           // half-width subtraction: draw_sprite_ext rotates about the
-           // ORIGIN, so with the imported top-left origin the icon
-           // orbited its corner instead of turning on the spot (his
-           // report: "i dont like the animation it has")
+spin = 0;  // hover ease, 0..1. It drives the angle and the scale
+           // TOGETHER, so the whole hover state is one number: a quarter
+           // turn and a little bigger on the way in, both unwinding on
+           // the way out. It turns about its own middle, which is
+           // spr_gear's origin doing the work rather than a half-width
+           // subtraction - draw_sprite_ext rotates about the ORIGIN, so
+           // with the imported top-left origin the icon orbited its
+           // corner instead of turning on the spot.
 
 /// where the gear sits this frame, and how visible it is.
 /// `a` 0 means it is not there at all - Step and Draw both leave on it,

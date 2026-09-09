@@ -7,12 +7,13 @@ var _s = __seat();
 if (_s.a <= .01) { hot = false; spin = 0; exit; }
 
 hot = point_in_rectangle(mousex, mousey, _s.x - 11, _s.y - 11, _s.x + 11, _s.y + 11);
-spin = move_to(spin, hot ? 1 : 0, 6);
-// A CONTINUOUS TURN while the pointer is on it, coasting to a stop when
-// it leaves - the ease drives the SPEED rather than the angle, so there
-// is no snap back to zero and no fixed tilt to notice.
-ang += spin * 2 * delta;
-if (ang >= 360) ang -= 360;
+// ⚖️ A QUARTER TURN THERE AND BACK (his spec), not a free spin. The
+// ease is the whole animation: 0 at rest, 1 while hovered, and the Draw
+// reads BOTH the angle and the scale off it. adj 3 is about a third of
+// the remaining distance per frame - the burger's own snap, quick
+// enough to read as a response to the pointer rather than an idle
+// animation, and it unwinds at exactly the same rate on the way out.
+spin = move_to(spin, hot ? 1 : 0, 3);
 
 // the room it would take you to is the room you are in
 if (in_room(rm_settings)) exit;
