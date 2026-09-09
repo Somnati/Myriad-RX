@@ -32,7 +32,13 @@ function ui_blur_tick() {
 	// what wants the room softened, and how much
 	var _t = 0;
 	if (instance_exists(syst_menu2)) _t = max(_t, syst_menu2.am);
-	if (ui_overlay() != noone)       _t = 1;
+	// ⚖️ IT RIDES THE PANEL'S OWN EASE, not the panel's existence
+	// (2026-09-09, with the open animation). Pinned at 1 the blur
+	// snapped on under a panel that was still arriving and stayed hard
+	// under one that was already leaving - both ends visible, because
+	// the panel is translucent and the room reads straight through it.
+	var _ov = ui_overlay();
+	if (_ov != noone) _t = max(_t, _ov.oa);
 
 	// eased so the blur arrives with the panel rather than snapping on
 	// under it; settles exactly, so a resting screen is not spending a

@@ -214,9 +214,39 @@ anim_n     = 0;   // rows inserted (+) or removed (-) by the toggle
 anim_t     = 1;   // 0 -> 1 ease; 1 = at rest
 anim_ghost = [];  // closing: the removed child rows (frozen copies)
 page_ofs   = 0;   // visual row offset easing the scroll-clamp jump home
+// ---- THE OPEN ANIMATION (his ask, 2026-09-09: it "just pops in") ----
+// oa is the master ease, 0 closed .. 1 open; `closing` runs it backwards
+// and the Step destroys at zero (statistics_close arms it). Settings
+// carries the same three-line shape - see ui_anim_in for the curve.
+oa      = 0;
+closing = false;
+
+/// @func __in_off(i)
+/// @desc How far row _i still has to travel on the way in, in px. Rows
+///       DEAL IN from below: the row loop already stops past
+///       room_height, so a row waiting its turn is genuinely off-screen
+///       - no clipping, and no alpha, which matters because the widgets
+///       are separate opaque instances and a faded row under a solid
+///       spark chart would read as broken.
+///
+///       The index is the row's position ON SCREEN, so the cascade
+///       starts at the top of what you can see rather than at row 0 of
+///       a tree you had scrolled past.
+__in_off = function(_i) {
+	if (oa >= .999) return 0;
+	return (1 - ui_anim_in(oa, _i - floor(g.stats_page))) * UI_IN_DEAL;
+};
+
+// ⚖️ THE TWO ANIMATIONS SUM, they do not take turns. This hook already
+// existed for the folder UNFURL, and the open slide rides on top of it
+// as a second term - so a panel opened onto a half-unfurled folder
+// keeps both motions instead of one cancelling the other. Every caller
+// (rows in the Draw, live widgets in the Step) picks both up for free,
+// which is the whole reason the offset lives here and not at the sites.
 __anim_off = function(_r) {
-	if (anim_t >= 1 || _r <= anim_row) return 0;
-	return -(1 - anim_t) * anim_n * row_h;
+	var _in = __in_off(_r);
+	if (anim_t >= 1 || _r <= anim_row) return _in;
+	return _in - (1 - anim_t) * anim_n * row_h;
 };
 
 // the row PANEL painter (zebra edition 2026-07-12: match rm_settings,
@@ -352,6 +382,17 @@ sb.in_menu  = true;           // raises - see the Create note above
 // can't either (the room's background layer paints over it) - so a
 // proxy instance runs this method at exactly the right depth.
 __draw_strip = function() {
+	// THE STRIP DROPS OUT FROM BEHIND THE HEADER (see settings' twin).
+	// One world matrix rather than an offset threaded through every
+	// draw call - and the header at depth -1000 paints over this proxy,
+	// so the strip is genuinely hidden until it clears the header's
+	// lower edge instead of being seen peeking out of it.
+	var _sp = ui_anim_in(oa, 1);
+	if (_sp < .001) return;
+	var _so = -(1 - _sp) * UI_IN_SLIDE;
+	if (_so != 0)
+		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
+
 	var _bby = obj_ui_header.sprite_height;
 	draw_set_font(fnt);
 	draw_set_alpha(1);
@@ -405,6 +446,9 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
 	draw_set_alpha(1);
+	// PUT IT BACK, unconditionally: a world matrix left set leaks into
+	// every draw the rest of the frame makes.
+	if (_so != 0) matrix_set(matrix_world, matrix_build_identity());
 };
 
 strip_px = create_obj(0, 0, obj_draw_proxy);

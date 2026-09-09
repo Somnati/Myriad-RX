@@ -123,9 +123,45 @@ __confirm_box = function() {
 };
 
 // one geometry authority: draw and hit-test both call THESE
+// ---- THE OPEN ANIMATION (his ask, 2026-09-09: it "just pops in") ----
+// oa is the master ease, 0 closed .. 1 open, ticked in the Step; every
+// moving part reads it through ui_anim_in with its own index, so the
+// panel assembles in an order instead of arriving as one flat sheet.
+// `closing` runs the same ease backwards and the Step destroys at zero
+// (see settings_close - it arms this rather than destroying).
+oa      = 0;
+closing = false;
+
+/// @func __in_off(i)
+/// @desc How far row _i still has to travel, in px. Rows DEAL IN from
+///       below, and that choice is what makes this cheap: the row loop
+///       already stops drawing past room_height, so a row waiting its
+///       turn is genuinely off-screen with no clipping and no alpha.
+///
+///       ⚖️ NO ALPHA ON ROWS, deliberately. Widgets are separate live
+///       instances that paint themselves opaque, so a faded row under a
+///       solid toggle would look broken - and giving every widget an
+///       alpha means touching shared framework objects for one screen's
+///       animation. Motion costs nothing and reads better anyway.
+///
+///       The index is the row's position ON SCREEN, not its absolute
+///       index, so the cascade always starts at the top of what you can
+///       see rather than at row 0 of a list you had scrolled past.
+__in_off = function(_i) {
+	if (oa >= .999) return 0;
+	return (1 - ui_anim_in(oa, _i - floor(g.settings_page))) * UI_IN_DEAL;
+};
+
+// the seat, plus wherever the open animation still has it. ONE function,
+// so the rows (Draw) and the live widgets (Step) cannot disagree about
+// where a row is mid-flight - the widget rides its row down and back
+// with no extra bookkeeping. __row_at, the inverse, deliberately does
+// NOT get the offset: hit tests stay on FINAL geometry (the statistics
+// framework's law), and the Step gates input entirely while oa < 1.
 __row_y = function(_i) {
 	return list_y + (_i - floor(g.settings_page)) * row_h
-		+ row_h * (floor(g.settings_page) - g.settings_page);
+		+ row_h * (floor(g.settings_page) - g.settings_page)
+		+ __in_off(_i);
 };
 __row_at = function(_my) {
 	var _yoff = row_h * (floor(g.settings_page) - g.settings_page);
@@ -205,6 +241,17 @@ sb.ty = g.settings_page * row_h;
 // ---- the title strip, drawn by a PROXY at depth-2 (see the header
 // note: rows at 0, widgets -1, strip -2, menu -520 on top) ----
 __draw_strip = function() {
+	// THE STRIP DROPS OUT FROM BEHIND THE HEADER. One world matrix
+	// rather than an offset threaded through thirty draw calls - and
+	// the header (depth -1000) paints over this proxy, so the strip is
+	// genuinely hidden until it clears the header's lower edge instead
+	// of being drawn peeking out of it.
+	var _sp = ui_anim_in(oa, 1);
+	if (_sp < .001) return;
+	var _so = -(1 - _sp) * UI_IN_SLIDE;
+	if (_so != 0)
+		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
+
 	draw_set_font(fnt);
 	draw_set_alpha(1);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, list_y - bby, 0,
@@ -265,6 +312,10 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
 	draw_set_alpha(1);
+	// PUT IT BACK, unconditionally. A world matrix left set does not
+	// belong to this proxy - it leaks into every draw the frame makes
+	// after it, which is the whole rest of the game.
+	if (_so != 0) matrix_set(matrix_world, matrix_build_identity());
 };
 
 // kept on an instance variable rather than a local: the CleanUp has to

@@ -13,8 +13,12 @@ draw_set_font(fnt);
 // because the screen was a room with nothing behind it; as an overlay
 // the softened room IS what is behind it, and the rows composite on top
 // unchanged.
+// it is also the FIRST thing to arrive (index 0 of the open animation):
+// the ground lands, then the strip, then the list deals in behind them.
+// A panel whose contents arrive before their own background reads as
+// debris rather than as a screen opening.
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby - 2, room_width, room_height, 0,
-	c_black, .72);
+	c_black, .72 * ui_anim_in(oa, 0));
 
 // ---- the active tab's rows, windowed ----
 var _n = array_length(view);
@@ -82,6 +86,18 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 
 // ---- the category rail (menu2's color language: identity pip at the
 // left edge, active = solid fill + white, others sink toward black) ----
+//
+// IT SLIDES IN FROM ITS OWN EDGE, which is the left one - the same rule
+// the menu drawer follows on the right. A panel's chrome should enter
+// from the side it lives on; anything else reads as arriving from
+// nowhere. One world matrix, same as the strip, so the tab loop below
+// is untouched - and its hit tests (__tabs, read in the Step) keep
+// their final geometry, which the input gate makes safe.
+var _rp = ui_anim_in(oa, 1);
+var _ro = -(1 - _rp) * (rail_w + UI_IN_SLIDE);
+if (_ro != 0)
+	matrix_set(matrix_world, matrix_build(_ro, 0, 0, 0, 0, 0, 1, 1, 1));
+
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
 	c_hsv(169, 186, 7), .97);
@@ -112,6 +128,8 @@ for (var _i = 0; _i < array_length(_tb); _i++) {
 	draw_set_alpha(.95);
 	draw_text(_t.x1 + 7, _t.y1 + ((_th - 7) div 2), _s.name);
 }
+
+if (_ro != 0) matrix_set(matrix_world, matrix_build_identity());
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);

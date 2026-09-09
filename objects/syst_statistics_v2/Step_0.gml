@@ -1,4 +1,20 @@
 
+// ---- THE OPEN/CLOSE EASE (his ask, 2026-09-09) ----
+// move_to's adj is a divisor and delta-aware, so it settles in about
+// the same 21 frames on any refresh rate. It SNAPS at the ends rather
+// than approaching them forever - __in_off short-circuits on oa >= .999
+// and the input gate below waits for exactly that, so the screen has to
+// genuinely reach "nothing is offset" or it never accepts a click.
+oa = move_to(oa, closing ? 0 : 1, UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+
+// closed: the panel is done, and the CleanUp sweeps its furniture
+if (closing && oa <= 0) { instance_destroy(); exit; }
+
+// the scrollbar fades on `enabled` (its own Step), so it leaves with
+// the panel rather than hanging over an empty room
+if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
+
 __tick += delta; // the change-pulse clock
 
 // the favourite gutter's slide: names step right as the star comes out
@@ -84,6 +100,14 @@ if (keyboard_check_pressed(vk_escape)) { statistics_close(); exit; }
 
 // through the overlay's OWN block: the room behind is held at
 // ui_layer_popup and the screen that raised the line has to be above it
+// ⚖️ NOTHING IS CLICKABLE UNTIL IT HAS LANDED. Rows animate through
+// __anim_off while the hit tests below keep FINAL geometry - this
+// framework's own law, hit tests never chase a moving row. So visuals
+// and hit tests genuinely disagree for about twenty frames, and the
+// honest answer is to take no input at all until they agree again.
+// (The hover-only reads in the Draw are exempt by construction: they
+// test against _ry, which already carries the offset.)
+if (oa >= .999 && !closing)
 if (input_free(ui_layer_popup))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {

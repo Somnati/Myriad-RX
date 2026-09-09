@@ -17,8 +17,11 @@
 // as an overlay the softened room IS the thing behind it. The row
 // panels stay opaque, so what shows through is the gaps between them -
 // which is exactly where a blur wants to be seen.
+// it is also the FIRST part to arrive (index 0): the ground lands, then
+// the strip, then the list deals in behind them. Contents that arrive
+// before their own background read as debris, not as a screen opening.
 draw_sprite_ext(spr_pixel_1x1, 0, 0, obj_ui_header.sprite_height - 2,
-	room_width, room_height, 0, c_black, .72);
+	room_width, room_height, 0, c_black, .72 * ui_anim_in(oa, 0));
 
 draw_set_font(fnt);
 
@@ -525,6 +528,15 @@ for (var _r = _lo; _r < _hi; _r++) {
 // the favourite gutter slide out from behind it. menu2's colour
 // language: identity pip at the left edge, active = solid fill + white,
 // the rest sink toward black. ----
+// IT SLIDES IN FROM ITS OWN EDGE - the left one, mirroring the menu
+// drawer's rule on the right. One world matrix, so the tab loop below
+// is untouched and its hit tests (read in the Step) keep their final
+// geometry, which the input gate makes safe.
+var _rp = ui_anim_in(oa, 1);
+var _ro = -(1 - _rp) * (rail_w + UI_IN_SLIDE);
+if (_ro != 0)
+	matrix_set(matrix_world, matrix_build(_ro, 0, 0, 0, 0, 0, 1, 1, 1));
+
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
 	c_hsv(169, 186, 7), .97);
@@ -554,6 +566,7 @@ for (var _i = 0; _i < array_length(_tb); _i++) {
 	draw_set_alpha(.95);
 	draw_text(_t.x1 + 7, _t.y1 + ((_th - 7) div 2), _s.name);
 }
+if (_ro != 0) matrix_set(matrix_world, matrix_build_identity());
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);

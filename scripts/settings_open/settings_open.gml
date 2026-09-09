@@ -13,6 +13,16 @@
 /// second syst_settings would give you two backdrops, two scrollbars
 /// and two sets of widgets fighting over the same pool keys.
 function settings_open() {
+	// still fading out from a close? CATCH IT rather than refusing.
+	// The old guard was written when closing was instant; with an exit
+	// animation the panel is briefly both open and not, and a press in
+	// that window used to do nothing at all. Reviving also spares us
+	// the one thing the guard exists to prevent - a second instance
+	// fighting the first over the same widget pool keys.
+	if (instance_exists(syst_settings) && syst_settings.closing) {
+		syst_settings.closing = false;
+		return;
+	}
 	if (ui_overlay() != noone) return;   // one panel at a time
 	create_obj(0, 0, syst_settings);
 }

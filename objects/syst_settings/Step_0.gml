@@ -1,6 +1,31 @@
 
 draw_set_font(fnt); // the "?" zone + pillbox widths measure text
 
+// ---- THE OPEN/CLOSE EASE (his ask, 2026-09-09) ----
+// move_to's adj is a divisor and it is delta-aware, so this settles in
+// about the same 21 frames on any refresh rate. It SNAPS at the ends
+// rather than approaching them forever: __in_off short-circuits on
+// oa >= .999, and the whole screen has to reach a state where nothing
+// is offset at all or the hit tests below never line up with the rows.
+oa = move_to(oa, closing ? 0 : 1, UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+
+// an open dropdown goes NOW, not in the CleanUp: obj_pillbox draws at
+// full alpha and knows nothing about the fade, so leaving it up would
+// park a solid box over a panel that is visibly gone
+if (closing) {
+	with (obj_pillbox) if (obj == other.id) instance_destroy();
+	pill_kind = "";
+}
+
+// closed: the panel is done. Everything settings_close had to do
+// happened when it was pressed - this is only the furniture leaving.
+if (closing && oa <= 0) { instance_destroy(); exit; }
+
+// the scrollbar fades itself out on `enabled` (its own Step), so it
+// leaves with the panel instead of hanging in an empty screen
+if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
+
 // ---- rebuild every step: ~35 rows of struct pushes, trivial - and
 // live rebuilding is what lets rows appear/vanish/dim conditionally ----
 __rebuild();
@@ -112,6 +137,14 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 // through the overlay's OWN block (see the Create): the room behind is
 // held at ui_layer_popup, and the screen that raised the line has to be
 // above it
+// ⚖️ NOTHING IS CLICKABLE UNTIL IT HAS LANDED. Rows animate through
+// __row_y while __row_at (the inverse) deliberately keeps FINAL
+// geometry - the statistics framework's law, hit tests never chase a
+// moving row. That means visuals and hit tests genuinely disagree for
+// about twenty frames, so the honest answer is to accept no input at
+// all until they agree again. It also kills the click-through: a press
+// that opened this panel can no longer run twice on the way in.
+if (oa >= .999 && !closing)
 if (input_free(ui_layer_popup))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 // escape closes (the menu drawer's own nicety; it never OPENS settings,
