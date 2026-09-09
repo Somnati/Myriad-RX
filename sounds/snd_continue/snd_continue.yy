@@ -7,10 +7,10 @@
   },
   "bitDepth":1,
   "channelFormat":1,
-  "compression":1,
+  "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":23.9999167,
+  "duration":2.4934583,
   "exportDir":"",
   "name":"snd_continue",
   "parent":{
