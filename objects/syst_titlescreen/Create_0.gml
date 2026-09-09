@@ -56,16 +56,37 @@ tt = 0;
 // row is, and rest is genuinely still rather than nearly still.
 hov = array_create(array_length(items), 0);
 
-// ---- the field ----
-// A lattice of blocks drifting slowly down-right with a handful of
-// cells breathing in the rarity colours. Positions are pure HASH math
-// off tt: stateless, deterministic, wraps forever, and costs nothing to
-// leave running under a menu.
-fld_pitch = 27;   // cell size in px
-fld_n     = 18;   // lit cells at any moment
-fld_dx    = .055; // px per 60hz step, down-RIGHT and very slow. This is
-fld_dy    = .038; // a backdrop: anything you can actually watch move is
-                  // one more thing competing with the menu.
+// ---- the drift ----
+// ⚖️ THE LATTICE IS GONE (his verdict on the first attempt: "the
+// background sucks"). Drawing the visualiser's grid literally gave the
+// screen graph paper - a regular mesh reads as a debug overlay however
+// dim it is, because regularity is what the eye locks onto first.
+//
+// The idea was right and the execution was too literal. This is the
+// game's SHAPE without its ruler: a few large soft blocks, out of
+// focus, drifting up-right at different speeds and breathing through
+// the rarity ladder. Baked ONCE here rather than hashed per frame -
+// there are only eight, and a table you can read beats four sin()
+// calls you have to decode.
+//
+//   x0/y0  start, as a fraction of the wrap span
+//   size   px. Big: this is atmosphere, not content
+//   spd    px per 60hz step. The SPREAD is the depth cue - a field
+//          moving at one speed is a texture, not a distance
+//   tier   which rung of the rarity ladder it wears
+//   br/ph  its own breath rate and phase, so the set never pulses
+//          together
+//   dim    a per-block trim, so the big ones do not shout
+blk_h = [
+	{ x0 : .07, y0 : .20, size : 86, spd : .050, tier : 5, br : .17, ph :   0, dim : .85 },
+	{ x0 : .560, y0 : .74, size : 64, spd : .085, tier : 3, br : .23, ph :  70, dim : 1   },
+	{ x0 : .310, y0 : .41, size : 48, spd : .120, tier : 6, br : .29, ph : 140, dim : 1   },
+	{ x0 : .820, y0 : .12, size : 72, spd : .065, tier : 2, br : .19, ph : 210, dim : .9  },
+	{ x0 : .180, y0 : .88, size : 38, spd : .155, tier : 8, br : .35, ph : 280, dim : 1   },
+	{ x0 : .690, y0 : .55, size : 96, spd : .040, tier : 4, br : .14, ph :  35, dim : .7  },
+	{ x0 : .430, y0 : .05, size : 44, spd : .140, tier : 7, br : .31, ph : 175, dim : 1   },
+	{ x0 : .950, y0 : .63, size : 56, spd : .100, tier : 5, br : .25, ph : 245, dim : .95 },
+];
 
 // banding fix (2026-07-09, his report): the backdrop gradient rides
 // the house temporal IGN dither - the same shader the starmap fog uses
