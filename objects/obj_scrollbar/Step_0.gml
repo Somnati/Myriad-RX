@@ -1,3 +1,7 @@
+/// NOTE: every input_free here reads through `in_menu` - see the
+/// Create. A bar inside the settings overlay or the menu drawer sits
+/// ABOVE the block those raise, and a bare check would have it refuse
+/// its own clicks the moment its owner went modal.
 /// @description SYSTEM
 stic -= 1 * delta;
 sh = floor(sprite_height);
@@ -66,7 +70,7 @@ or stic < 0 {
 // open menu/popup - the input_free drop releases a grab that was
 // already held when the blocker came up)
 if mouse_check_button_released(mb_left) selected = false
-if not input_free() selected = false;
+if not input_free(in_menu ? ui_layer_menu : 0) selected = false;
 if mouse_over()
 if mouse_check_button_pressed(mb_left)
 selected = true;
@@ -123,7 +127,7 @@ if i = 6 g.equipment_stats_page = clamp_min(input,0);
 //(positive when dragging UP), so a right-edge bar inside the touch
 //region fed BOTH drag paths with opposite signs and the release
 //snapped the list to the far end
-if input_free() // the list behind an open menu/popup must not scroll
+if input_free(in_menu ? ui_layer_menu : 0) // the list behind an open menu/popup must not scroll
 if touching_screen
 if selected = false
 if check_touch_bounds(touch_x_, touch_y_, sprite_width, y, room_width, ystart + sh)
@@ -134,7 +138,7 @@ if mx > mn {
 }
 
 //disable touch
-if not touching_screen or enabled = false or not input_free() {
+if not touching_screen or enabled = false or not input_free(in_menu ? ui_layer_menu : 0) {
 	touching = false;
 }
 
@@ -152,7 +156,7 @@ if touching = true {
 //pc scroll
 if os_type != os_android
 if enabled
-if input_free() { // wheel is unowned input: gate it or it scrolls behind menus
+if input_free(in_menu ? ui_layer_menu : 0) { // wheel is unowned input: gate it or it scrolls behind menus
 	if mouse_wheel_up() {
 		ty_speed_actual -= 5;
 		ty_friction = ty_mouse_friction;

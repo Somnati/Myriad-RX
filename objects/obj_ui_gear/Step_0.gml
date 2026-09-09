@@ -15,8 +15,8 @@ hot = point_in_rectangle(mousex, mousey, _s.x - 11, _s.y - 11, _s.x + 11, _s.y +
 // animation, and it unwinds at exactly the same rate on the way out.
 spin = move_to(spin, hot ? 1 : 0, 3);
 
-// the room it would take you to is the room you are in
-if (in_room(rm_settings)) exit;
+// already up: the burger is the X that closes it, not this
+if (instance_exists(syst_settings)) exit;
 
 // the trigger lives at the MENU layer so it stays clickable next to the
 // open drawer, which raises the modal block behind it (obj_ui_menu2's
@@ -28,10 +28,10 @@ if (hot && tic <= 0) {
 	tic = 8;
 	rip = 1;
 	play_sound_ext(snd_matclick2, 1, 1.05, .5, 1);
-	// shut the drawer on the way out. The room change would rebuild it
-	// closed anyway (it is not persistent), but the wipe is long enough
-	// to see, and leaving it open through the transition reads as the
-	// tap having missed.
+	// the drawer folds and the screen comes up over the room - no
+	// transition, nothing left behind it (his ask). Folding first
+	// matters more than it did: the drawer would otherwise sit under
+	// the overlay, still open, waiting for you when you close it.
 	if (instance_exists(obj_ui_menu2)) obj_ui_menu2.open = false;
-	goto_room(rm_settings);
+	settings_open();
 }

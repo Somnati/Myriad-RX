@@ -43,7 +43,21 @@ if (!variable_global_exists("settings_hints")) g.settings_hints = false;
 
 // ---- layout: derived, not hardcoded ----
 row_h  = 15; // th 7 + spc 8, the house rhythm
-bby    = obj_ui_header.sprite_height;   // header's bottom edge
+// ⚖️ AN OVERLAY, NOT A ROOM (his ask, 2026-09-08). It is spawned on top
+// of whatever room you are standing in and destroyed when you close it,
+// so opening settings from the clicker costs no transition and the game
+// is still behind it. rm_settings survives as a dead room; nothing
+// routes there any more.
+//
+// DEPTH -400: over the room and over the dial drawer (-320), under the
+// menu drawer (-520) and the header (-1000). The header staying above
+// is deliberate - the screen has always drawn from bby down, so the
+// profit counter and the burger remain live exactly as they were.
+depth = -400;
+
+// the header's bottom edge, or a bare band where there is no header -
+// the title screen has none, and settings must open there too
+bby    = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 16;
 list_y = bby + 16;                      // title strip, then rail + content
 rail_w = 80;                            // the category tab rail
 content_x = rail_w + 6;                 // rows live right of the rail
@@ -124,6 +138,11 @@ __widget = function(_k, _obj) {
 	var _i = pool[$ _k];
 	if (_i == undefined || !instance_exists(_i)) {
 		_i = create_obj(-1000, -1000, _obj);
+		// LISTENS THROUGH THE OVERLAY'S OWN BLOCK. syst_input skips any
+		// clickable whose ui_layer sits under g.input_block, and this
+		// screen raises that to ui_layer_popup so the room behind goes
+		// quiet - its own widgets have to be above the line they drew.
+		_i.ui_layer = ui_layer_popup;
 		_i.depth = depth - 1; // above the rows, under the strip proxy
 			// (depth-2) and the menu - see the header note
 		pool[$ _k] = _i;
@@ -174,6 +193,10 @@ g.settings_page = clamp(g.settings_page, 0, max(0, mx - full_rows));
 // page (or its first step would snap the list back to the top)
 sb = create_obj(room_width - sprite_get_width(spr_scrollbar) - 1, list_y, obj_scrollbar);
 sb.i = scrl_settings;
+sb.depth   = depth - 3;      // the documented stack: rows, widgets,
+                             // strip proxy, scrollbar, pillbox
+sb.ui_layer = ui_layer_popup; // arbitration, as the widgets above
+sb.in_menu  = true;           // and its own internal input gates
 sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
 sb.ty = g.settings_page * row_h;
 
@@ -242,7 +265,10 @@ __draw_strip = function() {
 	draw_set_alpha(1);
 };
 
-var _px = create_obj(0, 0, obj_draw_proxy);
-_px.owner = id;
-_px.depth = depth - 2;
-_px.fn    = __draw_strip;
+// kept on an instance variable rather than a local: the CleanUp has to
+// take it with us, and an overlay is destroyed far more often than a
+// room is left
+strip_px = create_obj(0, 0, obj_draw_proxy);
+strip_px.owner = id;
+strip_px.depth = depth - 2;
+strip_px.fn    = __draw_strip;

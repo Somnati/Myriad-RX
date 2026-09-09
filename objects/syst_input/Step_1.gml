@@ -6,6 +6,12 @@
 // ---- blockers ----
 // listed in ascending layer order: later, stronger blockers overwrite
 g.input_block = 0;
+// the settings OVERLAY holds the room behind it: it draws over
+// everything from the header down, so nothing under it should be
+// clickable. Its own furniture rides ui_layer_popup to listen through
+// this (see syst_settings' Create).
+if (instance_exists(syst_settings))
+	g.input_block = ui_layer_popup;
 if (instance_exists(obj_pillbox))
 	g.input_block = ui_layer_popup;
 if (instance_exists(syst_settings) && syst_settings.confirm_active)

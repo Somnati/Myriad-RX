@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"settings_open",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"settings_open",
+  "parent":{
+    "name":"settings",
+    "path":"folders/engine/settings.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

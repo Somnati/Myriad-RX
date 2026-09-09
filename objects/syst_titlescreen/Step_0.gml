@@ -76,7 +76,9 @@ if (mouse_check_button_pressed(mb_left)) {
 		}
 		if (_i == 3) { // settings; back returns here (nav stack)
 			play_sound_ext(snd_matclick2, .95, 1.1, .5, 1);
-			goto_room(rm_settings);
+			// over the title screen, not instead of it - the same door
+			// the in-game gear uses
+			settings_open();
 		}
 		if (_i == 4) { // quit
 			play_sound_ext(snd_matclick2, .8, .9, .5, 1);

@@ -14,8 +14,13 @@ vis.set_display_value(_g);
 vis.set_focus_value(_g);
 
 // endless zoom, both directions. desktop: wheel.
-if mouse_wheel_up() vis.set_zoom_input(-0.5);
-if mouse_wheel_down() vis.set_zoom_input(0.5);
+// GATED like every other room input: the wheel is unowned, so without
+// this it kept zooming the blocks behind an open settings overlay or a
+// dropdown (obj_scrollbar's own wheel carries the same guard).
+if (input_free()) {
+	if mouse_wheel_up() vis.set_zoom_input(-0.5);
+	if mouse_wheel_down() vis.set_zoom_input(0.5);
+}
 
 // ⚖️ SWIPE-ZOOM IS GONE (his call, 2026-09-08). It read a held button
 // as a zoom gesture, which put it in direct competition with the thing

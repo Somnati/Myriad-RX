@@ -18,6 +18,10 @@ output = 0;
 balpha = 0;
 
 enabled = true;
+in_menu = false; // true = this bar LIVES above a ui block (the settings
+                 // overlay, the menu drawer): it listens through the
+                 // block instead of bailing on it. obj_set_slider's own
+                 // flag, same meaning, same reason.
 i = 0;
 input = 0;
 

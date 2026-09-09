@@ -15,6 +15,12 @@ function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap =
 		// spawned at final x (track bakes there), parked in y
 		_inst = create_obj(sl_x, -1000, obj_set_slider);
 		_inst.depth = depth - 1; // above rows, under the strip proxy/menu
+		// the screen is an OVERLAY and raises g.input_block; its own
+		// widgets listen through that block rather than bailing on it
+		// (ui_layer for syst_input's arbitration, in_menu for the
+		// slider's own gate - it was built for exactly this)
+		_inst.ui_layer = ui_layer_popup;
+		_inst.in_menu  = true;
 		_inst.image_xscale = sl_scale;
 		pool[$ _k] = _inst;
 		_inst.vmin     = _vmin;

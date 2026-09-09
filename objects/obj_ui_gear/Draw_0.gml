@@ -1,6 +1,6 @@
 /// @description the cog
 
-if (in_room(rm_settings)) exit;
+if (instance_exists(syst_settings)) exit;
 
 var _s = __seat();
 if (_s.a <= .01) exit;

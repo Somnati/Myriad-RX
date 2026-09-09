@@ -109,15 +109,24 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 // ---- input (region pattern, fully arbitrated: widgets and the
 // scrollbar own their own clicks; the confirm popup and any open
 // pillbox raise the block, which mutes all of this for free) ----
-if (input_free())
+// through the overlay's OWN block (see the Create): the room behind is
+// held at ui_layer_popup, and the screen that raised the line has to be
+// above it
+if (input_free(ui_layer_popup))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
+// escape closes (the menu drawer's own nicety; it never OPENS settings,
+// so rooms that use escape for something else stay safe)
+if (keyboard_check_pressed(vk_escape)) { settings_close(); exit; }
+
 if (mouse_check_button_pressed(mb_left)) {
 
 	// back, top right of the title strip
 	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62, bby + 1,
 		room_width - 6, bby + 14)) {
 		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		back_room();
+		// CLOSE, not navigate. The screen is an overlay now, so there is
+		// no room to go back to - the one you came from never left.
+		settings_close();
 		exit;
 	}
 
