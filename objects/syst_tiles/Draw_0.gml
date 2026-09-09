@@ -24,16 +24,11 @@ draw_text(6, strip_y + 5, "tiles");
 // which is the wrong place for the two numbers you want while playing
 // the board - you had to open a panel OVER the board to read how the
 // board was doing.
-draw_set_halign(fa_right);
-draw_set_color(c_aqua);
-draw_set_alpha(.95);
-draw_text(room_width - 68, strip_y + 5,
-	((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards");
-
-draw_set_color(merge_colour(c_aqua, c_white, .35));
-draw_set_alpha(.7);
-draw_text(room_width - 150, strip_y + 5,
-	"+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s");
+// ⚖️ DRAWN AFTER THE DRAWER, not here (his ask): "you would need to see
+// it to know how much you have while buying". Everything else in the
+// strip goes behind the panel; the currency you are spending is the one
+// thing that must not. __draw_shards is called from the end of
+// __draw_drawer, which is the last thing this room draws.
 
 // the hopper joins them while it has anything in it
 if (_t.stored > 0) {
@@ -174,14 +169,24 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 }
 
 // ---- controls: back top-right, toggles bottom-left ----
+// BACK RIDES __btn_a like the bottom row (his report: it was drawing in
+// front of the drawer). It is not really in front - the drawer's
+// backdrop is a PIXELATED COPY of the room, and point-sampled
+// pixelation keeps thin high-contrast marks at full strength, so UI
+// text survives it as bright blocks and reads as being on top. Fading
+// the control out is the honest answer: the drawer covers where it was,
+// and a button you cannot reach should not look pressable.
 var _bbx = room_width - 62;
-draw_set_halign(fa_center);
+var _bba = __btn_a(_bbx, _bbx + 56);
+if (_bba > .01) {
+	draw_set_halign(fa_center);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bbx, 30, 56, 16, 0, c_black, .8 * _bba);
+	draw_px_rect(_bbx, 30, 56, 16, rgb(170, 190, 230), .9 * _bba);
+	draw_set_color(c_white);
+	draw_set_alpha(.9 * _bba);
+	draw_text(_bbx + 28, 34, "back");
+}
 draw_set_alpha(1);
-draw_sprite_ext(spr_pixel_1x1, 0, _bbx, 30, 56, 16, 0, c_black, .8);
-draw_px_rect(_bbx, 30, 56, 16, rgb(170, 190, 230), .9);
-draw_set_color(c_white);
-draw_set_alpha(.9);
-draw_text(_bbx + 28, 34, "back");
 
 // THE BOTTOM ROW. Each button's alpha rides __btn_a, so anything the
 // drawer reaches fades out as it opens rather than drawing over it -

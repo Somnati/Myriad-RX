@@ -262,6 +262,16 @@ function main_macros() {
 // the one thing the arithmetic cannot derive.
 #macro TILE_TEXT_NUDGE   2
 
+// ⚖️ PARKED (his call): the double tier-up on merge. It is Myriad's
+// merge_tierrate and the code is intact below the flag - this is a
+// switch, not a deletion, and it changes NO saved state (bonus_rate
+// stays in the save, the roll simply never runs). Flip it back to true
+// when the frontier mechanic is ready to be part of the design.
+//
+// It also silences the +2 ding by construction: syst_tiles only plays
+// snd_tierup on the bonus, and the bonus can no longer fire.
+#macro TILE_BONUS_TIER   false
+
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds
 #macro TILE_BANK_BASE    10

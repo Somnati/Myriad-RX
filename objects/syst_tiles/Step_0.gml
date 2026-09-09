@@ -16,11 +16,21 @@ while (array_length(_t.ev) > 0) {
 	array_delete(_t.ev, 0, 1);
 	if (_e.i >= 0 && _e.i < _t.slots) glow[_e.i] = (_e.k == "spawn") ? .7 : 1;
 	if (_e.k == "spawn") play_sound_ext(snd_apply, .9, 1.1, .25, 1);
+	// ⚖️ snd_tierup IS THE +2 SOUND AND NOTHING ELSE (his report: "i can
+	// hear a little ding noise when i merge and that sound is supposed
+	// to only play when a tier up+2 triggers"). DE settles it -
+	// merge_mods.gml plays snd_merge on every merge and snd_tierup only
+	// `if _uptier = true`. RX had it on the bonus correctly but ALSO on
+	// the deadlock failsafe and on an upgrade purchase, so the ding had
+	// stopped meaning anything by the time a real +2 landed.
 	if (_e.k == "merge") {
 		play_sound_ext(snd_merge, .8, 1.2, .3, 1);
 		if (_e.b) play_sound_ext(snd_tierup, .8, 1.1, .5, 1);
 	}
-	if (_e.k == "fail") play_sound_ext(snd_tierup, .7, .9, .4, 1);
+	// the failsafe tiers the lowest tile to break a deadlock - a merge
+	// the BOARD made, not you. Same sound family, pitched well under the
+	// player's own merges so it reads as the table shifting by itself.
+	if (_e.k == "fail") play_sound_ext(snd_merge, .55, .65, .35, 1);
 }
 
 // ---- input (region pattern: fully arbitrated) ----
@@ -87,7 +97,9 @@ if (mouse_check_button_pressed(mb_left)) {
 		var _r2 = tile_upg(_uc3[_k].id, true);
 		if (_r2.ok) {
 			qtic = 0;
-			play_sound_ext(snd_tierup, .9, 1.1, .5, 1);
+			// the house purchase sound (upgrade_buy's), not the tier-up
+			// ding - see the event drain at the top of this file
+			play_sound_ext(snd_diamond, .95, 1.05, .5, 2);
 			float_text(_ur2.x + _ur2.w * .5, _ur2.y - 6,
 				_uc3[_k].name + " up", c_aqua, fnt_outline);
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
@@ -192,8 +204,26 @@ if (grab_i != -1) {
 	// apart: "mouse" drops where the pointer is NOW, "tile center" drops
 	// where the tile has actually got to. That was the original design
 	// and the lag is what makes it real.
+	// ⚖️ THE LIFT IS WHAT SITS IT ABOVE THE CURSOR, and it belongs to
+	// ONE mode (his report: "both options have it sitting in the same
+	// spot which is slightly above the mouse"). z trickles to 3, so
+	// `- z * 2` was raising the tile 6px in BOTH modes - which made the
+	// toggle invisible AND made "aim: mouse" lie, because the pointer
+	// was the drop point while the tile floated somewhere else.
+	//
+	//   aim: mouse   - dead centre on the cursor. The tile IS the
+	//                  pointer, so what you see is where it lands.
+	//   aim: tile    - keeps the 6px lift. Here the TILE's centre is
+	//                  the drop point, so raising it off the cursor is
+	//                  honest: it shows you the aim point is not where
+	//                  you are pointing.
+	//
+	// The two modes now look different at rest, which is the least a
+	// toggle can do. The shadow (Draw, gy + 4 + z) reads as the height
+	// either way.
+	var _lift = g.tiles.aim_center ? z * 2 : 0;
 	gx = trickle(gx, mouse_x - tw * .5, 5);
-	gy = trickle(gy, (mouse_y - th * .5) - z * 2, 5);
+	gy = trickle(gy, (mouse_y - th * .5) - _lift, 5);
 
 	if (!mouse_check_button(mb_left)) {
 		var _am = __aim(); // mouse or tile-center, the room's toggle

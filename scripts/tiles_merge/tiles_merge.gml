@@ -24,9 +24,17 @@ function tiles_merge(_a, _b) {
 	// merge_tierrate (g.tiles.bonus_rate, a plain % - fabrication luck
 	// lives in g.tile_rarity instead), and a merge that lands ON the
 	// board's highest tier always pushes past it - the frontier moves
+	//
+	// ⚖️ THE BONUS IS PARKED behind TILE_BONUS_TIER (his call: "park the
+	// tier up+2 on merge temporarily"). Worth knowing before it comes
+	// back: the frontier clause fires on EVERY merge that lands on the
+	// board's highest tier, which early on is most of them - the roll's
+	// 10% was never the real rate, and that is why the ding felt
+	// constant. Decide what the frontier rule is worth before unparking.
 	var _step = floor(1 + _t.tier[_b] / 10000);
 	var _r = 2;
 	_t.tier[_b] += _step;
+	if (TILE_BONUS_TIER)
 	if (random(100) < _t.bonus_rate
 	|| (_t.bonus_rate > 0 && _t.tier[_b] == _t.highest)) {
 		_t.tier[_b] += _step;

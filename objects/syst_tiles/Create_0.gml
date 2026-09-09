@@ -329,10 +329,37 @@ __draw_drawer = function() {
 			(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
 	}
 
+	// THE CURRENCY, LAST OF ALL. It is the one readout that has to be
+	// legible while the drawer is open, because it is what the drawer
+	// spends - so it is drawn after the panel rather than behind it.
+	__draw_shards();
+
 	draw_set_alpha(1);
 	draw_set_color(c_white);
 	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
+};
+
+/// @func __draw_shards()
+/// @desc The shard count and the board's rate, on the title strip's
+///       right end. Called from the END of __draw_drawer so it lands
+///       over the panel - see there.
+__draw_shards = function() {
+	var _t = g.tiles;
+	draw_set_font(fnt);
+	draw_set_valign(fa_top);
+	draw_set_halign(fa_right);
+	draw_set_color(c_aqua);
+	draw_set_alpha(.95);
+	draw_text(room_width - 68, strip_y + 5,
+		((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards");
+
+	draw_set_color(merge_colour(c_aqua, c_white, .35));
+	draw_set_alpha(.7);
+	draw_text(room_width - 150, strip_y + 5,
+		"+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s");
+	draw_set_halign(fa_left);
+	draw_set_alpha(1);
 };
 
 // the two extra slots. obj_draw_proxy exists for exactly this: one
