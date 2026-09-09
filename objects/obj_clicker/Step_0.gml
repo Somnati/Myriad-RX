@@ -45,12 +45,11 @@ var _ok = input_free()
 if (_ok)
 if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
-// settings is a TABLE OF CONTROLS: every pixel under the header does
-// something, so none of it is a tap surface. Same question, same
-// pattern - see syst_settings' __consumes.
-if (_ok)
-if (instance_exists(syst_settings))
-	if (syst_settings.__consumes(mouse_x, mouse_y)) _ok = false;
+// NOTE, since it looks like an omission: settings is NOT excluded. He
+// wants the tapper live in there too (2026-09-08) - it is only pillbox
+// presses that must not pay, and syst_input already handles those by
+// raising g.input_block to ui_layer_popup for as long as a box exists.
+// input_free() above is that guard; nothing extra is needed here.
 
 // ---- THE PRESS ----
 if (mouse_check_button_pressed(mb_left)) {

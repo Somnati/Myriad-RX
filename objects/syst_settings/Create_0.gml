@@ -75,25 +75,6 @@ help_y   = 0;
 // pillbox on tap; the pick lands back on _pselid/_pselval)
 pillbox_init();
 
-/// @func __consumes(x, y)
-/// @desc Does this screen own a press here? obj_clicker asks before it
-///       pays, exactly as it asks syst_dials.
-///
-/// ⚖️ EVERYTHING UNDER THE HEADER, and the honesty is the point: this
-/// room is a table of controls where every pixel does something, so
-/// there is no tap surface in it to defend. The tapper still exists
-/// here - it is persistent and live in every game room, which is his
-/// rule - it simply cannot fire on a control any more.
-///
-/// His report (2026-09-08) was that tapping a pillbox played the tap
-/// sound over the sound he was trying to audition. That is the general
-/// case, not a pillbox case: a settings row is not a thing to tap for
-/// money. obj_clicker's own Create names this gap and names the fix -
-/// one __consumes per screen - and statistics, saves and upgrades still
-/// want theirs.
-__consumes = function(_x, _y) {
-	return (_y >= bby);
-};
 pill_kind = "";
 
 // keep/revert confirmation (display changes that can strand the

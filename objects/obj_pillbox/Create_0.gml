@@ -17,6 +17,7 @@ ui_layer = ui_layer_popup;
 
 obj  = noone;     // the owner: holds _pills/_psel*/_popen
 pill = undefined; // this pill's struct from set_pill()
+quiet = false;    // audition boxes pick silently - see do_pillbox
 i     = 0;        // index in the stack, 0 = top (also polices outside-close)
 all_h = 0;        // full stack height
 des_w = 0;        // shared pill width

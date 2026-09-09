@@ -54,7 +54,7 @@ if (_open && pill.can_click && input_free(ui_layer_popup))
 if (mouse_over())
 if (mouse_check_button_pressed(mb_left)
 || (mouse_check_button(mb_left) && ctic > 60 && !selected)) {
-	play_sound_ext(snd_pop, .8, 1.2, .3, 1);
+	if (!quiet) play_sound_ext(snd_pop, .8, 1.2, .3, 1);
 	glow = 1;
 	selected = true;
 	obj._pselid   = i;

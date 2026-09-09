@@ -193,7 +193,10 @@ if (mouse_check_button_pressed(mb_left)) {
 					pillbox_init();
 					pill_kind = _hr.data.kind;
 					_hr.data.build();
-					do_pillbox(mouse_x, mouse_y, _hr.data.stay ? 1 : 0);
+					// a STAYING box is an audition box: it opens and picks
+					// silently, because the sound it picks IS the feedback
+					do_pillbox(mouse_x, mouse_y, _hr.data.stay ? 1 : 0,
+						-1, false, _hr.data.stay);
 					// pills spawn at owner depth-1, which the strip proxy
 					// (-2) and scrollbar (-3) would cover - lift OUR box
 					// above both (the menu at -520 still tops it)
