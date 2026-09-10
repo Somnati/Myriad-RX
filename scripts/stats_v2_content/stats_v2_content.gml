@@ -176,7 +176,10 @@ function stats_v2_content() {
 					seen : _rsn,
 				});
 			}
-			stats_v2_rarity("spread", _rent);
+			// the roll's own rate, DE's phrasing - the one number every
+			// rung below is a consequence of
+			stats_v2_rarity("spread", _rent,
+				"rarity rate  +" + string(round(g.upgrade_rarity)) + "%");
 			stats_v2_line("rolls", string(g.upg.rolls), -1, -1,
 				"every roll, ever - the tally beside each rung above adds "
 				+ "up to this. it survives rebirth, like the upgrades do.");
@@ -258,7 +261,10 @@ function stats_v2_content() {
 					col  : tile_color(_i + 1),
 					p    : _to[_i],
 				});
-			stats_v2_rarity("spread", _te);
+			// the fabricator's live rate, through the one authority that
+			// knows the whole chain (base, deck adder, the multiplier)
+			stats_v2_rarity("spread", _te,
+				"rarity rate  +" + string(round(tile_rarity_rate())) + "%");
 			stats_v2_line("fabricator luck",
 				"+" + string(round(tile_rarity_rate())), -1,
 				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,

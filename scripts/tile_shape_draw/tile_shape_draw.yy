@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_shape_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_shape_draw",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

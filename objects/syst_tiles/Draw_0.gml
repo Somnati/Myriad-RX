@@ -1,7 +1,15 @@
 /// the whole table: fab/automerge bars, board, ghost, info box,
-/// controls. house primitives only; spr_tile frame 2 is the fill
-/// (the same subimage Myriad drew for everything). tile values render
-/// in fnt_large - the Myriad tile font - everything else stays fnt
+/// controls. house primitives only.
+///
+/// ⚖️ TILES ARE SHAPES NOW, not one subimage (his ask, 2026-09-09): every
+/// tile draw goes through tile_shape_draw, which picks a silhouette from
+/// the TIER - rectangle, rounded, diamond, circle, hexagon, octagon, and
+/// round again. spr_tile no longer paints anything; it survives as the
+/// SIZE authority, since tw/th are still measured from it. Read
+/// tile_shape_draw for why shape earns its place on a merge board.
+///
+/// tile values render in fnt_large - the Myriad tile font - everything
+/// else stays fnt
 
 var _t = g.tiles;
 
@@ -93,11 +101,11 @@ for (var _i = 0; _i < _t.slots; _i++) {
 
 	if (_tier == 0) {
 		// empty socket: Myriad's dark-theme surface tint
-		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0, slot_col, .9);
+		tile_shape_draw(0, _x, _y, tw, th, slot_col, .9);
 	} else {
 		var _held = (_i == grab_i);
 		// the resident tile (a held one leaves a dim echo in its slot)
-		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0,
+		tile_shape_draw(_tier, _x, _y, tw, th,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
 		if (!_held && val_str[_i] != "") {
 			// ⚖️ CENTRED BY ARITHMETIC, NOT BY valign. fnt_large is a
@@ -115,18 +123,18 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		}
 		// hover feedback when nothing is held
 		if (grab_i == -1 && _i == _hov)
-			draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0, col[_i], .25);
+			tile_shape_draw(_tier, _x, _y, tw, th, col[_i], .25);
 	}
 
 	// the auto-merger's candidate pair glows in as the timer fills
 	// (Myriad drew ia/ib at alpha tic/tic_ - the tell for what folds next)
 	if (_t.automerge && (_i == _t.am_ia || _i == _t.am_ib))
-		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0, col[_i],
+		tile_shape_draw(_tier, _x, _y, tw, th, col[_i],
 			clamp(_t.am_tic / _t.am_tic_, 0, 1) * .85);
 
 	// merge/spawn flash
 	if (glow[_i] > 0)
-		draw_sprite_ext(spr_tile, 2, _x, _y, tsc, tsc, 0,
+		tile_shape_draw(_tier, _x, _y, tw, th,
 			(_tier != 0) ? col[_i] : c_white, glow[_i]);
 }
 
@@ -134,13 +142,13 @@ for (var _i = 0; _i < _t.slots; _i++) {
 // and only when the drop is legal (empty or matching tier)
 if (grab_i != -1 && _hov != -1 && _hov != grab_i)
 if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
-	draw_sprite_ext(spr_tile, 2, __slot_x(_hov), __slot_y(_hov), tsc, tsc, 0,
+	tile_shape_draw(g.tiles.tier[_hov], __slot_x(_hov), __slot_y(_hov), tw, th,
 		c_gold, .12 + .08 * dsin(current_time * .35));
 
 // ---- the ghost, drawn last so it rides above the board ----
 if (grab_i != -1) {
-	draw_sprite_ext(spr_tile, 2, gx + 2, gy + 4 + z, tsc, tsc, 0, c_black, .4);
-	draw_sprite_ext(spr_tile, 2, gx, gy, tsc, tsc, 0,
+	tile_shape_draw(_t.tier[grab_i], gx + 2, gy + 4 + z, tw, th, c_black, .4);
+	tile_shape_draw(_t.tier[grab_i], gx, gy, tw, th,
 		merge_colour(col[grab_i], c_black, .6), 1);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);

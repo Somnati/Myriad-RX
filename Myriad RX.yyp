@@ -72,6 +72,7 @@
   ],
   "IncludedFiles":[
     {"$GMIncludedFile":"","%Name":"dial_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"dial_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"tiles_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"tiles_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"dial_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"dial_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"mandel_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"mandel_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"reserve_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"reserve_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
@@ -410,6 +411,7 @@
     {"id":{"name":"tile_gps","path":"scripts/tile_gps/tile_gps.yy",},},
     {"id":{"name":"tile_rarity_rate","path":"scripts/tile_rarity_rate/tile_rarity_rate.yy",},},
     {"id":{"name":"tile_roll_tier","path":"scripts/tile_roll_tier/tile_roll_tier.yy",},},
+    {"id":{"name":"tile_shape_draw","path":"scripts/tile_shape_draw/tile_shape_draw.yy",},},
     {"id":{"name":"tile_tier_odds","path":"scripts/tile_tier_odds/tile_tier_odds.yy",},},
     {"id":{"name":"tile_upg_config","path":"scripts/tile_upg_config/tile_upg_config.yy",},},
     {"id":{"name":"tile_upg","path":"scripts/tile_upg/tile_upg.yy",},},

@@ -323,8 +323,20 @@ for (var _r = _lo; _r < _hi; _r++) {
 			}
 		}
 
-		// ---- the list, in fixed columns ----
+		// ---- THE OVERALL RATE, above the list (DE's par_raritybar) ----
+		// It is the cause of every rung below it, so it reads first and
+		// it reads brighter. The rungs are a consequence; this is the
+		// number the player actually moves.
 		var _rly = _ry0 + _rsh + ((_rtot > 0) ? 7 : 3);
+		if (_row.val != "") {
+			draw_set_halign(fa_left);
+			draw_set_color(c_horange);
+			draw_set_alpha(.9);
+			draw_text(_rx0, _rly, _row.val);
+			_rly += 8;
+		}
+
+		// ---- the list, in fixed columns ----
 		var _rcA = _rx0 + _rw0 * .46;   // chance,  right-aligned
 		var _rcB = _rx0 + _rw0 * .66;   // 1 in N,  right-aligned
 		var _rcC = _rx0 + _rw0;         // rolled,  right-aligned
