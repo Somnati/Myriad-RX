@@ -238,6 +238,36 @@ __dbg_x    = function() { return lerp(-dbg_w, 0, dbg_open); };
 __dbg_r    = function(_k) {
 	return { x : __dbg_x() + 6, y : dr_top + 10 + _k * 20, w : dbg_w - 12, h : 14 };
 };
+// ⚖️ A DROPPED TILE GLIDES HOME (his ask, 2026-09-10: "instead of it
+// snapping back into its OG position it lerps to it"). On release the
+// ghost does not vanish: ret_i is the slot it belongs to now (its old
+// one on a bounce, the new one on a move) and ret_x/ret_y trickle from
+// where the hand let go to that slot; the slot shows the dim echo until
+// the ghost lands. The engine keeps its hands off the slot meanwhile
+// (g.tiles.grab), the same lock a held tile has.
+ret_i = -1;
+ret_x = 0; ret_y = 0;
+// THE SORT BUTTON (his ask, 2026-09-10: DE's sort button sprite,
+// "somewhere it fits outside the debug dock"): DE's spr_button_small at
+// DE's 1.2 scale, dark blue with "sort" in aqua, under the info box on
+// the board's left. It flashes on a press (DE's glow) and tints on hover.
+sort_glow = 0;
+sort_hov  = 0;
+__sort_r = function() {
+	// under the info box: the box sits at (6, 100) and is __info_lines
+	// tall (11 a line + 8) - see the Draw
+	var _n = array_length(__info_lines());
+	return { x : 6, y : 100 + _n * 11 + 8 + 4,
+	         w : round(sprite_get_width(spr_button_small) * 1.2),
+	         h : round(sprite_get_height(spr_button_small) * 1.2) };
+};
+// ⚖️ THE AUTOMERGE'S APPROACH (his ask, 2026-09-10 - an older DE
+// branch's trick): the tile that is about to fold (am_ib) sits still
+// until the last stretch of the automerge bar, then slides onto the
+// tile it folds into (am_ia) so the two are on top of each other the
+// instant the merge lands. Driven by the bar's own progress, not a
+// clock, so it holds at any merge rate - a fast bar is a fast slide.
+AM_MOVE_FROM = .78;   // the fraction of the bar where the slide starts
 arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
               // misclick beside [sort] must not cost thirteen levels

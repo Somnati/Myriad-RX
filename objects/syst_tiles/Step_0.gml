@@ -29,6 +29,11 @@ while (array_length(_t.ev) > 0) {
 		// a semitone per consecutive climb
 		var _mp = __merge_pitch(_t.tier[_e.i]);
 		play_sound_ext(snd_merge, .8 * _mp, 1.2 * _mp, .3, 1);
+		// a few shards off EVERY merge (his trial, 2026-09-10: the tier-up
+		// throws six; he wants to see the plain ones throw too)
+		if (_e.i >= 0 && _e.i < _t.slots)
+			spark_burst(__slot_x(_e.i) + tw * .5, __slot_y(_e.i) + th * .5, 3,
+				tile_color(_t.tier[_e.i]));
 		if (_e.b) {
 			play_sound_ext(snd_tierup, .8, 1.1, .5, 1);
 			__tierup_fx(_e.i);
@@ -343,6 +348,14 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 		}
 		// a press on the open panel is spent, whatever it landed on
 		if (dbg_open > .5 && mouse_x < __dbg_x() + dbg_w && mouse_y >= dr_top) exit;
+		// the sort button (DE's, under the info box)
+		var _sr = __sort_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) {
+			tiles_sort();
+			sort_glow = .6;
+			play_sound_ext(snd_apply, .9, 1.1, .5, 1);
+			exit;
+		}
 		// grab a tile
 		var _s = __slot_at(mouse_x, mouse_y);
 		if (_s != -1 && _t.tier[_s] != 0 && grab_i == -1) {
@@ -350,6 +363,8 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 			_t.grab = _s; // the engine keeps its hands off this slot
 			gx = __slot_x(_s);
 			gy = __slot_y(_s);
+			// caught mid-glide: the hand takes it from where it is
+			if (_s == ret_i) { gx = ret_x; gy = ret_y; ret_i = -1; }
 			z = 0;
 			play_sound_ext(snd_pickupmod, .8, 1.2, .5, 1);
 		}
@@ -432,10 +447,33 @@ if (grab_i != -1) {
 			glow[_dst] = 1;
 			var _mp2 = __merge_pitch(_t.tier[_dst]);
 			play_sound_ext(snd_merge, .8 * _mp2, 1.2 * _mp2, .4, 1);
+			// (the plain merge's shards - see the event handler above)
+			spark_burst(__slot_x(_dst) + tw * .5, __slot_y(_dst) + th * .5, 3,
+				tile_color(_t.tier[_dst]));
 		}
 		if (_res == 3) { play_sound_ext(snd_tierup, .8, 1.1, .6, 1); __tierup_fx(_dst); }
+		// a bounce or a move: the ghost glides to the slot it belongs
+		// to now (see ret_i in the Create); a merge just lands
+		if (_res == 0 || _res == 1) {
+			ret_i = (_res == 0) ? grab_i : _dst;
+			ret_x = gx; ret_y = gy;
+			_t.grab = ret_i;   // still the hand's until it lands
+		} else _t.grab = -1;
 		grab_i = -1;
-		_t.grab = -1;
+	}
+}
+
+// ---- the glide home (see ret_i in the Create) ----
+if (ret_i != -1) {
+	if (ret_i >= _t.slots || _t.tier[ret_i] == 0) { ret_i = -1; if (grab_i == -1) _t.grab = -1; }
+	else {
+		var _hx = __slot_x(ret_i), _hy = __slot_y(ret_i);
+		ret_x = trickle(ret_x, _hx, 3.5, 0);
+		ret_y = trickle(ret_y, _hy, 3.5, 0);
+		if (point_distance(ret_x, ret_y, _hx, _hy) < .4) {
+			ret_i = -1;
+			if (grab_i == -1) _t.grab = -1;
+		}
 	}
 }
 

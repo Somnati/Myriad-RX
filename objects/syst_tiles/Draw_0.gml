@@ -112,7 +112,11 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		// purpose - a socket is the shape of the SPACE, not a solid.
 		tile_shape_draw(0, _x, _y, tw, th, slot_col, .9);
 	} else {
-		var _held = (_i == grab_i);
+		var _held = (_i == grab_i) || (_i == ret_i);   // in hand, or gliding home
+		// the automerge's approach: the folding tile leaves its slot for
+		// the last stretch of the bar (drawn in flight below the loop)
+		if (_t.automerge && _i == _t.am_ib && _t.am_ia != -1 && grab_i != _i && ret_i != _i
+		&& clamp(_t.am_tic / _t.am_tic_, 0, 1) > AM_MOVE_FROM) _held = true;
 		// the resident tile (a held one leaves a dim echo in its slot)
 		tile_shape_draw(_tier, _x, _y, tw, th,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
@@ -154,6 +158,43 @@ if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
 	tile_shape_draw(g.tiles.tier[_hov], __slot_x(_hov), __slot_y(_hov), tw, th,
 		c_gold, .12 + .08 * dsin(current_time * .35));
 
+// ---- THE AUTOMERGE'S APPROACH (see AM_MOVE_FROM in the Create) ----
+// past the mark the folding tile slides onto its partner, eased in, so
+// it arrives exactly as the bar fills; the slot behind it shows the echo
+if (_t.automerge && _t.am_ia != -1 && _t.am_ib != -1
+&& _t.am_ib != grab_i && _t.am_ib != ret_i && _t.tier[_t.am_ib] != 0) {
+	var _ap = clamp(_t.am_tic / _t.am_tic_, 0, 1);
+	if (_ap > AM_MOVE_FROM) {
+		var _af = (_ap - AM_MOVE_FROM) / (1 - AM_MOVE_FROM);
+		_af = _af * _af * (3 - 2 * _af);            // smoothstep
+		var _fx = lerp(__slot_x(_t.am_ib), __slot_x(_t.am_ia), _af);
+		var _fy = lerp(__slot_y(_t.am_ib), __slot_y(_t.am_ia), _af);
+		var _ib = _t.am_ib;
+		tile_shape_draw(_t.tier[_ib], _fx + 1, _fy + 2, tw, th, c_black, .3);
+		tile_shape_draw(_t.tier[_ib], _fx, _fy, tw, th,
+			merge_colour(col[_ib], c_black, .6), 1);
+		if (val_str[_ib] != "") {
+			draw_set_color(txtcol[_ib]);
+			draw_set_alpha(1);
+			draw_text_transformed(_fx + tw * .5, __val_y(_fy, val_sc[_ib]),
+				val_str[_ib], val_sc[_ib], val_sc[_ib], 0);
+		}
+	}
+}
+
+// ---- the tile gliding home (see ret_i in the Create) ----
+if (ret_i != -1 && ret_i < _t.slots && _t.tier[ret_i] != 0) {
+	tile_shape_draw(_t.tier[ret_i], ret_x + 2, ret_y + 4, tw, th, c_black, .4);
+	tile_shape_draw(_t.tier[ret_i], ret_x, ret_y, tw, th,
+		merge_colour(col[ret_i], c_black, .6), 1);
+	if (val_str[ret_i] != "") {
+		draw_set_color(txtcol[ret_i]);
+		draw_set_alpha(1);
+		draw_text_transformed(ret_x + tw * .5, __val_y(ret_y, val_sc[ret_i]),
+			val_str[ret_i], val_sc[ret_i], val_sc[ret_i], 0);
+	}
+}
+
 // ---- the ghost, drawn last so it rides above the board ----
 if (grab_i != -1) {
 	tile_shape_draw(_t.tier[grab_i], gx + 2, gy + 4 + z, tw, th, c_black, .4);
@@ -191,6 +232,26 @@ draw_set_alpha(.95);
 for (var _i = 0; _i < array_length(_lines); _i++) {
 	draw_set_color(_lines[_i][1]);
 	draw_text(_ix + 5, _iy + 4 + _i * 11, _lines[_i][0]);
+}
+
+// ---- THE SORT BUTTON (DE's obj_modsort, its sprite and its look) ----
+// hidden while the debug drawer is out over it
+if (dbg_open < .5) {
+	var _sr = __sort_r();
+	var _sov = input_free() && grab_i == -1
+		&& point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h);
+	sort_hov  = trickle(sort_hov, _sov ? 1 : 0, 3, 0);
+	sort_glow = trickle(sort_glow, 0, 5, 0);
+	// DE: dark blue, a shade darker at rest, lit by the press flash
+	var _sc = merge_colour(merge_colour(c_dkblue, c_black, .2), c_dkblue, sort_hov);
+	_sc = merge_colour(_sc, c_white, sort_glow);
+	draw_sprite_ext(spr_button_small, 0, _sr.x, _sr.y, 1.2, 1.2, 0, _sc, 1);
+	draw_set_font(fnt);
+	draw_set_halign(fa_center);
+	draw_set_color(merge_colour(c_aqua, c_white, sort_hov * .5));
+	draw_set_alpha(1);
+	draw_text(_sr.x + _sr.w * .5, _sr.y + 2, "sort");
+	draw_set_halign(fa_left);
 }
 
 // ---- controls: toggles bottom-left ----

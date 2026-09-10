@@ -590,6 +590,7 @@
     {"id":{"name":"spr_boost_spd","path":"sprites/spr_boost_spd/spr_boost_spd.yy",},},
     {"id":{"name":"spr_button_bevel_long","path":"sprites/spr_button_bevel_long/spr_button_bevel_long.yy",},},
     {"id":{"name":"spr_button_bevel","path":"sprites/spr_button_bevel/spr_button_bevel.yy",},},
+    {"id":{"name":"spr_button_small","path":"sprites/spr_button_small/spr_button_small.yy",},},
     {"id":{"name":"spr_button","path":"sprites/spr_button/spr_button.yy",},},
     {"id":{"name":"spr_buylv","path":"sprites/spr_buylv/spr_buylv.yy",},},
     {"id":{"name":"spr_card_hitbox","path":"sprites/spr_card_hitbox/spr_card_hitbox.yy",},},
