@@ -15,6 +15,7 @@ tx     = 48;
 ty     = 12;
 swing  = -1;     // the motes' curve: -1 Myriad's room-wide throw, else px
 spdm   = 1;      // the motes' pace multiplier (see bezier_bits)
+lane   = "profit"; // which settings pill dresses the motes (bit_look)
 
 // the profit this burst still owes the counter: bezier_bits sets amt
 // to the whole payout and share to one mote's cut. amt drains as motes

@@ -244,6 +244,65 @@ function settings_content() {
 		+ "different hue and finish for every die, which is the default.",
 		-1, true);
 
+	// THE MOTES, ONE PILL A LANE (his ask, 2026-09-10). The roster is
+	// bit_config; the lane keys are bit_look's. Four literal blocks for
+	// the reason the sound pills are four literal blocks (see there):
+	// set_pill pushes onto the OWNER's _pills, and a method({lane:..})
+	// wrapper would rebind self away from it. These close on pick -
+	// nothing here to audition, the motes fly in other rooms.
+
+	settings_pill("profit bits", "bitprofit",
+		bit_look("profit").name,
+		function() {
+			var _l = bit_config();
+			var _sel = bit_look("profit").id;
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == _sel) });
+		},
+		function(_v) { g.bit_pick.profit = _v; },
+		"the motes a dial payout or a tap throws at the profit "
+		+ "counter. glowing square is what the game has always "
+		+ "drawn; plain is the same square without the halo.");
+
+	settings_pill("credit bits", "bitcredit",
+		bit_look("credit").name,
+		function() {
+			var _l = bit_config();
+			var _sel = bit_look("credit").id;
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == _sel) });
+		},
+		function(_v) { g.bit_pick.credit = _v; },
+		"the motes a credit drop throws at the credits panel.");
+
+	settings_pill("unit bits", "bitunit",
+		bit_look("unit").name,
+		function() {
+			var _l = bit_config();
+			var _sel = bit_look("unit").id;
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == _sel) });
+		},
+		function(_v) { g.bit_pick.unit = _v; },
+		"the burst the rebirth banner throws when it fires.");
+
+	settings_pill("tile bits", "bittile",
+		bit_look("tile").name,
+		function() {
+			var _l = bit_config();
+			var _sel = bit_look("tile").id;
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == _sel) });
+		},
+		function(_v) { g.bit_pick.tile = _v; },
+		"the fountain the tile table pays its shards through - one "
+		+ "mote a second per tile, all from one spot. plain by "
+		+ "default: that many halos in one place stop being motes.");
+
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);

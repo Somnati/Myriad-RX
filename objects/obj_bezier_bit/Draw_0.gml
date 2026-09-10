@@ -15,10 +15,13 @@ if (pop_t >= 0) {
 	exit;
 }
 
-if (look == 0) {
-	// the standard square, verbatim from round 5
-	draw_sprite_ext(spr_vis_glow_soft, 0, x, y, .15 * size, .15 * size, 0,
-		col, .35);
+if (look == "glow" || look == "plain") {
+	// the standard square, verbatim from round 5 - PLAIN is the same
+	// square without its halo (his second style, 2026-09-10: "one like
+	// it is now and another without the glow")
+	if (look == "glow")
+		draw_sprite_ext(spr_vis_glow_soft, 0, x, y, .15 * size, .15 * size, 0,
+			col, .35);
 	// spr_pixel_2x2 exists for exactly this: a square whose ORIGIN IS
 	// ITS CENTRE, so it spins in place and sits dead centre in its
 	// glow. spr_pixel_1x1's origin is its top-left, which made

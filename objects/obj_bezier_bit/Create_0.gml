@@ -38,32 +38,35 @@ pop_t = -1;               // >= 0 = the arrival bloom phase
 p0x = x; p0y = y;         // start (aim() stamps them)
 cx = x; cy = y;           // the one control point
 
-// ---- the LOOK rides the SETTINGS pick now (round 7, his ask -
-// settings > gameplay > particles): 0 standard = the glowing tiny
-// square (the round-5 placeholder he liked, restored), 1 circle =
-// Myriad's spr_part_profit tinted a hue-variant of the currency
-// color (the original's make_colour_hsv recipe), 2 coin = the trio
-// with a slow frame roll (coin_image_speed), 3 munny = the orb ----
-look = variable_global_exists("part_style") ? clamp(g.part_style, 0, 3) : 0;
+// ---- the LOOK is a bit_config id, stamped by the emitter from its
+// lane's settings pick (2026-09-10, per-lane; round 7's single
+// g.part_style before that): "glow" = the glowing tiny square (the
+// round-5 placeholder he liked), "plain" = the same square with no
+// halo and no arrival bloom, "circle" = Myriad's spr_part_profit
+// tinted a hue-variant of the currency color (the original's
+// make_colour_hsv recipe), "coin" = the trio with a slow frame roll
+// (coin_image_speed), "munny" = the orb. The sprite/frame set-up
+// lives in aim(), because the emitter sets look AFTER create ----
+look = "glow";
 lookspr = spr_part_profit;
 frame = 0;
 fspd = 0;
 lookscale = 1;                    // munny/coin drew at 1.5x (draw_part)
 tint = c_white;
-if (look == 2) {
-	lookspr = choose(spr_coin, spr_coin_silver, spr_coin_gold);
-	frame = choose(0, 1, 2);
-	fspd = random_range(0, .05);
-	lookscale = 1.5;
-}
-if (look == 3) {
-	lookspr = spr_munny;
-	frame = choose(0, 1, 2);
-	lookscale = 1.5;
-}
 
-// aim(): bake the curve + the tint once start/target/col are final
+// aim(): bake the curve + the look once start/target/col/look are final
 aim = function() {
+	if (look == "coin") {
+		lookspr = choose(spr_coin, spr_coin_silver, spr_coin_gold);
+		frame = choose(0, 1, 2);
+		fspd = random_range(0, .05);
+		lookscale = 1.5;
+	}
+	if (look == "munny") {
+		lookspr = spr_munny;
+		frame = choose(0, 1, 2);
+		lookscale = 1.5;
+	}
 	p0x = x;
 	p0y = y;
 	if (swing < 0) {
@@ -97,7 +100,7 @@ aim = function() {
 	bezier_set_point(tx, ty);
 	// the circle wears the currency's hue at a rolled sat/val
 	// (Myriad's exact blend); coins + munny keep their own art white
-	if (look == 1) tint = make_colour_hsv(colour_get_hue(col),
+	if (look == "circle") tint = make_colour_hsv(colour_get_hue(col),
 		round(random_range(75, 255)), round(random_range(75, 255)));
 };
 

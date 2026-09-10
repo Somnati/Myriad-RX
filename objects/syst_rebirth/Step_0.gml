@@ -33,7 +33,8 @@ if (hp >= 100) {
 		// DE's ceremony: profit motes from the banner, both sounds, the
 		// banner line, and the money room restarts behind a wipe - the
 		// fresh run
-		bezier_bits(bx + bw * .5, by + 8, 12, c_hred, undefined, undefined, -1);
+		bezier_bits(bx + bw * .5, by + 8, 12, c_hred, undefined, undefined, -1,
+			0, -1, 1, "unit");
 		play_sound_ext(snd_rebirthcollect, .9, 1.1, .5, 1);
 		play_sound_ext(snd_rebirth, .9, 1.1, .5, 2);
 		assign_banner("units +" + crunch_arb(g.rebirth.prev_units), c_hred, c_black);

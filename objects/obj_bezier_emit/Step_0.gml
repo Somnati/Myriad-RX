@@ -25,6 +25,7 @@ repeat (_rep) {
 		_o.ty = ty + random_range(-1, 1);
 		_o.swing = swing;
 		_o.spdm  = spdm;
+		_o.look  = bit_look(lane).id;   // the lane's pick, resolved per mote
 		_o.aim();
 	}
 }

@@ -78,7 +78,7 @@ if (pay_acc >= 1) {
 				var _tk = g.tiles.tier[_k];
 				if (_tk == 0) continue;
 				bezier_bits(_bx, _by, 1, tile_color(_tk), _sx, _sy, -1, 0,
-					6, 1.3);
+					6, 1.3, "tile");
 			}
 		}
 	}

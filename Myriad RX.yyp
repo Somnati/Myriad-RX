@@ -194,6 +194,8 @@
     {"id":{"name":"bignum_vis_mantissa_string","path":"scripts/bignum_vis_mantissa_string/bignum_vis_mantissa_string.yy",},},
     {"id":{"name":"bignum_visualizer_create","path":"scripts/bignum_visualizer_create/bignum_visualizer_create.yy",},},
     {"id":{"name":"BignumVisRenderer","path":"scripts/BignumVisRenderer/BignumVisRenderer.yy",},},
+    {"id":{"name":"bit_config","path":"scripts/bit_config/bit_config.yy",},},
+    {"id":{"name":"bit_look","path":"scripts/bit_look/bit_look.yy",},},
     {"id":{"name":"blur_snap","path":"scripts/blur_snap/blur_snap.yy",},},
     {"id":{"name":"buy_resolve","path":"scripts/buy_resolve/buy_resolve.yy",},},
     {"id":{"name":"c_hsv","path":"scripts/c_hsv/c_hsv.yy",},},

@@ -68,6 +68,11 @@ function handle_settings(_method) {
 	g.sfx_pick.dial = handle("sfx_dial", g.sfx_pick.dial);
 	g.sfx_pick.crit = handle("sfx_crit", g.sfx_pick.crit);
 	g.sfx_pick.credit = handle("sfx_credit", g.sfx_pick.credit);
+	// the motes' look per lane, by bit_config id - the same shape
+	g.bit_pick.profit = handle("bit_profit", g.bit_pick.profit);
+	g.bit_pick.credit = handle("bit_credit", g.bit_pick.credit);
+	g.bit_pick.unit   = handle("bit_unit",   g.bit_pick.unit);
+	g.bit_pick.tile   = handle("bit_tile",   g.bit_pick.tile);
 	g.vol_tap      = handle("vol_tap",      g.vol_tap);
 	g.vol_dial     = handle("vol_dial",     g.vol_dial);
 

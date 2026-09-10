@@ -23,6 +23,10 @@ if (t >= 1 && pop_t < 0) {
 			? do_subtract(g.profit_flight, amt) : 0;
 		amt = 0;
 	}
+	// PLAIN has no arrival bloom - the mote simply stops existing at
+	// the counter. (amt is already handed over; CleanUp finds nothing
+	// owed.)
+	if (look == "plain") { kill; exit; }
 }
 
 // evaluate the 3-point curve (bezier_get_x/y run de Casteljau for the

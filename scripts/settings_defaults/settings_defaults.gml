@@ -20,6 +20,8 @@ function settings_defaults() {
 	g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
 	g.vis_glow              = 15;   // visualiser glow intensity, %
 	g.dice_mat              = "random"; // dice finish (dice_mat_config)
+	g.bit_pick              = { profit : "glow", credit : "glow",
+	                            unit : "glow", tile : "plain" }; // bit_config ids
 
 	// audio
 	g.vol_master = 100;

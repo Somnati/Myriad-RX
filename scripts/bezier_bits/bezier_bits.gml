@@ -1,5 +1,5 @@
 /// @description bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt],
-///              [swing], [spd]) - burst n
+///              [swing], [spd], [lane]) - burst n
 /// currency bits from (x, y) toward the target (the Myriad DE
 /// profit-particle framework: obj_bezier_emit paces the burst,
 /// obj_bezier_bit is the mote). tic = the burst style (round 8, the
@@ -25,8 +25,12 @@
 /// to that many px - nearly straight, a hint of curve. spd multiplies
 /// the mote's per-step advance (1 = Myriad's). Both default to the
 /// original, so every existing caller flies exactly as before.
+/// THE LANE (same day): which settings pill dresses these motes -
+/// "profit" (the default: dials + the tap), "credit", "unit", "tile".
+/// bit_look resolves it to a bit_config row; the emitter stamps the
+/// look on every mote it spawns.
 function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
-	_tic = -1, _amt = 0, _swing = -1, _spd = 1) {
+	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit") {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
 	if (_tx == undefined) {
@@ -44,6 +48,7 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_e.ty     = _ty;
 	_e.swing  = _swing;
 	_e.spdm   = _spd;
+	_e.lane   = _lane;
 	_e.amt    = _amt;                                  // the whole burst
 	// one mote's cut, in WHOLE UNITS: a fractional share left the
 	// counter's held-back figure fractional mid-flight, and the

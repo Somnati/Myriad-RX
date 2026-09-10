@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bit_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bit_config",
+  "parent":{
+    "name":"bezier",
+    "path":"folders/engine/bezier.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

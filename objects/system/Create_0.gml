@@ -44,8 +44,14 @@ g.autosave   = true;  // gates syst_handle_save's rotating autosave
 // a session instead of three minutes. 0/0 = the old flat cascade.
 g.backup_mid  = 10;   // slot 2's gate
 g.backup_deep = 60;   // slot 3's gate
-g.part_style = 0;     // bezier profit bits' look: 0 standard (glowing
-	// square) / 1 circle / 2 coin / 3 munny (settings > gameplay)
+// THE MOTES' LOOK, PER LANE (his ask, 2026-09-10): profit (dials + the
+// tap), credit, unit (the rebirth burst) and tile each pick a
+// bit_config id - settings > visuals, one pill a lane. The tile lane
+// defaults to PLAIN (no halo): eight motes a second at one spot under
+// halos was a smear, and he said so. Everything else keeps the glow
+// the game has always drawn. Replaces g.part_style, which was one
+// look for every lane and had no settings row.
+g.bit_pick = { profit : "glow", credit : "glow", unit : "glow", tile : "plain" };
 // THE PROFIT COLOUR - ONE global that everything profit-denominated
 // reads: the counter, the bezier motes, dial payouts, rates, prices.
 // Myriad DE does exactly this (g.profit_color) so the player can

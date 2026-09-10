@@ -11,7 +11,7 @@
 //   system        the engine's own globals and its heartbeat. Create:
 //                 the sprite fonts (font_add_sprite), the delta chain,
 //                 and the BOOT DEFAULT of every setting (volumes,
-//                 autosave, part_style, profit_color, trans_kind).
+//                 autosave, bit_pick, profit_color, trans_kind).
 //                 Step_1 (begin step): fps cap, master audio gain,
 //                 the 5-frame delta mean, escape -> scr_escape, F1 ->
 //                 obj_debug_pro, R restarts the room in debug.

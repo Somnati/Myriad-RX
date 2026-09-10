@@ -12,7 +12,8 @@
 //                    the point count you pass (3 today, 4 when a
 //                    cubic is wanted); approach advances _zero (the
 //                    0..1 clock) by the library's own _move_scale.
-//   bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt])
+//   bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt], [swing],
+//               [spd], [lane])
 //                    THE ONE ENTRY POINT. Burst n motes from (x,y)
 //                    toward the target (default: the header counter's
 //                    seat, so taps and dials can't aim at different
@@ -25,9 +26,13 @@
 //                    still drains), hands each mote its share of amt.
 //   obj_bezier_bit   one mote: flies the 3-point curve, accelerating
 //                    1.5x over its length, shrinks as it closes, spins,
-//                    arrival bloom, then dies. Skin by g.part_style:
-//                    glowing square (spr_pixel_2x2) / circle / coin /
-//                    munny (spr_coin*, spr_munny, spr_part_profit).
+//                    arrival bloom, then dies. Skin by the LANE's pick
+//                    (g.bit_pick.<lane>, a bit_config id, settings >
+//                    visuals): glowing square (spr_pixel_2x2) / plain
+//                    square (no halo, no bloom) / circle / coin / munny
+//                    (spr_coin*, spr_munny, spr_part_profit). swing
+//                    and spd bend and pace the curve (the tile fountain
+//                    flies nearly straight, quick).
 //                    All motes wear g.profit_color - every mote is the
 //                    same money (his call); the dot they leave from
 //                    already says which dial paid.
