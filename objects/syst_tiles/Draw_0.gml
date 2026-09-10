@@ -105,8 +105,11 @@ for (var _i = 0; _i < _t.slots; _i++) {
 	} else {
 		var _held = (_i == grab_i);
 		// the resident tile (a held one leaves a dim echo in its slot)
+		// the BODY, so it wears its material (see tile_shape_draw). The
+		// held echo drops to a wash and drops the material with it -
+		// what is left in the slot is a hole, not a dimmer tile.
 		tile_shape_draw(_tier, _x, _y, tw, th,
-			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
+			merge_colour(col[_i], c_black, .7), _held ? .25 : 1, !_held);
 		if (!_held && val_str[_i] != "") {
 			// ⚖️ CENTRED BY ARITHMETIC, NOT BY valign. fnt_large is a
 			// SPRITE font, and the house note is explicit that those
@@ -149,7 +152,7 @@ if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
 if (grab_i != -1) {
 	tile_shape_draw(_t.tier[grab_i], gx + 2, gy + 4 + z, tw, th, c_black, .4);
 	tile_shape_draw(_t.tier[grab_i], gx, gy, tw, th,
-		merge_colour(col[grab_i], c_black, .6), 1);
+		merge_colour(col[grab_i], c_black, .6), 1, true);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);
 	// the same arithmetic as the board's, so a held tile's number sits

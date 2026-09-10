@@ -34,10 +34,64 @@
 /// EMPTY SOCKETS STAY RECTANGULAR whatever tier the slot last held. A
 /// socket is not a tile and must not look like one - it is the shape of
 /// the SPACE, and the space does not have a rarity.
-function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
+///
+/// ---- THE MATERIAL PASS (2026-09-09) ----
+///
+/// ⚖️ A THIRD CHANNEL, AND DELIBERATELY NOT 3D. He asked whether the
+/// tiles should become raymarched solids like the dice and the puck,
+/// with real specularity and iridescence. They should not, and the
+/// reason is the same fact in both directions: THOSE OBJECTS ROTATE.
+/// A die tumbles, so the face you read changes and the pips have to be
+/// carved from the object-space hit point - raymarching is the only
+/// thing that gets you that. A puck yaws, so its knurl travels. A board
+/// tile sits in a fixed grid and never turns at all, so a raymarched
+/// tile would burn a ray per pixel to produce a picture identical every
+/// frame. Fake 3D on a static object is an expensive sprite.
+///
+/// Iridescence is the sharpest case. sh_dice sweeps hue by the FACING
+/// term - how edge-on each pixel is - which is why a pearl die changes
+/// colour as it turns. On a flat static tile that term is constant, so
+/// the whole film model collapses to a flat tint. What DOES read on a
+/// static object is a hue sweep across its WIDTH, which is a gradient
+/// and costs nothing.
+///
+/// So the material is drawn, not lit:
+///   grad   vertical shading - tight for metal, broad for matte
+///   rim    a lit top edge and a dark bottom one
+///   pip    one specular mark, present on metals and absent on plain
+///   iri    a hue sweep across the tile's width (the oil-slick read)
+///
+/// It rides the RARITY LADDER rather than cycling like the shape does:
+/// low tiers are plain, high tiers are precious, and that is a language
+/// every loot game has already taught the player. Shape cycles every
+/// tier so NEIGHBOURS differ; material climbs so DISTANCE reads. Two
+/// channels answering two different questions.
+///
+/// @param [mat]  false = a flat fill, no material. The overlays (hover,
+///               merge flash, automerge tell, drag assist, the ghost's
+///               shadow) are washes ON a tile rather than tiles, and a
+///               specular pip on a .25-alpha overlay is a bright dot
+///               floating over the board.
+function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a, _mat = false) {
 	if (_a <= .003) return;
 	var _s = (_tier <= 0) ? 0 : ((_tier - 1) % 6);
 	var _hw = _w * .5;
+
+	// ---- the material, from the tier ----
+	// Five bands of three tiers, then it stays at the top - the ladder
+	// is longer than the vocabulary and the top of it should look like
+	// the top of it.
+	var _mi = (_tier <= 0) ? 0 : min(4, (_tier - 1) div 3);
+	var _grad = 0, _rim = 0, _pip = 0, _iri = 0;
+	if (_mat) {
+		switch (_mi) {
+			case 0: _grad = .10; _rim = 0;   _pip = 0;   _iri = 0;   break;
+			case 1: _grad = .22; _rim = .12; _pip = .25; _iri = 0;   break;
+			case 2: _grad = .38; _rim = .30; _pip = .55; _iri = 0;   break;
+			case 3: _grad = .50; _rim = .45; _pip = .85; _iri = 0;   break;
+			case 4: _grad = .35; _rim = .35; _pip = .70; _iri = .45; break;
+		}
+	}
 
 	for (var _r = 0; _r < _h; _r++) {
 		// how far this row is from the middle, 0 at the centre line and
@@ -81,6 +135,45 @@ function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
 		_in = floor(_in);
 		var _sw = _w - _in * 2;
 		if (_sw <= 0) continue;
-		draw_sprite_ext(spr_pixel_1x1, 0, _x + _in, _y + _r, _sw, 1, 0, _col, _a);
+
+		if (!_mat) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _x + _in, _y + _r, _sw, 1, 0,
+				_col, _a);
+			continue;
+		}
+
+		// vertical shading: bright at the top, dark at the bottom, from
+		// the same light every raised thing in this game uses
+		var _v = 1 - (_r / max(1, _h - 1));          // 1 top .. 0 bottom
+		var _cl = merge_colour(_col, c_black, _grad * (1 - _v));
+		_cl = merge_colour(_cl, c_white, _grad * _v * .55);
+		// the rim: only the outermost rows, and only if the material has
+		// one - it is what separates a polished tile from a painted one
+		if (_rim > 0) {
+			if (_r == 0)      _cl = merge_colour(_cl, c_white, _rim);
+			if (_r == _h - 1) _cl = merge_colour(_cl, c_black, _rim);
+		}
+
+		var _cr = _cl;
+		// the film: a hue sweep across the WIDTH. On a static tile this
+		// is what iridescence can honestly be - the angle-driven version
+		// needs an angle, and this object has exactly one.
+		if (_iri > 0) {
+			_cl = merge_colour(_cl, vis_tier_color(_tier + 2), _iri * _v);
+			_cr = merge_colour(_cr, vis_tier_color(_tier + 5), _iri * _v);
+		}
+
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_x + _in, _y + _r, _sw, 1, 0, _cl, _cr, _cr, _cl, _a);
 	}
+
+	// ---- the specular mark ----
+	// ONE pixel pair, up and left, where the house light comes from. It
+	// is the whole difference between "a coloured shape" and "a coloured
+	// shape made of something", and it is deliberately tiny: this object
+	// is 13px tall and carries a number, so a highlight big enough to
+	// admire is a highlight that eats the digit.
+	if (_mat && _pip > 0)
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y + 2, 2, 1, 0,
+			merge_colour(_col, c_white, .85), _pip * _a);
 }
