@@ -203,6 +203,38 @@ function stats_v2_content() {
 	// ---- tiles ----
 	if (variable_global_exists("tiles"))
 	if (stats_v2_folder("tiles", c_aqua)) {
+		// ---- the fabricator's luck, as a spread - FIRST in the folder
+		// (his call, 2026-09-10) ----
+		if (stats_v2_folder("rarity", c_horange)) {
+			// TEN TIERS, not the ladder's full fourteen: past that the
+			// odds are far below a tenth of a percent and the rows are
+			// all the same shape. The bar's job is to show where the
+			// mass actually is.
+			var _tn = 10;
+			var _to = tile_tier_odds(_tn);
+			var _te = [];
+			for (var _i = 0; _i < _tn; _i++)
+				array_push(_te, {
+					name : "tier " + string(_i + 1),
+					col  : tile_color(_i + 1),
+					p    : _to[_i],
+				});
+			// the fabricator's live rate, through the one authority that
+			// knows the whole chain (base, deck adder, the multiplier)
+			stats_v2_rarity("spread", _te,
+				"rarity rate  +" + string(round(tile_rarity_rate())) + "%");
+			stats_v2_line("fabricator luck",
+				"+" + string(round(tile_rarity_rate())), -1,
+				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
+				"every fabricated tile rolls its tier through this. it "
+				+ "shifts the whole spread up, and past each 800 the "
+				+ "bottom tier stops being offered at all.");
+			if (variable_global_exists("ad_tilerarity"))
+			if (g.ad_tilerarity == 1)
+				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
+		}
+		stats_v2_folder_end();
+
 		var _tl = g.tiles;
 		if (!TILES_LIVE)
 			stats_v2_line("preview", "not saved", -1, c_horange,
@@ -271,42 +303,52 @@ function stats_v2_content() {
 				(_lv2 > 0) ? c_aqua : c_gray, _tuc2[_k].help);
 		}
 
-		// ---- the fabricator's luck, as a spread ----
-		if (stats_v2_folder("rarity", c_horange)) {
-			// TEN TIERS, not the ladder's full fourteen: past that the
-			// odds are far below a tenth of a percent and the rows are
-			// all the same shape. The bar's job is to show where the
-			// mass actually is.
-			var _tn = 10;
-			var _to = tile_tier_odds(_tn);
-			var _te = [];
-			for (var _i = 0; _i < _tn; _i++)
-				array_push(_te, {
-					name : "tier " + string(_i + 1),
-					col  : tile_color(_i + 1),
-					p    : _to[_i],
-				});
-			// the fabricator's live rate, through the one authority that
-			// knows the whole chain (base, deck adder, the multiplier)
-			stats_v2_rarity("spread", _te,
-				"rarity rate  +" + string(round(tile_rarity_rate())) + "%");
-			stats_v2_line("fabricator luck",
-				"+" + string(round(tile_rarity_rate())), -1,
-				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
-				"every fabricated tile rolls its tier through this. it "
-				+ "shifts the whole spread up, and past each 800 the "
-				+ "bottom tier stops being offered at all.");
-			if (variable_global_exists("ad_tilerarity"))
-			if (g.ad_tilerarity == 1)
-				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
-		}
-		stats_v2_folder_end();
 	}
 	stats_v2_folder_end();
 
 	// ---- upgrades ----
 	if (variable_global_exists("upg"))
 	if (stats_v2_folder("upgrades", c_lavender)) {
+		// ---- the rarity spread (Techdemo II's rarity bar) - FIRST in the
+		// folder (his call, 2026-09-10) ----
+		// The odds a roll plays by, drawn straight from the array the
+		// roll walks, with the histogram of what has actually come out
+		// underneath it. Both halves matter: the first is the promise,
+		// the second is whether the promise is being kept.
+		if (stats_v2_folder("rarity", c_horange)) {
+			var _rod = upgrade_rarity_odds();
+			var _rent = [];
+			var _rbest = -1;
+			for (var _rk = 0; _rk < UPG_RARITY_N; _rk++) {
+				var _rif = upgrade_rarity_info(_rk);
+				var _rsn = (_rk < array_length(g.upg.seen)) ? g.upg.seen[_rk] : 0;
+				if (_rsn > 0) _rbest = _rk;
+				array_push(_rent, {
+					name : _rif.name,
+					col  : _rif.col,
+					p    : _rod[_rk],
+					seen : _rsn,
+				});
+			}
+			// the roll's own rate, DE's phrasing - the one number every
+			// rung below is a consequence of
+			stats_v2_rarity("spread", _rent,
+				"rarity rate  +" + string(round(g.upgrade_rarity)) + "%");
+			stats_v2_line("rolls", string(g.upg.rolls), -1, -1,
+				"every roll, ever - the tally beside each rung above adds "
+				+ "up to this. it survives rebirth, like the upgrades do.");
+			stats_v2_line("best rolled",
+				(_rbest >= 0) ? upgrade_rarity_info(_rbest).name : "-", -1,
+				(_rbest >= 0) ? upgrade_rarity_info(_rbest).col : c_gray);
+			stats_v2_line("value multiplier",
+				"x" + string_format(upgrade_rarity_mult(0), 1, 1) + " .. x"
+				+ string_format(upgrade_rarity_mult(UPG_RARITY_N - 1), 1, 1),
+				-1, -1, "what a rung is worth: it scales the rolled value, "
+				+ "the price and the tier ceiling by the same number, so a "
+				+ "rare rung is never simply a better version of a common one.");
+		}
+		stats_v2_folder_end();
+
 		var _ub = upgrade_bonus();
 		var _held = 0;
 		for (var _i = 0; _i < upgrade_slots(); _i++)
@@ -360,45 +402,6 @@ function stats_v2_content() {
 			-1, (_ub.credit_luck > 0) ? c_lavender : c_gray);
 		stats_v2_line("rebirth units", "+" + string_format(_ub.rebirth_units, 1, 1) + "%",
 			-1, (_ub.rebirth_units > 0) ? c_hred : c_gray);
-
-		// ---- the rarity spread (Techdemo II's rarity bar) ----
-		// The odds a roll plays by, drawn straight from the array the
-		// roll walks, with the histogram of what has actually come out
-		// underneath it. Both halves matter: the first is the promise,
-		// the second is whether the promise is being kept.
-		if (stats_v2_folder("rarity", c_horange)) {
-			var _rod = upgrade_rarity_odds();
-			var _rent = [];
-			var _rbest = -1;
-			for (var _rk = 0; _rk < UPG_RARITY_N; _rk++) {
-				var _rif = upgrade_rarity_info(_rk);
-				var _rsn = (_rk < array_length(g.upg.seen)) ? g.upg.seen[_rk] : 0;
-				if (_rsn > 0) _rbest = _rk;
-				array_push(_rent, {
-					name : _rif.name,
-					col  : _rif.col,
-					p    : _rod[_rk],
-					seen : _rsn,
-				});
-			}
-			// the roll's own rate, DE's phrasing - the one number every
-			// rung below is a consequence of
-			stats_v2_rarity("spread", _rent,
-				"rarity rate  +" + string(round(g.upgrade_rarity)) + "%");
-			stats_v2_line("rolls", string(g.upg.rolls), -1, -1,
-				"every roll, ever - the tally beside each rung above adds "
-				+ "up to this. it survives rebirth, like the upgrades do.");
-			stats_v2_line("best rolled",
-				(_rbest >= 0) ? upgrade_rarity_info(_rbest).name : "-", -1,
-				(_rbest >= 0) ? upgrade_rarity_info(_rbest).col : c_gray);
-			stats_v2_line("value multiplier",
-				"x" + string_format(upgrade_rarity_mult(0), 1, 1) + " .. x"
-				+ string_format(upgrade_rarity_mult(UPG_RARITY_N - 1), 1, 1),
-				-1, -1, "what a rung is worth: it scales the rolled value, "
-				+ "the price and the tier ceiling by the same number, so a "
-				+ "rare rung is never simply a better version of a common one.");
-		}
-		stats_v2_folder_end();
 	}
 	stats_v2_folder_end();
 
