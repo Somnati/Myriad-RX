@@ -34,9 +34,17 @@ function tiles_merge(_a, _b) {
 	var _step = floor(1 + _t.tier[_b] / 10000);
 	var _r = 2;
 	_t.tier[_b] += _step;
+	// ⚖️ TIER UP (his upgrade, 2026-09-10): the merge climbs one tier
+	// further, at tile_chance_rate("tierup") percent. Rolled HERE and
+	// nowhere else, so the hand and the automerger cannot disagree
+	// about the odds. _r 3 is the "bonus merge" signal the view already
+	// celebrates - it was DE's +2 merge bonus's, which is parked behind
+	// TILE_BONUS_TIER and folds in beside this if it ever returns.
+	var _up = (random(100) < tile_chance_rate("tierup"));
 	if (TILE_BONUS_TIER)
 	if (random(100) < _t.bonus_rate
-	|| (_t.bonus_rate > 0 && _t.tier[_b] == _t.highest)) {
+	|| (_t.bonus_rate > 0 && _t.tier[_b] == _t.highest)) _up = true;
+	if (_up) {
 		_t.tier[_b] += _step;
 		_r = 3;
 	}

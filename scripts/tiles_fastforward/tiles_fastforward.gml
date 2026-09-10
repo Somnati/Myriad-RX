@@ -37,6 +37,11 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 	_t.fab += _sec_fab * 60;
 	var _pool = floor(_t.fab / _t.fab_t);
 	_t.fab -= _pool * _t.fab_t;
+	// duplication over the whole batch: the expected extra tiles, the
+	// fractional remainder rolled once - the same odds the live tick
+	// rolls per tile, paid in bulk (offline == online, in expectation)
+	var _dup = _pool * tile_chance_rate("dup") / 100;
+	_pool += floor(_dup) + ((random(1) < frac(_dup)) ? 1 : 0);
 	var _made = _pool;
 
 	// ---- automerge cycles earned (timer carry kept) ----
@@ -117,7 +122,8 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 		var _tr2 = _ht[_li];
 		var _stp = floor(1 + _tr2 / 10000);
 		var _nt = _tr2 + _stp;
-		if (random(100) < _t.bonus_rate
+		if (random(100) < tile_chance_rate("tierup")   // tier up (tiles_merge's roll)
+		|| random(100) < _t.bonus_rate
 		|| (_t.bonus_rate > 0 && _nt == _t.highest)) _nt += _stp;
 		_hc[_li] -= 2;
 		if (_hc[_li] <= 0) { array_delete(_ht, _li, 1); array_delete(_hc, _li, 1); }

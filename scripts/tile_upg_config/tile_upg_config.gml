@@ -107,7 +107,7 @@ function tile_upg_config() {
 			// tier or two first, which is the pacing DE had for free.
 			// The twin's purchase timeline (section 3) shows where they
 			// land; the same ceiling (e308 at 50) still holds.
-			id : "profit", name : "profit boost", base : 30000,
+			id : "profit", name : "dial profit boost", base : 30000,
 			curve : TILE_PROFIT_CURVE, top : 308, max : 50, inflate : true,
 			fmt : function(_lv) {
 				// the live multiplier at that level - a packed arb, so
@@ -116,7 +116,9 @@ function tile_upg_config() {
 				// x1.83 is the row lying) and big ones crunch
 				var _b = tile_dial_boost(_lv);
 				var _lg = arb_log10(_b);
-				return "dials x" + ((_lg < 3)
+				// no "dials" prefix (his ask): the row is CALLED dial
+				// profit boost now, and the bar has no room for it twice
+				return "x" + ((_lg < 3)
 					? string_format(power(10, _lg), 1, 2) : crunch_arb(_b));
 			},
 			help : "wires the tile table into dial profit. nothing at "
@@ -227,6 +229,43 @@ function tile_upg_config() {
 			     + "level, to " + string(TILE_BANK_BASE + TILE_BANK_STEP * 30)
 			     + ". with none, a tile finished while the board is full "
 			     + "is lost - the reserve holds it until a slot opens",
+		},
+		{
+			// ⚖️ THE TWO CHANCE ROWS (his spec, 2026-09-10): duplication
+			// and tier up share one law - 1% at level 0, +1% a level,
+			// 50% at the cap, e308 at the cap - see tile_chance_rate.
+			// Priced on the shared curve like fab and rarity: a chance
+			// is a multiplier on the whole fabricator (or on every
+			// merge), but a slow one - +1% a level is a nudge, and 49
+			// nudges to the ceiling is the fab row's shape exactly.
+			// The cap is DERIVED from the three macros so the row can
+			// never quote a level the rate would clamp.
+			id : "dup", name : "duplication", base : 50000,
+			curve : TILE_UPG_CURVE, top : 308,
+			max : (TILE_CHANCE_CAP - TILE_CHANCE_BASE) div TILE_CHANCE_STEP,
+			fmt : function(_lv) {
+				return string(min(TILE_CHANCE_CAP,
+					TILE_CHANCE_BASE + TILE_CHANCE_STEP * _lv)) + "%";
+			},
+			help : "the chance a tile the fabricator finishes comes out "
+			     + "as two. " + string(TILE_CHANCE_BASE) + "% to start, +"
+			     + string(TILE_CHANCE_STEP) + "% a level, to "
+			     + string(TILE_CHANCE_CAP) + "%. the second tile needs "
+			     + "room - a full board and hopper drop it",
+		},
+		{
+			id : "tierup", name : "tier up", base : 50000,
+			curve : TILE_UPG_CURVE, top : 308,
+			max : (TILE_CHANCE_CAP - TILE_CHANCE_BASE) div TILE_CHANCE_STEP,
+			fmt : function(_lv) {
+				return string(min(TILE_CHANCE_CAP,
+					TILE_CHANCE_BASE + TILE_CHANCE_STEP * _lv)) + "%";
+			},
+			help : "the chance a merge climbs one tier further than it "
+			     + "should. " + string(TILE_CHANCE_BASE) + "% to start, +"
+			     + string(TILE_CHANCE_STEP) + "% a level, to "
+			     + string(TILE_CHANCE_CAP) + "%. the automerger rolls it "
+			     + "too",
 		},
 	];
 	return g.tile_upg_cfg;

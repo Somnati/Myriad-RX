@@ -31,6 +31,10 @@ while (array_length(_t.ev) > 0) {
 	// the BOARD made, not you. Same sound family, pitched well under the
 	// player's own merges so it reads as the table shifting by itself.
 	if (_e.k == "fail") play_sound_ext(snd_merge, .55, .65, .35, 1);
+	// a DUPLICATE dropped out of the fabricator (the duplication row):
+	// the spawn sound again, a shade higher - two of the same cue, for
+	// two of the same tile. No slot to glow: it is in the hopper.
+	if (_e.k == "dup") play_sound_ext(snd_apply, 1.15, 1.3, .3, 1);
 }
 
 arm_rb = max(0, arm_rb - delta);   // the rebirth confirm's window
@@ -114,6 +118,12 @@ if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == 
 		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 	}
 }
+
+// the buy-amount button's pressed face, while the finger is on it (the
+// dial drawer's bb_down) - a look, not an input; the tap lands on release
+var _bbr = __bb_r();
+bb_down = (dr_open > .5) && mouse_check_button(mb_left)
+	&& point_in_rectangle(mouse_x, mouse_y, _bbr.x, _bbr.y, _bbr.x + _bbr.w, _bbr.y + _bbr.h);
 
 // ---- the upgrade quotes, on the slow tick ----
 qtic -= delta;

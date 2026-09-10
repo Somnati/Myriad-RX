@@ -72,7 +72,11 @@ UPG = {
     "bank":   {"base": 25000, "curve": CURVE, "top": 150, "max": 30},
     "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
     "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},
+    # the two chance rows (2026-09-10): 1% + 1%/level to 50% (tile_chance_rate)
+    "dup":    {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
+    "tierup": {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
 }
+CHANCE_BASE, CHANCE_STEP, CHANCE_CAP = 1, 1, 50
 
 ok = True
 
@@ -193,6 +197,10 @@ class Table:
         cut = min(FAB_CAP, FAB_STEP * self.lv["fab"])
         return max(FAB_MIN, FAB_T_BASE - cut)
     def bank_max(self): return BANK_BASE + BANK_STEP * self.lv["bank"]
+
+    def chance(self, k):
+        # tile_chance_rate: the shared law of the two chance rows
+        return min(CHANCE_CAP, CHANCE_BASE + CHANCE_STEP * self.lv[k])
     def rb_boost(self):
         # tile_rebirth_boost: flux held, braked by a power under 1
         return 1 + FLUX_STEP * self.flux ** FLUX_POW
@@ -245,6 +253,11 @@ class Table:
             self.fab -= self.fab_t()
             self.stored += 1
             self.made += 1
+            # duplication: a second tile, if there is room for it
+            if self.stored < self.bank_max() + self.free():
+                if self.rng.random() * 100 < self.chance("dup"):
+                    self.stored += 1
+                    self.made += 1
             if self.free() > 0 and self.stored > 0:
                 self.stored -= 1             # the tick's next block
                 self.tier.append(roll_tier(self.rarity(), self.rng))
@@ -275,8 +288,10 @@ class Table:
         seen = {}
         for i, t in enumerate(self.tier):
             if t in seen:
-                # TILE_BONUS_TIER is parked, so a merge is always +1
+                # +1, or +2 on a tier-up roll (TILE_BONUS_TIER is parked)
                 self.tier[seen[t]] += 1
+                if self.rng.random() * 100 < self.chance("tierup"):
+                    self.tier[seen[t]] += 1
                 self.tier.pop(i)
                 self.merges += 1
                 return True

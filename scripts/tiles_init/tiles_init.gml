@@ -107,7 +107,8 @@ function tiles_init(_force = false) {
 		earned  : 0,   // lifetime, for the statistics
 		// the roster's ids (tile_upg_config) + slots, which tiles_sync
 		// still reads though no row sells it yet
-		upg     : { profit : 0, rarity : 0, bank : 0, fab : 0, slots : 0 },
+		upg     : { profit : 0, rarity : 0, bank : 0, fab : 0,
+		            dup : 0, tierup : 0, slots : 0 },
 		dirty   : true,
 		rev     : 0,
 		gps     : 0,

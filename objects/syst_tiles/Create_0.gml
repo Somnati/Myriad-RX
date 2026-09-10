@@ -196,9 +196,14 @@ dp_y = -1;
 DR_BUDGET = 6;
 
 upg_y = 0;       // seated below, once the strip is known
-upg_h = 36;   // name+level, the BONUS line, then the buy button (his
-              // ask: show what you have and what the next buy gives)
-upg_n = 4;
+dr_top = 0;      // the drawer's top edge - under the title banner (below)
+upg_h = 25;   // ⚖️ CONDENSED (his ask, 2026-09-10): the name + level line,
+              // then the buy bar - the bonus line moved INTO the bar
+              // (bonus right, cost left), so a row is exactly a header
+              // and a button. Was 36 with the bonus on its own line;
+              // six rows at 25 + 3 fit over the rebirth box, which is
+              // why six is the roster's size.
+upg_n = 6;
 // ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
 // put the CLOSED drawer's right edge at 0 - so the tab was off screen -
 // and the OPEN one's left edge at +9, leaving a strip of room showing
@@ -220,9 +225,10 @@ __dr_face = function() {
 // round number worth snapping to.
 __bb_r = function() {
 	return { x : __dr_face() + dr_w - 8 - sprite_get_width(spr_buylv),
-	         y : upg_y - 14,
+	         y : upg_y - 13,   // down a px (his ask), level with the chip
 	         w : sprite_get_width(spr_buylv), h : sprite_get_height(spr_buylv) };
 };
+bb_down = false;   // the pressed face while the finger is on it
 __bb_frame = function() {                    // spr_buylv's glyph frames
 	if (g.tile_buy_lv == 10)    return 3;
 	if (g.tile_buy_lv == 100)   return 4;
@@ -248,13 +254,14 @@ __bb_cycle = function() {
 ///       with the upgrades because it IS one - the most expensive thing
 ///       the drawer sells, paid in progress instead of shards.
 __rb_r = function() {
-	var _n = array_length(tile_upg_config());
-	return { x : __dr_face() + 4, y : upg_y + _n * (upg_h + 4),
+	// SNUG TO THE BOTTOM, a couple of px up (his ask, 2026-09-10) - it
+	// used to hang under the last row, wherever that fell
+	return { x : __dr_face() + 4, y : room_height - 26 - 3,
 	         w : dr_w - 8 - 4, h : 26 };
 };
 
 __upg_r = function(_k) {
-	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
+	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 3),
 	         w : dr_w - 8 - 4, h : upg_h };
 };
 // THE BUY BUTTON inside a row - the cost bar. It is the row's tap
@@ -265,7 +272,7 @@ __upg_r = function(_k) {
 // rectangle, so the target is exactly the thing that looks like one.
 __upg_btn_r = function(_k) {
 	var _r = __upg_r(_k);
-	return { x : _r.x + 6, y : _r.y + 23, w : _r.w - 12, h : 11 };
+	return { x : _r.x + 6, y : _r.y + 12, w : _r.w - 12, h : 11 };
 };
 // the quote cache: tile_upg walks a log-space series and packs an arb,
 // and the price only moves when something is bought
@@ -338,13 +345,15 @@ __draw_drawer = function() {
 		// that - the dial drawer's treatment (his ask). The dim stays light
 		// because the pixelation already separates the drawer from the room;
 		// dimming hard on top of it just reads as a black panel again.
-		draw_pixel_region(_fx, strip_y, dr_w, room_height - strip_y, dr_open);
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, dr_w, room_height - strip_y,
+		draw_pixel_region(_fx, dr_top, dr_w, room_height - dr_top, dr_open);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, dr_top, dr_w, room_height - dr_top,
 			0, c_black, .45 * dr_open);
 		// the accent runs down the drawer's INNER edge, which is its left
-		// one now that it comes from the right
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, 1,
-			room_height - strip_y, 0, c_aqua, .35);
+		// one now that it comes from the right - and along its top, now
+		// that the top is an edge in the room rather than the header's
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, dr_top, 1,
+			room_height - dr_top, 0, c_aqua, .35);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, dr_top, dr_w, 1, 0, c_aqua, .35);
 
 		// ⚖️ THE TITLE SITS WITH WHAT IT TITLES (his ask, 2026-09-09:
 		// move it down above the upgrades). It was up in the room's
@@ -364,12 +373,18 @@ __draw_drawer = function() {
 		draw_text(_cx.x + _cx.w * .5 + 1, _cx.y + 2, ">");
 		draw_set_halign(fa_left);
 		draw_set_alpha(.6 * dr_open);
-		draw_text(_cx.x + _cx.w + 5, upg_y - 11, "tile upgrades");
+		draw_text(_cx.x + _cx.w + 5, upg_y - 10, "tile upgrades");   // down 1px (his ask)
 
-		// the buy-amount button, right of the title
+		// the buy-amount button, right of the title - THE DIAL ROOM'S
+		// LOOK (his ask): DE's obj_ui_buylv face tinted by the mode
+		// (frame 0, or 1 pressed) with the mode glyph on top, not the
+		// bare glyph this drew before
 		var _bb = __bb_r();
-		draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y, 1, 1, 0,
-			__bb_color(), .95 * dr_open);
+		var _bbc = __bb_color();
+		draw_sprite_ext(spr_buylv, bb_down ? 1 : 0, _bb.x, _bb.y, 1, 1, 0,
+			_bbc, .95 * dr_open);
+		draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y + (bb_down ? 1 : 0),
+			1, 1, 0, merge_colour(_bbc, c_white, .5), .95 * dr_open);
 
 		var _ucfg = tile_upg_config();
 		for (var _k = 0; _k < array_length(_ucfg); _k++) {
@@ -389,46 +404,20 @@ __draw_drawer = function() {
 
 			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
 			draw_set_alpha(.95 * _ua);
-			draw_text(_ur.x + 7, _ur.y + 3, _uc.name);
+			draw_text(_ur.x + 7, _ur.y + 2, _uc.name);
 			draw_set_halign(fa_right);
 			draw_set_color(rgb(120, 130, 150));
 			draw_set_alpha(.6 * _ua);
-			draw_text(_ur.x + _ur.w - 6, _ur.y + 3,
+			draw_text(_ur.x + _ur.w - 6, _ur.y + 2,
 				_uq.max ? ("lv " + string(_uq.lv) + " max")
 				        : ("lv " + string(_uq.lv)));
 			draw_set_halign(fa_left);
 
-			// WHAT YOU HAVE, AND WHAT THIS BUYS (his ask). The roster
-			// formats both - it is the only thing that knows whether an
-			// upgrade is measured in percent or seconds - so this prints
-			// fmt(lv) then fmt(lv + 1) and never has to care.
-			if (variable_struct_exists(_uc, "fmt")) {
-				var _now = _uc.fmt(_uq.lv);
-				draw_set_color(c_aqua);
-				draw_set_alpha(.75 * _ua);
-				draw_text(_ur.x + 7, _ur.y + 13, _now);
-				// AT THE CAP THERE IS NO NEXT, so no arrow and no second
-				// figure. Printing "30 > 31" beside a button reading
-				// "maxed" is the screen contradicting itself in the space
-				// of one row.
-				if (!_uq.max) {
-					// ...at the level the BUNDLE lands on, not merely the
-					// next one - x10 shows where ten levels get you
-					var _nxt = _uc.fmt(_uq.lv + max(1, _uq.n));
-					var _aw = string_width(_now);
-					draw_set_color(rgb(120, 130, 150));
-					draw_set_alpha(.5 * _ua);
-					draw_text(_ur.x + 7 + _aw + 4, _ur.y + 13, ">");
-					draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-					draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
-					draw_text(_ur.x + 7 + _aw + 13, _ur.y + 13, _nxt);
-				}
-			}
-
-			var _ubr = __upg_btn_r(_k);   // the tap target, drawn as itself
-			var _bx2 = _ubr.x;
-			var _bw2 = _ubr.w;
-			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23, _bw2, 11, 0,
+			// ---- THE BAR: the tap target, the cost LEFT, the bonus RIGHT
+			// (his layout, 2026-09-10) ----
+			var _ubr = __upg_btn_r(_k);
+			var _bx2 = _ubr.x, _by2 = _ubr.y, _bw2 = _ubr.w, _bh2 = _ubr.h;
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _by2, _bw2, _bh2, 0,
 				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
 			// THE SOFT FILL (his ask, 2026-09-10): how much of the quoted
 			// cost the shards in hand cover, as a wash across the button
@@ -450,15 +439,58 @@ __draw_drawer = function() {
 			while (array_length(ufill) <= _k) array_push(ufill, 0);
 			ufill[_k] = trickle(ufill[_k], _ft, 6, 0);
 			if (ufill[_k] > .002)
-				draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23,
-					floor(_bw2 * ufill[_k]), 11, 0, c_aqua, .16 * _ua);
-			draw_px_rect(_bx2, _ur.y + 23, _bw2, 11, _uq.ok ? c_aqua : c_gray,
+				draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _by2,
+					floor(_bw2 * ufill[_k]), _bh2, 0, c_aqua, .16 * _ua);
+			draw_px_rect(_bx2, _by2, _bw2, _bh2, _uq.ok ? c_aqua : c_gray,
 				(_uq.ok ? .8 : .3) * _ua);
-			draw_set_halign(fa_center);
+
+			// the cost, tied to the left
+			draw_set_halign(fa_left);
 			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
 			draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
-			draw_text(_bx2 + _bw2 / 2 + 1, _ur.y + 25, _uq.txt);
-			draw_set_halign(fa_left);
+			draw_text(_bx2 + 4, _by2 + 2, _uq.txt);
+			var _cw = string_width(_uq.txt);
+
+			// WHAT YOU HAVE > WHAT THIS BUYS, tied to the right. The
+			// roster formats both - it is the only thing that knows
+			// whether an upgrade is measured in percent or seconds - so
+			// this prints fmt(lv) then fmt(lv + n) and never has to
+			// care. At the cap there is no next, so no arrow and no
+			// second figure. WHEN THE BAR IS TOO NARROW FOR BOTH beside
+			// the cost (x10 on the profit row: "x10  1.3B" and "x82.07
+			// > x123.60" do not share 134px), the "now" drops and only
+			// "> next" stays - what the button BUYS is the half a
+			// button needs.
+			if (variable_struct_exists(_uc, "fmt") && !_uq.max) {
+				var _now = _uc.fmt(_uq.lv);
+				var _nxt = _uc.fmt(_uq.lv + max(1, _uq.n));
+				var _wn = string_width(_now), _wa = string_width(">"), _wx = string_width(_nxt);
+				var _rx = _bx2 + _bw2 - 4;
+				var _fits = (_cw + 8 + _wn + 4 + _wa + 4 + _wx) <= (_bw2 - 8);
+				draw_set_halign(fa_right);
+				draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+				draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
+				draw_text(_rx, _by2 + 2, _nxt);
+				_rx -= _wx + 4;
+				draw_set_color(rgb(120, 130, 150));
+				draw_set_alpha(.5 * _ua);
+				draw_text(_rx, _by2 + 2, ">");
+				_rx -= _wa + 4;
+				if (_fits) {
+					draw_set_color(c_aqua);
+					draw_set_alpha(.75 * _ua);
+					draw_text(_rx, _by2 + 2, _now);
+				}
+				draw_set_halign(fa_left);
+			}
+			else if (variable_struct_exists(_uc, "fmt")) {
+				// maxed: the figure you have, alone on the right
+				draw_set_halign(fa_right);
+				draw_set_color(c_aqua);
+				draw_set_alpha(.75 * _ua);
+				draw_text(_bx2 + _bw2 - 4, _by2 + 2, _uc.fmt(_uq.lv));
+				draw_set_halign(fa_left);
+			}
 		}
 
 		// ---- THE TABLE'S OWN REBIRTH ----
@@ -501,8 +533,8 @@ __draw_drawer = function() {
 		if (!TILES_LIVE) {
 			draw_set_color(c_horange);
 			draw_set_alpha(.7 * dr_open);
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 6, "preview - the board");
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 4) + 15, "is not saved yet");
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 3) + 6, "preview - the board");
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 3) + 15, "is not saved yet");
 		}
 	}
 
@@ -589,9 +621,13 @@ draw_px.depth = -50;
 draw_px.fn    = __draw_drawer;
 
 
-// the drawer's rows start under the strip, and the board re-seats
-// itself whenever the slot count changes (a board-size upgrade)
-upg_y = bar_y + bar_h * 2 + 8;
+// ⚖️ THE DRAWER STARTS UNDER THE TITLE BANNER (his ask, 2026-09-10:
+// "move it down below the tile title banner"). It used to rise from the
+// header's foot and cover the room's title strip and the fabricator
+// bars; now those stay in view and the drawer is the panel under them.
+// The rows start a title row below its top edge.
+dr_top = bar_y + bar_h * 2 + 2;
+upg_y  = dr_top + 17;
 
 // the float's seat: centred over the board, a little ABOVE its top row,
 // so a rising number leaves the tiles rather than crossing them. The

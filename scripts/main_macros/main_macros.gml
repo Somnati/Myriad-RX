@@ -507,6 +507,13 @@ function main_macros() {
 // multiply - DE's u_rarityrate exactly. See tile_rarity_rate.
 #macro TILE_RARITY_STEP  50
 #macro TILE_SLOT_STEP    2
+// THE CHANCE UPGRADES - duplication and tier up share these (his spec,
+// 2026-09-10: 1% to start, +1% a level, 50% at the cap). The cap is
+// where the ladder ENDS: levels = (CAP - BASE) / STEP = 49, and the
+// roster's max reads that. See tile_chance_rate.
+#macro TILE_CHANCE_BASE   1  // percent at level 0 - the free trickle
+#macro TILE_CHANCE_STEP   1  // percent a level
+#macro TILE_CHANCE_CAP   50  // percent, and the last level
 #macro TILE_BANK_STEP     1  // hopper tiles a level (his number).
                              // ONE, against a price climbing 2.5
                              // orders of magnitude a level - the
