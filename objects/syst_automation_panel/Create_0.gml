@@ -1,7 +1,12 @@
-/// syst_rm_automation - THE AUTOMATION ROOM. rm_automation is only a
-/// view: every preference lives in g.autom (autom_init) and the runner
-/// is autom_tick on syst_production's heartbeat, so automation works
-/// whether or not this screen is open.
+/// syst_automation_panel - THE AUTOMATION SCREEN, as a panel over
+/// whatever room you are standing in (2026-09-10, his ask: standalone
+/// like settings and statistics; rm_automation and syst_rm_automation
+/// retired). Every preference lives in g.autom (autom_init) and the
+/// runner is autom_tick on syst_production's heartbeat, so automation
+/// works whether or not this screen is open. On the overlay contract:
+/// automation_open is the one door, the burger's X and escape close it
+/// (automation_close), syst_input holds the room quiet, ui_blur_tick
+/// softens it behind; no back button.
 ///
 /// A LEFT RAIL OF TABS, the settings / saves shape - because three
 /// sections that each want a full page is exactly the problem that rail
@@ -15,8 +20,12 @@
 /// pages where the geometry is known at build time.
 
 autom_init();
+depth = -510;     // over the room and its drawers, under the menu (-520) and the header (-1000)
 
-bby     = obj_ui_header.bar_h;   // flush under the bar, not its shadow
+oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
+closing = false;  // armed by automation_close; the Step destroys at zero
+
+bby     = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar
 list_y  = bby + 16;
 rail_w  = 72;
 cont_x  = rail_w + 6;
@@ -54,9 +63,6 @@ drag_hi  = 100;
 
 __tab_rect = function(_i) {
 	return { x : 2, y : list_y + 3 + _i * 20, w : rail_w - 6, h : 17 };
-};
-__back_rect = function() {
-	return { x1 : room_width - 62, y1 : bby + 6, x2 : room_width - 6, y2 : bby + 22 };
 };
 
 // ---- one row's furniture, shared by Draw and Step ----

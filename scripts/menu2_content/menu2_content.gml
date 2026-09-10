@@ -16,7 +16,7 @@ function menu2_content() {
 	menu2_button("upgrades",     rm_upgrades,      c_lavender); // myriad
 	menu2_button("tiles",        rm_tiles,         c_aqua);     // myriad
 	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
-	menu2_button("automation",   rm_automation,    c_sblue);
+	menu2_button("automation",   function() { automation_open(); }, c_sblue);
 	menu2_button("time bank",    function() { timebank_open(); }, c_gold);
 	// the line says when a gift is waiting - the menu rebuilds on every
 	// open, so the label is live (Techdemo II's calendar, ported)

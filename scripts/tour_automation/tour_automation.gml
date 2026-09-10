@@ -2,7 +2,7 @@
 /// A TOUR SCRIPT: comments only, nothing runs.
 
 // ========================== THE IDEA ================================
-// rm_automation is a VIEW. Every preference lives in g.autom and the
+// the automation panel is a VIEW. Every preference lives in g.autom and the
 // runner is autom_tick on syst_production's heartbeat, so automation
 // works in every room whether or not the screen is open. Three pages
 // on a left rail: dials, rebirth, upgrades.
@@ -20,7 +20,9 @@
 //                       odds. It is the quick-set behind the auto-sell
 //                       slider, not a standing rule.
 //   profit_spendable    the reserve's one reader.
-//   syst_rm_automation  the screen.
+//   syst_automation_panel  the screen - an OVERLAY over any room
+//                       (2026-09-10; rm_automation retired). The menu
+//                       line opens it, the burger's X closes it.
 
 // ======================= THE LAWS THAT MATTER =======================
 //

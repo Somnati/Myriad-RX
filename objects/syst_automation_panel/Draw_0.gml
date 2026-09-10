@@ -5,13 +5,25 @@ draw_set_valign(fa_top);
 
 var _dim = rgb(120, 130, 150);
 
+// ---- the ground: the room shows through, blurred (ui_blur_tick) ----
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height, 0,
+	c_black, .72 * ui_anim_in(oa, 0));
+// everything below rides one ease: it slides up into its seat and
+// fades in (the settings recipe, one part - the pages are dense enough
+// that dealing rows one by one read as a stutter here)
+var _ea = ui_anim_in(oa, 1);
+if (_ea < .001) exit;
+var _eo = (1 - _ea) * UI_IN_DEAL;
+if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
+ui_fade_set(_ea);
+
 // THE PAGE AND ITS HOVER, FIRST. The dials page fills the room with
 // fourteen rows and has no footer band left, so its help line has to
 // ride the title strip - which is drawn before the rows are. Building
 // both up here is what lets either band show it.
 var _rows = __page_rows();
 var _hov  = -1;
-if (input_free())
+if (input_free(ui_layer_overlay))   // the panel's own rung (it holds the room at 100)
 for (var _i = 0; _i < array_length(_rows); _i++) {
 	var _hy = __row_y(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, cont_x, _hy,
@@ -30,7 +42,7 @@ if (tab == 0) {
 	draw_set_halign(fa_right);
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
-	draw_text(room_width - 70, bby + 5,
+	draw_text(room_width - 8, bby + 5,
 		(_help != "") ? _help
 		: ((g.autom.lock_pct > 0)
 			? ("reserve is holding " + ((profit_reserved() >= arb(1))
@@ -39,8 +51,7 @@ if (tab == 0) {
 	draw_set_halign(fa_left);
 }
 
-var _bk = __back_rect();
-draw_ui_back(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1);
+// (no back button - the burger is the X)
 
 // ---- the rail ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
@@ -216,3 +227,5 @@ if (tab == 3) {
 
 draw_set_alpha(1);
 draw_set_color(c_white);
+ui_fade_set(1);
+if (_eo != 0) matrix_set(matrix_world, matrix_build_identity());

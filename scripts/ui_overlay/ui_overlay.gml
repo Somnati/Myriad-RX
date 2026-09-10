@@ -24,5 +24,6 @@ function ui_overlay() {
 	if (instance_exists(syst_timebank_panel)) return syst_timebank_panel;
 	if (instance_exists(syst_gift_panel))     return syst_gift_panel;
 	if (instance_exists(syst_faq))            return syst_faq;
+	if (instance_exists(syst_automation_panel)) return syst_automation_panel;
 	return noone;
 }

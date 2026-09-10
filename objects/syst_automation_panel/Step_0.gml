@@ -1,3 +1,8 @@
+// ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+if (closing && oa <= 0) { instance_destroy(); exit; }
+
 // ---- the live drag, first: it owns the pointer until released ----
 if (drag_row >= 0) {
 	if (!mouse_check_button(mb_left)) { drag_row = -1; save_mark_dirty(); }
@@ -7,16 +12,13 @@ if (drag_row >= 0) {
 	}
 }
 
-if (!input_free()) exit;
-if (g.click_owner != noone) exit;
+// input: only once the panel has fully arrived, and only while nothing
+// sits over it (a pillbox, a popup, the menu)
+if (oa < .999 || closing) exit;
+if (!input_free(ui_layer_overlay)) exit;
+if (keyboard_check_pressed(vk_escape)) { automation_close(); exit; }
+if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
-
-var _bk = __back_rect();
-if (point_in_rectangle(mouse_x, mouse_y, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
-	play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-	back_room();
-	exit;
-}
 
 // ---- the rail ----
 for (var _t = 0; _t < NTAB; _t++) {
