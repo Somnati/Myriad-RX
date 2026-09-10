@@ -15,7 +15,7 @@
 
 services_init();
 
-bby = obj_ui_header.sprite_height;
+bby = obj_ui_header.bar_h;   // flush under the bar, not its shadow
 
 // the bench rows: fn = -1 draws a section header, anything else is a
 // button running that call. adding one = one line.

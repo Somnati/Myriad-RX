@@ -4,7 +4,7 @@
 if (!visible) exit;
 if (alpha <= 0) exit;
 
-var _hh = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 16;
+var _hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar, not its shadow
 var _cx = room_width * .5;
 
 // ---- the room goes dark below the header ----

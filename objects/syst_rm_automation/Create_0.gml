@@ -16,7 +16,7 @@
 
 autom_init();
 
-bby     = obj_ui_header.sprite_height;
+bby     = obj_ui_header.bar_h;   // flush under the bar, not its shadow
 list_y  = bby + 16;
 rail_w  = 72;
 cont_x  = rail_w + 6;

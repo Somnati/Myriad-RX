@@ -48,7 +48,7 @@ save_mark_dirty();
 // bars sit SNUG under it: DE stacks its module meters immediately below
 // the strip with no gap, and a gap is what made them read as floating
 // debris here.
-bby     = obj_ui_header.sprite_height;   // 29
+bby     = obj_ui_header.bar_h;   // 27 - the bar, not its 2px shadow (his call: flush)
 strip_y = bby;
 strip_h = 16;
 bar_y   = strip_y + strip_h;             // snug, no gap

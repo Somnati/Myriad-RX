@@ -23,7 +23,7 @@
 /// text, the per-tier value - either fits on the first or was only ever
 /// restating the name.
 
-bby    = obj_ui_header.sprite_height;
+bby    = obj_ui_header.bar_h;   // flush under the bar, not its shadow
 list_y = bby + 16;
 row_h  = 16;
 row_sp = 19;

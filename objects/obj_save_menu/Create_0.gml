@@ -57,7 +57,7 @@ ng_sub   = ["a gentler pace", "the intended run",
 // ================= layout: derived, never hard-placed =================
 // settings' and statistics' exact frame, so the three screens line up
 // pixel for pixel: header, a title strip, then rail + content.
-bby       = obj_ui_header.sprite_height;  // the header's bottom edge
+bby       = obj_ui_header.bar_h;  // the header's BAR's bottom edge (its shadow is 2 more)
 list_y    = bby + 16;                     // strip above, rail/content below
 rail_w    = 80;                           // the profile rail
 content_x = rail_w + 6;                   // text seat inside the content band

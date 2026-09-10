@@ -16,7 +16,7 @@
 
 timebank_init();
 
-hh = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 16;
+hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar
 
 // ---- layout (region law: Step's hits and Draw share these) ----
 cx      = room_width * .5;

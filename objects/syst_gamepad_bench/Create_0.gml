@@ -8,7 +8,7 @@
 
 pad_init();
 
-bby = obj_ui_header.sprite_height;
+bby = obj_ui_header.bar_h;   // flush under the bar, not its shadow
 
 // left column
 dev_x = 8;
