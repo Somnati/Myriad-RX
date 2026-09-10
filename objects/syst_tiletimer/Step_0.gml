@@ -43,27 +43,34 @@ if (pay_acc >= 1) {
 			float_text(syst_tiles.float_x, syst_tiles.float_y,
 				"+" + crunch_arb(_add), c_aqua, fnt_outline);
 
-			// ⚖️ THE BITS (his ask): every occupied tile throws one mote
-			// a second, in ITS OWN COLOUR, into the spark - the same
+			// ⚖️ THE BITS (his ask): one mote a second per occupied
+			// tile, in THAT TILE'S COLOUR, into the spark - the same
 			// bezier framework the dials pay through, pointed at the
-			// shard count instead of the header. It is the one thing
-			// that makes the board read as PRODUCING rather than as a
-			// grid with a number floating over it: you can see which
-			// tile the shards are coming from, and a high tier's colour
-			// arriving is a high tier paying.
+			// shard count instead of the header. It is what makes the
+			// board read as PRODUCING rather than as a grid with a
+			// number floating over it, and a high tier's colour arriving
+			// is a high tier paying.
+			//
+			// ⚖️ FROM ONE POINT, NOT FROM EACH TILE (his call, 2026-09-10:
+			// "pretty noisy on the screen"). Sixteen sources crossing the
+			// board every second was the noise; the colours were the
+			// information. So the motes all leave from bits_x/bits_y -
+			// centre, just over the board's top edge - and run straight
+			// up into the count: a fountain the width of a tile instead
+			// of a shower over the whole table. Each colour is still one
+			// mote, so what is paying is still legible.
 			//
 			// No amount carried - that lane holds the HEADER's counter
 			// back until motes land, and shards have no such counter to
 			// hold. Purely the flow, drawn.
 			var _sx = syst_tiles.spark_x;
 			var _sy = syst_tiles.spark_y + 4;
-			with (syst_tiles) {
-				for (var _k = 0; _k < g.tiles.slots; _k++) {
-					var _tk = g.tiles.tier[_k];
-					if (_tk == 0) continue;
-					bezier_bits(__slot_x(_k) + tw * .5, __slot_y(_k) + th * .5,
-						1, tile_color(_tk), _sx, _sy, -1, 0);
-				}
+			var _bx = syst_tiles.bits_x;
+			var _by = syst_tiles.bits_y;
+			for (var _k = 0; _k < g.tiles.slots; _k++) {
+				var _tk = g.tiles.tier[_k];
+				if (_tk == 0) continue;
+				bezier_bits(_bx, _by, 1, tile_color(_tk), _sx, _sy, -1, 0);
 			}
 		}
 	}

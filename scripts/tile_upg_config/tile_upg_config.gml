@@ -50,18 +50,22 @@ function tile_upg_config() {
 	if (variable_global_exists("tile_upg_cfg")) return g.tile_upg_cfg;
 	g.tile_upg_cfg = [
 		{
-			// ⚖️ THIS IS DE'S MODULE BOOST, WEARING A SIMPLER NAME (his
-			// ask: mirror the tile-additive-into-dial-profit mechanic,
-			// "disguised as an upgrade"). What the tile table really
-			// does in DE is MULTIPLY DIAL PROFIT by (1 + board total /
-			// 100) - see tile_dial_boost - and u_moduleboost scales the
-			// board's contribution before that division. This is that
-			// upgrade.
+			// ⚖️ THIS IS DE'S TILE-INTO-DIAL CHAIN, AND THE UPGRADE IS
+			// THE WHOLE OF IT (his ask, restated 2026-09-09: "i didnt
+			// want dials to have the bonus from the combined tile amount
+			// like DE... instead i wanted that mechanic ported to the
+			// profit upgrade"). What the tile table does in DE is
+			// MULTIPLY DIAL PROFIT by (1 + board total / 100), for free.
+			// Here the board's share of that is f(level) = (1 + STEP)^lv
+			// - 1, which is ZERO until this is bought - see
+			// tile_dial_boost. Level 1 wires the table into the main
+			// game; every level after compounds the board's share.
 			//
-			// So it reads as "+10% board output" and it is really "+10%
-			// of a number that multiplies your entire dial income". The
-			// label is honest about the arithmetic and quiet about the
-			// leverage, which is the disguise he asked for.
+			// So the row reads "dials x1.00 > x1.25" and that is exactly
+			// what it is: the LIVE dial multiplier this level buys, off
+			// the board as it stands now. It grows on its own between
+			// purchases because the board does - the readout is honest
+			// about that too.
 			//
 			// ITS PRICE CANNOT BE SET AGAINST ITS OWN INCREMENT (his
 			// point). The board's total climbs every second by itself -
@@ -92,13 +96,21 @@ function tile_upg_config() {
 			id : "profit", name : "profit boost", base : 1000,
 			curve : TILE_UPG_CURVE, top : 308, max : 50, inflate : true,
 			fmt : function(_lv) {
-				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
+				// the live multiplier at that level - a packed arb, so
+				// small values get two decimals (crunch_arb rounds
+				// anything under 1000 to a whole number, and "x2" for
+				// x1.83 is the row lying) and big ones crunch
+				var _b = tile_dial_boost(_lv);
+				var _lg = arb_log10(_b);
+				return "dials x" + ((_lg < 3)
+					? string_format(power(10, _lg), 1, 2) : crunch_arb(_b));
 			},
-			help : "+" + string(round(TILE_PROFIT_STEP * 100)) + "% to what "
-			     + "the board contributes, per level. the whole table's "
-			     + "output is a multiplier on dial profit ("
-			     + string(TILE_DIAL_DIV) + " output = double), and this "
-			     + "raises the table's side of it",
+			help : "wires the tile table into dial profit. nothing at "
+			     + "level 0; each level compounds +"
+			     + string(round(TILE_PROFIT_STEP * 100)) + "% of the "
+			     + "board's output into a multiplier on every dial ("
+			     + string(TILE_DIAL_DIV) + " output at full share = "
+			     + "double). the board grows by itself, so does this",
 		},
 		{
 			// ⚖️ CURVED, NOT STRAIGHT (his ask: start small and rise to
@@ -164,13 +176,14 @@ function tile_upg_config() {
 			id : "rarity", name : "tile rarity", base : 5000,
 			curve : TILE_UPG_CURVE, top : 308, max : 60,
 			fmt : function(_lv) {
-				return "+" + string(20 * _lv) + "%";
+				return "+" + string(TILE_RARITY_STEP * _lv) + "%";
 			},
-			help : "+20% fabricator rarity, per level - a multiplier on "
-			     + "the whole rate, so it compounds with anything else "
-			     + "raising it. every 800 of rate lifts the spawn floor "
-			     + "a full tier, so fresh tiles start higher rather than "
-			     + "merely varying more",
+			help : "+" + string(TILE_RARITY_STEP) + "% fabricator rarity, "
+			     + "per level - a multiplier on the whole rate, so it "
+			     + "compounds with anything else raising it. every "
+			     + string(TILE_RARITY_CUT) + " of rate lifts the spawn "
+			     + "floor a full tier, so fresh tiles start higher rather "
+			     + "than merely varying more",
 		},
 		{
 			// THE RESERVE, and the cheapest row on purpose: it is a

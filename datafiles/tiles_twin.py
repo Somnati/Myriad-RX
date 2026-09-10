@@ -46,7 +46,9 @@ RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames) - his increment
 FAB_CAP      = 5.0     # TILE_FAB_CAP  (300 frames) - upgrades' share
 FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
-PROFIT_STEP  = .25     # TILE_PROFIT_STEP - his call, +25% a level
+PROFIT_STEP  = .25     # TILE_PROFIT_STEP - the board's share of the dial
+                       # multiplier is (1+STEP)^lv - 1: COMPOUNDING, zero
+                       # at level 0 (his call: the upgrade IS the chain)
 RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
 DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
 RB_GATE = 8                # the divisor's decade - below it flux floors to 0
@@ -206,11 +208,13 @@ class Table:
         return sum(tile_gps(t) for t in self.tier) * self.rb_boost()
 
     def dial_boost(self):
-        # tile_dial_boost, DE's get_allmodgps: the board's total, scaled
-        # by the profit upgrade, over DIAL_DIV, plus one. THIS is where
-        # the profit upgrade's value actually lands, and measuring it on
-        # gps (as this twin used to) would report it as worth nothing.
-        return 1 + (self.gps() * (1 + PROFIT_STEP * self.lv["profit"])) / DIAL_DIV
+        # tile_dial_boost: DE's chain (1 + board total / DIAL_DIV) with
+        # the board's share GATED by the profit upgrade - f(0) = 0, so
+        # an unbought upgrade is an unwired board, and f compounds per
+        # level. THIS is where the upgrade's value lands; measuring it
+        # on gps (as this twin used to) reports it as worth nothing.
+        f = (1 + PROFIT_STEP) ** self.lv["profit"] - 1
+        return 1 + self.gps() * f / DIAL_DIV
 
     def rb_calc(self):
         # tile_rebirth_calc: flux = earned / DIV, off lifetime EARNED
@@ -405,9 +409,11 @@ if len(gaps) >= 8:
 print()
 print("7. DO THE UPGRADES MATTER?  (buy everything vs buy nothing)")
 print("      NOTE: measured on the DIAL BOOST, not on board output. The")
-print("      profit upgrade no longer touches the board at all - it")
-print("      scales the board's contribution to dial profit, so gps")
-print("      would report the biggest upgrade in the roster as worth 0.")
+print("      profit upgrade never touches the board - it is the board's")
+print("      share of the dial multiplier, ZERO until bought - so 'none'")
+print("      is x1 by construction and 'worth' is the whole chain. The")
+print("      question this now answers is how much the LEVELS add past")
+print("      level 1, which the line under the table prints.")
 print()
 print("      %-6s %11s %11s %8s %11s %11s %8s"
       % ("hours", "gps none", "gps all", "worth", "dial none", "dial all", "worth"))
@@ -426,8 +432,8 @@ say(worth >= 3,
 
 print()
 print("      what the 24h levels are actually worth:")
-print("        profit lv%d -> dial contribution x%.2f (NOT the board)"
-      % (tb.lv["profit"], 1 + PROFIT_STEP * tb.lv["profit"]))
+print("        profit lv%d -> board share x%s (lv1 = x%.2f; NOT the board)"
+      % (tb.lv["profit"], eng((1 + PROFIT_STEP) ** tb.lv["profit"] - 1), PROFIT_STEP))
 print("        fab    lv%d -> fabricator %.2fs (from %.1fs; -%.1fs is the cap)"
       % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE, FAB_CAP))
 print("        rarity lv%d -> rate %.0f (from %d; %d is one floor shift)"

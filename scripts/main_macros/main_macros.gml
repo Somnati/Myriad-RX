@@ -430,11 +430,12 @@ function main_macros() {
 #macro TILE_DIAL_DIV    100
 #macro TILE_DIAL_SHIFT    2
 
-#macro TILE_PROFIT_STEP .25  // profit boost: +25% to the BOARD'S
-                             // CONTRIBUTION TO DIAL PROFIT a level (his
-                             // call: the exact figure does not matter,
-                             // the mechanic - DE's tile-into-dial chain
-                             // - does). Applied in tile_dial_boost.
+#macro TILE_PROFIT_STEP .25  // profit boost: the board's share of the
+                             // dial multiplier is (1 + STEP)^lv - 1,
+                             // COMPOUNDING, and ZERO at level 0 - the
+                             // upgrade IS the tile-into-dial chain (his
+                             // call; the exact figure does not matter,
+                             // the shape does). See tile_dial_boost.
 // ⚖️ THE FABRICATOR'S SECONDS ARE A BUDGET, and he set it out loud: ten
 // seconds base, FIVE of them removable by tile upgrades alone, three
 // more by abilities that do not exist yet (three of them, a second

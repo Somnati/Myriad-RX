@@ -46,9 +46,9 @@ function tile_rarity_rate() {
 		_r += 400;
 
 	// ---- then the upgrade, as a multiplier ----
-	// TILE_RARITY_STEP is PERCENTAGE POINTS a level (his +20%), summed the
+	// TILE_RARITY_STEP is PERCENTAGE POINTS a level (his +50%), summed the
 	// way DE sums u_rarityrate and applied as one multiply - so ten
-	// levels is x3, not ten separate x1.2 compoundings.
+	// levels is x6, not ten separate x1.5 compoundings.
 	if (variable_global_exists("tiles")) {
 		var _lv = g.tiles.upg[$ "rarity"] ?? 0;
 		if (_lv > 0) _r *= 1 + (TILE_RARITY_STEP * _lv) / 100;

@@ -150,6 +150,8 @@ float_x = 0;
 float_y = 0;
 spark_x = 0;   // where the shard count sits - and where the bits fly
 spark_y = 0;
+bits_x = 0;    // where the bits LEAVE from: one point over the board
+bits_y = 0;
 
 // frames left on the table-rebirth confirm (see the Step)
 arm_rb = 0;
@@ -512,20 +514,35 @@ upg_y = bar_y + bar_h * 2 + 8;
 // headroom between the fabricator bars and the top row. The float
 // spawns ON the count and rises off it, so a second's earnings visibly
 // arrive at the number they are adding to.
+// spark_lift: how far above the board's top row the count sits. 30 put
+// it a line over the tiles; he wanted it higher (2026-09-10), and 44
+// leaves the bits (below) a real run up to it while keeping the float's
+// rise clear of the fabricator bars.
+// THE BITS' SPAWN (bits_x / bits_y): one point, dead centre, just over
+// the board's top edge. They used to leave from every occupied tile -
+// sixteen sources crossing the board every second, which he called
+// noisy. One source under the count turns that into a tight fountain
+// up into the number, and the tier colours still arrive.
+spark_lift = 44;
 spark_x = bx + (g.tiles.cols * pw - 4) * .5;
-spark_y = by - 30;
+spark_y = by - spark_lift;
 float_x = spark_x;
 float_y = spark_y - 2;
+bits_x = spark_x;
+bits_y = by - 5;
 __reseat = function() {
 	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
 	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
 	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
-	// the spark and the float ride the board - a board-size upgrade
-	// must not leave either hanging where the old board was
+	// the spark, the float and the bits' source ride the board - a
+	// board-size upgrade must not leave any of them hanging where the
+	// old board was
 	spark_x = bx + (g.tiles.cols * pw - 4) * .5;
-	spark_y = by - 30;
+	spark_y = by - spark_lift;
 	float_x = spark_x;
 	float_y = spark_y - 2;
+	bits_x = spark_x;
+	bits_y = by - 5;
 };
 
 // ⚖️ WHERE A TILE'S VALUE SITS, and it is worth being deliberate about
