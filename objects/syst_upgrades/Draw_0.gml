@@ -303,18 +303,18 @@ if (!_has_pick) {
 	var _lh = 11;
 	var _ly = desc_y + desc_h - 4 - array_length(_rows_txt) * _lh;
 	for (var _q = 0; _q < array_length(_rows_txt); _q++) {
-		var _rr = _rows_txt[_q];
+		var _ln = _rows_txt[_q];
 		// light to dark down the stack, so the eye lands on the total
 		draw_sprite_ext(spr_pixel_1x1, 0, desc_x + 1, _ly, desc_w - 2, _lh - 1,
 			0, c_black, .12 + .16 * _q);
 		draw_set_halign(fa_left);
 		draw_set_color(_dim);
 		draw_set_alpha(.6);
-		draw_text(_px, _ly + 2, _rr.k);
+		draw_text(_px, _ly + 2, _ln.k);
 		draw_set_halign(fa_right);
-		draw_set_color(_rr.c);
+		draw_set_color(_ln.c);
 		draw_set_alpha(.95);
-		draw_text(_pr, _ly + 2, _rr.v);
+		draw_text(_pr, _ly + 2, _ln.v);
 		_ly += _lh;
 	}
 	draw_set_halign(fa_left);

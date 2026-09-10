@@ -84,7 +84,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 		if (touch_dragdist < 8 && tic <= 0) {
 			// THE TAP
 			var _it = __layout();
-			var _hit = -1;
+			_hit = -1;   // (declared above - the layout read; reused for the tap)
 			var _top = hdr_h + 2;
 			var _bot = room_height - foot_h - 2;
 			for (var _i = 0; _i < array_length(_it); _i++) {
