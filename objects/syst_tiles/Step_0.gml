@@ -115,9 +115,10 @@ if (qtic <= 0) {
 		var _txt2 = "maxed";
 		if (!_mx2) {
 			_txt2 = crunch_arb(_q2.cost);
-			// a mode above x1 says what it would buy, and honestly: x3
-			// when only three are affordable, never x10 for three
-			if (g.tile_buy_lv != 1 && _q2.n > 1) _txt2 = "x" + string(_q2.n) + "  " + _txt2;
+			// a mode above x1 says how many the price is for - the whole
+			// bundle, affordable or not (tile_upg_bulk: the dial
+			// drawer's contract). "max" says how many it found.
+			if (g.tile_buy_lv != 1) _txt2 = "x" + string(_q2.n) + "  " + _txt2;
 		}
 		array_push(uq, { ok : _q2.ok, cost : _q2.cost, lv : _q2.lv,
 			max : _mx2, n : _q2.n, txt : _txt2 });

@@ -392,7 +392,9 @@ __draw_drawer = function() {
 				// "maxed" is the screen contradicting itself in the space
 				// of one row.
 				if (!_uq.max) {
-					var _nxt = _uc.fmt(_uq.lv + 1);
+					// ...at the level the BUNDLE lands on, not merely the
+					// next one - x10 shows where ten levels get you
+					var _nxt = _uc.fmt(_uq.lv + max(1, _uq.n));
 					var _aw = string_width(_now);
 					draw_set_color(rgb(120, 130, 150));
 					draw_set_alpha(.5 * _ua);
