@@ -62,7 +62,9 @@ BANK_STEP    = 1       # TILE_BANK_STEP
 # the early rungs are. See tile_upg - "curve" 1 would be a straight line.
 CURVE = 2.0
 UPG = {
-    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 50},
+    # INFLATED (his design): priced against the flux a player who had
+    # EARNED the raw cost would hold. See tile_upg / upg_cost below.
+    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 50, "inflate": True},
     "bank":   {"base": 25000, "curve": CURVE, "top": 150, "max": 30},
     "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
     "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},
@@ -141,10 +143,21 @@ def roll_tier(rate, rng):
 def upg_cost(kind, lv):
     u = UPG[kind]
     lg = math.log10(u["base"])
+    infl = u.get("inflate", False)
     if "curve" in u:
-        lg += (u["top"] - lg) * (lv / u["max"]) ** u["curve"]
+        top = u["top"]
+        if infl:
+            # the raw curve stops short so the INFLATED last level lands
+            # on the stated top - tile_upg does the same
+            top = (u["top"] + math.log10(FLUX_DIV / FLUX_STEP)) / 2
+        lg += (top - lg) * (lv / u["max"]) ** u["curve"]
     else:
         lg += u["e"] * lv
+    if infl:
+        # the flux a player who had EARNED this much would hold, and the
+        # output bonus that flux gives, charged back as the price
+        lb = (lg - math.log10(FLUX_DIV)) + math.log10(FLUX_STEP)
+        lg += lb if lb > 6 else math.log10(1 + 10 ** lb)
     return 10.0 ** lg
 
 

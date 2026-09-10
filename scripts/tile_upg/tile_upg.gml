@@ -23,6 +23,34 @@
 /// A curved entry needs `max`: without a last level there is nothing to
 /// normalise against, which is why the uncapped rows stay straight.
 ///
+/// ⚖️ INFLATION (his design, 2026-09-09) - a third thing a row may ask
+/// for, with `inflate : true`. The problem it solves: the profit
+/// upgrade's value compounds with FLUX (flux lifts board output, output
+/// feeds the dials, the upgrade scales that feed), so a price curve that
+/// ignores flux is a curve a rebirthed player walks straight up. The
+/// obvious fix - read the player's actual flux into the price - makes
+/// the number jump the instant they reset, which is honest and feels
+/// like a fine.
+///
+/// His answer is to MODEL it instead. For each level:
+///
+///     raw   = the curve's price
+///     c     = calc_flux(raw)      - the flux a player who had EARNED raw
+///                                   would hold (raw / TILE_FLUX_DIV)
+///     cost  = raw x (1 + c x STEP) - what that flux lets them pay
+///
+/// A pure function of level. The real pile is never read, so nothing
+/// moves when you rebirth - the ladder was already priced for the flux
+/// you were about to have. Early levels are untouched (their implied
+/// flux rounds to nothing); the top of the ladder is priced for a
+/// veteran, because only a veteran is there.
+///
+/// THE TOP HAS TO BE RE-SOLVED. Inflation is quadratic in the price past
+/// DIV/STEP, so a raw curve to 1e308 would land its last level near
+/// 1e600. The raw curve runs to (top + k) / 2 instead, k being
+/// log10(DIV / STEP), which puts the INFLATED last level on the stated
+/// top - derived, so a change to either knob re-solves it.
+///
 /// ⚖️ `e` IS ORDERS OF MAGNITUDE A LEVEL, not a multiplier (his call:
 /// "make the other upgrades increase by E's as well"). The formula was
 /// always log10(base) + lv * log10(mult) - it has been in log space
@@ -62,13 +90,29 @@ function tile_upg(_id, _commit = true) {
 		return { ok : false, cost : arb(1), lv : _lv, max : true };
 
 	var _lg = log10(_e.base);
+	var _infl = _e[$ "inflate"] ?? false;
 	if (variable_struct_exists(_e, "curve") && _cap > 0) {
 		// curved: the span from base to top, spent unevenly across the
 		// ladder. power() rather than a table, because the shape has to
 		// stay right if the cap or the ceiling ever move.
-		_lg += (_e.top - _lg) * power(_lv / _cap, _e.curve);
+		var _top = _e.top;
+		if (_infl) {
+			// the raw curve stops short so the inflated one lands on
+			// the stated top - see the header
+			var _k = log10(TILE_FLUX_DIV / TILE_FLUX_STEP);
+			_top = (_e.top + _k) * .5;
+		}
+		_lg += (_top - _lg) * power(_lv / _cap, _e.curve);
 	} else {
 		_lg += _lv * _e.e;
+	}
+	if (_infl) {
+		// log10 of the flux a player who had earned `raw` would hold,
+		// then log10 of the output bonus that flux gives - added, since
+		// the price is raw x bonus. Past 1e6 the +1 is noise and the
+		// power() would overflow, so the log is taken directly.
+		var _lb = (_lg - log10(TILE_FLUX_DIV)) + log10(TILE_FLUX_STEP);
+		_lg += (_lb > 6) ? _lb : log10(1 + power(10, _lb));
 	}
 	var _cost = do_ceil(log_to_arb(_lg));
 

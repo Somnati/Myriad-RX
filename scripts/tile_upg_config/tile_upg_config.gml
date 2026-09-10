@@ -84,8 +84,13 @@ function tile_upg_config() {
 			// answers the twin's slot-machine minute: a hundred rungs put
 			// eight profit levels under 1e5 and the first ten minutes
 			// bought nineteen upgrades.
+			// ⚖️ INFLATED (his design - see tile_upg). This is the one row
+			// whose value compounds with flux, so its price is modelled
+			// against the flux a player at each level would hold. The
+			// other three do not have that loop, and inflating them
+			// would just be tax.
 			id : "profit", name : "profit boost", base : 1000,
-			curve : TILE_UPG_CURVE, top : 308, max : 50,
+			curve : TILE_UPG_CURVE, top : 308, max : 50, inflate : true,
 			fmt : function(_lv) {
 				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
 			},
