@@ -238,11 +238,16 @@ __draw_drawer = function() {
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx, strip_y, 1,
 			room_height - strip_y, 0, c_aqua, .35);
 
-		// (the shard count and the rate live in the title strip now, where
-		// they can be read without opening anything)
+		// ⚖️ THE TITLE SITS WITH WHAT IT TITLES (his ask, 2026-09-09:
+		// move it down above the upgrades). It was up in the room's
+		// title strip, sharing a 16px band with the shard count and the
+		// rate - three unrelated readouts on one line, and in the
+		// portrait room they had nowhere near the width for it, so they
+		// simply overlapped. A heading belongs directly above its list;
+		// up there it was competing with the room's own name.
 		draw_set_color(c_aqua);
 		draw_set_alpha(.6 * dr_open);
-		draw_text(_fx + 6, strip_y + 5, "tile upgrades");
+		draw_text(__dr_face() + 6, upg_y - 11, "tile upgrades");
 
 		var _ucfg = tile_upg_config();
 		for (var _k = 0; _k < array_length(_ucfg); _k++) {
@@ -344,20 +349,49 @@ __draw_drawer = function() {
 /// @desc The shard count and the board's rate, on the title strip's
 ///       right end. Called from the END of __draw_drawer so it lands
 ///       over the panel - see there.
-__draw_shards = function() {
+/// @func __strip_lay()
+/// @desc Where the title strip's right-hand readouts sit: the shard
+///       count's right edge, the rate's right edge, and the leftmost x
+///       the pair reaches. ONE place decides, because the hopper is
+///       drawn in a different pass (behind the drawer) and has to know
+///       where the pair stopped without guessing.
+__strip_lay = function() {
 	var _t = g.tiles;
+	draw_set_font(fnt);
+	var _sh = ((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards";
+	var _rt = "+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s";
+	var _sx = room_width - 6;
+	var _rx = _sx - string_width(_sh) - 8;
+	return { sh : _sh, rt : _rt, sx : _sx, rx : _rx,
+	         left : _rx - string_width(_rt) };
+};
+
+__draw_shards = function() {
 	draw_set_font(fnt);
 	draw_set_valign(fa_top);
 	draw_set_halign(fa_right);
+
+	// ⚖️ THE RATE IS PLACED FROM THE SHARDS, NOT FROM A NUMBER (his ask:
+	// put the rate to the left of the count). Both used to be
+	// right-aligned at hand-picked offsets from the room's right edge -
+	// 68 and 150 - which works in the 480-wide landscape room and is
+	// simply broken in the 144-wide portrait one, where 150 is off the
+	// LEFT edge. That is what he was looking at: a rate hanging off the
+	// side of the screen and a heading landing on top of it.
+	//
+	// Measuring the string it has to clear cannot be wrong in either
+	// shape, and it cannot drift when crunch_arb starts returning a
+	// longer suffix.
+	var _l = __strip_lay();
+
 	draw_set_color(c_aqua);
 	draw_set_alpha(.95);
-	draw_text(room_width - 68, strip_y + 5,
-		((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards");
+	draw_text(_l.sx, strip_y + 5, _l.sh);
 
 	draw_set_color(merge_colour(c_aqua, c_white, .35));
 	draw_set_alpha(.7);
-	draw_text(room_width - 150, strip_y + 5,
-		"+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s");
+	draw_text(_l.rx, strip_y + 5, _l.rt);
+
 	draw_set_halign(fa_left);
 	draw_set_alpha(1);
 };

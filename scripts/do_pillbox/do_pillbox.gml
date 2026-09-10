@@ -20,8 +20,24 @@
 /// their own ui_layer.
 function do_pillbox(_x, _y, _type = 0, _side = -1, _sticky = false, _quiet = false) {
 
-	// one box at a time: politely fold any other owner's box first,
-	// through ITS owner (never the object name - no cross-talk)
+	// ⚖️ A RE-OPEN REPLACES ITS OWN BOX INSTANTLY (his report, 2026-09-09:
+	// "i was able to open multiple pillboxes in the settings room").
+	// The polite fold below could not cover this and the reason is
+	// exact: it sets the OWNER's _popen false, and two lines later this
+	// function sets the same flag true again. The old pills read that
+	// flag on their NEXT step, see `true`, and never fade - so a second
+	// full set spawns on top of a set that is now immortal. A STAYING
+	// box makes it trivial to hit, because its _popen is still true
+	// when you press the row again, which is the settings sound rows
+	// and the dice-material row.
+	//
+	// Destroying is right rather than harsh: an owner re-opening its
+	// own box is REPLACING it, and there is nothing to animate out of -
+	// the new box lands in the same place the old one was.
+	with (obj_pillbox) if (obj == other.id) instance_destroy();
+
+	// other owners still fold politely, through THEIR owner (never the
+	// object name - no cross-talk), so their box plays its exit
 	with (obj_pillbox) if (instance_exists(obj)) obj._popen = false;
 
 	var _n = array_length(_pills);

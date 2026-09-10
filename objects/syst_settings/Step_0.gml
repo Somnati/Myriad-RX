@@ -238,6 +238,17 @@ if (mouse_check_button_pressed(mb_left)) {
 					break;
 
 				case sett_kind_pill: // open the dropdown at the tap
+					// ⚖️ THE SAME ROW TOGGLES. Pressing an open dropdown's
+					// own row should shut it - that is what every
+					// dropdown anywhere does, and without it a staying
+					// box (the sound rows, the dice material) can only
+					// be closed by tapping off it, which is exactly the
+					// press that used to stack a second box.
+					if (_popen && pill_kind == _hr.data.kind) {
+						_popen = false;
+						pill_kind = "";
+						break;
+					}
 					pillbox_init();
 					pill_kind = _hr.data.kind;
 					_hr.data.build();
