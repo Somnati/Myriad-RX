@@ -226,6 +226,10 @@ __upg_r = function(_k) {
 // and the price only moves when something is bought
 qtic = 0;
 uq   = [];
+// the buy buttons' fill: shards held over the quoted cost, one 0..1 a
+// row, eased so a requote steps and the fill glides (his ask: a soft
+// progress bar to the next purchase). Sized lazily in the draw.
+ufill = [];
 
 // ==================================================================
 // THE DRAWER, ITS OWN DRAW SLOT
@@ -369,6 +373,28 @@ __draw_drawer = function() {
 			var _bw2 = _ur.w - 12;
 			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23, _bw2, 11, 0,
 				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
+			// THE SOFT FILL (his ask, 2026-09-10): how much of the quoted
+			// cost the shards in hand cover, as a wash across the button
+			// under the price. LINEAR, not log - "based off current
+			// currency" is a ratio, and a bar that read 60% at a
+			// thousandth of the price would be the drawer flattering
+			// you. It reads the LIVE pile against the cached quote, so
+			// it creeps every second as shards land rather than jumping
+			// on the requote tick; the ease is for the requote itself
+			// (a bought level drops the fill to near zero - it glides).
+			// At the cap there is nothing to fill toward.
+			var _ft = 0;
+			if (!_uq.max && _uq.cost >= arb(1)) {
+				var _sh2 = g.tiles.shards;
+				_ft = (_sh2 >= arb(1))
+					? clamp(power(10, arb_log10(_sh2) - arb_log10(_uq.cost)), 0, 1)
+					: 0;
+			}
+			while (array_length(ufill) <= _k) array_push(ufill, 0);
+			ufill[_k] = trickle(ufill[_k], _ft, 6, 0);
+			if (ufill[_k] > .002)
+				draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23,
+					floor(_bw2 * ufill[_k]), 11, 0, c_aqua, .16 * _ua);
 			draw_px_rect(_bx2, _ur.y + 23, _bw2, 11, _uq.ok ? c_aqua : c_gray,
 				(_uq.ok ? .8 : .3) * _ua);
 			draw_set_halign(fa_center);
