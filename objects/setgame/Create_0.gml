@@ -23,6 +23,12 @@
 	// 2 hard / 3 critical. picked in the new-game flow, stored on the
 	// save - nothing reads it yet
 	g.difficulty = 1;
+	// the new-game flow's other two answers (rm_newgame): three
+	// personality picks, and whether the money room has UNFOLDED - 1 by
+	// default so a save from before the veil existed is not veiled;
+	// game_reset sets 0 and the first tap sets 1
+	g.persona = [-1, -1, -1];
+	g.unfold  = 1;
 
 	// ---- profiles ----
 	// active profile index + a proc name and personal color per profile

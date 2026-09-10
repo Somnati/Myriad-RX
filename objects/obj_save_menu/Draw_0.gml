@@ -24,9 +24,7 @@ draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y - 1, room_width, 1, 0, _steel, .25);
 
 draw_set_color(rgb(195, 205, 235));
 draw_set_alpha(.85);
-draw_text(6, bby + 8, ng_mode
-	? (page == 1 ? "new game > difficulty" : "new game > pick a profile")
-	: "saves");
+draw_text(6, bby + 8, ng_mode ? "new game > pick a profile" : "saves");
 draw_set_alpha(1);
 
 var _bk = __back_rect();
@@ -97,7 +95,7 @@ draw_text(content_x, hdr_y, _has ? g.profile_name[sel_prof] : "empty profile");
 if (_has) {
 	var _hx = content_x + string_width(g.profile_name[sel_prof]) + 6;
 	var _pi = prof_info[sel_prof];
-	if (_pi.difficulty >= 0 && _pi.difficulty <= 3) {
+	if (_pi.difficulty >= 0 && _pi.difficulty <= 4) {
 		draw_set_color(ng_col[_pi.difficulty]);
 		draw_set_alpha(.8);
 		draw_text(_hx, hdr_y, ng_label[_pi.difficulty]);
@@ -114,29 +112,6 @@ if (_has) {
 		draw_text(_hx, hdr_y, crunch_arb(_pi.credits) + " credits");
 }
 draw_set_alpha(1);
-
-// ---- page 1: the difficulty picker (ng_mode only) ----
-if (page == 1) {
-	for (var _i = 0; _i < 4; _i++) {
-		var _ry = __row_y(_i);
-		var _c  = ng_col[_i];
-		__panel(_ry, row_h, _c, .55);
-		draw_set_halign(fa_left);
-		draw_set_alpha(.95);
-		draw_set_color(_c);
-		draw_text(content_x, _ry + 5, ng_label[_i]);
-		draw_set_color(_dim);
-		draw_set_alpha(.85);
-		draw_text(content_x, _ry + 17, ng_sub[_i]);
-	}
-	var _nb = __ngbtn();
-	draw_ui_button(_nb.x, _nb.y, _nb.w, _nb.h, "back to profiles", _steel, true, false);
-	draw_set_halign(fa_left);
-	draw_set_valign(fa_top);
-	draw_set_color(c_white);
-	draw_set_alpha(1);
-	exit;
-}
 
 // ---- page 0: the five slot rows ----
 for (var _i = 0; _i < 5; _i++) {

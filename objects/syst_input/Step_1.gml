@@ -29,6 +29,8 @@ if (instance_exists(obj_dialogue) && obj_dialogue.dialogue_active
 	g.input_block = ui_layer_modal;
 if (instance_exists(syst_rebirth) && syst_rebirth.open)
 	g.input_block = ui_layer_modal; // the rebirth overlay owns the room
+if (instance_exists(syst_unfold) && syst_unfold.veil > .5)
+	g.input_block = ui_layer_modal; // the veil owns the first tap
 // (MYRIAD RX: rebuilt DE systems that own the room add their blocker
 // line here as they land)
 

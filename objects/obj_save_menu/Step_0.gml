@@ -39,9 +39,6 @@ if (mouse_check_button_pressed(mb_left)) {
 	var _bk = __back_rect();
 	if (point_in_rectangle(_mx, _my, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
 		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		// on the difficulty page, back means back to the profiles -
-		// the run is not started and nothing has been deleted yet
-		if (page == 1) { page = 0; exit; }
 		back_room();
 		exit;
 	}
@@ -65,35 +62,17 @@ if (mouse_check_button_pressed(mb_left)) {
 	// nothing below here lives in the rail
 	if (_mx < rail_w) exit;
 
-	// ---- page 1: the difficulty picker (ng_mode only) ----
-	// the pick pulls the trigger: wipe the slot, reset the run,
-	// first-save, play. Until this tap every file is still intact.
-	if (page == 1) {
-		for (var _i = 0; _i < 4; _i++) {
-			var _ry = __row_y(_i);
-			if (!point_in_rectangle(_mx, _my, rail_w, _ry, room_width, _ry + row_h)) continue;
-			ng_start(_i);
-			exit;
-		}
-		var _nb = __ngbtn();
-		if (point_in_rectangle(_mx, _my, _nb.x, _nb.y, _nb.x + _nb.w, _nb.y + _nb.h)) {
-			play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-			page = 0;
-		}
-		exit;
-	}
-
 	// ---- the action band ----
 	if (ng_mode) {
 		var _nb = __ngbtn();
 		if (point_in_rectangle(_mx, _my, _nb.x, _nb.y, _nb.x + _nb.w, _nb.y + _nb.h)) {
 			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 			// an occupied profile confirms the overwrite first; an
-			// empty one goes straight to the difficulty page
+			// empty one goes straight to rm_newgame
 			if (__phas(sel_prof)) {
 				obj_dialogue.box_col_border = g.profile_color[sel_prof];
 				obj_dialogue.dialogue_start(dt_ng_over);
-			} else page = 1;
+			} else __ng_go();
 			exit;
 		}
 	} else {

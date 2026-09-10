@@ -36,8 +36,10 @@
 /// pulls the trigger. Nothing is deleted until that last tap, so
 /// backing out anywhere keeps every file intact.
 
-// page 0 = the profile's slots. page 1 = the difficulty picker, which
-// only ng_mode can ever reach (dt_ng_confirm sets it)
+// page 0 = the profile's slots. (page 1, the difficulty picker, moved
+// to rm_newgame - 2026-09-10, his new-game flow: a black screen with
+// the list centred, then three questions, then the veiled money room.
+// This screen only hands over the profile now.)
 page     = 0;
 sel_prof = variable_global_exists("profile") ? g.profile : 0;
 
@@ -48,11 +50,10 @@ if (variable_global_exists("saves_mode") && g.saves_mode == "newgame") {
 	ng_mode = true;
 	g.saves_mode = "";
 }
-ng_label = ["easy", "standard", "hard", "critical"];
-ng_col   = [c_sblue, rgb(170, 190, 230), c_horange, c_hred];
-// flavor only: difficulty is STORED on the save, nothing reads it yet
-ng_sub   = ["a gentler pace", "the intended run",
-	"numbers bite back", "no promises"];
+// the difficulty's name and colour, for the profile header line (the
+// pick itself lives in rm_newgame / syst_newgame now)
+ng_label = ["easy", "standard", "hard", "critical", "custom"];
+ng_col   = [c_sblue, rgb(170, 190, 230), c_horange, c_hred, c_hpurple];
 
 // ================= layout: derived, never hard-placed =================
 // settings' and statistics' exact frame, so the three screens line up
@@ -273,9 +274,13 @@ dt_ng_over = function() {
 	]);
 };
 
-// the same difficulty page an empty slot gets (his call: one flow for
-// every fresh save). the files survive until the difficulty pick
-dt_ng_confirm = function() { page = 1; };
+// the same road an empty slot takes (his call: one flow for every
+// fresh save). the files survive until rm_newgame pulls the trigger
+dt_ng_confirm = function() { __ng_go(); };
+__ng_go = function() {
+	g.ng_prof = sel_prof;
+	goto_room(rm_newgame);
+};
 
 dt_ask_delete = function() {
 	ds_say("", "are you sure you want to delete " + dlg_col() + g.profile_name[sel_prof]
@@ -378,35 +383,7 @@ __do_import = function() {
 	__refresh_slots();
 };
 
-// ---- new game: the difficulty pick pulls the trigger ----
-// wipe the slot's files (main + autosaves + rebirth: boot recovery
-// would resurrect the run from any survivor), fresh identity, hard
-// reset the run in memory (game_reset), first-save, play
-ng_start = function(_diff) {
-	for (var _s = 0; _s < 5; _s++) {
-		var _f = save_slot_path(_s, sel_prof);
-		if (file_exists(_f)) file_delete(_f);
-	}
-	g.profile = sel_prof;
-	// a new run rolls a new identity (the old name/color belonged to
-	// the save being overwritten; the first save locks these in)
-	g.profile_name[sel_prof]  = gen_name_planet();
-	g.profile_color[sel_prof] = color_set_random();
-	game_reset(_diff);
-	// first save: the fresh file exists before play begins, so boot
-	// recovery / continue / autosaves all see a real run
-	with (syst_handle_save) {
-		file_to_handle = save_slot_path(0);
-		action = sv_save;
-		handle_save();
-		handle_settings(action);
-		action = -1;
-	}
-	g.game_started = true;
-	g.room_hist = [];
-	play_sound_ext(snd_matclick2, 1.2, 1.3, .5, 1);
-	goto_room(rm_clicker);
-};
+// (the new-game trigger is newgame_start, pulled by rm_newgame)
 
 dt_act_delete = function() {
 	// EVERY file has to go, or boot recovery resurrects the profile

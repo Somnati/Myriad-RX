@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"newgame_start",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"newgame_start",
+  "parent":{
+    "name":"save",
+    "path":"folders/engine/save.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

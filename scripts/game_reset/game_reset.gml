@@ -49,7 +49,11 @@ function game_reset(_diff = 1) {
 	// difficulty: chosen at new game, stored on the save. nothing
 	// reads it yet - when it goes live, scale balance knobs off it at
 	// read time (never bake it into stored numbers)
-	g.difficulty = clamp(floor(_diff), 0, 3);
+	g.difficulty = clamp(floor(_diff), 0, 4);   // 4 = custom (nothing reads it yet)
+	// the three personality answers (rm_newgame) and THE VEIL: a fresh
+	// run opens on black and unfolds on the first tap (syst_unfold)
+	g.persona = [-1, -1, -1];
+	g.unfold  = 0;
 
 	// pinned statistics live on the save: fresh run, fresh pins
 	g.stats_fav = {};

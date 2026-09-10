@@ -13,6 +13,10 @@ last_now = _now;
 if (variable_global_exists("game_started") && g.game_started)
 if (in_room(rm_clicker) && !instance_exists(obj_offlinegold))
 	create_obj(0, 0, obj_offlinegold);
+// ...and THE VEIL, while the run has not unfolded (syst_unfold)
+if (variable_global_exists("game_started") && g.game_started)
+if (in_room(rm_clicker) && g.unfold == 0 && !instance_exists(syst_unfold))
+	create_obj(0, 0, syst_unfold);
 
 // ---- the report (DE's obj_idletime: banners in the money room) ----
 if (!variable_global_exists("offline_report")) exit;

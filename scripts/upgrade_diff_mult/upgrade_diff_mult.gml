@@ -11,11 +11,12 @@
 /// follow the same shape as each system lands.
 function upgrade_diff_mult() {
 	if (!variable_global_exists("difficulty")) return 1;
-	switch (clamp(floor(g.difficulty), 0, 3)) {
+	switch (clamp(floor(g.difficulty), 0, 4)) {
 		case 0: return 0.75;   // easy
 		case 1: return 1;      // standard
 		case 2: return 1.35;   // hard
 		case 3: return 1.8;    // critical
+		case 4: return 1;      // custom: its own rules, later (his call)
 	}
 	return 1;
 }

@@ -29,7 +29,7 @@ function save_slot_info(_file) {
 		// enough to predate the key, which reads as no stamp at all
 		datetime   : ini_read_real("system", "save_datetime", 0),
 		// stored at new game, never shown until now: 0 easy .. 3
-		// critical, -1 for a save written before the difficulty pick
+		// critical, 4 custom, -1 for a save written before the pick
 		difficulty : ini_read_real("player", "difficulty", -1),
 		credits    : ini_read_real("credits", "credits", 0),
 		// how many rebirths this file has behind it. on the REBIRTH

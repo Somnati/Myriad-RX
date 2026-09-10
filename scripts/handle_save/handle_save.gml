@@ -54,6 +54,15 @@ function handle_save(){
 	// run difficulty (0 easy .. 3 critical), picked at new game.
 	// stored only for now - future balance wiring reads it live
 	g.difficulty = handle("difficulty", g.difficulty);
+	// the three personality answers as one "a,b,c" string, and the veil
+	var _ps = string(g.persona[0]) + "," + string(g.persona[1]) + "," + string(g.persona[2]);
+	_ps = handle("persona", _ps);
+	if (action == sv_load) {
+		var _pp = string_split(string(_ps), ",");
+		for (var _k = 0; _k < 3; _k++)
+			g.persona[_k] = (_k < array_length(_pp) && _pp[_k] != "") ? floor(real(_pp[_k])) : -1;
+	}
+	g.unfold = handle("unfold", g.unfold);
 
 	// ---- credits: the second currency (survives rebirth) + the
 	// dropper's pool and cooldown ----
