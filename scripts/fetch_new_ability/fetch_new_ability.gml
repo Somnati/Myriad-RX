@@ -22,11 +22,11 @@ function fetch_new_ability(_do_unlock = false) {
 	if (!_do_unlock) exit;
 	if (array_length(g.abi_pool) == 0) exit;
 
-	// the seeded draw (stream saved/restored, house rule)
+	// the seeded draw (the stream is released after - rng_release)
 	var _seed = random_get_seed();
 	random_set_seed((g.abi_seed + g.new_abilities_unlocked) & $7fffffff);
 	abi = g.abi_pool[irandom(array_length(g.abi_pool) - 1)];
-	random_set_seed(_seed);
+	rng_release(_seed);
 
 	var _drawn = abi; // unlock_deck consumes abi; Scholar needs the key
 	unlock_deck();

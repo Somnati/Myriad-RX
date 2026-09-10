@@ -26,5 +26,5 @@ function deck_draft_roll() {
 		array_push(g.abi_draft, _tmp[_i]);
 		array_delete(_tmp, _i, 1);
 	}
-	random_set_seed(_seed);
+	rng_release(_seed);   // never random_set_seed(_seed): that rewinds
 }

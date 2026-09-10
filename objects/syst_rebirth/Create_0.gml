@@ -36,8 +36,8 @@ image_xscale = bw / sprite_get_width(sprite_index);
 image_yscale = 1;
 
 /// THE FLAVOR NAMES (DE's originals, his words). Seeded by the rebirth
-/// count so each rebirth greets consistently; the stream is saved and
-/// restored (deterministic-rolls law - never randomize()).
+/// count so each rebirth greets consistently; the stream is released
+/// after (rng_release - a set_seed "restore" would rewind it).
 __roll_names = function() {
 	var _keep = random_get_seed();
 	random_set_seed(g.rebirth.total + 777001);
@@ -57,7 +57,7 @@ __roll_names = function() {
 	if (g.rebirth.total == 20)  name = "why stop here right?";
 	if (g.rebirth.total == 99)  name = "this is your 100th rebirth!!!";
 	if (g.rebirth.total == 199) name = "this is your 200th rebirth...get help.";
-	random_set_seed(_keep);
+	rng_release(_keep);
 	name = string_upper(name);
 	name_error = string_upper(name_error);
 };

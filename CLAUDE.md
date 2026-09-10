@@ -115,8 +115,12 @@ forever — a boot freeze). arb x real-factor = do_scale (log-space);
 series math stays in log10, packs once via log_to_arb. Avoid
 do_power's tier-1 path in hot loops.
 
-## Deterministic rolls (inherited)
+## Deterministic rolls (inherited, corrected 2026-09-10)
 
-Always `random_get_seed()` / `random_set_seed(seed ^ salt)` /
-restore. Changing a generator's roll count shifts everything
-downstream in that stream.
+Always `random_get_seed()` / `random_set_seed(seed ^ salt)` / then
+**`rng_release(saved)`** — NEVER `random_set_seed(saved)` to "restore":
+random_get_seed returns the SET seed, so that rewinds the ambient
+stream to the boot seed's first number every call (per-frame callers
+made every mote fly the same curve). Hot seeded lookups (tier colours)
+cache their result. Changing a generator's roll count shifts
+everything downstream in that stream.

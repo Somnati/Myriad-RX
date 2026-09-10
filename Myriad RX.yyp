@@ -342,6 +342,7 @@
     {"id":{"name":"return_ability","path":"scripts/return_ability/return_ability.yy",},},
     {"id":{"name":"return_deck","path":"scripts/return_deck/return_deck.yy",},},
     {"id":{"name":"rgb","path":"scripts/rgb/rgb.yy",},},
+    {"id":{"name":"rng_release","path":"scripts/rng_release/rng_release.yy",},},
     {"id":{"name":"roll_perc","path":"scripts/roll_perc/roll_perc.yy",},},
     {"id":{"name":"room_orient","path":"scripts/room_orient/room_orient.yy",},},
     {"id":{"name":"room_pairs","path":"scripts/room_pairs/room_pairs.yy",},},

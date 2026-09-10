@@ -214,9 +214,11 @@ __draft_spawn = function() {
 	for (var _i = 0; _i < array_length(draft_ids); _i++)
 		if (instance_exists(draft_ids[_i])) instance_destroy(draft_ids[_i]);
 	draft_ids = [];
-	// fresh entropy for the finish rolls: the ambient RNG stream is
-	// deterministic per boot, which is why the finishes repeated.
-	// stream restored after (house rule)
+	// fresh entropy for the finish rolls. (The finishes used to REPEAT
+	// because every seed "restore" in the game rewound the ambient
+	// stream to the boot seed - see rng_release; the randomize() here
+	// was a local patch for that, and its own set_seed restore rewound
+	// the stream again on the way out. Harmless now, kept.)
 	var _rs = random_get_seed();
 	randomize();
 	var _n = array_length(g.abi_draft);
@@ -250,7 +252,7 @@ __draft_spawn = function() {
 		_c.invalidate_back();
 		array_push(draft_ids, _c);
 	}
-	random_set_seed(_rs);
+	rng_release(_rs);
 };
 
 // loadout presets: [set] arms the next slot tap to STORE instead of
