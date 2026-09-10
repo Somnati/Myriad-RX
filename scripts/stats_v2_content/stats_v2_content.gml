@@ -97,6 +97,40 @@ function stats_v2_content() {
 				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);
 		if (variable_global_exists("click_gps"))
 			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
+		// ---- why a tap pays what it pays (his ask, 2026-09-10) - the
+		// dial pages' sibling: a bar of what the tap is MADE of (a sum,
+		// shared linearly), then the multipliers on the whole ----
+		if (variable_global_exists("click_gps"))
+		if (stats_v2_folder("tap breakdown", c_gold)) {
+			var _tbk = tap_breakdown();
+			stats_v2_bar("what a tap is made of", _tbk.terms, 4);
+			for (var _s = 0; _s < array_length(_tbk.terms); _s++) {
+				var _tm = _tbk.terms[_s];
+				stats_v2_line(_tm.name, "+" + crunch_arb(_tm.val), _tm.col, -1, _tm.note);
+			}
+			stats_v2_line("before multipliers", crunch_arb(_tbk.base), -1, c_gray);
+			for (var _s = 0; _s < array_length(_tbk.mults); _s++) {
+				var _mm = _tbk.mults[_s];
+				stats_v2_line(_mm.name, "x" + string_format(_mm.mult, 1, 2), _mm.col, -1, _mm.note);
+			}
+			if (array_length(_tbk.mults) == 0)
+				stats_v2_line("multipliers", "none yet", c_gray, c_gray,
+					"tap profit upgrades and the overcharger multiply the sum above");
+			stats_v2_line("crits, on average", "x" + string_format(_tbk.crit_x, 1, 2),
+				c_aqua, -1,
+				"not in the per-tap figure - tap_fire rolls them per tap. "
+				+ "this is what they add over many taps: 1 + chance x "
+				+ "(mean payout - 1)");
+			stats_v2_line();
+			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
+			if (!_tbk.ok)
+				stats_v2_line("! breakdown drift", "chain "
+					+ string_format(_tbk.derived, 1, 2) + " vs live "
+					+ string_format(_tbk.live_lg, 1, 2), c_hred, c_hred,
+					"tap_breakdown mirrors update_click's chain and the two "
+					+ "no longer agree - one was edited without the other.");
+		}
+		stats_v2_folder_end();
 		if (variable_global_exists("overcharge_lv"))
 			stats_v2_line("overcharge", "x" + string(overcharge_multi())
 				+ "  (lv " + string(g.overcharge_lv) + " / " + string(overcharge_maxlv()) + ")",

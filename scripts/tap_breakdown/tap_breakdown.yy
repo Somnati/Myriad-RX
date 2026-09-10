@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tap_breakdown",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tap_breakdown",
+  "parent":{
+    "name":"statistics",
+    "path":"folders/engine/statistics.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

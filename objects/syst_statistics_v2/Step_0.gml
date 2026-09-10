@@ -36,6 +36,7 @@ if (utic <= 0 || rebuild) {
 		anim_row = anim_pend;
 		anim_n = mx - _oldmx;
 		anim_t = (anim_n == 0) ? 1 : 0;
+		anim_clock = anim_t;
 		// closing: freeze copies of the removed child rows - the draw
 		// slides these GHOSTS back up under the fold (they used to just
 		// vanish, his report: the last folder's children disappearing)
@@ -56,12 +57,17 @@ if (utic <= 0 || rebuild) {
 		page_ofs += g.stats_page - _prepage;
 }
 if (anim_t < 1) {
-	anim_t = trickle(anim_t, 1, 5);
-	if (anim_t > .98) anim_t = 1;
+	// the clock, then the cubic ease-out of it - exact 1 at the end,
+	// no hardpoint needed (see the Create)
+	anim_clock = min(1, anim_clock + delta / UNFURL_FRAMES);
+	var _q = 1 - anim_clock;
+	anim_t = (anim_clock >= 1) ? 1 : 1 - _q * _q * _q;
 }
 if (page_ofs != 0) {
-	page_ofs = trickle(page_ofs, 0, 5);
-	if (abs(page_ofs) < .05) page_ofs = 0;
+	// (4-arg trickle: no hardpoint of its own; settled by PIXELS here,
+	// not rows - a twentieth of a row was most of a pixel)
+	page_ofs = trickle(page_ofs, 0, 5, 0);
+	if (abs(page_ofs) * row_h < .25) page_ofs = 0;
 }
 
 // ---- widget chaperone: park EVERYTHING ever registered (a widget

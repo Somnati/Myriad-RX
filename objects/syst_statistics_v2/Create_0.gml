@@ -224,7 +224,16 @@ mx = 0;
 anim_pend  = -1;  // display row of a JUST-toggled folder (Step captures)
 anim_row   = -1;  // the fold line's row index in the NEW build
 anim_n     = 0;   // rows inserted (+) or removed (-) by the toggle
-anim_t     = 1;   // 0 -> 1 ease; 1 = at rest
+anim_t     = 1;   // 0 -> 1 EASED; 1 = at rest (read everywhere)
+// ⚖️ THE UNFURL RUNS ON A CLOCK (his report, 2026-09-10: folders "snap
+// before they settle"). It used to be trickle(anim_t, 1, 5) - an
+// exponential approach with a hardpoint - cut off at .98. Two percent
+// of a twenty-row fold is six pixels, and trickle's own hardpoint was
+// three more: the tail of every big unfurl was a jump. So the ease is
+// a linear clock through a cubic ease-out now: it reaches 1 EXACTLY,
+// at zero velocity, and the last frame moves a hundredth of a pixel.
+anim_clock = 1;   // 0 -> 1 linear, delta/UNFURL_FRAMES a frame
+#macro UNFURL_FRAMES 18
 anim_ghost = [];  // closing: the removed child rows (frozen copies)
 page_ofs   = 0;   // visual row offset easing the scroll-clamp jump home
 // ---- THE OPEN ANIMATION (his ask, 2026-09-09: it "just pops in") ----
