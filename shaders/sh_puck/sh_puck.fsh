@@ -55,9 +55,10 @@ float sd_puck(vec3 p)
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - CR;
 }
 
-// one ray, one transform: the cell's quad point s (in radii, about the
+// one ray, one transform (puck_cast: `cast` is an HLSL intrinsic and the
+// Windows build cross-compiles to HLSL): the cell's quad point s (in radii, about the
 // quad centre), the puck's yaw at that instant. Returns false on a miss.
-bool cast(vec2 s, float yaw, out vec3 col)
+bool puck_cast(vec2 s, float yaw, out vec3 col)
 {
     // view -> object is a yaw about z, so it is a 2x2 on xy and nothing
     // on the axis. Inverse of a rotation by yaw is a rotation by -yaw.
@@ -159,7 +160,7 @@ void main()
         vec2 off = (ft - 0.5) * u_mb.xy;
         float yw = u_yaw - (1.0 - ft) * u_mb.z;
         vec3 c;
-        if (cast(s - off, yw, c)) { acc += c; hits += 1.0; }
+        if (puck_cast(s - off, yw, c)) { acc += c; hits += 1.0; }
     }
     if (hits < 0.5) discard;
     gl_FragColor = vec4(acc / hits, hits / float(K));
