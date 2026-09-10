@@ -4,14 +4,19 @@ The house pattern (forge_twin, ngu_twin, timebank_twin): model the
 shipped maths in Python, state the invariants out loud, and print HOLDS
 or FAILS. Tune here, port the numbers back - never the other way round.
 
-WHAT IS BEING TESTED. The tile table earns SHARDS, and shards buy tile
-upgrades, and those upgrades make the table earn more shards. That is a
-closed positive-feedback loop with no external brake, so the only thing
-standing between it and a runaway is the cost curve. This script exists
-to prove the curve wins.
+WHAT IS BEING ASKED (2026-09-09, his question): how fast can the four
+upgrades actually be bought, and does the pacing feel good? Those are
+different questions and the second is the real one. A curve can be
+perfectly safe and still feel awful in either direction - a purchase
+every four seconds is a slot machine, a purchase every nine hours is a
+wall, and the old deceleration invariant is happy with both.
 
-The model is tile_gps / tile_roll_tier / tiles_tick's fabricator and
-auto-merger / tiles_merge / tile_upg, term for term.
+So the headline is a PURCHASE TIMELINE and the gaps between purchases.
+The invariants are still checked at the bottom, because a curve that
+feels good and runs away is still broken.
+
+The model is tile_gps / tile_rarity_rate / tile_roll_tier / tiles_tick's
+fabricator and auto-merger / tiles_merge / tile_upg, term for term.
 
 Run:  python datafiles/tiles_twin.py
 """
@@ -23,43 +28,32 @@ import random as _rnd
 SLOTS_BASE   = 16
 FAB_T_BASE   = 10.0    # seconds per fabricated tile
 AM_MULT      = 1.5     # auto-merge interval = fab_t x this
-STORED_MAX   = 10
 
 # the rarity ladder (rarity_odds, tile knobs)
 R_SCALE, R_GROW, R_CUT = .3, .03, 800
+RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 
-# the upgrades: base cost in shards, and what one level does
-# TUNED BY THE SWEEP AT THE BOTTOM OF THIS FILE, not by taste. The
-# first pass had bases in the tens and multipliers under 2.5, and the
-# table bought all twenty-six upgrades in six minutes - the loop simply
-# outran its own prices. Shards accrue at tile_gps rates, which reach
-# hundreds per second within minutes and climb as t^1.5, so the bases
-# belong in the hundreds of thousands and the multipliers above 3.
-# CUT TO TWO (2026-09-08, his call), and the cost story changed with
-# them. The old four were MULTIPLICATIVE in effect - a speed FACTOR, a
-# luck step that shifted a whole spread - so they compounded and needed
-# multipliers above 3 to stay ahead. These two are LINEAR (+10% of the
-# rate a level, -0.1s a level) against a geometric price, so the loop
-# decelerates by construction and x1.5 is enough. The bases are his,
-# deliberately reachable.
-UPG = {
-    #            base      mult    what a level gives
-    "profit": {"base": 1000,  "mult": 3.0},   # gps x (1 + .10 * lv)
-    "fab":    {"base": 10000, "mult": 3.0},   # fab_t - 6 frames, floor 30
-}
-SPEED_FACTOR = .88
-# ⚖️ SECONDS HERE, FRAMES IN THE GAME. main_macros stores TILE_FAB_STEP
-# as 6 and TILE_FAB_MIN as 30 because tiles_tick counts delta (frames at
+# SECONDS HERE, FRAMES IN THE GAME. main_macros stores TILE_FAB_STEP as
+# 6 and TILE_FAB_MIN as 30 because tiles_tick counts delta (frames at
 # 60hz); this twin has always worked in seconds, so they are /60. Getting
-# this wrong once already cost a run: FAB_MIN of 30 read as 30 SECONDS
-# and floored the fabricator above its own base, so the upgrade did
-# nothing and the twin cheerfully reported it as bought ten times.
-FAB_STEP     = 0.1    # main_macros TILE_FAB_STEP (6 frames)
-FAB_MIN      = 0.5    # main_macros TILE_FAB_MIN  (30 frames)
-PROFIT_STEP  = .10    # main_macros TILE_PROFIT_STEP
-LUCK_STEP    = 60
-SLOT_STEP    = 2
-BANK_STEP    = 8
+# it wrong once already cost a run: FAB_MIN of 30 read as 30 SECONDS and
+# floored the fabricator above its own base, so the upgrade did nothing
+# and the twin cheerfully reported it bought ten times.
+FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames)
+FAB_MIN      = 0.5     # TILE_FAB_MIN  (30 frames)
+PROFIT_STEP  = .10     # TILE_PROFIT_STEP
+LUCK_STEP    = 20      # TILE_LUCK_STEP - PERCENTAGE POINTS a level
+BANK_BASE    = 0       # TILE_BANK_BASE - his call, nothing until bought
+BANK_STEP    = 1       # TILE_BANK_STEP
+
+# COSTS ARE IN DECADES: cost = base x 10^(e x level). tile_upg prices in
+# log space and the roster carries the log, so `e` is the exponent.
+UPG = {
+    "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
+    "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
+    "luck":   {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .20 lv)
+    "fab":    {"base": 10000, "e": 2.5, "max": 95},    # -0.1s, floor 0.5s
+}
 
 ok = True
 
@@ -71,9 +65,25 @@ def say(passed, label, detail=""):
           + (("   " + detail) if detail else ""))
 
 
+def hms(s):
+    s = int(s)
+    if s < 60:
+        return "%ds" % s
+    if s < 3600:
+        return "%dm%02ds" % (s // 60, s % 60)
+    if s < 86400:
+        return "%dh%02dm" % (s // 3600, (s % 3600) // 60)
+    return "%dd%02dh" % (s // 86400, (s % 86400) // 3600)
+
+
+def eng(v):
+    if v < 1e5:
+        return "%.0f" % v
+    return "1e%.1f" % math.log10(max(v, 1e-9))
+
+
 # ------------------------------------------------------------- the maths
 def tile_gps(tier):
-    """tile_gps, in plain floats (the arb packing is log10 anyway)."""
     if tier <= 1:
         return 1.0
     if tier == 2:
@@ -85,9 +95,8 @@ def tile_gps(tier):
 
 
 def rarity_odds(rate, n=14):
-    """rarity_odds, the shared band ladder."""
     base = 100.0
-    f = (rate % cut_of(rate)) / R_CUT if False else (rate / R_CUT) % 1.0
+    f = (rate / R_CUT) % 1.0
     f = f ** 1.65
     f = (((base + 100) / (100 + (base + 100 - 100) * f)) - 1) * 100
     f = ((base - f) / base) % 1.0
@@ -105,10 +114,6 @@ def rarity_odds(rate, n=14):
     return out
 
 
-def cut_of(_):
-    return R_CUT
-
-
 def roll_tier(rate, rng):
     o = rarity_odds(rate)
     p = rng.random()
@@ -122,7 +127,12 @@ def roll_tier(rate, rng):
 
 def upg_cost(kind, lv):
     u = UPG[kind]
-    return u["base"] * u["mult"] ** lv
+    return u["base"] * 10.0 ** (u["e"] * lv)
+
+
+def upg_maxed(kind, lv):
+    m = UPG[kind]["max"]
+    return m is not None and lv >= m
 
 
 # ------------------------------------------------------------ the table
@@ -137,15 +147,18 @@ class Table:
         self.shards = 0.0
         self.made = 0
         self.merges = 0
+        self.log = []          # (t, kind, new level, cost)
 
     # derived, never stored - the same law the GML follows
-    # the retired knobs are FIXED now - the board keeps its base shape
-    # and only the two live upgrades move
     def slots(self):    return SLOTS_BASE
     def fab_t(self):    return max(FAB_MIN, FAB_T_BASE - FAB_STEP * self.lv["fab"])
-    def bank_max(self): return STORED_MAX
-    def luck(self):     return 0
+    def bank_max(self): return BANK_BASE + BANK_STEP * self.lv["bank"]
     def gps_mult(self): return 1 + PROFIT_STEP * self.lv["profit"]
+
+    def luck(self):
+        # tile_rarity_rate: the flat base, then the upgrade as a
+        # MULTIPLIER (DE's chain). No deck bonus - nothing grants it yet.
+        return RARITY_BASE * (1 + LUCK_STEP * self.lv["luck"] / 100.0)
 
     def gps(self):
         # the profit boost multiplies the BOARD's total, as tiles_tick
@@ -156,32 +169,38 @@ class Table:
         return self.slots() - len(self.tier)
 
     def step(self, dt):
-        # fabricate
+        # ---- fabricate ----
+        # THE HOPPER IS OVERFLOW, NOT A CONVEYOR (tiles_tick, 2026-09-09):
+        # a finished tile is kept if there is anywhere for it to go, and
+        # the BOARD is the first of those places. Gating purely on hopper
+        # room is what made a zero hopper a dead fabricator.
         self.fab += dt
         while self.fab >= self.fab_t():
-            self.fab -= self.fab_t()
-            if self.stored >= self.bank_max():
-                self.fab = self.fab_t()      # full, waits (never lost)
+            if self.free() == 0 and self.stored >= self.bank_max():
+                self.fab = self.fab_t()      # board full AND hopper full
                 break
+            self.fab -= self.fab_t()
             self.stored += 1
             self.made += 1
-        # drain the bank onto free slots
+            if self.free() > 0 and self.stored > 0:
+                self.stored -= 1             # the tick's next block
+                self.tier.append(roll_tier(self.luck(), self.rng))
         while self.stored > 0 and self.free() > 0:
             self.stored -= 1
             self.tier.append(roll_tier(self.luck(), self.rng))
-        # auto-merge
+        # ---- auto-merge ----
         self.am += dt
         period = self.fab_t() * AM_MULT
         while self.am >= period:
             self.am -= period
             if not self._merge():
-                self.am = period             # full, waiting
+                self.am = period             # no pair, waiting
                 break
         # the deadlock failsafe: a full board with no pair tiers its
         # lowest tile up, so play never stalls
         if self.free() == 0 and not self._has_pair():
             self.tier[self.tier.index(min(self.tier))] += 1
-        # shards
+        # ---- shards ----
         self.shards += self.gps() * dt
 
     def _has_pair(self):
@@ -191,6 +210,7 @@ class Table:
         seen = {}
         for i, t in enumerate(self.tier):
             if t in seen:
+                # TILE_BONUS_TIER is parked, so a merge is always +1
                 self.tier[seen[t]] += 1
                 self.tier.pop(i)
                 self.merges += 1
@@ -198,103 +218,159 @@ class Table:
             seen[t] = i
         return False
 
+    def try_buy(self, t):
+        """greedy: the CHEAPEST affordable upgrade, repeatedly."""
+        did = False
+        while True:
+            best, bestc = None, None
+            for k in UPG:
+                if upg_maxed(k, self.lv[k]):
+                    continue
+                c = upg_cost(k, self.lv[k])
+                if c <= self.shards and (bestc is None or c < bestc):
+                    best, bestc = k, c
+            if best is None:
+                return did
+            self.shards -= bestc
+            self.lv[best] += 1
+            self.log.append((t, best, self.lv[best], bestc))
+            did = True
+
+
+def run(hours, buy=True, seed=7):
+    tb = Table(seed)
+    for t in range(int(hours * 3600)):
+        tb.step(1.0)
+        if buy:
+            tb.try_buy(t + 1)
+    return tb
+
 
 # ======================================================================
 print(__doc__.strip().splitlines()[0])
-print("=" * 70)
+print("=" * 74)
 
 # --- 1. THE VALUE CURVE -----------------------------------------------
 print()
 print("1. WHAT A TIER IS WORTH  (tile_gps)")
-print("      tier    value      x the tier below")
+print("      tier      value    x the tier below")
 prev = None
 for t in (1, 2, 3, 4, 6, 8, 10, 12, 14):
     v = tile_gps(t)
-    print("      %4d  %10.3g   %s" % (t, v, "-" if prev is None else "%.2fx" % (v / prev)))
+    print("      %4d %10s    %s" % (t, eng(v), "-" if prev is None else "%.2fx" % (v / prev)))
     prev = v
-r = tile_gps(10) / tile_gps(9)
-say(r > 2, "merging up beats hoarding",
-    "a tier is worth %.2fx the one below, and it costs TWO of them" % r)
+say(tile_gps(10) / tile_gps(9) > 2,
+    "merging up beats hoarding", "a tier is worth >2x the one below")
 
 # --- 2. THE SPREAD ----------------------------------------------------
 print()
-print("2. THE FABRICATOR'S SPREAD  (luck 0, then upgraded)")
-for rate in (0, 240, 600, 1200):
+print("2. THE FABRICATOR'S SPREAD  (rate = 100 base, x the luck upgrade)")
+for lv in (0, 1, 5, 10, 35):
+    rate = RARITY_BASE * (1 + LUCK_STEP * lv / 100.0)
     o = rarity_odds(rate, 10)
-    live = " ".join("t%d %.1f%%" % (i + 1, p * 100) for i, p in enumerate(o) if p > .004)
-    print("      luck %4d:  %s" % (rate, live))
-say(rarity_odds(1200, 10)[0] == 0,
-    "luck eventually retires the bottom tier entirely",
-    "past each cutoff the lowest tier stops spawning, not just thins")
+    live = " ".join("t%d %.0f%%" % (i + 1, p * 100) for i, p in enumerate(o) if p > .01)
+    print("      lv%-3d rate %5.0f:  %s" % (lv, rate, live))
 
-# --- 3. THE LOOP ------------------------------------------------------
-# The whole point. Run the table, buy the cheapest affordable upgrade
-# whenever one is affordable, and watch the WAIT between purchases.
+# --- 3. THE PURCHASE TIMELINE ----------------------------------------
 print()
-print("3. DOES THE LOOP DECELERATE?  (buy the cheapest affordable, always)")
-tb = Table()
-t = 0.0
-dt = 1.0
-buys = []
-last_buy_t = 0.0
-LIMIT = 60 * 60 * 24 * 30       # thirty days of simulated table
-while t < LIMIT and len(buys) < 26:
-    tb.step(dt)
-    t += dt
-    while True:
-        aff = [(upg_cost(k, tb.lv[k]), k) for k in UPG
-               if upg_cost(k, tb.lv[k]) <= tb.shards]
-        if not aff:
-            break
-        cost, kind = min(aff)
-        tb.shards -= cost
-        tb.lv[kind] += 1
-        buys.append((t - last_buy_t, kind, t))
-        last_buy_t = t
+print("3. THE PURCHASE TIMELINE  (greedy: cheapest affordable, 24h)")
+tb = run(24)
+print("      %-9s %-8s %-6s %10s %10s" % ("at", "upgrade", "level", "cost", "gap"))
+prev_t = 0
+for (t, k, lv, c) in tb.log[:20]:
+    print("      %-9s %-8s %-6d %10s %10s"
+          % (hms(t), k, lv, eng(c), hms(t - prev_t)))
+    prev_t = t
+if len(tb.log) > 20:
+    print("      ... and %d more" % (len(tb.log) - 20))
+if not tb.log:
+    print("      (nothing was ever affordable)")
 
-print("      #   bought   waited      at        board  luck  fab   top tier")
-for i, (wait, kind, at) in enumerate(buys):
-    if i % 3 and i != len(buys) - 1:
-        continue
-    print("      %2d  %-6s  %7.1fm  %8.1fh   %3d   %4d  %4.1fs  %d"
-          % (i + 1, kind, wait / 60, at / 3600, tb.slots(), tb.luck(),
-             tb.fab_t(), max(tb.tier) if tb.tier else 0))
-
-if len(buys) >= 12:
-    early = sum(w for w, _, _ in buys[2:6]) / 4
-    late  = sum(w for w, _, _ in buys[-4:]) / 4
-    say(late > early * 3,
-        "the wait between purchases GROWS - the cost curve wins",
-        "buys 3-6 averaged %.1f min apart, the last four %.1f min (x%.0f)"
-        % (early / 60, late / 60, late / early))
-else:
-    say(False, "the loop stalled before 12 purchases",
-        "only %d in thirty days - the costs are too steep" % len(buys))
-
-# --- 4. NOT A RUNAWAY -------------------------------------------------
+# --- 4. THE PACING ----------------------------------------------------
 print()
-print("4. IS IT A RUNAWAY?")
-print("      after %.0f days: %d tiles made, %d merges, top tier %d"
-      % (t / 86400, tb.made, tb.merges, max(tb.tier) if tb.tier else 0))
-print("      income %.3g shards/sec, next purchase costs %.3g"
-      % (tb.gps(), min(upg_cost(k, tb.lv[k]) for k in UPG)))
-secs_to_next = min(upg_cost(k, tb.lv[k]) for k in UPG) / max(tb.gps(), 1e-9)
-print("      which is %.1f hours of the CURRENT rate" % (secs_to_next / 3600))
-say(secs_to_next > 3600,
-    "the next purchase is always a real wait, never a formality",
-    "%.1f h at the rate the table has just reached" % (secs_to_next / 3600))
+print("4. THE PACING  (what it feels like)")
+for h in (1 / 60.0, 10 / 60.0, 1, 8, 24):
+    n = len([1 for (t, _, _, _) in tb.log if t <= h * 3600])
+    print("      after %-8s %2d upgrade(s)" % (hms(h * 3600), n))
+gaps = [tb.log[i][0] - tb.log[i - 1][0] for i in range(1, len(tb.log))]
+if gaps:
+    print("      gap between purchases: median %s, longest %s"
+          % (hms(sorted(gaps)[len(gaps) // 2]), hms(max(gaps))))
+print("      levels at 24h: " + ", ".join("%s %d" % (k, tb.lv[k]) for k in UPG))
+print("      board at 24h:  top tier %d, %s shards/s, %s banked"
+      % (max(tb.tier) if tb.tier else 0, eng(tb.gps()), eng(tb.shards)))
 
-# --- 5. EVERY UPGRADE GETS BOUGHT -------------------------------------
+# --- 5. THE FEEL TEST -------------------------------------------------
 print()
-print("5. IS ANY UPGRADE DEAD?")
-for k in UPG:
-    n = sum(1 for _, kind, _ in buys if kind == k)
-    print("      %-6s  bought %2d times   (base %d, x%.1f a level)"
-          % (k, n, UPG[k]["base"], UPG[k]["mult"]))
-say(all(any(kind == k for _, kind, _ in buys) for k in UPG),
-    "every upgrade is worth buying at some point",
+print("5. DOES IT FEEL GOOD")
+first = tb.log[0][0] if tb.log else None
+say(first is not None and first <= 300,
+    "the first upgrade lands inside 5 minutes",
+    "at %s" % (hms(first) if first else "never"))
+n1h = len([1 for (t, _, _, _) in tb.log if t <= 3600])
+say(3 <= n1h <= 12,
+    "the first hour buys 3-12",
+    "%d - neither a slot machine nor a wall" % n1h)
+if gaps:
+    say(max(gaps) <= 6 * 3600,
+        "no gap over 6h in the first day", "longest %s" % hms(max(gaps)))
+say(all(any(k == kk for (_, kk, _, _) in tb.log) for k in UPG),
+    "every upgrade gets bought",
     "one nobody ever buys is one that should not exist")
 
+# --- 6. THE RUNAWAY CHECK --------------------------------------------
 print()
-print("=" * 70)
+print("6. THE LOOP STILL DECELERATES")
+a = run(6)
+nxt = min(upg_cost(k, a.lv[k]) for k in UPG if not upg_maxed(k, a.lv[k]))
+hour = a.gps() * 3600
+say(nxt > hour,
+    "at 6h the next upgrade costs more than an hour of income",
+    "next %s vs an hour %s" % (eng(nxt), eng(hour)))
+if len(gaps) >= 8:
+    early = sum(gaps[1:5]) / 4.0
+    late = sum(gaps[-4:]) / 4.0
+    say(late > early,
+        "the wait GROWS as the table matures",
+        "early %s -> late %s" % (hms(early), hms(late)))
+
+# --- 7. DO THE UPGRADES MATTER AT ALL? -------------------------------
+# ⚖️ THE INVARIANT THIS FILE WAS MISSING, and the one that actually
+# failed (2026-09-09). Every previous version asked whether the cost
+# curve could be outrun. None asked whether the upgrades were WORTH
+# buying - and the answer turned out to be barely. Buying all four for a
+# solid day is worth ~1.6x against a merge loop that delivers ~1e6x on
+# its own, because every effect here is LINEAR (+10% of the rate, -0.1s,
+# +20% of a rate whose threshold is 800, +1 tile) while board income is
+# EXPONENTIAL in tier and tiers climb by themselves.
+#
+# A cost curve cannot fix that. An upgrade nobody would miss is not a
+# pacing problem, it is a design one.
+print()
+print("7. DO THE UPGRADES MATTER?  (buy everything vs buy nothing)")
+print("      %-6s %13s %13s %9s" % ("hours", "no upgrades", "all upgrades", "worth"))
+worth = 1.0
+for h in (1, 6, 24):
+    x = run(h, buy=False)
+    y = run(h, buy=True)
+    worth = y.gps() / max(x.gps(), 1e-9)
+    print("      %-6d %13s %13s %8.2fx  (tier %d vs %d)"
+          % (h, eng(x.gps()), eng(y.gps()), worth,
+             max(y.tier) if y.tier else 0, max(x.tier) if x.tier else 0))
+say(worth >= 3,
+    "a day of upgrades is worth at least 3x",
+    "%.2fx - the board's own merge loop delivers ~1e6x, so anything "
+    "under this is decoration" % worth)
+
+print()
+print("      what the 24h levels are actually worth:")
+print("        profit lv%d -> board rate x%.2f" % (tb.lv["profit"], tb.gps_mult()))
+print("        fab    lv%d -> fabricator %.1fs (from %.1fs)"
+      % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE))
+print("        luck   lv%d -> rarity %.0f (from %d; %d is one floor shift)"
+      % (tb.lv["luck"], tb.luck(), RARITY_BASE, R_CUT))
+print("        bank   lv%d -> hopper %d tiles" % (tb.lv["bank"], tb.bank_max()))
+
+print()
+print("=" * 74)
 print("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port")
