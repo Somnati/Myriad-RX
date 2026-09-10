@@ -54,6 +54,7 @@ if (_pselid != -1 && pill_kind != "") {
 		for (var _q = 0; _q < array_length(_pills); _q++)
 			_pills[_q].enabled = (_pills[_q].val == _pselval);
 	_pselid = -1;
+	click_tic = 12;   // DE's tic: the pick's press must not also be a row's
 	// picks that opened a keep/revert popup save when that resolves;
 	// everything else saves now
 	if (!confirm_active) dirty_tic = 45;
@@ -164,7 +165,13 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone)
 // so rooms that use escape for something else stay safe)
 if (keyboard_check_pressed(vk_escape)) { settings_close(); exit; }
 
+click_tic = max(0, click_tic - delta);
+// NO ROW HEARS A PRESS WHILE A DROPDOWN EXISTS (DE's rule, his ask) or
+// while the click timer runs - the pillbox owns the pointer until it
+// has gone, however the frames fall
+if (instance_exists(obj_pillbox) || click_tic > 0) exit;
 if (mouse_check_button_pressed(mb_left)) {
+	click_tic = 6;   // DE's tic: one tap, then a beat
 
 	// (no back button - the burger is the X, his call 2026-09-10)
 
