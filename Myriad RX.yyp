@@ -232,6 +232,7 @@
     {"id":{"name":"crunch_time_ago","path":"scripts/crunch_time_ago/crunch_time_ago.yy",},},
     {"id":{"name":"crunch_time_long","path":"scripts/crunch_time_long/crunch_time_long.yy",},},
     {"id":{"name":"crunch_time","path":"scripts/crunch_time/crunch_time.yy",},},
+    {"id":{"name":"cursor_kick","path":"scripts/cursor_kick/cursor_kick.yy",},},
     {"id":{"name":"debug_pro_log","path":"scripts/debug_pro_log/debug_pro_log.yy",},},
     {"id":{"name":"debug_pro_watch","path":"scripts/debug_pro_watch/debug_pro_watch.yy",},},
     {"id":{"name":"deck_card_info","path":"scripts/deck_card_info/deck_card_info.yy",},},

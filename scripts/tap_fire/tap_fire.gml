@@ -110,6 +110,15 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 		// keeps its haptic: it is the one tap you want to FEEL differently.
 		if (_crit) { sfx_play("crit"); vibrate(30, 3); }
 		else         sfx_play("tap");
+		// ⚖️ THE POINTER'S SQUISH IS THE TAP'S, and it goes with the sound
+		// (his ask, 2026-09-10): a held tap in another room plays nothing
+		// and shows nothing, so the arrow squashing there was feedback
+		// for an event that was not performing. It kicks here, inside the
+		// same gate as the sound, and never under an overlay - the tapper
+		// keeps paying through settings or statistics, but a pointer
+		// bouncing over a settings page is noise on a screen that is not
+		// about tapping.
+		if (ui_overlay() == noone) cursor_kick();
 	}
 
 	if (!_show) {

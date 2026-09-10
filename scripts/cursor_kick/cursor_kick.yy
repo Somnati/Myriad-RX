@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cursor_kick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cursor_kick",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
