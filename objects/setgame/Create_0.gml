@@ -6,6 +6,7 @@
 	// visual option globals: initialized here so rooms that READ them
 	// never depend on the settings-room toggles having run first
 	g.blur = true;   // settings > display "menu blur"
+	g.cursor_ray = true;   // settings > visuals "raycast pointer" (sh_cursor)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

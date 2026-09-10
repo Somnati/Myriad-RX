@@ -35,6 +35,7 @@ function handle_settings(_method) {
 	g.fullscreen_borderless = handle("fullscreen_borderless",g.fullscreen_borderless);
 	g.vsync = handle("vsync",abs(g.vsync));
 	g.blur = handle("blur",g.blur);
+	g.cursor_ray = handle("cursor_ray",g.cursor_ray); // the pointer's raycast shading
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);
 	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve

@@ -20,6 +20,16 @@ persistent = true;
 // no OS pointer under ours
 window_set_cursor(cr_none);
 
+// THE RAYCAST (his ask, 2026-09-10): sh_cursor lights the arrow as an
+// extruded solid the way the dice and the puck are lit, silhouette
+// still the sprite's texel for texel - read the shader's header. The
+// uniforms are looked up once; the sprite's page rect and trim are
+// what let the fragment turn a texcoord back into a sprite pixel.
+u_uv    = shader_get_uniform(sh_cursor, "u_uv");
+u_trim  = shader_get_uniform(sh_cursor, "u_trim");
+u_light = shader_get_uniform(sh_cursor, "u_light");
+u_on    = shader_get_uniform(sh_cursor, "u_on");
+
 // THE SQUISH (his ask, 2026-09-10: "a cute lil squish effect" on a
 // click): a press kicks a spring that squashes the arrow wide and
 // short, and it wobbles back to shape. sq is the squash amount, sqv

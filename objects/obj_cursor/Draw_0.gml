@@ -28,5 +28,16 @@ for (var _i = 0; _i < 4; _i++) {
 	_qx[_i] = mousex + _a * _ax + _c * _nx;
 	_qy[_i] = mousey + _a * _ay + _c * _ny;
 }
+// ...and through the raycast (settings > visuals "raycast pointer").
+// The page rect + trim come from sprite_get_uvs: GM may crop a sprite's
+// transparent margin on the texture page, and the shader has to know
+// where the trimmed rect sits in the 16x16 to recover the pixel.
+var _uv = sprite_get_uvs(spr_cursor, 0);
+shader_set(sh_cursor);
+shader_set_uniform_f(u_uv, _uv[0], _uv[1], _uv[2], _uv[3]);
+shader_set_uniform_f(u_trim, _uv[4], _uv[5], _w * _uv[6], _h * _uv[7]);
+shader_set_uniform_f(u_light, -.42, -.62, .66);   // the dice's light
+shader_set_uniform_f(u_on, (variable_global_exists("cursor_ray") && g.cursor_ray) ? 1 : 0);
 draw_sprite_pos(spr_cursor, 0, _qx[0], _qy[0], _qx[1], _qy[1],
 	_qx[2], _qy[2], _qx[3], _qy[3], 1);
+shader_reset();

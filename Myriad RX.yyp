@@ -546,6 +546,7 @@
     {"id":{"name":"vibrate","path":"scripts/vibrate/vibrate.yy",},},
     {"id":{"name":"vis_tier_color","path":"scripts/vis_tier_color/vis_tier_color.yy",},},
     {"id":{"name":"write","path":"scripts/write/write.yy",},},
+    {"id":{"name":"sh_cursor","path":"shaders/sh_cursor/sh_cursor.yy",},},
     {"id":{"name":"sh_dice","path":"shaders/sh_dice/sh_dice.yy",},},
     {"id":{"name":"sh_fog_dither","path":"shaders/sh_fog_dither/sh_fog_dither.yy",},},
     {"id":{"name":"sh_mandel","path":"shaders/sh_mandel/sh_mandel.yy",},},

@@ -176,6 +176,13 @@ function settings_content() {
 		+ "edges - the blur is what keeps that gradient smooth, so the "
 		+ "two go together. off saves a little gpu.");
 
+	settings_toggle("raycast pointer",
+		function() { return g.cursor_ray; },
+		function(_v) { g.cursor_ray = _v; },
+		"the arrow lit as a solid, the way the dice and the puck are - "
+		+ "same light, same finish. the shape is the same to the pixel; "
+		+ "off is the flat arrow.");
+
 	// room transition style (round 7's showcase slice wipe vs the
 	// classic circle; goto_room latches the pick per flight)
 	settings_pill("transition", "transkind",
