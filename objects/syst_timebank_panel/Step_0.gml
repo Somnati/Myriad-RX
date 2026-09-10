@@ -22,7 +22,7 @@ if (qtic <= 0) {
 // ---- input: only once the panel has fully arrived, and only while
 // nothing sits over it (a dropdown, the menu) ----
 if (oa < .999 || closing) exit;
-if (!input_free(ui_layer_popup)) exit;
+if (!input_free(ui_layer_overlay)) exit;   // muted under a pillbox / popup / the menu
 if (keyboard_check_pressed(vk_escape)) { timebank_close(); exit; }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;

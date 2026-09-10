@@ -68,7 +68,7 @@ if (_da > 0) {
 		var _c  = dial_color(_i);
 		var _y  = __dot_y(_i);          // the row it becomes
 		var _r0 = row_h * .5;                      // DE's des_size_
-		var _bg = merge_colour(_c, c_black, .8);   // the dark disc
+		var _bg = merge_colour(_c, c_black, .9);   // the dark disc (his ask: darker; was .8)
 		draw_set_alpha(_da);
 		draw_circle_colour(_dx, _y, _r0, _bg, _bg, false);
 		if (_d.level > 0) {

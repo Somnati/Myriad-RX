@@ -126,14 +126,27 @@ __row_at = function(_my) {
 };
 
 // tab rail geometry: shared by draw and hit test - no drift possible
+// ⚖️ THE RAIL SCROLLS (his ask, 2026-09-10: twelve tabs no longer fit
+// the band). rail_scroll slides every tab up; a slim bar at the rail's
+// left edge shows where you are and the tabs sit RAIL_BAR px further
+// right to make room for it. The wheel scrolls it, and on touch a drag
+// on the rail scrolls it while a tap (no travel) still picks a tab.
+RAIL_BAR    = 5;   // the scroll mark's lane, left of the tabs
+rail_scroll = 0;
+rail_px     = -1;  // a press on the rail: where it started (-1 = none)
+rail_s0     = 0;   // ...and the scroll it started at
+rail_drag   = false;
 __tabs = function() {
 	var _out = [];
-	var _ty = list_y + 3;
+	var _ty = list_y + 3 - rail_scroll;
 	for (var _i = 0; _i < array_length(sections); _i++) {
-		array_push(_out, { x1 : 2, y1 : _ty, x2 : rail_w - 4, y2 : _ty + 17, idx : _i });
+		array_push(_out, { x1 : 2 + RAIL_BAR, y1 : _ty, x2 : rail_w - 4, y2 : _ty + 17, idx : _i });
 		_ty += 19;
 	}
 	return _out;
+};
+__rail_max = function() {
+	return max(0, array_length(sections) * 19 + 6 - (room_height - list_y));
 };
 
 // THE ACTIVE TAB'S SLICE: the rows between its top-level folder marker

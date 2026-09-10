@@ -107,8 +107,47 @@ if (keyboard_check_pressed(vk_escape)) { statistics_close(); exit; }
 // honest answer is to take no input at all until they agree again.
 // (The hover-only reads in the Draw are exempt by construction: they
 // test against _ry, which already carries the offset.)
+// ---- THE RAIL'S SCROLL: the wheel over it, or a drag; a release
+// without travel picks the tab under the press ----
+if (oa >= .999 && !closing && input_free(ui_layer_overlay)) {
+	if (mouse_x < rail_w && mouse_y >= list_y) {
+		var _rw = (mouse_wheel_down() ? 1 : 0) - (mouse_wheel_up() ? 1 : 0);
+		if (_rw != 0) rail_scroll = clamp(rail_scroll + _rw * 19, 0, __rail_max());
+	}
+	if (rail_px >= 0) {
+		if (mouse_check_button(mb_left)) {
+			var _dy = rail_px - mouse_y;
+			if (abs(_dy) > 6) rail_drag = true;
+			if (rail_drag) rail_scroll = clamp(rail_s0 + _dy, 0, __rail_max());
+		} else {
+			if (!rail_drag) {
+				var _tb = __tabs();
+				for (var _i = 0; _i < array_length(_tb); _i++)
+					if (point_in_rectangle(mouse_x, rail_px, _tb[_i].x1, _tb[_i].y1,
+						_tb[_i].x2, _tb[_i].y2)) {
+						// switching resets the page, since a remembered
+						// page from a long tab means landing mid-air in a
+						// short one - settings does the same
+						if (_i != g.stats_tab) {
+							g.stats_tab = _i;
+							g.stats_page = 0;
+							__slice();
+							help_txt = "";
+							play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
+						}
+						break;
+					}
+			}
+			rail_px = -1;
+		}
+	}
+} else rail_px = -1;
+rail_scroll = clamp(rail_scroll, 0, __rail_max());
+
+// (ui_layer_overlay: free with the panel up, muted under a pillbox or
+// a popup - see syst_settings' note on the click-through)
 if (oa >= .999 && !closing)
-if (input_free(ui_layer_popup))
+if (input_free(ui_layer_overlay))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
 	var _bby = obj_ui_header.bar_h;
@@ -133,23 +172,12 @@ if (mouse_check_button_pressed(mb_left)) {
 		exit;
 	}
 
-	// the rail: pick a category. Switching resets the scroll, since a
-	// remembered page from a long tab means landing mid-air in a short
-	// one - settings does the same
+	// the rail: a press here only ARMS - the tab lands on release
+	// without travel, and travel scrolls the rail instead (see below)
 	if (mouse_x < rail_w && mouse_y >= list_y) {
-		var _tb = __tabs();
-		for (var _i = 0; _i < array_length(_tb); _i++)
-			if (point_in_rectangle(mouse_x, mouse_y, _tb[_i].x1, _tb[_i].y1,
-				_tb[_i].x2, _tb[_i].y2)) {
-				if (_i != g.stats_tab) {
-					g.stats_tab = _i;
-					g.stats_page = 0;
-					__slice();
-					help_txt = "";
-					play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
-				}
-				exit;
-			}
+		rail_px   = mouse_y;
+		rail_s0   = rail_scroll;
+		rail_drag = false;
 		exit;   // a tap on the rail is never a tap on a row
 	}
 

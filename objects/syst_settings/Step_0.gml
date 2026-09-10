@@ -150,8 +150,15 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 // about twenty frames, so the honest answer is to accept no input at
 // all until they agree again. It also kills the click-through: a press
 // that opened this panel can no longer run twice on the way in.
+// ⚖️ ui_layer_overlay, NOT ui_layer_popup (his report, 2026-09-10:
+// picking a pill also opened the settings row under it). The popup
+// gate dates from when this overlay raised the popup block itself;
+// since the overlay rung landed, a pillbox's block (200) no longer
+// muted a gate at 200 - so the press that picked the pill fell through
+// to the row it was floating over. At the panel's own rung the rows
+// are free with the panel up and muted under any pillbox or popup.
 if (oa >= .999 && !closing)
-if (input_free(ui_layer_popup))
+if (input_free(ui_layer_overlay))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 // escape closes (the menu drawer's own nicety; it never OPENS settings,
 // so rooms that use escape for something else stay safe)

@@ -234,6 +234,17 @@ else { hold_row = -1; hold_t = 0; hold_ct = HOLD_LEAD; }
 // It fires WHILE HELD, like DE's - the drawer answers the moment the
 // gesture qualifies rather than waiting for the finger to come up, and
 // sw_tic keeps it from re-firing for the rest of the press.
+//
+// ⚖️ A HAND ON THE PUCK OR A DIE IS NOT A HAND ON THE DRAWER (his ask,
+// 2026-09-10 - the tile drawer's rule for a held tile). Throwing the
+// puck is a fast horizontal drag from wherever it sits, which is the
+// exact shape of an open swipe; scooping a die is a press that moves.
+// While either has the pointer the press stops being the drawer's for
+// the rest of the press - the arm is dropped, not merely skipped.
+if (press_x >= 0) {
+	if (instance_exists(obj_puck) && obj_puck.held) press_x = -1;
+	if (variable_global_exists("dice_scoop") && g.dice_scoop) press_x = -1;
+}
 sw_tic = max(0, sw_tic - delta);
 if (sw_tic <= 0)
 if (touching_screen || mouse_check_button_released(mb_left))

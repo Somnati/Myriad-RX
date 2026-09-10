@@ -16,7 +16,7 @@ if (scroll > _smax) { scroll = _smax; sv = 0; }
 // ---- input: only once the panel has fully arrived, and only while
 // nothing sits over it ----
 if (oa < .999 || closing) { drag_y = -1; exit; }
-if (!input_free(ui_layer_popup)) { drag_y = -1; exit; }
+if (!input_free(ui_layer_overlay)) { drag_y = -1; exit; }   // muted under a pillbox / popup / the menu
 if (keyboard_check_pressed(vk_escape)) { faq_close(); exit; }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 
