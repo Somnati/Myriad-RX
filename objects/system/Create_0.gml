@@ -75,6 +75,7 @@ g.vis_grid_alpha = 75;
 // rather than running a pass that does nothing.
 g.vis_glow = 15;
 g.dice_mat = "random";   // dice_mat_config's roster
+g.puck_mat = "random";   // the puck's, off the same roster ("random" = black rubber)
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.
 // off = a flat +10. His toggle, settings > gameplay

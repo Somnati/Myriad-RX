@@ -438,8 +438,6 @@ __draw_strip = function() {
 	draw_set_alpha(.9);
 	draw_text(_bx + 20, _bby + 10, "favs");
 
-	// [back] - the one shape, shared by every menu screen
-	draw_ui_back(room_width - 62, _bby + 6, 56, 16);
 
 	// the tap-for-info explainer, floated near the tap, clamped in-room
 	if (help_txt != "") {

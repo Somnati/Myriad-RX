@@ -166,15 +166,7 @@ if (keyboard_check_pressed(vk_escape)) { settings_close(); exit; }
 
 if (mouse_check_button_pressed(mb_left)) {
 
-	// back, top right of the title strip
-	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62, bby + 1,
-		room_width - 6, bby + 14)) {
-		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		// CLOSE, not navigate. The screen is an overlay now, so there is
-		// no room to go back to - the one you came from never left.
-		settings_close();
-		exit;
-	}
+	// (no back button - the burger is the X, his call 2026-09-10)
 
 	// the round ? button: flip every hint whisper at once
 	if (point_distance(mouse_x, mouse_y, room_width - 74, bby + 7) <= 8) {
@@ -256,6 +248,9 @@ if (mouse_check_button_pressed(mb_left)) {
 						pill_kind = "";
 						break;
 					}
+					// (belt and braces to the ui_layer_overlay gate: while
+					// ANY box of ours is up, no row may open another)
+					if (_popen || instance_exists(obj_pillbox)) break;
 					pillbox_init();
 					pill_kind = _hr.data.kind;
 					_hr.data.build();

@@ -24,8 +24,14 @@ while (array_length(_t.ev) > 0) {
 	// the deadlock failsafe and on an upgrade purchase, so the ding had
 	// stopped meaning anything by the time a real +2 landed.
 	if (_e.k == "merge") {
-		play_sound_ext(snd_merge, .8, 1.2, .3, 1);
-		if (_e.b) play_sound_ext(snd_tierup, .8, 1.1, .5, 1);
+		// the combo's pitch (see __merge_pitch): DE's .8..1.2 roll, lifted
+		// a semitone per consecutive climb
+		var _mp = __merge_pitch(_t.tier[_e.i]);
+		play_sound_ext(snd_merge, .8 * _mp, 1.2 * _mp, .3, 1);
+		if (_e.b) {
+			play_sound_ext(snd_tierup, .8, 1.1, .5, 1);
+			__tierup_fx(_e.i);
+		}
 	}
 	// the failsafe tiers the lowest tile to break a deadlock - a merge
 	// the BOARD made, not you. Same sound family, pitched well under the
@@ -399,8 +405,12 @@ if (grab_i != -1) {
 		}
 		if (_res == 0) play_sound_ext(snd_softclick, .9, 1.1, .3, 1); // snaps home
 		if (_res == 1) play_sound_ext(snd_apply, .9, 1.1, .5, 1);
-		if (_res >= 2) { glow[_dst] = 1; play_sound_ext(snd_merge, .8, 1.2, .4, 1); }
-		if (_res == 3) play_sound_ext(snd_tierup, .8, 1.1, .6, 1);
+		if (_res >= 2) {
+			glow[_dst] = 1;
+			var _mp2 = __merge_pitch(_t.tier[_dst]);
+			play_sound_ext(snd_merge, .8 * _mp2, 1.2 * _mp2, .4, 1);
+		}
+		if (_res == 3) { play_sound_ext(snd_tierup, .8, 1.1, .6, 1); __tierup_fx(_dst); }
 		grab_i = -1;
 		_t.grab = -1;
 	}

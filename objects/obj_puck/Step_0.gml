@@ -11,6 +11,9 @@
 /// the flight. Reading input before moving is what keeps a release from
 /// launching with last frame's aim.
 
+// the material rides the settings pick live (the dice's arrangement)
+if (variable_global_exists("puck_mat") && g.puck_mat != mat_id) __mat_apply();
+
 // ---- sparks: age, then compact ----
 // backwards so removal cannot skip the next entry
 for (var _i = array_length(sparks) - 1; _i >= 0; _i--) {

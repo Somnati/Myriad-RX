@@ -115,6 +115,23 @@ yaw_spd = 0;             // deg per 60hz frame
 // body colour stops being a puck; a puck with a coloured stamp is still
 // obviously a puck and still tells you which throw you are watching.
 rubber = rgb(26, 26, 32);
+// ...unless settings say otherwise (his ask, 2026-09-10: "settings to
+// change the puck's material"): the dice's roster, one pill of its
+// own (g.puck_mat). "random" here means the classic black rubber, not
+// a roll - a puck with a random body colour stops being a puck.
+mat_id    = "";
+mat_metal = .06;
+__mat_apply = function() {
+	var _t = dice_mat_config();
+	var _id = variable_global_exists("puck_mat") ? g.puck_mat : "random";
+	var _m = _t[0];
+	for (var _i = 0; _i < array_length(_t); _i++)
+		if (_t[_i].id == _id) { _m = _t[_i]; break; }
+	mat_id = _m.id;
+	if (_m.col < 0) { rubber = rgb(26, 26, 32); mat_metal = .06; }
+	else            { rubber = _m.col;          mat_metal = _m.metal; }
+};
+__mat_apply();
 
 u_quad_p  = shader_get_uniform(sh_puck, "u_quad");
 u_yaw_p   = shader_get_uniform(sh_puck, "u_yaw");

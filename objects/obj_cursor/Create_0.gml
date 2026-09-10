@@ -19,3 +19,10 @@ persistent = true;
 
 // no OS pointer under ours
 window_set_cursor(cr_none);
+
+// THE SQUISH (his ask, 2026-09-10: "a cute lil squish effect" on a
+// click): a press kicks a spring that squashes the arrow wide and
+// short, and it wobbles back to shape. sq is the squash amount, sqv
+// its velocity - the puck's spring, in miniature.
+sq  = 0;
+sqv = 0;

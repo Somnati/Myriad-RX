@@ -125,7 +125,7 @@ shader_set_uniform_f(u_ring_p,
 	colour_get_blue(tint) / 255);
 // rubber, unless the cannon is charging - a shot winding up polishes
 // itself, which is a free tell that something is about to happen
-shader_set_uniform_f(u_metal_p, cannon ? lerp(.06, .5, clamp(aim / 120, 0, 1)) : .06);
+shader_set_uniform_f(u_metal_p, cannon ? lerp(mat_metal, max(mat_metal, .5), clamp(aim / 120, 0, 1)) : mat_metal);
 shader_set_uniform_f(u_pad_p, PUCK_QP);
 shader_set_uniform_f(u_cells_p, _qh * 2);   // one cell per room pixel
 draw_sprite_ext(spr_pixel_1x1, 0, _cx - _qh, _cy - _qh,

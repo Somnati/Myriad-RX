@@ -244,6 +244,25 @@ function settings_content() {
 		+ "different hue and finish for every die, which is the default.",
 		-1, true);
 
+	// the puck, off the dice's roster (his ask, 2026-09-10). "random" is
+	// the classic black rubber here - a puck should not roll a body
+	// colour - and the pill says so
+	var _pm = "black rubber";
+	var _pml = dice_mat_config();
+	for (var _pj = 0; _pj < array_length(_pml); _pj++)
+		if (_pml[_pj].id == g.puck_mat && _pml[_pj].id != "random") _pm = _pml[_pj].name;
+	settings_pill("puck material", "puckmat", _pm,
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill((_l[_j].id == "random") ? "black rubber" : _l[_j].name,
+					{ val : _l[_j].id, col : c_gold, enabled : (_l[_j].id == g.puck_mat) });
+		},
+		function(_v) { g.puck_mat = _v; },
+		"what the puck on the tap table is made of. black rubber is the "
+		+ "classic; the rest are the dice's finishes.",
+		-1, true);
+
 	// THE MOTES, ONE PILL A LANE (his ask, 2026-09-10). The roster is
 	// bit_config; the lane keys are bit_look's. Four literal blocks for
 	// the reason the sound pills are four literal blocks (see there):

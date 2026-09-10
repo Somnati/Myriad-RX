@@ -1,6 +1,20 @@
 
-wmx = window_mouse_get_x(); wmx = wmx/(window_get_width()/room_width);
-wmy = window_mouse_get_y(); wmy = wmy/(window_get_height()/room_height);
+// ⚖️ THE DISPLAY MOUSE, NOT THE WINDOW MOUSE, on desktop (his ask,
+// 2026-09-10: in windowed mode the in-game pointer froze where it
+// left the window). window_mouse_get_x stops updating once the OS
+// cursor leaves the window; display_mouse_get_x keeps reporting in
+// desktop space, so subtracting the window's own position gives the
+// same number inside the window and a live one outside it. Mobile
+// keeps the window read - there is no desktop to be off.
+if (os_type == os_windows || os_type == os_macosx || os_type == os_linux) {
+	wmx = display_mouse_get_x() - window_get_x();
+	wmy = display_mouse_get_y() - window_get_y();
+} else {
+	wmx = window_mouse_get_x();
+	wmy = window_mouse_get_y();
+}
+wmx = wmx/(window_get_width()/room_width);
+wmy = wmy/(window_get_height()/room_height);
 
 //toggle touch
 if mouse_check_button(mb_left)

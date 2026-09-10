@@ -177,6 +177,29 @@ spark_x = 0;   // where the shard count sits - and where the bits fly
 spark_y = 0;
 
 // frames left on the table-rebirth confirm (see the Step)
+// ⚖️ THE MERGE COMBO (his ask, 2026-09-10): the merge sound climbs a
+// step in pitch for every merge that lands at or above the tier the
+// combo is on, and drops back to the base pitch the first time a merge
+// lands LOWER. So a run up the ladder rises, and turning back to tidy
+// small pairs resets it. combo_tier is the tier the last merge made,
+// combo_n how many steps up the sound has climbed.
+combo_tier = 0;
+combo_n    = 0;
+__merge_pitch = function(_tier) {
+	if (_tier >= combo_tier) combo_n = min(combo_n + 1, 14);
+	else combo_n = 0;
+	combo_tier = _tier;
+	return power(1.0595, combo_n);   // a semitone a step
+};
+// THE TIER-UP CEREMONY (DE's, his ask): a float over the tile and a
+// spark burst out of it, in the tile's colour - the +2 sound already
+// rings; this is the part you SEE
+__tierup_fx = function(_i) {
+	if (_i < 0 || _i >= g.tiles.slots) return;
+	var _cx = __slot_x(_i) + tw * .5, _cy = __slot_y(_i) + th * .5;
+	float_text(_cx, _cy - 10, "tier up!", tile_color(g.tiles.tier[_i]), fnt_outline);
+	spark_burst(_cx, _cy, 6, tile_color(g.tiles.tier[_i]));
+};
 arm_rb = 0;
 arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
@@ -642,7 +665,7 @@ upg_y  = dr_top + 17;
 // keeps the float's rise clear of the fabricator bars.
 // (the bits leave from each tile, under it - syst_tiletimer reads the
 // slot geometry through `with`; there is no separate spawn seat)
-spark_lift = 44;
+spark_lift = 60;   // (44 before; his ask 2026-09-10: nearer the top)
 spark_x = bx + (g.tiles.cols * pw - 4) * .5;
 spark_y = by - spark_lift;
 float_x = spark_x;

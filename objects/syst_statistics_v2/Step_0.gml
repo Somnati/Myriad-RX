@@ -162,15 +162,7 @@ if (mouse_check_button_pressed(mb_left)) {
 			fav_show ? 1.2 : .9, .4, 1);
 	}
 
-	// back, top right (in the title strip, above the list)
-	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62,
-		_bby + 6, room_width - 6, _bby + 22)) {
-		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		// CLOSE, not navigate - the screen is an overlay now and the
-		// room you came from never left
-		statistics_close();
-		exit;
-	}
+	// (no back button - the burger is the X, his call 2026-09-10)
 
 	// the rail: a press here only ARMS - the tab lands on release
 	// without travel, and travel scrolls the rail instead (see below)

@@ -310,8 +310,6 @@ __draw_strip = function() {
 	draw_set_alpha(g.settings_hints ? .95 : .6);
 	draw_text(_hx + 1, _hy - 3, "?");
 
-	// [back] - the one shape, shared by every menu screen
-	draw_ui_back(room_width - 62, bby + 1, 56, 13);
 
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
