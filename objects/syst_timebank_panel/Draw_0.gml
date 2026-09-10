@@ -135,13 +135,10 @@ if (__part(5) > 0) {
 			draw_set_alpha(.7);
 			// what the NEXT level would give, so the price has something
 			// to be weighed against
-			draw_text(upg_x + 108, _ry + 5, "x"
-				+ string_format(max(1.01, g.tb_cap_mult / 100), 1, 2));
-			// ⚖️ WHICH ONE IS BINDING, because the price no longer says.
-			// Both fees are the same share of the same capacity (see
-			// setgame), so nothing about the numbers hints at which
-			// upgrade would actually do something. This does: how long
-			// an absence this capacity can hold, at the rate you have.
+			draw_text(upg_x + 108, _ry + 5, "+" + string(g.tb_cap_step) + "m");
+			// WHICH ONE IS BINDING: how long an absence this capacity can
+			// hold at the rate you have - the number that says whether
+			// the next capacity level would actually keep anything.
 			draw_set_color(_tb.last_full ? c_horange : rgb(120, 130, 150));
 			draw_set_alpha(.65);
 			draw_text(upg_x + 148, _ry + 5, "holds "

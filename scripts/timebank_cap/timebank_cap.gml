@@ -1,7 +1,7 @@
 /// @description timebank_cap();
 /// The bank's capacity in SECONDS, derived fresh from the knobs and
 /// cap_lv - never stored:
-///     minutes = tb_cap x (tb_cap_mult/100) ^ cap_lv
+///     minutes = tb_cap + tb_cap_step x cap_lv   (+30m a level, his call)
 /// The cap is also the banking WINDOW: away time converts on return and
 /// anything past the cap is simply lost. That is deliberate - it is
 /// what stops a month away from arriving as a month of x10, and it is
@@ -14,6 +14,5 @@
 /// itself. See timebank_upg.
 function timebank_cap() {
 	timebank_init();
-	var _m = max(1.01, g.tb_cap_mult / 100);
-	return max(60, g.tb_cap * power(_m, g.timebank.cap_lv) * 60);
+	return max(60, (g.tb_cap + g.tb_cap_step * g.timebank.cap_lv) * 60);
 }

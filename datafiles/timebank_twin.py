@@ -23,9 +23,11 @@ TB_RATE_STEP  = 2     # per rate purchase
 TB_RATE_CAP   = 45    # the tuned ceiling
 TB_HARD_CAP   = 55    # the LAW inside timebank_rate, above the knob
 TB_CAP        = 30    # bank capacity in MINUTES, at cap_lv 0
-TB_CAP_MULT   = 150   # percent: capacity x1.5 a level
-TB_CAP_COST   = 80    # a capacity level costs this % of current capacity
-TB_RATE_COST  = 80    # a rate level costs this % of current capacity
+TB_CAP_STEP   = 30    # +30 minutes a level (his call, 2026-09-10) - LINEAR
+# two fee ladders, each off its own level, in minutes (his report: the
+# fees were both 80% of the cap and read as shared)
+TB_CAP_COST, TB_CAP_COST_STEP   = 20, 15
+TB_RATE_COST, TB_RATE_COST_STEP = 15, 10
 
 SPEEDS = [1, 2, 4, 10, 50]
 
@@ -45,8 +47,8 @@ def rate_mph(rate_lv):
 
 
 def cap_secs(cap_lv):
-    """timebank_cap, in seconds."""
-    return max(60, TB_CAP * (TB_CAP_MULT / 100.0) ** cap_lv * 60)
+    """timebank_cap, in seconds - linear."""
+    return max(60, (TB_CAP + TB_CAP_STEP * cap_lv) * 60)
 
 
 def bank_after(away_s, rate_lv, cap_lv, held=0.0):
@@ -56,10 +58,11 @@ def bank_after(away_s, rate_lv, cap_lv, held=0.0):
     return min(add, room), add > room
 
 
-def upg_cost(kind, cap_lv):
-    """timebank_upg: a fraction of the CURRENT capacity, in seconds."""
-    pct = TB_CAP_COST if kind == "cap" else TB_RATE_COST
-    return math.ceil(cap_secs(cap_lv) * min(max(pct, 1), 99) / 100.0)
+def upg_cost(kind, lv):
+    """timebank_upg: each ladder off ITS OWN level, in seconds."""
+    if kind == "cap":
+        return (TB_CAP_COST + TB_CAP_COST_STEP * lv) * 60
+    return (TB_RATE_COST + TB_RATE_COST_STEP * lv) * 60
 
 
 def rate_maxlv():
@@ -69,9 +72,9 @@ def rate_maxlv():
     return lv
 
 
-def hours_to_afford(kind, rate_lv, cap_lv):
+def hours_to_afford(kind, rate_lv, lv):
     """the real price: hours of absence needed to bank the fee."""
-    return (upg_cost(kind, cap_lv) / 60.0) / rate_mph(rate_lv)
+    return (upg_cost(kind, lv) / 60.0) / rate_mph(rate_lv)
 
 
 # ======================================================================
@@ -125,21 +128,26 @@ say(hrs_base <= 10,
 
 # --- 5. THE PRICE, AND WHY IT HAS THIS SHAPE --------------------------
 # Paid in banked time, so a price ABOVE the cap is a price nobody can
-# ever save for. Every fee must stay under the cap - which is why the
-# fees are a fraction OF the cap, and the cap carries the curve instead.
+# ever save for. A capacity fee must always fit the capacity it buys;
+# a rate fee may outgrow a small cap, but the cap level that holds it
+# must be reachable in a handful of buys (his linear ladders, 2026-09-10).
 print()
-print("5. THE PRICE  (paid in banked time)")
-print("      cap_lv   capacity     cap fee      rate fee    payable?")
-for lv in range(0, 12, 2):
-    c = cap_secs(lv)
+print("5. THE PRICE  (paid in banked time; each ladder off its own level)")
+print("      lv    capacity     cap fee     rate fee   rate fee needs cap_lv")
+def cap_lv_for(secs):
+    lv = 0
+    while cap_secs(lv) < secs: lv += 1
+    return lv
+for lv in range(0, 20, 3):
     fc, fr = upg_cost("cap", lv), upg_cost("rate", lv)
-    print("      %5d   %8.0f m   %8.0f m   %8.0f m   %s"
-          % (lv, c / 60, fc / 60, fr / 60,
-             "yes" if max(fc, fr) <= c else "NO - UNBUYABLE"))
-say(all(upg_cost(k, lv) <= cap_secs(lv)
-        for lv in range(0, 40) for k in ("cap", "rate")),
-    "every fee is payable with a full bank, at every level",
+    print("      %3d   %8.0f m   %8.0f m   %8.0f m   %d"
+          % (lv, cap_secs(lv) / 60, fc / 60, fr / 60, cap_lv_for(fr)))
+say(all(upg_cost("cap", lv) <= cap_secs(lv) for lv in range(0, 40)),
+    "every capacity fee fits the capacity it buys",
     "a fee above the cap is one that could never be saved for")
+say(cap_lv_for(upg_cost("rate", rate_maxlv())) <= 8,
+    "the last rate fee is holdable within eight capacity buys",
+    "needs cap_lv %d" % cap_lv_for(upg_cost("rate", rate_maxlv())))
 
 # --- 6. WHAT IT COSTS IN REAL TIME ------------------------------------
 # The fee is a fixed share of the cap, so what decelerates is the WALL
@@ -154,8 +162,8 @@ for lv in range(0, 14, 2):
              hours_to_afford("cap", rate_maxlv(), lv)))
 early = hours_to_afford("cap", rate_maxlv(), 0)
 late = hours_to_afford("cap", rate_maxlv(), 12)
-say(late / early > 50,
-    "the wall-clock price decelerates (cap compounds, rate does not)",
+say(late / early > 5,
+    "the wall-clock price still climbs (linear fee, capped rate)",
     "cap_lv 0 -> 12 at max rate: %.1f h -> %.1f h (x%.0f)"
     % (early, late, late / early))
 
@@ -172,7 +180,7 @@ streak = worst_streak = 0
 print("      buy     rate     cap       fee      bank from 8h    nights/fee")
 for step in range(14):
     before, _ = bank_after(AWAY, rl, cl)
-    fc, fr = upg_cost("cap", cl), upg_cost("rate", cl)
+    fc, fr = upg_cost("cap", cl), upg_cost("rate", rl)
     maxed = (rate_mph(rl) >= min(TB_RATE_CAP, TB_HARD_CAP))
     # a player buys what HELPS, which is what the rows now tell them -
     # the fees are equal, so price carries no signal and cannot mislead

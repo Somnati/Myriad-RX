@@ -123,6 +123,11 @@
 	// at all for anyone whose sessions are a normal day apart. At 30 it
 	// binds on an overnight, which is what makes it a purchase.
 	g.tb_cap       = 30;   // bank capacity in MINUTES, at cap_lv 0
+	// ⚖️ +30 MINUTES A LEVEL (his call, 2026-09-10), not x1.5. Linear:
+	// the tenth capacity buy adds what the first did. The geometric
+	// version compounded to days inside a dozen levels, and a bank that
+	// holds days is a bank nobody needs to think about.
+	g.tb_cap_step  = 30;   // minutes of capacity a level
 
 	// ⚖️ THE BANK PAYS FOR ITSELF (his call). Both upgrades cost BANKED
 	// TIME, not profit, which makes the bank a currency with two uses:
@@ -130,24 +135,25 @@
 	// a real decision every time, where a profit price was just another
 	// line on the profit sink pile.
 	//
-	// AND IT FORCES THE COST CURVE'S SHAPE. You can never hold more than
-	// the cap, so any price above it is a price you can never save for -
-	// a geometric cost against a linear cap would have gone unbuyable
-	// two or three levels in. So both prices are a FRACTION OF THE
-	// CURRENT CAP, always affordable with a full bank and never with
-	// much less, and it is the CAP that grows geometrically instead.
-	g.tb_cap_mult  = 150;  // percent: capacity x1.5 a level
-	// ⚖️ THE TWO FEES ARE EQUAL, and that is a fix rather than laziness.
-	// Both are priced off the same capacity, so a cheaper one is
-	// cheaper at EVERY level - and the twin's invariant 7 showed a
-	// player following the cheaper price buying capacity fourteen times
-	// running while the rate stayed the binder and the bank never moved.
-	// A price that is always lower on the option that is usually wrong
-	// is a trap, not a choice. Equal fees put the decision back where it
-	// belongs: which of the two is actually limiting you, which the
-	// screen now says on the rows.
-	g.tb_cap_cost  = 80;   // a capacity level costs 80% of current capacity
-	g.tb_rate_cost = 80;   // and so does a rate level
+	// ⚖️ TWO LADDERS, EACH OFF ITS OWN LEVEL (his report, 2026-09-10:
+	// "the costs seem shared"). They were: both fees read 80% of the
+	// current capacity, so a rate level cost exactly what a capacity
+	// level cost, and buying rate never moved the price of the next
+	// rate level. Now a capacity level is priced off how many capacity
+	// levels you hold, a rate level off how many rate levels, in MINUTES
+	// of banked time, both linear like the cap:
+	//   cap  fee = tb_cap_cost  + tb_cap_cost_step  x cap_lv
+	//   rate fee = tb_rate_cost + tb_rate_cost_step x rate_lv
+	// A capacity fee always fits the capacity it buys (20+15n under
+	// 30+30n). A rate fee can outgrow a SMALL cap - the twentieth rate
+	// level is 205 minutes, which needs cap_lv 6 to hold - and the row
+	// then simply reads as unaffordable until the cap is raised. That
+	// is the one coupling left, and it is the honest one: you cannot
+	// bank what you cannot hold.
+	g.tb_cap_cost       = 20;   // minutes, capacity level 0
+	g.tb_cap_cost_step  = 15;   // more per capacity level held
+	g.tb_rate_cost      = 15;   // minutes, rate level 0
+	g.tb_rate_cost_step = 10;   // more per rate level held
 	// The wall-clock price is what actually decelerates: cost/rate hours
 	// of absence, with the cap geometric and the rate capped at 45 min
 	// per hour. datafiles/timebank_twin.py walks it - run that first.
