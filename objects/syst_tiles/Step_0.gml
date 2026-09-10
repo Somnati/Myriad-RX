@@ -55,6 +55,8 @@ arm_ru = max(0, arm_ru - delta);   // the upgrade reset's
 // columns travels 68px - so merging closed the drawer (his report).
 dr_open += (dr_want - dr_open) * min(1, .22 * delta);
 if (abs(dr_want - dr_open) < .004) dr_open = dr_want;
+dbg_open += (dbg_want - dbg_open) * min(1, .22 * delta);
+if (abs(dbg_want - dbg_open) < .004) dbg_open = dbg_want;
 __reseat();   // a board-size upgrade re-centres the table at once
 
 if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
@@ -263,18 +265,33 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 
 		// (no back hit test: the button is gone - the header's burger is
 		// how every other room in the game is left)
-		// bottom-left controls: auto merge toggle + sort
-		if (point_in_rectangle(mouse_x, mouse_y, 6, 246, 106, 260)) {
+
+		// ---- THE DEBUG DRAWER: the chip opens and closes it ----
+		var _dc = __dbg_chip();
+		if (point_in_rectangle(mouse_x, mouse_y, _dc.x, _dc.y, _dc.x + _dc.w, _dc.y + _dc.h)) {
+			dbg_want = 1 - dbg_want;
+			play_sound_ext(snd_softclick, dbg_want ? 1 : .9, dbg_want ? 1.1 : 1, .4, 1);
+			exit;
+		}
+		// its rows, only while it is out; a press anywhere on the panel
+		// is the panel's (the board behind it never sees it)
+		var _dhit = -1;
+		if (dbg_open > .5) {
+			for (var _k = 0; _k < array_length(dbg_rows); _k++) {
+				var _dr = __dbg_r(_k);
+				if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) _dhit = _k;
+			}
+		}
+		if (_dhit == 0) {   // auto merge
 			_t.automerge = !_t.automerge;
 			save_mark_dirty(); // save-on-mutation law (it persists)
 			play_sound_ext(snd_matclick2, 1.0, 1.1, .5, 1);
 		}
-		if (point_in_rectangle(mouse_x, mouse_y, 112, 246, 172, 260)) {
+		if (_dhit == 1) {   // sort
 			tiles_sort();
 			play_sound_ext(snd_apply, .9, 1.1, .5, 1);
 		}
-		// aim anchor toggle (round 2): mouse point vs held-tile center
-		if (point_in_rectangle(mouse_x, mouse_y, 244, 246, 334, 260)) {
+		if (_dhit == 2) {   // aim anchor (round 2): mouse point vs held-tile centre
 			g.tiles.aim_center = !g.tiles.aim_center;
 			save_mark_dirty();
 			play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
@@ -287,7 +304,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 		// fresh = true and pays nothing. Two presses two seconds apart,
 		// the rebirth's rule, because it throws away everything the
 		// table has ever paid.
-		if (point_in_rectangle(mouse_x, mouse_y, 178, 246, 238, 260)) {
+		if (_dhit == 3) {
 			if (arm_rs > 0) {
 				arm_rs = 0;
 				tiles_wipe(true);    // FRESH: flux and the rebirth count too
@@ -308,7 +325,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 		// no refund, board and shards and flux untouched - for running a
 		// cost ladder again against a board that already exists. Asked
 		// twice like its neighbour.
-		if (point_in_rectangle(mouse_x, mouse_y, 340, 246, 430, 260)) {
+		if (_dhit == 4) {
 			if (arm_ru > 0) {
 				arm_ru = 0;
 				tile_upg_reset();
@@ -320,6 +337,8 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 				play_sound_ext(snd_tierup, .8, .9, .5, 1);
 			}
 		}
+		// a press on the open panel is spent, whatever it landed on
+		if (dbg_open > .5 && mouse_x < __dbg_x() + dbg_w && mouse_y >= dr_top) exit;
 		// grab a tile
 		var _s = __slot_at(mouse_x, mouse_y);
 		if (_s != -1 && _t.tier[_s] != 0 && grab_i == -1) {

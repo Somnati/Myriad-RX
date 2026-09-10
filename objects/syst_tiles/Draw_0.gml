@@ -200,58 +200,51 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 // drawer as that grew.)
 draw_set_alpha(1);
 
-// THE BOTTOM ROW. Each button's alpha rides __btn_a, so anything the
-// drawer reaches fades out as it opens rather than drawing over it -
-// see the Create for why that is the fix rather than a depth change.
-var _ba = __btn_a(6, 106);
-if (_ba > .01) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 6, 246, 100, 14, 0, c_black, .6 * _ba);
-	draw_px_rect(6, 246, 100, 14, _t.automerge ? c_gold : c_white,
-		(_t.automerge ? .7 : .3) * _ba);
-	draw_set_color(_t.automerge ? c_gold : c_white);
-	draw_set_alpha(.85 * _ba);
-	draw_text(56, 248, _t.automerge ? "auto merge on" : "auto merge off");
-}
+// ---- THE DEBUG DRAWER (left) and its chip (bottom-left) ----
+// the chip: always out, an arrow that points the way the panel will go
+var _dc = __dbg_chip();
+draw_sprite_ext(spr_pixel_1x1, 0, _dc.x, _dc.y, _dc.w, _dc.h, 0, c_black, .6);
+draw_px_rect(_dc.x, _dc.y, _dc.w, _dc.h, c_white, .3);
+draw_set_halign(fa_center);
+draw_set_color(c_white);
+draw_set_alpha(.85);
+draw_text(_dc.x + _dc.w * .5 + 1, _dc.y + 3, (dbg_want > 0) ? "<" : ">");
+draw_set_halign(fa_left);
 
-_ba = __btn_a(112, 172);
-if (_ba > .01) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 112, 246, 60, 14, 0, c_black, .6 * _ba);
-	draw_px_rect(112, 246, 60, 14, c_white, .3 * _ba);
-	draw_set_color(c_white);
-	draw_set_alpha(.85 * _ba);
-	draw_text(142, 248, "sort");
-}
+// the panel: slides in from the left edge, under the strip and the
+// meter bars, over the info box - the mirror of the upgrade drawer's
+// treatment, without its pixelated glass (this one is furniture)
+if (dbg_open > .001) {
+	var _dx = __dbg_x();
+	var _da = dbg_open;
+	draw_sprite_ext(spr_pixel_1x1, 0, _dx, dr_top, dbg_w, room_height - dr_top - 22, 0,
+		c_black, .82 * _da);
+	draw_sprite_ext(spr_pixel_1x1, 0, _dx + dbg_w - 1, dr_top, 1, room_height - dr_top - 22, 0,
+		c_white, .2 * _da);
+	draw_set_color(rgb(120, 130, 150));
+	draw_set_alpha(.6 * _da);
+	draw_text(_dx + 6, dr_top + 1, "board");
 
-// the destructive one wears red
-_ba = __btn_a(178, 238);
-if (_ba > .01) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 178, 246, 60, 14, 0, c_black, .6 * _ba);
-	draw_px_rect(178, 246, 60, 14, c_hred, .7 * _ba);
-	draw_set_color(c_hred);
-	draw_set_alpha(.85 * _ba);
-	draw_text(208, 248, (arm_rs > 0) ? "sure?" : "reset");
-}
-
-// drop-aim anchor: it moves the HELD TILE as well as the drop point
-var _amc = g.tiles.aim_center;
-_ba = __btn_a(244, 334);
-if (_ba > .01) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 244, 246, 90, 14, 0, c_black, .6 * _ba);
-	draw_px_rect(244, 246, 90, 14, _amc ? c_aqua : c_white,
-		(_amc ? .7 : .3) * _ba);
-	draw_set_color(_amc ? c_aqua : c_white);
-	draw_set_alpha(.85 * _ba);
-	draw_text(289, 248, _amc ? "aim: tile center" : "aim: mouse");
-}
-
-// the other destructive one: the upgrade levels alone (tile_upg_reset)
-_ba = __btn_a(340, 430);
-if (_ba > .01) {
-	draw_sprite_ext(spr_pixel_1x1, 0, 340, 246, 90, 14, 0, c_black, .6 * _ba);
-	draw_px_rect(340, 246, 90, 14, c_hred, .7 * _ba);
-	draw_set_color(c_hred);
-	draw_set_alpha(.85 * _ba);
-	draw_text(385, 248, (arm_ru > 0) ? "sure?" : "reset upgrades");
+	for (var _k = 0; _k < array_length(dbg_rows); _k++) {
+		var _r = __dbg_r(_k);
+		var _lbl = dbg_rows[_k];
+		var _col = c_white, _on = false, _fa = .3;
+		switch (_k) {
+			case 0: _on = _t.automerge; _lbl = _on ? "auto merge on" : "auto merge off";
+			        _col = _on ? c_gold : c_white; _fa = _on ? .7 : .3; break;
+			case 2: _on = g.tiles.aim_center; _lbl = _on ? "aim: tile center" : "aim: mouse";
+			        _col = _on ? c_aqua : c_white; _fa = _on ? .7 : .3; break;
+			case 3: _lbl = (arm_rs > 0) ? "sure?" : "reset"; _col = c_hred; _fa = .7; break;
+			case 4: _lbl = (arm_ru > 0) ? "sure?" : "reset upgrades"; _col = c_hred; _fa = .7; break;
+		}
+		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, _r.h, 0, c_black, .6 * _da);
+		draw_px_rect(_r.x, _r.y, _r.w, _r.h, _col, _fa * _da);
+		draw_set_halign(fa_center);
+		draw_set_color(_col);
+		draw_set_alpha(.85 * _da);
+		draw_text(_r.x + _r.w * .5, _r.y + 2, _lbl);
+		draw_set_halign(fa_left);
+	}
 }
 draw_set_alpha(1);
 

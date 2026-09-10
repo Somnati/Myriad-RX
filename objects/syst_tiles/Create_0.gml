@@ -201,6 +201,23 @@ __tierup_fx = function(_i) {
 	spark_burst(_cx, _cy, 6, tile_color(g.tiles.tier[_i]));
 };
 arm_rb = 0;
+// ⚖️ THE DEBUG DRAWER (his ask, 2026-09-10): the board's five controls
+// - auto merge, sort, aim, reset, reset upgrades - used to sit in a row
+// along the bottom edge. They live in a drawer on the LEFT now, opened
+// by an arrow chip in the bottom-left corner: a CLICK, not a swipe (the
+// right-hand drawer is the swipe; two swipe drawers on one board is a
+// board that fights its own gestures). The chip stays out; the panel
+// slides in from the left edge over the info box and closes the same
+// way. Every hit reads __dbg_r, the same rectangles the draw paints.
+dbg_open = 0;
+dbg_want = 0;
+dbg_w    = 112;
+dbg_rows = ["auto merge", "sort", "aim", "reset", "reset upgrades"];
+__dbg_chip = function() { return { x : 4, y : room_height - 18, w : 14, h : 14 }; };
+__dbg_x    = function() { return lerp(-dbg_w, 0, dbg_open); };
+__dbg_r    = function(_k) {
+	return { x : __dbg_x() + 6, y : dr_top + 10 + _k * 20, w : dbg_w - 12, h : 14 };
+};
 arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
               // misclick beside [sort] must not cost thirteen levels
