@@ -76,17 +76,21 @@ function tile_upg_config() {
 			     + "this raises the table's side of it",
 		},
 		{
-			// ⚖️ e 3.0, NOT 2.5, and the max is the BUDGET rather than the
-			// floor (his spec: at 1e308 he wants five seconds off from
-			// upgrades alone). 100 levels at 3 frames is exactly that
-			// -5.0s, and at three decades a level the hundredth costs
-			// 1e304 - just inside the ceiling he named. Steeper than the
-			// rest of the roster on purpose: this is the row that feeds
-			// the merge engine, so it is the row worth making expensive.
+			// ⚖️ e 6.0, AND IT IS SOLVED RATHER THAN PICKED. The budget
+			// fixes the total at -5.0s and his step fixes it at -0.1s a
+			// level, which leaves 50 levels - so the only free number is
+			// how steep each one has to be to put the last inside the
+			// 1e308 he named. Six decades does it: 1e4 x 10^300 = 1e304.
+			//
+			// Far steeper than the rest of the roster at 2.5, which is
+			// right twice over. This is the row that feeds the merge
+			// engine, so it is the row worth making expensive - and with
+			// only fifty rungs to spend the whole ceiling on, each one
+			// HAS to cost more than a row with unbounded levels does.
 			//
 			// Derived from the macros, never typed, so the ladder cannot
 			// drift from the budget it was sized against.
-			id : "fab", name : "fabrication speed", base : 10000, e : 3.0,
+			id : "fab", name : "fabrication speed", base : 10000, e : 6.0,
 			max : TILE_FAB_CAP div TILE_FAB_STEP,
 			fmt : function(_lv) {
 				return string_format(

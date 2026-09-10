@@ -421,12 +421,20 @@ function main_macros() {
 // every future ability would be worth precisely nothing. The cap says
 // what UPGRADES may take; MIN says where EVERYTHING stops.
 //
-// The step is sized against the ceiling rather than chosen: 100 levels
-// at 3 frames is the -5.0s the budget allows, and at +3.0 decades a
-// level the hundredth costs 1e304 - just inside the 1e308 he named. A
-// ladder that runs out before the money does is a ladder with a dead
-// top, and one that runs out after it is an upgrade nobody finishes.
-#macro TILE_FAB_STEP      3  // -0.05s a level, in FRAMES at 60hz
+// ⚖️ THE STEP IS HIS, THE EXPONENT IS SOLVED FROM IT (his call: keep
+// -0.1s increments, move the cost to suit). Those two numbers are not
+// independent - the budget fixes the total at -5.0s, so the step fixes
+// the LEVEL COUNT, and the level count is what decides how steep each
+// one has to be to reach the ceiling:
+//
+//     -0.05s  ->  100 levels  ->  +3.0 decades each  ->  1e304
+//     -0.10s  ->   50 levels  ->  +6.0 decades each  ->  1e304
+//
+// Same ladder, same top, half as many rungs and each worth twice as
+// much. Fifty chunky steps beat a hundred imperceptible ones: -0.05s
+// off ten seconds is a change nobody can feel landing, and an upgrade
+// you cannot feel is an upgrade you stop buying on purpose.
+#macro TILE_FAB_STEP      6  // -0.1s a level, in FRAMES at 60hz
 #macro TILE_FAB_CAP     300  // ...to -5.0s total, and no further
 #macro TILE_FAB_MIN     120  // the floor after abilities too
 #macro TILE_SPEED_FACTOR .88    // fab period x this a level

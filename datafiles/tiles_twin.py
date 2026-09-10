@@ -43,7 +43,7 @@ RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 # UPGRADES, 3s reserved for abilities that do not exist yet, 2s floor.
 # FAB_CAP is what makes the reservation real - a floor alone would let
 # upgrades take every second there is and leave the abilities worthless.
-FAB_STEP     = 0.05    # TILE_FAB_STEP (3 frames)
+FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames) - his increment
 FAB_CAP      = 5.0     # TILE_FAB_CAP  (300 frames) - upgrades' share
 FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
 PROFIT_STEP  = .10     # TILE_PROFIT_STEP
@@ -59,7 +59,7 @@ UPG = {
     "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
     "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
     "rarity": {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .50 lv)
-    "fab":    {"base": 10000, "e": 3.0, "max": 100},   # -0.05s, cap -5.0s
+    "fab":    {"base": 10000, "e": 6.0, "max": 50},    # -0.1s, cap -5.0s
 }
 
 ok = True
@@ -415,7 +415,7 @@ print("        bank   lv%d -> hopper %d tiles" % (tb.lv["bank"], tb.bank_max()))
 print()
 print("7b. THE FABRICATOR'S LADDER  (his spec: -5s from upgrades by 1e308)")
 print("      %-6s %9s %10s" % ("level", "fab_t", "costs"))
-for lv in (0, 10, 25, 50, 75, 100):
+for lv in (0, 5, 10, 25, 40, 50):
     cut = min(FAB_CAP, FAB_STEP * lv)
     print("      %-6d %8.2fs %10s"
           % (lv, max(FAB_MIN, FAB_T_BASE - cut), eng(upg_cost("fab", lv))))
