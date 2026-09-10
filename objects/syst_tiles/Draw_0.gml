@@ -176,7 +176,12 @@ draw_set_font(fnt);
 // whatever slides over it.
 var _lines = __info_lines();
 var _ix = 6;
-var _iy = 60;
+// ⚖️ UNDER THE BANNERS (his report, 2026-09-10: "the banners get in the
+// way of it"). syst_banner stacks its lines from y 37 down the left
+// edge, 11px each - welcome, autosaved, progress saved - and the box
+// at 60 sat under the third line. 100 clears a five-deep stack and
+// still ends above the bottom row.
+var _iy = 100;
 var _ih = array_length(_lines) * 11 + 8;
 draw_sprite_ext(spr_pixel_1x1, 0, _ix, _iy, info_w, _ih, 0, c_black, .8);
 draw_px_rect(_ix, _iy, info_w, _ih, c_aqua, .9);

@@ -257,6 +257,16 @@ __upg_r = function(_k) {
 	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
 	         w : dr_w - 8 - 4, h : upg_h };
 };
+// THE BUY BUTTON inside a row - the cost bar. It is the row's tap
+// target now (his ask, 2026-09-10: "make the tap position for the tile
+// upgrades be that bar that shows the cost, not the whole thing"); the
+// name, the level and the now > next line are readouts, and a readout
+// that sells something when touched is a trap. The draw uses the same
+// rectangle, so the target is exactly the thing that looks like one.
+__upg_btn_r = function(_k) {
+	var _r = __upg_r(_k);
+	return { x : _r.x + 6, y : _r.y + 23, w : _r.w - 12, h : 11 };
+};
 // the quote cache: tile_upg walks a log-space series and packs an arb,
 // and the price only moves when something is bought
 qtic = 0;
@@ -415,8 +425,9 @@ __draw_drawer = function() {
 				}
 			}
 
-			var _bx2 = _ur.x + 6;
-			var _bw2 = _ur.w - 12;
+			var _ubr = __upg_btn_r(_k);   // the tap target, drawn as itself
+			var _bx2 = _ubr.x;
+			var _bw2 = _ubr.w;
 			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _ur.y + 23, _bw2, 11, 0,
 				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
 			// THE SOFT FILL (his ask, 2026-09-10): how much of the quoted

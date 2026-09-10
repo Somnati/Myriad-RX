@@ -49,19 +49,32 @@ __reseat();   // a board-size upgrade re-centres the table at once
 
 if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
 	// ⚖️ WHERE THE PRESS LANDED ARMS THE SWIPE, OR REFUSES IT.
-	//   on a board slot        never - a press on the board is a tile's
+	//   on an occupied slot    never - that press is a tile's, and the
+	//                          gate below refuses the whole press while
+	//                          a tile is held (his rule, 2026-09-10:
+	//                          "if im holding a tile at all cancel the
+	//                          swipe until my finger releases")
 	//   in the right edge band the OPEN swipe, drawer closed
-	//   on the open drawer     the CLOSE swipe - pushing IT shut
-	//   anywhere else          nothing
+	//   anywhere, drawer open  the CLOSE swipe - his ask to bring it
+	//                          back from anywhere; empty slots and
+	//                          gutters included, since those presses
+	//                          hold nothing
 	// Mirrored with the drawer (his ask): it comes from the right, so
 	// a swipe LEFT pulls it out and a swipe RIGHT pushes it back.
 	if (mouse_check_button_pressed(mb_left)) {
 		sw_x = -1;
-		if (__slot_at(mouse_x, mouse_y) == -1) {
+		var _s0 = __slot_at(mouse_x, mouse_y);
+		var _on_tile = (_s0 != -1 && _t.tier[_s0] != 0);
+		if (!_on_tile) {
 			if (dr_want == 0 && mouse_x >= room_width - sw_edge) { sw_x = mouse_x; sw_y = mouse_y; }
-			if (dr_want >  0 && mouse_x >= __dr_face())          { sw_x = mouse_x; sw_y = mouse_y; }
+			if (dr_want >  0)                                    { sw_x = mouse_x; sw_y = mouse_y; }
 		}
 	}
+	// A HELD TILE CANCELS THE PRESS AS A SWIPE, for the rest of the
+	// press - not merely "this frame does not fire": once the hand has
+	// a tile, nothing it does until it lets go is a gesture at the
+	// drawer, so the arm is dropped and only a new press can re-arm
+	if (grab_i != -1) sw_x = -1;
 	// ⚖️ DE's GATE, the dial drawer's port (his list: speed limits,
 	// touch bounds, a hold limit that cancels the swipe). Fires WHILE
 	// HELD the moment the gesture qualifies; sw_tic keeps one gesture
@@ -175,9 +188,12 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 
 	var _uc3 = tile_upg_config();
 	for (var _k = 0; _k < array_length(_uc3); _k++) {
+		// the COST BAR is the target, not the row (his ask) - see
+		// __upg_btn_r; the float still rises off the row
 		var _ur2 = __upg_r(_k);
-		if (!point_in_rectangle(_tpx, _tpy, _ur2.x, _ur2.y,
-			_ur2.x + _ur2.w, _ur2.y + _ur2.h)) continue;
+		var _ub2 = __upg_btn_r(_k);
+		if (!point_in_rectangle(_tpx, _tpy, _ub2.x, _ub2.y,
+			_ub2.x + _ub2.w, _ub2.y + _ub2.h)) continue;
 		var _r2 = tile_upg_bulk(_uc3[_k].id, true);
 		if (_r2.ok) {
 			qtic = 0;
