@@ -44,7 +44,7 @@ spd_x0  = cx - (NSPD * spd_w + (NSPD - 1) * spd_gap) * .5;
 
 // THE BURN ROW (his ask): spend a lump at once and have it happen, the
 // way an absence of that length would have. See timebank_burn.
-burn_y  = 152;
+burn_y  = 162;   // (152 put its caption on the speed row's "spending" line - his report)
 burn_w  = 52;
 burn_gap = 6;
 burns   = [60, 600, 3600, 21600];
@@ -52,7 +52,7 @@ burn_lbl = ["1m", "10m", "1h", "6h"];
 NBURN   = 4;
 burn_x0 = cx - (NBURN * burn_w + (NBURN - 1) * burn_gap) * .5;
 
-upg_y   = 182;
+upg_y   = 194;   // down with the burn row; two rows end at 236 of 270
 upg_h   = 24;
 upg_x   = 70;
 upg_w   = room_width - 140;

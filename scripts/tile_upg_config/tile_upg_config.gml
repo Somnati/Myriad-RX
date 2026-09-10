@@ -231,6 +231,36 @@ function tile_upg_config() {
 			     + "is lost - the reserve holds it until a slot opens",
 		},
 		{
+			// ⚖️ THE BOARD ITSELF (his spec, 2026-09-10: "default 12
+			// slots, the first 4 slot upgrades affordable before 100m,
+			// then the typical cost curve, capping at 32 total by e308").
+			// The first four are HAND-PRICED - a decade apart, the fourth
+			// at 10m - so the table grows to the sixteen it used to start
+			// with inside the first session; from the fifth the shared
+			// curve takes over and runs from that 10m to e308 at the last
+			// buy (tile_upg's `pre` lane), so a 32-slot table is the
+			// endgame's, not the afternoon's. The cap derives from the
+			// three macros: the row can never quote a slot the board
+			// would not lay out.
+			//
+			// It is the one row whose value is a whole unit of BOARD
+			// rather than a rate - more tiles paying at once, more pairs
+			// for the automerger, a longer fabricator queue before the
+			// hopper matters - which is why it earns a curve of its own
+			// opening rather than the hopper's low flat base.
+			id : "slots", name : "tile slots", base : 10000,
+			pre : [10000, 100000, 1000000, 10000000],
+			curve : TILE_UPG_CURVE, top : 308,
+			max : (TILE_SLOTS_MAX - TILE_SLOTS_BASE) div TILE_SLOT_STEP,
+			fmt : function(_lv) {
+				return string(TILE_SLOTS_BASE + TILE_SLOT_STEP * _lv);
+			},
+			help : "+" + string(TILE_SLOT_STEP) + " slot on the board, per "
+			     + "level, to " + string(TILE_SLOTS_MAX) + ". more room is "
+			     + "more tiles paying at once, and more pairs for the "
+			     + "automerger to find",
+		},
+		{
 			// ⚖️ THE TWO CHANCE ROWS (his spec, 2026-09-10): duplication
 			// and tier up share one law - 1% at level 0, +1% a level,
 			// 50% at the cap, e308 at the cap - see tile_chance_rate.

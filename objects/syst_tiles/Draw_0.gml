@@ -12,6 +12,7 @@
 /// else stays fnt
 
 var _t = g.tiles;
+__grow();   // a slot bought this frame (see the Create)
 
 draw_set_font(fnt);
 draw_set_halign(fa_center);

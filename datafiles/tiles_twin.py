@@ -25,7 +25,9 @@ import math
 import random as _rnd
 
 # ---------------------------------------------------------------- knobs
-SLOTS_BASE   = 16
+SLOTS_BASE   = 12      # TILE_SLOTS_BASE - the slots row grows it (2026-09-10)
+SLOT_STEP    = 1
+SLOTS_MAX    = 32
 FAB_T_BASE   = 10.0    # seconds per fabricated tile
 AM_MULT      = 1.5     # auto-merge interval = fab_t x this
 
@@ -75,6 +77,10 @@ UPG = {
     # the two chance rows (2026-09-10): 1% + 1%/level to 50% (tile_chance_rate)
     "dup":    {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
     "tierup": {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
+    # the board itself (2026-09-10): the first four hand-priced (`pre`),
+    # then the shared curve from the last of them to e308 at the cap
+    "slots":  {"base": 10000, "pre": [1e4, 1e5, 1e6, 1e7], "curve": CURVE, "top": 308,
+               "max": (SLOTS_MAX - SLOTS_BASE) // SLOT_STEP},
 }
 CHANCE_BASE, CHANCE_STEP, CHANCE_CAP = 1, 1, 50
 
@@ -152,13 +158,21 @@ def upg_cost(kind, lv):
     u = UPG[kind]
     lg = math.log10(u["base"])
     infl = u.get("inflate", False)
-    if "curve" in u:
+    pre = u.get("pre", [])
+    if lv < len(pre):
+        # the hand-set opening (tile_upg's `pre` lane)
+        lg = math.log10(pre[lv])
+    elif "curve" in u:
         top = u["top"]
         if infl:
             # the raw curve stops short so the INFLATED last level lands
             # on the stated top - tile_upg does the same
             top = (u["top"] + math.log10(FLUX_DIV / FLUX_STEP)) / 2
-        lg += (top - lg) * (lv / u["max"]) ** u["curve"]
+        if pre:
+            lg0 = math.log10(pre[-1])
+            lg = lg0 + (top - lg0) * ((lv - len(pre) + 1) / (u["max"] - len(pre))) ** u["curve"]
+        else:
+            lg += (top - lg) * (lv / u["max"]) ** u["curve"]
     else:
         lg += u["e"] * lv
     if infl:
@@ -191,7 +205,7 @@ class Table:
         self.log = []          # (t, kind, new level, cost)
 
     # derived, never stored - the same law the GML follows
-    def slots(self):    return SLOTS_BASE
+    def slots(self):    return SLOTS_BASE + SLOT_STEP * self.lv["slots"]
     def fab_t(self):
         # the CAP limits what upgrades may take; MIN limits everything
         cut = min(FAB_CAP, FAB_STEP * self.lv["fab"])

@@ -9,7 +9,7 @@ var _cx = room_width * .5;
 
 // ---- the room goes dark below the header ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, _hh - 1, room_width, room_height,
-	0, c_black, lerp(0, .8, balpha * alpha));
+	0, c_black, lerp(0, UI_GROUND_A + .05, balpha * alpha));   // (.8 hid the blur - his report)
 
 // ---- banner state: colour + label (DE's triage) ----
 var _blend = c_aqua;

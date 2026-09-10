@@ -125,7 +125,11 @@ if (mouse_check_button_pressed(mb_left)) {
 	// stuck open. Gating the ARMING rather than the whole event matters:
 	// an early exit here would also skip the row taps, the core picker
 	// and the buy buttons that the rest of this Step owns.
-	if (mouse_x >= room_width - SW_EDGE || stage > 0) {
+	// ...and never a press a clickable owns: the fullscreen button
+	// sits in this very band (syst_input's owner - the tile board's
+	// rule, which this drawer lacked)
+	var _owned = variable_global_exists("click_owner") && g.click_owner != noone;
+	if ((mouse_x >= room_width - SW_EDGE || stage > 0) && !_owned) {
 		press_x    = mouse_x;
 		press_y    = mouse_y;
 		hold_fired = false;
@@ -244,6 +248,9 @@ else { hold_row = -1; hold_t = 0; hold_ct = HOLD_LEAD; }
 if (press_x >= 0) {
 	if (instance_exists(obj_puck) && obj_puck.held) press_x = -1;
 	if (variable_global_exists("dice_scoop") && g.dice_scoop) press_x = -1;
+	// and a window that just moved or resized under the pointer is not
+	// a hand on the drawer either (syst_touchscreen's hold)
+	if (touch_jump > 0) press_x = -1;
 }
 sw_tic = max(0, sw_tic - delta);
 if (sw_tic <= 0)

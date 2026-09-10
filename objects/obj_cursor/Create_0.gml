@@ -26,3 +26,8 @@ window_set_cursor(cr_none);
 // its velocity - the puck's spring, in miniature.
 sq  = 0;
 sqv = 0;
+// the arrow's own axis, tip to tail, in screen degrees (y down): the
+// sprite points up-left, so its length runs down and to the right.
+// Measured off the pixels - the body's centroid sits ~50 degrees
+// below the tip's row.
+axis = 50;

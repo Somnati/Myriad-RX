@@ -9,7 +9,7 @@ draw_set_valign(fa_top);
 
 // ---- the ground ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height, 0,
-	c_black, .72 * ui_anim_in(oa, 0));
+	c_black, UI_GROUND_A * ui_anim_in(oa, 0));
 
 // ---- the cards ----
 var _cards = __cards();

@@ -17,6 +17,14 @@ time = 0;
 wmx = 0;
 wmy = 0;
 
+// THE WINDOW-JUMP HOLD (see the Step): how many frames the drawers
+// must refuse a swipe because the window itself just moved or resized,
+// and the window geometry the Step compares against
+jump   = 0;
+win_w  = 0; win_h = 0;
+win_x  = 0; win_y = 0;
+win_fs = false;
+
 
 
 

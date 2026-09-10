@@ -4,6 +4,7 @@
 /// handles the drag, and refreshes caches when the board revs.
 
 var _t = g.tiles;
+__grow();   // a slot bought since last frame (see the Create)
 
 // presentation decay
 for (var _i = 0; _i < _t.slots; _i++)
@@ -87,6 +88,9 @@ if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == 
 	// a tile, nothing it does until it lets go is a gesture at the
 	// drawer, so the arm is dropped and only a new press can re-arm
 	if (grab_i != -1) sw_x = -1;
+	// nor a window that just moved or resized under the pointer
+	// (syst_touchscreen's hold - the fullscreen swap)
+	if (touch_jump > 0) sw_x = -1;
 	// ⚖️ DE's GATE, the dial drawer's port (his list: speed limits,
 	// touch bounds, a hold limit that cancels the swipe). Fires WHILE
 	// HELD the moment the gesture qualifies; sw_tic keeps one gesture

@@ -24,10 +24,19 @@ function tiles_sync() {
 		_t.slots = _slots;
 		if (_slots > _old)
 			for (var _i = _old; _i < _slots; _i++) _t.tier[_i] = 0;
-		else
-			// shrinking should never happen (levels only rise), but a
-			// hand-edited save must not leave tiles outside the board
+		else {
+			// SHRINKING: the base fell (16 -> 12 when the slots row
+			// landed, 2026-09-10) or a reset dropped the levels. Tiles
+			// past the new edge move into free slots inside it before
+			// the array is cut, so a smaller board keeps what it can
+			// rather than dropping whatever sat on the far rows
+			for (var _i = _slots; _i < _old; _i++) {
+				if (_t.tier[_i] == 0) continue;
+				for (var _j = 0; _j < _slots; _j++)
+					if (_t.tier[_j] == 0) { _t.tier[_j] = _t.tier[_i]; _t.tier[_i] = 0; break; }
+			}
 			array_resize(_t.tier, _slots);
+		}
 		_t.dirty = true;
 	}
 

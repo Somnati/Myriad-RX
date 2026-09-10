@@ -107,6 +107,26 @@ last_rev = -1;
 // per-slot merge/spawn flash (parallel to g.tiles.tier)
 glow = array_create(g.tiles.slots, 0);
 
+/// @func __grow()
+/// @desc THE VIEW ARRAYS FOLLOW THE BOARD (the slots row, 2026-09-10).
+///       They are sized here at Create, and a slot bought from the
+///       drawer grows g.tiles.tier the same frame - a read of glow[12]
+///       on a twelve-long array is a crash, so the Step and the Draw
+///       both ask this first. Writes would auto-extend; the READS are
+///       why this exists. Shrinks are left alone: the loops run to
+///       slots, and a longer array costs nothing.
+__grow = function() {
+	var _n = g.tiles.slots;
+	if (array_length(glow) >= _n) return;
+	var _n0 = array_length(glow);
+	array_resize(glow, _n); array_resize(val_str, _n); array_resize(val_sc, _n);
+	array_resize(col, _n);  array_resize(txtcol, _n);
+	for (var _i = _n0; _i < _n; _i++) {
+		glow[_i] = 0; val_str[_i] = ""; val_sc[_i] = 1;
+		col[_i] = c_white; txtcol[_i] = c_white;
+	}
+};
+
 // display caches, rebuilt only when the engine bumps g.tiles.rev
 // (arb math + string widths are not per-frame work - Myriad's
 // discipline, kept). val_sc is Myriad's fit trick: values render in
@@ -237,13 +257,15 @@ DR_BUDGET = 6;
 
 upg_y = 0;       // seated below, once the strip is known
 dr_top = 0;      // the drawer's top edge - under the title banner (below)
-upg_h = 25;   // ⚖️ CONDENSED (his ask, 2026-09-10): the name + level line,
+upg_h = 22;   // ⚖️ CONDENSED (his ask, 2026-09-10): the name + level line,
               // then the buy bar - the bonus line moved INTO the bar
               // (bonus right, cost left), so a row is exactly a header
-              // and a button. Was 36 with the bonus on its own line;
-              // six rows at 25 + 3 fit over the rebirth box, which is
-              // why six is the roster's size.
-upg_n = 6;
+              // and a button. Was 36 with the bonus on its own line,
+              // then 25 + 3 for six rows; the slots row made it seven,
+              // and seven at 22 + 2 (168px) still clear the rebirth
+              // box at 241 from a top of 68.
+upg_g = 2;    // the gap between rows
+upg_n = array_length(tile_upg_config());
 // ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
 // put the CLOSED drawer's right edge at 0 - so the tab was off screen -
 // and the OPEN one's left edge at +9, leaving a strip of room showing
@@ -301,7 +323,7 @@ __rb_r = function() {
 };
 
 __upg_r = function(_k) {
-	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 3),
+	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + upg_g),
 	         w : dr_w - 8 - 4, h : upg_h };
 };
 // THE BUY BUTTON inside a row - the cost bar. It is the row's tap
@@ -312,7 +334,7 @@ __upg_r = function(_k) {
 // rectangle, so the target is exactly the thing that looks like one.
 __upg_btn_r = function(_k) {
 	var _r = __upg_r(_k);
-	return { x : _r.x + 6, y : _r.y + 12, w : _r.w - 12, h : 11 };
+	return { x : _r.x + 6, y : _r.y + 11, w : _r.w - 12, h : 10 };
 };
 // the quote cache: tile_upg walks a log-space series and packs an arb,
 // and the price only moves when something is bought
@@ -448,9 +470,11 @@ __draw_drawer = function() {
 			draw_set_halign(fa_right);
 			draw_set_color(rgb(120, 130, 150));
 			draw_set_alpha(.6 * _ua);
+			// the cap beside the level - "lv 6/30" (his ask, 2026-09-10);
+			// a full fraction says maxed on its own
+			var _ucap = _uc[$ "max"] ?? -1;
 			draw_text(_ur.x + _ur.w - 6, _ur.y + 2,
-				_uq.max ? ("lv " + string(_uq.lv) + " max")
-				        : ("lv " + string(_uq.lv)));
+				"lv " + string(_uq.lv) + ((_ucap > 0) ? ("/" + string(_ucap)) : ""));
 			draw_set_halign(fa_left);
 
 			// ---- THE BAR: the tap target, the cost LEFT, the bonus RIGHT
@@ -573,8 +597,8 @@ __draw_drawer = function() {
 		if (!TILES_LIVE) {
 			draw_set_color(c_horange);
 			draw_set_alpha(.7 * dr_open);
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 3) + 6, "preview - the board");
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + 3) + 15, "is not saved yet");
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + upg_g) + 6, "preview - the board");
+			draw_text(_fx + 6, upg_y + upg_n * (upg_h + upg_g) + 15, "is not saved yet");
 		}
 	}
 
@@ -684,7 +708,9 @@ upg_y  = dr_top + 17;
 // slot geometry through `with`; there is no separate spawn seat)
 spark_lift = 60;   // (44 before; his ask 2026-09-10: nearer the top)
 spark_x = bx + (g.tiles.cols * pw - 4) * .5;
-spark_y = by - spark_lift;
+// ...floored at the band's top: a 32-slot board is eight rows and its
+// top row sits where the lift would put the count over the fab bars
+spark_y = max(board_top, by - spark_lift);
 float_x = spark_x;
 float_y = spark_y - 2;
 __reseat = function() {
@@ -694,7 +720,7 @@ __reseat = function() {
 	// the spark and the float ride the board - a board-size upgrade
 	// must not leave either hanging where the old board was
 	spark_x = bx + (g.tiles.cols * pw - 4) * .5;
-	spark_y = by - spark_lift;
+	spark_y = max(board_top, by - spark_lift);
 	float_x = spark_x;
 	float_y = spark_y - 2;
 };

@@ -1,4 +1,5 @@
 cx0 = (room_width - cw) * .5;   // rooms differ in width
+cy0 = (instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16) + 3;   // under the bar, not behind it
 
 if (!__live()) exit;
 if (!input_free()) exit;

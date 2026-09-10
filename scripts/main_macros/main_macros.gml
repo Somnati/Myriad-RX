@@ -107,6 +107,7 @@ function main_macros() {
 #macro touch_pinch_delta syst_touchscreen.pinch_delta
 #macro touch_pinch_x syst_touchscreen.pinch_cx
 #macro touch_pinch_y syst_touchscreen.pinch_cy
+#macro touch_jump syst_touchscreen.jump   // frames left of the window-jump hold (see syst_touchscreen)
 #macro touch_time_min 45
 #macro touch_dragdist_min 50
 #macro touch_dragspd_min 7
@@ -272,6 +273,14 @@ function main_macros() {
                            // SLOWER). Raised from 5 once the rows began
                            // fading as well - a dissolve reads as slow
                            // at a speed a slide reads as sluggish at
+// ⚖️ THE GROUND UNDER AN OVERLAY (his report, 2026-09-10: no menu blur
+// behind settings / statistics / automation / rebirth / time bank). The
+// blur WAS there - ui_blur_tick rides every overlay's oa - but the
+// overlays laid .72 black over it, and a room at 28% is a room you
+// cannot tell is blurred. The menu drawer's backing is .48; this is the
+// overlays' one number, a shade lighter than that since their rows are
+// opaque plates and the ground only shows in the gaps.
+#macro UI_GROUND_A    .5
 #macro UI_OUT_SPD     3    // ...and the divisor on the way OUT (his
                            // ask: speed the fade-out up). CLOSING IS
                            // NOT OPENING PLAYED BACKWARDS. An entrance
@@ -390,7 +399,13 @@ function main_macros() {
 #macro TILE_GROW         3   // px of growth over the first tiers (each way: w and h)
 #macro TILE_BONUS_TIER   false
 
-#macro TILE_SLOTS_BASE   16
+// ⚖️ THE BOARD IS AN UPGRADE NOW (his spec, 2026-09-10): twelve slots
+// to start, +1 a level, 32 at the cap - the "slots" row in
+// tile_upg_config, priced so the first four land before 100m and the
+// rest ride the shared curve to e308. tiles_sync lays the board out
+// from these three; the roster's cap derives from them too.
+#macro TILE_SLOTS_BASE   12   // (16 before the upgrade existed)
+#macro TILE_SLOTS_MAX    32
 #macro TILE_FAB_T        600    // frames: 10 seconds
 // ⚖️ ZERO BY DEFAULT (his call, 2026-09-09). A board that ships with a
 // ten-tile reserve has already solved the only problem the reserve
@@ -523,7 +538,7 @@ function main_macros() {
 // PERCENTAGE POINTS a level (his +50%), summed and applied as ONE
 // multiply - DE's u_rarityrate exactly. See tile_rarity_rate.
 #macro TILE_RARITY_STEP  50
-#macro TILE_SLOT_STEP    2
+#macro TILE_SLOT_STEP    1   // slots a level (was 2 when the row was retired)
 // THE CHANCE UPGRADES - duplication and tier up share these (his spec,
 // 2026-09-10: 1% to start, +1% a level, 50% at the cap). The cap is
 // where the ladder ENDS: levels = (CAP - BASE) / STEP = 49, and the

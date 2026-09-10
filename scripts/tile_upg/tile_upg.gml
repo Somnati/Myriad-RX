@@ -91,7 +91,19 @@ function tile_upg(_id, _commit = true) {
 
 	var _lg = log10(_e.base);
 	var _infl = _e[$ "inflate"] ?? false;
-	if (variable_struct_exists(_e, "curve") && _cap > 0) {
+	// ⚖️ A HAND-SET OPENING (the slots row, 2026-09-10: "the first 4
+	// affordable before 100m, then the typical curve"): `pre` lists the
+	// first levels' costs outright, and the curve then runs from the
+	// LAST of them to the ceiling over the rungs that remain - landing
+	// exactly on top at the final buy, so the cap is where e308 IS
+	// rather than where it is approached. A row without `pre` prices as
+	// it always did.
+	var _pre = _e[$ "pre"] ?? undefined;
+	var _np  = is_array(_pre) ? array_length(_pre) : 0;
+	if (_np > 0 && _lv < _np) {
+		_lg = log10(_pre[_lv]);
+	}
+	else if (variable_struct_exists(_e, "curve") && _cap > 0) {
 		// curved: the span from base to top, spent unevenly across the
 		// ladder. power() rather than a table, because the shape has to
 		// stay right if the cap or the ceiling ever move.
@@ -102,7 +114,11 @@ function tile_upg(_id, _commit = true) {
 			var _k = log10(TILE_FLUX_DIV / TILE_FLUX_STEP);
 			_top = (_e.top + _k) * .5;
 		}
-		_lg += (_top - _lg) * power(_lv / _cap, _e.curve);
+		if (_np > 0) {
+			var _lg0 = log10(_pre[_np - 1]);
+			_lg = _lg0 + (_top - _lg0) * power((_lv - _np + 1) / (_cap - _np), _e.curve);
+		} else
+			_lg += (_top - _lg) * power(_lv / _cap, _e.curve);
 	} else {
 		_lg += _lv * _e.e;
 	}

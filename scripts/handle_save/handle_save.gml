@@ -184,10 +184,26 @@ function handle_save(){
 				g.tiles.upg[$ _tid] = max(0, floor(g.tiles.upg[$ _tid]));
 		}
 		if (action == sv_load) {
+			// the board's size is an upgrade level now (slots row,
+			// 2026-09-10): lay the board out from the levels just read
+			// BEFORE parsing the tiles into it, or a 20-slot save reads
+			// its first twelve and the rest are gone on every load
+			tiles_sync();
 			var _tp = string_split(_tt, ",");
 			for (var _k = 0; _k < g.tiles.slots; _k++) {
 				var _d5 = (_k < array_length(_tp)) ? string_digits(_tp[_k]) : "";
 				g.tiles.tier[_k] = (_d5 == "") ? 0 : max(0, floor(real(_d5)));
+			}
+			// a save from a WIDER board (sixteen slots before the slots
+			// row, 2026-09-10): the tiles past the edge take free slots
+			// inside it rather than vanishing; only a full board drops
+			// them. One-time, and it costs nothing to keep.
+			for (var _k = g.tiles.slots; _k < array_length(_tp); _k++) {
+				var _d6 = string_digits(_tp[_k]);
+				var _v6 = (_d6 == "") ? 0 : max(0, floor(real(_d6)));
+				if (_v6 == 0) continue;
+				for (var _j = 0; _j < g.tiles.slots; _j++)
+					if (g.tiles.tier[_j] == 0) { g.tiles.tier[_j] = _v6; break; }
 			}
 			g.tiles.fab     = clamp(g.tiles.fab, 0, g.tiles.fab_t);
 			g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);

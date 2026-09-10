@@ -50,3 +50,5 @@ if (!instance_exists(syst_sparks)) create_obj(0, 0, syst_sparks);
 // the time bank's burn indicator: persistent, shows itself only in the
 // money room and only while a multiplier is running
 if (!instance_exists(syst_timebank)) create_obj(0, 0, syst_timebank);
+// ...and DE's speed arrow, top-right of the same room while it runs
+if (!instance_exists(obj_boost_spd)) create_obj(0, 0, obj_boost_spd);
