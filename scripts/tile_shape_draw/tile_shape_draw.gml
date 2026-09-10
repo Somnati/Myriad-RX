@@ -35,15 +35,16 @@
 /// socket is not a tile and must not look like one - it is the shape of
 /// the SPACE, and the space does not have a rarity.
 ///
-/// ⚖️ FLAT, AND ONLY THE OUTLINE (2026-09-09). This painted a 2D
-/// "material" for one commit - a gradient, a rim, a specular pip - and
-/// it looked like a smudge, because a flat draw has no surface for
-/// light to fall across. The tiles are raymarched solids now (sh_tile,
-/// via syst_tiles' __tile_solid) and THAT is where material lives.
-/// This function is the flat twin: the empty sockets, the held tile's
-/// echo, and every wash drawn OVER a solid - hover, merge flash, the
-/// automerge tell, the drag assist, the ghost's shadow. It keeps the
-/// same six-shape cycle so a wash has its solid's own outline.
+/// ⚖️ FLAT, AND ONLY THE OUTLINE - his call after seeing the alternatives
+/// (2026-09-09). Two other versions were tried the same day: a 2D
+/// material pass in this function (gradient, rim, specular pip - it
+/// read as a smudge, because a flat draw has no surface for light to
+/// cross) and then real raymarched solids through a tile shader (real
+/// bevels, real highlights, iridescence on the rim). He looked at both
+/// and chose the plain outline, and the shader is gone with the
+/// material pass. What survived is the part that is gameplay rather
+/// than decoration: the six-shape cycle, which makes neighbouring tiers
+/// differ so a pair can be found by silhouette.
 function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
 	if (_a <= .003) return;
 	var _s = (_tier <= 0) ? 0 : ((_tier - 1) % 6);

@@ -93,22 +93,13 @@ draw_set_halign(fa_center);
 // ---- the board ----
 var _am0 = __aim(); // the drop's true target (mouse or tile center)
 var _hov = __slot_at(_am0[0], _am0[1]);
-// ⚖️ TWO PASSES. Every solid body first under ONE shader_set, then the
-// numbers and every flat overlay in a second loop with the shader off.
-// Interleaving them - body, number, hover, body, number, hover - would
-// mean a shader_set and a reset per tile, sixteen times a frame, and
-// shader switches are the expensive thing here, not the rays.
-//
-// PASS ONE: sockets and bodies.
-shader_set(sh_tile);
-for (var _i = 0; _i < _t.slots; _i++) {
-	var _tier = _t.tier[_i];
-	if (_tier == 0 || _i == grab_i) continue;   // sockets and echoes are flat
-	__tile_solid(_tier, __slot_x(_i), __slot_y(_i), col[_i], 1);
-}
-shader_reset();
-
-// PASS TWO: sockets, echoes, numbers, overlays - all flat.
+// ⚖️ FLAT SHAPES, NO MATERIAL (his call, 2026-09-09, after seeing both).
+// The tiles were raymarched solids for one commit - real bevels, real
+// specular, iridescence on the rim - and before that they wore a 2D
+// material pass. Neither earned its place on a 13px object that has to
+// carry a number, and he chose the version that just draws the outline.
+// The six-shape cycle stays: it is the channel that makes neighbouring
+// tiers differ, and that is gameplay rather than decoration.
 draw_set_font(fnt_large);
 for (var _i = 0; _i < _t.slots; _i++) {
 	var _x = __slot_x(_i);
@@ -121,11 +112,9 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		tile_shape_draw(0, _x, _y, tw, th, slot_col, .9);
 	} else {
 		var _held = (_i == grab_i);
-		// a held tile leaves a dim flat echo in its slot - a hole, not a
-		// dimmer tile. The body itself was painted in pass one.
-		if (_held)
-			tile_shape_draw(_tier, _x, _y, tw, th,
-				merge_colour(col[_i], c_black, .7), .25);
+		// the resident tile (a held one leaves a dim echo in its slot)
+		tile_shape_draw(_tier, _x, _y, tw, th,
+			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
 		if (!_held && val_str[_i] != "") {
 			// ⚖️ CENTRED BY ARITHMETIC, NOT BY valign. fnt_large is a
 			// SPRITE font, and the house note is explicit that those
@@ -167,9 +156,8 @@ if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
 // ---- the ghost, drawn last so it rides above the board ----
 if (grab_i != -1) {
 	tile_shape_draw(_t.tier[grab_i], gx + 2, gy + 4 + z, tw, th, c_black, .4);
-	shader_set(sh_tile);
-	__tile_solid(_t.tier[grab_i], gx, gy, col[grab_i], 1);
-	shader_reset();
+	tile_shape_draw(_t.tier[grab_i], gx, gy, tw, th,
+		merge_colour(col[grab_i], c_black, .6), 1);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);
 	// the same arithmetic as the board's, so a held tile's number sits
