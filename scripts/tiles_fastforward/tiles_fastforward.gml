@@ -168,8 +168,15 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 	var _sh = 0;
 	for (var _i2 = 0; _i2 < _t.slots; _i2++)
 		if (_t.tier[_i2] != 0) _sh = do_add(_sh, tile_gps(_t.tier[_i2]));
-	if (_sh >= arb(1) && _secs >= 1) {
-		var _sadd = do_scale(_sh, floor(_secs));
+	// ⚖️ _sec, NOT _secs. This read `_secs` - a name that does not exist
+	// in this function - and every save load with time behind it threw.
+	// It survived because TILES_LIVE gated offline_replay's tiles branch
+	// until 2026-09-09, so the typo shipped into a path nothing could
+	// reach. The FULL span is right here, unlike the fabricator and
+	// automerge spans above: those two are throttled (_sec_fab,
+	// _sec_am), shard income is not.
+	if (_sh >= arb(1) && _sec >= 1) {
+		var _sadd = do_scale(_sh, floor(_sec));
 		_t.shards = (_t.shards >= arb(1)) ? do_add(_t.shards, _sadd) : _sadd;
 		_t.earned = (_t.earned >= arb(1)) ? do_add(_t.earned, _sadd) : _sadd;
 	}
