@@ -4,11 +4,10 @@
 /// >>> it, and the tile room draws whatever is here.
 ///
 /// FIELDS: id (the save key - never change one), name, base cost in
-/// SHARDS, fmt, help, optionally max (the level it stops at), and ONE
-/// of two pricing shapes:
-///   e                 decades the cost gains a level (a straight line)
-///   curve + top       the cost accelerates from base to 10^top across
-///                     the whole ladder - needs max. See tile_upg.
+/// SHARDS, fmt, help, max (the level the price reaches the ceiling),
+/// and the pricing shape: curve + top - the cost accelerates from base
+/// to 10^top across the whole ladder. tile_upg still accepts a straight
+/// `e` for a row that wants one; none does today.
 ///
 /// ⚖️ CUT TO TWO (his call, 2026-09-08). The roster was fabricator /
 /// alloy quality / board size / hopper, tuned in tiles_twin against a
@@ -69,7 +68,17 @@ function tile_upg_config() {
 			// the merge loop is exponential in tier - so this lane
 			// compounds whether or not anybody buys anything. +2.5
 			// decades a level is priced against the LANE, not the step.
-			id : "profit", name : "profit boost", base : 1000, e : 2.5,
+			// ⚖️ EVERY ROW CURVES NOW (his call: the fab shape on all of
+			// them - cheap early, steep to a ceiling). A curved ladder
+			// needs a last level to normalise against, so the two rows
+			// that were uncapped gained one. The cap is not a limit you
+			// will meet: it is WHERE THE PRICE REACHES THE CEILING, and
+			// a level past 1e308 was never buyable anyway. What the cap
+			// really sets is GRANULARITY - a hundred rungs to the top
+			// means each early rung is a hair's breadth, which is why
+			// this row buys so freely in the first hour.
+			id : "profit", name : "profit boost", base : 1000,
+			curve : TILE_UPG_CURVE, top : 308, max : 100,
 			fmt : function(_lv) {
 				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
 			},
@@ -93,12 +102,12 @@ function tile_upg_config() {
 			// seconds are affordable, late ones are the endgame, and the
 			// budget is untouched - it is the same -5.0s either way.
 			//
-			// TILE_FAB_CURVE is the shape and it is the one knob here:
+			// TILE_UPG_CURVE is the shape, shared by the whole roster now:
 			// 1 would be the old straight line, 2 puts a quarter of the
 			// levels inside a hundredth of the span, 3 makes the first
 			// ten nearly free.
 			id : "fab", name : "fabrication speed", base : 10000,
-			curve : TILE_FAB_CURVE, top : TILE_FAB_TOP,
+			curve : TILE_UPG_CURVE, top : TILE_FAB_TOP,
 			max : TILE_FAB_CAP div TILE_FAB_STEP,
 			fmt : function(_lv) {
 				return string_format(
@@ -135,7 +144,12 @@ function tile_upg_config() {
 			// name was not just imprecise, it was reserved. Renaming the
 			// save key is free here because he reset the tile levels
 			// this session and nothing else has ever held one.
-			id : "rarity", name : "tile rarity", base : 5000, e : 2.5,
+			// sixty rungs to the ceiling: coarser than profit on purpose,
+			// because each one is +50% of a rate whose thresholds are
+			// 400 apart - a rarity level is a bigger event than a profit
+			// level and should be spaced like one
+			id : "rarity", name : "tile rarity", base : 5000,
+			curve : TILE_UPG_CURVE, top : 308, max : 60,
 			fmt : function(_lv) {
 				return "+" + string(20 * _lv) + "%";
 			},
@@ -157,7 +171,11 @@ function tile_upg_config() {
 			// than a percentage, which is why 30 levels is a real cap
 			// rather than a formality: +1 tile against +2.5 decades runs
 			// out of meaning long before it runs out of arithmetic.
-			id : "bank", name : "hopper", base : 2500, e : 2.5, max : 30,
+			// top 150, NOT 308: the hopper is a convenience and its last
+			// tile should be a mid-game purchase, not the last thing in
+			// the game. Thirty rungs to 1e150 still curves the same way.
+			id : "bank", name : "hopper", base : 2500,
+			curve : TILE_UPG_CURVE, top : 150, max : 30,
 			fmt : function(_lv) {
 				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
 			},

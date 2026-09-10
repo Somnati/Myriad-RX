@@ -35,7 +35,8 @@ function tiles_init(_force = false) {
 		// the table's own prestige (tile_rebirth_*): units bought, and
 		// how many times. Both survive a tile rebirth by definition -
 		// they ARE what it pays.
-		rb_units   : 0,
+		flux       : 0,      // the currency a table rebirth pays (a
+		                     // plain real - see tile_rebirth_calc)
 		rb_total   : 0,
 
 		stored     : 0,

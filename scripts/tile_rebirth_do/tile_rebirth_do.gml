@@ -1,10 +1,10 @@
 /// @description tile_rebirth_do() - commit a tile rebirth. Returns the
-/// units awarded, or 0 if it refused.
+/// FLUX awarded, or 0 if it refused.
 ///
 /// ⚖️ WHAT SURVIVES IS THE POINT. The board, the hopper, the shards and
 /// the LIFETIME EARNED all go - earned is the measure, so leaving it
 /// would pay for the same work twice and the second rebirth would be
-/// free. What survives is the units, the rebirth count, and the
+/// free. What survives is the FLUX, the rebirth count, and the
 /// UPGRADES.
 ///
 /// Keeping the upgrades is the deliberate one, and it is the same call
@@ -15,10 +15,11 @@
 function tile_rebirth_do() {
 	tiles_init();
 	var _c = tile_rebirth_calc();
-	if (!_c.can || _c.units <= 0) return 0;
+	if (!_c.can || _c.flux <= 0) return 0;
 
 	var _t = g.tiles;
-	_t.rb_units = (_t[$ "rb_units"] ?? 0) + _c.units;
+	// FLUX ACCUMULATES - it is a currency, and the pile is the point
+	_t.flux     = (_t[$ "flux"] ?? 0) + _c.flux;
 	_t.rb_total = (_t[$ "rb_total"] ?? 0) + 1;
 
 	// the board back to nothing
@@ -37,5 +38,5 @@ function tile_rebirth_do() {
 	tiles_sync();        // the board takes its new shape at once
 	// a rare, heavy moment - the save menu's own rule for these
 	syst_handle_save.action = sv_save;
-	return _c.units;
+	return _c.flux;
 }

@@ -390,14 +390,23 @@ function main_macros() {
 // is that number's digit count, because arb subtracts exponents to
 // divide - they are one quantity said twice, and out of step they would
 // silently rescale every dial in the game. See tile_dial_boost.
-// ⚖️ THE TABLE'S OWN PRESTIGE (his ask). GATE and RATE are in ORDERS OF
-// MAGNITUDE of lifetime shards EARNED, which is what tile_rebirth_calc
-// measures - crossing the gate pays one unit, then one more per RATE
-// decades beyond it. STEP is what a unit is worth as a multiplier on
-// board output: 1.0 = each unit doubles the first unit's worth of it.
+// ⚖️ THE TABLE'S OWN PRESTIGE pays FLUX, a currency (his call - not
+// units). A rebirth pays earned / FLUX_DIV, so the amount is literally a
+// share of the shards the board produced, and the pile held multiplies
+// board output through tile_rebirth_boost:
+//
+//     output x (1 + FLUX_STEP x flux ^ FLUX_POW)
+//
+// POW UNDER 1 IS THE BRAKE. Flux is proportional to earned and earned
+// is proportional to output, so a linear read closes that loop into a
+// runaway. At .5 doubling your flux is worth x1.41 - still direct,
+// still a pile you watch grow, but one whose next thousand is worth
+// less than its first (ngu_bonus's own law).
 #macro TILE_RB_GATE       6   // 1e6 earned before the first reset
-#macro TILE_RB_RATE     1.5   // decades a unit, past the gate
-#macro TILE_RB_STEP     1.0   // board output x (1 + STEP x units)
+#macro TILE_FLUX_DIV 1000000  // flux paid = earned / this (a plain
+                              // literal: GML will not parse 1e6)
+#macro TILE_FLUX_STEP   .10   // output x (1 + STEP x flux^POW)
+#macro TILE_FLUX_POW    .50   // the brake - see above
 
 #macro TILE_DIAL_DIV    100
 #macro TILE_DIAL_SHIFT    2
@@ -440,7 +449,9 @@ function main_macros() {
 // early half nobody would ever climb. CURVE 2 spends the same span
 // unevenly: level 5 at 1e7, level 10 at 1e16, level 50 still exactly on
 // TOP. The budget does not move; only who can reach which part of it.
-#macro TILE_FAB_CURVE     2  // 1 = the straight line, higher = slower start
+#macro TILE_UPG_CURVE     2  // every upgrade's price curve (his call):
+                             // 1 = a straight line, higher = a slower
+                             // start and a steeper finish
 #macro TILE_FAB_TOP     308  // log10 of the LAST level's cost (his e308)
 #macro TILE_FAB_STEP      6  // -0.1s a level, in FRAMES at 60hz
 #macro TILE_FAB_CAP     300  // ...to -5.0s total, and no further

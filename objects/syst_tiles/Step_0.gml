@@ -129,7 +129,7 @@ if (mouse_check_button_pressed(mb_left)) {
 			var _got = tile_rebirth_do();
 			if (_got > 0) {
 				play_sound_ext(snd_rebirthcollect, .9, 1.1, .7, 2);
-				float_text(float_x, float_y, "+" + string(_got) + " units",
+				float_text(float_x, float_y, "+" + crunch_arb(arb(_got)) + " flux",
 					c_hred, fnt_outline);
 			}
 		} else {

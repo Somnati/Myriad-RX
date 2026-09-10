@@ -354,18 +354,19 @@ __draw_drawer = function() {
 		draw_set_alpha((_rc.can ? .95 : .6) * dr_open);
 		draw_text(_rr.x + 6, _rr.y + 3, "table rebirth");
 		draw_set_halign(fa_right);
-		var _ru = g.tiles[$ "rb_units"] ?? 0;
-		draw_set_color(rgb(120, 130, 150));
-		draw_set_alpha(.6 * dr_open);
+		var _rf = g.tiles[$ "flux"] ?? 0;
+		draw_set_color((_rf > 0) ? c_hred : rgb(120, 130, 150));
+		draw_set_alpha(.7 * dr_open);
 		draw_text(_rr.x + _rr.w - 6, _rr.y + 3,
-			(_ru > 0) ? (string(_ru) + " units  x" + string_format(tile_rebirth_boost(), 1, 2))
-			          : "no units");
+			(_rf > 0) ? (crunch_arb(arb(_rf)) + " flux  x"
+			             + string_format(tile_rebirth_boost(), 1, 2))
+			          : "no flux");
 		draw_set_halign(fa_left);
 		draw_set_color(_rbcol);
 		draw_set_alpha((_rc.can ? .9 : .5) * dr_open);
 		var _rbtxt = "earn 1e" + string(TILE_RB_GATE) + " shards - "
 			+ string(_rc.lack_oom) + " decades to go";
-		if (_rc.can) _rbtxt = "reset for +" + string(_rc.units) + " units";
+		if (_rc.can) _rbtxt = "reset for +" + crunch_arb(arb(_rc.flux)) + " flux";
 		if (_rc.can && arm_rb > 0) _rbtxt = "press again to confirm";
 		draw_text(_rr.x + 6, _rr.y + 14, _rbtxt);
 		draw_set_halign(fa_left);

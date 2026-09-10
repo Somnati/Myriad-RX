@@ -49,20 +49,23 @@ FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
 PROFIT_STEP  = .10     # TILE_PROFIT_STEP
 RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
 DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
-RB_GATE, RB_RATE, RB_STEP = 6, 1.5, 1.0   # the table's own rebirth
+RB_GATE = 6                # 1e6 earned before the first reset
+FLUX_DIV, FLUX_STEP, FLUX_POW = 1e6, .10, .50   # flux paid / boost law
 BANK_BASE    = 0       # TILE_BANK_BASE - his call, nothing until bought
 BANK_STEP    = 1       # TILE_BANK_STEP
 
 # COSTS ARE IN DECADES: cost = base x 10^(e x level). tile_upg prices in
 # log space and the roster carries the log, so `e` is the exponent.
+# EVERY ROW CURVES (his call): the span from base to top is spent
+# unevenly, so early levels are cheap and the last lands on the ceiling.
+# max is where the price REACHES the ceiling, which mostly sets how fine
+# the early rungs are. See tile_upg - "curve" 1 would be a straight line.
+CURVE = 2.0
 UPG = {
-    "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
-    "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
-    "rarity": {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .50 lv)
-    # CURVED, not straight (his ask): the span from base to top is
-    # spent unevenly, so early levels are cheap and the last lands on
-    # the ceiling. See tile_upg - "curve" 1 would be a straight line.
-    "fab":    {"base": 10000, "curve": 2.0, "top": 308, "max": 50},
+    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 100},
+    "bank":   {"base":  2500, "curve": CURVE, "top": 150, "max": 30},
+    "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
+    "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},
 }
 
 ok = True
@@ -161,7 +164,7 @@ class Table:
         self.am = 0.0
         self.shards = 0.0
         self.earned = 0.0      # lifetime - what a table rebirth prices off
-        self.rb_units = 0
+        self.flux = 0.0
         self.made = 0
         self.merges = 0
         self.log = []          # (t, kind, new level, cost)
@@ -174,8 +177,8 @@ class Table:
         return max(FAB_MIN, FAB_T_BASE - cut)
     def bank_max(self): return BANK_BASE + BANK_STEP * self.lv["bank"]
     def rb_boost(self):
-        # tile_rebirth_boost: the table's own prestige, on OUTPUT
-        return 1 + RB_STEP * self.rb_units
+        # tile_rebirth_boost: flux held, braked by a power under 1
+        return 1 + FLUX_STEP * self.flux ** FLUX_POW
 
     def rarity(self):
         # tile_rarity_rate: the flat base, then the upgrade as a
@@ -197,11 +200,10 @@ class Table:
         return 1 + (self.gps() * (1 + PROFIT_STEP * self.lv["profit"])) / DIAL_DIV
 
     def rb_calc(self):
-        # tile_rebirth_calc, off lifetime EARNED
+        # tile_rebirth_calc: flux = earned / DIV, off lifetime EARNED
         if self.earned < 10 ** RB_GATE:
             return 0
-        oom = math.floor(math.log10(self.earned))
-        return 1 + int((oom - RB_GATE) / RB_RATE)
+        return math.floor(self.earned / FLUX_DIV)
 
     def free(self):
         return self.slots() - len(self.tier)
@@ -441,21 +443,43 @@ say(FAB_T_BASE - FAB_CAP - 3.0 >= FAB_MIN - 1e-9,
 
 # --- 8. THE TABLE'S OWN REBIRTH --------------------------------------
 print()
-print("8. THE TABLE'S REBIRTH  (tile_rebirth_calc, off lifetime EARNED)")
-print("      %-8s %9s %8s %10s" % ("played", "earned", "units", "output x"))
+print("8. THE TABLE'S REBIRTH  (flux = earned / %s, off lifetime EARNED)" % eng(FLUX_DIV))
+print("      %-8s %9s %10s %10s" % ("played", "earned", "flux paid", "output x"))
 for h in (0.25, 1, 6, 24):
     z = run(h)
-    u = z.rb_calc()
-    print("      %-8s %9s %8d %9.1fx"
-          % (hms(h * 3600), eng(z.earned), u, 1 + RB_STEP * u))
+    f = z.rb_calc()
+    print("      %-8s %9s %10s %9.2fx"
+          % (hms(h * 3600), eng(z.earned), eng(f), 1 + FLUX_STEP * f ** FLUX_POW))
 z = run(24)
 say(z.rb_calc() >= 1,
-    "a day of play earns at least one unit",
-    "%d - a prestige nobody can reach in a session is a prestige nobody "
-    "meets" % z.rb_calc())
-say(z.rb_calc() <= 30,
-    "and not an absurd number of them",
-    "%d units = x%.0f board output" % (z.rb_calc(), 1 + RB_STEP * z.rb_calc()))
+    "a day of play pays flux",
+    "%s - a prestige nobody can reach in a session is a prestige nobody "
+    "meets" % eng(z.rb_calc()))
+
+# ⚖️ THE LOOP ACROSS REBIRTHS is the thing that can actually run away:
+# flux is proportional to earned, earned to output, output to flux. Six
+# rebirths of six hours each, banking flux every time, and the question
+# is whether run six is a bigger number or a DIFFERENT GAME.
+print()
+print("      six rebirths, six hours each, flux banked and carried:")
+print("      %-4s %10s %10s %10s" % ("run", "start x", "earned", "flux total"))
+carry = 0.0
+ratio = 1.0
+first = None
+for r in range(1, 7):
+    tbl = Table(seed=7 + r)
+    tbl.flux = carry
+    for tt in range(6 * 3600):
+        tbl.step(1.0)
+        tbl.try_buy(tt + 1)
+    paid = tbl.rb_calc()
+    carry += paid
+    if first is None: first = tbl.earned
+    ratio = tbl.earned / first
+    print("      %-4d %9.2fx %10s %10s" % (r, tbl.rb_boost(), eng(tbl.earned), eng(carry)))
+say(ratio < 1e4,
+    "run six earns under 1e4x run one - the brake holds",
+    "%.0fx; FLUX_POW is the lever if this ever fails" % ratio)
 
 print()
 print("=" * 74)

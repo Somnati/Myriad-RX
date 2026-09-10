@@ -1,23 +1,25 @@
-/// @description tile_rebirth_boost() - the permanent multiplier the
-/// table's own rebirths have bought, as a plain real (1 = none).
+/// @description tile_rebirth_boost() - the multiplier the table's held
+/// FLUX puts on its output, as a plain real (1 = none).
 ///
-/// ⚖️ THE TABLE HAS ITS OWN PRESTIGE (his ask, 2026-09-09: "a separate
-/// rebirth for the tiles based off its earned currency... resetting
-/// increases the output of the tiles"). It is deliberately NOT the
-/// game's rebirth wearing a hat: that one prices off PROFIT HELD and
-/// resets the run, this one prices off SHARDS EARNED and resets only
-/// the board. They can be sitting at completely different points and
-/// neither cares, which is the whole reason to have two.
+/// ⚖️ FLUX AFFECTS OUTPUT DIRECTLY (his spec) - and "directly" has to
+/// be read with a brake, because flux is proportional to earned and
+/// earned is proportional to output. A LINEAR read - output x (1 +
+/// flux/k) - closes that loop into a runaway: each run earns more,
+/// pays more flux, multiplies the next run more, forever, and the
+/// arithmetic never hits a wall the player can feel. The house answer
+/// to exactly this is ngu_bonus's diminishing law, and it is what this
+/// does: the boost rides flux to a POWER under 1. TILE_FLUX_POW .5
+/// means doubling your flux is worth x1.41, not x2 - still direct, still
+/// monotonic, still a pile you watch grow, but a pile whose next
+/// thousand is worth less than its first.
 ///
-/// Applied to the board's OUTPUT in tiles_tick, which means it reaches
-/// both things output feeds - the shard income that buys tile upgrades,
-/// and the contribution to dial profit (tile_dial_boost). One
-/// multiplier, both lanes, because "the output of the tiles" is one
-/// quantity and splitting it would be inventing a distinction the
-/// player was never told about.
+/// Applied to the board's OUTPUT in tiles_tick, so it reaches both
+/// lanes output feeds: the shard income that buys upgrades, and the
+/// board's contribution to dial profit. One multiplier, both lanes,
+/// because "the output of the tiles" is one quantity.
 function tile_rebirth_boost() {
 	if (!variable_global_exists("tiles")) return 1;
-	var _u = g.tiles[$ "rb_units"] ?? 0;
-	if (_u <= 0) return 1;
-	return 1 + TILE_RB_STEP * _u;
+	var _f = g.tiles[$ "flux"] ?? 0;
+	if (_f <= 0) return 1;
+	return 1 + TILE_FLUX_STEP * power(_f, TILE_FLUX_POW);
 }
