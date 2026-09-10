@@ -170,6 +170,55 @@ upg_n = 4;
 __dr_face = function() {
 	return lerp(room_width - dr_tab, room_width - dr_w, dr_open);
 };
+// ---- THE SOLID (his ask: fake 3D like the dice and the puck) ----
+// sh_tile raymarches a rounded slab with one of six footprints. One quad
+// per tile, the cell quantizer keeping it pixel-honest. The uniform
+// handles are fetched once here; __tile_solid sets them per tile.
+u_quad_t   = shader_get_uniform(sh_tile, "u_quad");
+u_pad_t    = shader_get_uniform(sh_tile, "u_pad");
+u_aspect_t = shader_get_uniform(sh_tile, "u_aspect");
+u_shape_t  = shader_get_uniform(sh_tile, "u_shape");
+u_light_t  = shader_get_uniform(sh_tile, "u_light");
+u_col_t    = shader_get_uniform(sh_tile, "u_col");
+u_metal_t  = shader_get_uniform(sh_tile, "u_metal");
+u_iri_t    = shader_get_uniform(sh_tile, "u_iri");
+u_cells_t  = shader_get_uniform(sh_tile, "u_cells");
+
+// the quad is padded PAD px on every side so the rounded rim has room;
+// u_pad is that in half-widths, which is the space the SDF works in
+TILE_PAD = 2;
+
+/// @func __tile_solid(tier, x, y, col, alpha)
+/// @desc One raymarched tile at its top-left. CALLER SETS THE SHADER:
+///       this only pushes uniforms and draws the quad, so a loop of
+///       sixteen pays one shader_set rather than sixteen.
+///
+///       The shape index is the same cycle tile_shape_draw uses for the
+///       flat overlays, so a wash drawn over a solid has the solid's
+///       own outline. The material is tile_mat's, hashed from the tier.
+///       The COLOUR is tile_color's - the rarity ladder - because the
+///       material must never be allowed to lie about how far up the
+///       ladder a tile is.
+__tile_solid = function(_tier, _x, _y, _col, _a) {
+	var _m = tile_mat(_tier);
+	var _qw = tw + TILE_PAD * 2;
+	var _qh = th + TILE_PAD * 2;
+	shader_set_uniform_f(u_quad_t, _x - TILE_PAD, _y - TILE_PAD, _qw, _qh);
+	shader_set_uniform_f(u_pad_t, _qw / tw);
+	shader_set_uniform_f(u_aspect_t, th / tw);
+	shader_set_uniform_f(u_shape_t, (_tier <= 0) ? 0 : ((_tier - 1) % 6));
+	shader_set_uniform_f(u_light_t, -.42, -.62, .66);
+	shader_set_uniform_f(u_col_t,
+		colour_get_red(_col) / 255,
+		colour_get_green(_col) / 255,
+		colour_get_blue(_col) / 255);
+	shader_set_uniform_f(u_metal_t, _m.metal);
+	shader_set_uniform_f(u_iri_t, _m.iri);
+	shader_set_uniform_f(u_cells_t, _qw);   // one cell per room pixel
+	draw_sprite_ext(spr_pixel_1x1, 0, _x - TILE_PAD, _y - TILE_PAD,
+		_qw, _qh, 0, c_white, _a);
+};
+
 /// @func __rb_r()
 /// @desc The tile-rebirth button, under the last upgrade row. It sits
 ///       with the upgrades because it IS one - the most expensive thing
@@ -570,10 +619,24 @@ __recache = function() {
 			clamp(colour_get_saturation(col[_i]), 100, 255),
 			clamp(colour_get_value(col[_i]), 190, 255));
 		val_str[_i] = "+" + crunch_arb(_g);
-		// Myriad's fit rule: bnd = sprite_width-1, scale down when the
-		// string is wider (fractional scale - it's what the original did)
+		// Myriad's fit rule: scale down when the string is wider than
+		// the tile (fractional scale - it's what the original did).
+		//
+		// ⚖️ AGAINST THE FOOTPRINT, NOT THE BOX (2026-09-09). A diamond
+		// is a full tile wide only along its centre line; a number set
+		// to the box's width spills past its points, which is what the
+		// screenshot showed. So each shape declares how much of the
+		// width is usable at the number's height, and the fit uses
+		// that. The rectangle keeps the old rule exactly.
 		var _sw = string_width(val_str[_i]);
-		val_sc[_i] = (_sw > tw - 1) ? (tw - 1) / _sw : 1;
+		var _fit = tw - 1;
+		switch ((_t.tier[_i] - 1) % 6) {
+			case 2: _fit = tw * .62; break;   // diamond
+			case 3: _fit = tw * .84; break;   // ellipse
+			case 4: _fit = tw * .80; break;   // hexagon
+			case 5: _fit = tw * .86; break;   // octagon
+		}
+		val_sc[_i] = (_sw > _fit) ? _fit / _sw : 1;
 	}
 	gps_str = "+" + crunch_arb(_t.gps) + "/s";
 

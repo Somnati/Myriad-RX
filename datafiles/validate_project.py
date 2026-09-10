@@ -509,7 +509,14 @@ def blank_decl_parens(src):
                 if depth == 0:
                     break
             i += 1
-        if not re.search(GTYPE, src[m.start():i]):
+        # i is the CLOSING paren's index, and the slice must include it:
+        # GTYPE's lookahead wants `=;,)` after the name, and a lone
+        # `(vec3 p` has nothing after p. Excluding the paren blanked every
+        # multi-parameter list (the comma satisfied it) and NO single-
+        # parameter one - which is why this fired the first time a shader
+        # had two `sd_thing(vec3 p)` helpers at file scope. (Third time a
+        # rule was wrong rather than the code. Still a good tell.)
+        if not re.search(GTYPE, src[m.start():i + 1]):
             continue          # a call, not a declaration
         for j in range(m.start(), min(i + 1, len(src))):
             out[j] = " "
