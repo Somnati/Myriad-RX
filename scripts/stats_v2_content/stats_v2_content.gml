@@ -73,31 +73,8 @@ function stats_v2_content() {
 	// ---- tapping ----
 	if (variable_global_exists("total_taps"))
 	if (stats_v2_folder("tapping", c_gold)) {
-		var _tp = g.total_taps;
-		var _cr = variable_global_exists("total_crits") ? g.total_crits : 0;
-		if (_sess) {
-			_tp = max(0, _tp - (g.stats_base[$ "taps"]  ?? 0));
-			_cr = max(0, _cr - (g.stats_base[$ "crits"] ?? 0));
-		}
-		stats_v2_line("taps", string(_tp), -1, _sess ? _sc : -1);
-		stats_v2_line("critical taps", string(_cr), -1,
-			_sess ? _sc : ((_cr > 0) ? c_aqua : -1));
-		// the OBSERVED rate, not the configured one - over enough taps
-		// the two converge, and watching them do it is the interesting
-		// part. Below a hundred taps the sample says nothing, so it
-		// says so rather than printing a number that swings from 0% to
-		// 12% and back.
-		stats_v2_line("crit rate", (_tp >= 100)
-			? string_format(100 * _cr / _tp, 1, 2) + "%"
-			: "-", -1, c_gray);
-		if (variable_global_exists("click_crit"))
-			stats_v2_line("crit chance", string(g.click_crit) + "%", -1, c_gray);
-		if (variable_global_exists("click_critx_min"))
-			stats_v2_line("crit payout", "x" + string_format(g.click_critx_min, 1, 1)
-				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);
-		if (variable_global_exists("click_gps"))
-			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
-		// ---- why a tap pays what it pays (his ask, 2026-09-10) - the
+		// ---- why a tap pays what it pays (his ask, 2026-09-10; first in
+		// the folder, his call) - the
 		// dial pages' sibling: a bar of what the tap is MADE of (a sum,
 		// shared linearly), then the multipliers on the whole ----
 		if (variable_global_exists("click_gps"))
@@ -131,6 +108,30 @@ function stats_v2_content() {
 					+ "no longer agree - one was edited without the other.");
 		}
 		stats_v2_folder_end();
+		var _tp = g.total_taps;
+		var _cr = variable_global_exists("total_crits") ? g.total_crits : 0;
+		if (_sess) {
+			_tp = max(0, _tp - (g.stats_base[$ "taps"]  ?? 0));
+			_cr = max(0, _cr - (g.stats_base[$ "crits"] ?? 0));
+		}
+		stats_v2_line("taps", string(_tp), -1, _sess ? _sc : -1);
+		stats_v2_line("critical taps", string(_cr), -1,
+			_sess ? _sc : ((_cr > 0) ? c_aqua : -1));
+		// the OBSERVED rate, not the configured one - over enough taps
+		// the two converge, and watching them do it is the interesting
+		// part. Below a hundred taps the sample says nothing, so it
+		// says so rather than printing a number that swings from 0% to
+		// 12% and back.
+		stats_v2_line("crit rate", (_tp >= 100)
+			? string_format(100 * _cr / _tp, 1, 2) + "%"
+			: "-", -1, c_gray);
+		if (variable_global_exists("click_crit"))
+			stats_v2_line("crit chance", string(g.click_crit) + "%", -1, c_gray);
+		if (variable_global_exists("click_critx_min"))
+			stats_v2_line("crit payout", "x" + string_format(g.click_critx_min, 1, 1)
+				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);
+		if (variable_global_exists("click_gps"))
+			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
 		if (variable_global_exists("overcharge_lv"))
 			stats_v2_line("overcharge", "x" + string(overcharge_multi())
 				+ "  (lv " + string(g.overcharge_lv) + " / " + string(overcharge_maxlv()) + ")",

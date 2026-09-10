@@ -433,6 +433,13 @@ for (var _r = _lo; _r < _hi; _r++) {
 			var _hm = (variable_global_exists("hist_meta"))
 				? g.hist_meta[$ _row.val] : -1;
 			var _hs = is_struct(_hm) ? _hm.step : 1;
+			// ...plus the seconds counted toward the NEXT sample (his
+			// ask, 2026-09-10: "still tic its timer even though it's not
+			// updating due to the size"). Once the buffer has halved a
+			// few times a sample lands every 8, 16, 32 seconds, and a
+			// window that only grew when one did sat frozen between
+			// them. The push's own accumulator is that clock.
+			var _hacc = is_struct(_hm) ? _hm.acc : 0;
 			var _vmn = _arr[0]; var _vmx = _arr[0];
 			for (var _s = 1; _s < _nn; _s++) {
 				_vmn = min(_vmn, _arr[_s]);
@@ -499,7 +506,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 			draw_set_halign(fa_right);
 			draw_set_alpha(.3);
 			draw_text(_gx + _gw - 4, _gy + _gh - 10,
-				crunch_time_long(_nn * _hs * 60));
+				crunch_time_long((_nn * _hs + _hacc) * 60));
 			// THE LIVE VALUE at the value column, on the title line
 			draw_set_color(_row.c1);
 			draw_set_alpha(.95);
@@ -521,7 +528,7 @@ for (var _r = _lo; _r < _hi; _r++) {
 					4, 4, 0, c_white, .9);
 				// how long ago in the SERIES' own time, not in samples -
 				// crunch_time_long takes frames, hence the x60
-				var _ago = round(((_nn - 1) - _sf2) * _hs);
+				var _ago = round(((_nn - 1) - _sf2) * _hs + _hacc);
 				var _stx = crunch_arb(_v2) + "  -"
 					+ ((_ago <= 0) ? "now" : crunch_time_long(_ago * 60));
 				var _stw = string_width(_stx) + 8;

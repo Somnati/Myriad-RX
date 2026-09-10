@@ -27,6 +27,17 @@
 function LODController() constructor {
     // ---- tuning ----
     zoom_smooth     = 5.0;    // camera ease speed (higher = snappier)
+    // ⚖️ A FALLING VALUE ZOOMS IN SLOWLY (his report, 2026-09-10: "a
+    // weird zoom when autobuy buys something... snaps the zoom really
+    // close after it buys something that eats most of what it's earned").
+    // Growth is continuous, so the one ease read as a glide; a purchase
+    // is a STEP down of an order of magnitude or two, and the same ease
+    // ran the camera in over it in half a second. The focus magnitude
+    // is eased on its own first - at zoom_smooth when it rises, at this
+    // when it falls - so a spend drifts the camera in over a few seconds
+    // while earning still tracks as it did. The wheel (manual_bias) is
+    // not in that ease and stays as snappy as before.
+    zoom_smooth_drop = 0.8;
     band_anchor     = 3;      // MUST stay 3. This aligns field handoffs
                               // to land exactly at count 100: a field
                               // finishes filling at the same moment its
@@ -50,6 +61,7 @@ function LODController() constructor {
     // ---- state ----
     wm          = -1.5; // continuous world magnitude (the camera)
     focus_mag   = 0;
+    focus_eased = undefined; // focus_mag through the asymmetric ease (update)
     manual_bias = 0;    // scroll zoom, in OOMs, unbounded: endless both ways
 
     /// @func set_focus_magnitude(mag)
@@ -70,7 +82,14 @@ function LODController() constructor {
 
     /// @func update(dt)
     static update = function(_dt) {
-        var _target = max(wm_min, focus_mag + manual_bias - band_anchor);
+        // the focus, eased asymmetrically (see zoom_smooth_drop): the
+        // first frame seats it, a rise chases at the camera's own speed,
+        // a fall drifts
+        if (focus_eased == undefined) focus_eased = focus_mag;
+        var _k = (focus_mag < focus_eased) ? zoom_smooth_drop : zoom_smooth;
+        focus_eased += (focus_mag - focus_eased) * min(1, _k * _dt);
+        if (abs(focus_mag - focus_eased) < .0005) focus_eased = focus_mag;
+        var _target = max(wm_min, focus_eased + manual_bias - band_anchor);
         wm += (_target - wm) * min(1, zoom_smooth * _dt);
     };
 
