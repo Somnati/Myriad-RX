@@ -17,6 +17,17 @@ function stats_v2_content() {
 	var _sess = (variable_global_exists("stats_mode") && g.stats_mode == 1);
 	var _sc = c_seagreen; // session values read green, prefixed +
 
+	// ORDER (2026-09-10's tidy): options first because it changes how
+	// every row below reads; then the account, the money room, the two
+	// boards, the meta systems.
+
+	// ---- options: LIVE toggles + cycles (data-driven - each row
+	// flips or advances the global it names) ----
+	if (stats_v2_folder("options", c_steelblue)) {
+		stats_v2_cycle("values", "stats_mode", ["total", "session"]);
+	}
+	stats_v2_folder_end();
+
 	// ---- general ----
 	if (stats_v2_folder("general", c_sgreen)) {
 		// TWO CLOCKS (his ask): what you played, and that plus the time
@@ -38,6 +49,24 @@ function stats_v2_content() {
 		if (variable_global_exists("profile_name"))
 			stats_v2_line("profile", g.profile_name[g.profile], -1,
 				g.profile_color[g.profile]);
+	}
+	stats_v2_folder_end();
+
+	// ---- history ----
+	// The spark rows. They read g.stats_hist, filled once a second by
+	// stats_hist_tick off the production heartbeat, so a graph is
+	// always the last two minutes and always of the run you are in.
+	// Session view changes nothing here: a history IS a session view.
+	// LIFETIME, not session (his call): the buffer decimates itself so
+	// the window covers the whole account, and it is saved. The session
+	// view deliberately changes nothing here - a lifetime graph that
+	// reset when you asked for a session view would be answering a
+	// different question than the one on the label.
+	if (variable_global_exists("stats_hist"))
+	if (stats_v2_folder("history", c_steelblue)) {
+		stats_v2_spark("profit held",  "h_profit", c_sblue,  4);
+		stats_v2_spark("rebirth units", "h_units", c_hred,   4);
+		stats_v2_spark("profit / sec", "h_ps",     c_sgreen, 4);
 	}
 	stats_v2_folder_end();
 
@@ -81,21 +110,197 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
-	// ---- history ----
-	// The spark rows. They read g.stats_hist, filled once a second by
-	// stats_hist_tick off the production heartbeat, so a graph is
-	// always the last two minutes and always of the run you are in.
-	// Session view changes nothing here: a history IS a session view.
-	// LIFETIME, not session (his call): the buffer decimates itself so
-	// the window covers the whole account, and it is saved. The session
-	// view deliberately changes nothing here - a lifetime graph that
-	// reset when you asked for a session view would be answering a
-	// different question than the one on the label.
-	if (variable_global_exists("stats_hist"))
-	if (stats_v2_folder("history", c_steelblue)) {
-		stats_v2_spark("profit held",  "h_profit", c_sblue,  4);
-		stats_v2_spark("rebirth units", "h_units", c_hred,   4);
-		stats_v2_spark("profit / sec", "h_ps",     c_sgreen, 4);
+	// ---- dials: the per-dial pages, one folder (2026-09-10's tidy:
+	// 'dial profit' and 'milestones' both walk the same dials, and two
+	// top-level folders that each open into eight sub-folders read as
+	// sixteen pages about one thing) ----
+	if (variable_global_exists("dial"))
+	if (stats_v2_folder("dials", c_gold)) {
+		// ---- dial profit: WHY each dial earns what it earns (his ask) ----
+		// Myriad DE had a page like this and his verdict was that it was
+		// lame. It was a list of numbers, and a list cannot answer the only
+		// question worth asking - which of these is actually carrying the
+		// dial. dial_breakdown answers it by working in LOG10, where a
+		// product becomes a sum and a sum can be shared out; the bar draws
+		// those shares. A x2 milestone beside a x1000 base curve stops
+		// looking equally important, because it is not.
+		if (variable_global_exists("dial"))
+		if (stats_v2_folder("dial profit", c_gold)) {
+			var _any = false;
+			for (var _i = 0; _i < g.dial_total; _i++) {
+				var _d = g.dial[_i];
+				if (_d.level <= 0) continue;   // an unbought dial has no story
+				_any = true;
+				var _bd = dial_breakdown(_i);
+				var _hd = "dial " + dial_config(_i).name + "   "
+					+ crunch_arb(_d.gps) + " / sec";
+				if (stats_v2_folder(_hd, dial_color(_i))) {
+					// the bar first: the answer before the working
+					stats_v2_bar("share of output", _bd.steps, 4);
+
+					// then the factors themselves, each with what it does
+					for (var _s = 0; _s < array_length(_bd.steps); _s++) {
+						var _st = _bd.steps[_s];
+						var _sv = "";
+						// mult -1 = show the value itself (the base curve),
+						// -2 = a packed arb too big for string_format
+						if (_st.mult == -1)      _sv = crunch_arb(_st.val);
+						else if (_st.mult == -2) _sv = "x" + crunch_arb(_st.val);
+						else                     _sv = "x" + string_format(_st.mult, 1, 2);
+						stats_v2_line(_st.name, _sv, _st.col,
+							(_st.share < 0) ? c_hred : -1, _st.note);
+					}
+
+					stats_v2_line();
+					stats_v2_line("per cycle", crunch_arb(_d.gpc), -1, g.profit_color);
+					stats_v2_line("cycle", string_format(_d.cycle_t, 1, 1) + "s");
+					// the mirror's self-check. It should never show; if it
+					// does, update_dial has moved and dial_breakdown has not
+					if (!_bd.ok)
+						stats_v2_line("! breakdown drift", "chain "
+							+ string_format(_bd.derived, 1, 2) + " vs live "
+							+ string_format(_bd.live_lg, 1, 2), c_hred, c_hred,
+							"dial_breakdown mirrors update_dial's chain and the "
+							+ "two no longer agree - one was edited without the "
+							+ "other. The bar above is not trustworthy until "
+							+ "they match.");
+				}
+				stats_v2_folder_end();
+			}
+			if (!_any) stats_v2_line("no dials running", "", c_gray, c_gray);
+		}
+		stats_v2_folder_end();
+
+		// ---- milestones: THE DEBUG LIST (his ask) - every dial's rungs,
+		// earned or locked, the live totals, the next rung's premium ----
+		if (variable_global_exists("milestones") && variable_global_exists("dial"))
+		if (stats_v2_folder("milestones", c_aqua)) {
+			stats_v2_line("premium", "x" + string(g.milestone_cost_mult) + " the crossing level");
+			for (var _i = 0; _i < g.dial_total; _i++) {
+				var _d  = g.dial[_i];
+				var _ms = milestone_get(_i, _d.level);
+				var _hd = "dial " + dial_config(_i).name + "  lv " + string(_d.level);
+				if (stats_v2_folder(_hd, dial_color(_i))) {
+					stats_v2_line("speed", "x" + string(_ms.speed), -1, (_ms.speed > 1) ? c_sgreen : c_gray);
+					stats_v2_line("profit", "x" + string(_ms.profit), -1, (_ms.profit > 1) ? c_sgreen : c_gray);
+					for (var _k = 0; _k < array_length(g.milestones); _k++) {
+						var _m = g.milestones[_k];
+						stats_v2_line("lv " + string(_m.level) + " " + _m.kind + " x" + string(_m.mult),
+							_ms.earned[_k] ? "earned" : "locked", -1,
+							_ms.earned[_k] ? c_sgreen : c_gray);
+					}
+					if (_ms.next > 0 && _d.level > 0)
+						stats_v2_line("next rung cost",
+							crunch_arb(dial_cost(_i, _ms.next - 1, _ms.next)), -1, c_gold);
+				}
+				stats_v2_folder_end();
+			}
+		}
+		stats_v2_folder_end();
+	}
+	stats_v2_folder_end();
+
+	// ---- tiles ----
+	if (variable_global_exists("tiles"))
+	if (stats_v2_folder("tiles", c_aqua)) {
+		var _tl = g.tiles;
+		if (!TILES_LIVE)
+			stats_v2_line("preview", "not saved", -1, c_horange,
+				"the tile table is finished but not tied in yet: it is "
+				+ "kept out of the savefile, out of the offline replay "
+				+ "and out of profit. one macro turns all three on.");
+		var _used = 0;
+		for (var _i = 0; _i < _tl.slots; _i++) if (_tl.tier[_i] != 0) _used++;
+
+		stats_v2_line("shards", (_tl.shards >= arb(1)) ? crunch_arb(_tl.shards) : "0",
+			-1, c_aqua,
+			"the table's own currency, and the only thing tile upgrades "
+			+ "cost. it deliberately does NOT feed profit: the board is "
+			+ "the only source and the upgrades are the only sink, so "
+			+ "what happens on the board is the only thing that moves it.");
+		stats_v2_line("per second", "+"
+			+ ((_tl.gps >= arb(1)) ? crunch_arb(_tl.gps) : "0"), -1, c_aqua,
+			"merging into higher tiers grows this fast - a tier is worth "
+			+ "about 2.8x the one below, and it only costs two of them.");
+		stats_v2_line("lifetime shards",
+			(_tl.earned >= arb(1)) ? crunch_arb(_tl.earned) : "0");
+		stats_v2_line("board", string(_used) + " / " + string(_tl.slots), -1,
+			(_used >= _tl.slots) ? c_horange : -1);
+		stats_v2_line("banked", string(_tl.stored) + " / " + string(_tl.stored_max),
+			-1, (_tl.stored >= _tl.stored_max) ? c_horange : -1,
+			"tiles fabricated while the board was full. they deal onto "
+			+ "open slots by themselves as space frees up - and at the cap "
+			+ "the fabricator WAITS rather than throwing production away.");
+		stats_v2_line("highest tier", string(_tl.highest), -1,
+			tile_color(_tl.highest));
+		stats_v2_line("tiles made", string(_tl.made));
+		stats_v2_line("merges", string(_tl.merges));
+		stats_v2_line("fabricator", string_format(_tl.fab_t / 60, 1, 1) + "s",
+			-1, -1, "how long one tile takes. the auto-merger runs on a "
+			+ "MULTIPLE of it, so anything that speeds fabrication speeds "
+			+ "merging too.");
+
+		// the table's prestige and what it feeds (2026-09-10)
+		var _fx = _tl[$ "flux"] ?? 0;
+		stats_v2_line("flux", string(_fx), -1, (_fx > 0) ? c_hred : c_gray,
+			"the table's own rebirth currency: earned shards / 1e8 each "
+			+ "rebirth, kept forever. every point is +1% to what every "
+			+ "tile pays.");
+		stats_v2_line("table rebirths", string(_tl[$ "rb_total"] ?? 0));
+		stats_v2_line("flux boost", "x" + string_format(tile_rebirth_boost(), 1, 2),
+			-1, (_fx > 0) ? c_hred : c_gray);
+		var _db = tile_dial_boost();
+		var _dbl = arb_log10(_db);
+		stats_v2_line("dial boost", "x" + ((_dbl < 3)
+			? string_format(power(10, _dbl), 1, 2) : crunch_arb(_db)), -1,
+			(_db > arb(1)) ? c_aqua : c_gray,
+			"what the table multiplies every dial's profit by. zero until "
+			+ "the dial profit boost upgrade is bought - that upgrade IS "
+			+ "the wire between the two.");
+		stats_v2_line("duplication", string(tile_chance_rate("dup")) + "%", -1, c_gray,
+			"the chance a fabricated tile comes out as two.");
+		stats_v2_line("tier up", string(tile_chance_rate("tierup")) + "%", -1, c_gray,
+			"the chance a merge climbs an extra tier.");
+
+		// the upgrades, as levels - what they DO is on the rows
+		// above, derived by tiles_sync, so this is only the ladder
+		var _tuc2 = tile_upg_config();
+		for (var _k = 0; _k < array_length(_tuc2); _k++) {
+			var _lv2 = g.tiles.upg[$ _tuc2[_k].id] ?? 0;
+			stats_v2_line(_tuc2[_k].name, "lv " + string(_lv2), -1,
+				(_lv2 > 0) ? c_aqua : c_gray, _tuc2[_k].help);
+		}
+
+		// ---- the fabricator's luck, as a spread ----
+		if (stats_v2_folder("rarity", c_horange)) {
+			// TEN TIERS, not the ladder's full fourteen: past that the
+			// odds are far below a tenth of a percent and the rows are
+			// all the same shape. The bar's job is to show where the
+			// mass actually is.
+			var _tn = 10;
+			var _to = tile_tier_odds(_tn);
+			var _te = [];
+			for (var _i = 0; _i < _tn; _i++)
+				array_push(_te, {
+					name : "tier " + string(_i + 1),
+					col  : tile_color(_i + 1),
+					p    : _to[_i],
+				});
+			// the fabricator's live rate, through the one authority that
+			// knows the whole chain (base, deck adder, the multiplier)
+			stats_v2_rarity("spread", _te,
+				"rarity rate  +" + string(round(tile_rarity_rate())) + "%");
+			stats_v2_line("fabricator luck",
+				"+" + string(round(tile_rarity_rate())), -1,
+				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
+				"every fabricated tile rolls its tier through this. it "
+				+ "shifts the whole spread up, and past each 800 the "
+				+ "bottom tier stops being offered at all.");
+			if (variable_global_exists("ad_tilerarity"))
+			if (g.ad_tilerarity == 1)
+				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
+		}
+		stats_v2_folder_end();
 	}
 	stats_v2_folder_end();
 
@@ -197,85 +402,16 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
-	// ---- tiles ----
-	if (variable_global_exists("tiles"))
-	if (stats_v2_folder("tiles", c_aqua)) {
-		var _tl = g.tiles;
-		if (!TILES_LIVE)
-			stats_v2_line("preview", "not saved", -1, c_horange,
-				"the tile table is finished but not tied in yet: it is "
-				+ "kept out of the savefile, out of the offline replay "
-				+ "and out of profit. one macro turns all three on.");
-		var _used = 0;
-		for (var _i = 0; _i < _tl.slots; _i++) if (_tl.tier[_i] != 0) _used++;
-
-		stats_v2_line("shards", (_tl.shards >= arb(1)) ? crunch_arb(_tl.shards) : "0",
-			-1, c_aqua,
-			"the table's own currency, and the only thing tile upgrades "
-			+ "cost. it deliberately does NOT feed profit: the board is "
-			+ "the only source and the upgrades are the only sink, so "
-			+ "what happens on the board is the only thing that moves it.");
-		stats_v2_line("per second", "+"
-			+ ((_tl.gps >= arb(1)) ? crunch_arb(_tl.gps) : "0"), -1, c_aqua,
-			"merging into higher tiers grows this fast - a tier is worth "
-			+ "about 2.8x the one below, and it only costs two of them.");
-		stats_v2_line("lifetime shards",
-			(_tl.earned >= arb(1)) ? crunch_arb(_tl.earned) : "0");
-		stats_v2_line("board", string(_used) + " / " + string(_tl.slots), -1,
-			(_used >= _tl.slots) ? c_horange : -1);
-		stats_v2_line("banked", string(_tl.stored) + " / " + string(_tl.stored_max),
-			-1, (_tl.stored >= _tl.stored_max) ? c_horange : -1,
-			"tiles fabricated while the board was full. they deal onto "
-			+ "open slots by themselves as space frees up - and at the cap "
-			+ "the fabricator WAITS rather than throwing production away.");
-		stats_v2_line("highest tier", string(_tl.highest), -1,
-			tile_color(_tl.highest));
-		stats_v2_line("tiles made", string(_tl.made));
-		stats_v2_line("merges", string(_tl.merges));
-		stats_v2_line("fabricator", string_format(_tl.fab_t / 60, 1, 1) + "s",
-			-1, -1, "how long one tile takes. the auto-merger runs on a "
-			+ "MULTIPLE of it, so anything that speeds fabrication speeds "
-			+ "merging too.");
-
-		// the four upgrades, as levels - what they DO is on the rows
-		// above, derived by tiles_sync, so this is only the ladder
-		var _tuc2 = tile_upg_config();
-		for (var _k = 0; _k < array_length(_tuc2); _k++) {
-			var _lv2 = g.tiles.upg[$ _tuc2[_k].id] ?? 0;
-			stats_v2_line(_tuc2[_k].name, "lv " + string(_lv2), -1,
-				(_lv2 > 0) ? c_aqua : c_gray, _tuc2[_k].help);
-		}
-
-		// ---- the fabricator's luck, as a spread ----
-		if (stats_v2_folder("rarity", c_horange)) {
-			// TEN TIERS, not the ladder's full fourteen: past that the
-			// odds are far below a tenth of a percent and the rows are
-			// all the same shape. The bar's job is to show where the
-			// mass actually is.
-			var _tn = 10;
-			var _to = tile_tier_odds(_tn);
-			var _te = [];
-			for (var _i = 0; _i < _tn; _i++)
-				array_push(_te, {
-					name : "tier " + string(_i + 1),
-					col  : tile_color(_i + 1),
-					p    : _to[_i],
-				});
-			// the fabricator's live rate, through the one authority that
-			// knows the whole chain (base, deck adder, the multiplier)
-			stats_v2_rarity("spread", _te,
-				"rarity rate  +" + string(round(tile_rarity_rate())) + "%");
-			stats_v2_line("fabricator luck",
-				"+" + string(round(tile_rarity_rate())), -1,
-				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
-				"every fabricated tile rolls its tier through this. it "
-				+ "shifts the whole spread up, and past each 800 the "
-				+ "bottom tier stops being offered at all.");
-			if (variable_global_exists("ad_tilerarity"))
-			if (g.ad_tilerarity == 1)
-				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
-		}
-		stats_v2_folder_end();
+	// ---- credits ----
+	if (variable_global_exists("credits"))
+	if (stats_v2_folder("credits", c_lavender)) {
+		stats_v2_line("credits", (g.credits >= arb(1)) ? crunch_arb(g.credits) : "0", -1, c_lavender);
+		stats_v2_line("lifetime", (g.total_credits >= arb(1)) ? crunch_arb(g.total_credits) : "0");
+		stats_v2_line("pool", string_format(g.credit_pool, 1, 2) + " / " + string(g.credit_cap));
+		stats_v2_line("cooldown", (g.credit_cool > 0) ? string_format(g.credit_cool, 1, 1) + "s" : "ready");
+		stats_v2_line("chance per tap", string(g.credit_tap_chance) + "%");
+		stats_v2_line("max per drop", string(g.credit_maxpull));
+		stats_v2_line("refill", string(g.credit_refill) + " / hour");
 	}
 	stats_v2_folder_end();
 
@@ -355,19 +491,6 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
-	// ---- credits ----
-	if (variable_global_exists("credits"))
-	if (stats_v2_folder("credits", c_lavender)) {
-		stats_v2_line("credits", (g.credits >= arb(1)) ? crunch_arb(g.credits) : "0", -1, c_lavender);
-		stats_v2_line("lifetime", (g.total_credits >= arb(1)) ? crunch_arb(g.total_credits) : "0");
-		stats_v2_line("pool", string_format(g.credit_pool, 1, 2) + " / " + string(g.credit_cap));
-		stats_v2_line("cooldown", (g.credit_cool > 0) ? string_format(g.credit_cool, 1, 1) + "s" : "ready");
-		stats_v2_line("chance per tap", string(g.credit_tap_chance) + "%");
-		stats_v2_line("max per drop", string(g.credit_maxpull));
-		stats_v2_line("refill", string(g.credit_refill) + " / hour");
-	}
-	stats_v2_folder_end();
-
 	// ---- rebirth ----
 	if (variable_global_exists("rebirth"))
 	if (stats_v2_folder("rebirth", c_hred)) {
@@ -377,95 +500,6 @@ function stats_v2_content() {
 		var _c = rebirth_calc();
 		stats_v2_line("next rebirth", _c.can ? "+" + crunch_arb(_c.units) + " units"
 			: "need " + crunch_arb(_c.lack));
-	}
-	stats_v2_folder_end();
-
-	// ---- dial profit: WHY each dial earns what it earns (his ask) ----
-	// Myriad DE had a page like this and his verdict was that it was
-	// lame. It was a list of numbers, and a list cannot answer the only
-	// question worth asking - which of these is actually carrying the
-	// dial. dial_breakdown answers it by working in LOG10, where a
-	// product becomes a sum and a sum can be shared out; the bar draws
-	// those shares. A x2 milestone beside a x1000 base curve stops
-	// looking equally important, because it is not.
-	if (variable_global_exists("dial"))
-	if (stats_v2_folder("dial profit", c_gold)) {
-		var _any = false;
-		for (var _i = 0; _i < g.dial_total; _i++) {
-			var _d = g.dial[_i];
-			if (_d.level <= 0) continue;   // an unbought dial has no story
-			_any = true;
-			var _bd = dial_breakdown(_i);
-			var _hd = "dial " + dial_config(_i).name + "   "
-				+ crunch_arb(_d.gps) + " / sec";
-			if (stats_v2_folder(_hd, dial_color(_i))) {
-				// the bar first: the answer before the working
-				stats_v2_bar("share of output", _bd.steps, 4);
-
-				// then the factors themselves, each with what it does
-				for (var _s = 0; _s < array_length(_bd.steps); _s++) {
-					var _st = _bd.steps[_s];
-					var _sv = "";
-					// mult -1 = show the value itself (the base curve),
-					// -2 = a packed arb too big for string_format
-					if (_st.mult == -1)      _sv = crunch_arb(_st.val);
-					else if (_st.mult == -2) _sv = "x" + crunch_arb(_st.val);
-					else                     _sv = "x" + string_format(_st.mult, 1, 2);
-					stats_v2_line(_st.name, _sv, _st.col,
-						(_st.share < 0) ? c_hred : -1, _st.note);
-				}
-
-				stats_v2_line();
-				stats_v2_line("per cycle", crunch_arb(_d.gpc), -1, g.profit_color);
-				stats_v2_line("cycle", string_format(_d.cycle_t, 1, 1) + "s");
-				// the mirror's self-check. It should never show; if it
-				// does, update_dial has moved and dial_breakdown has not
-				if (!_bd.ok)
-					stats_v2_line("! breakdown drift", "chain "
-						+ string_format(_bd.derived, 1, 2) + " vs live "
-						+ string_format(_bd.live_lg, 1, 2), c_hred, c_hred,
-						"dial_breakdown mirrors update_dial's chain and the "
-						+ "two no longer agree - one was edited without the "
-						+ "other. The bar above is not trustworthy until "
-						+ "they match.");
-			}
-			stats_v2_folder_end();
-		}
-		if (!_any) stats_v2_line("no dials running", "", c_gray, c_gray);
-	}
-	stats_v2_folder_end();
-
-	// ---- milestones: THE DEBUG LIST (his ask) - every dial's rungs,
-	// earned or locked, the live totals, the next rung's premium ----
-	if (variable_global_exists("milestones") && variable_global_exists("dial"))
-	if (stats_v2_folder("milestones", c_aqua)) {
-		stats_v2_line("premium", "x" + string(g.milestone_cost_mult) + " the crossing level");
-		for (var _i = 0; _i < g.dial_total; _i++) {
-			var _d  = g.dial[_i];
-			var _ms = milestone_get(_i, _d.level);
-			var _hd = "dial " + dial_config(_i).name + "  lv " + string(_d.level);
-			if (stats_v2_folder(_hd, dial_color(_i))) {
-				stats_v2_line("speed", "x" + string(_ms.speed), -1, (_ms.speed > 1) ? c_sgreen : c_gray);
-				stats_v2_line("profit", "x" + string(_ms.profit), -1, (_ms.profit > 1) ? c_sgreen : c_gray);
-				for (var _k = 0; _k < array_length(g.milestones); _k++) {
-					var _m = g.milestones[_k];
-					stats_v2_line("lv " + string(_m.level) + " " + _m.kind + " x" + string(_m.mult),
-						_ms.earned[_k] ? "earned" : "locked", -1,
-						_ms.earned[_k] ? c_sgreen : c_gray);
-				}
-				if (_ms.next > 0 && _d.level > 0)
-					stats_v2_line("next rung cost",
-						crunch_arb(dial_cost(_i, _ms.next - 1, _ms.next)), -1, c_gold);
-			}
-			stats_v2_folder_end();
-		}
-	}
-	stats_v2_folder_end();
-
-	// ---- options: LIVE toggles + cycles (data-driven - each row
-	// flips or advances the global it names) ----
-	if (stats_v2_folder("options", c_steelblue)) {
-		stats_v2_cycle("values", "stats_mode", ["total", "session"]);
 	}
 	stats_v2_folder_end();
 }

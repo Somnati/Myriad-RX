@@ -169,6 +169,29 @@ function settings_content() {
 	// find it all in one place.
 	settings_section("visuals", c_salmon);
 
+	settings_toggle("menu blur",
+		function() { return g.blur; },
+		function(_v) { g.blur = _v; },
+		"blurs the room behind menus, and carries the shading at its "
+		+ "edges - the blur is what keeps that gradient smooth, so the "
+		+ "two go together. off saves a little gpu.");
+
+	// room transition style (round 7's showcase slice wipe vs the
+	// classic circle; goto_room latches the pick per flight)
+	settings_pill("transition", "transkind",
+		(g.trans_kind == 1) ? "slice" : "circle",
+		function() {
+			set_pill("slice",  { val : 1,
+				col : (g.trans_kind == 1) ? c_gold : sett_ink,
+				enabled : (g.trans_kind == 1) });
+			set_pill("circle", { val : 0,
+				col : (g.trans_kind == 0) ? c_gold : sett_ink,
+				enabled : (g.trans_kind == 0) });
+		},
+		function(_v) { g.trans_kind = _v; },
+		"how room changes look: slice = staggered slats snapping across, "
+		+ "circle = the classic closing wipe.");
+
 	// THE VISUALISER GRID. The renderer multiplies every grid piece -
 	// the border, the inner rules and the outer frame - by one master
 	// alpha, so this single number takes the lattice from solid to
@@ -203,29 +226,6 @@ function settings_content() {
 		"%", 1,
 		"how far the block field bleeds light into the dark around it. "
 		+ "0 turns the pass off entirely.");
-
-	settings_toggle("menu blur",
-		function() { return g.blur; },
-		function(_v) { g.blur = _v; },
-		"blurs the room behind menus, and carries the shading at its "
-		+ "edges - the blur is what keeps that gradient smooth, so the "
-		+ "two go together. off saves a little gpu.");
-
-	// room transition style (round 7's showcase slice wipe vs the
-	// classic circle; goto_room latches the pick per flight)
-	settings_pill("transition", "transkind",
-		(g.trans_kind == 1) ? "slice" : "circle",
-		function() {
-			set_pill("slice",  { val : 1,
-				col : (g.trans_kind == 1) ? c_gold : sett_ink,
-				enabled : (g.trans_kind == 1) });
-			set_pill("circle", { val : 0,
-				col : (g.trans_kind == 0) ? c_gold : sett_ink,
-				enabled : (g.trans_kind == 0) });
-		},
-		function(_v) { g.trans_kind = _v; },
-		"how room changes look: slice = staggered slats snapping across, "
-		+ "circle = the classic closing wipe.");
 
 	// the dice on the tap table. The roster is dice_mat_config - adding
 	// a finish is one row there and this pill grows on its own. Stays
@@ -361,6 +361,14 @@ function settings_content() {
 		"what a tap sounds like. myriad de's list, minus the three he cut.",
 		-1, true);   // stays open: this list is for auditioning
 
+	// its fader, right under it (his ask for the two faders; they sat
+	// as a pair at the end - a knob belongs with the sound it turns)
+	settings_slider("tap volume", 0, 100,
+		function() { return g.vol_tap; },
+		function(_v) { g.vol_tap = _v; sfx_play("tap"); },
+		"%", 1, "taps and criticals, as a share of the effects volume.");
+
+
 	settings_pill("dial sound", "sfxdial",
 		sfx_config("dial")[sfx_index("dial")].name,
 		function() {
@@ -383,6 +391,12 @@ function settings_content() {
 		+ "sound on every one of them stops being feedback. rate limited "
 		+ "whichever you pick.",
 		-1, true);
+
+	settings_slider("dial volume", 0, 100,
+		function() { return g.vol_dial; },
+		function(_v) { g.vol_dial = _v; sfx_play("dial"); },
+		"%", 1, "finished dial cycles, as a share of the effects volume.");
+
 
 	settings_pill("critical sound", "sfxcrit",
 		sfx_config("crit")[sfx_index("crit")].name,
@@ -421,28 +435,49 @@ function settings_content() {
 		+ "credit drop is something your tap did.",
 		-1, true);
 
-	// THE TWO FADERS (his ask). They sit under the effects volume they
-	// both feed: one is a thing you are DOING and one is a thing that
-	// HAPPENS, which is the whole reason one effects slider could not
-	// settle it. Releasing the knob plays the sound, like the pills.
-	settings_slider("tap volume", 0, 100,
-		function() { return g.vol_tap; },
-		function(_v) { g.vol_tap = _v; sfx_play("tap"); },
-		"%", 1, "taps and criticals, as a share of the effects volume.");
-
-	settings_slider("dial volume", 0, 100,
-		function() { return g.vol_dial; },
-		function(_v) { g.vol_dial = _v; sfx_play("dial"); },
-		"%", 1, "finished dial cycles, as a share of the effects volume.");
-
 	// music lands later - when it does, this is the whole hookup:
 	// settings_slider("music volume", 0, 100,
 	//     function() { return g.vol_music; },
 	//     function(_v) { g.vol_music = _v; }, "%", 1);
 
 	// ============================ gameplay ==========================
+	// how buying and the money room BEHAVE. (autosave moved to data,
+	// the two clocks to about - 2026-09-10's tidy: a section is what a
+	// player would look under, not where a row landed first)
 	settings_section("gameplay", c_seagreen);
 
+	settings_toggle("rounded bulk buys",
+		function() { return g.buy_round; },
+		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },
+		"myriad's rule: x10 buys UP TO the next round level (at level 37 "
+		+ "it buys 3, to reach 40), x100 to the next hundred. off = a "
+		+ "flat +10 / +100 from wherever you are.");
+
+	settings_toggle("always show popups",
+		function() { return g.persist_popups; },
+		function(_v) { g.persist_popups = _v; },
+		"myriad's setting: the credit panel stays out in the money room "
+		+ "instead of sliding in only when credits drop.");
+
+	// ============================ input =============================
+	settings_section("input", c_horange);
+
+	if (!_desktop)
+		settings_toggle("haptics",
+			function() { return g.haptics; },
+			function(_v) { g.haptics = _v; },
+			"vibration feedback on taps and clicks.");
+
+	if (_desktop)
+		settings_info("keybinds", "soon",
+			"nothing is rebindable yet - when keybinds exist, this is "
+			+ "where they'll live.");
+
+	// ============================ data ==============================
+	settings_section("data", c_pink);
+
+	// autosave and its backup ladder live here, with the saves they
+	// write (they sat under gameplay - a save cadence is not play)
 	settings_toggle("autosave",
 		function() { return g.autosave; },
 		function(_v) { g.autosave = _v; },
@@ -469,44 +504,6 @@ function settings_content() {
 			+ "reach for when you want a run back the way it was an "
 			+ "hour ago, not a minute ago.");
 	}
-
-	settings_toggle("rounded bulk buys",
-		function() { return g.buy_round; },
-		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },
-		"myriad's rule: x10 buys UP TO the next round level (at level 37 "
-		+ "it buys 3, to reach 40), x100 to the next hundred. off = a "
-		+ "flat +10 / +100 from wherever you are.");
-
-	settings_toggle("always show popups",
-		function() { return g.persist_popups; },
-		function(_v) { g.persist_popups = _v; },
-		"myriad's setting: the credit panel stays out in the money room "
-		+ "instead of sliding in only when credits drop.");
-
-	if (variable_global_exists("time_played_active")) {
-		settings_info("time played", crunch_time_long(g.time_played_active * 60));
-		// active + away: DE's single "time played" figure
-		settings_info("total time", crunch_time_long((g.time_played_active
-			+ (variable_global_exists("time_played_offline")
-				? g.time_played_offline : 0)) * 60));
-	}
-
-	// ============================ input =============================
-	settings_section("input", c_horange);
-
-	if (!_desktop)
-		settings_toggle("haptics",
-			function() { return g.haptics; },
-			function(_v) { g.haptics = _v; },
-			"vibration feedback on taps and clicks.");
-
-	if (_desktop)
-		settings_info("keybinds", "soon",
-			"nothing is rebindable yet - when keybinds exist, this is "
-			+ "where they'll live.");
-
-	// ============================ data ==============================
-	settings_section("data", c_pink);
 
 	settings_action("save now",
 		function() { syst_handle_save.action = sv_save; saved_flash = 60; },
@@ -536,6 +533,15 @@ function settings_content() {
 		string(display_get_width()) + " x " + string(display_get_height())
 		+ " @ " + string(display_get_frequency()) + "hz");
 	settings_info("platform", _desktop ? "desktop" : "mobile");
+	// the two clocks - readouts, so they sit with the other readouts
+	if (variable_global_exists("time_played_active")) {
+		settings_info("time played", crunch_time_long(g.time_played_active * 60));
+		// active + away: DE's single "time played" figure
+		settings_info("total time", crunch_time_long((g.time_played_active
+			+ (variable_global_exists("time_played_offline")
+				? g.time_played_offline : 0)) * 60));
+	}
+
 
 	// the debug overlay lived on F1 - which mobile doesn't have
 	settings_toggle("show fps",
