@@ -8,7 +8,11 @@
 ///   2. THE SYPHON = tapsyphon (1%) of the fleet's per-second output,
 ///      but only once the fleet is actually producing (DE's guard:
 ///      all_gps past a packed exponent of 2, i.e. 100/sec). Late game
-///      this term is the whole tap.
+///      this term is the whole tap. THE OUTPUT AS PAID: g.all_gps
+///      carries the tile table's dial boost (fleet_total) - DE's
+///      pre_os_gps did too, being set after update_auto's mod_gps
+///      multiply - so a x4000 table is a x4000 tap (his report,
+///      2026-09-10: the tap was syphoning the raw curve).
 /// DE's further multipliers (overcharge, crit boost, gear, abilities)
 /// re-enter here result-side as those layers get rebuilt.
 /// ARB NOTE: DE wrote do_multi(all_gps, arb(.01)) - and arb() cannot
@@ -16,7 +20,7 @@
 /// percentage through do_scale, which does it in log space. Same law,
 /// no malformed pack.
 function update_click() {
-	if (!variable_global_exists("all_level")) { g.all_level = 0; g.all_gps = 0; }
+	if (!variable_global_exists("all_level")) { g.all_level = 0; g.all_gps = 0; g.all_gps_raw = 0; }
 
 	g.click_gps      = arb(1 + g.all_level);
 	// DE's tap absorbs the rebirth units directly (click_gps += units)

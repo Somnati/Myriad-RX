@@ -34,8 +34,9 @@ function create_dials(_force = false) {
 	}
 
 	// the aggregates every consumer reads (DE's update_all_gps)
-	g.all_level = 0;
-	g.all_gps   = 0;
+	g.all_level   = 0;
+	g.all_gps     = 0;
+	g.all_gps_raw = 0;   // the dial curves alone - see update_dials
 
 	create_clicker();
 	update_dials();

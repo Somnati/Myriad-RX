@@ -247,8 +247,10 @@ for (var _i = 0; _i < _n; _i++) {
 		// pack malformed and hang a normalize loop.
 		// DE hides it until the fleet clears 10/s, when the split
 		// starts meaning something.
-		if (g.all_gps >= arb(10) && _d.gps >= arb(1)) {
-			var _lg = arb_log10(_d.gps) - arb_log10(g.all_gps) + 2;
+		// (raw against raw: the table's boost is uniform across the
+		// fleet, so it cancels out of a share - see fleet_total)
+		if (g.all_gps_raw >= arb(10) && _d.gps >= arb(1)) {
+			var _lg = arb_log10(_d.gps) - arb_log10(g.all_gps_raw) + 2;
 			var _pc = power(10, _lg);          // a plain percent, 0..100
 			if (_lg >= 0) _rt = "+" + crunch_arb(log_to_arb(_lg)) + "%";
 			else          _rt = "-E" + string(round(abs(_lg))); // DE's tail

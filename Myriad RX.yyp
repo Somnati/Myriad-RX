@@ -277,6 +277,8 @@
     {"id":{"name":"faq_open","path":"scripts/faq_open/faq_open.yy",},},
     {"id":{"name":"faq_section","path":"scripts/faq_section/faq_section.yy",},},
     {"id":{"name":"fetch_new_ability","path":"scripts/fetch_new_ability/fetch_new_ability.yy",},},
+    {"id":{"name":"fleet_refresh","path":"scripts/fleet_refresh/fleet_refresh.yy",},},
+    {"id":{"name":"fleet_total","path":"scripts/fleet_total/fleet_total.yy",},},
     {"id":{"name":"float_text","path":"scripts/float_text/float_text.yy",},},
     {"id":{"name":"free_banner","path":"scripts/free_banner/free_banner.yy",},},
     {"id":{"name":"game_reset","path":"scripts/game_reset/game_reset.yy",},},

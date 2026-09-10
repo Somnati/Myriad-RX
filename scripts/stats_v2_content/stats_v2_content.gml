@@ -139,8 +139,10 @@ function stats_v2_content() {
 				if (_d.level <= 0) continue;   // an unbought dial has no story
 				_any = true;
 				var _bd = dial_breakdown(_i);
+				// the PAID rate (raw curve x the tile table) - what the
+				// drawer's rows and the bank agree on
 				var _hd = "dial " + dial_config(_i).name + "   "
-					+ crunch_arb(_d.gps) + " / sec";
+					+ crunch_arb(_bd.gps) + " / sec";
 				if (stats_v2_folder(_hd, dial_color(_i))) {
 					// the bar first: the answer before the working
 					stats_v2_bar("share of output", _bd.steps, 4);
@@ -159,7 +161,12 @@ function stats_v2_content() {
 					}
 
 					stats_v2_line();
-					stats_v2_line("per cycle", crunch_arb(_d.gpc), -1, g.profit_color);
+					var _tb2 = tile_dial_boost();
+					var _pc2 = (_tb2 > arb(1)) ? do_multi(_d.gpc, _tb2) : _d.gpc;
+					stats_v2_line("per cycle", crunch_arb(_pc2), -1, g.profit_color,
+						(_tb2 > arb(1)) ? ("the curve pays " + crunch_arb(_d.gpc)
+							+ " a cycle; the tile table multiplies it by x"
+							+ crunch_arb(_tb2) + " on the way to the bank") : "");
 					stats_v2_line("cycle", string_format(_d.cycle_t, 1, 1) + "s");
 					// the mirror's self-check. It should never show; if it
 					// does, update_dial has moved and dial_breakdown has not

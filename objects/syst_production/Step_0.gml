@@ -24,4 +24,5 @@ credit_tick(_secs);   // the dropper's pool + cooldown, same clock
 // lives here rather than in the automation room so it works in every
 // room, which is the whole point of automating something.
 autom_tick();
+fleet_refresh();    // the fleet total + the tap follow the tile boost, same clock
 stats_hist_tick();  // the statistics screen's history, same clock

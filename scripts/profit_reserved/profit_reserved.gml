@@ -6,7 +6,7 @@
 /// Zero when the reserve is off, which is the default.
 /// @arg [pile]  see profit_spendable - the two take the same argument
 ///              so a caller cannot ask them about different money.
-function profit_reserved(_pile = undefined) {
+function profit_reserved(_pile = undefined, _peak = undefined) {
 	if (_pile == undefined) _pile = g.profit;
 	if (!variable_global_exists("autom")) return 0;
 	var _p = clamp(g.autom.lock_pct, 0, 90);
@@ -18,7 +18,7 @@ function profit_reserved(_pile = undefined) {
 	// the watermark can outrun what you actually hold (spend to the
 	// floor and the two meet), and a reserve larger than the money is a
 	// number nobody can act on.
-	var _s = profit_spendable(_pile);
+	var _s = profit_spendable(_pile, _peak);
 	if (!(_s >= arb(1))) return _pile;
 	return do_subtract(_pile, _s);
 }

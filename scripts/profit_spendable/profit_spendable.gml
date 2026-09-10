@@ -30,12 +30,24 @@
 ///              so the number on screen and the split beside it are
 ///              always of the same money. Copying the rule there
 ///              instead would have been two rules within a week.
-function profit_spendable(_pile = undefined) {
+function profit_spendable(_pile = undefined, _peak = undefined) {
 	if (_pile == undefined) _pile = g.profit;
 	if (!variable_global_exists("autom")) return _pile;
 	var _p = clamp(g.autom.lock_pct, 0, 90);
 	if (_p <= 0) return _pile;
 	if (!(_pile >= arb(1))) return 0;
+	// ⚖️ THE WATERMARK MAY BE HANDED IN (the header, 2026-09-10). The
+	// header shows the pile LESS whatever is still riding motes, and
+	// measured that against the REAL watermark - which the payout in
+	// flight had already raised. At a 90% reserve every 7b cycle payout
+	// lifted the floor by 6.3b before the counter had received a unit
+	// of it, so the shown spendable fell by 6.3b on every cycle and
+	// climbed back as the motes landed: his "snaps to 0 or eats
+	// backwards". The header now measures its shown pile against that
+	// pile's OWN high point (its shown_peak), so a payout in flight
+	// cannot move the shown floor until it has landed. Purchases still
+	// price off the real pair - this is display only.
+	if (_peak == undefined) _peak = g.autom.lock_peak;
 
 	// ⚖️ MEASURED AGAINST THE WATERMARK, NOT AGAINST THE PILE. Taking
 	// the percentage of what you hold RIGHT NOW reads like the same
@@ -51,7 +63,7 @@ function profit_spendable(_pile = undefined) {
 	// nothing is accumulated, the slider still releases the whole lot
 	// the instant it drops, and there is no second pile to migrate at
 	// rebirth - only a high point to reset with the run.
-	var _res = do_scale(g.autom.lock_peak, _p / 100);
+	var _res = (_peak >= arb(1)) ? do_scale(_peak, _p / 100) : 0;
 	// a watermark of zero is a real 0, not a packed arb, and do_subtract
 	// is only safe between packed values - this is the state straight
 	// after a rebirth, before the first earning has set a high point

@@ -58,7 +58,14 @@ if (variable_global_exists("profit")) {
 	// of the SAME money the header is already withholding for motes in
 	// flight - and through profit_spendable's own pile argument, so
 	// there is still exactly one rule about where the line falls.
-	var _pv  = profit_spendable(prof_shown);
+	// ...against the SHOWN pile's own high point (see the Create): the
+	// real watermark already holds the payout in flight, and a floor
+	// that rises before the money lands is a counter that dips on every
+	// cycle at a 90% reserve
+	if (prof_shown > shown_peak) shown_peak = prof_shown;
+	if (variable_global_exists("autom") && shown_peak > g.autom.lock_peak)
+		shown_peak = g.autom.lock_peak;
+	var _pv  = profit_spendable(prof_shown, shown_peak);
 	var _tlg = (_pv < arb(1)) ? -1 : arb_log10(_pv);
 
 	// the glide (move_to in log space; 12 ~ a fifth of a second)
@@ -93,7 +100,7 @@ if (variable_global_exists("profit")) {
 	// The chip is now the COMPLEMENT of the big number, so the two add
 	// up to the pile and neither can be read as a rival total: what you
 	// can spend, in the headline, and what is held back, beside it.
-	var _res = profit_reserved(prof_shown);
+	var _res = profit_reserved(prof_shown, shown_peak);
 	if (_res >= arb(1)) {
 		draw_set_color(c_gold);
 		draw_set_alpha(.6);

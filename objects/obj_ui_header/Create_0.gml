@@ -43,6 +43,16 @@ prof_shown   = variable_global_exists("profit") ? g.profit : 0;
 flight       = 0;
 ratchet_real = prof_shown;   // DE's decade-boundary ratchet
 ratchet_tgt  = prof_shown;
+// THE SHOWN PILE'S OWN WATERMARK - the reserve the header draws is
+// measured against this rather than g.autom.lock_peak, so a payout
+// still in the air cannot raise the shown floor before it lands (his
+// report, 2026-09-10: the counter "snaps to 0 or eats backwards" - see
+// profit_spendable). Never above the real one; follows it down at a
+// rebirth or a new game. Seeded from the REAL watermark, not the shown
+// pile: a header is born per room, and a pile seen net of motes still
+// in the air would seat the floor low and leave the counter overstating
+// the spendable by the reserve's share of that flight for good.
+shown_peak = variable_global_exists("autom") ? g.autom.lock_peak : prof_shown;
 if (prof_shown >= arb(1)) prof_lg = arb_log10(prof_shown);
 prof_last = prof_shown;
 

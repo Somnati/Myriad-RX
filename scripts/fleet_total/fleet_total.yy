@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"fleet_total",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"fleet_total",
+  "parent":{
+    "name":"dials",
+    "path":"folders/game/dials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

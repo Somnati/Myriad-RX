@@ -144,6 +144,24 @@ function dial_breakdown(_i) {
 		});
 	}
 
+	// 8. THE TILE TABLE (his ask, 2026-09-10: "it's not showing
+	// whatever's putting it in the billions"). The dial profit boost
+	// multiplies every payout in prod_dials - result-side, so it never
+	// touched _d.gps and never showed here. It is the largest factor on
+	// the page by a distance once the table is wired in, which is
+	// exactly why it has to be on the page.
+	var _tb = tile_dial_boost();
+	if (_tb > arb(1)) {
+		var _tlg = arb_log10(_tb);
+		array_push(_out.steps, {
+			name  : "tile table",
+			note  : "x" + crunch_arb(_tb) + " (dial profit boost)",
+			mult  : -2, val : _tb, lg : _tlg, share : 0,
+			col   : c_aqua,
+		});
+		_out.gps = do_multi(_d.gps, _tb);
+	}
+
 	// ---- the shares ----
 	// Signed: a factor below 1 (the ramp, the wind-up) has a negative
 	// log and takes a share AWAY. The denominator is the sum of the
@@ -163,7 +181,9 @@ function dial_breakdown(_i) {
 	var _sum = 0;
 	for (var _s = 0; _s < array_length(_out.steps); _s++) _sum += _out.steps[_s].lg;
 	_out.derived = _sum;
-	_out.live_lg = (_d.gps >= arb(1)) ? arb_log10(_d.gps) : 0;
+	// (against the PAID rate - the raw curve times the table, which is
+	// what _out.gps carries once the table is in the chain)
+	_out.live_lg = (_out.gps >= arb(1)) ? arb_log10(_out.gps) : 0;
 	// a tenth of an order of magnitude of slack: gpc is do_ceil'd, which
 	// rounds a real amount at small values and nothing at large ones
 	_out.ok = (abs(_out.derived - _out.live_lg) < .12) || (_out.live_lg <= 0);
