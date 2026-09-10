@@ -38,31 +38,58 @@ arm_rs = max(0, arm_rs - delta);   // the board reset's
 arm_ru = max(0, arm_ru - delta);   // the upgrade reset's
 
 // ---- input (region pattern: fully arbitrated) ----
-// ---- THE DRAWER: a swipe RIGHT opens it, a swipe LEFT closes it ----
-// The gesture is judged on RELEASE by total travel, which is what keeps
-// a drag of a TILE from being read as a swipe: a tile drag ends on a
-// slot and travels little, a swipe crosses the room.
+// ---- THE DRAWER: a swipe LEFT opens it, a swipe RIGHT closes it ----
+// Two things decide whether a gesture is the drawer's: WHERE THE PRESS
+// LANDED (below) and WHETHER IT WAS A FLICK (DE's gate, further down).
+// The old rule judged travel on release, and a tile dragged two
+// columns travels 68px - so merging closed the drawer (his report).
 dr_open += (dr_want - dr_open) * min(1, .22 * delta);
 if (abs(dr_want - dr_open) < .004) dr_open = dr_want;
 __reseat();   // a board-size upgrade re-centres the table at once
 
 if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
-	// the press only ARMS a swipe if it landed in the RIGHT edge band -
-	// or anywhere at all while the drawer is already open, so it can
-	// always be pushed back shut. Mirrored with the drawer (his ask):
-	// it comes from the right now, so a swipe LEFT pulls it out.
+	// ⚖️ WHERE THE PRESS LANDED ARMS THE SWIPE, OR REFUSES IT.
+	//   on a board slot        never - a press on the board is a tile's
+	//   in the right edge band the OPEN swipe, drawer closed
+	//   on the open drawer     the CLOSE swipe - pushing IT shut
+	//   anywhere else          nothing
+	// Mirrored with the drawer (his ask): it comes from the right, so
+	// a swipe LEFT pulls it out and a swipe RIGHT pushes it back.
 	if (mouse_check_button_pressed(mb_left)) {
-		if (mouse_x >= room_width - sw_edge || dr_want > 0) {
-			sw_x = mouse_x; sw_y = mouse_y;
-		}
-		else sw_x = -1;
-	}
-	if (mouse_check_button_released(mb_left) && sw_x >= 0) {
-		var _dx = mouse_x - sw_x;
-		var _dy = mouse_y - sw_y;
-		if (abs(_dx) >= 40 && abs(_dx) > abs(_dy)) dr_want = (_dx < 0) ? 1 : 0;
 		sw_x = -1;
+		if (__slot_at(mouse_x, mouse_y) == -1) {
+			if (dr_want == 0 && mouse_x >= room_width - sw_edge) { sw_x = mouse_x; sw_y = mouse_y; }
+			if (dr_want >  0 && mouse_x >= __dr_face())          { sw_x = mouse_x; sw_y = mouse_y; }
+		}
 	}
+	// ⚖️ DE's GATE, the dial drawer's port (his list: speed limits,
+	// touch bounds, a hold limit that cancels the swipe). Fires WHILE
+	// HELD the moment the gesture qualifies; sw_tic keeps one gesture
+	// from re-firing. A held TILE can never be a swipe, whatever the
+	// press did - the second lock on the same door.
+	//   touch_dragdist > SW_DIST_MIN          a twitch is not a swipe
+	//   touch_dragdist < touch_dragdist_min   a long haul is not either
+	//   touch_time     < touch_time_min       held too long: cancelled
+	//   touch_dragspd  > touch_dragspd_min    slow is not a swipe
+	//   direction cone +/-45 of the axis      a diagonal is not one
+	sw_tic = max(0, sw_tic - delta);
+	if (sw_x >= 0 && grab_i == -1 && sw_tic <= 0)
+	if (touching_screen || mouse_check_button_released(mb_left))
+	if (touch_dragdist > SW_DIST_MIN)
+	if (touch_dragdist < touch_dragdist_min)
+	if (touch_time    < touch_time_min)
+	if (touch_dragspd > touch_dragspd_min) {
+		var _d = touch_dir;
+		if (dr_want == 0 && _d >= 135 && _d <= 225) {   // LEFT: pull it out
+			dr_want = 1; sw_tic = SW_COOL; sw_x = -1;
+			play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
+		}
+		else if (dr_want > 0 && (_d <= 45 || _d >= 315)) {   // RIGHT: push it shut
+			dr_want = 0; sw_tic = SW_COOL; sw_x = -1;
+			play_sound_ext(snd_softclick, .9, 1, .4, 1);
+		}
+	}
+	if (mouse_check_button_released(mb_left)) sw_x = -1;
 	// and the edge tab is a plain tap, for anyone who would rather not
 	// swipe at all
 	if (mouse_check_button_pressed(mb_left))
@@ -103,8 +130,18 @@ if (input_free())
 if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
-	// the buy-amount button, first - it sits above the rows and a tap
-	// on it must never also land on one
+	// the close chip, first of all: a plain tap shuts the drawer, for
+	// anyone who would rather not swipe near a board (his report)
+	var _cx2 = __cx_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _cx2.x, _cx2.y,
+		_cx2.x + _cx2.w, _cx2.y + _cx2.h)) {
+		dr_want = 0;
+		sw_x = -1;
+		play_sound_ext(snd_softclick, .9, 1, .4, 1);
+		exit;
+	}
+	// the buy-amount button - it sits above the rows and a tap on it
+	// must never also land on one
 	var _bb2 = __bb_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _bb2.x, _bb2.y,
 		_bb2.x + _bb2.w, _bb2.y + _bb2.h)) {

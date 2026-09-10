@@ -140,6 +140,31 @@ sw_y    = -1;
 // dragging, that is most of what you do. The edge band is where the
 // drawer actually lives, so a pull from there reads as pulling IT.
 sw_edge = 64;
+// ⚖️ AND ONLY IF IT STARTED ON THE DRAWER TO CLOSE IT (his second
+// report, 2026-09-10: "i keep accidentally closing the upgrade menu
+// when im just trying to merge tiles"). While open, ANY press anywhere
+// armed a close - and a tile dragged two columns right travels 68px,
+// which is a swipe by the old rule. Now a press on the board never
+// arms one, full stop, and while the drawer is open only a press ON
+// THE DRAWER can push it shut. See the Step for the gate itself.
+//
+// THE GATE IS DE's (his list: "swipe speed limits... initial touch
+// bounds... a limit on how long i need to touch the screen before it
+// cancels the swipe") - the same five conditions the dial drawer runs
+// off syst_touchscreen: a distance floor, a distance CEILING, a time
+// ceiling, a speed floor, a direction cone. The house macros
+// (touch_dragdist_min 50 / touch_time_min 45 / touch_dragspd_min 7)
+// are the ceiling, the time and the speed; these two are the drawer's
+// own, the dial drawer's values.
+SW_DIST_MIN = 12;   // a twitch is not a swipe
+SW_COOL     = 12;   // frames before another swipe can land
+sw_tic      = 0;
+// THE CLOSE CHIP: a [>] at the head of the title row, because a drawer
+// that can only be swiped shut is a drawer people learn to fear
+// swiping near. A tap is a tap.
+__cx_r = function() {
+	return { x : __dr_face() + 5, y : upg_y - 14, w : 11, h : 11 };
+};
 
 // WHERE THE PER-SECOND EARNINGS FLOAT (his ask). Published rather than
 // computed by the caller: syst_tiletimer spawns the float - it is the
@@ -308,9 +333,18 @@ __draw_drawer = function() {
 		// portrait room they had nowhere near the width for it, so they
 		// simply overlapped. A heading belongs directly above its list;
 		// up there it was competing with the room's own name.
+		// the close chip, then the title beside it
+		var _cx = __cx_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx.x, _cx.y, _cx.w, _cx.h, 0,
+			c_black, .6 * dr_open);
+		draw_px_rect(_cx.x, _cx.y, _cx.w, _cx.h, c_aqua, .45 * dr_open);
+		draw_set_halign(fa_center);
 		draw_set_color(c_aqua);
+		draw_set_alpha(.8 * dr_open);
+		draw_text(_cx.x + _cx.w * .5 + 1, _cx.y + 2, ">");
+		draw_set_halign(fa_left);
 		draw_set_alpha(.6 * dr_open);
-		draw_text(__dr_face() + 6, upg_y - 11, "tile upgrades");
+		draw_text(_cx.x + _cx.w + 5, upg_y - 11, "tile upgrades");
 
 		// the buy-amount button, right of the title
 		var _bb = __bb_r();
