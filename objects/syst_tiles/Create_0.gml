@@ -172,6 +172,36 @@ upg_n = 4;
 __dr_face = function() {
 	return lerp(room_width - dr_tab, room_width - dr_w, dr_open);
 };
+// ---- THE BUY-AMOUNT BUTTON (his ask, 2026-09-10) ----
+// The dial drawer's spr_buylv, in this drawer's header, cycling
+// g.tile_buy_lv through x1 / x10 / x100 / max. No "next" - DE's "next"
+// snaps to a round dial level, and a tile ladder capped at 50 has no
+// round number worth snapping to.
+__bb_r = function() {
+	return { x : __dr_face() + dr_w - 8 - sprite_get_width(spr_buylv),
+	         y : upg_y - 14,
+	         w : sprite_get_width(spr_buylv), h : sprite_get_height(spr_buylv) };
+};
+__bb_frame = function() {                    // spr_buylv's glyph frames
+	if (g.tile_buy_lv == 10)    return 3;
+	if (g.tile_buy_lv == 100)   return 4;
+	if (g.tile_buy_lv == "max") return 7;
+	return 2;
+};
+__bb_color = function() {                    // the dial drawer's tints
+	if (g.tile_buy_lv == 10)    return c_rarity_uncommon;
+	if (g.tile_buy_lv == 100)   return c_rarity_rare;
+	if (g.tile_buy_lv == "max") return c_gold;
+	return c_white;
+};
+__bb_cycle = function() {
+	var _seq = [1, 10, 100, "max"];
+	var _ix = 0;
+	for (var _k = 0; _k < array_length(_seq); _k++)
+		if (g.tile_buy_lv == _seq[_k]) _ix = _k;
+	g.tile_buy_lv = _seq[(_ix + 1) mod array_length(_seq)];
+};
+
 /// @func __rb_r()
 /// @desc The tile-rebirth button, under the last upgrade row. It sits
 ///       with the upgrades because it IS one - the most expensive thing
@@ -272,11 +302,16 @@ __draw_drawer = function() {
 		draw_set_alpha(.6 * dr_open);
 		draw_text(__dr_face() + 6, upg_y - 11, "tile upgrades");
 
+		// the buy-amount button, right of the title
+		var _bb = __bb_r();
+		draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y, 1, 1, 0,
+			__bb_color(), .95 * dr_open);
+
 		var _ucfg = tile_upg_config();
 		for (var _k = 0; _k < array_length(_ucfg); _k++) {
 			var _ur = __upg_r(_k);
 			var _uq = (_k < array_length(uq)) ? uq[_k]
-				: { ok : false, cost : arb(1), lv : 0, txt : "-", max : false };
+				: { ok : false, cost : arb(1), lv : 0, txt : "-", max : false, n : 0 };
 			var _uc = _ucfg[_k];
 			var _ua = dr_open;
 

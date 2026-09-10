@@ -79,13 +79,19 @@ if (qtic <= 0) {
 	var _uc2 = tile_upg_config();
 	uq = [];
 	for (var _k = 0; _k < array_length(_uc2); _k++) {
-		var _q2 = tile_upg(_uc2[_k].id, false);
+		// the bulk quote: cost is the TOTAL for however many the buy
+		// mode would take right now, and n says how many that is
+		var _q2 = tile_upg_bulk(_uc2[_k].id, false);
 		var _mx2 = _q2[$ "max"] ?? false;
+		var _txt2 = "maxed";
+		if (!_mx2) {
+			_txt2 = crunch_arb(_q2.cost);
+			// a mode above x1 says what it would buy, and honestly: x3
+			// when only three are affordable, never x10 for three
+			if (g.tile_buy_lv != 1 && _q2.n > 1) _txt2 = "x" + string(_q2.n) + "  " + _txt2;
+		}
 		array_push(uq, { ok : _q2.ok, cost : _q2.cost, lv : _q2.lv,
-			max : _mx2,
-			// a capped upgrade at its cap has no price to print - see
-			// tile_upg, which refuses to quote one
-			txt : _mx2 ? "maxed" : crunch_arb(_q2.cost) });
+			max : _mx2, n : _q2.n, txt : _txt2 });
 	}
 }
 
@@ -95,19 +101,31 @@ if (input_free())
 if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
+	// the buy-amount button, first - it sits above the rows and a tap
+	// on it must never also land on one
+	var _bb2 = __bb_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _bb2.x, _bb2.y,
+		_bb2.x + _bb2.w, _bb2.y + _bb2.h)) {
+		__bb_cycle();
+		qtic = 0;   // requote at the new amount at once
+		play_sound_ext(snd_matclick, .95, 1.05, .35, 1);
+		exit;
+	}
+
 	var _uc3 = tile_upg_config();
 	for (var _k = 0; _k < array_length(_uc3); _k++) {
 		var _ur2 = __upg_r(_k);
 		if (!point_in_rectangle(mouse_x, mouse_y, _ur2.x, _ur2.y,
 			_ur2.x + _ur2.w, _ur2.y + _ur2.h)) continue;
-		var _r2 = tile_upg(_uc3[_k].id, true);
+		var _r2 = tile_upg_bulk(_uc3[_k].id, true);
 		if (_r2.ok) {
 			qtic = 0;
 			// the house purchase sound (upgrade_buy's), not the tier-up
 			// ding - see the event drain at the top of this file
 			play_sound_ext(snd_diamond, .95, 1.05, .5, 2);
 			float_text(_ur2.x + _ur2.w * .5, _ur2.y - 6,
-				_uc3[_k].name + " up", c_aqua, fnt_outline);
+				_uc3[_k].name + ((_r2.n > 1) ? (" +" + string(_r2.n)) : " up"),
+				c_aqua, fnt_outline);
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
 		exit;
 	}

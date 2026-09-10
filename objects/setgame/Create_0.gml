@@ -176,6 +176,7 @@
 	// ("next" joins when milestones land). Session-only in DE too - it
 	// is never saved, a fresh boot is x1
 	g.buy_lv = 1;
+	g.tile_buy_lv = 1;   // the tile drawer's own buy amount (tile_upg_bulk)
 	// DE hid the "buy bulk" button until 3,000,000 lifetime profit. This
 	// is that gate; 0 = always shown (his ask, 2026-09-03)
 	g.buylv_unlock = 0;
