@@ -2,7 +2,16 @@
 /// @param id       "profit" / "fab" / "bank"
 /// @param [commit]
 /// The tile table's ONE upgrade lawyer, priced in SHARDS.
-///     cost(level) = base x mult^level
+///     cost(level) = base x 10^(e x level)
+///
+/// ⚖️ `e` IS ORDERS OF MAGNITUDE A LEVEL, not a multiplier (his call:
+/// "make the other upgrades increase by E's as well"). The formula was
+/// always log10(base) + lv * log10(mult) - it has been in log space
+/// since it was written, because that is the only way a level-40 price
+/// costs the same to quote as a level-1 one. Carrying log10(mult) in
+/// the roster instead of mult removes the conversion, and with it the
+/// last place a decimal could round: `e : 2.5` is exactly two and a
+/// half decades a level, where mult : 316.227766 was 2.4999999...
 /// commit = false gives a dry quote { ok, cost, lv, max }; cost is a
 /// packed arb, because shards outgrow a plain real about as fast as
 /// profit does.
@@ -33,7 +42,7 @@ function tile_upg(_id, _commit = true) {
 	if (_cap >= 0 && _lv >= _cap)
 		return { ok : false, cost : arb(1), lv : _lv, max : true };
 
-	var _cost = do_ceil(log_to_arb(log10(_e.base) + _lv * log10(_e.mult)));
+	var _cost = do_ceil(log_to_arb(log10(_e.base) + _lv * _e.e));
 
 	if (!_commit)
 		return { ok : (g.tiles.shards >= _cost), cost : _cost, lv : _lv,

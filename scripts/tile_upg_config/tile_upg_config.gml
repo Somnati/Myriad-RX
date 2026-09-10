@@ -4,7 +4,8 @@
 /// >>> it, and the tile room draws whatever is here.
 ///
 /// FIELDS: id (the save key - never change one), name, base cost in
-/// SHARDS, mult (cost x this a level), help.
+/// SHARDS, e (ORDERS OF MAGNITUDE the cost gains a level), fmt, help,
+/// and optionally max (the level it stops at).
 ///
 /// ⚖️ CUT TO TWO (his call, 2026-09-08). The roster was fabricator /
 /// alloy quality / board size / hopper, tuned in tiles_twin against a
@@ -25,14 +26,20 @@
 /// stored_max the whole time - so there is nothing to migrate and
 /// nothing that could mean something new.
 ///
-/// COST GROWTH IS x3 A LEVEL, and the twin picked it rather than I did.
-/// Both effects are LINEAR in the level (+10% each, -0.1s each) against
-/// a geometric price, which made x1.5 look obviously safe - it is not.
-/// The LOOP compounds even when the effect does not: more shards buy
-/// more upgrades which earn more shards. tiles_twin swept 1.5 / 1.8 /
-/// 2.2 / 2.6 / 3.0 and everything under 3 left the next purchase costing
-/// well under an hour of current income, which is a formality rather
-/// than a decision. x3 is the first that holds all five invariants.
+/// COST GROWTH IS +2.5 DECADES A LEVEL, on every row (his call). It was
+/// x3 - about +0.48 decades - which the twin picked over 1.5 / 1.8 /
+/// 2.2 / 2.6 because everything under it left the next purchase costing
+/// well under an hour of current income. +2.5 is five times steeper
+/// again, and the reasoning that made x3 the floor makes this safe at
+/// the top: every effect here is LINEAR in the level (+10%, -0.1s, +1
+/// tile, +20% rarity) while the price is geometric, so the only failure
+/// mode a steeper curve can have is upgrades going UNREACHABLE - never
+/// a runaway.
+///
+/// ⚠️ AND THAT IS THE THING TO WATCH. At +2.5 the tenth level of
+/// anything costs ~1e28 shards. Whether the board's own income ever
+/// reaches that is a question tiles_twin answers and this comment
+/// cannot - run it before treating these numbers as settled.
 ///
 /// The BASES are his and deliberately low - a knob you cannot reach
 /// teaches nothing about how the board feels - so the multiplier is
@@ -41,7 +48,7 @@ function tile_upg_config() {
 	if (variable_global_exists("tile_upg_cfg")) return g.tile_upg_cfg;
 	g.tile_upg_cfg = [
 		{
-			id : "profit", name : "profit boost", base : 1000, mult : 3,
+			id : "profit", name : "profit boost", base : 1000, e : 2.5,
 			// WHAT A LEVEL IS WORTH, as a string (his ask: show the
 			// current bonus and what the next buy gains). It lives here
 			// because only the roster knows an upgrade's units - the
@@ -55,7 +62,8 @@ function tile_upg_config() {
 			     + "tiles are on it",
 		},
 		{
-			id : "fab", name : "fabrication speed", base : 10000, mult : 3,
+			id : "fab", name : "fabrication speed", base : 10000, e : 2.5,
+			max : (TILE_FAB_T - TILE_FAB_MIN) div TILE_FAB_STEP,
 			fmt : function(_lv) {
 				return string_format(
 					max(TILE_FAB_MIN, TILE_FAB_T - TILE_FAB_STEP * _lv) / 60,
@@ -66,27 +74,42 @@ function tile_upg_config() {
 			     + "at " + string(TILE_FAB_MIN / 60) + "s",
 		},
 		{
-			// THE RESERVE. Cheapest of the three on purpose: it is a
+			// ⚖️ RARITY IS A RATE, AND "20% OF WHAT" IS THE REAL
+			// QUESTION. g.tile_rarity is a raw number fed to
+			// calculate_rarity with an 800 cutoff, and each 800 raises
+			// the distribution's whole window FLOOR - which is the only
+			// quantity in the system a percentage can honestly be OF. So
+			// a level is 20% of 800 = 160 rarity, and five levels lift
+			// the floor by exactly one full tier. The fmt prints his
+			// percentage; TILE_LUCK_STEP carries the mapping, and it is
+			// the one number to change if that cutoff ever moves.
+			//
+			// The id is "luck", not "rarity", because tiles_sync has
+			// ALWAYS written g.tile_rarity from upg.luck - the plumbing
+			// predates this roster entry, and renaming a save key to
+			// agree with a caption is rewiring working code for nothing.
+			id : "luck", name : "tile rarity", base : 5000, e : 2.5,
+			fmt : function(_lv) {
+				return "+" + string(20 * _lv) + "%";
+			},
+			help : "+20% fabricator rarity, per level. it shifts the whole "
+			     + "spawn distribution up, and every fifth level raises "
+			     + "the floor a full tier - so fresh tiles start higher "
+			     + "rather than merely varying more",
+		},
+		{
+			// THE RESERVE, and the cheapest row on purpose: it is a
 			// convenience, not a multiplier. It cannot earn a shard on
 			// its own - it only stops the fabricator idling while the
-			// board is full, so its value is bounded by how often that
-			// happens, and with the automerger on that is rarely.
-			// Pricing it beside the two that DO compound would be
+			// board is full, and with the automerger running that is
+			// rare. Pricing it beside the rows that DO compound would be
 			// charging for the wrong thing.
-			// ⚖️ +2.5 ORDERS OF MAGNITUDE A LEVEL (his number). The cost
-			// formula is log10(base) + lv * log10(mult), so writing the
-			// multiplier as power(10, 2.5) makes that term EXACTLY 2.5
-			// per level: 2500 at level 0, 2500e75 at the cap, and every
-			// step between a clean half-decade.
 			//
-			// Far steeper than the other two at x3, and it has to be -
-			// they buy a PERCENTAGE and this buys ONE TILE. A linear
-			// reward against a geometric price is the only shape that
-			// carries thirty levels without the last ten being free, and
-			// the cap is what makes it END rather than asymptote
-			// somewhere absurd.
-			id : "bank", name : "hopper", base : 2500,
-			mult : power(10, 2.5), max : 30,
+			// It is also the one row whose reward is a WHOLE UNIT rather
+			// than a percentage, which is why 30 levels is a real cap
+			// rather than a formality: +1 tile against +2.5 decades runs
+			// out of meaning long before it runs out of arithmetic.
+			id : "bank", name : "hopper", base : 2500, e : 2.5, max : 30,
 			fmt : function(_lv) {
 				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
 			},
