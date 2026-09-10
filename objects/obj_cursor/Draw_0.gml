@@ -1,22 +1,20 @@
-/// @description the pointer - DRAW GUI, so it moves smoothly (his ask,
-/// 2026-09-10: "moves smoothly instead of snapping to the pixels but
-/// keep the mouse itself pixelated").
+/// @description the pointer
 ///
-/// ⚖️ THE ROOM IS A GRID; THE GUI IS NOT. Everything in a Draw event
-/// lands on the application surface at room resolution - 144 px across
-/// - and is scaled up to the window, so a pointer drawn there can only
-/// stand on room pixels and steps eight or nine screen pixels at a
-/// time. The GUI layer is a coordinate MAPPING over the window's own
-/// pixels (display_set_gui_size(room_width, room_height) sets the
-/// units, not a surface), so a quad drawn here at a fractional room
-/// coordinate rasterises at the window's resolution: the pointer
-/// glides. The ARROW stays chunky because its cells are its own -
-/// sh_cursor quantizes the quad into one-room-pixel cells anchored on
-/// the hotspot, so the blocks ride with the pointer instead of the
-/// room's grid. It also puts the pointer above the app surface and
-/// every FX layer for free, which is what the -20000 depth was for.
-/// Draw GUI still orders by depth, so it tops the fps text and the
-/// dialogue box too.
+/// ⚖️ IT GLIDES, AND THE ARROW STAYS CHUNKY (his ask, 2026-09-10:
+/// "moves smoothly instead of snapping to the pixels but keep the mouse
+/// itself pixelated"). The application surface is 1920x1080 (syst_display)
+/// whatever the room's size, so a fractional room coordinate lands on a
+/// fractional surface position - thirteen-odd surface pixels to a room
+/// pixel in the money room - and the pointer moves as smoothly as the
+/// mouse does. The snap he saw was take two's floor() on the hotspot,
+/// put there so a cell would sit exactly on a sprite pixel; the cells
+/// are the quad's own (sh_cursor quantizes the quad, anchored on the
+/// hotspot), so they stay whole room pixels wherever the hotspot is,
+/// and the floor bought nothing. A Draw GUI pass was tried first and
+/// went invisible: the GUI mapping is set per room by the display
+/// driver on swaps only, so it is stale in most rooms - the app surface
+/// is the reliable canvas here, and at 1920 wide it is already finer
+/// than the eye needs.
 
 // mobile has no pointer to draw, and drawing one at the last touch
 // position leaves an arrow stranded on screen after the finger lifts
