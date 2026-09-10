@@ -375,7 +375,16 @@ function main_macros() {
 
 #macro TILE_SLOTS_BASE   16
 #macro TILE_FAB_T        600    // frames: 10 seconds
-#macro TILE_BANK_BASE    10
+// ⚖️ ZERO BY DEFAULT (his call, 2026-09-09). A board that ships with a
+// ten-tile reserve has already solved the only problem the reserve
+// exists for, so the upgrade could never feel like anything. At 0 a
+// finished tile with nowhere to go is simply LOST, and buying the first
+// level is the moment that stops being true.
+//
+// It is not a stall: see tiles_tick. The fabricator's primary
+// destination is the BOARD - the hopper is what catches overflow, not a
+// conveyor everything has to pass through.
+#macro TILE_BANK_BASE     0
 #macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
                              // level (his number), applied result-side
                              // in tiles_tick

@@ -23,8 +23,21 @@ function tiles_tick(_tmult = 1) {
 	var _thr = _t[$ "thr"] ?? 1;
 	_t.fab += delta * _tmult * _thr;
 	if (_t.fab >= _t.fab_t) {
-		if (_t.stored >= _t.stored_max) {
-			_t.fab = _t.fab_t; // full, waiting
+		// ⚖️ THE HOPPER IS OVERFLOW, NOT A CONVEYOR. This used to gate
+		// purely on hopper room, which was invisible while the hopper
+		// held ten by default and a hard stall the moment it held zero:
+		// every tile passed THROUGH the reserve on its way to the board,
+		// so a reserve of nothing meant a fabricator that never
+		// produced. A tile is finished if there is anywhere for it to
+		// go, and the board is the first of those places - the drain
+		// below moves it there in this same tick, so the common case
+		// still spends no time banked at all.
+		var _room = (_t.stored < _t.stored_max);
+		if (!_room)
+			for (var _i = 0; _i < _t.slots; _i++)
+				if (_t.tier[_i] == 0) { _room = true; break; }
+		if (!_room) {
+			_t.fab = _t.fab_t; // board full AND hopper full: waiting
 		} else {
 			_t.fab -= _t.fab_t;
 			_t.stored++;

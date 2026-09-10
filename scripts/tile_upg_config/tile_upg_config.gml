@@ -13,10 +13,17 @@
 /// changes. These two are the ones he wants to steer with while the
 /// board settles: what it earns, and how fast it fills.
 ///
-/// The retired ids (speed, luck, slots, bank) are NOT reused. A save
-/// holding levels in them keeps them harmlessly - tiles_sync simply
-/// stops reading them, so the board falls back to its base shape rather
-/// than to a level meaning something new.
+/// The retired ids (speed, luck, slots) are NOT reused. A save holding
+/// levels in them keeps them harmlessly - tiles_sync simply stops
+/// reading them, so the board falls back to its base shape rather than
+/// to a level meaning something new.
+///
+/// "bank" CAME BACK (his call, 2026-09-09) and reusing that id is safe
+/// for exactly one reason: TILES_LIVE was false until 2026-09-08, so no
+/// savefile has ever held a tile upgrade level at all. It means the same
+/// thing it always meant - tiles_sync has been reading upg.bank for
+/// stored_max the whole time - so there is nothing to migrate and
+/// nothing that could mean something new.
 ///
 /// COST GROWTH IS x3 A LEVEL, and the twin picked it rather than I did.
 /// Both effects are LINEAR in the level (+10% each, -0.1s each) against
@@ -57,6 +64,22 @@ function tile_upg_config() {
 			help : "-0.1s off the fabricator, per level. the auto-merger "
 			     + "rides the same clock, so this speeds both - it floors "
 			     + "at " + string(TILE_FAB_MIN / 60) + "s",
+		},
+		{
+			// THE RESERVE. Cheapest of the three on purpose: it is a
+			// convenience, not a multiplier. It cannot earn a shard on
+			// its own - it only stops the fabricator idling while the
+			// board is full, so its value is bounded by how often that
+			// happens, and with the automerger on that is rarely.
+			// Pricing it beside the two that DO compound would be
+			// charging for the wrong thing.
+			id : "bank", name : "hopper", base : 2500, mult : 3,
+			fmt : function(_lv) {
+				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
+			},
+			help : "+" + string(TILE_BANK_STEP) + " tiles of reserve, per "
+			     + "level. with none, a tile finished while the board is "
+			     + "full is lost - the reserve holds it until a slot opens",
 		},
 	];
 	return g.tile_upg_cfg;
