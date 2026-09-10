@@ -132,7 +132,7 @@ void main()
     if (K < 1) K = 1;
     vec3 acc = vec3(0.0);
     float hits = 0.0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 16; i++) {           // (sixteen: a flick is long)
         if (i >= K) break;
         float ft = (float(i) + 0.5) / float(K);
         vec2 tip = u_tip - u_mb * (1.0 - ft);

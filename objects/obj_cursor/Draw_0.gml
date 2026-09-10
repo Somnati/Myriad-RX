@@ -35,17 +35,22 @@ var _tx = mousex, _ty = mousey;   // fractional: the glide (the cells are the qu
 
 // ---- THE SWEEP (motion blur, his ask 2026-09-10 - the puck's law) ----
 // The tip's last drawn seat to this one, over a fixed 1/60 shutter
-// (this frame's travel / delta), capped at 24px so a warp to the other
-// side of the room is a flick, not a bar across it. One instant per
-// two pixels of travel, two at least once moving, eight at most; still
-// draws once at rest.
+// (this frame's travel / delta). ⚖️ THE SWEEP MUST REACH BACK TO THE
+// LAST FRAME (his report, 2026-09-10: a fast circle showed gaps
+// between the blur segments). The first cut capped it at 24px, and a
+// hard flick moves the pointer further than that in one frame - so
+// each frame's streak stopped short of where the last one ended and
+// the trail came out as dashes. The cap is 64 now (a warp across the
+// room still reads as a flick, not a bar) and the instants are one per
+// three pixels up to sixteen, so neighbouring copies of a 16px arrow
+// always overlap along the motion and the streak is continuous.
 var _mb  = variable_global_exists("motion_blur") ? g.motion_blur : true;
 var _sdt = max(delta, .05);
 var _bx = _mb ? (_tx - mbx) / _sdt : 0;
 var _by = _mb ? (_ty - mby) / _sdt : 0;
 var _bl = point_distance(0, 0, _bx, _by);
-if (_bl > 24) { _bx *= 24 / _bl; _by *= 24 / _bl; _bl = 24; }
-var _mbk = (_bl < .5) ? 1 : clamp(ceil(_bl / 2), 2, 8);
+if (_bl > 64) { _bx *= 64 / _bl; _by *= 64 / _bl; _bl = 64; }
+var _mbk = (_bl < .5) ? 1 : clamp(ceil(_bl / 3), 2, 16);
 mbx = _tx; mby = _ty;
 
 // the quad covers the sweep: a square from the earliest tip's box to
