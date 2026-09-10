@@ -563,15 +563,8 @@ draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
 draw_sprite_ext(spr_pixel_1x1, 0, rail_w - 1, list_y, 1, room_height - list_y, 0,
 	c_black, .5);
 
-// the scroll mark, in the lane left of the tabs (only when they overflow)
-var _rmx = __rail_max();
-if (_rmx > 0) {
-	var _bh = room_height - list_y - 6;
-	var _th0 = max(10, _bh * _bh / (_bh + _rmx));
-	var _ty0 = list_y + 3 + (_bh - _th0) * (rail_scroll / _rmx);
-	draw_sprite_ext(spr_pixel_1x1, 0, 2, list_y + 3, 2, _bh, 0, c_black, .5);
-	draw_sprite_ext(spr_pixel_1x1, 0, 2, _ty0, 2, _th0, 0, rgb(170, 190, 230), .55);
-}
+// (the rail's scrollbar is sb_rail - the house bar, in the lane left
+// of the tabs; it draws itself and hides when the tabs fit)
 var _tb = __tabs();
 for (var _i = 0; _i < array_length(_tb); _i++) {
 	var _t = _tb[_i];

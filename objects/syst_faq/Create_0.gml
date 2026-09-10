@@ -42,11 +42,20 @@ cur_sec  = -1;   // faq_section sets it; faq_entry files under it
 faq_content();
 
 tab    = 0;      // the active rail tab
-scroll = 0;      // the content band's scroll, px
-sv     = 0;      // scroll velocity (a flick keeps going)
-drag_y = -1;     // a press in the band: where it started, -1 = none
-drag_s = 0;      // ...and the scroll it started at
-dragged = false; // the press travelled past the budget - a scroll, not a tap
+scroll = 0;      // the content band's scroll, px - the house bar writes it
+
+// THE HOUSE SCROLLBAR (his rule, 2026-09-10: every scrollbar is the
+// framework's). Pixel mode against the cards' stacked height; it owns
+// the wheel (fenced to the band) and the touch drag, and writes scroll
+// through its output lane.
+sb = create_obj(room_width - sprite_get_width(spr_scrollbar) - 1, list_y, obj_scrollbar);
+sb.i = scrl_faq;
+sb.depth = depth - 1;
+sb.ui_layer = ui_layer_popup;
+sb.in_menu = true;
+sb.wheel_x1 = rail_w; sb.wheel_x2 = room_width;
+sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
+sb.col = c_gold;
 
 // tab rail geometry: shared by draw and hit test - no drift possible
 __tabs = function() {

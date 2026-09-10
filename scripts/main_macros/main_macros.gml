@@ -123,6 +123,8 @@ function main_macros() {
                          // edge so the room you are IN can keep the
                          // full width and read as wider than the rest
 #macro scrl_menu2 9   // the hamburger drawer. PIXEL mode (slot_height 1)
+#macro scrl_stats_rail 10   // statistics' TAB RAIL, pixel mode (his ask: the house bar, left of the tabs)
+#macro scrl_faq 11          // the faq's cards, pixel mode
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 

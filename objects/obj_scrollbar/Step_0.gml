@@ -47,6 +47,26 @@ if instance_exists(syst_settings) {
 
 
 
+if i = scrl_stats_rail
+if instance_exists(syst_statistics_v2) {
+	// PIXEL MODE: the rail's tabs, 19px each, against the band under the strip
+	mn = room_height - syst_statistics_v2.list_y;
+	mx = array_length(syst_statistics_v2.sections) * 19 + 6;
+	input = syst_statistics_v2.rail_scroll;
+	slot_height = 1;
+	depth = syst_statistics_v2.depth - 3;
+}
+
+if i = scrl_faq
+if instance_exists(syst_faq) {
+	// PIXEL MODE: the cards' stacked height against the band
+	mn = room_height - syst_faq.list_y - 4;
+	mx = syst_faq.__content_h();
+	input = syst_faq.scroll;
+	slot_height = 1;
+	depth = syst_faq.depth - 1;
+}
+
 if i = scrl_menu2
 if instance_exists(syst_menu2) {
 	// PIXEL MODE: slot_height 1, so input/ty are px rather than rows.
@@ -113,6 +133,8 @@ if not selected
 if i = scrl_statistics g.stats_page = clamp_min(input, 0);
 if i = scrl_settings g.settings_page = clamp_min(input, 0);
 if i = scrl_menu2 if instance_exists(syst_menu2) syst_menu2.scr = clamp_min(input, 0);
+if i = scrl_stats_rail if instance_exists(syst_statistics_v2) syst_statistics_v2.rail_scroll = clamp_min(input, 0);
+if i = scrl_faq if instance_exists(syst_faq) syst_faq.scroll = clamp_min(input, 0);
 //if in_room(rm_modules) global.module_page = clamp_min(input,0);
 /*
 if i = 4 if instance_exists(obj_statistics_infodraw)  obj_statistics_infodraw.mp = clamp_min(input,0);
@@ -174,6 +196,7 @@ if touching = true {
 //pc scroll
 if os_type != os_android
 if enabled
+if (wheel_x1 < 0 || (mouse_x >= wheel_x1 && mouse_x < wheel_x2))   // the owner's zone, if it set one
 if input_free(in_menu ? ui_layer_menu : 0) { // wheel is unowned input: gate it or it scrolls behind menus
 	// 2.5 a notch, halved from 5 (his call): one wheel click was moving
 	// most of a short list at once

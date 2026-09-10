@@ -39,6 +39,12 @@ touch_scroll = true;
 // it to whatever room you are in - set this; the rest stay white.
 col = c_white;
 
+// THE WHEEL'S ZONE (2026-09-10): two bars on one screen - statistics'
+// content and its tab rail - both heard every wheel notch, wherever the
+// pointer was. An owner can fence the wheel to a horizontal band; -1
+// (the default) keeps the old whole-screen listen.
+wheel_x1 = -1;
+wheel_x2 = -1;
 in_menu = false; // true = this bar LIVES above a ui block (the settings
                  // overlay, the menu drawer): it listens through the
                  // block instead of bailing on it. obj_set_slider's own

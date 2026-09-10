@@ -14,6 +14,7 @@ if (closing && oa <= 0) { instance_destroy(); exit; }
 // the scrollbar fades on `enabled` (its own Step), so it leaves with
 // the panel rather than hanging over an empty room
 if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
+if (instance_exists(sb_rail)) sb_rail.enabled = (oa >= .999 && !closing);
 
 __tick += delta; // the change-pulse clock
 
@@ -110,15 +111,20 @@ if (keyboard_check_pressed(vk_escape)) { statistics_close(); exit; }
 // ---- THE RAIL'S SCROLL: the wheel over it, or a drag; a release
 // without travel picks the tab under the press ----
 if (oa >= .999 && !closing && input_free(ui_layer_overlay)) {
-	if (mouse_x < rail_w && mouse_y >= list_y) {
-		var _rw = (mouse_wheel_down() ? 1 : 0) - (mouse_wheel_up() ? 1 : 0);
-		if (_rw != 0) rail_scroll = clamp(rail_scroll + _rw * 19, 0, __rail_max());
-	}
+	// (the wheel is the rail bar's - sb_rail, fenced to the rail)
 	if (rail_px >= 0) {
 		if (mouse_check_button(mb_left)) {
 			var _dy = rail_px - mouse_y;
 			if (abs(_dy) > 6) rail_drag = true;
-			if (rail_drag) rail_scroll = clamp(rail_s0 + _dy, 0, __rail_max());
+			if (rail_drag) {
+				rail_scroll = clamp(rail_s0 + _dy, 0, __rail_max());
+				// the bar follows the finger, and does not coast afterwards
+				if (instance_exists(sb_rail)) {
+					sb_rail.ty = rail_scroll;
+					sb_rail.ty_speed_actual = 0;
+					sb_rail.ty_speed = 0;
+				}
+			}
 		} else {
 			if (!rail_drag) {
 				var _tb = __tabs();
@@ -167,9 +173,13 @@ if (mouse_check_button_pressed(mb_left)) {
 	// the rail: a press here only ARMS - the tab lands on release
 	// without travel, and travel scrolls the rail instead (see below)
 	if (mouse_x < rail_w && mouse_y >= list_y) {
-		rail_px   = mouse_y;
-		rail_s0   = rail_scroll;
-		rail_drag = false;
+		// (a press ON the bar itself is the bar's - it owns the pointer
+		// as a family member; the arm here is for the tabs' band)
+		if (mouse_x >= RAIL_BAR) {
+			rail_px   = mouse_y;
+			rail_s0   = rail_scroll;
+			rail_drag = false;
+		}
 		exit;   // a tap on the rail is never a tap on a row
 	}
 

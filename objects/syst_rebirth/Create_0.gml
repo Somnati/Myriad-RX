@@ -28,6 +28,16 @@ calc = rebirth_calc();
 
 ui_layer = ui_layer_modal;
 depth = -600;   // over the room and the drawer, under the header (-1000)
+// THE OVERLAY CONTRACT (2026-09-10, his ask: rebirth opens in whatever
+// room you are in, with the blur): ui_overlay lists this while it is
+// open, so ui_blur_tick reads oa off it and the burger becomes the X.
+// oa mirrors alpha, closing mirrors !open - see the Step.
+oa      = 0;
+closing = false;
+// A GUEST INSTANCE is one rebirth_open spawned outside the money room
+// (this object is placed only there). It has no banner to go back to
+// being, so once it has closed and faded it destroys itself.
+guest = !in_room(rm_clicker);
 image_speed = 0;
 visible = false; // closed: draws nothing, families skip it
 

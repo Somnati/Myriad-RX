@@ -15,6 +15,7 @@ for (var _i = 0; _i < array_length(widgets_all); _i++) {
 }
 
 if (instance_exists(sb))       instance_destroy(sb);
+if (instance_exists(sb_rail))  instance_destroy(sb_rail);
 if (instance_exists(strip_px)) instance_destroy(strip_px);
 
 with (obj_pillbox) if (obj == other.id) instance_destroy();

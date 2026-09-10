@@ -13,3 +13,11 @@ kill;
 if i = scrl_menu2
 	if not instance_exists(syst_menu2)
 kill;
+
+if i = scrl_stats_rail
+	if not instance_exists(syst_statistics_v2)
+kill;
+
+if i = scrl_faq
+	if not instance_exists(syst_faq)
+kill;

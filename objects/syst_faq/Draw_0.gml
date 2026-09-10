@@ -79,14 +79,7 @@ for (var _i = 0; _i < array_length(_cards); _i++) {
 	_y += _h + 3;
 }
 
-// a thin scroll mark at the band's right edge, only when there is more
-var _smax = __scroll_max();
-if (_smax > 0) {
-	var _bh = room_height - list_y - 4;
-	var _th = max(12, _bh * _bh / (_bh + _smax));
-	var _ty = list_y + 2 + (_bh - _th) * (scroll / _smax);
-	draw_sprite_ext(spr_pixel_1x1, 0, room_width - 3, _ty, 2, _th, 0, _sec.col, .35 * ui_anim_in(oa, 2));
-}
+// (the scrollbar is sb - the house bar, at the band's right edge)
 
 // ---- the title strip - slides down from under the header ----
 var _sp = ui_anim_in(oa, 1);

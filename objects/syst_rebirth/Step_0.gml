@@ -5,8 +5,16 @@ scale  = trickle(scale,  open ? 1 : 0, 5);
 ts     = trickle(ts, 1, 6);
 glow   = max(0, glow - .05 * delta);
 
-// closed and faded out: invisible, so the input families skip it
-if (!open && alpha < .01) { visible = false; hp = 0; exit; }
+// the overlay contract's two names for the same facts
+oa      = alpha;
+closing = !open;
+
+// closed and faded out: invisible, so the input families skip it - and
+// a guest (opened outside the money room) leaves entirely
+if (!open && alpha < .01) {
+	if (guest) { instance_destroy(); exit; }
+	visible = false; hp = 0; exit;
+}
 if (!open) { hp = trickle(hp, 0, 5); exit; }
 if (fired) exit;
 

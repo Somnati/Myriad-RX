@@ -131,7 +131,7 @@ __row_at = function(_my) {
 // left edge shows where you are and the tabs sit RAIL_BAR px further
 // right to make room for it. The wheel scrolls it, and on touch a drag
 // on the rail scrolls it while a tap (no travel) still picks a tab.
-RAIL_BAR    = 5;   // the scroll mark's lane, left of the tabs
+RAIL_BAR    = 7;   // the house scrollbar's lane (5px + a gap), left of the tabs
 rail_scroll = 0;
 rail_px     = -1;  // a press on the rail: where it started (-1 = none)
 rail_s0     = 0;   // ...and the scroll it started at
@@ -381,8 +381,24 @@ sb.i = scrl_statistics;
 sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
 sb.ty = g.stats_page * row_h;
 sb.depth    = depth - 3;      // rows, widgets, strip proxy, scrollbar
+sb.wheel_x1 = rail_w; sb.wheel_x2 = room_width;   // the rail has its own bar
 sb.ui_layer = ui_layer_popup; // listens through the block this screen
 sb.in_menu  = true;           // raises - see the Create note above
+
+// THE RAIL'S OWN BAR (his ask, 2026-09-10: the house scrollbar, left of
+// the tabs). Pixel mode against the tab stack; the rail's drag (Step)
+// writes rail_scroll and syncs the bar's ty, the bar's own grab writes
+// rail_scroll back through its output lane, and its wheel is fenced to
+// the rail so the content bar does not hear the same notch.
+sb_rail = create_obj(1, list_y, obj_scrollbar);
+sb_rail.i = scrl_stats_rail;
+sb_rail.depth = depth - 3;
+sb_rail.ui_layer = ui_layer_popup;
+sb_rail.in_menu = true;
+sb_rail.touch_scroll = false;   // the rail drags itself (a tap must still pick a tab)
+sb_rail.wheel_x1 = 0; sb_rail.wheel_x2 = rail_w;
+sb_rail.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
+sb_rail.col = rgb(170, 190, 230);
 
 // ---- the title strip, drawn by a PROXY at depth-2 ----
 // rows draw in this instance's Draw_0, widgets ride at depth-1, so
