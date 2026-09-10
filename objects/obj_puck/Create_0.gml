@@ -183,7 +183,7 @@ __cy = function() { return y + r; };
 ///       half off the right and bottom. One rect, read by the test, the
 ///       clamp and the docks, cannot drift.
 __tray = function() {
-	var _top = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 0;
+	var _top = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 0;   // the bar, not its shadow (his call: flush)
 	return {
 		x1 : 0,
 		y1 : _top,

@@ -27,7 +27,7 @@ function do_throwable(argument0,argument1,argument2,argument3,argument4,argument
 	_dmx = argument6
 	_dmy = argument7
 	_bnd_x1 = 0; _bnd_x2 = _dw;
-	if instance_exists(obj_ui_header) _bnd_y1 = obj_ui_header.sprite_height; _bnd_y2 = _dh;
+	if instance_exists(obj_ui_header) _bnd_y1 = obj_ui_header.bar_h; _bnd_y2 = _dh;
 	if is_system{
 	//_bnd_x1 = 0 _bnd_x2 = _dw;
 	//_bnd_y1 = -_wh*.8; _bnd_y2 = _dh+floor(_wh*.9)

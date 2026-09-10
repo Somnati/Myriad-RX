@@ -87,7 +87,7 @@ lean  = 0;   // frames since last dice-dice contact (piles may rest tilted)
 
 // tray: the screen edges (and the header's underside where one exists)
 xmin = 3; xmax = room_width - 3;
-ymin = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height + 2 : 3;
+ymin = instance_exists(obj_ui_header) ? obj_ui_header.bar_h + 2 : 3;   // the bar, not its shadow (his call: flush)
 ymax = room_height - 3;
 
 // contact samplers, object space: sphere centers of radius rr at the
