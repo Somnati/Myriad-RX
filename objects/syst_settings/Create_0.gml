@@ -59,7 +59,10 @@ depth = -510;
 
 // the header's bottom edge, or a bare band where there is no header -
 // the title screen has none, and settings must open there too
-bby    = instance_exists(obj_ui_header) ? obj_ui_header.sprite_height : 16;
+// bar_h, NOT sprite_height: the sprite's last two rows are the header's
+// drop shadow, and seating the strip at sprite_height left a 2px band
+// of backdrop showing between the bar and the strip (his report)
+bby    = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;
 list_y = bby + 16;                      // title strip, then rail + content
 rail_w = 80;                            // the category tab rail
 content_x = rail_w + 6;                 // rows live right of the rail

@@ -1,5 +1,14 @@
 
 sprite_index = spr_ui_header;
+// ⚖️ THE BAR IS 27, THE SPRITE IS 29 (his diagnosis, 2026-09-10: "the
+// header has a shadow attached to its sprite and it's not supposed to
+// be factored into it when objects depend off the header's height").
+// spr_ui_header's last two rows are its drop shadow - alpha 101 then
+// 57, measured - so sprite_height puts anything seated "under the
+// header" two px below the bar, on a band of shadow. Anything that
+// wants to sit FLUSH under the bar seats at bar_h; anything that wants
+// the shadow to fall on it keeps sprite_height.
+bar_h = sprite_get_height(spr_ui_header) - 2;
 
 x = 0;
 y = 0;

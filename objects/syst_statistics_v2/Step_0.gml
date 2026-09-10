@@ -111,7 +111,7 @@ if (oa >= .999 && !closing)
 if (input_free(ui_layer_popup))
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
-	var _bby = obj_ui_header.sprite_height;
+	var _bby = obj_ui_header.bar_h;
 
 	// [favs]: show or hide the per-row star gutter (his ask 2026-09-06)
 	if (point_in_rectangle(mouse_x, mouse_y, room_width - 106,

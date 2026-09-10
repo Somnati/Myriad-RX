@@ -20,7 +20,7 @@
 // it is also the FIRST part to arrive (index 0): the ground lands, then
 // the strip, then the list deals in behind them. Contents that arrive
 // before their own background read as debris, not as a screen opening.
-draw_sprite_ext(spr_pixel_1x1, 0, 0, obj_ui_header.sprite_height - 2,
+draw_sprite_ext(spr_pixel_1x1, 0, 0, obj_ui_header.bar_h,
 	room_width, room_height, 0, c_black, .72 * ui_anim_in(oa, 0));
 
 draw_set_font(fnt);

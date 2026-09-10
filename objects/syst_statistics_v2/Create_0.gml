@@ -31,7 +31,7 @@ if (is_undefined(g.stats_open[$ "/favorites"])) g.stats_open[$ "/favorites"] = t
 
 // ---- layout: derived, not hardcoded ----
 row_h  = 15; // th 7 + spc 8, the house rhythm
-list_y = obj_ui_header.sprite_height + 29; // header + the title strip
+list_y = obj_ui_header.bar_h + 29; // the header's BAR (not its shadow) + the title strip
 // THE CATEGORY RAIL (his ask 2026-09-06: make this room look like the
 // settings room). Same numbers syst_settings uses, so the two screens
 // are the same screen with different content: an 80px rail of tabs on
@@ -391,10 +391,11 @@ __draw_strip = function() {
 		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
 	ui_fade_set(_sp);
 
-	var _bby = obj_ui_header.sprite_height;
+	var _bby = obj_ui_header.bar_h;
 	draw_set_font(fnt);
 	draw_set_alpha(1);
-	// (starts AT the header's bottom edge, clear of its seam)
+	// (starts AT the bar's bottom edge - bar_h, under the shadow rows,
+	// so the strip is flush with the header rather than 2px under it)
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, _bby, room_width, list_y - _bby, 0,
 		c_hsv(169, 186, 5), 1);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y - 1, room_width, 1, 0,
