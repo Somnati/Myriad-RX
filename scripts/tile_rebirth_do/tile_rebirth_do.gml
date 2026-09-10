@@ -1,17 +1,24 @@
 /// @description tile_rebirth_do() - commit a tile rebirth. Returns the
 /// FLUX awarded, or 0 if it refused.
 ///
-/// ⚖️ WHAT SURVIVES IS THE POINT. The board, the hopper, the shards and
-/// the LIFETIME EARNED all go - earned is the measure, so leaving it
-/// would pay for the same work twice and the second rebirth would be
-/// free. What survives is the FLUX, the rebirth count, and the
-/// UPGRADES.
+/// ⚖️ WHAT SURVIVES IS THE POINT. The board, the hopper, the shards,
+/// the LIFETIME EARNED and EVERY UPGRADE LEVEL all go - earned is the
+/// measure, so leaving it would pay for the same work twice and the
+/// second rebirth would be free. What survives is the FLUX and the
+/// rebirth count. Nothing else.
 ///
-/// Keeping the upgrades is the deliberate one, and it is the same call
-/// the game's rebirth made about the core collection (round 14: losing
-/// it felt bad). The upgrades are the part you chose; the board is the
-/// part that accumulated. A prestige that confiscates your decisions
-/// reads as a punishment, and this one is supposed to read as a lever.
+/// ⚖️ THE UPGRADES GO TOO (his call, 2026-09-10 - reversing my first
+/// draft, which kept them on the game rebirth's precedent that losing
+/// the core collection felt bad). The difference is what the two
+/// prestiges are FOR. The core collection is a thing you found; the
+/// tile upgrades are a thing you bought with the board's own currency,
+/// and flux is the compounding replacement for them: +1% of output per
+/// point, forever, on a board that starts over. Keeping the upgrades
+/// would have made the second run a strictly bigger first run and the
+/// flux a footnote; wiping them makes the flux the whole reason the
+/// second run climbs faster - which is what a prestige currency is.
+/// It also means the profit upgrade's gate closes: the table is
+/// unwired from the dials again until level 1 is rebought.
 function tile_rebirth_do() {
 	tiles_init();
 	var _c = tile_rebirth_calc();
@@ -34,6 +41,13 @@ function tile_rebirth_do() {
 	_t.ev      = [];
 	_t.dirty   = true;
 	_t.rev++;
+
+	// EVERY upgrade level, by key rather than by roster - a level that
+	// survived here would be a level the save writes back out, and the
+	// upg struct can hold keys the roster no longer lists (slots, and
+	// whatever a later roster adds)
+	var _ks = variable_struct_get_names(_t.upg);
+	for (var _k = 0; _k < array_length(_ks); _k++) _t.upg[$ _ks[_k]] = 0;
 
 	tiles_sync();        // the board takes its new shape at once
 	// a rare, heavy moment - the save menu's own rule for these

@@ -105,7 +105,9 @@ function tiles_init(_force = false) {
 		// only way to move either.
 		shards  : 0,
 		earned  : 0,   // lifetime, for the statistics
-		upg     : { speed : 0, luck : 0, slots : 0, bank : 0 },
+		// the roster's ids (tile_upg_config) + slots, which tiles_sync
+		// still reads though no row sells it yet
+		upg     : { profit : 0, rarity : 0, bank : 0, fab : 0, slots : 0 },
 		dirty   : true,
 		rev     : 0,
 		gps     : 0,

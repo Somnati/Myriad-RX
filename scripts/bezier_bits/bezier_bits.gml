@@ -1,4 +1,5 @@
-/// @description bezier_bits(x, y, n, col, [tx], [ty], [tic]) - burst n
+/// @description bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt],
+///              [swing], [spd]) - burst n
 /// currency bits from (x, y) toward the target (the Myriad DE
 /// profit-particle framework: obj_bezier_emit paces the burst,
 /// obj_bezier_bit is the mote). tic = the burst style (round 8, the
@@ -17,8 +18,15 @@
 /// it rather than paying on arrival matters: the population cap can
 /// swallow a spawn, and a mote that never existed must not swallow
 /// profit with it.
+/// THE CURVE AND THE PACE (2026-09-10, the tile fountain): swing < 0 =
+/// Myriad's throw, the control point flung across the room's width
+/// (the lazy swoop every payout has always had); swing >= 0 = the
+/// control sits on the straight line's midpoint pushed sideways by up
+/// to that many px - nearly straight, a hint of curve. spd multiplies
+/// the mote's per-step advance (1 = Myriad's). Both default to the
+/// original, so every existing caller flies exactly as before.
 function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
-	_tic = -1, _amt = 0) {
+	_tic = -1, _amt = 0, _swing = -1, _spd = 1) {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
 	if (_tx == undefined) {
@@ -34,6 +42,8 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_e.col    = _col;
 	_e.tx     = _tx;
 	_e.ty     = _ty;
+	_e.swing  = _swing;
+	_e.spdm   = _spd;
 	_e.amt    = _amt;                                  // the whole burst
 	// one mote's cut, in WHOLE UNITS: a fractional share left the
 	// counter's held-back figure fractional mid-flight, and the

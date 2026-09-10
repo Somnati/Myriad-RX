@@ -486,6 +486,9 @@ carry = 0.0
 ratio = 1.0
 first = None
 for r in range(1, 7):
+    # a FRESH table each run: board, shards, earned AND every upgrade
+    # level back to zero - tile_rebirth_do's law since 2026-09-10 (his
+    # call). Only the flux carries.
     tbl = Table(seed=7 + r)
     tbl.flux = carry
     for tt in range(6 * 3600):

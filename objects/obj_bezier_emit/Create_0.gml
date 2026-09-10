@@ -13,6 +13,8 @@ tic_   = -1;     // -1 = all at once / 0+ = frames between spits
 col    = c_seagreen;
 tx     = 48;
 ty     = 12;
+swing  = -1;     // the motes' curve: -1 Myriad's room-wide throw, else px
+spdm   = 1;      // the motes' pace multiplier (see bezier_bits)
 
 // the profit this burst still owes the counter: bezier_bits sets amt
 // to the whole payout and share to one mote's cut. amt drains as motes

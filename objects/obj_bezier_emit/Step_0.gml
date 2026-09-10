@@ -23,6 +23,8 @@ repeat (_rep) {
 		if (amt > 0) amt = (amt > _cut) ? do_subtract(amt, _cut) : 0;
 		_o.tx = tx + random_range(-2, 2);
 		_o.ty = ty + random_range(-1, 1);
+		_o.swing = swing;
+		_o.spdm  = spdm;
 		_o.aim();
 	}
 }

@@ -63,6 +63,13 @@ if (pay_acc >= 1) {
 			// No amount carried - that lane holds the HEADER's counter
 			// back until motes land, and shards have no such counter to
 			// hold. Purely the flow, drawn.
+			//
+			// NEARLY STRAIGHT AND QUICK (his ask, same day): swing 6 -
+			// a bow of a few px on a 35px climb, not Myriad's room-wide
+			// swoop - and x1.3 on the pace. The tight curve is most of
+			// the speed by itself: the library paces on path length,
+			// and a control point thrown across the room made a 35px
+			// hop a 250px path.
 			var _sx = syst_tiles.spark_x;
 			var _sy = syst_tiles.spark_y + 4;
 			var _bx = syst_tiles.bits_x;
@@ -70,7 +77,8 @@ if (pay_acc >= 1) {
 			for (var _k = 0; _k < g.tiles.slots; _k++) {
 				var _tk = g.tiles.tier[_k];
 				if (_tk == 0) continue;
-				bezier_bits(_bx, _by, 1, tile_color(_tk), _sx, _sy, -1, 0);
+				bezier_bits(_bx, _by, 1, tile_color(_tk), _sx, _sy, -1, 0,
+					6, 1.3);
 			}
 		}
 	}

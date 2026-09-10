@@ -16,6 +16,8 @@ depth = -90; // above room content; the floats (-100) stay on top
 
 col = c_seagreen;         // currency tint (resin default)
 amt = 0;                  // the profit this mote is carrying home
+swing = -1;               // curve width: -1 = Myriad's throw, else px (aim())
+spdm = 1;                 // pace multiplier on the per-step advance (aim())
 tx = 48; ty = 12;         // target (bezier_bits sets it, then aim())
 t = 0;                    // curve progress 0..1
 spd = random_range(.0083, .0167); // Myriad's random_range(.01,.02)/1.2
@@ -64,8 +66,28 @@ if (look == 3) {
 aim = function() {
 	p0x = x;
 	p0y = y;
-	cx = random(room_width);
-	cy = y + random_range(-50, 100); // the original's throw, mostly down
+	if (swing < 0) {
+		cx = random(room_width);
+		cy = y + random_range(-50, 100); // the original's throw, mostly down
+	} else {
+		// NEARLY STRAIGHT (his ask for the tile fountain: "a subtle
+		// curve but nearly straight"): the control is the midpoint of
+		// the flight, pushed off the line by up to swing px SIDEWAYS -
+		// perpendicular to the flight, so the bend is a bow and never
+		// a detour, whatever direction the mote is headed
+		var _d = point_direction(p0x, p0y, tx, ty) + 90;
+		var _k = random_range(-swing, swing);
+		cx = (p0x + tx) * .5 + lengthdir_x(_k, _d);
+		cy = (p0y + ty) * .5 + lengthdir_y(_k, _d);
+	}
+	// the pace: bezier_create rolled Myriad's advance already, so the
+	// multiplier lands on top of it (and on the library's own short-hop
+	// mod, which a tight curve earns - a room-wide throw made the path
+	// long, and the path length is what that mod reads)
+	if (spdm != 1) {
+		_zero_adj_ *= spdm;
+		_zero_adj = _zero_adj_;
+	}
 	// the three points: start, the thrown control, the counter.
 	// bezier_set_point also accumulates _point_dist, which is what
 	// bezier_approach's own speed mod reads - so the short-hop rule
