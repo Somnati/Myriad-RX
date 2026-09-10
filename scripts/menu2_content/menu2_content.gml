@@ -18,6 +18,10 @@ function menu2_content() {
 	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
 	menu2_button("automation",   rm_automation,    c_sblue);
 	menu2_button("time bank",    function() { timebank_open(); }, c_gold);
+	// the line says when a gift is waiting - the menu rebuilds on every
+	// open, so the label is live (Techdemo II's calendar, ported)
+	menu2_button(gift_can_claim() ? "daily gift  -  ready" : "daily gift",
+		function() { gift_open(); }, c_pink);
 	// an OVERLAY now, so it is a method destination: syst_menu2 folds the
 	// drawer and runs the closure instead of changing room
 	menu2_button("statistics",   function() { statistics_open(); }, c_sgreen);

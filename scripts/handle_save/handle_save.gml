@@ -296,6 +296,21 @@ function handle_save(){
 		g.timebank.live_m = 1;
 	}
 
+	// daily gift: the login calendar. FOUR numbers is the whole save -
+	// claims (level/xp derive from it via gift_level), the board slot,
+	// the cycle (the board re-rolls from it), the last collect's day
+	section = "gift";
+	gift_init();
+	g.gift.claims   = handle("claims",   g.gift.claims);
+	g.gift.pos      = handle("pos",      g.gift.pos);
+	g.gift.cycle    = handle("cycle",    g.gift.cycle);
+	g.gift.last_day = handle("last_day", g.gift.last_day);
+	if (action == sv_load) {
+		g.gift.claims = max(0, floor(g.gift.claims));
+		g.gift.cycle  = max(0, floor(g.gift.cycle));
+		g.gift.pos    = clamp(floor(g.gift.pos), 0, g.gift_cfg.days - 1);
+	}
+
 	section = "upgrades";
 	upgrade_init();
 	g.upg.bought = handle("slots_bought", g.upg.bought);

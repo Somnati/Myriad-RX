@@ -10,4 +10,5 @@ function ui_overlay_close() {
 	if (instance_exists(syst_settings))      { settings_close();   return; }
 	if (instance_exists(syst_statistics_v2)) { statistics_close(); return; }
 	if (instance_exists(syst_timebank_panel)) { timebank_close();   return; }
+	if (instance_exists(syst_gift_panel))     { gift_close();       return; }
 }

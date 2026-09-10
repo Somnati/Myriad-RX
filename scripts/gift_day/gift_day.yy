@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"gift_day",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"gift_day",
+  "parent":{
+    "name":"gift",
+    "path":"folders/game/gift.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
