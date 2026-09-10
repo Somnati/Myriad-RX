@@ -30,7 +30,7 @@ FAB_T_BASE   = 10.0    # seconds per fabricated tile
 AM_MULT      = 1.5     # auto-merge interval = fab_t x this
 
 # the rarity ladder (rarity_odds, tile knobs)
-R_SCALE, R_GROW, R_CUT = .3, .03, 800
+R_SCALE, R_GROW, R_CUT = .3, .03, 400   # TILE_RARITY_CUT - his 400
 RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 
 # SECONDS HERE, FRAMES IN THE GAME. main_macros stores TILE_FAB_STEP as
@@ -42,7 +42,9 @@ RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames)
 FAB_MIN      = 0.5     # TILE_FAB_MIN  (30 frames)
 PROFIT_STEP  = .10     # TILE_PROFIT_STEP
-LUCK_STEP    = 20      # TILE_LUCK_STEP - PERCENTAGE POINTS a level
+RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
+DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
+RB_GATE, RB_RATE, RB_STEP = 6, 1.5, 1.0   # the table's own rebirth
 BANK_BASE    = 0       # TILE_BANK_BASE - his call, nothing until bought
 BANK_STEP    = 1       # TILE_BANK_STEP
 
@@ -51,7 +53,7 @@ BANK_STEP    = 1       # TILE_BANK_STEP
 UPG = {
     "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
     "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
-    "luck":   {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .20 lv)
+    "rarity": {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .50 lv)
     "fab":    {"base": 10000, "e": 2.5, "max": 95},    # -0.1s, floor 0.5s
 }
 
@@ -145,6 +147,8 @@ class Table:
         self.fab = 0.0
         self.am = 0.0
         self.shards = 0.0
+        self.earned = 0.0      # lifetime - what a table rebirth prices off
+        self.rb_units = 0
         self.made = 0
         self.merges = 0
         self.log = []          # (t, kind, new level, cost)
@@ -153,17 +157,35 @@ class Table:
     def slots(self):    return SLOTS_BASE
     def fab_t(self):    return max(FAB_MIN, FAB_T_BASE - FAB_STEP * self.lv["fab"])
     def bank_max(self): return BANK_BASE + BANK_STEP * self.lv["bank"]
-    def gps_mult(self): return 1 + PROFIT_STEP * self.lv["profit"]
+    def rb_boost(self):
+        # tile_rebirth_boost: the table's own prestige, on OUTPUT
+        return 1 + RB_STEP * self.rb_units
 
-    def luck(self):
+    def rarity(self):
         # tile_rarity_rate: the flat base, then the upgrade as a
         # MULTIPLIER (DE's chain). No deck bonus - nothing grants it yet.
-        return RARITY_BASE * (1 + LUCK_STEP * self.lv["luck"] / 100.0)
+        return RARITY_BASE * (1 + RARITY_STEP * self.lv["rarity"] / 100.0)
 
     def gps(self):
-        # the profit boost multiplies the BOARD's total, as tiles_tick
-        # does - result-side, so it can never compound into itself
-        return sum(tile_gps(t) for t in self.tier) * self.gps_mult()
+        # ⚖️ THE PROFIT UPGRADE IS NOT HERE ANY MORE. It scales the
+        # board's CONTRIBUTION TO DIAL PROFIT, not the board - see
+        # dial_boost. What multiplies output now is the table's own
+        # rebirth, which reaches both lanes because output is one thing.
+        return sum(tile_gps(t) for t in self.tier) * self.rb_boost()
+
+    def dial_boost(self):
+        # tile_dial_boost, DE's get_allmodgps: the board's total, scaled
+        # by the profit upgrade, over DIAL_DIV, plus one. THIS is where
+        # the profit upgrade's value actually lands, and measuring it on
+        # gps (as this twin used to) would report it as worth nothing.
+        return 1 + (self.gps() * (1 + PROFIT_STEP * self.lv["profit"])) / DIAL_DIV
+
+    def rb_calc(self):
+        # tile_rebirth_calc, off lifetime EARNED
+        if self.earned < 10 ** RB_GATE:
+            return 0
+        oom = math.floor(math.log10(self.earned))
+        return 1 + int((oom - RB_GATE) / RB_RATE)
 
     def free(self):
         return self.slots() - len(self.tier)
@@ -184,10 +206,10 @@ class Table:
             self.made += 1
             if self.free() > 0 and self.stored > 0:
                 self.stored -= 1             # the tick's next block
-                self.tier.append(roll_tier(self.luck(), self.rng))
+                self.tier.append(roll_tier(self.rarity(), self.rng))
         while self.stored > 0 and self.free() > 0:
             self.stored -= 1
-            self.tier.append(roll_tier(self.luck(), self.rng))
+            self.tier.append(roll_tier(self.rarity(), self.rng))
         # ---- auto-merge ----
         self.am += dt
         period = self.fab_t() * AM_MULT
@@ -201,7 +223,9 @@ class Table:
         if self.free() == 0 and not self._has_pair():
             self.tier[self.tier.index(min(self.tier))] += 1
         # ---- shards ----
-        self.shards += self.gps() * dt
+        var_add = self.gps() * dt
+        self.shards += var_add
+        self.earned += var_add
 
     def _has_pair(self):
         return len(self.tier) != len(set(self.tier))
@@ -264,9 +288,10 @@ say(tile_gps(10) / tile_gps(9) > 2,
 
 # --- 2. THE SPREAD ----------------------------------------------------
 print()
-print("2. THE FABRICATOR'S SPREAD  (rate = 100 base, x the luck upgrade)")
-for lv in (0, 1, 5, 10, 35):
-    rate = RARITY_BASE * (1 + LUCK_STEP * lv / 100.0)
+print("2. THE FABRICATOR'S SPREAD  (rate 100 base, x the rarity upgrade)")
+print("      one floor shift costs %d of rate" % R_CUT)
+for lv in (0, 1, 3, 6, 12):
+    rate = RARITY_BASE * (1 + RARITY_STEP * lv / 100.0)
     o = rarity_odds(rate, 10)
     live = " ".join("t%d %.0f%%" % (i + 1, p * 100) for i, p in enumerate(o) if p > .01)
     print("      lv%-3d rate %5.0f:  %s" % (lv, rate, live))
@@ -348,28 +373,53 @@ if len(gaps) >= 8:
 # pacing problem, it is a design one.
 print()
 print("7. DO THE UPGRADES MATTER?  (buy everything vs buy nothing)")
-print("      %-6s %13s %13s %9s" % ("hours", "no upgrades", "all upgrades", "worth"))
+print("      NOTE: measured on the DIAL BOOST, not on board output. The")
+print("      profit upgrade no longer touches the board at all - it")
+print("      scales the board's contribution to dial profit, so gps")
+print("      would report the biggest upgrade in the roster as worth 0.")
+print()
+print("      %-6s %11s %11s %8s %11s %11s %8s"
+      % ("hours", "gps none", "gps all", "worth", "dial none", "dial all", "worth"))
 worth = 1.0
 for h in (1, 6, 24):
     x = run(h, buy=False)
     y = run(h, buy=True)
-    worth = y.gps() / max(x.gps(), 1e-9)
-    print("      %-6d %13s %13s %8.2fx  (tier %d vs %d)"
-          % (h, eng(x.gps()), eng(y.gps()), worth,
-             max(y.tier) if y.tier else 0, max(x.tier) if x.tier else 0))
+    wg = y.gps() / max(x.gps(), 1e-9)
+    worth = y.dial_boost() / max(x.dial_boost(), 1e-9)
+    print("      %-6d %11s %11s %7.2fx %11s %11s %7.2fx"
+          % (h, eng(x.gps()), eng(y.gps()), wg,
+             eng(x.dial_boost()), eng(y.dial_boost()), worth))
 say(worth >= 3,
-    "a day of upgrades is worth at least 3x",
-    "%.2fx - the board's own merge loop delivers ~1e6x, so anything "
-    "under this is decoration" % worth)
+    "a day of upgrades is worth at least 3x on the dial boost",
+    "%.2fx" % worth)
 
 print()
 print("      what the 24h levels are actually worth:")
-print("        profit lv%d -> board rate x%.2f" % (tb.lv["profit"], tb.gps_mult()))
+print("        profit lv%d -> dial contribution x%.2f (NOT the board)"
+      % (tb.lv["profit"], 1 + PROFIT_STEP * tb.lv["profit"]))
 print("        fab    lv%d -> fabricator %.1fs (from %.1fs)"
       % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE))
-print("        luck   lv%d -> rarity %.0f (from %d; %d is one floor shift)"
-      % (tb.lv["luck"], tb.luck(), RARITY_BASE, R_CUT))
+print("        rarity lv%d -> rate %.0f (from %d; %d is one floor shift)"
+      % (tb.lv["rarity"], tb.rarity(), RARITY_BASE, R_CUT))
 print("        bank   lv%d -> hopper %d tiles" % (tb.lv["bank"], tb.bank_max()))
+
+# --- 8. THE TABLE'S OWN REBIRTH --------------------------------------
+print()
+print("8. THE TABLE'S REBIRTH  (tile_rebirth_calc, off lifetime EARNED)")
+print("      %-8s %9s %8s %10s" % ("played", "earned", "units", "output x"))
+for h in (0.25, 1, 6, 24):
+    z = run(h)
+    u = z.rb_calc()
+    print("      %-8s %9s %8d %9.1fx"
+          % (hms(h * 3600), eng(z.earned), u, 1 + RB_STEP * u))
+z = run(24)
+say(z.rb_calc() >= 1,
+    "a day of play earns at least one unit",
+    "%d - a prestige nobody can reach in a session is a prestige nobody "
+    "meets" % z.rb_calc())
+say(z.rb_calc() <= 30,
+    "and not an absurd number of them",
+    "%d units = x%.0f board output" % (z.rb_calc(), 1 + RB_STEP * z.rb_calc()))
 
 print()
 print("=" * 74)
