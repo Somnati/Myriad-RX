@@ -34,6 +34,7 @@ rot = random(360);
 rot_spd = random_range(-10, 10);
 size = 1;
 pop_t = -1;               // >= 0 = the arrival bloom phase
+mbx = x; mby = y;         // where it was LAST DRAWN - the motion blur's sweep (Draw)
 
 p0x = x; p0y = y;         // start (aim() stamps them)
 cx = x; cy = y;           // the one control point
