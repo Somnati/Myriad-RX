@@ -148,6 +148,8 @@ sw_edge = 64;
 // of the layout.
 float_x = 0;
 float_y = 0;
+spark_x = 0;   // where the shard count sits - and where the bits fly
+spark_y = 0;
 
 // frames left on the table-rebirth confirm (see the Step)
 arm_rb = 0;
@@ -411,51 +413,40 @@ __draw_drawer = function() {
 };
 
 /// @func __draw_shards()
-/// @desc The shard count and the board's rate, on the title strip's
-///       right end. Called from the END of __draw_drawer so it lands
-///       over the panel - see there.
-/// @func __strip_lay()
-/// @desc Where the title strip's right-hand readouts sit: the shard
-///       count's right edge, the rate's right edge, and the leftmost x
-///       the pair reaches. ONE place decides, because the hopper is
-///       drawn in a different pass (behind the drawer) and has to know
-///       where the pair stopped without guessing.
-__strip_lay = function() {
+/// @desc THE SPARK: the shard count, centred above the board, with the
+///       board's rate under it (his ask, 2026-09-09 - middle of the
+///       screen above the table, p/s below). Called from the END of
+///       __draw_drawer so it lands over the panel - see there.
+///
+///       It is also THE TARGET: every bit the tiles emit flies here
+///       (spark_x / spark_y, seated with the board in __reseat), so the
+///       counter is visibly where the money goes rather than a number
+///       that happens to be nearby. The per-second float spawns on it
+///       too and rises off it - the header's own gain-pop pattern.
+__draw_shards = function() {
 	var _t = g.tiles;
 	draw_set_font(fnt);
+	draw_set_valign(fa_top);
+	draw_set_halign(fa_center);
+
 	var _sh = ((_t.shards >= arb(1)) ? crunch_arb(_t.shards) : "0") + " shards";
 	var _rt = "+" + ((_t.gps >= arb(1)) ? crunch_arb(_t.gps) : "0") + "/s";
-	var _sx = room_width - 6;
-	var _rx = _sx - string_width(_sh) - 8;
-	return { sh : _sh, rt : _rt, sx : _sx, rx : _rx,
-	         left : _rx - string_width(_rt) };
-};
 
-__draw_shards = function() {
-	draw_set_font(fnt);
-	draw_set_valign(fa_top);
-	draw_set_halign(fa_right);
+	// a soft ground under the pair, so the count reads over whatever the
+	// visualiser behind it is doing
+	var _gw = sprite_get_width(spr_vis_glow_soft);
+	draw_sprite_ext(spr_vis_glow_soft, 0, spark_x, spark_y + 6,
+		90 / _gw, 40 / _gw, 0, c_black, .35);
 
-	// ⚖️ THE RATE IS PLACED FROM THE SHARDS, NOT FROM A NUMBER (his ask:
-	// put the rate to the left of the count). Both used to be
-	// right-aligned at hand-picked offsets from the room's right edge -
-	// 68 and 150 - which works in the 480-wide landscape room and is
-	// simply broken in the 144-wide portrait one, where 150 is off the
-	// LEFT edge. That is what he was looking at: a rate hanging off the
-	// side of the screen and a heading landing on top of it.
-	//
-	// Measuring the string it has to clear cannot be wrong in either
-	// shape, and it cannot drift when crunch_arb starts returning a
-	// longer suffix.
-	var _l = __strip_lay();
-
+	draw_set_font(fnt_large);
 	draw_set_color(c_aqua);
 	draw_set_alpha(.95);
-	draw_text(_l.sx, strip_y + 5, _l.sh);
+	draw_text(spark_x, spark_y, _sh);
 
+	draw_set_font(fnt);
 	draw_set_color(merge_colour(c_aqua, c_white, .35));
 	draw_set_alpha(.7);
-	draw_text(_l.rx, strip_y + 5, _l.rt);
+	draw_text(spark_x, spark_y + 13, _rt);
 
 	draw_set_halign(fa_left);
 	draw_set_alpha(1);
@@ -482,16 +473,24 @@ upg_y = bar_y + bar_h * 2 + 8;
 // so a rising number leaves the tiles rather than crossing them. The
 // board's own geometry decides it, so a board that moves takes the
 // float with it.
-float_x = bx + (g.tiles.cols * pw) * .5;
-float_y = by - 6;
+// THE SPARK'S SEAT, and the float's: centred over the board, in the
+// headroom between the fabricator bars and the top row. The float
+// spawns ON the count and rises off it, so a second's earnings visibly
+// arrive at the number they are adding to.
+spark_x = bx + (g.tiles.cols * pw - 4) * .5;
+spark_y = by - 30;
+float_x = spark_x;
+float_y = spark_y - 2;
 __reseat = function() {
 	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
 	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
 	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
-	// the float rides the board - a board-size upgrade must not leave
-	// the per-second readout hanging where the old one was
-	float_x = bx + (g.tiles.cols * pw) * .5;
-	float_y = by - 6;
+	// the spark and the float ride the board - a board-size upgrade
+	// must not leave either hanging where the old board was
+	spark_x = bx + (g.tiles.cols * pw - 4) * .5;
+	spark_y = by - 30;
+	float_x = spark_x;
+	float_y = spark_y - 2;
 };
 
 // ⚖️ WHERE A TILE'S VALUE SITS, and it is worth being deliberate about

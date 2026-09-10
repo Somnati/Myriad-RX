@@ -397,23 +397,44 @@ function main_macros() {
 //
 //     output x (1 + FLUX_STEP x flux ^ FLUX_POW)
 //
-// POW UNDER 1 IS THE BRAKE. Flux is proportional to earned and earned
-// is proportional to output, so a linear read closes that loop into a
-// runaway. At .5 doubling your flux is worth x1.41 - still direct,
-// still a pile you watch grow, but one whose next thousand is worth
-// less than its first (ngu_bonus's own law).
-#macro TILE_RB_GATE       6   // 1e6 earned before the first reset
-#macro TILE_FLUX_DIV 1000000  // flux paid = earned / this (a plain
-                              // literal: GML will not parse 1e6)
-#macro TILE_FLUX_STEP   .10   // output x (1 + STEP x flux^POW)
-#macro TILE_FLUX_POW    .50   // the brake - see above
+// ⚖️ +1% PER FLUX, LINEAR (his call, 2026-09-09). I shipped this with a
+// square-root brake first, because flux is proportional to earned and
+// earned to output, and a linear read closes that into a loop that
+// compounds across rebirths. He wants the plain version - a flux is a
+// percent, full stop, and a player can do that sum in their head. So
+// POW is 1 and the brake is gone. What holds the loop now is the
+// DIVISOR: it decides how many flux a run's earnings become, and it is
+// the one number to raise if the twin's six-rebirth ladder starts
+// climbing faster than the game can hold.
+#macro TILE_RB_GATE       8   // 1e8 earned before the first reset -
+                              // THE DIVISOR'S DECADE, and it must stay
+                              // so: below it earned/DIV floors to zero
+                              // flux, and a gate the reset can pass
+                              // while paying nothing is a button that
+                              // says "ready" and does nothing
+// ⚖️ 1e8, NOT 1e6, and the twin is why. With +1% a flux LINEAR, a
+// run's boost is proportional to the previous run's earnings, so the
+// loop across rebirths is QUADRATIC - at 1e6 the sixth rebirth earned
+// 1e12 times the first, output x5e11, and it was still accelerating.
+// The divisor cannot make a quadratic loop bounded; what it does is
+// set how many rebirths it takes to matter. At 1e8: a six-hour first
+// rebirth is x1.8, a full day's is x4, and six of them stacked are x138
+// over thirty-six hours of play, which is a prestige with teeth rather
+// than a rocket. If it runs away past that, raise this - it is the ONE
+// number in this loop that is not a design choice he made out loud.
+#macro TILE_FLUX_DIV 100000000  // flux paid = earned / this (a plain
+                                // literal: GML will not parse 1e8)
+#macro TILE_FLUX_STEP   .01   // output x (1 + STEP x flux^POW): +1% each
+#macro TILE_FLUX_POW      1   // linear - his call
 
 #macro TILE_DIAL_DIV    100
 #macro TILE_DIAL_SHIFT    2
 
-#macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
-                             // level (his number), applied result-side
-                             // in tiles_tick
+#macro TILE_PROFIT_STEP .25  // profit boost: +25% to the BOARD'S
+                             // CONTRIBUTION TO DIAL PROFIT a level (his
+                             // call: the exact figure does not matter,
+                             // the mechanic - DE's tile-into-dial chain
+                             // - does). Applied in tile_dial_boost.
 // ⚖️ THE FABRICATOR'S SECONDS ARE A BUDGET, and he set it out loud: ten
 // seconds base, FIVE of them removable by tile upgrades alone, three
 // more by abilities that do not exist yet (three of them, a second

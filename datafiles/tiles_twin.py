@@ -46,11 +46,11 @@ RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames) - his increment
 FAB_CAP      = 5.0     # TILE_FAB_CAP  (300 frames) - upgrades' share
 FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
-PROFIT_STEP  = .10     # TILE_PROFIT_STEP
+PROFIT_STEP  = .25     # TILE_PROFIT_STEP - his call, +25% a level
 RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
 DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
-RB_GATE = 6                # 1e6 earned before the first reset
-FLUX_DIV, FLUX_STEP, FLUX_POW = 1e6, .10, .50   # flux paid / boost law
+RB_GATE = 8                # the divisor's decade - below it flux floors to 0
+FLUX_DIV, FLUX_STEP, FLUX_POW = 1e8, .01, 1.0   # +1% a flux LINEAR (his call); 1e8 is the brake
 BANK_BASE    = 0       # TILE_BANK_BASE - his call, nothing until bought
 BANK_STEP    = 1       # TILE_BANK_STEP
 
@@ -62,8 +62,8 @@ BANK_STEP    = 1       # TILE_BANK_STEP
 # the early rungs are. See tile_upg - "curve" 1 would be a straight line.
 CURVE = 2.0
 UPG = {
-    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 100},
-    "bank":   {"base":  2500, "curve": CURVE, "top": 150, "max": 30},
+    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 50},
+    "bank":   {"base": 25000, "curve": CURVE, "top": 150, "max": 30},
     "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
     "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},
 }

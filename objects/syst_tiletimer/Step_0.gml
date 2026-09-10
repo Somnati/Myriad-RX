@@ -39,8 +39,32 @@ if (pay_acc >= 1) {
 		// float is ceremony: syst_tiles publishes where the board is and
 		// only exists while you are looking at it, so its absence is
 		// exactly the right condition for staying silent.
-		if (instance_exists(syst_tiles))
+		if (instance_exists(syst_tiles)) {
 			float_text(syst_tiles.float_x, syst_tiles.float_y,
 				"+" + crunch_arb(_add), c_aqua, fnt_outline);
+
+			// ⚖️ THE BITS (his ask): every occupied tile throws one mote
+			// a second, in ITS OWN COLOUR, into the spark - the same
+			// bezier framework the dials pay through, pointed at the
+			// shard count instead of the header. It is the one thing
+			// that makes the board read as PRODUCING rather than as a
+			// grid with a number floating over it: you can see which
+			// tile the shards are coming from, and a high tier's colour
+			// arriving is a high tier paying.
+			//
+			// No amount carried - that lane holds the HEADER's counter
+			// back until motes land, and shards have no such counter to
+			// hold. Purely the flow, drawn.
+			var _sx = syst_tiles.spark_x;
+			var _sy = syst_tiles.spark_y + 4;
+			with (syst_tiles) {
+				for (var _k = 0; _k < g.tiles.slots; _k++) {
+					var _tk = g.tiles.tier[_k];
+					if (_tk == 0) continue;
+					bezier_bits(__slot_x(_k) + tw * .5, __slot_y(_k) + th * .5,
+						1, tile_color(_tk), _sx, _sy, -1, 0);
+				}
+			}
+		}
 	}
 }

@@ -42,10 +42,10 @@ draw_text(6, strip_y + 5, "tiles");
 if (_t.stored > 0) {
 	draw_set_color((_t.stored >= _t.stored_max) ? c_horange : c_seagreen);
 	draw_set_alpha(.85);
-	// left of the rate, measured - the same portrait bug the pair had
-	// (a hand-picked 216 is off the left edge of a 144-wide room)
+	// the strip's right end is the hopper's now - the count and the
+	// rate moved to the spark above the board
 	draw_set_halign(fa_right);
-	draw_text(__strip_lay().left - 8, strip_y + 5,
+	draw_text(room_width - 6, strip_y + 5,
 		"hopper " + string(_t.stored) + "/" + string(_t.stored_max));
 }
 draw_set_halign(fa_left);

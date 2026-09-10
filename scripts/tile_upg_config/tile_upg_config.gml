@@ -77,15 +77,23 @@ function tile_upg_config() {
 			// really sets is GRANULARITY - a hundred rungs to the top
 			// means each early rung is a hair's breadth, which is why
 			// this row buys so freely in the first hour.
+			// ⚖️ FIFTY RUNGS, NOT A HUNDRED (his ask: more growth on the
+			// cost, because the table can rebirth now and its output -
+			// which this multiplies - climbs with flux). Same ceiling,
+			// half the rungs, so every one is twice as steep. It also
+			// answers the twin's slot-machine minute: a hundred rungs put
+			// eight profit levels under 1e5 and the first ten minutes
+			// bought nineteen upgrades.
 			id : "profit", name : "profit boost", base : 1000,
-			curve : TILE_UPG_CURVE, top : 308, max : 100,
+			curve : TILE_UPG_CURVE, top : 308, max : 50,
 			fmt : function(_lv) {
 				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
 			},
-			help : "+10% to what the board contributes, per level. the "
-			     + "whole table's output is a multiplier on dial profit "
-			     + "(" + string(TILE_DIAL_DIV) + " output = double), and "
-			     + "this raises the table's side of it",
+			help : "+" + string(round(TILE_PROFIT_STEP * 100)) + "% to what "
+			     + "the board contributes, per level. the whole table's "
+			     + "output is a multiplier on dial profit ("
+			     + string(TILE_DIAL_DIV) + " output = double), and this "
+			     + "raises the table's side of it",
 		},
 		{
 			// ⚖️ CURVED, NOT STRAIGHT (his ask: start small and rise to
@@ -174,7 +182,11 @@ function tile_upg_config() {
 			// top 150, NOT 308: the hopper is a convenience and its last
 			// tile should be a mid-game purchase, not the last thing in
 			// the game. Thirty rungs to 1e150 still curves the same way.
-			id : "bank", name : "hopper", base : 2500,
+			// base x10 (his call: pricier early). The curve is untouched
+			// - the same thirty rungs to the same 1e150 - so only the
+			// FLOOR moved, and a first hopper tile now costs what a
+			// fourth profit level does rather than a second.
+			id : "bank", name : "hopper", base : 25000,
 			curve : TILE_UPG_CURVE, top : 150, max : 30,
 			fmt : function(_lv) {
 				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
