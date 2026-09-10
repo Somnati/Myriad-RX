@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"faq_section",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"faq_section",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
