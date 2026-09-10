@@ -219,8 +219,10 @@ for (var _i = 0; _i < _n; _i++) {
 		draw_set_halign(fa_right);
 		draw_set_color(merge_colour(c_gray, _lc, .7));
 		draw_set_alpha(.85 * _ba);
-		draw_text_transformed(_px + _pw - 2, _py - .5,
-			crunch_arb(do_scale(_d.gpc, _p)), .8, .8, 0);
+		// (x the table's boost - the take is what the cycle will PAY)
+		var _tk = do_scale(_d.gpc, _p);
+		if (tb > arb(1)) _tk = do_multi(_tk, tb);
+		draw_text_transformed(_px + _pw - 2, _py - .5, crunch_arb(_tk), .8, .8, 0);
 	}
 	draw_set_font(fnt);
 	draw_set_halign(fa_left);
@@ -265,6 +267,9 @@ for (var _i = 0; _i < _n; _i++) {
 	}
 	else {
 		var _rv = (g.display_gps == 1) ? _d.gps : _d.gpc;
+		// x the table's boost: the row reads what the dial pays, not
+		// the raw curve (his question - see the Step's tb)
+		if (tb > arb(1)) _rv = do_multi(_rv, tb);
 		_rt = "+" + crunch_arb(_rv);
 	}
 	if (_rt != "") {

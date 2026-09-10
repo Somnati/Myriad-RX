@@ -40,6 +40,11 @@ function ui_blur_tick() {
 	var _ov = ui_overlay();
 	if (_ov != noone) _t = max(_t, _ov.oa);
 
+	// THE BACKING (obj_menu2_bck) goes with the blur: the plate and the
+	// menu's edge gradients under the layer, for the menu and for every
+	// overlay alike - see that object's Draw. It kills itself at zero.
+	if (_t > .002 && !instance_exists(obj_menu2_bck)) create_obj(0, 0, obj_menu2_bck);
+
 	// eased so the blur arrives with the panel rather than snapping on
 	// under it; settles exactly, so a resting screen is not spending a
 	// gaussian pass on 0.003 of an effect

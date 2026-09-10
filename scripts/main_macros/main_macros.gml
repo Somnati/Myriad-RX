@@ -273,14 +273,15 @@ function main_macros() {
                            // SLOWER). Raised from 5 once the rows began
                            // fading as well - a dissolve reads as slow
                            // at a speed a slide reads as sluggish at
-// ⚖️ THE GROUND UNDER AN OVERLAY (his report, 2026-09-10: no menu blur
-// behind settings / statistics / automation / rebirth / time bank). The
-// blur WAS there - ui_blur_tick rides every overlay's oa - but the
-// overlays laid .72 black over it, and a room at 28% is a room you
-// cannot tell is blurred. The menu drawer's backing is .48; this is the
-// overlays' one number, a shade lighter than that since their rows are
-// opaque plates and the ground only shows in the gaps.
-#macro UI_GROUND_A    .5
+// ⚖️ THE GROUND UNDER THE MENU AND EVERY OVERLAY (his report, three
+// times, 2026-09-10: no menu blur behind settings / statistics /
+// automation / rebirth / time bank). The blur layer WAS riding every
+// overlay's oa - but the menu's look is its BACKING drawn under the
+// blur (obj_menu2_bck: this plate + the edge gradients, softened with
+// the room), and the overlays painted a sharper, darker .72 sheet
+// above the blur instead. obj_menu2_bck is the one backing now, for
+// the menu and the panels alike, and this is its plate's alpha.
+#macro UI_GROUND_A    .48
 #macro UI_OUT_SPD     3    // ...and the divisor on the way OUT (his
                            // ask: speed the fade-out up). CLOSING IS
                            // NOT OPENING PLAYED BACKWARDS. An entrance

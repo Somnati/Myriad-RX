@@ -8,8 +8,7 @@ var _hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush 
 var _cx = room_width * .5;
 
 // ---- the room goes dark below the header ----
-draw_sprite_ext(spr_pixel_1x1, 0, 0, _hh - 1, room_width, room_height,
-	0, c_black, lerp(0, UI_GROUND_A + .05, balpha * alpha));   // (.8 hid the blur - his report)
+// (no ground of its own: obj_menu2_bck paints the plate + gradients UNDER the blur - his "menu blur" ask)
 
 // ---- banner state: colour + label (DE's triage) ----
 var _blend = c_aqua;

@@ -101,6 +101,17 @@ for (var _i = 0; _i < _n; _i++) {
 	rd[_i] = min(rd[_i], row_h);
 }
 
+// ⚖️ THE TILE TABLE'S MULTIPLIER, once a frame (his question,
+// 2026-09-10: "why am i making billions p/s when my tapper and dials
+// only show to be in the k's/m's?"). Because the dial profit boost
+// multiplies every dial payout by (1 + board output x f(level) / 100)
+// - see tile_dial_boost - and the rows were quoting the RAW gpc/gps,
+// the figure before that multiply. A 200k/s board at profit level 5
+// is a x4000 on the fleet; the row said 1m and the bank took 4b. The
+// rows read the boosted figure now - what the dial actually pays -
+// the same honesty the tapper's readout got.
+tb = tile_dial_boost();
+
 // ---- the buy quotes (slow tick, and at once when the mode changes) ----
 qtic -= delta;
 if (sp > .9 && (qtic <= 0 || qmode != g.buy_lv)) {

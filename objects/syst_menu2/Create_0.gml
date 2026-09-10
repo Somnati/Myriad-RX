@@ -47,7 +47,8 @@ sb.depth    = depth - 1;
 sb.touch_scroll = false;
 
 // the dark backing lives BEHIND the blur so the gaussian smooths it
-create_obj(0, 0, obj_menu2_bck);
+// (ui_blur_tick spawns it too - one is enough, two is double the plate)
+if (!instance_exists(obj_menu2_bck)) create_obj(0, 0, obj_menu2_bck);
 
 // ---- the registry ----
 btns = [];

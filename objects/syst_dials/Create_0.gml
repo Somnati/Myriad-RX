@@ -105,6 +105,7 @@ WIG_PUSH = 1;    // the payout's kick
 // ---- gesture state (menu2's rule: taps land on RELEASE under a drag
 // budget, so a swipe never doubles as a tap) ----
 press_x = -1;
+tb = arb(1);   // the tile table's dial multiplier, cached per Step (see there)
 press_y = -1;
 
 // ---- HOLD TO KEEP BUYING (Myriad DE's ctic, his ask 2026-09-06) ----

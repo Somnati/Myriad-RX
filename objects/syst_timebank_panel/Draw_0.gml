@@ -13,8 +13,7 @@ draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 
 // ---- the ground: the room shows through, blurred (ui_blur_tick) ----
-draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, room_height, 0,
-	c_black, UI_GROUND_A * ui_anim_in(oa, 0));
+// (no ground of its own: obj_menu2_bck paints the plate + gradients UNDER the blur - his "menu blur" ask)
 
 // ---- the title strip - slides down from under the header ----
 var _sp = ui_anim_in(oa, 1);

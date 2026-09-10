@@ -6,8 +6,7 @@ draw_set_valign(fa_top);
 var _dim = rgb(120, 130, 150);
 
 // ---- the ground: the room shows through, blurred (ui_blur_tick) ----
-draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height, 0,
-	c_black, UI_GROUND_A * ui_anim_in(oa, 0));
+// (no ground of its own: obj_menu2_bck paints the plate + gradients UNDER the blur - his "menu blur" ask)
 // everything below rides one ease: it slides up into its seat and
 // fades in (the settings recipe, one part - the pages are dense enough
 // that dealing rows one by one read as a stutter here)

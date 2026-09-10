@@ -1,7 +1,23 @@
 
-if (!instance_exists(syst_menu2)) { kill; exit; }
-var _a = syst_menu2.am;
-draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .48 * _a);
+// ⚖️ ONE BACKING FOR THE MENU AND EVERY OVERLAY (his report, three
+// times over, 2026-09-10: "blur the background when opening those"
+// - settings, statistics, automation, rebirth, time bank). The blur
+// layer itself was riding every overlay's ease (ui_blur_tick), but the
+// LOOK of the menu is this object: the plate and the edge gradients
+// drawn UNDER the blur so the gaussian softens them with the room.
+// The overlays each painted their own plate ABOVE the blur instead -
+// a sharp black sheet over a blurred room reads as a dark room, not a
+// frosted one. So the overlays draw no ground of their own any more;
+// ui_blur_tick keeps one of these alive whenever anything wants the
+// room softened, and it rides whichever ease is higher - the menu's
+// fold or the overlay's oa. What you see behind the menu is now, by
+// construction, what you see behind every panel.
+var _a = 0;
+if (instance_exists(syst_menu2)) _a = syst_menu2.am;
+var _ov = ui_overlay();
+if (_ov != noone) _a = max(_a, _ov.oa);
+if (_a <= .002) { kill; exit; }
+draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, UI_GROUND_A * _a);
 
 // THE EDGE GRADIENTS (his ask 2026-09-06). The techdemo's OLD menu
 // backdrop drew these and menu v2 never picked them up - the sprite had
