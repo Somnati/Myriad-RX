@@ -61,11 +61,29 @@
 ///   pip    one specular mark, present on metals and absent on plain
 ///   iri    a hue sweep across the tile's width (the oil-slick read)
 ///
-/// It rides the RARITY LADDER rather than cycling like the shape does:
-/// low tiers are plain, high tiers are precious, and that is a language
-/// every loot game has already taught the player. Shape cycles every
-/// tier so NEIGHBOURS differ; material climbs so DISTANCE reads. Two
-/// channels answering two different questions.
+/// ⚖️ ROLLED PER TIER, NOT CLIMBED (his call, 2026-09-09 - "for now").
+/// It rode the rarity ladder first: plain low, precious high, the
+/// language every loot game has already taught. He wants to see them
+/// random instead, so every tier draws its own surface out of the hat.
+///
+/// STABLE, THOUGH, and that is the part that matters. A material
+/// re-rolled per frame is a strobe, and one re-rolled per instance
+/// means two tier-7s on the same board look like different things -
+/// which would destroy exactly the pair-finding the shape channel
+/// exists to serve. The four values are HASHED FROM THE TIER, so a
+/// tier is one material forever, on every board, across saves.
+///
+/// The hash is sin/frac rather than random_set_seed: it touches no RNG
+/// stream, needs no seed save-and-restore (vis_tier_color's own trap -
+/// DE's version scrambled the caller's stream mid-formula), needs no
+/// cache, and is pure. Sixteen tiles a frame times four values is
+/// nothing next to a seeded roll and a restore.
+///
+/// SHAPE STILL CYCLES, deliberately, and I have not changed it: it is
+/// the channel that makes NEIGHBOURING tiers differ, which is how a
+/// pair is spotted. If material also cycled they would fight; random
+/// material against cycling shape keeps the two answering different
+/// questions.
 ///
 /// @param [mat]  false = a flat fill, no material. The overlays (hover,
 ///               merge flash, automerge tell, drag assist, the ghost's
@@ -77,20 +95,26 @@ function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a, _mat = false) {
 	var _s = (_tier <= 0) ? 0 : ((_tier - 1) % 6);
 	var _hw = _w * .5;
 
-	// ---- the material, from the tier ----
-	// Five bands of three tiers, then it stays at the top - the ladder
-	// is longer than the vocabulary and the top of it should look like
-	// the top of it.
-	var _mi = (_tier <= 0) ? 0 : min(4, (_tier - 1) div 3);
+	// ---- the material, hashed from the tier ----
+	// Four independent streams off the same tier, so the values do not
+	// correlate - a shiny tile is not automatically also an iridescent
+	// one. See the header for why this is a hash and not a seeded roll.
 	var _grad = 0, _rim = 0, _pip = 0, _iri = 0;
-	if (_mat) {
-		switch (_mi) {
-			case 0: _grad = .10; _rim = 0;   _pip = 0;   _iri = 0;   break;
-			case 1: _grad = .22; _rim = .12; _pip = .25; _iri = 0;   break;
-			case 2: _grad = .38; _rim = .30; _pip = .55; _iri = 0;   break;
-			case 3: _grad = .50; _rim = .45; _pip = .85; _iri = 0;   break;
-			case 4: _grad = .35; _rim = .35; _pip = .70; _iri = .45; break;
-		}
+	if (_mat && _tier > 0) {
+		var _h1 = frac(sin(_tier * 12.9898) * 43758.5453);
+		var _h2 = frac(sin(_tier * 78.2330) * 27182.8182);
+		var _h3 = frac(sin(_tier * 45.1640) * 31415.9265);
+		var _h4 = frac(sin(_tier * 94.6730) * 16180.3399);
+
+		_grad = lerp(.08, .55, _h1);
+		_rim  = lerp(0,   .50, _h2);
+		// a third of tiers get NO specular at all. A board where every
+		// tile glints is a board where the glint says nothing - the
+		// plain ones are what make the shiny ones read as shiny.
+		_pip = (_h3 < .34) ? 0 : lerp(.20, .90, (_h3 - .34) / .66);
+		// and a fifth are films. Rarer still, because it is the loudest
+		// of the four and the one that fights the digit hardest.
+		_iri = (_h4 < .80) ? 0 : lerp(.25, .55, (_h4 - .80) / .20);
 	}
 
 	for (var _r = 0; _r < _h; _r++) {
