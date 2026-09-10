@@ -84,6 +84,14 @@ pool     = {}; // widget key -> live instance (spawned once, rebound)
 mx       = 0;  // view length, the scrollbar's range
 
 dirty_tic   = 0; // >0 = change pending; reaching 0 fires the save
+// ⚖️ DE's CLICK TIMER (his call, 2026-09-10: "DE's tic timer system was
+// pretty good"). Every handled tap arms a short cooldown and no row
+// hears a press while it runs; a dropdown pick arms a longer one. It
+// is the third lock on the pill click-through, beside the input gate
+// and the box-over-box guard, and it is the one that does not depend
+// on how the frames happen to line up: a press that lands inside the
+// window after a pick is simply not a press.
+click_tic   = 0;
 saved_flash = 0; // the "saved" whisper timer
 
 help_txt = ""; // tap-for-info explainer
