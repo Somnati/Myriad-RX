@@ -76,16 +76,27 @@ function tile_upg_config() {
 			     + "this raises the table's side of it",
 		},
 		{
-			id : "fab", name : "fabrication speed", base : 10000, e : 2.5,
-			max : (TILE_FAB_T - TILE_FAB_MIN) div TILE_FAB_STEP,
+			// ⚖️ e 3.0, NOT 2.5, and the max is the BUDGET rather than the
+			// floor (his spec: at 1e308 he wants five seconds off from
+			// upgrades alone). 100 levels at 3 frames is exactly that
+			// -5.0s, and at three decades a level the hundredth costs
+			// 1e304 - just inside the ceiling he named. Steeper than the
+			// rest of the roster on purpose: this is the row that feeds
+			// the merge engine, so it is the row worth making expensive.
+			//
+			// Derived from the macros, never typed, so the ladder cannot
+			// drift from the budget it was sized against.
+			id : "fab", name : "fabrication speed", base : 10000, e : 3.0,
+			max : TILE_FAB_CAP div TILE_FAB_STEP,
 			fmt : function(_lv) {
 				return string_format(
 					max(TILE_FAB_MIN, TILE_FAB_T - TILE_FAB_STEP * _lv) / 60,
 					1, 1) + "s";
 			},
-			help : "-0.1s off the fabricator, per level. the auto-merger "
-			     + "rides the same clock, so this speeds both - it floors "
-			     + "at " + string(TILE_FAB_MIN / 60) + "s",
+			help : "-" + string_format(TILE_FAB_STEP / 60, 1, 2) + "s off the "
+			     + "fabricator, per level, to -"
+			     + string_format(TILE_FAB_CAP / 60, 1, 1) + "s. the "
+			     + "auto-merger rides the same clock, so this speeds both",
 		},
 		{
 			// ⚖️ A MULTIPLIER ON THE RATE, which is DE's own answer (his

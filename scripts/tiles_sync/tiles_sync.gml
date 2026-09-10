@@ -36,8 +36,14 @@ function tiles_sync() {
 	// the old multiplicative factor because he asked for a fixed step -
 	// which also means the LAST levels are the valuable ones, where a
 	// multiplier's would have been the first.
-	_t.fab_t = max(TILE_FAB_MIN,
-		TILE_FAB_T - TILE_FAB_STEP * (_t.upg[$ "fab"] ?? 0));
+	// ⚖️ TWO LIMITS, AND THEY DO DIFFERENT JOBS. The CAP is the most the
+	// upgrade may remove (5.0s of the 10) and it is what keeps three
+	// seconds open for the abilities that will come; MIN is where the
+	// fabricator stops no matter what has been applied. Without the cap
+	// a floor alone would let upgrades take every second there is, and
+	// every future ability would arrive worth nothing.
+	var _cut = min(TILE_FAB_CAP, TILE_FAB_STEP * (_t.upg[$ "fab"] ?? 0));
+	_t.fab_t = max(TILE_FAB_MIN, TILE_FAB_T - _cut);
 	_t.stored_max = TILE_BANK_BASE + TILE_BANK_STEP * (_t.upg[$ "bank"] ?? 0);
 
 	// ⚖️ THE FLAT PART ONLY. The upgrade is a MULTIPLIER on this (DE's

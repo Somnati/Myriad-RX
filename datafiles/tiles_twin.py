@@ -39,8 +39,13 @@ RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 # it wrong once already cost a run: FAB_MIN of 30 read as 30 SECONDS and
 # floored the fabricator above its own base, so the upgrade did nothing
 # and the twin cheerfully reported it bought ten times.
-FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames)
-FAB_MIN      = 0.5     # TILE_FAB_MIN  (30 frames)
+# ⚖️ THE FABRICATOR IS A BUDGET (his spec): 10s base, 5s removable by
+# UPGRADES, 3s reserved for abilities that do not exist yet, 2s floor.
+# FAB_CAP is what makes the reservation real - a floor alone would let
+# upgrades take every second there is and leave the abilities worthless.
+FAB_STEP     = 0.05    # TILE_FAB_STEP (3 frames)
+FAB_CAP      = 5.0     # TILE_FAB_CAP  (300 frames) - upgrades' share
+FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
 PROFIT_STEP  = .10     # TILE_PROFIT_STEP
 RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
 DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
@@ -54,7 +59,7 @@ UPG = {
     "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
     "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
     "rarity": {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .50 lv)
-    "fab":    {"base": 10000, "e": 2.5, "max": 95},    # -0.1s, floor 0.5s
+    "fab":    {"base": 10000, "e": 3.0, "max": 100},   # -0.05s, cap -5.0s
 }
 
 ok = True
@@ -155,7 +160,10 @@ class Table:
 
     # derived, never stored - the same law the GML follows
     def slots(self):    return SLOTS_BASE
-    def fab_t(self):    return max(FAB_MIN, FAB_T_BASE - FAB_STEP * self.lv["fab"])
+    def fab_t(self):
+        # the CAP limits what upgrades may take; MIN limits everything
+        cut = min(FAB_CAP, FAB_STEP * self.lv["fab"])
+        return max(FAB_MIN, FAB_T_BASE - cut)
     def bank_max(self): return BANK_BASE + BANK_STEP * self.lv["bank"]
     def rb_boost(self):
         # tile_rebirth_boost: the table's own prestige, on OUTPUT
@@ -397,11 +405,31 @@ print()
 print("      what the 24h levels are actually worth:")
 print("        profit lv%d -> dial contribution x%.2f (NOT the board)"
       % (tb.lv["profit"], 1 + PROFIT_STEP * tb.lv["profit"]))
-print("        fab    lv%d -> fabricator %.1fs (from %.1fs)"
-      % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE))
+print("        fab    lv%d -> fabricator %.2fs (from %.1fs; -%.1fs is the cap)"
+      % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE, FAB_CAP))
 print("        rarity lv%d -> rate %.0f (from %d; %d is one floor shift)"
       % (tb.lv["rarity"], tb.rarity(), RARITY_BASE, R_CUT))
 print("        bank   lv%d -> hopper %d tiles" % (tb.lv["bank"], tb.bank_max()))
+
+# --- 7b. THE FABRICATOR AGAINST THE CEILING -------------------------
+print()
+print("7b. THE FABRICATOR'S LADDER  (his spec: -5s from upgrades by 1e308)")
+print("      %-6s %9s %10s" % ("level", "fab_t", "costs"))
+for lv in (0, 10, 25, 50, 75, 100):
+    cut = min(FAB_CAP, FAB_STEP * lv)
+    print("      %-6d %8.2fs %10s"
+          % (lv, max(FAB_MIN, FAB_T_BASE - cut), eng(upg_cost("fab", lv))))
+_top = UPG["fab"]["max"]
+say(abs(FAB_STEP * _top - FAB_CAP) < 1e-9,
+    "the last level lands exactly on the budget",
+    "-%.1fs, his number" % (FAB_STEP * _top))
+say(upg_cost("fab", _top - 1) < 1e308,
+    "and the ladder ends inside the ceiling",
+    "level %d costs %s" % (_top, eng(upg_cost("fab", _top - 1))))
+say(FAB_T_BASE - FAB_CAP - 3.0 >= FAB_MIN - 1e-9,
+    "three seconds stay open for the abilities",
+    "%.1fs after upgrades, %.1fs after three 1s abilities"
+    % (FAB_T_BASE - FAB_CAP, FAB_T_BASE - FAB_CAP - 3.0))
 
 # --- 8. THE TABLE'S OWN REBIRTH --------------------------------------
 print()

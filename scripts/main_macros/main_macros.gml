@@ -405,11 +405,30 @@ function main_macros() {
 #macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
                              // level (his number), applied result-side
                              // in tiles_tick
-#macro TILE_FAB_STEP      6  // fabrication speed: -0.1s a level, in
-                             // FRAMES at 60hz (his number)
-#macro TILE_FAB_MIN      30  // ...floored at half a second. A fabricator
-                             // at zero would fire every frame, which is
-                             // not fast, it is broken.
+// ⚖️ THE FABRICATOR'S SECONDS ARE A BUDGET, and he set it out loud: ten
+// seconds base, FIVE of them removable by tile upgrades alone, three
+// more by abilities that do not exist yet (three of them, a second
+// each), and what is left is the floor.
+//
+//   TILE_FAB_T    600  10.0s   the base
+//   TILE_FAB_CAP  300   5.0s   the most UPGRADES may ever remove
+//   (abilities)   180   3.0s   reserved, unbuilt
+//   TILE_FAB_MIN  120   2.0s   the floor when everything has landed
+//
+// THE CAP IS THE NEW IDEA and it is what makes the reservation real. A
+// floor alone cannot hold three seconds open: with only MIN to stop
+// them, upgrades would take the fabricator to 2.0s by themselves and
+// every future ability would be worth precisely nothing. The cap says
+// what UPGRADES may take; MIN says where EVERYTHING stops.
+//
+// The step is sized against the ceiling rather than chosen: 100 levels
+// at 3 frames is the -5.0s the budget allows, and at +3.0 decades a
+// level the hundredth costs 1e304 - just inside the 1e308 he named. A
+// ladder that runs out before the money does is a ladder with a dead
+// top, and one that runs out after it is an upgrade nobody finishes.
+#macro TILE_FAB_STEP      3  // -0.05s a level, in FRAMES at 60hz
+#macro TILE_FAB_CAP     300  // ...to -5.0s total, and no further
+#macro TILE_FAB_MIN     120  // the floor after abilities too
 #macro TILE_SPEED_FACTOR .88    // fab period x this a level
 // ⚖️ DE'S BASE RATE, and it is not zero (his correction: check DE).
 // indiv.gml opens the rarity chain with mod_rarity_rate = 100 before a
