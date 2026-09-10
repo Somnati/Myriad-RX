@@ -749,6 +749,9 @@ __recache = function() {
 		// that. The rectangle keeps the old rule exactly.
 		var _sw = string_width(val_str[_i]);
 		var _fit = tw - 1;
+		// (the accretion scheme keeps the rectangle's footprint - the
+		// details live in the 2px margins the number never reaches)
+		if (TILE_SHAPES)
 		switch ((_t.tier[_i] - 1) % 6) {
 			case 2: _fit = tw * .62; break;   // diamond
 			case 3: _fit = tw * .84; break;   // ellipse

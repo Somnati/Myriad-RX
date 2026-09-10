@@ -7,93 +7,115 @@
 /// @param col
 /// @param alpha
 ///
-/// ONE TILE, IN THE SHAPE ITS TIER WEARS (his ask, 2026-09-09: each tier
-/// a different shape - rectangular, diamond, default, circular, etc).
+/// ONE TILE, DRESSED FOR ITS TIER. Two schemes, one macro:
 ///
-/// ⚖️ SHAPE IS A SECOND CHANNEL, and on a merge board that is worth more
-/// than decoration. Colour already separates the tiers, but colour is
-/// the one channel that fails people - and a 30x13 tile at a glance,
-/// eight of them on screen, is exactly the case where two adjacent rungs
-/// of a rarity ladder look alike. Cycling the shape every tier means
-/// NEIGHBOURING tiers never share one, so a pair is findable by outline
-/// alone. That is the actual game being played.
+/// ⚖️ TILE_SHAPES false - ACCRETION + SIZE (2026-09-10, his call to try
+/// it: "do your recommendations and i'll judge"). The six-shape cycle
+/// gave neighbouring tiers different outlines, which made a pair
+/// findable, but a shape cycle is VARIATION, not RANK - rect, diamond,
+/// ellipse say nothing about which is worth more, and he never got
+/// used to it. The trashcan merge game he liked works because a bin
+/// gets MORE ELABORATE as it climbs. So: one base rectangle, and every
+/// tier ADDS to it rather than swapping it -
+///   t2   a highlight rim along the top
+///   t3+  studs in the corners, one more a tier (TL, TR, BL, BR)
+///   t6+  a full inset frame
+///   t7+  a base band along the bottom
+///   t8+  pips on the base band, one more a tier
+/// - and the tile GROWS a pixel a tier for the first three tiers, since
+/// size is the one channel everyone reads as rank at a glance. Higher
+/// reads as more, adjacent tiers still differ in outline, and it is all
+/// spans on the same 30x13 cell - no sprites, no shader.
 ///
-/// The cycle is 6 and the ladder is longer than that, so shapes repeat -
-/// but a tier and the tier six above it are never on the board together
-/// in any state worth reading, and their colours are decades apart by
-/// then anyway.
+/// TILE_SHAPES true - THE SHAPE CYCLE (2026-09-09), kept whole behind
+/// the macro: six silhouettes cycling (tier-1) % 6 - rect, rounded,
+/// diamond, ellipse, hexagon, octagon. Flip the macro to have it back;
+/// __recache's number fit reads the same macro.
 ///
-/// ⚖️ DRAWN AS HORIZONTAL SPANS, not sprites. Six shapes at one size
-/// would be six subimages that have to be re-cut the day a tile changes
-/// dimensions, and spr_tile is 30x13 - a shape sheet at that size is
-/// unreadable to edit. An inset function per row is the same thing the
-/// puck's disc and the upgrade slots' rounded corners are built from,
-/// it costs h draws, and it scales to any w/h for free. House rule
-/// either way: hard pixels only.
+/// EMPTY SOCKETS STAY PLAIN whatever the scheme. A socket is the shape
+/// of the SPACE, and the space does not have a rarity.
 ///
-/// EMPTY SOCKETS STAY RECTANGULAR whatever tier the slot last held. A
-/// socket is not a tile and must not look like one - it is the shape of
-/// the SPACE, and the space does not have a rarity.
-///
-/// ⚖️ FLAT, AND ONLY THE OUTLINE - his call after seeing the alternatives
-/// (2026-09-09). Two other versions were tried the same day: a 2D
-/// material pass in this function (gradient, rim, specular pip - it
-/// read as a smudge, because a flat draw has no surface for light to
-/// cross) and then real raymarched solids through a tile shader (real
-/// bevels, real highlights, iridescence on the rim). He looked at both
-/// and chose the plain outline, and the shader is gone with the
-/// material pass. What survived is the part that is gameplay rather
-/// than decoration: the six-shape cycle, which makes neighbouring tiers
-/// differ so a pair can be found by silhouette.
+/// (A 2D material pass and a raymarched solid were both tried the same
+/// day as the shapes and both reverted - a smudge, and too much.)
 function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
 	if (_a <= .003) return;
-	var _s = (_tier <= 0) ? 0 : ((_tier - 1) % 6);
+
+	// ================= ACCRETION + SIZE =================
+	if (!TILE_SHAPES || _tier <= 0) {
+		var _d = max(0, _tier - 1);
+		// GROWTH: a pixel a tier, to TILE_GROW, spread round the centre so
+		// the tile stays seated on its cell (the odd pixel goes right/down)
+		var _g = min(_d, TILE_GROW);
+		var _gx = _x - (_g div 2), _gy = _y - (_g div 2);
+		var _gw = _w + _g,         _gh = _h + _g;
+		draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, _col, _a);
+		if (_d <= 0) return;   // t1 and sockets: the plain slab
+
+		var _lt = merge_colour(_col, c_white, .28);   // the raised bits
+		var _dk = merge_colour(_col, c_black, .40);   // the sunk bits
+
+		// t2+: the rim - a highlight along the top edge, one px in
+		draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + 1, _gw - 2, 1, 0, _lt, _a);
+
+		// t6+: the frame - an inset outline a px inside the edge
+		if (_d >= 5) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + 1, _gw - 2, 1, 0, _dk, _a * .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + _gh - 2, _gw - 2, 1, 0, _dk, _a * .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 1, _gy + 1, 1, _gh - 2, 0, _dk, _a * .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + _gw - 2, _gy + 1, 1, _gh - 2, 0, _dk, _a * .8);
+			// the rim sits on the frame's top line, brighter than it
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 2, _gy + 1, _gw - 4, 1, 0, _lt, _a);
+		}
+
+		// t3+: the studs - 2x2 raised blocks in the corners, one more
+		// a tier: top-left, top-right, bottom-left, bottom-right
+		var _ns = clamp(_d - 1, 0, 4);
+		var _sx = [_gx + 2, _gx + _gw - 4, _gx + 2, _gx + _gw - 4];
+		var _sy = [_gy + 2, _gy + 2, _gy + _gh - 4, _gy + _gh - 4];
+		for (var _k = 0; _k < _ns; _k++)
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx[_k], _sy[_k], 2, 2, 0, _lt, _a);
+
+		// t7+: the base band - two darker px along the bottom
+		if (_d >= 6)
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx + 2, _gy + _gh - 3, _gw - 4, 2, 0, _dk, _a);
+
+		// t8+: pips on the band, one more a tier, from the centre out
+		var _np = clamp(_d - 6, 0, 9);
+		if (_np > 0) {
+			var _pw = 2, _pg = 2;
+			var _px0 = _gx + _gw * .5 - (_np * _pw + (_np - 1) * _pg) * .5;
+			for (var _k = 0; _k < _np; _k++)
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_px0 + _k * (_pw + _pg)),
+					_gy + _gh - 3, _pw, 1, 0, _lt, _a);
+		}
+		return;
+	}
+
+	// ================= THE SHAPE CYCLE (TILE_SHAPES true) =================
+	var _s = (_tier - 1) % 6;
 	var _hw = _w * .5;
-
-
 	for (var _r = 0; _r < _h; _r++) {
 		// how far this row is from the middle, 0 at the centre line and
 		// 1 at the top and bottom edges. Every shape below is a curve on
 		// this one number, which is why they all stay centred and all
 		// scale with the tile.
-		var _d = abs(((_r + .5) / _h) - .5) * 2;
+		var _dd = abs(((_r + .5) / _h) - .5) * 2;
 		var _in = 0;
-
 		switch (_s) {
 			case 0: break;                              // rectangle
 			case 1:                                     // rounded
-				// a 3px corner. The upgrade slots use 2, but they are
-				// read one at a time in a list - these are read eight at
-				// once against a rectangle, and 2px of difference does
-				// not survive that.
 				if (_r == 0 || _r == _h - 1) _in = 3;
 				else if (_r == 1 || _r == _h - 2) _in = 2;
 				else if (_r == 2 || _r == _h - 3) _in = 1;
 				break;
-			case 2:                                     // diamond
-				_in = _d * _hw;
-				break;
-			case 3:                                     // circle (ellipse)
-				_in = _hw * (1 - sqrt(max(0, 1 - _d * _d)));
-				break;
-			case 4:                                     // hexagon
-				// ⚖️ SHARPER THAN IT WANTS TO BE, deliberately. A gentle
-				// hex taper at thirteen rows is visually the same object
-				// as the ellipse above it - I drew both and could not
-				// tell them apart. A long flat middle and a hard linear
-				// taper is what makes it read as ANGULAR rather than as
-				// a slightly worse circle.
-				_in = max(0, (_d - .45) / .55) * (_w * .40);
-				break;
-			case 5:                                     // octagon
-				_in = max(0, (_d - .5) / .5) * (_w * .22);
-				break;
+			case 2: _in = _dd * _hw; break;             // diamond
+			case 3: _in = _hw * (1 - sqrt(max(0, 1 - _dd * _dd))); break;   // ellipse
+			case 4: _in = max(0, (_dd - .45) / .55) * (_w * .40); break;   // hexagon
+			case 5: _in = max(0, (_dd - .5) / .5) * (_w * .22); break;     // octagon
 		}
-
 		_in = floor(_in);
 		var _sw = _w - _in * 2;
 		if (_sw <= 0) continue;
-
 		draw_sprite_ext(spr_pixel_1x1, 0, _x + _in, _y + _r, _sw, 1, 0, _col, _a);
 	}
 }

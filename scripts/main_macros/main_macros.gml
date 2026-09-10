@@ -380,6 +380,12 @@ function main_macros() {
 //
 // It also silences the +2 ding by construction: syst_tiles only plays
 // snd_tierup on the bonus, and the bonus can no longer fire.
+// THE TILE'S DRESS (tile_shape_draw): false = accretion + size (one
+// rectangle that gains rim, studs, frame, band and pips as it climbs,
+// and grows a px a tier to TILE_GROW) - 2026-09-10's trial, his call
+// to judge; true = the six-shape cycle it replaced
+#macro TILE_SHAPES       false
+#macro TILE_GROW         3   // px of growth over the first tiers (each way: w and h)
 #macro TILE_BONUS_TIER   false
 
 #macro TILE_SLOTS_BASE   16

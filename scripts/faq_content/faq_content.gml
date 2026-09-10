@@ -117,7 +117,8 @@ function faq_content() {
 		"the fabricator makes a tile every few seconds. drag two tiles of "
 		+ "the same tier together to merge them into the next tier - each "
 		+ "tier is worth a lot more than the one below. every tier wears "
-		+ "its own colour and shape, so a pair is findable at a glance.",
+		+ "its own colour, and gains a detail and a pixel as it climbs, so "
+		+ "a higher tile reads as more at a glance.",
 		{ fn : function(_x, _y, _w, _h) {
 			var _cx = _x + _w * .5, _cy = _y + _h * .5;
 			tile_shape_draw(1, _cx - 32, _cy - 7, 30, 13, tile_color(1), 1);
