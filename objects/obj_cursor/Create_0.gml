@@ -25,10 +25,18 @@ window_set_cursor(cr_none);
 // still the sprite's texel for texel - read the shader's header. The
 // uniforms are looked up once; the sprite's page rect and trim are
 // what let the fragment turn a texcoord back into a sprite pixel.
+u_quad  = shader_get_uniform(sh_cursor, "u_quad");
+u_tip   = shader_get_uniform(sh_cursor, "u_tip");
 u_uv    = shader_get_uniform(sh_cursor, "u_uv");
-u_trim  = shader_get_uniform(sh_cursor, "u_trim");
+u_axis  = shader_get_uniform(sh_cursor, "u_axis");
+u_sq    = shader_get_uniform(sh_cursor, "u_sq");
+u_flat  = shader_get_uniform(sh_cursor, "u_flat");
 u_light = shader_get_uniform(sh_cursor, "u_light");
-u_on    = shader_get_uniform(sh_cursor, "u_on");
+u_cells = shader_get_uniform(sh_cursor, "u_cells");
+u_lit   = shader_get_uniform(sh_cursor, "u_lit");
+// the quad: the 16px sprite box around the hotspot plus a margin the
+// widened squash can reach into. One cell per room pixel.
+CUR_PAD = 7;
 
 // THE SQUISH (his ask, 2026-09-10: "a cute lil squish effect" on a
 // click): a press kicks a spring that squashes the arrow wide and

@@ -595,6 +595,7 @@
     {"id":{"name":"spr_coin_gold","path":"sprites/spr_coin_gold/spr_coin_gold.yy",},},
     {"id":{"name":"spr_coin_silver","path":"sprites/spr_coin_silver/spr_coin_silver.yy",},},
     {"id":{"name":"spr_coin","path":"sprites/spr_coin/spr_coin.yy",},},
+    {"id":{"name":"spr_cursor_sdf","path":"sprites/spr_cursor_sdf/spr_cursor_sdf.yy",},},
     {"id":{"name":"spr_cursor","path":"sprites/spr_cursor/spr_cursor.yy",},},
     {"id":{"name":"spr_dial_bubble","path":"sprites/spr_dial_bubble/spr_dial_bubble.yy",},},
     {"id":{"name":"spr_dial_endcaps","path":"sprites/spr_dial_endcaps/spr_dial_endcaps.yy",},},

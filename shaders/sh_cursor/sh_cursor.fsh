@@ -1,118 +1,113 @@
 //
-// THE POINTER, RAYCAST (his ask, 2026-09-10: "a raycast mouse sprite
-// that looks exactly like the one we got"). The dice and the puck are
-// per-pixel raymarched solids seen top-down through orthographic rays;
-// this is the same construction for the arrow - an EXTRUDED ARROW with
-// rounded edges, lit by the same light with the same diffuse / specular
-// / rim model - with two things decided differently, both for the word
-// "exactly":
+// THE POINTER, RAYCAST - take two (his correction, 2026-09-10: the first
+// pass sampled the sprite for its silhouette and squashed the QUAD, so
+// it looked exactly like the sprite method, which was the point of
+// leaving the sprite method). This is the dice's construction properly:
+// one orthographic ray per ROOM-PIXEL CELL, cast into a solid that is
+// deformed in OBJECT SPACE, so the squash re-rasterises the arrow cell
+// by cell - the pixelation is native, the way a squashed die's is - and
+// the bevel that catches the light is the deformed solid's bevel.
 //
-//  1. THE SILHOUETTE IS THE SPRITE'S. A polygon rasterised by one ray
-//     per pixel would agree with the hand-placed pixels of spr_cursor
-//     most of the time and disagree at a corner or two, and a pointer
-//     that is one pixel different from the one he drew is not "exactly
-//     the one we got". So coverage - and the black outline ring - are
-//     READ FROM THE SPRITE TEXTURE, texel for texel. The raycast only
-//     decides what the white pixels look like.
+// THE SOLID. An extruded arrow with a quarter-round bevel: its plan is
+// the sprite's own signed distance field, BAKED (spr_cursor_sdf, 8
+// samples per sprite px, exact euclidean distance to the pixel edges,
+// packed over -4..+4 px). Baked rather than a polygon because a
+// polygon fitted to hand-placed pixels matches them at most corners
+// and misses one or two, and this arrow has to be the sprite's arrow
+// to the pixel at rest. At rest every cell centre lands on a sprite
+// pixel centre, where the field reads <= -0.5 inside and >= +0.5 out,
+// so `d < 0` IS the sprite's coverage; the ring is the sprite's own
+// black pixels, baked into the field's second channel, so it is the
+// sprite's ring by construction. Squashed, the same two reads run on
+// the deformed field and the shape simply re-rasterises.
 //
-//  2. THE RAY IS SOLVED, NOT MARCHED. A top-down orthographic ray into a
-//     shape with no overhangs hits the height field at the pixel it
-//     started over: z = profile(distance to the edge). Marching 40
-//     steps to find a point you can name in one line is the puck's
-//     method for the puck's reason (it tumbles; this does not). The
-//     normal is the profile's slope along the 2D gradient of the
-//     arrow's signed distance - the same field the height came from,
-//     so shading and silhouette cannot disagree, which is the dice's
-//     rule too.
+// THE RAY is solved, not marched: top-down orthographic into a shape
+// with no overhangs hits the height field over its own cell, z =
+// profile(depth inside the edge). The normal is the profile's slope
+// along the field's gradient (four extra samples), scaled by u_flat -
+// a press flattens the solid, and a flatter bevel tilts less, so the
+// highlight softens as the arrow squashes. Same light, same diffuse /
+// specular / rim model as the puck.
 //
-// The arrow's 2D field is a polygon SDF through the outline pixels'
-// centres (in sprite px, origin the sprite's top-left), so distance 0
-// runs through the black ring and the bevel of radius R spans that ring
-// and the first white pixel in: the outline reads as the edge falling
-// away, the white just inside catches the light on the lit side and
-// shades on the other, and the flat top is a plain lit white. Every
-// cell is one room pixel (the texel), the house pixelation rule.
-//
-varying vec2 v_vTexcoord;
-varying vec4 v_vColour;
+varying vec2 v_pos;
 
-uniform vec4  u_uv;    // the sprite's texel rect on its page: u0 v0 u1 v1
-uniform vec4  u_trim;  // xoff yoff (trimmed origin, px) + w h (trimmed size, px)
-uniform vec3  u_light; // direction TO the light, view space (the dice's)
-uniform float u_on;    // 0 = the flat sprite, unlit (the setting)
+uniform vec4  u_quad;   // quad x, y, w, h in room px
+uniform vec2  u_tip;    // the hotspot, room px (whole pixels)
+uniform vec4  u_uv;     // the sdf sprite's texel rect on its page
+uniform vec2  u_axis;   // the arrow's axis, tip to tail, unit (screen)
+uniform vec2  u_sq;     // the squash: scale along the axis, scale across
+uniform float u_flat;   // height scale, 1 at rest, lower pressed
+uniform vec3  u_light;  // direction TO the light, view space
+uniform float u_cells;  // cells across the quad (one per room px)
+uniform float u_lit;    // 0 = flat white + ink (the sprite's look), 1 = lit
 
-const float R = 2.3;   // bevel radius, sprite px
-const int   N = 7;     // the arrow's outline, clockwise from the tip
+const float R    = 2.3;   // bevel radius, sprite px
+const vec2  HOT  = vec2(3.0, 2.0);   // the sprite's origin, in its px
+const float SIZE = 16.0;
 
-vec2 vert(int i)
+vec3 sample(vec2 op)
 {
-    // spr_cursor's outline, pixel centres (16x16, tip at 3,2)
-    if (i == 0) return vec2( 4.5,  2.5);   // the tip
-    if (i == 1) return vec2(13.5,  7.5);   // right shoulder
-    if (i == 2) return vec2(13.5, 10.5);   // right side, foot of the vertical
-    if (i == 3) return vec2( 6.5, 14.5);   // tail, right
-    if (i == 4) return vec2( 5.5, 14.5);   // tail, left
-    if (i == 5) return vec2( 2.5,  8.5);   // left side, foot of the vertical
-    return vec2( 2.5,  3.5);               // left shoulder
+    vec2 uv = u_uv.xy + clamp(op / SIZE, 0.0, 1.0) * (u_uv.zw - u_uv.xy);
+    return texture2D(gm_BaseTexture, uv).rgb;
 }
-
-// signed distance to the polygon: negative inside (iq's construction)
-float sd_arrow(vec2 p)
-{
-    float d = dot(p - vert(0), p - vert(0));
-    float s = 1.0;
-    for (int i = 0; i < N; i++) {
-        int j = (i == 0) ? N - 1 : i - 1;
-        vec2 a = vert(i);
-        vec2 b = vert(j);
-        vec2 e = b - a;
-        vec2 w = p - a;
-        vec2 c = w - e * clamp(dot(w, e) / dot(e, e), 0.0, 1.0);
-        d = min(d, dot(c, c));
-        bvec3 cnd = bvec3(p.y >= a.y, p.y < b.y, e.x * w.y > e.y * w.x);
-        if (all(cnd) || all(not(cnd))) s = -s;
-    }
-    return s * sqrt(d);
-}
+float field(vec2 op) { return sample(op).r * 8.0 - 4.0; }
 
 void main()
 {
-    vec4 tex = texture2D(gm_BaseTexture, v_vTexcoord);
-    if (tex.a < 0.5) discard;                 // the sprite decides coverage
-    if (u_on < 0.5) { gl_FragColor = tex * v_vColour; return; }
+    // one exact ray per cell: quantize the QUAD COORDINATE (the puck)
+    vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
+    if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
+    vec2 rp = u_quad.xy + q * u_quad.zw;      // the cell's centre, room px
 
-    // the black ring is the sprite's own; it stays, catching only the rim
-    float ink = step(tex.r + tex.g + tex.b, 1.2);
+    // room -> object: undo the squash about the tip. Along the axis the
+    // solid is SHORTER by u_sq.x, across it WIDER by u_sq.y, so a screen
+    // point maps to an object point further along and nearer across.
+    vec2 rel = rp - u_tip;
+    vec2 ax  = u_axis;
+    vec2 nx  = vec2(-ax.y, ax.x);
+    float al = dot(rel, ax) / u_sq.x;
+    float ac = dot(rel, nx) / u_sq.y;
+    vec2 op  = HOT + al * ax + ac * nx;       // sprite px, top-left origin
+    if (op.x < 0.0 || op.y < 0.0 || op.x >= SIZE || op.y >= SIZE) discard;
 
-    // texel -> sprite px, at the texel's centre (one cell per room px)
-    vec2 sp = u_trim.xy + (v_vTexcoord - u_uv.xy) / (u_uv.zw - u_uv.xy) * u_trim.zw;
-    sp = floor(sp) + 0.5;
+    vec3 t = sample(op);
+    float d = t.r * 8.0 - 4.0;
+    if (d >= 0.0) discard;                     // the sprite's coverage
+    float ink = step(0.5, t.g);                // ...and its own ink ring
 
-    // the height field: e = depth inside the edge; a quarter-round bevel
-    // of radius R up to a flat top. The slope is dz/de; the normal tilts
-    // OUTWARD along the field's gradient by it.
-    float d = sd_arrow(sp);
+    if (u_lit < 0.5) {
+        gl_FragColor = vec4(vec3(1.0 - ink), 1.0);
+        return;
+    }
+
+    // the height field: e = depth inside the edge, a quarter-round
+    // bevel of radius R up to the flat top; slope = dz/de, the normal
+    // tilts OUTWARD along the field's gradient by it, u_flat times
     float e = clamp(-d, 0.0, R);
-    float u = 1.0 - e / R;                    // 1 at the wall, 0 at the top
+    float u = 1.0 - e / R;
     float slope = (e < R) ? u / max(sqrt(1.0 - u * u), 0.08) : 0.0;
-    vec2 h = vec2(0.35, 0.0);
-    vec2 g = normalize(vec2(sd_arrow(sp + h.xy) - sd_arrow(sp - h.xy),
-                            sd_arrow(sp + h.yx) - sd_arrow(sp - h.yx)) + vec2(0.00001));
-    vec3 n = normalize(vec3(g * slope, 1.0));
+    vec2 h = vec2(0.25, 0.0);
+    vec2 g = normalize(vec2(field(op + h.xy) - field(op - h.xy),
+                            field(op + h.yx) - field(op - h.yx)) + vec2(0.00001));
+    // the gradient is in object space; the squash shears it back into
+    // screen space so the lit side stays the lit side while squashed
+    vec2 gs = normalize(vec2(dot(g, ax) * u_sq.x, dot(g, nx) * u_sq.y));
+    vec2 gv = gs.x * ax + gs.y * nx;
+    vec3 n = normalize(vec3(gv * slope * u_flat, 1.0));
 
-    // ---- lighting, the dice's model, on a white matte body ----
+    // ---- lighting, the puck's model, on white matte ----
     vec3 body = vec3(0.97);
     float df  = clamp(dot(n, u_light), 0.0, 1.0);
-    vec3 col = body * (0.50 + 0.58 * df);   // flat top ~85% white, lit bevel to 100%
+    vec3 col = body * (0.50 + 0.58 * df);      // flat top ~85% white, lit bevel to 100%
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), n);
     float sp2 = pow(clamp(dot(rf, u_light), 0.0, 1.0), 14.0);
     col += vec3(1.0) * sp2 * 0.22;
     float fr = pow(1.0 - clamp(abs(n.z), 0.0, 1.0), 2.0);
     col += vec3(1.0) * fr * 0.10;
 
-    // the ring: ink, with the rim catch alone - the edge falling away
-    vec3 ring = vec3(0.02) + vec3(0.14) * fr;   // stays ink; the rim only lifts it a shade
+    // the ring stays ink; the rim only lifts it a shade
+    vec3 ring = vec3(0.02) + vec3(0.14) * fr;
     col = mix(col, ring, ink);
 
-    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0) * v_vColour;
+    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
