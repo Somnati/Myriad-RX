@@ -1,7 +1,11 @@
-/// @description tiles_wipe() - the table back to nothing: board, hopper,
-/// shards, lifetime earned, highest tier, merge count, EVERY upgrade
-/// level. Flux and the rebirth count are not touched - they are not
-/// the table, they are what the table has paid.
+/// @description tiles_wipe([fresh]) - the table back to nothing: board,
+/// hopper, shards, lifetime earned, highest tier, merge count, EVERY
+/// upgrade level.
+/// @param [fresh]  true = the FLUX and the rebirth count go too. The
+///                 board's RESET passes it (his call, 2026-09-10: "that
+///                 reset button needs to wipe all tiles to be fresh...
+///                 flux needs reset too"); the rebirth does not - flux
+///                 is what the rebirth just banked.
 ///
 /// ⚖️ ONE WIPE, TWO BUTTONS (his report with a screenshot, 2026-09-10:
 /// "i hit the reset button and it only resets my tiles. i still have
@@ -24,9 +28,14 @@
 /// The view's own state (the held slot, the glow array) is the view's
 /// to clear - syst_tiles does that at its press site. g.tiles.grab is
 /// cleared here because the ENGINE reads it.
-function tiles_wipe() {
+function tiles_wipe(_fresh = false) {
 	tiles_init();
 	var _t = g.tiles;
+
+	if (_fresh) {
+		_t.flux     = 0;
+		_t.rb_total = 0;
+	}
 
 	for (var _i = 0; _i < _t.slots; _i++) _t.tier[_i] = 0;
 	_t.stored  = 0;

@@ -205,7 +205,11 @@ class Table:
         # board's CONTRIBUTION TO DIAL PROFIT, not the board - see
         # dial_boost. What multiplies output now is the table's own
         # rebirth, which reaches both lanes because output is one thing.
-        return sum(tile_gps(t) for t in self.tier) * self.rb_boost()
+        # PER TILE, FLOORED (tile_out, 2026-09-10): the flux boost lands
+        # on each tile's face and is rounded down there, and the board's
+        # rate is the sum of the faces.
+        b = self.rb_boost()
+        return sum(math.floor(tile_gps(t) * b) for t in self.tier)
 
     def dial_boost(self):
         # tile_dial_boost: DE's chain (1 + board total / DIAL_DIV) with

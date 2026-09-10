@@ -190,16 +190,17 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 			play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 		}
 		// THE RED ONE: the whole table back to nothing - board, hopper,
-		// SHARDS, UPGRADES, the lot (his report, 2026-09-10: it used to
-		// clear the tiles and leave 136m shards and thirteen levels
-		// standing). tiles_wipe is the one list, shared with the
-		// rebirth; this button just pays no flux for it. Two presses
-		// two seconds apart, the rebirth's rule, because it now throws
-		// away what the rebirth would have paid for.
+		// SHARDS, UPGRADES, FLUX, the lot (his report, 2026-09-10: it
+		// used to clear the tiles and leave 136m shards and thirteen
+		// levels standing; then "flux needs reset too"). tiles_wipe is
+		// the one list, shared with the rebirth; this button passes
+		// fresh = true and pays nothing. Two presses two seconds apart,
+		// the rebirth's rule, because it throws away everything the
+		// table has ever paid.
 		if (point_in_rectangle(mouse_x, mouse_y, 178, 246, 238, 260)) {
 			if (arm_rs > 0) {
 				arm_rs = 0;
-				tiles_wipe();
+				tiles_wipe(true);    // FRESH: flux and the rebirth count too
 				_t.tier[0] = 1;      // DE's fresh board: two starters
 				_t.tier[1] = 1;
 				_t.dirty = true;

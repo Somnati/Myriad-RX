@@ -128,22 +128,22 @@ function tiles_tick(_tmult = 1) {
 	// the autosave picks the progress up ----
 	if (_t.dirty) {
 		_t.dirty = false;
+		// ⚖️ THE SUM OF THE FACES. tile_out is each tile's LIVE output -
+		// base x the flux boost, floored to whole shards per tile (his
+		// ask: the flux shows on the tiles, rounded down) - so the
+		// board's rate is exactly what the tiles say it is, added up.
+		// The flux boost used to land on the total here; per tile is
+		// where it shows now, and the total follows.
+		//
+		// THE PROFIT UPGRADE IS NOT APPLIED HERE. It scales the board's
+		// CONTRIBUTION TO DIAL PROFIT and lives entirely in
+		// tile_dial_boost (his ask: DE's module boost, as the upgrade).
+		// It was here as well once, and that was a straight double
+		// count - the same level scaling gps and then scaling the boost
+		// derived FROM gps.
 		var _sum = 0;
 		for (var _i = 0; _i < _t.slots; _i++)
-			if (_t.tier[_i] != 0) _sum = do_add(_sum, tile_gps(_t.tier[_i]));
-		// ⚖️ THE PROFIT UPGRADE IS NOT APPLIED HERE ANY MORE. It scales
-		// the board's CONTRIBUTION TO DIAL PROFIT and lives entirely in
-		// tile_dial_boost now (his ask: mirror DE's module boost). It
-		// was here as well, so leaving it would have been a straight
-		// double count - the same level scaling gps and then scaling the
-		// boost derived FROM gps.
-		//
-		// THE TILE REBIRTH DOES apply here, because it is a multiplier
-		// on board OUTPUT rather than on one lane out of it - so it
-		// reaches the shard income and the dial contribution alike,
-		// which is what "increases the output of the tiles" means.
-		var _rb = tile_rebirth_boost();
-		if (_rb > 1 && _sum >= arb(1)) _sum = do_scale(_sum, _rb);
+			if (_t.tier[_i] != 0) _sum = do_add(_sum, tile_out(_t.tier[_i]));
 		_t.gps = _sum;
 		_t.rev++;
 		save_mark_dirty();

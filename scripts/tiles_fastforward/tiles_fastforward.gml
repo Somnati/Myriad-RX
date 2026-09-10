@@ -165,9 +165,12 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 	// tick, so the honest figure over a stretch where the board was
 	// changing is its rate at the END times the span - the same
 	// approximation the tick makes every second, applied once.
+	// tile_out, the same per-tile figure the live tick sums (offline ==
+	// online). This summed tile_gps - the BASE - until 2026-09-10, so
+	// an absence paid without the flux boost the live board had.
 	var _sh = 0;
 	for (var _i2 = 0; _i2 < _t.slots; _i2++)
-		if (_t.tier[_i2] != 0) _sh = do_add(_sh, tile_gps(_t.tier[_i2]));
+		if (_t.tier[_i2] != 0) _sh = do_add(_sh, tile_out(_t.tier[_i2]));
 	// ⚖️ _sec, NOT _secs. This read `_secs` - a name that does not exist
 	// in this function - and every save load with time behind it threw.
 	// It survived because TILES_LIVE gated offline_replay's tiles branch

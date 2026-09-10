@@ -615,7 +615,9 @@ __recache = function() {
 	draw_set_font(fnt_large); // values render in the Myriad tile font
 	for (var _i = 0; _i < _t.slots; _i++) {
 		if (_t.tier[_i] == 0) { val_str[_i] = ""; continue; }
-		var _g = tile_gps(_t.tier[_i]);
+		// the LIVE figure - base x flux, floored - so the face is what
+		// the tile pays (tile_out; the tick sums the same)
+		var _g = tile_out(_t.tier[_i]);
 		col[_i] = tile_color(_t.tier[_i]);
 		// value text color, Myriad's update_mod_color recipe: the tier
 		// hue with saturation floored at 100 and value floored at 190,

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_out",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_out",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
