@@ -118,7 +118,11 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 		// keeps paying through settings or statistics, but a pointer
 		// bouncing over a settings page is noise on a screen that is not
 		// about tapping.
-		if (ui_overlay() == noone) cursor_kick();
+		// ...and only for a tap that IS the pointer's: the puck's bounces
+		// pay through here too (puck_pay, _stat false - they are not
+		// counted as taps), and the arrow was flinching at every wall
+		// (his report, 2026-09-10)
+		if (_stat && ui_overlay() == noone) cursor_kick();
 	}
 
 	if (!_show) {

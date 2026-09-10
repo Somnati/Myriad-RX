@@ -40,44 +40,52 @@ uniform float u_flat;   // height scale, 1 at rest, lower pressed
 uniform vec3  u_light;  // direction TO the light, view space
 uniform float u_cells;  // cells across the quad (one per room px)
 uniform float u_lit;    // 0 = flat white + ink (the sprite's look), 1 = lit
+// MOTION BLUR (his ask, 2026-09-10 - the puck's law): the sweep from
+// the tip's last drawn seat to this one over a fixed 1/60 shutter, in
+// room px, and the number of instants along it each cell is cast at.
+// The quad covers the whole sweep. Alpha out is hits / K, so a cell the
+// arrow covered all shutter long is solid and one it flicked through
+// is a translucent trail - as blocky as the arrow, since the
+// accumulation is per cell.
+uniform vec2  u_mb;     // the sweep, start -> end (end = u_tip), room px
+uniform float u_mbk;    // instants along it, 1 = no blur
 
 const float R    = 2.3;   // bevel radius, sprite px
 const vec2  HOT  = vec2(3.0, 2.0);   // the sprite's origin, in its px
 const float SIZE = 16.0;
 
-vec3 sample(vec2 op)
+// (field_rg, not `sample`: the Windows build cross-compiles to HLSL,
+// where sample and cast are keywords - the puck learned that one)
+vec3 field_rg(vec2 op)
 {
     vec2 uv = u_uv.xy + clamp(op / SIZE, 0.0, 1.0) * (u_uv.zw - u_uv.xy);
     return texture2D(gm_BaseTexture, uv).rgb;
 }
-float field(vec2 op) { return sample(op).r * 8.0 - 4.0; }
+float field(vec2 op) { return field_rg(op).r * 8.0 - 4.0; }
 
-void main()
+// one instant: the cell's centre rp against the tip at `tip`. Returns
+// false where the arrow is not, else the shaded colour.
+bool cur_cast(vec2 rp, vec2 tip, out vec3 col)
 {
-    // one exact ray per cell: quantize the QUAD COORDINATE (the puck)
-    vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
-    if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
-    vec2 rp = u_quad.xy + q * u_quad.zw;      // the cell's centre, room px
-
     // room -> object: undo the squash about the tip. Along the axis the
     // solid is SHORTER by u_sq.x, across it WIDER by u_sq.y, so a screen
     // point maps to an object point further along and nearer across.
-    vec2 rel = rp - u_tip;
+    vec2 rel = rp - tip;
     vec2 ax  = u_axis;
     vec2 nx  = vec2(-ax.y, ax.x);
     float al = dot(rel, ax) / u_sq.x;
     float ac = dot(rel, nx) / u_sq.y;
     vec2 op  = HOT + al * ax + ac * nx;       // sprite px, top-left origin
-    if (op.x < 0.0 || op.y < 0.0 || op.x >= SIZE || op.y >= SIZE) discard;
+    if (op.x < 0.0 || op.y < 0.0 || op.x >= SIZE || op.y >= SIZE) return false;
 
-    vec3 t = sample(op);
+    vec3 t = field_rg(op);
     float d = t.r * 8.0 - 4.0;
-    if (d >= 0.0) discard;                     // the sprite's coverage
+    if (d >= 0.0) return false;                // the sprite's coverage
     float ink = step(0.5, t.g);                // ...and its own ink ring
 
     if (u_lit < 0.5) {
-        gl_FragColor = vec4(vec3(1.0 - ink), 1.0);
-        return;
+        col = vec3(1.0 - ink);
+        return true;
     }
 
     // the height field: e = depth inside the edge, a quarter-round
@@ -98,7 +106,7 @@ void main()
     // ---- lighting, the puck's model, on white matte ----
     vec3 body = vec3(0.97);
     float df  = clamp(dot(n, u_light), 0.0, 1.0);
-    vec3 col = body * (0.50 + 0.58 * df);      // flat top ~85% white, lit bevel to 100%
+    col = body * (0.50 + 0.58 * df);           // flat top ~85% white, lit bevel to 100%
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), n);
     float sp2 = pow(clamp(dot(rf, u_light), 0.0, 1.0), 14.0);
     col += vec3(1.0) * sp2 * 0.22;
@@ -107,7 +115,30 @@ void main()
 
     // the ring stays ink; the rim only lifts it a shade
     vec3 ring = vec3(0.02) + vec3(0.14) * fr;
-    col = mix(col, ring, ink);
+    col = clamp(mix(col, ring, ink), 0.0, 1.0);
+    return true;
+}
 
-    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+void main()
+{
+    // one exact ray per cell: quantize the QUAD COORDINATE (the puck)
+    vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
+    if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
+    vec2 rp = u_quad.xy + q * u_quad.zw;      // the cell's centre, room px
+
+    // K instants along the sweep: the tip at instant ft sits (1 - ft)
+    // of the sweep behind where it is now
+    int K = int(u_mbk + 0.5);
+    if (K < 1) K = 1;
+    vec3 acc = vec3(0.0);
+    float hits = 0.0;
+    for (int i = 0; i < 8; i++) {
+        if (i >= K) break;
+        float ft = (float(i) + 0.5) / float(K);
+        vec2 tip = u_tip - u_mb * (1.0 - ft);
+        vec3 c;
+        if (cur_cast(rp, tip, c)) { acc += c; hits += 1.0; }
+    }
+    if (hits < 0.5) discard;
+    gl_FragColor = vec4(acc / hits, hits / float(K));
 }

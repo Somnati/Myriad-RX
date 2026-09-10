@@ -34,6 +34,10 @@ u_flat  = shader_get_uniform(sh_cursor, "u_flat");
 u_light = shader_get_uniform(sh_cursor, "u_light");
 u_cells = shader_get_uniform(sh_cursor, "u_cells");
 u_lit   = shader_get_uniform(sh_cursor, "u_lit");
+u_mb    = shader_get_uniform(sh_cursor, "u_mb");
+u_mbk   = shader_get_uniform(sh_cursor, "u_mbk");
+// MOTION BLUR bookkeeping (the Draw): where the tip was last drawn
+mbx = mousex; mby = mousey;
 // the quad: the 16px sprite box around the hotspot plus a margin the
 // widened squash can reach into. One cell per room pixel.
 CUR_PAD = 7;
