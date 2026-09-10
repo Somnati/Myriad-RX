@@ -32,6 +32,12 @@ function tiles_init(_force = false) {
 		// and waits (Myriad's clamp) - production never evaporates
 		fab        : 0,
 		fab_t      : TILE_FAB_T,
+		// the table's own prestige (tile_rebirth_*): units bought, and
+		// how many times. Both survive a tile rebirth by definition -
+		// they ARE what it pays.
+		rb_units   : 0,
+		rb_total   : 0,
+
 		stored     : 0,
 		stored_max : TILE_BANK_BASE,
 

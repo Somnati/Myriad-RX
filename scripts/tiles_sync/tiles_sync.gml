@@ -47,5 +47,5 @@ function tiles_sync() {
 	// not known here. So this publishes the base and the one authority
 	// applies everything conditional.
 	g.tile_rarity = TILE_RARITY_BASE
-		+ (variable_global_exists("tile_luck_base") ? g.tile_luck_base : 0);
+		+ (variable_global_exists("tile_rarity_base") ? g.tile_rarity_base : 0);
 }

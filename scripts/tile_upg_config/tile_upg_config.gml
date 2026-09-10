@@ -48,18 +48,32 @@ function tile_upg_config() {
 	if (variable_global_exists("tile_upg_cfg")) return g.tile_upg_cfg;
 	g.tile_upg_cfg = [
 		{
+			// ⚖️ THIS IS DE'S MODULE BOOST, WEARING A SIMPLER NAME (his
+			// ask: mirror the tile-additive-into-dial-profit mechanic,
+			// "disguised as an upgrade"). What the tile table really
+			// does in DE is MULTIPLY DIAL PROFIT by (1 + board total /
+			// 100) - see tile_dial_boost - and u_moduleboost scales the
+			// board's contribution before that division. This is that
+			// upgrade.
+			//
+			// So it reads as "+10% board output" and it is really "+10%
+			// of a number that multiplies your entire dial income". The
+			// label is honest about the arithmetic and quiet about the
+			// leverage, which is the disguise he asked for.
+			//
+			// ITS PRICE CANNOT BE SET AGAINST ITS OWN INCREMENT (his
+			// point). The board's total climbs every second by itself -
+			// the merge loop is exponential in tier - so this lane
+			// compounds whether or not anybody buys anything. +2.5
+			// decades a level is priced against the LANE, not the step.
 			id : "profit", name : "profit boost", base : 1000, e : 2.5,
-			// WHAT A LEVEL IS WORTH, as a string (his ask: show the
-			// current bonus and what the next buy gains). It lives here
-			// because only the roster knows an upgrade's units - the
-			// drawer just prints fmt(lv) and fmt(lv + 1) and stays
-			// ignorant of percentages and seconds alike.
 			fmt : function(_lv) {
 				return "+" + string(round(TILE_PROFIT_STEP * 100 * _lv)) + "%";
 			},
-			help : "+10% shards a second, per level. it multiplies what "
-			     + "the whole board earns, so it is worth more the more "
-			     + "tiles are on it",
+			help : "+10% to what the board contributes, per level. the "
+			     + "whole table's output is a multiplier on dial profit "
+			     + "(" + string(TILE_DIAL_DIV) + " output = double), and "
+			     + "this raises the table's side of it",
 		},
 		{
 			id : "fab", name : "fabrication speed", base : 10000, e : 2.5,
@@ -80,7 +94,7 @@ function tile_upg_config() {
 			//     mod_rarity_rate *= 1 + (u_rarityrate / 100)
 			// off a base of 100, so the percentage multiplies the whole
 			// accumulated rate rather than adding to it. tile_rarity_rate
-			// is that chain, in that order; TILE_LUCK_STEP is the 20.
+			// is that chain, in that order; TILE_RARITY_STEP is the 20.
 			//
 			// My first pass read "+20%" as a share of the 800 cutoff and
 			// added a flat 160 a level. That is a fair reading of the
@@ -89,11 +103,16 @@ function tile_upg_config() {
 			// this rate at 0 and x1.2 of nothing is nothing. DE's 100 is
 			// what makes a percentage upgrade possible at all.
 			//
-			// The id is "luck", not "rarity", because tiles_sync has
-			// ALWAYS driven this from upg.luck - the plumbing predates
-			// the roster entry, and renaming a save key to agree with a
-			// caption is rewiring working code for nothing.
-			id : "luck", name : "tile rarity", base : 5000, e : 2.5,
+			// ⚖️ THE WORD IS RARITY, NOT LUCK (his correction). The key
+			// was "luck" because tiles_sync had always driven this from
+			// upg.luck, and I kept it rather than rewire working code
+			// for a caption. That was the wrong call for a reason I did
+			// not know: LUCK IS ITS OWN STAT IN DE - g.luck_mod, a
+			// separate number doing a separate job - so the borrowed
+			// name was not just imprecise, it was reserved. Renaming the
+			// save key is free here because he reset the tile levels
+			// this session and nothing else has ever held one.
+			id : "rarity", name : "tile rarity", base : 5000, e : 2.5,
 			fmt : function(_lv) {
 				return "+" + string(20 * _lv) + "%";
 			},

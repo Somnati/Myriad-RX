@@ -385,6 +385,23 @@ function main_macros() {
 // destination is the BOARD - the hopper is what catches overflow, not a
 // conveyor everything has to pass through.
 #macro TILE_BANK_BASE     0
+// ⚖️ THE TILE TABLE'S DIVISOR INTO DIAL PROFIT (DE's get_allmodgps).
+// 100 points of board output = +100% = every dial pays double. The SHIFT
+// is that number's digit count, because arb subtracts exponents to
+// divide - they are one quantity said twice, and out of step they would
+// silently rescale every dial in the game. See tile_dial_boost.
+// ⚖️ THE TABLE'S OWN PRESTIGE (his ask). GATE and RATE are in ORDERS OF
+// MAGNITUDE of lifetime shards EARNED, which is what tile_rebirth_calc
+// measures - crossing the gate pays one unit, then one more per RATE
+// decades beyond it. STEP is what a unit is worth as a multiplier on
+// board output: 1.0 = each unit doubles the first unit's worth of it.
+#macro TILE_RB_GATE       6   // 1e6 earned before the first reset
+#macro TILE_RB_RATE     1.5   // decades a unit, past the gate
+#macro TILE_RB_STEP     1.0   // board output x (1 + STEP x units)
+
+#macro TILE_DIAL_DIV    100
+#macro TILE_DIAL_SHIFT    2
+
 #macro TILE_PROFIT_STEP .10  // profit boost: +10% of the board's rate a
                              // level (his number), applied result-side
                              // in tiles_tick
@@ -401,10 +418,21 @@ function main_macros() {
 // at 0, which is why my first reading of "+20%" had to invent a flat
 // addition instead of a multiply.
 #macro TILE_RARITY_BASE 100
+// ⚖️ 400, NOT DE's 800 (his call). The cutoff is what one full tier
+// of spawn floor COSTS in rate, so halving it halves the distance to
+// every threshold - the rarity upgrade reaches its first floor shift
+// in single-digit levels instead of at level 35, which is the whole
+// reason it was inert.
+#macro TILE_RARITY_CUT  400
 
-// PERCENTAGE POINTS a level (his +20%), summed and applied as ONE
+// ⚖️ NOT "LUCK" (his correction, 2026-09-09): luck was its own
+// separate stat in DE - g.luck_mod, a different number doing a
+// different job - and borrowing the word here would collide with it
+// the day that lands. This is RARITY and nothing else.
+//
+// PERCENTAGE POINTS a level (his +50%), summed and applied as ONE
 // multiply - DE's u_rarityrate exactly. See tile_rarity_rate.
-#macro TILE_LUCK_STEP    20
+#macro TILE_RARITY_STEP  50
 #macro TILE_SLOT_STEP    2
 #macro TILE_BANK_STEP     1  // hopper tiles a level (his number).
                              // ONE, against a price climbing 2.5

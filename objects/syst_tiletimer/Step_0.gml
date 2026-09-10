@@ -27,5 +27,20 @@ if (pay_acc >= 1) {
 			? do_add(g.tiles.shards, _add) : _add;
 		g.tiles.earned = (g.tiles.earned >= arb(1))
 			? do_add(g.tiles.earned, _add) : _add;
+
+		// ⚖️ THE SECOND'S EARNINGS, FLOATED OVER THE BOARD (his ask). It
+		// is spawned HERE, at the one site that decides what a second
+		// was worth, rather than in the room's Draw off a re-read of
+		// gps - a float that recomputes its own number is a float that
+		// can disagree with the bank it is reporting.
+		//
+		// THE ROOM IS THE GATE. This object ticks in every room by
+		// design (that is the whole point of it being persistent), and a
+		// float is ceremony: syst_tiles publishes where the board is and
+		// only exists while you are looking at it, so its absence is
+		// exactly the right condition for staying silent.
+		if (instance_exists(syst_tiles))
+			float_text(syst_tiles.float_x, syst_tiles.float_y,
+				"+" + crunch_arb(_add), c_aqua, fnt_outline);
 	}
 }

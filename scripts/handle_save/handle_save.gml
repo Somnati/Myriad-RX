@@ -154,6 +154,10 @@ function handle_save(){
 		g.tiles.made    = handle("made",    g.tiles.made);
 		g.tiles.shards  = handle("shards",  g.tiles.shards);
 		g.tiles.earned  = handle("earned",  g.tiles.earned);
+		// the table's own prestige - units are the whole point of it,
+		// so they are the one thing here that must never be derivable
+		g.tiles.rb_units = handle("rb_units", g.tiles.rb_units);
+		g.tiles.rb_total = handle("rb_total", g.tiles.rb_total);
 		// the four upgrade levels. Everything they DO derives (tiles_sync),
 		// so the levels are the whole of what a save carries about them.
 		var _tuc = tile_upg_config();
@@ -176,6 +180,8 @@ function handle_save(){
 			g.tiles.made    = max(0, floor(g.tiles.made));
 			if (!(g.tiles.shards >= arb(1))) g.tiles.shards = 0;
 			if (!(g.tiles.earned >= arb(1))) g.tiles.earned = 0;
+			g.tiles.rb_units = max(0, floor(g.tiles.rb_units));
+			g.tiles.rb_total = max(0, floor(g.tiles.rb_total));
 			tiles_sync();   // the board takes the loaded levels' shape
 		}
 	}

@@ -141,6 +141,17 @@ sw_y    = -1;
 // drawer actually lives, so a pull from there reads as pulling IT.
 sw_edge = 64;
 
+// WHERE THE PER-SECOND EARNINGS FLOAT (his ask). Published rather than
+// computed by the caller: syst_tiletimer spawns the float - it is the
+// object that knows what a second was worth - and it has no business
+// knowing where this room puts its board. Seated below, with the rest
+// of the layout.
+float_x = 0;
+float_y = 0;
+
+// frames left on the table-rebirth confirm (see the Step)
+arm_rb = 0;
+
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 36;   // name+level, the BONUS line, then the buy button (his
               // ask: show what you have and what the next buy gives)
@@ -159,6 +170,16 @@ upg_n = 4;
 __dr_face = function() {
 	return lerp(room_width - dr_tab, room_width - dr_w, dr_open);
 };
+/// @func __rb_r()
+/// @desc The tile-rebirth button, under the last upgrade row. It sits
+///       with the upgrades because it IS one - the most expensive thing
+///       the drawer sells, paid in progress instead of shards.
+__rb_r = function() {
+	var _n = array_length(tile_upg_config());
+	return { x : __dr_face() + 4, y : upg_y + _n * (upg_h + 4),
+	         w : dr_w - 8 - 4, h : 26 };
+};
+
 __upg_r = function(_k) {
 	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + 4),
 	         w : dr_w - 8 - 4, h : upg_h };
@@ -314,6 +335,41 @@ __draw_drawer = function() {
 			draw_set_halign(fa_left);
 		}
 
+		// ---- THE TABLE'S OWN REBIRTH ----
+		// Under the upgrades, because it is the most expensive thing
+		// this drawer sells - it just charges progress instead of
+		// shards. The readout is EARNED, not held: that is what it
+		// prices off, and quoting the wrong number here would have the
+		// player watching their shard pile for a threshold it has
+		// nothing to do with.
+		var _rr = __rb_r();
+		var _rc = tile_rebirth_calc();
+		var _rbcol = _rc.can ? c_hred : rgb(120, 130, 150);
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0,
+			c_black, .55 * dr_open);
+		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _rbcol,
+			(_rc.can ? .8 : .3) * dr_open);
+		draw_set_halign(fa_left);
+		draw_set_color(_rbcol);
+		draw_set_alpha((_rc.can ? .95 : .6) * dr_open);
+		draw_text(_rr.x + 6, _rr.y + 3, "table rebirth");
+		draw_set_halign(fa_right);
+		var _ru = g.tiles[$ "rb_units"] ?? 0;
+		draw_set_color(rgb(120, 130, 150));
+		draw_set_alpha(.6 * dr_open);
+		draw_text(_rr.x + _rr.w - 6, _rr.y + 3,
+			(_ru > 0) ? (string(_ru) + " units  x" + string_format(tile_rebirth_boost(), 1, 2))
+			          : "no units");
+		draw_set_halign(fa_left);
+		draw_set_color(_rbcol);
+		draw_set_alpha((_rc.can ? .9 : .5) * dr_open);
+		var _rbtxt = "earn 1e" + string(TILE_RB_GATE) + " shards - "
+			+ string(_rc.lack_oom) + " decades to go";
+		if (_rc.can) _rbtxt = "reset for +" + string(_rc.units) + " units";
+		if (_rc.can && arm_rb > 0) _rbtxt = "press again to confirm";
+		draw_text(_rr.x + 6, _rr.y + 14, _rbtxt);
+		draw_set_halign(fa_left);
+
 		// (the per-second rate lives in the title strip now - see above)
 		if (!TILES_LIVE) {
 			draw_set_color(c_horange);
@@ -420,10 +476,21 @@ draw_px.fn    = __draw_drawer;
 // the drawer's rows start under the strip, and the board re-seats
 // itself whenever the slot count changes (a board-size upgrade)
 upg_y = bar_y + bar_h * 2 + 8;
+
+// the float's seat: centred over the board, a little ABOVE its top row,
+// so a rising number leaves the tiles rather than crossing them. The
+// board's own geometry decides it, so a board that moves takes the
+// float with it.
+float_x = bx + (g.tiles.cols * pw) * .5;
+float_y = by - 6;
 __reseat = function() {
 	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
 	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
 	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
+	// the float rides the board - a board-size upgrade must not leave
+	// the per-second readout hanging where the old one was
+	float_x = bx + (g.tiles.cols * pw) * .5;
+	float_y = by - 6;
 };
 
 // ⚖️ WHERE A TILE'S VALUE SITS, and it is worth being deliberate about

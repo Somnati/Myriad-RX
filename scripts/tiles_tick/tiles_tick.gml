@@ -131,13 +131,19 @@ function tiles_tick(_tmult = 1) {
 		var _sum = 0;
 		for (var _i = 0; _i < _t.slots; _i++)
 			if (_t.tier[_i] != 0) _sum = do_add(_sum, tile_gps(_t.tier[_i]));
-		// PROFIT BOOST: +10% a level, applied to the BOARD's total
-		// rather than to each tile - same number either way, one
-		// do_scale instead of one per tile, and it says what it is.
-		// Result-side, so the upgrade can never compound into itself.
-		var _pl = _t.upg[$ "profit"] ?? 0;
-		if (_pl > 0 && _sum >= arb(1))
-			_sum = do_scale(_sum, 1 + TILE_PROFIT_STEP * _pl);
+		// ⚖️ THE PROFIT UPGRADE IS NOT APPLIED HERE ANY MORE. It scales
+		// the board's CONTRIBUTION TO DIAL PROFIT and lives entirely in
+		// tile_dial_boost now (his ask: mirror DE's module boost). It
+		// was here as well, so leaving it would have been a straight
+		// double count - the same level scaling gps and then scaling the
+		// boost derived FROM gps.
+		//
+		// THE TILE REBIRTH DOES apply here, because it is a multiplier
+		// on board OUTPUT rather than on one lane out of it - so it
+		// reaches the shard income and the dial contribution alike,
+		// which is what "increases the output of the tiles" means.
+		var _rb = tile_rebirth_boost();
+		if (_rb > 1 && _sum >= arb(1)) _sum = do_scale(_sum, _rb);
 		_t.gps = _sum;
 		_t.rev++;
 		save_mark_dirty();

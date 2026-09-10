@@ -33,6 +33,8 @@ while (array_length(_t.ev) > 0) {
 	if (_e.k == "fail") play_sound_ext(snd_merge, .55, .65, .35, 1);
 }
 
+arm_rb = max(0, arm_rb - delta);   // the rebirth confirm's window
+
 // ---- input (region pattern: fully arbitrated) ----
 // ---- THE DRAWER: a swipe RIGHT opens it, a swipe LEFT closes it ----
 // The gesture is judged on RELEASE by total travel, which is what keeps
@@ -109,6 +111,34 @@ if (mouse_check_button_pressed(mb_left)) {
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
 		exit;
 	}
+	// ---- the table's own rebirth ----
+	// ⚖️ TWO PRESSES, and it is the only control in this drawer that
+	// asks for one. Everything else here is a purchase you can make
+	// again next minute; this one throws the board away. arm_rb holds
+	// the confirm for a couple of seconds and the button says so, which
+	// is DE's own two-tap scrap pattern rather than a modal nobody
+	// reads.
+	var _rr3 = __rb_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _rr3.x, _rr3.y,
+		_rr3.x + _rr3.w, _rr3.y + _rr3.h)) {
+		var _rc3 = tile_rebirth_calc();
+		if (!_rc3.can) {
+			play_sound_ext(snd_matclick2, .7, .8, .35, 1);
+		} else if (arm_rb > 0) {
+			arm_rb = 0;
+			var _got = tile_rebirth_do();
+			if (_got > 0) {
+				play_sound_ext(snd_rebirthcollect, .9, 1.1, .7, 2);
+				float_text(float_x, float_y, "+" + string(_got) + " units",
+					c_hred, fnt_outline);
+			}
+		} else {
+			arm_rb = 120;   // two seconds to mean it
+			play_sound_ext(snd_tierup, .8, .9, .5, 1);
+		}
+		exit;
+	}
+
 	// anywhere else on an open drawer swallows the press, so the board
 	// underneath never receives it (the drawer is the RIGHT side now)
 	if (mouse_x > __dr_face()) exit;

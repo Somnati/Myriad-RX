@@ -34,6 +34,13 @@ function prod_dials(_secs = -1) {
 		if (!_d.auto) _d.cycle = 0;
 
 		var _pay = (_n > 1) ? do_scale(_d.gpc, _n) : _d.gpc;
+		// ⚖️ THE TILE TABLE MULTIPLIES THIS (DE's update_auto, its last
+		// line before the payout). RESULT-SIDE, the adapter contract:
+		// the boost multiplies what was already derived and never
+		// touches _d.gpc, so it cannot compound into the dial's own
+		// curve or into the cost of levelling it. See tile_dial_boost.
+		var _tb = tile_dial_boost();
+		if (_tb > arb(1)) _pay = do_multi(_pay, _tb);
 		give_profit(_pay);
 		_d.paid = true;
 		_d.paid_amt = _pay;   // the view's motes carry this home

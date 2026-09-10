@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_dial_boost",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_dial_boost",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
