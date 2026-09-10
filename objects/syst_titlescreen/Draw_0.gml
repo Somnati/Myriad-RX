@@ -13,71 +13,10 @@
 
 draw_set_font(fnt);
 
-// ---- backdrop ----
-// black into the house teal, bottom-lit. A 270px-tall dark gradient
-// bands hard in the 8-bit pipeline - sh_fog_dither's temporal IGN
-// shimmers the steps flat (the house fix; its luminance gate leaves the
-// black top untouched).
-shader_set(sh_fog_dither);
-shader_set_uniform_f(dith_u_time, (current_time mod 100000) / 1000);
-draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, room_width,
-	room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), 1);
-shader_reset();
-
-// ---- THE DRIFT ----
-// ⚖️ THE LATTICE IS GONE (his verdict on the first attempt: "the
-// background sucks"). Drawing the visualiser's grid literally gave the
-// screen graph paper - a regular 27px mesh reads as a debug overlay
-// however dim it is, because regularity is the thing the eye locks onto
-// first and there was nothing else for it to look at.
-//
-// The idea was right and the execution was too literal. What is left is
-// the game's SHAPE without its ruler: a few large soft blocks, well out
-// of focus, drifting up-right at different speeds and breathing through
-// the rarity ladder. Each rides a glow so it reads as light rather than
-// as a rectangle, and they overlap - depth comes from occlusion and
-// speed, which is what the parallax starfield was reaching for and what
-// a flat grid can never have.
-var _n = array_length(blk_h);
-for (var _i = 0; _i < _n; _i++) {
-	var _b = blk_h[_i];
-
-	// travel up-right forever, wrapping on a margin wider than the
-	// block so nothing ever pops in at an edge
-	var _sp = _b.spd;
-	var _m  = _b.size + 60;
-	var _bx = ((_b.x0 * (room_width + _m) + tt * _sp * 1.7) mod (room_width + _m)) - _m * .5;
-	var _by = ((_b.y0 * (room_height + _m) - tt * _sp) mod (room_height + _m));
-	if (_by < 0) _by += room_height + _m;
-	_by -= _m * .5;
-
-	// its own slow breath, so the field is always mid-thought rather
-	// than pulsing in time with itself
-	var _a = .5 + .5 * dsin(tt * _b.br + _b.ph);
-	var _c = vis_tier_color(_b.tier);
-
-	// light first, then the block: the glow is most of what you see and
-	// the square is only its core. The far ones are further out of
-	// focus - a wider, softer glow around a fainter core - and the near
-	// ones sharpen; depth as blur, the way a lens does it
-	var _gs = (_b.size * lerp(3.2, 2.2, _b.d)) / sprite_get_width(spr_vis_glow_soft);
-	draw_sprite_ext(spr_vis_glow_soft, 0, _bx + _b.size * .5, _by + _b.size * .5,
-		_gs, _gs, 0, _c, (.05 + .05 * _a) * _b.dim);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by, _b.size, _b.size, 0,
-		_c, (.05 + .06 * _a) * _b.dim);
-}
-
-// ---- the motes ----
-// The profit bits, at rest. A handful of slow sparks rising through the
-// blocks - the one moving thing small enough to read as detail rather
-// than as another shape competing with the menu.
-for (var _i = 0; _i < array_length(mote); _i++) {
-	var _mt = mote[_i];
-	var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
-	var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));
-	draw_sprite_ext(spr_pixel_1x1, 0, _mx, _my, 1, 1, 0,
-		c_gold, .10 + .18 * abs(dsin(tt * .9 + _mt.p2)));
-}
+// ---- the backdrop and the drift are NOT here any more. They draw
+// through field_px - a draw proxy at depth 100, under the title_glow
+// effect layer at 50 - so GameMaker's own glow pass can bleed the
+// blocks without touching the type. See __draw_field in the Create.
 
 // a soft wash behind the name, so the type has somewhere to sit
 var _gw = sprite_get_width(spr_vis_glow_soft);

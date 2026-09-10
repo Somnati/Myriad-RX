@@ -142,3 +142,108 @@ repeat (22) array_push(mote, {
 // banding fix (2026-07-09, his report): the backdrop gradient rides
 // the house temporal IGN dither - the same shader the starmap fog uses
 dith_u_time = shader_get_uniform(sh_fog_dither, "u_time");
+
+// ---- THE GLOW PASS (his question, 2026-09-10: "why not use the
+// internal bloom shader instead of sprites") ----
+// The field draws through a proxy at depth 100 and this layer sits at
+// 50, so GameMaker's _effect_glow - the visualiser's own "glow" layer,
+// same effect, same parameter names - blooms the blocks and the
+// gradient and nothing above it: the name, the menu and the save card
+// draw at this instance's depth (0) and stay crisp. Built at runtime
+// the way ui_blur_tick builds menu_blur, so the room file stays as it
+// is. Radius and intensity are the title's own (its blocks are
+// atmosphere, far dimmer than the money room's), but the pass honours
+// the visualiser-glow setting's OFF: a player who switched that pass
+// off for their machine does not get one here.
+if (!layer_exists("title_glow")) {
+	var _gl = layer_create(50, "title_glow");
+	var _gf = fx_create("_effect_glow");
+	fx_set_parameter(_gf, "g_GlowRadius", 30);
+	fx_set_parameter(_gf, "g_GlowQuality", 10);
+	fx_set_parameter(_gf, "g_GlowIntensity", .6);
+	fx_set_parameter(_gf, "g_GlowGamma", 1.6);
+	fx_set_parameter(_gf, "g_GlowAlpha", 1);
+	layer_set_fx(_gl, _gf);
+}
+layer_set_visible("title_glow", !variable_global_exists("vis_glow") || g.vis_glow > 0);
+
+// THE FIELD'S DRAW SLOT: backdrop, drift, motes - everything the glow
+// should touch - at depth 100, under the layer. obj_draw_proxy exists
+// for exactly this: one instance, two depths.
+__draw_field = function() {
+	// ---- backdrop ----
+	// black into the house teal, bottom-lit. A 270px-tall dark gradient
+	// bands hard in the 8-bit pipeline - sh_fog_dither's temporal IGN
+	// shimmers the steps flat (the house fix; its luminance gate leaves the
+	// black top untouched).
+	shader_set(sh_fog_dither);
+	shader_set_uniform_f(dith_u_time, (current_time mod 100000) / 1000);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, room_width,
+		room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), 1);
+	shader_reset();
+
+	// ---- THE DRIFT ----
+	// ⚖️ THE LATTICE IS GONE (his verdict on the first attempt: "the
+	// background sucks"). Drawing the visualiser's grid literally gave the
+	// screen graph paper - a regular 27px mesh reads as a debug overlay
+	// however dim it is, because regularity is the thing the eye locks onto
+	// first and there was nothing else for it to look at.
+	//
+	// The idea was right and the execution was too literal. What is left is
+	// the game's SHAPE without its ruler: a few large soft blocks, well out
+	// of focus, drifting up-right at different speeds and breathing through
+	// the rarity ladder. Each rides a glow so it reads as light rather than
+	// as a rectangle, and they overlap - depth comes from occlusion and
+	// speed, which is what the parallax starfield was reaching for and what
+	// a flat grid can never have.
+	var _n = array_length(blk_h);
+	for (var _i = 0; _i < _n; _i++) {
+		var _b = blk_h[_i];
+
+		// travel up-right forever, wrapping on a margin wider than the
+		// block so nothing ever pops in at an edge
+		var _sp = _b.spd;
+		var _m  = _b.size + 60;
+		var _bx = ((_b.x0 * (room_width + _m) + tt * _sp * 1.7) mod (room_width + _m)) - _m * .5;
+		var _by = ((_b.y0 * (room_height + _m) - tt * _sp) mod (room_height + _m));
+		if (_by < 0) _by += room_height + _m;
+		_by -= _m * .5;
+
+		// its own slow breath, so the field is always mid-thought rather
+		// than pulsing in time with itself
+		var _a = .5 + .5 * dsin(tt * _b.br + _b.ph);
+		var _c = vis_tier_color(_b.tier);
+
+		// ⚖️ THE CORE ONLY - THE LIGHT IS THE GLOW LAYER'S (his question,
+		// 2026-09-10: "why not use the internal bloom shader instead of
+		// sprites"). Each block used to carry a spr_vis_glow_soft stamp
+		// 2.6x its size, drawn under it; now the block is a plain square
+		// and title_glow (_effect_glow, the visualiser's own pass) bleeds
+		// it into the dark - so the title's field is lit by the same pass
+		// the money room's field is, which is the whole claim this
+		// background makes. It also means overlapping blocks ADD light
+		// where they cross, which two stamps never did. The core is
+		// brighter than the old one because the pass needs something to
+		// bloom, and the far ones stay dimmer (dim) - depth by brightness
+		// now that the per-block blur is gone.
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by, _b.size, _b.size, 0,
+			_c, (.10 + .12 * _a) * _b.dim);
+	}
+
+	// ---- the motes ----
+	// The profit bits, at rest. A handful of slow sparks rising through the
+	// blocks - the one moving thing small enough to read as detail rather
+	// than as another shape competing with the menu.
+	for (var _i = 0; _i < array_length(mote); _i++) {
+		var _mt = mote[_i];
+		var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
+		var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx, _my, 1, 1, 0,
+			c_gold, .10 + .18 * abs(dsin(tt * .9 + _mt.p2)));
+	}
+
+};
+field_px = create_obj(0, 0, obj_draw_proxy);
+field_px.owner = id;
+field_px.depth = 100;
+field_px.fn    = __draw_field;
