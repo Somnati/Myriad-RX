@@ -87,7 +87,7 @@
 	// upgrade on top and writes the total into g.tile_rarity, so this is
 	// the seat any future modifier feeds rather than the live value.
 	g.tile_luck_base = 0;
-	g.tile_rarity   = 0;
+	g.tile_rarity   = TILE_RARITY_BASE;  // DE's base - see tile_rarity_rate
 	g.rarity_rate   = 0;
 	// two ability-deck flags the tech demo's tile code reads. Nothing
 	// grants them yet; they are here so the ported code finds them

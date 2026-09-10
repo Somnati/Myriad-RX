@@ -408,6 +408,7 @@
     {"id":{"name":"tap_rate","path":"scripts/tap_rate/tap_rate.yy",},},
     {"id":{"name":"tile_color","path":"scripts/tile_color/tile_color.yy",},},
     {"id":{"name":"tile_gps","path":"scripts/tile_gps/tile_gps.yy",},},
+    {"id":{"name":"tile_rarity_rate","path":"scripts/tile_rarity_rate/tile_rarity_rate.yy",},},
     {"id":{"name":"tile_roll_tier","path":"scripts/tile_roll_tier/tile_roll_tier.yy",},},
     {"id":{"name":"tile_tier_odds","path":"scripts/tile_tier_odds/tile_tier_odds.yy",},},
     {"id":{"name":"tile_upg_config","path":"scripts/tile_upg_config/tile_upg_config.yy",},},

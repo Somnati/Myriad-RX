@@ -394,13 +394,17 @@ function main_macros() {
                              // at zero would fire every frame, which is
                              // not fast, it is broken.
 #macro TILE_SPEED_FACTOR .88    // fab period x this a level
-// ⚖️ 20% OF THE 800 RARITY CUTOFF (his "+20% per upgrade"). Rarity is a
-// raw rate, so a percentage needs something to be OF: calculate_rarity
-// lifts the distribution's window floor once per 800, which makes 800
-// the only honest denominator in the system - and five levels exactly
-// one tier of floor. The fmt's percentage is the LABEL; this is the
-// meaning. Change it if that cutoff in tile_roll_tier ever moves.
-#macro TILE_LUCK_STEP   160
+// ⚖️ DE'S BASE RATE, and it is not zero (his correction: check DE).
+// indiv.gml opens the rarity chain with mod_rarity_rate = 100 before a
+// single modifier touches it, and that base is what makes a PERCENTAGE
+// upgrade mean anything - x1.2 of nothing is nothing. RX started this
+// at 0, which is why my first reading of "+20%" had to invent a flat
+// addition instead of a multiply.
+#macro TILE_RARITY_BASE 100
+
+// PERCENTAGE POINTS a level (his +20%), summed and applied as ONE
+// multiply - DE's u_rarityrate exactly. See tile_rarity_rate.
+#macro TILE_LUCK_STEP    20
 #macro TILE_SLOT_STEP    2
 #macro TILE_BANK_STEP     1  // hopper tiles a level (his number).
                              // ONE, against a price climbing 2.5

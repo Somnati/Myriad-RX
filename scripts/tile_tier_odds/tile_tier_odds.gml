@@ -13,10 +13,7 @@
 /// shift is already inside rarity_odds' answer, so the array lines up
 /// with the tiers directly.
 function tile_tier_odds(_n = 14) {
-	var _rate = variable_global_exists("tile_rarity") ? g.tile_rarity : 0;
-	// Refined Alloys (ability deck): +400 while on - the same guard
-	// tile_roll_tier uses, so the picture never disagrees with the roll
-	if (variable_global_exists("ad_tilerarity") && g.ad_tilerarity == 1)
-		_rate += 400;
-	return rarity_odds(_rate, .3, .03, 800, _n);
+	// the SAME rate the roll uses, from the same function - the bar
+	// disagreeing with the generator is a bug that looks like bad luck
+	return rarity_odds(tile_rarity_rate(), .3, .03, 800, _n);
 }

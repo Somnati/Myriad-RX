@@ -259,8 +259,9 @@ function stats_v2_content() {
 					p    : _to[_i],
 				});
 			stats_v2_rarity("spread", _te);
-			stats_v2_line("fabricator luck", "+" + string(g.tile_rarity), -1,
-				(g.tile_rarity > 0) ? c_horange : c_gray,
+			stats_v2_line("fabricator luck",
+				"+" + string(round(tile_rarity_rate())), -1,
+				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
 				"every fabricated tile rolls its tier through this. it "
 				+ "shifts the whole spread up, and past each 800 the "
 				+ "bottom tier stops being offered at all.");

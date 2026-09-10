@@ -74,28 +74,34 @@ function tile_upg_config() {
 			     + "at " + string(TILE_FAB_MIN / 60) + "s",
 		},
 		{
-			// ⚖️ RARITY IS A RATE, AND "20% OF WHAT" IS THE REAL
-			// QUESTION. g.tile_rarity is a raw number fed to
-			// calculate_rarity with an 800 cutoff, and each 800 raises
-			// the distribution's whole window FLOOR - which is the only
-			// quantity in the system a percentage can honestly be OF. So
-			// a level is 20% of 800 = 160 rarity, and five levels lift
-			// the floor by exactly one full tier. The fmt prints his
-			// percentage; TILE_LUCK_STEP carries the mapping, and it is
-			// the one number to change if that cutoff ever moves.
+			// ⚖️ A MULTIPLIER ON THE RATE, which is DE's own answer (his
+			// correction: check DE - it has an upgrade by this exact
+			// name). indiv.gml ends its rarity chain with
+			//     mod_rarity_rate *= 1 + (u_rarityrate / 100)
+			// off a base of 100, so the percentage multiplies the whole
+			// accumulated rate rather than adding to it. tile_rarity_rate
+			// is that chain, in that order; TILE_LUCK_STEP is the 20.
+			//
+			// My first pass read "+20%" as a share of the 800 cutoff and
+			// added a flat 160 a level. That is a fair reading of the
+			// words and the wrong reading of the game - and it could
+			// never have worked as a multiply either, because RX based
+			// this rate at 0 and x1.2 of nothing is nothing. DE's 100 is
+			// what makes a percentage upgrade possible at all.
 			//
 			// The id is "luck", not "rarity", because tiles_sync has
-			// ALWAYS written g.tile_rarity from upg.luck - the plumbing
-			// predates this roster entry, and renaming a save key to
-			// agree with a caption is rewiring working code for nothing.
+			// ALWAYS driven this from upg.luck - the plumbing predates
+			// the roster entry, and renaming a save key to agree with a
+			// caption is rewiring working code for nothing.
 			id : "luck", name : "tile rarity", base : 5000, e : 2.5,
 			fmt : function(_lv) {
 				return "+" + string(20 * _lv) + "%";
 			},
-			help : "+20% fabricator rarity, per level. it shifts the whole "
-			     + "spawn distribution up, and every fifth level raises "
-			     + "the floor a full tier - so fresh tiles start higher "
-			     + "rather than merely varying more",
+			help : "+20% fabricator rarity, per level - a multiplier on "
+			     + "the whole rate, so it compounds with anything else "
+			     + "raising it. every 800 of rate lifts the spawn floor "
+			     + "a full tier, so fresh tiles start higher rather than "
+			     + "merely varying more",
 		},
 		{
 			// THE RESERVE, and the cheapest row on purpose: it is a

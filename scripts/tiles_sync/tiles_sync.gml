@@ -40,10 +40,12 @@ function tiles_sync() {
 		TILE_FAB_T - TILE_FAB_STEP * (_t.upg[$ "fab"] ?? 0));
 	_t.stored_max = TILE_BANK_BASE + TILE_BANK_STEP * (_t.upg[$ "bank"] ?? 0);
 
-	// the fabricator's luck: a base knob (nothing sets it yet) plus what
-	// the upgrade bought. tile_roll_tier and tile_tier_odds both read
-	// g.tile_rarity, so writing it here keeps the roll and the bar in
-	// step with one assignment.
-	g.tile_rarity = (variable_global_exists("tile_luck_base") ? g.tile_luck_base : 0)
-		+ TILE_LUCK_STEP * (_t.upg[$ "luck"] ?? 0);
+	// ⚖️ THE FLAT PART ONLY. The upgrade is a MULTIPLIER on this (DE's
+	// chain - see tile_rarity_rate), and a multiplier cannot be folded
+	// into the number it multiplies without losing the order: the
+	// ability deck's flat bonus has to land BEFORE it, and that flag is
+	// not known here. So this publishes the base and the one authority
+	// applies everything conditional.
+	g.tile_rarity = TILE_RARITY_BASE
+		+ (variable_global_exists("tile_luck_base") ? g.tile_luck_base : 0);
 }
