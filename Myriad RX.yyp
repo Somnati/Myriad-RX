@@ -429,6 +429,7 @@
     {"id":{"name":"tiles_sort","path":"scripts/tiles_sort/tiles_sort.yy",},},
     {"id":{"name":"tiles_sync","path":"scripts/tiles_sync/tiles_sync.yy",},},
     {"id":{"name":"tiles_tick","path":"scripts/tiles_tick/tiles_tick.yy",},},
+    {"id":{"name":"tiles_wipe","path":"scripts/tiles_wipe/tiles_wipe.yy",},},
     {"id":{"name":"timebank_add","path":"scripts/timebank_add/timebank_add.yy",},},
     {"id":{"name":"timebank_burn","path":"scripts/timebank_burn/timebank_burn.yy",},},
     {"id":{"name":"timebank_cap","path":"scripts/timebank_cap/timebank_cap.yy",},},

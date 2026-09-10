@@ -224,7 +224,7 @@ if (_ba > .01) {
 	draw_px_rect(178, 246, 60, 14, c_hred, .7 * _ba);
 	draw_set_color(c_hred);
 	draw_set_alpha(.85 * _ba);
-	draw_text(208, 248, "reset");
+	draw_text(208, 248, (arm_rs > 0) ? "sure?" : "reset");
 }
 
 // drop-aim anchor: it moves the HELD TILE as well as the drop point

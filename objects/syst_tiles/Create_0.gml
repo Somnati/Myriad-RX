@@ -155,6 +155,9 @@ bits_y = 0;
 
 // frames left on the table-rebirth confirm (see the Step)
 arm_rb = 0;
+arm_rs = 0;   // the board's RESET button's own confirm window - it
+              // wipes the shards and the upgrades too now, and a
+              // misclick beside [sort] must not cost thirteen levels
 
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 36;   // name+level, the BONUS line, then the buy button (his

@@ -34,6 +34,7 @@ while (array_length(_t.ev) > 0) {
 }
 
 arm_rb = max(0, arm_rb - delta);   // the rebirth confirm's window
+arm_rs = max(0, arm_rs - delta);   // the board reset's
 
 // ---- input (region pattern: fully arbitrated) ----
 // ---- THE DRAWER: a swipe RIGHT opens it, a swipe LEFT closes it ----
@@ -182,30 +183,35 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 			tiles_sort();
 			play_sound_ext(snd_apply, .9, 1.1, .5, 1);
 		}
-		// the red one: wipe the table back to a fresh board (timers,
-		// bank, stats - everything but the automerge preference)
 		// aim anchor toggle (round 2): mouse point vs held-tile center
 		if (point_in_rectangle(mouse_x, mouse_y, 244, 246, 334, 260)) {
 			g.tiles.aim_center = !g.tiles.aim_center;
 			save_mark_dirty();
 			play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 		}
+		// THE RED ONE: the whole table back to nothing - board, hopper,
+		// SHARDS, UPGRADES, the lot (his report, 2026-09-10: it used to
+		// clear the tiles and leave 136m shards and thirteen levels
+		// standing). tiles_wipe is the one list, shared with the
+		// rebirth; this button just pays no flux for it. Two presses
+		// two seconds apart, the rebirth's rule, because it now throws
+		// away what the rebirth would have paid for.
 		if (point_in_rectangle(mouse_x, mouse_y, 178, 246, 238, 260)) {
-			for (var _i = 0; _i < _t.slots; _i++) { _t.tier[_i] = 0; glow[_i] = 0; }
-			_t.tier[0] = 1;
-			_t.tier[1] = 1;
-			_t.fab     = 0;
-			_t.am_tic  = 0;
-			_t.stored  = 0;
-			_t.merges  = 0;
-			_t.highest = 1;
-			_t.report  = undefined;
-			_t.ev      = [];
-			_t.dirty   = true;
-			grab_i  = -1;
-			_t.grab = -1;
-			save_mark_dirty(); // the wipe is saved state too
-			play_sound_ext(snd_matclick2, .5, .6, .6, 1);
+			if (arm_rs > 0) {
+				arm_rs = 0;
+				tiles_wipe();
+				_t.tier[0] = 1;      // DE's fresh board: two starters
+				_t.tier[1] = 1;
+				_t.dirty = true;
+				for (var _i = 0; _i < _t.slots; _i++) glow[_i] = 0;
+				grab_i = -1;
+				qtic = 0;            // the levels are gone - requote at once
+				save_mark_dirty();   // the wipe is saved state too
+				play_sound_ext(snd_matclick2, .5, .6, .6, 1);
+			} else {
+				arm_rs = 120;        // two seconds to mean it
+				play_sound_ext(snd_tierup, .8, .9, .5, 1);
+			}
 		}
 		// grab a tile
 		var _s = __slot_at(mouse_x, mouse_y);

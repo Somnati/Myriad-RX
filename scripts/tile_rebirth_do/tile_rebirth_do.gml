@@ -19,6 +19,10 @@
 /// second run climbs faster - which is what a prestige currency is.
 /// It also means the profit upgrade's gate closes: the table is
 /// unwired from the dials again until level 1 is rebought.
+///
+/// THE WIPE ITSELF IS tiles_wipe - shared with the board's RESET button,
+/// which wipes exactly the same things and pays nothing (his report:
+/// the two buttons used to disagree about what a reset was).
 function tile_rebirth_do() {
 	tiles_init();
 	var _c = tile_rebirth_calc();
@@ -29,27 +33,9 @@ function tile_rebirth_do() {
 	_t.flux     = (_t[$ "flux"] ?? 0) + _c.flux;
 	_t.rb_total = (_t[$ "rb_total"] ?? 0) + 1;
 
-	// the board back to nothing
-	for (var _i = 0; _i < _t.slots; _i++) _t.tier[_i] = 0;
-	_t.stored  = 0;
-	_t.fab     = 0;
-	_t.am_tic  = 0;
-	_t.shards  = 0;
-	_t.earned  = 0;      // the measure resets with the thing it measured
-	_t.highest = 1;
-	_t.gps     = 0;
-	_t.ev      = [];
-	_t.dirty   = true;
-	_t.rev++;
-
-	// EVERY upgrade level, by key rather than by roster - a level that
-	// survived here would be a level the save writes back out, and the
-	// upg struct can hold keys the roster no longer lists (slots, and
-	// whatever a later roster adds)
-	var _ks = variable_struct_get_names(_t.upg);
-	for (var _k = 0; _k < array_length(_ks); _k++) _t.upg[$ _ks[_k]] = 0;
-
-	tiles_sync();        // the board takes its new shape at once
+	// the board back to nothing: board, hopper, shards, earned,
+	// highest, merges, every upgrade level (tiles_wipe is the one list)
+	tiles_wipe();
 	// a rare, heavy moment - the save menu's own rule for these
 	syst_handle_save.action = sv_save;
 	return _c.flux;
