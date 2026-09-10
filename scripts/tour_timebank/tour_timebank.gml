@@ -37,7 +37,10 @@
 //   timebank_spend   THE ONE spending site, once a frame from
 //                    syst_production, BEFORE anything ticks.
 //   timebank_upg     the two purchases, priced in PROFIT.
-//   syst_rm_timebank rm_timebank, [time bank] on the menu. A view.
+//   syst_timebank_panel  the screen, as an OVERLAY over any room
+//                    (2026-09-10; rm_timebank retired) - [time bank] on
+//                    the menu and the cockpit chip open it, the burger's
+//                    X closes it. timebank_open / timebank_close.
 //   syst_timebank    the cockpit chip - the burn indicator.
 
 // ======================= THE LAWS THAT MATTER =======================

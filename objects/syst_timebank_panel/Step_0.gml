@@ -1,5 +1,10 @@
-/// the room's pulse: refresh the quotes on the slow tick, then the
-/// taps. Region law - every hit here mirrors Draw's geometry exactly.
+/// the panel's pulse: the open ease, the quotes on the slow tick, then
+/// the taps. Region law - every hit here mirrors Draw's geometry exactly.
+
+// ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+if (closing && oa <= 0) { instance_destroy(); exit; }
 
 burn_hp = max(0, burn_hp - delta);
 
@@ -14,16 +19,13 @@ if (qtic <= 0) {
 		txt : _qr.maxed ? "max" : crunch_time_long(_qr.cost * 60) };
 }
 
-if (!input_free()) exit;
-if (g.click_owner != noone) exit;
+// ---- input: only once the panel has fully arrived, and only while
+// nothing sits over it (a dropdown, the menu) ----
+if (oa < .999 || closing) exit;
+if (!input_free(ui_layer_popup)) exit;
+if (keyboard_check_pressed(vk_escape)) { timebank_close(); exit; }
+if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
-
-var _bk = __back_rect();
-if (point_in_rectangle(mouse_x, mouse_y, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
-	play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-	back_room();
-	exit;
-}
 
 // ---- the speed pills ----
 // Engaging a speed with an empty bank would be dropped by

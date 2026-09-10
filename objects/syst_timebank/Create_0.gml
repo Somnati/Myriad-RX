@@ -2,7 +2,7 @@
 /// this mechanic you must not be able to forget: while a multiplier is
 /// running it is quietly burning a resource you paid for. So a small
 /// gold pulsing chip sits under the header - "x4 - 1h 23m", the speed
-/// and what is left - and tapping it opens rm_timebank.
+/// and what is left - and tapping it opens the time bank panel.
 ///
 /// It draws NOTHING at x1. The cockpit stays clean, and the chip
 /// appearing is itself the notification. When the bank empties,
