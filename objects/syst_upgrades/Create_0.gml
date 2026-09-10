@@ -27,6 +27,57 @@ bby    = obj_ui_header.sprite_height;
 list_y = bby + 16;
 row_h  = 16;
 row_sp = 19;
+// ⚖️ ROUNDED CORNERS (his ask: like the ability deck slots). The deck
+// caps its bars with spr_dial_endcaps, a 3x11 sprite built for one
+// exact capsule height - these rows are 16 tall, and scaling that
+// sprite 11->16 turns a circular cap into a stretched ellipse on a
+// fractional pixel grid. So the corners are CUT instead, from a
+// hand-authored inset table, which is the same way the puck's disc and
+// the settings "?" button are built: house rule, hard pixels only.
+//
+// One entry per row in from the edge, mirrored top and bottom. [2, 1]
+// is a 3px corner - enough to read as rounded at this size without the
+// row starting to look like a lozenge.
+ROUND = [2, 1];
+
+/// @func __rr(x, y, w, h, col, alpha)
+/// @desc A rounded-corner filled rect. Three bands rather than one draw
+///       per row: the corner rows are two 1px strips each and
+///       everything between them is a single tall strip, so a rounded
+///       row costs five draws instead of sixteen.
+__rr = function(_x, _y, _w, _h, _col, _a) {
+	var _n = array_length(ROUND);
+	for (var _k = 0; _k < _n; _k++) {
+		var _in = ROUND[_k];
+		if (_w - _in * 2 <= 0) continue;
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _in, _y + _k,
+			_w - _in * 2, 1, 0, _col, _a);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _in, _y + _h - 1 - _k,
+			_w - _in * 2, 1, 0, _col, _a);
+	}
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y + _n, _w, _h - _n * 2, 0, _col, _a);
+};
+
+/// @func __rr_grad(x, y, w, h, c_left, c_right, alpha)
+/// @desc The same shape as a horizontal gradient. The corner rows carry
+///       the ramp too - a gradient that squares off at the corners is
+///       worse than no rounding at all, because the eye reads the two
+///       shapes as misaligned rather than as one plate.
+__rr_grad = function(_x, _y, _w, _h, _c1, _c2, _a) {
+	var _n = array_length(ROUND);
+	for (var _k = 0; _k < _n; _k++) {
+		var _in = ROUND[_k];
+		if (_w - _in * 2 <= 0) continue;
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_x + _in, _y + _k, _w - _in * 2, 1, 0, _c1, _c2, _c2, _c1, _a);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_x + _in, _y + _h - 1 - _k, _w - _in * 2, 1, 0,
+			_c1, _c2, _c2, _c1, _a);
+	}
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+		_x, _y + _n, _w, _h - _n * 2, 0, _c1, _c2, _c2, _c1, _a);
+};
+
 row_x  = 8;
 row_w  = room_width - 16;
 

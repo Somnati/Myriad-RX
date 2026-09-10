@@ -126,29 +126,27 @@ hold_fired = false;// a repeat happened, so the release must not buy again
 // rather than a frame rate.
 sfx_tic = 0;
 HOLD_LEAD  = 25;   // DE's lead-in before the first repeat, ~0.4s
-SWIPE   = 26;   // a flick this far throws the drawer a whole stage
-// ⚖️ ...AND FAST ENOUGH TO BE A FLICK (his report, 2026-09-09: "im
-// constantly accidentally opening it"). SWIPE was a pure DISTANCE test,
-// so a slow horizontal drift while tapping - a hand resting, a mouse
-// sliding 26px over half a second - read identically to a deliberate
-// throw. Distance alone cannot tell those apart; SPEED can, and it is
-// the axis a flick is actually defined on.
-//
-// Average speed across the whole gesture, not instantaneous: a flick is
-// short AND fast, and averaging rejects the long slow drag that happens
-// to end with a twitch. 1.6 px/frame is ~96 px/s - well under a real
-// swipe and well over anything a hand does by accident.
-SWIPE_V = 1.6;  // px per 60hz frame, averaged over the gesture
-press_t = 0;    // frames the current press has been held
-BUDGET  = 6;    // under this, the press was a tap
+// ---- THE SWIPE, DE's gate (see the Step for what each rejects) ----
+// touch_dragdist_min / touch_time_min / touch_dragspd_min are the house
+// macros DE shipped and RX already had - 50px, 45 frames, 7px/frame -
+// so the drawer agrees with every other swipe in the engine by default.
+SW_DIST_MIN = 12;   // ...and the floor, which DE kept local at 5. 12,
+                    // because this drawer sits under the tap surface
+                    // and a tap that slides a few px must never open it
+SW_COOL = 12;       // frames before another swipe can land. DE's `tic`:
+                    // without it one long gesture re-qualifies every
+                    // frame and walks the drawer through every stage
+sw_tic  = 0;
+BUDGET  = 6;    // under this a press was a TAP, not a gesture - still
+                // read at the bottom of the Step, where a tap left of
+                // the drawer face puts it away
 
-// THE DRAWER FOLLOWS THE FINGER. Waiting for release before moving is
-// what made it feel sticky - you pulled and nothing happened until you
-// let go. Past the drag budget it tracks 1:1, and the release just
-// decides which stage to settle into.
-drag_on   = false;
-drag_from = 0;
-DRAG_PX   = 110; // pixels of travel per stage
+// (SWIPE / SWIPE_V / press_t / drag_on / drag_from / DRAG_PX are gone
+// with the live drag. They were two successive attempts to tell a
+// deliberate pull from an accidental one on ONE axis at a time -
+// distance, then average speed - and both failed for the same reason:
+// no single measurement separates the two. DE's answer was five
+// measurements at once, and that is what the Step runs now.)
 
 // ---- THE BUY BULK BUTTON (Myriad DE's obj_ui_buylv) ----
 // DE seats it TOP-RIGHT at (119, 31) and slides it in from off the

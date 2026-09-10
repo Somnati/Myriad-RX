@@ -36,25 +36,9 @@ for (var _m = 0; _m < 2; _m++) {
 	var _on = (mode == _m);
 	var _hov = point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h);
 	draw_set_alpha(1);
-	var _tabc = _on ? merge_colour(_mcol[_m], c_black, .55) : c_black;
-	draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, _r.h, 0, _tabc, _on ? .95 : .5);
-	// THE ACTIVE TAB IS RAISED, the other is a flat outline. Tabs are the
-	// one place where "which of these am I standing on" has to be
-	// answerable at a glance, and a bevel says it before the colour does
-	// - which matters because the two colours here (green and lavender)
-	// are close in value even though they are far apart in hue.
-	if (_on) {
-		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, 1, 0,
-			merge_colour(_mcol[_m], c_white, .45), .95);
-		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, 1, _r.h, 0,
-			merge_colour(_mcol[_m], c_white, .45), .95);
-		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y + _r.h - 1, _r.w, 1, 0,
-			merge_colour(_mcol[_m], c_black, .6), .95);
-		draw_sprite_ext(spr_pixel_1x1, 0, _r.x + _r.w - 1, _r.y, 1, _r.h, 0,
-			merge_colour(_mcol[_m], c_black, .6), .95);
-	} else {
-		draw_px_rect(_r.x, _r.y, _r.w, _r.h, _mcol[_m], _hov ? .55 : .3);
-	}
+	draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, _r.h, 0,
+		_on ? merge_colour(_mcol[_m], c_black, .55) : c_black, _on ? .95 : .5);
+	draw_px_rect(_r.x, _r.y, _r.w, _r.h, _mcol[_m], _on ? .9 : (_hov ? .55 : .3));
 	draw_set_halign(fa_center);
 	draw_set_color(_on ? c_white : merge_colour(_mcol[_m], c_white, _hov ? .6 : .3));
 	draw_set_alpha(_on ? .95 : .75);
@@ -82,86 +66,45 @@ for (var _i = 0; _i < _n; _i++) {
 	var _has = is_struct(_s);
 	var _col = _has ? __rar_col(_s.rar) : _dim;
 
-	// the panel: statistics' recipe, opaque with gradient seams
+	// the panel: statistics' recipe, opaque with gradient seams - with
+	// the corners cut (his ask, see __rr in the Create). Everything that
+	// FILLS the row goes through the rounded pair, or a square wash
+	// paints the corners back on.
 	var _c = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, row_h, 0, _c, 1);
+	__rr(row_x, _ry, row_w, row_h, _c, 1);
 	// THE RARITY WASH, bleeding in from the colour band. It fades to the
 	// panel colour rather than to transparent, because the panel is
 	// opaque and a colour fade needs no second alpha to read cleanly.
 	if (_has) {
 		var _gr = __rar_grad(_s.rar, row_w, _c);
-		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
-			row_x, _ry, _gr.w, row_h, 0, _gr.col, _c, _c, _gr.col, 1);
+		__rr_grad(row_x, _ry, _gr.w, row_h, _gr.col, _c, 1);
 	}
-
-	// ⚖️ THE BEVEL (his ask: bevel the slot sides). Four 1px edges, lit
-	// from the top-left, which is the same light every raised thing in
-	// this game is lit from - the statistics rows, the menu buttons, the
-	// rebirth banner. It costs four strips and it is the difference
-	// between a slot that looks like a PLATE you could pick up and a
-	// slot that looks like a coloured stripe on a background.
-	//
-	// The top and left catch, the bottom and right fall away. Solid, not
-	// gradient: the old seams were horizontal gradients fading to black
-	// at the ends, which read as a smudge on a 16px row rather than as
-	// an edge. An edge is a hard line or it is nothing.
-	//
-	// ⚖️ AND IT INVERTS WHEN THE SLOT IS EMPTY. A filled slot is a PLATE
-	// sitting on the table; an empty one is the HOLE the plate goes in.
-	// Same four strips, light swapped to the bottom-right, and the
-	// difference is instantly legible across a whole column without
-	// reading a word of it - which is what the dim "empty slot" text was
-	// failing to do on its own. It is also the honest shape: a socket
-	// with nothing in it should not look pressable.
-	var _lit = merge_colour(_c, c_white, .22);
-	var _shd = merge_colour(_c, c_black, .55);
-	if (!_has) {
-		var _sw = _lit; _lit = _shd; _shd = _sw;
-		// and the well itself sits a shade darker than the table, the
-		// way a recess catches less light
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1, row_w - 2,
-			row_h - 2, 0, c_black, .22);
-	}
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, 1, 0, _lit, .9);
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, 1, row_h, 0, _lit, .9);
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry + row_h - 1, row_w, 1, 0, _shd, .9);
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x + row_w - 1, _ry, 1, row_h, 0, _shd, .9);
-	// the corners the two pairs share: without these, a lit edge runs
-	// into a dark one and the join reads as a nick in the plate
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry + row_h - 1, 1, 1, 0, _c, 1);
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x + row_w - 1, _ry, 1, 1, 0, _c, 1);
-
-	// the identity band, INSIDE the bevel now (it used to paint over the
-	// left edge, which is exactly the pixel the bevel needs)
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1, 2, row_h - 2, 0,
+	// the seams stop short of the corners rather than running into them
+	var _sn = array_length(ROUND);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x + _sn, _ry,
+		row_w - _sn * 2, 1, 0, _c, c_black, c_black, _c, .52);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x + _sn,
+		_ry + row_h - 1, row_w - _sn * 2, 1, 0, c_black, _c, _c, c_black, .52);
+	// the identity band is inset vertically so it cannot poke out of the
+	// rounded corner it sits in
+	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry + _sn, 2, row_h - _sn * 2, 0,
 		_col, _has ? .9 : .3);
-
 	if (sel == _i)
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1, row_w - 2,
-			row_h - 2, 0, c_white, .04);
+		__rr(row_x, _ry, row_w, row_h, c_white, .04);
 	// the PICKED row keeps a brighter wash and a lit band, so the panel
 	// below always has a visible owner
 	if (pick == _i) {
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1, row_w - 2,
-			row_h - 2, 0, c_white, .07);
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1, 2, row_h - 2, 0,
-			c_white, .85);
-		// ...and the bevel's top edge lights in its rarity colour, so
-		// the selected plate reads as raised FURTHER rather than just
-		// as washed brighter
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry, row_w, 1, 0,
-			merge_colour(_col, c_white, .35), .8);
+		__rr(row_x, _ry, row_w, row_h, c_white, .07);
+		draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry + _sn, 2, row_h - _sn * 2,
+			0, c_white, .85);
 	}
 
 	var _b = __btn(_i);
 
 	if (!_has) {
-		// no button: rolling is ONE control under the table now. The
-		// text sits dimmer than it did, because the recess is now
-		// carrying the message and two things saying "empty" is one
-		// too many.
+		// no button: rolling is ONE control under the table now
 		draw_set_color(_dim);
-		draw_set_alpha(.38);
+		draw_set_alpha(.5);
 		draw_text(row_x + 7, _ry + 4, "empty slot");
 		continue;
 	}
@@ -219,10 +162,7 @@ for (var _i = 0; _i < _n; _i++) {
 		var _hf = hold_hp / 100;
 		if (mode == 1) _hf *= _hf;
 		var _hc = merge_colour((mode == 0) ? c_sgreen : c_hred, c_black, .3);
-		// inside the bevel: a fill that paints over the plate's own edge
-		// makes the plate look like it is dissolving rather than filling
-		draw_sprite_ext(spr_pixel_1x1, 0, row_x + 1, _ry + 1,
-			(row_w - 2) * _hf, row_h - 2, 0, _hc, .6);
+		__rr(row_x, _ry, row_w * _hf, row_h, _hc, .6);
 	}
 
 	__dots(_i, _ry);
@@ -281,17 +221,6 @@ if (!UPG_LIVE) {
 draw_set_alpha(1);
 var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .35);
 draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, desc_h, 0, _dc, 1);
-// the same bevel the slots wear, from the same light. A panel that sits
-// beside eight bevelled plates and has none of its own reads as a hole
-// in the layout rather than as a surface.
-var _dl = merge_colour(_dc, c_white, .20);
-var _ds = merge_colour(_dc, c_black, .55);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, 1, 0, _dl, .9);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, 1, desc_h, 0, _dl, .9);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y + desc_h - 1, desc_w, 1, 0, _ds, .9);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x + desc_w - 1, desc_y, 1, desc_h, 0, _ds, .9);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y + desc_h - 1, 1, 1, 0, _dc, 1);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x + desc_w - 1, desc_y, 1, 1, 0, _dc, 1);
 
 // && short-circuits, so an out-of-range pick never indexes the array -
 // which it can be for a frame after the slot count changes

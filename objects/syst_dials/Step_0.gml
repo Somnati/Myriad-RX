@@ -1,7 +1,10 @@
 // ---- the eased slide (skipped while a finger owns the drawer) ----
 // a new target restarts the clock FROM WHERE IT IS, so reversing
 // mid-slide is smooth rather than a jump back to the start
-if (!drag_on) {
+// sp is the eased animation toward stage and NOTHING else writes it
+// (the live drag that used to is gone - see the swipe block below), so
+// the drawer can never be left sitting between stages.
+{
 	if (sp_to != stage) {
 		sp_from = sp; sp_to = stage; sp_t = 0;
 		sp_ease_out = false;                  // key/tap: starts at rest
@@ -114,7 +117,7 @@ if (input_free()) {
 }
 
 // ---- pointer ----
-if (!input_free()) { press_x = -1; drag_on = false; exit; }
+if (!input_free()) { press_x = -1; exit; }
 
 if (mouse_check_button_pressed(mb_left)) {
 	// ARMED ONLY FROM THE RIGHT EDGE BAND, unless the drawer is already
@@ -125,15 +128,12 @@ if (mouse_check_button_pressed(mb_left)) {
 	if (mouse_x >= room_width - SW_EDGE || stage > 0) {
 		press_x    = mouse_x;
 		press_y    = mouse_y;
-		press_t    = 0;
-		drag_from  = sp;
-		drag_on    = false;
 		hold_fired = false;
 	} else press_x = -1;
 }
 
 // pressed faces for the two buttons (DE's frame 1 while held)
-var _held = (press_x >= 0 && mouse_check_button(mb_left) && !drag_on);
+var _held = (press_x >= 0 && mouse_check_button(mb_left));
 bb_down = _held && stage >= 2 && point_in_rectangle(mouse_x, mouse_y, bb_cx, bb_y, bb_cx + bb_w, bb_y + bb_h);
 vb_down = _held && point_in_rectangle(mouse_x, mouse_y, vb_cx, vb_y, vb_cx + vb_w, vb_y + vb_h);
 
@@ -197,54 +197,72 @@ if (_held && stage >= 2) {
 }
 else { hold_row = -1; hold_t = 0; hold_ct = HOLD_LEAD; }
 
-// LIVE DRAG: once the press clears the budget the drawer tracks the
-// finger, so the pull has weight in the hand instead of happening
-// after the fact
-if (press_x >= 0 && mouse_check_button(mb_left)) {
-	press_t += delta;
-	var _tr = press_x - mouse_x;             // pulling LEFT opens
-	if (!drag_on && abs(_tr) > BUDGET) drag_on = true;
-	if (drag_on) sp = clamp(drag_from + _tr / DRAG_PX, 0, 2);
+// ⚖️ THE LIVE DRAG IS GONE (his call, 2026-09-09: "i dont want the dial
+// dock to open when i click and drag it open... only be a swipe").
+// Dragging it out was the whole problem: it meant ANY press that moved
+// sideways was a partial open, and once the drawer was partly out it
+// settled to the nearest stage on release. A click-drag and an
+// accidental hand movement are the same gesture at different speeds,
+// and no distance threshold separates them.
+//
+// It is a SWIPE OR NOTHING now. sp is purely the eased animation toward
+// stage - nothing else writes it - which also means the drawer can no
+// longer be left sitting between stages.
+
+// ================= THE SWIPE, MYRIAD DE'S GATE =================
+// ⚖️ FIVE CONDITIONS, AND EVERY ONE OF THEM REJECTS SOMETHING REAL. This
+// is DE's obj_dragupgrades test, ported whole (his ask: look at how DE
+// does it), off the touch tracker RX already had - syst_touchscreen has
+// been measuring all five since the port and nothing was reading them.
+//
+//   DISTANCE FLOOR    a twitch is not a swipe
+//   DISTANCE CEILING  and neither is a long haul. THIS is the one I did
+//                     not have and the one that matters most for him: a
+//                     hand that travels half the room is doing
+//                     something else, however fast it got there.
+//   TIME CEILING      held too long is not a swipe either - his exact
+//                     ask. A swipe is a FLICK OF THE WRIST, and a wrist
+//                     takes well under 45 frames.
+//   SPEED FLOOR       slow is not a swipe.
+//   DIRECTION CONE    +/-45 degrees of the axis. A diagonal drag past
+//                     the edge is not a request to open a side drawer.
+//
+// No single one of these separates intent from accident. Together they
+// describe a gesture a hand does on purpose and essentially never does
+// by mistake, which is why DE shipped all five rather than tuning one.
+//
+// It fires WHILE HELD, like DE's - the drawer answers the moment the
+// gesture qualifies rather than waiting for the finger to come up, and
+// sw_tic keeps it from re-firing for the rest of the press.
+sw_tic = max(0, sw_tic - delta);
+if (sw_tic <= 0)
+if (touching_screen || mouse_check_button_released(mb_left))
+if (press_x >= 0)
+if (touch_dragdist > SW_DIST_MIN)
+if (touch_dragdist < touch_dragdist_min)
+if (touch_time    < touch_time_min)
+if (touch_dragspd > touch_dragspd_min) {
+	// the drawer lives on the RIGHT, so opening it is a swipe LEFT
+	// (direction 180) and closing it is a swipe RIGHT (0/360).
+	var _d = touch_dir;
+	if (_d >= 135 && _d <= 225) {
+		stage = min(2, stage + 1);
+		sw_tic = SW_COOL;
+		press_x = -1;
+		exit;
+	}
+	if (_d <= 45 || _d >= 315) {
+		stage = max(0, stage - 1);
+		sw_tic = SW_COOL;
+		press_x = -1;
+		exit;
+	}
 }
 
 if (!mouse_check_button_released(mb_left)) exit;
 if (press_x < 0) exit;
 var _px = press_x, _py = press_y;
 press_x = -1;
-
-var _dx = mouse_x - _px;
-
-// ⚖️ WAS IT ACTUALLY A FLICK? Distance alone said yes to a hand drifting
-// sideways over half a second, which is why the drawer kept opening on
-// him. A flick is short AND fast; averaging the speed across the whole
-// gesture is what separates it from a slow drag that ends with a
-// twitch. Below the threshold the gesture is still a DRAG - it just
-// settles where the finger left it instead of being thrown a stage.
-var _flick = (abs(_dx) / max(1, press_t)) >= SWIPE_V;
-
-// RELEASING A DRAG: a decisive flick throws it a whole stage from
-// where the drag STARTED; anything gentler settles at the nearest
-// stage to where the finger left it. Either way the ease takes over
-// from the drawer's current position, so nothing jumps.
-if (drag_on) {
-	drag_on = false;
-	if (_flick && abs(_dx) >= SWIPE)
-		stage = clamp(drag_from + ((_dx < 0) ? 1 : -1), 0, 2);
-	else
-		stage = clamp(round(sp), 0, 2);
-	sp_from = sp; sp_to = stage; sp_t = 0;
-	sp_ease_out = true;                      // carry the finger's speed
-	// a shorter settle for a release: the finger did most of the
-	// travel, so a full-length ease reads as sluggish
-	exit;                                    // a drag is never a tap
-}
-
-// a flick that never became a drag still throws the drawer - but only
-// if it was genuinely a flick. This is the path that was firing by
-// accident: no drag ever started, so nothing on screen moved to warn
-// him, and then the drawer jumped a whole stage on release.
-if (_flick && _dx <= -SWIPE) { stage = min(2, stage + 1); exit; }
-if (_flick && _dx >=  SWIPE) { stage = max(0, stage - 1); exit; }
 
 // under the drag budget it was a TAP
 if (point_distance(_px, _py, mouse_x, mouse_y) > BUDGET) exit;
