@@ -423,6 +423,7 @@
     {"id":{"name":"tile_tier_odds","path":"scripts/tile_tier_odds/tile_tier_odds.yy",},},
     {"id":{"name":"tile_upg_bulk","path":"scripts/tile_upg_bulk/tile_upg_bulk.yy",},},
     {"id":{"name":"tile_upg_config","path":"scripts/tile_upg_config/tile_upg_config.yy",},},
+    {"id":{"name":"tile_upg_reset","path":"scripts/tile_upg_reset/tile_upg_reset.yy",},},
     {"id":{"name":"tile_upg","path":"scripts/tile_upg/tile_upg.yy",},},
     {"id":{"name":"tiles_fastforward","path":"scripts/tiles_fastforward/tiles_fastforward.yy",},},
     {"id":{"name":"tiles_init","path":"scripts/tiles_init/tiles_init.yy",},},

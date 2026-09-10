@@ -52,12 +52,7 @@ function tiles_wipe(_fresh = false) {
 	_t.dirty   = true;
 	_t.rev++;
 
-	// EVERY upgrade level, by key rather than by roster - a level that
-	// survived here would be a level the save writes back out, and the
-	// upg struct can hold keys the roster no longer lists (slots, and
-	// whatever a later roster adds)
-	var _ks = variable_struct_get_names(_t.upg);
-	for (var _k = 0; _k < array_length(_ks); _k++) _t.upg[$ _ks[_k]] = 0;
-
-	tiles_sync();        // the board takes its new shape at once
+	// every upgrade level (tile_upg_reset is the one loop; it syncs,
+	// so the board takes its new shape at once)
+	tile_upg_reset();
 }

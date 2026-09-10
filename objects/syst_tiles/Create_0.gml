@@ -158,6 +158,7 @@ arm_rb = 0;
 arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
               // misclick beside [sort] must not cost thirteen levels
+arm_ru = 0;   // and [reset upgrades]' - same rule, same reason
 
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 36;   // name+level, the BONUS line, then the buy button (his

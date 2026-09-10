@@ -238,6 +238,16 @@ if (_ba > .01) {
 	draw_set_alpha(.85 * _ba);
 	draw_text(289, 248, _amc ? "aim: tile center" : "aim: mouse");
 }
+
+// the other destructive one: the upgrade levels alone (tile_upg_reset)
+_ba = __btn_a(340, 430);
+if (_ba > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 340, 246, 90, 14, 0, c_black, .6 * _ba);
+	draw_px_rect(340, 246, 90, 14, c_hred, .7 * _ba);
+	draw_set_color(c_hred);
+	draw_set_alpha(.85 * _ba);
+	draw_text(385, 248, (arm_ru > 0) ? "sure?" : "reset upgrades");
+}
 draw_set_alpha(1);
 
 // ---- welcome-back report: what the fabricator and automerger did

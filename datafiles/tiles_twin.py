@@ -66,7 +66,9 @@ CURVE = 2.0
 UPG = {
     # INFLATED (his design): priced against the flux a player who had
     # EARNED the raw cost would hold. See tile_upg / upg_cost below.
-    "profit": {"base":  1000, "curve": CURVE, "top": 308, "max": 50, "inflate": True},
+    # its own curve and base (2026-09-10, his report: x6 at 300/s was
+    # too cheap - see tile_upg_config). NOT the shared flat start.
+    "profit": {"base": 30000, "curve": 1.25, "top": 308, "max": 50, "inflate": True},
     "bank":   {"base": 25000, "curve": CURVE, "top": 150, "max": 30},
     "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
     "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},

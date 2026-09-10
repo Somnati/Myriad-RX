@@ -35,6 +35,7 @@ while (array_length(_t.ev) > 0) {
 
 arm_rb = max(0, arm_rb - delta);   // the rebirth confirm's window
 arm_rs = max(0, arm_rs - delta);   // the board reset's
+arm_ru = max(0, arm_ru - delta);   // the upgrade reset's
 
 // ---- input (region pattern: fully arbitrated) ----
 // ---- THE DRAWER: a swipe RIGHT opens it, a swipe LEFT closes it ----
@@ -211,6 +212,22 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 				play_sound_ext(snd_matclick2, .5, .6, .6, 1);
 			} else {
 				arm_rs = 120;        // two seconds to mean it
+				play_sound_ext(snd_tierup, .8, .9, .5, 1);
+			}
+		}
+		// THE SECOND RESET (his ask, same day): the upgrade levels alone,
+		// no refund, board and shards and flux untouched - for running a
+		// cost ladder again against a board that already exists. Asked
+		// twice like its neighbour.
+		if (point_in_rectangle(mouse_x, mouse_y, 340, 246, 430, 260)) {
+			if (arm_ru > 0) {
+				arm_ru = 0;
+				tile_upg_reset();
+				qtic = 0;            // the levels are gone - requote at once
+				save_mark_dirty();
+				play_sound_ext(snd_matclick2, .5, .6, .6, 1);
+			} else {
+				arm_ru = 120;
 				play_sound_ext(snd_tierup, .8, .9, .5, 1);
 			}
 		}

@@ -93,8 +93,22 @@ function tile_upg_config() {
 			// against the flux a player at each level would hold. The
 			// other three do not have that loop, and inflating them
 			// would just be tax.
-			id : "profit", name : "profit boost", base : 1000,
-			curve : TILE_UPG_CURVE, top : 308, max : 50, inflate : true,
+			// ⚖️ ITS OWN CURVE, AND A BIGGER BASE (his report, 2026-09-10:
+			// "im sitting at 300p/s spark and i already have x6 profit
+			// from the upgrade which translates to DE's 600 combined
+			// tile score"). The shared curve-2 ladder is flat where it
+			// starts - five profit levels cost 36k shards all told, two
+			// minutes of a 300/s board, and paid x10 on every dial. In
+			// DE a 600 board score is a tier-7 board, hours in. This
+			// row's levels are multipliers on the whole game, so the
+			// early ones cannot be the cheap ones: base 30k, curve 1.25
+			// puts level 1 at 30k (the on-switch), 2 at 4e5, 3 at 2e7,
+			// 4 at 1e9, 5 at 1e12 - each level asks the BOARD to grow a
+			// tier or two first, which is the pacing DE had for free.
+			// The twin's purchase timeline (section 3) shows where they
+			// land; the same ceiling (e308 at 50) still holds.
+			id : "profit", name : "profit boost", base : 30000,
+			curve : TILE_PROFIT_CURVE, top : 308, max : 50, inflate : true,
 			fmt : function(_lv) {
 				// the live multiplier at that level - a packed arb, so
 				// small values get two decimals (crunch_arb rounds

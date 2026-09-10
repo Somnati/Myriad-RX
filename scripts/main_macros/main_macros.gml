@@ -474,6 +474,11 @@ function main_macros() {
 #macro TILE_UPG_CURVE     2  // every upgrade's price curve (his call):
                              // 1 = a straight line, higher = a slower
                              // start and a steeper finish
+#macro TILE_PROFIT_CURVE 1.25 // ...except profit's, which must NOT
+                             // start slow: at curve 2 five levels cost
+                             // 36k shards all told and paid x10 on
+                             // every dial (his report: x6 at 300/s is
+                             // too cheap). See tile_upg_config.
 #macro TILE_FAB_TOP     308  // log10 of the LAST level's cost (his e308)
 #macro TILE_FAB_STEP      6  // -0.1s a level, in FRAMES at 60hz
 #macro TILE_FAB_CAP     300  // ...to -5.0s total, and no further
