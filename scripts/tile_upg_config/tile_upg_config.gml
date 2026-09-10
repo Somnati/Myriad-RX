@@ -4,8 +4,11 @@
 /// >>> it, and the tile room draws whatever is here.
 ///
 /// FIELDS: id (the save key - never change one), name, base cost in
-/// SHARDS, e (ORDERS OF MAGNITUDE the cost gains a level), fmt, help,
-/// and optionally max (the level it stops at).
+/// SHARDS, fmt, help, optionally max (the level it stops at), and ONE
+/// of two pricing shapes:
+///   e                 decades the cost gains a level (a straight line)
+///   curve + top       the cost accelerates from base to 10^top across
+///                     the whole ladder - needs max. See tile_upg.
 ///
 /// ⚖️ CUT TO TWO (his call, 2026-09-08). The roster was fabricator /
 /// alloy quality / board size / hopper, tuned in tiles_twin against a
@@ -76,21 +79,26 @@ function tile_upg_config() {
 			     + "this raises the table's side of it",
 		},
 		{
-			// ⚖️ e 6.0, AND IT IS SOLVED RATHER THAN PICKED. The budget
-			// fixes the total at -5.0s and his step fixes it at -0.1s a
-			// level, which leaves 50 levels - so the only free number is
-			// how steep each one has to be to put the last inside the
-			// 1e308 he named. Six decades does it: 1e4 x 10^300 = 1e304.
+			// ⚖️ CURVED, NOT STRAIGHT (his ask: start small and rise to
+			// the ceiling, so more levels fit early and they slow down
+			// approaching it). The straight version put six decades on
+			// every rung, which meant the SECOND level already cost 1e10
+			// and the fabricator simply fell out of the first day - it
+			// was a fifty-rung ladder whose first half nobody would ever
+			// climb.
 			//
-			// Far steeper than the rest of the roster at 2.5, which is
-			// right twice over. This is the row that feeds the merge
-			// engine, so it is the row worth making expensive - and with
-			// only fifty rungs to spend the whole ceiling on, each one
-			// HAS to cost more than a row with unbounded levels does.
+			// The curve spends the same 304 decades unevenly: level 5
+			// costs 1e7, level 10 costs 1e16, level 20 costs 1e53, and
+			// the fiftieth still lands on the 1e308 he named. Early
+			// seconds are affordable, late ones are the endgame, and the
+			// budget is untouched - it is the same -5.0s either way.
 			//
-			// Derived from the macros, never typed, so the ladder cannot
-			// drift from the budget it was sized against.
-			id : "fab", name : "fabrication speed", base : 10000, e : 6.0,
+			// TILE_FAB_CURVE is the shape and it is the one knob here:
+			// 1 would be the old straight line, 2 puts a quarter of the
+			// levels inside a hundredth of the span, 3 makes the first
+			// ten nearly free.
+			id : "fab", name : "fabrication speed", base : 10000,
+			curve : TILE_FAB_CURVE, top : TILE_FAB_TOP,
 			max : TILE_FAB_CAP div TILE_FAB_STEP,
 			fmt : function(_lv) {
 				return string_format(

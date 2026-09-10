@@ -434,6 +434,14 @@ function main_macros() {
 // much. Fifty chunky steps beat a hundred imperceptible ones: -0.05s
 // off ten seconds is a change nobody can feel landing, and an upgrade
 // you cannot feel is an upgrade you stop buying on purpose.
+// ⚖️ AND THE PRICE CURVES (his ask). The straight line spent its 304
+// decades evenly, which put the SECOND level at 1e10 and dropped the
+// fabricator out of the first day entirely - a fifty-rung ladder whose
+// early half nobody would ever climb. CURVE 2 spends the same span
+// unevenly: level 5 at 1e7, level 10 at 1e16, level 50 still exactly on
+// TOP. The budget does not move; only who can reach which part of it.
+#macro TILE_FAB_CURVE     2  // 1 = the straight line, higher = slower start
+#macro TILE_FAB_TOP     308  // log10 of the LAST level's cost (his e308)
 #macro TILE_FAB_STEP      6  // -0.1s a level, in FRAMES at 60hz
 #macro TILE_FAB_CAP     300  // ...to -5.0s total, and no further
 #macro TILE_FAB_MIN     120  // the floor after abilities too

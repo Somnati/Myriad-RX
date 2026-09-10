@@ -1,8 +1,27 @@
 /// @description tile_upg(id, [commit]);
 /// @param id       "profit" / "fab" / "bank"
 /// @param [commit]
-/// The tile table's ONE upgrade lawyer, priced in SHARDS.
-///     cost(level) = base x 10^(e x level)
+/// The tile table's ONE upgrade lawyer, priced in SHARDS. TWO SHAPES:
+///
+///     straight   cost = base x 10^(e x level)
+///     curved     cost = base x 10^(span x (level / max)^curve)
+///
+/// ⚖️ THE CURVED ONE IS FOR CAPPED LADDERS (his ask: start small, rise
+/// to a ceiling, so more levels land early and they slow as they
+/// approach it). A straight line in log space spends its decades evenly,
+/// which on a fifty-rung ladder means the FIRST rung already costs a
+/// fiftieth of the whole game - and the early half of the ladder is
+/// unreachable for no reason except arithmetic.
+///
+/// The curve spends them unevenly on purpose. `top` is where the LAST
+/// level lands (a log10, so 308 is the ceiling) and `curve` is how hard
+/// the price accelerates toward it - 1 would be the straight line, 2
+/// puts a quarter of the levels inside a hundredth of the span. The span
+/// derives from base and top, so moving either moves the whole ladder
+/// and neither can drift from the other.
+///
+/// A curved entry needs `max`: without a last level there is nothing to
+/// normalise against, which is why the uncapped rows stay straight.
 ///
 /// ⚖️ `e` IS ORDERS OF MAGNITUDE A LEVEL, not a multiplier (his call:
 /// "make the other upgrades increase by E's as well"). The formula was
@@ -42,7 +61,16 @@ function tile_upg(_id, _commit = true) {
 	if (_cap >= 0 && _lv >= _cap)
 		return { ok : false, cost : arb(1), lv : _lv, max : true };
 
-	var _cost = do_ceil(log_to_arb(log10(_e.base) + _lv * _e.e));
+	var _lg = log10(_e.base);
+	if (variable_struct_exists(_e, "curve") && _cap > 0) {
+		// curved: the span from base to top, spent unevenly across the
+		// ladder. power() rather than a table, because the shape has to
+		// stay right if the cap or the ceiling ever move.
+		_lg += (_e.top - _lg) * power(_lv / _cap, _e.curve);
+	} else {
+		_lg += _lv * _e.e;
+	}
+	var _cost = do_ceil(log_to_arb(_lg));
 
 	if (!_commit)
 		return { ok : (g.tiles.shards >= _cost), cost : _cost, lv : _lv,

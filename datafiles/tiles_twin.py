@@ -59,7 +59,10 @@ UPG = {
     "profit": {"base":  1000, "e": 2.5, "max": None},  # gps x (1 + .10 lv)
     "bank":   {"base":  2500, "e": 2.5, "max": 30},    # +1 hopper tile
     "rarity": {"base":  5000, "e": 2.5, "max": None},  # rate x (1 + .50 lv)
-    "fab":    {"base": 10000, "e": 6.0, "max": 50},    # -0.1s, cap -5.0s
+    # CURVED, not straight (his ask): the span from base to top is
+    # spent unevenly, so early levels are cheap and the last lands on
+    # the ceiling. See tile_upg - "curve" 1 would be a straight line.
+    "fab":    {"base": 10000, "curve": 2.0, "top": 308, "max": 50},
 }
 
 ok = True
@@ -134,7 +137,12 @@ def roll_tier(rate, rng):
 
 def upg_cost(kind, lv):
     u = UPG[kind]
-    return u["base"] * 10.0 ** (u["e"] * lv)
+    lg = math.log10(u["base"])
+    if "curve" in u:
+        lg += (u["top"] - lg) * (lv / u["max"]) ** u["curve"]
+    else:
+        lg += u["e"] * lv
+    return 10.0 ** lg
 
 
 def upg_maxed(kind, lv):
