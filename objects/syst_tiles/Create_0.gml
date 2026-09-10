@@ -253,7 +253,7 @@ __draw_drawer = function() {
 		for (var _k = 0; _k < array_length(_ucfg); _k++) {
 			var _ur = __upg_r(_k);
 			var _uq = (_k < array_length(uq)) ? uq[_k]
-				: { ok : false, cost : arb(1), lv : 0, txt : "-" };
+				: { ok : false, cost : arb(1), lv : 0, txt : "-", max : false };
 			var _uc = _ucfg[_k];
 			var _ua = dr_open;
 
@@ -271,7 +271,9 @@ __draw_drawer = function() {
 			draw_set_halign(fa_right);
 			draw_set_color(rgb(120, 130, 150));
 			draw_set_alpha(.6 * _ua);
-			draw_text(_ur.x + _ur.w - 6, _ur.y + 3, "lv " + string(_uq.lv));
+			draw_text(_ur.x + _ur.w - 6, _ur.y + 3,
+				_uq.max ? ("lv " + string(_uq.lv) + " max")
+				        : ("lv " + string(_uq.lv)));
 			draw_set_halign(fa_left);
 
 			// WHAT YOU HAVE, AND WHAT THIS BUYS (his ask). The roster
@@ -280,17 +282,23 @@ __draw_drawer = function() {
 			// fmt(lv) then fmt(lv + 1) and never has to care.
 			if (variable_struct_exists(_uc, "fmt")) {
 				var _now = _uc.fmt(_uq.lv);
-				var _nxt = _uc.fmt(_uq.lv + 1);
 				draw_set_color(c_aqua);
 				draw_set_alpha(.75 * _ua);
 				draw_text(_ur.x + 7, _ur.y + 13, _now);
-				var _aw = string_width(_now);
-				draw_set_color(rgb(120, 130, 150));
-				draw_set_alpha(.5 * _ua);
-				draw_text(_ur.x + 7 + _aw + 4, _ur.y + 13, ">");
-				draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-				draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
-				draw_text(_ur.x + 7 + _aw + 13, _ur.y + 13, _nxt);
+				// AT THE CAP THERE IS NO NEXT, so no arrow and no second
+				// figure. Printing "30 > 31" beside a button reading
+				// "maxed" is the screen contradicting itself in the space
+				// of one row.
+				if (!_uq.max) {
+					var _nxt = _uc.fmt(_uq.lv + 1);
+					var _aw = string_width(_now);
+					draw_set_color(rgb(120, 130, 150));
+					draw_set_alpha(.5 * _ua);
+					draw_text(_ur.x + 7 + _aw + 4, _ur.y + 13, ">");
+					draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
+					draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
+					draw_text(_ur.x + 7 + _aw + 13, _ur.y + 13, _nxt);
+				}
 			}
 
 			var _bx2 = _ur.x + 6;

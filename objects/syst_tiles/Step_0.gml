@@ -78,8 +78,12 @@ if (qtic <= 0) {
 	uq = [];
 	for (var _k = 0; _k < array_length(_uc2); _k++) {
 		var _q2 = tile_upg(_uc2[_k].id, false);
+		var _mx2 = _q2[$ "max"] ?? false;
 		array_push(uq, { ok : _q2.ok, cost : _q2.cost, lv : _q2.lv,
-			txt : crunch_arb(_q2.cost) });
+			max : _mx2,
+			// a capped upgrade at its cap has no price to print - see
+			// tile_upg, which refuses to quote one
+			txt : _mx2 ? "maxed" : crunch_arb(_q2.cost) });
 	}
 }
 

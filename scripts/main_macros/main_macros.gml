@@ -396,7 +396,11 @@ function main_macros() {
 #macro TILE_SPEED_FACTOR .88    // fab period x this a level
 #macro TILE_LUCK_STEP    60
 #macro TILE_SLOT_STEP    2
-#macro TILE_BANK_STEP    8
+#macro TILE_BANK_STEP     1  // hopper tiles a level (his number).
+                             // ONE, against a price climbing 2.5
+                             // orders of magnitude a level - the
+                             // reserve is earned a slot at a time,
+                             // never bought in blocks
 
 #macro UPG_TIER_RAMP .15
 #macro UPG_TIER_LAST 3

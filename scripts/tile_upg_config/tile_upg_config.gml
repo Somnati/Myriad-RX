@@ -73,13 +73,27 @@ function tile_upg_config() {
 			// happens, and with the automerger on that is rarely.
 			// Pricing it beside the two that DO compound would be
 			// charging for the wrong thing.
-			id : "bank", name : "hopper", base : 2500, mult : 3,
+			// ⚖️ +2.5 ORDERS OF MAGNITUDE A LEVEL (his number). The cost
+			// formula is log10(base) + lv * log10(mult), so writing the
+			// multiplier as power(10, 2.5) makes that term EXACTLY 2.5
+			// per level: 2500 at level 0, 2500e75 at the cap, and every
+			// step between a clean half-decade.
+			//
+			// Far steeper than the other two at x3, and it has to be -
+			// they buy a PERCENTAGE and this buys ONE TILE. A linear
+			// reward against a geometric price is the only shape that
+			// carries thirty levels without the last ten being free, and
+			// the cap is what makes it END rather than asymptote
+			// somewhere absurd.
+			id : "bank", name : "hopper", base : 2500,
+			mult : power(10, 2.5), max : 30,
 			fmt : function(_lv) {
 				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
 			},
-			help : "+" + string(TILE_BANK_STEP) + " tiles of reserve, per "
-			     + "level. with none, a tile finished while the board is "
-			     + "full is lost - the reserve holds it until a slot opens",
+			help : "+" + string(TILE_BANK_STEP) + " tile of reserve, per "
+			     + "level, to " + string(TILE_BANK_BASE + TILE_BANK_STEP * 30)
+			     + ". with none, a tile finished while the board is full "
+			     + "is lost - the reserve holds it until a slot opens",
 		},
 	];
 	return g.tile_upg_cfg;
