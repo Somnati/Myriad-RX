@@ -57,8 +57,10 @@ for (var _i = 0; _i < _n; _i++) {
 	var _c = vis_tier_color(_b.tier);
 
 	// light first, then the block: the glow is most of what you see and
-	// the square is only its core
-	var _gs = (_b.size * 2.6) / sprite_get_width(spr_vis_glow_soft);
+	// the square is only its core. The far ones are further out of
+	// focus - a wider, softer glow around a fainter core - and the near
+	// ones sharpen; depth as blur, the way a lens does it
+	var _gs = (_b.size * lerp(3.2, 2.2, _b.d)) / sprite_get_width(spr_vis_glow_soft);
 	draw_sprite_ext(spr_vis_glow_soft, 0, _bx + _b.size * .5, _by + _b.size * .5,
 		_gs, _gs, 0, _c, (.05 + .05 * _a) * _b.dim);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by, _b.size, _b.size, 0,
@@ -69,13 +71,12 @@ for (var _i = 0; _i < _n; _i++) {
 // The profit bits, at rest. A handful of slow sparks rising through the
 // blocks - the one moving thing small enough to read as detail rather
 // than as another shape competing with the menu.
-for (var _i = 0; _i < 22; _i++) {
-	var _hx = frac(sin((_i + 1) * 91.3) * 41231.7);
-	var _hs = .10 + frac(sin((_i + 1) * 53.7) * 22101.3) * .22;
-	var _mx = _hx * room_width + dsin(tt * .35 + _i * 37) * 5;
-	var _my = room_height + 8 - ((tt * _hs + _hx * 400) mod (room_height + 16));
+for (var _i = 0; _i < array_length(mote); _i++) {
+	var _mt = mote[_i];
+	var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
+	var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));
 	draw_sprite_ext(spr_pixel_1x1, 0, _mx, _my, 1, 1, 0,
-		c_gold, .10 + .18 * abs(dsin(tt * .9 + _i * 61)));
+		c_gold, .10 + .18 * abs(dsin(tt * .9 + _mt.p2)));
 }
 
 // a soft wash behind the name, so the type has somewhere to sit

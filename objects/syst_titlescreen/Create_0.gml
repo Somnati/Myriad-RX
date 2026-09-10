@@ -45,8 +45,10 @@ row_p  = 21;      // row pitch
 row_h  = 13;      // hit height
 row_w  = 128;     // hit width
 
-// a slow clock for the field drift and the title's breath
-tt = 0;
+// a slow clock for the field drift and the title's breath. Starts
+// somewhere along its own cycle, so the breaths and the motes are
+// mid-thought on the first frame rather than all at phase zero.
+tt = random(100000);
 
 // hover EASE per row, 0..1. The old screen ran a damped spring per
 // button to bounce its chrome; there is no chrome to bounce now, so
@@ -65,28 +67,77 @@ hov = array_create(array_length(items), 0);
 // The idea was right and the execution was too literal. This is the
 // game's SHAPE without its ruler: a few large soft blocks, out of
 // focus, drifting up-right at different speeds and breathing through
-// the rarity ladder. Baked ONCE here rather than hashed per frame -
-// there are only eight, and a table you can read beats four sin()
-// calls you have to decode.
+// the rarity ladder.
 //
-//   x0/y0  start, as a fraction of the wrap span
+// ⚖️ ROLLED PER BOOT, NOT BAKED (his report, 2026-09-10: "the squares
+// are not random and are in the same spots each time i boot the game
+// up"). The first version was a hand-written table of eight - readable,
+// and identical every launch, which is the one thing a title screen
+// must not be: the second boot already looked like a wallpaper. Now
+// the field is dealt fresh from the ambient stream (setgame's
+// randomize() ran in the boot room), and ONE number per block - its
+// DEPTH - decides everything else, so the roll cannot produce a big
+// fast bright block or a small slow dim one. Far is big, slow, dim and
+// well out of focus; near is small, quick, bright and sharper. That
+// coherence is what the hand table was really encoding, and deriving
+// it means a hundred random fields all read as the same place.
+//
+//   d      depth, 0 far .. 1 near - the one roll the rest derive from
+//   x0/y0  start, as a fraction of the wrap span. Dealt with a minimum
+//          spacing, so two blocks never spawn as one lump
 //   size   px. Big: this is atmosphere, not content
 //   spd    px per 60hz step. The SPREAD is the depth cue - a field
 //          moving at one speed is a texture, not a distance
-//   tier   which rung of the rarity ladder it wears
+//   tier   which rung of the rarity ladder it wears. The ladder is
+//          SHUFFLED and dealt round-robin, so every colour shows once
+//          before any repeats - a field of three blues is a bad roll
+//          the eye reads as a bug
 //   br/ph  its own breath rate and phase, so the set never pulses
 //          together
-//   dim    a per-block trim, so the big ones do not shout
-blk_h = [
-	{ x0 : .07, y0 : .20, size : 86, spd : .050, tier : 5, br : .17, ph :   0, dim : .85 },
-	{ x0 : .560, y0 : .74, size : 64, spd : .085, tier : 3, br : .23, ph :  70, dim : 1   },
-	{ x0 : .310, y0 : .41, size : 48, spd : .120, tier : 6, br : .29, ph : 140, dim : 1   },
-	{ x0 : .820, y0 : .12, size : 72, spd : .065, tier : 2, br : .19, ph : 210, dim : .9  },
-	{ x0 : .180, y0 : .88, size : 38, spd : .155, tier : 8, br : .35, ph : 280, dim : 1   },
-	{ x0 : .690, y0 : .55, size : 96, spd : .040, tier : 4, br : .14, ph :  35, dim : .7  },
-	{ x0 : .430, y0 : .05, size : 44, spd : .140, tier : 7, br : .31, ph : 175, dim : 1   },
-	{ x0 : .950, y0 : .63, size : 56, spd : .100, tier : 5, br : .25, ph : 245, dim : .95 },
-];
+//   dim    the far ones do not shout
+blk_h = [];
+var _nb = irandom_range(8, 11);
+var _rungs = [2, 3, 4, 5, 6, 7, 8];
+for (var _s = array_length(_rungs) - 1; _s > 0; _s--) {   // Fisher-Yates
+	var _r = irandom(_s);
+	var _tmp = _rungs[_s]; _rungs[_s] = _rungs[_r]; _rungs[_r] = _tmp;
+}
+for (var _i = 0; _i < _nb; _i++) {
+	var _d = random(1);
+	// a place of its own: up to a dozen tries for a spot at least .24
+	// of the span from every block already dealt, then take the last
+	var _px = 0, _py = 0;
+	for (var _try = 0; _try < 12; _try++) {
+		_px = random(1); _py = random(1);
+		var _clear = true;
+		for (var _j = 0; _j < array_length(blk_h); _j++)
+			if (point_distance(_px, _py, blk_h[_j].x0, blk_h[_j].y0) < .24) _clear = false;
+		if (_clear) break;
+	}
+	array_push(blk_h, {
+		d    : _d,
+		x0   : _px, y0 : _py,
+		size : round(lerp(98, 34, _d) * random_range(.85, 1.15)),
+		spd  : lerp(.040, .165, _d) * random_range(.9, 1.1),
+		tier : _rungs[_i mod array_length(_rungs)],
+		br   : lerp(.14, .36, _d) * random_range(.85, 1.15),
+		ph   : random(360),
+		dim  : lerp(.68, 1, _d),
+	});
+}
+// far to near, so the near ones paint OVER the far ones and the
+// overlaps agree with the speeds about which block is in front
+array_sort(blk_h, function(_a, _b) { return sign(_a.d - _b.d); });
+
+// ---- the motes ----
+// dealt the same way, for the same reason: each one's lane, rise and
+// two flicker phases. They used to be hashed off their index, which is
+// a fixed field with extra steps.
+mote = [];
+repeat (22) array_push(mote, {
+	hx : random(1), hs : random_range(.10, .32),
+	p1 : random(360), p2 : random(360), y0 : random(400),
+});
 
 // banding fix (2026-07-09, his report): the backdrop gradient rides
 // the house temporal IGN dither - the same shader the starmap fog uses
