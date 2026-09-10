@@ -46,9 +46,15 @@ function handle_save(){
 	// label. create_clicker still seeds them, and a load overwrites.
 	g.total_taps  = handle("total_taps",  g.total_taps);
 	g.total_crits = handle("total_crits", g.total_crits);
+	// the overcharger's level and charge (DE saved both; a charge that
+	// died with the app would make closing the game a punishment)
+	g.overcharge_lv = handle("overcharge_lv", g.overcharge_lv);
+	g.overcharge_xp = handle("overcharge_xp", g.overcharge_xp);
 	if (action == sv_load) {
 		g.total_taps  = max(0, floor(g.total_taps));
 		g.total_crits = max(0, floor(g.total_crits));
+		g.overcharge_lv = clamp(floor(g.overcharge_lv), 1, 10);
+		g.overcharge_xp = max(0, g.overcharge_xp);
 	}
 
 	// run difficulty (0 easy .. 3 critical), picked at new game.

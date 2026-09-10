@@ -39,4 +39,11 @@ function update_click() {
 	var _ub = upgrade_bonus_live();
 	if (_ub.tap_profit > 0)
 		g.click_gps = do_scale(g.click_gps, 1 + _ub.tap_profit / 100);
+
+	// THE OVERCHARGER, result-side (DE: click_gps = do_multi(click_gps,
+	// overcharge_multi) at the end of update_clicker). obj_overcharge
+	// calls this the moment its level changes, so the per-tap readout
+	// shows the charged figure the way DE's did.
+	var _oc = overcharge_multi();
+	if (_oc > 1) g.click_gps = do_scale(g.click_gps, _oc);
 }

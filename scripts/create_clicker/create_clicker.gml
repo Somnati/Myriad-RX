@@ -29,6 +29,10 @@ function create_clicker() {
 	g.click_critx_min = 1.5; // the multiplier rolls uniformly
 	g.click_critx_max = 5;   //   between these two
 	g.total_crits     = 0;   // lifetime crits, DE's g.total_crits
+	// THE OVERCHARGER (DE's obj_click_multi): its level and charge are
+	// the whole state; the multiplier derives (overcharge_multi)
+	g.overcharge_lv   = 1;
+	g.overcharge_xp   = 0;
 
 	update_click();
 }

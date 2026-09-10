@@ -185,6 +185,15 @@ function main_macros() {
                           // lands several cycles a second across every
                           // dial at once; the feedback wanted is "the
                           // fleet paid", not "dial D paid".
+// ---- THE OVERCHARGER (DE's obj_click_multi, ported 2026-09-10) ----
+#macro OC_MAX_LV      5   // x5 at the top (the charger-cap ability adds 5)
+#macro OC_XP_BASE    40   // xp to fill x1 -> x2 (DE's 40)
+#macro OC_XP_STEP    30   // ...and 30 more each level after (DE's)
+#macro OC_XP_TAP      1   // xp a tap (DE's overcharge_xp_add; +1 with an ability, later)
+#macro OC_HOLD      300   // frames a tap keeps the charge from draining (DE's 5s)
+#macro OC_DRAIN_SEC   4   // once draining, a level empties in this many seconds (DE's tsec*4)
+#macro OC_DISC_R      4   // the charge disc's full radius (DE's des_size)
+#macro OC_RING_R      9   // the circular bar's inner radius
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

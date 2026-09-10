@@ -28,6 +28,27 @@ function faq_content() {
 		+ "you are going.",
 		{ spr : spr_part_profit, scale : 3, col : c_sgreen });
 
+	faq_entry("overcharge",
+		"keep tapping and the charger beside the per-tap figure fills: "
+		+ "every level is another x1 on what a tap pays - x2, x3, up to "
+		+ "x5. stop, and after a moment it drains back down. the ring is "
+		+ "the charge toward the next level; the colour is the level.",
+		{ fn : function(_x, _y, _w, _h) {
+			var _cx = _x + _w * .5, _cy = _y + _h * .5;
+			var _c = vis_tier_color(2);
+			draw_circle_colour(_cx, _cy, 4, c_black, c_black, false);
+			draw_circle_colour(_cx, _cy, 3, merge_colour(_c, c_black, .5), merge_colour(_c, c_black, .5), false);
+			draw_arc(_cx, _cy, 9, 2, 1, merge_colour(_c, c_black, .75), .55);
+			draw_arc(_cx, _cy, 9, 2, .65, _c, .95);
+			draw_set_font(fnt_outline);
+			draw_set_halign(fa_center);
+			draw_set_valign(fa_middle);
+			draw_set_color(_c);
+			draw_text(_cx, _cy + 1, "x3");
+			draw_set_valign(fa_top);
+			draw_set_font(fnt);
+		} });
+
 	faq_entry("profit",
 		"the one currency. dials make it, taps make it, dial levels cost "
 		+ "it. the counter top-left holds back whatever is still flying "

@@ -51,6 +51,11 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	// each tap separately (5% of N taps either way), it just arrives in
 	// larger, rarer lumps as the rate climbs. That is the right feel for
 	// a hold - a stream of tiny crits would read as a flat rate.
+	// THE OVERCHARGER takes every counted tap (DE: xp_add x fingers on
+	// the press, hp refilled) - before the payout, since the payout is
+	// what it multiplies
+	if (_stat) overcharge_tap(_n);
+
 	var _ub   = upgrade_bonus_live();
 	var _rate = g.click_crit + _ub.crit_rate;
 	var _pay  = do_multi(g.click_gps, arb(_n));

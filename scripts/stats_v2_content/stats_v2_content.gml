@@ -97,6 +97,13 @@ function stats_v2_content() {
 				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);
 		if (variable_global_exists("click_gps"))
 			stats_v2_line("per tap", crunch_arb(g.click_gps), -1, g.profit_color);
+		if (variable_global_exists("overcharge_lv"))
+			stats_v2_line("overcharge", "x" + string(overcharge_multi())
+				+ "  (lv " + string(g.overcharge_lv) + " / " + string(overcharge_maxlv()) + ")",
+				-1, (g.overcharge_lv > 1) ? vis_tier_color(g.overcharge_lv - 1) : c_gray,
+				"tapping charges it: every level is another x1 on what a tap "
+				+ "pays, and it drains when you stop. the ring beside the "
+				+ "per-tap figure is the charge toward the next level.");
 		stats_v2_line("hold rate", string(floor(tap_rate())) + " a second", -1, c_gray,
 			"hold the tap surface and it taps at this rate. taps bank as a "
 			+ "fraction each frame and the whole part is paid in one go, so "

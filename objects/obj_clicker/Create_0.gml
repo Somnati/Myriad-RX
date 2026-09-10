@@ -69,3 +69,7 @@ tps_sm  = 0;      // the SMOOTHED rate the readout shows (DE's __tps)
 tps_i   = -1;     // last whole rate the string was built from
 tps_txt = "0";    // ...and the string itself
 
+// THE OVERCHARGER rides with the tap surface: one persistent instance,
+// spawned here because this Create runs exactly once, at boot
+if (!instance_exists(obj_overcharge)) create_obj(0, 0, obj_overcharge);
+

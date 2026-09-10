@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"overcharge_multi",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"overcharge_multi",
+  "parent":{
+    "name":"tap",
+    "path":"folders/game/tap.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
