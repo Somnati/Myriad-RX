@@ -158,14 +158,28 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 // muted a gate at 200 - so the press that picked the pill fell through
 // to the row it was floating over. At the panel's own rung the rows
 // are free with the panel up and muted under any pillbox or popup.
-if (oa >= .999 && !closing)
-if (input_free(ui_layer_overlay))
-if (!variable_global_exists("click_owner") || g.click_owner == noone)
 // escape closes (the menu drawer's own nicety; it never OPENS settings,
-// so rooms that use escape for something else stay safe)
+// so rooms that use escape for something else stay safe) - behind the
+// same landing + input gate as the taps
+if (oa >= .999 && !closing && input_free(ui_layer_overlay))
 if (keyboard_check_pressed(vk_escape)) { settings_close(); exit; }
 
 click_tic = max(0, click_tic - delta);
+
+// ⚖️ THE GATE, AS EXITS (his report, 2026-09-10: "the menu blur toggle
+// doesn't work"). Since the overlay port (de2ae9e) the three conditions
+// - landed, input free, no click owner - were a braceless if-chain
+// with the ESCAPE line slipped in as its one statement, so the whole
+// tap block under it ran ungated: no landing gate, no input gate and
+// NO OWNER CHECK. A press on a toggle's PADDLE was then handled twice
+// - by the widget (its own arbitrated click) and by the row ("the
+// whole row flips") - two flips, net nothing; the label half of the
+// row still worked, which is why some toggles seemed fine. It is also
+// where this morning's pillbox click-throughs came from. Exits now,
+// so nothing can be slipped between the gate and the taps again.
+if (oa < .999 || closing) exit;
+if (!input_free(ui_layer_overlay)) exit;
+if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 // NO ROW HEARS A PRESS WHILE A DROPDOWN EXISTS (DE's rule, his ask) or
 // while the click timer runs - the pillbox owns the pointer until it
 // has gone, however the frames fall
