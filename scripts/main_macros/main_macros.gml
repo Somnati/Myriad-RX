@@ -334,7 +334,26 @@ function main_macros() {
 #macro PUCK_PAY_MAX      2  // tap_rate(). See puck_pay - the puck has
                             // no scale of its own BY DESIGN
 
-#macro TILES_LIVE false
+// ⚖️ THE TABLE IS LIVE (his call, 2026-09-09: "allow the tiles to run
+// like normal instead of starting when i enter the room"). This flag
+// was the reason it did not: with it false, setgame SKIPS tiles_init at
+// boot, so the persistent syst_tiletimer that ticks fabrication and
+// automerge in every room did not exist until syst_tiles' Create built
+// it - which is to say, until you opened the room. The board was not
+// paused; it had not been created.
+//
+// Flipping it turns on four things at once, and they belong together:
+//   setgame        tiles_init at boot -> the engine exists from launch
+//   handle_save    the "tiles" section is written and read for real
+//   offline_replay the board catches up on time spent away
+//   syst_tiles     the "preview - not saved yet" banner stops drawing
+//
+// PERSISTENCE IS THE ONE THAT MATTERS. A board that runs everywhere but
+// forgets itself at every launch is worse than one that only runs while
+// watched, so "run like normal" has to include being saved. Old saves
+// have no tiles section and load their defaults through handle() - no
+// migration, nothing to convert.
+#macro TILES_LIVE true
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -

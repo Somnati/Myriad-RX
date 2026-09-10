@@ -171,24 +171,12 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 	draw_text(_ix + 5, _iy + 4 + _i * 11, _lines[_i][0]);
 }
 
-// ---- controls: back top-right, toggles bottom-left ----
-// BACK RIDES __btn_a like the bottom row (his report: it was drawing in
-// front of the drawer). It is not really in front - the drawer's
-// backdrop is a PIXELATED COPY of the room, and point-sampled
-// pixelation keeps thin high-contrast marks at full strength, so UI
-// text survives it as bright blocks and reads as being on top. Fading
-// the control out is the honest answer: the drawer covers where it was,
-// and a button you cannot reach should not look pressable.
-var _bbx = room_width - 62;
-var _bba = __btn_a(_bbx, _bbx + 56);
-if (_bba > .01) {
-	draw_set_halign(fa_center);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bbx, 30, 56, 16, 0, c_black, .8 * _bba);
-	draw_px_rect(_bbx, 30, 56, 16, rgb(170, 190, 230), .9 * _bba);
-	draw_set_color(c_white);
-	draw_set_alpha(.9 * _bba);
-	draw_text(_bbx + 28, 34, "back");
-}
+// ---- controls: toggles bottom-left ----
+// (the BACK button is gone, his call. It was the only navigation this
+// screen drew for itself, and every other room in the game leaves that
+// to the header's burger - a per-room back button is a second way to do
+// one thing, and it was the piece that kept colliding with the upgrades
+// drawer as that grew.)
 draw_set_alpha(1);
 
 // THE BOTTOM ROW. Each button's alpha rides __btn_a, so anything the

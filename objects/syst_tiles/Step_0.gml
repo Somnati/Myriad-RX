@@ -117,12 +117,8 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 		// the welcome-back report dismisses on any tap
 		if (!is_undefined(_t.report)) _t.report = undefined;
 
-		// back, top right
-		if (point_in_rectangle(mouse_x, mouse_y, room_width - 62, 30, room_width - 6, 46)) {
-			play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-			back_room();
-			exit;
-		}
+		// (no back hit test: the button is gone - the header's burger is
+		// how every other room in the game is left)
 		// bottom-left controls: auto merge toggle + sort
 		if (point_in_rectangle(mouse_x, mouse_y, 6, 246, 106, 260)) {
 			_t.automerge = !_t.automerge;
