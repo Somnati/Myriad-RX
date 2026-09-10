@@ -7,6 +7,13 @@ if (_now >= last_now) {
 }
 last_now = _now;
 
+// ---- THE PILE'S BUTTON lives in the money room (both shapes of it),
+// spawned here rather than placed in the rooms - one runtime instance,
+// so neither room can forget it ----
+if (variable_global_exists("game_started") && g.game_started)
+if (in_room(rm_clicker) && !instance_exists(obj_offlinegold))
+	create_obj(0, 0, obj_offlinegold);
+
 // ---- the report (DE's obj_idletime: banners in the money room) ----
 if (!variable_global_exists("offline_report")) exit;
 var _r = g.offline_report;
@@ -29,8 +36,8 @@ if (_bk >= 1) {
 		c_gold, c_black);
 	syst_banner.hp[0] *= 3;
 }
-assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0"),
-	g.profit_color, c_black);
+assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0")
+	+ " - in the pile, tap to collect", g.profit_color, c_black);
 syst_banner.hp[0] *= 3;
 assign_banner("idle rate " + ((_r.rate > 0) ? crunch_arb(_r.rate) : "0") + "/sec",
 	color_set_comp(g.profit_color), c_black);

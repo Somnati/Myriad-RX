@@ -13,6 +13,11 @@
 	// dial levels are bought with it (Myriad DE calls it gold)
 	g.profit       = 0;
 	g.total_profit = 0;
+	// THE OFFLINE PILE (DE's global.offline_gold, ported 2026-09-10):
+	// what an absence earned, held here until the button in the money
+	// room is tapped - see obj_offlinegold. Saved with profit.
+	g.offline_pool = 0;
+	g.offline_pooling = false;   // true only inside offline_replay's replay
 
 	// run difficulty (new game overhaul): 0 easy / 1 standard /
 	// 2 hard / 3 critical. picked in the new-game flow, stored on the

@@ -14,7 +14,9 @@
 // ========================== THE FILES ===============================
 //   offline_replay(secs)   the calculator: prod_dials(secs), then the
 //                    report {secs, gain, rate} queued in
-//                    g.offline_report. Profit lands immediately.
+//                    g.offline_report. Profit lands in g.offline_pool
+//                    (DE's offline_gold, 2026-09-10) and waits for
+//                    obj_offlinegold's button in the money room.
 //   stats_hist_offline THE GRAPHS GET THE ABSENCE TOO. They sample off
 //                    syst_production's heartbeat, which does not run
 //                    while the game is closed, so an absence used to

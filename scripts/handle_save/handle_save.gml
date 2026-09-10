@@ -34,6 +34,7 @@ function handle_save(){
 	// fraction-caught save
 	g.upgrade_rarity = handle("upgrade_rarity", g.upgrade_rarity);
 	g.profit       = handle("profit",       g.profit);
+	g.offline_pool = handle("offline_pool", g.offline_pool);   // the uncollected pile
 	g.total_profit = handle("total_profit", g.total_profit);
 	if (action == sv_load) {
 		g.profit       = do_floor(g.profit);

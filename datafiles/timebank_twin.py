@@ -142,9 +142,14 @@ for lv in range(0, 20, 3):
     fc, fr = upg_cost("cap", lv), upg_cost("rate", lv)
     print("      %3d   %8.0f m   %8.0f m   %8.0f m   %d"
           % (lv, cap_secs(lv) / 60, fc / 60, fr / 60, cap_lv_for(fr)))
-say(all(upg_cost("cap", lv) <= cap_secs(lv) for lv in range(0, 40)),
-    "every capacity fee fits the capacity it buys",
-    "a fee above the cap is one that could never be saved for")
+# ⚖️ HIS ONE CONDITION (2026-09-10): "as long as the capacity upgrade is
+# always affordable". Not merely under the cap - under it with room, so
+# a bank that is not quite full still buys it. 70% is the margin; the
+# linear ladders give 67% at level 0 and fall toward 50% from there.
+worst = max(upg_cost("cap", lv) / cap_secs(lv) for lv in range(0, 60))
+say(worst <= .70,
+    "the capacity upgrade is ALWAYS affordable (fee under 70% of the cap, every level)",
+    "worst level takes %.0f%% of the cap" % (worst * 100))
 say(cap_lv_for(upg_cost("rate", rate_maxlv())) <= 8,
     "the last rate fee is holdable within eight capacity buys",
     "needs cap_lv %d" % cap_lv_for(upg_cost("rate", rate_maxlv())))

@@ -36,6 +36,7 @@ function rebirth_do() {
 
 	// ---- 3. the clean slate ----
 	g.profit        = 0;
+	g.offline_pool  = 0;   // an uncollected pile belongs to the run it came from
 	g.profit_flight = 0;
 	// the reserve's watermark is RUN-scoped: automation prefs survive a
 	// rebirth (they are preferences, not progress) but the high point

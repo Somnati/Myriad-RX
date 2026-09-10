@@ -17,6 +17,7 @@ function game_reset(_diff = 1) {
 	g.time_played_active     = 0;
 	g.time_played_offline    = 0;
 	g.profit        = 0;
+	g.offline_pool  = 0;   // an uncollected pile belongs to the run it came from
 	g.total_profit  = 0;
 	g.profit_flight = 0;
 

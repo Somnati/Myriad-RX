@@ -45,8 +45,15 @@ function offline_replay(_secs) {
 
 	var _before = g.profit;
 	var _rate   = g.all_gps;      // the rate the absence ran at
-
+	// ⚖️ INTO THE PILE, NOT THE POCKET (DE's offline_gold, his ask
+	// 2026-09-10): everything the replay pays lands in g.offline_pool -
+	// give_profit reads this flag - and waits for the button in the
+	// money room. The flag is lowered before anything else runs, so a
+	// live payout can never be caught by it.
+	var _pool0 = g.offline_pool;
+	g.offline_pooling = true;
 	prod_dials(_secs);
+	g.offline_pooling = false;
 	credit_tick(_secs);   // the dropper's pool refills over the absence too
 
 	// THE TILE TABLE, replayed exactly: tiles_fastforward walks the
@@ -61,17 +68,14 @@ function offline_replay(_secs) {
 	// bulk absence (thirteen bursts on the first frame would be noise)
 	for (var _i = 0; _i < g.dial_total; _i++) g.dial[_i].paid = false;
 
-	var _gain = (g.profit > _before) ? do_subtract(g.profit, _before) : 0;
-
-	// no motes carry this, so the counter must not hold it back
-	if (_gain > 0)
-		g.profit_flight = (g.profit_flight > _gain)
-			? do_subtract(g.profit_flight, _gain) : 0;
-
+	// what the absence earned is what the POOL grew by; the pile itself
+	// did not move, so nothing is held back and the profit graph draws
+	// a flat line across the absence (it steps up at the tap)
+	var _gain = (g.offline_pool > _pool0) ? do_subtract(g.offline_pool, _pool0) : 0;
 	// THE GRAPHS GET THE ABSENCE TOO. Everything it needs was measured
 	// right here and nowhere else: how long, what the pile was, what the
 	// replay paid, and the rate it paid at.
-	stats_hist_offline(_secs, _before, _gain, _rate);
+	stats_hist_offline(_secs, _before, 0, _rate);
 
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
 		banked : _banked, bank_full : g.timebank.last_full, shown : false };
