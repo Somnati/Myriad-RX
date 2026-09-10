@@ -36,6 +36,7 @@ function handle_settings(_method) {
 	g.vsync = handle("vsync",abs(g.vsync));
 	g.blur = handle("blur",g.blur);
 	g.cursor_ray = handle("cursor_ray",g.cursor_ray); // the pointer's raycast shading
+	g.motion_blur = handle("motion_blur",g.motion_blur); // per-object motion blur (the puck)
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);
 	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve

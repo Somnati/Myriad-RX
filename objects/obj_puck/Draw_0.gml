@@ -78,12 +78,31 @@ var _gs = (d * lerp(2.4, 1.7, _fr)) / _gw;
 draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy + 2, _gs, _gs, 0,
 	c_black, lerp(.30, .16, _fr));
 
+// ---- THE SWEEP (motion blur, his ask 2026-09-10) ----
+// Where the puck was last drawn to where it is now, stretched to a
+// fixed 1/60 SHUTTER: delta is the frame's length in 60hz frames, so
+// dividing this frame's travel by it gives the travel of one sixtieth
+// of a second whatever the refresh rate - a 144hz monitor would
+// otherwise blur a third as much as a 60hz one. Clamped to two
+// diameters so a teleport (room entry, a reset) is not a streak
+// across the room. The yaw sweeps the same way. One sub-sample per
+// two pixels of travel, two at least once moving, eight at most.
+var _mb_on = (variable_global_exists("motion_blur") ? g.motion_blur : true);
+var _sdt = max(delta, .05);
+var _bx = _mb_on ? (_cx - mb_cx) / _sdt : 0;
+var _by = _mb_on ? (_cy - mb_cy) / _sdt : 0;
+var _bl = point_distance(0, 0, _bx, _by);
+if (_bl > d * 2) { _bx *= (d * 2) / _bl; _by *= (d * 2) / _bl; _bl = d * 2; }
+var _byaw = _mb_on ? degtorad(angle_difference(yaw, mb_yaw)) / _sdt : 0;
+var _mbk = (_bl < .5 && abs(_byaw) < .02) ? 1 : clamp(ceil(_bl / 2), 2, 8);
+
 // ---- the motion smear ----
 // A short trail behind a fast puck, sampled back along its own
 // direction. Not a physical afterimage - it is the one cue that says
 // "this is moving fast" at a glance, and it fades out entirely below
-// half speed so a drifting puck stays clean.
-if (!held && _fr > .18) {
+// half speed so a drifting puck stays clean. THE FALLBACK now: with
+// motion blur on, the real thing (the sweep above) replaces it.
+if (!_mb_on && !held && _fr > .18) {
 	var _n = 5;
 	for (var _i = 1; _i <= _n; _i++) {
 		var _b = (_i / _n) * d * 1.6 * _fr;
@@ -110,10 +129,15 @@ if (!held && _fr > .18) {
 // are watching. State still reads at a glance, because tint (red
 // stunned, aqua docked) is what feeds the ring.
 draw_set_alpha(1);
-var _qh = r * PUCK_QP;
+// the quad covers the whole sweep: centred on its midpoint, half a
+// sweep wider each way, cells still one room pixel each
+var _qh = r * PUCK_QP + _bl * .5;
+var _qcx = _cx - _bx * .5, _qcy = _cy - _by * .5;
 shader_set(sh_puck);
-shader_set_uniform_f(u_quad_p, _cx - _qh, _cy - _qh, _qh * 2, _qh * 2);
+shader_set_uniform_f(u_quad_p, _qcx - _qh, _qcy - _qh, _qh * 2, _qh * 2);
 shader_set_uniform_f(u_yaw_p, degtorad(yaw));
+shader_set_uniform_f(u_mb_p, _bx / r, _by / r, _byaw);
+shader_set_uniform_f(u_mbk_p, _mbk);
 shader_set_uniform_f(u_light_p, -.42, -.62, .66);
 shader_set_uniform_f(u_col_p,
 	colour_get_red(rubber) / 255,
@@ -126,11 +150,13 @@ shader_set_uniform_f(u_ring_p,
 // rubber, unless the cannon is charging - a shot winding up polishes
 // itself, which is a free tell that something is about to happen
 shader_set_uniform_f(u_metal_p, cannon ? lerp(mat_metal, max(mat_metal, .5), clamp(aim / 120, 0, 1)) : mat_metal);
-shader_set_uniform_f(u_pad_p, PUCK_QP);
+shader_set_uniform_f(u_pad_p, _qh / r);
 shader_set_uniform_f(u_cells_p, _qh * 2);   // one cell per room pixel
-draw_sprite_ext(spr_pixel_1x1, 0, _cx - _qh, _cy - _qh,
+draw_sprite_ext(spr_pixel_1x1, 0, _qcx - _qh, _qcy - _qh,
 	_qh * 2, _qh * 2, 0, c_white, 1);
 shader_reset();
+// what this frame drew, for the next frame's sweep
+mb_cx = _cx; mb_cy = _cy; mb_yaw = yaw;
 
 // ---- the combo ring ----
 // While a throw still has bounce-resist banked, an arc of pips rides the

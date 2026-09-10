@@ -27,6 +27,19 @@ uniform vec3  u_ring;  // the stamped ring on the crown - the throw's
 uniform float u_metal; // finish: 0 = matte rubber, 1 = polished
 uniform float u_pad;   // quad half-extent in puck radii
 uniform float u_cells; // pixel cells across the quad. 0 = off
+// ⚖️ MOTION BLUR, THE REAL KIND (his ask, 2026-09-10: per-object blur
+// for the mouse, puck, dice and bits - the puck first). The quad is
+// centred on the MIDPOINT of this frame's sweep (last drawn centre to
+// this one, over a fixed 1/60 shutter), and every cell casts its ray
+// K times, at K transforms spread evenly along that sweep - position
+// AND yaw - accumulating the shaded hits. Output is the mean colour at
+// alpha hits/K: a cell the puck covered for the whole shutter is solid,
+// one it only passed through is a translucent trail. Every sub-sample
+// is a real lit hit of the real solid, so the knurl smears into bands
+// and the stamped ring streaks exactly as a camera would see it; and
+// the accumulation is PER CELL, so the blur is as blocky as the puck.
+uniform vec3  u_mb;    // the sweep: xy in radii (start -> end), z the yaw swept, radians
+uniform float u_mbk;   // sub-samples across the sweep, 1 = no blur
 
 const float HH = 0.34;  // half-height in radii. A real puck is 3in
                         // across and 1in thick, so 0.333 - and it is
@@ -42,18 +55,14 @@ float sd_puck(vec3 p)
     return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - CR;
 }
 
-void main()
+// one ray, one transform: the cell's quad point s (in radii, about the
+// quad centre), the puck's yaw at that instant. Returns false on a miss.
+bool cast(vec2 s, float yaw, out vec3 col)
 {
-    // quantize the QUAD COORDINATE, not the output: every cell casts one
-    // ray, so the pixelation is native rather than a filter over it
-    vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
-    if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
-    vec2 s = (q * 2.0 - 1.0) * u_pad;
-
     // view -> object is a yaw about z, so it is a 2x2 on xy and nothing
     // on the axis. Inverse of a rotation by yaw is a rotation by -yaw.
-    float cy = cos(-u_yaw);
-    float sy = sin(-u_yaw);
+    float cy = cos(-yaw);
+    float sy = sin(-yaw);
     vec3 ro = vec3(s.x * cy - s.y * sy, s.x * sy + s.y * cy, 3.0);
     vec3 rd = vec3(0.0, 0.0, -1.0);
 
@@ -64,7 +73,7 @@ void main()
         if (d < 0.004 || t > 5.5) break;
         t += d;
     }
-    if (d >= 0.004) discard;
+    if (d >= 0.004) return false;
 
     vec3 p = ro + rd * t;
 
@@ -111,7 +120,7 @@ void main()
     // the single-yaw form buys
     float df  = clamp(dot(n, u_light), 0.0, 1.0);
     float dfw = mix(0.30 + 0.75 * df, 0.16 + 0.52 * df, u_metal);
-    vec3 col = body * dfw;
+    col = body * dfw;
 
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), n);
     float sp = pow(clamp(dot(rf, u_light), 0.0, 1.0), mix(11.0, 40.0, u_metal));
@@ -125,6 +134,33 @@ void main()
     // separates it from the room behind it
     float fr = pow(1.0 - clamp(abs(n.z), 0.0, 1.0), 2.0);
     col += spc * fr * 0.13 * (1.0 - top);
+    return true;
+}
 
-    gl_FragColor = vec4(col, 1.0);
+void main()
+{
+    // quantize the QUAD COORDINATE, not the output: every cell casts its
+    // rays from one point, so the pixelation is native rather than a
+    // filter over it
+    vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
+    if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
+    vec2 s = (q * 2.0 - 1.0) * u_pad;
+
+    // K transforms along the sweep (see u_mb): the puck's centre at
+    // sub-frame t sits (t - .5) of the sweep from the quad centre, and
+    // its yaw is this frame's less what it still had to turn
+    int K = int(u_mbk + 0.5);
+    if (K < 1) K = 1;
+    vec3 acc = vec3(0.0);
+    float hits = 0.0;
+    for (int i = 0; i < 8; i++) {
+        if (i >= K) break;
+        float ft = (float(i) + 0.5) / float(K);
+        vec2 off = (ft - 0.5) * u_mb.xy;
+        float yw = u_yaw - (1.0 - ft) * u_mb.z;
+        vec3 c;
+        if (cast(s - off, yw, c)) { acc += c; hits += 1.0; }
+    }
+    if (hits < 0.5) discard;
+    gl_FragColor = vec4(acc / hits, hits / float(K));
 }

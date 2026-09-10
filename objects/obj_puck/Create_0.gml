@@ -141,6 +141,13 @@ u_ring_p  = shader_get_uniform(sh_puck, "u_ring");
 u_metal_p = shader_get_uniform(sh_puck, "u_metal");
 u_pad_p   = shader_get_uniform(sh_puck, "u_pad");
 u_cells_p = shader_get_uniform(sh_puck, "u_cells");
+u_mb_p    = shader_get_uniform(sh_puck, "u_mb");
+u_mbk_p   = shader_get_uniform(sh_puck, "u_mbk");
+// MOTION BLUR bookkeeping (see the Draw): the transform the puck was
+// LAST DRAWN at. Seeded to where it is, so the first frame has no sweep.
+mb_cx  = x + PUCK_D * .5;
+mb_cy  = y + PUCK_D * .5;
+mb_yaw = yaw;
 
 // ---- motion (polar: DE's model) ----
 spd  = 0;

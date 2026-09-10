@@ -183,6 +183,14 @@ function settings_content() {
 		+ "same light, same finish. off keeps the raycast (the squash "
 		+ "still re-pixelates) but paints it flat white and ink.");
 
+	settings_toggle("motion blur",
+		function() { return g.motion_blur; },
+		function(_v) { g.motion_blur = _v; },
+		"the real thing, per object: the puck is drawn at several "
+		+ "instants across each frame's travel and the hits are "
+		+ "averaged, so a fast throw streaks the way a camera would "
+		+ "see it. off falls back to the old trail.");
+
 	// room transition style (round 7's showcase slice wipe vs the
 	// classic circle; goto_room latches the pick per flight)
 	settings_pill("transition", "transkind",
