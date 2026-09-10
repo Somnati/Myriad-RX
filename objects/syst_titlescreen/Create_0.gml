@@ -145,11 +145,11 @@ dith_u_time = shader_get_uniform(sh_fog_dither, "u_time");
 
 // ---- THE GLOW PASS (his question, 2026-09-10: "why not use the
 // internal bloom shader instead of sprites") ----
-// The field draws through a proxy at depth 100 and this layer sits at
-// 50, so GameMaker's _effect_glow - the visualiser's own "glow" layer,
-// same effect, same parameter names - blooms the blocks and the
-// gradient and nothing above it: the name, the menu and the save card
-// draw at this instance's depth (0) and stay crisp. Built at runtime
+// The field draws through a proxy at depth 100 (the name at 90) and
+// this layer sits at 50, so GameMaker's _effect_glow - the visualiser's
+// own "glow" layer, same effect, same parameter names - blooms the
+// blocks and the wordmark and nothing above it: the gradient (40, see
+// __draw_grad), the menu and the save card stay crisp. Built at runtime
 // the way ui_blur_tick builds menu_blur, so the room file stays as it
 // is. Radius and intensity are the title's own (its blocks are
 // atmosphere, far dimmer than the money room's), but the pass honours
@@ -171,16 +171,10 @@ layer_set_visible("title_glow", !variable_global_exists("vis_glow") || g.vis_glo
 // should touch - at depth 100, under the layer. obj_draw_proxy exists
 // for exactly this: one instance, two depths.
 __draw_field = function() {
-	// ---- backdrop ----
-	// black into the house teal, bottom-lit. A 270px-tall dark gradient
-	// bands hard in the 8-bit pipeline - sh_fog_dither's temporal IGN
-	// shimmers the steps flat (the house fix; its luminance gate leaves the
-	// black top untouched).
-	shader_set(sh_fog_dither);
-	shader_set_uniform_f(dith_u_time, (current_time mod 100000) / 1000);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, room_width,
-		room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), 1);
-	shader_reset();
+	// ---- the ground ----
+	// plain black. The gradient is NOT under the glow pass any more -
+	// see __draw_grad below, and why.
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, 1);
 
 	// ---- THE DRIFT ----
 	// ⚖️ THE LATTICE IS GONE (his verdict on the first attempt: "the
@@ -247,3 +241,63 @@ field_px = create_obj(0, 0, obj_draw_proxy);
 field_px.owner = id;
 field_px.depth = 100;
 field_px.fn    = __draw_field;
+
+// ⚖️ THE NAME IS LIT BY THE PASS TOO (his report, 2026-09-10: "title
+// still has sprite glow"). The wordmark sat over a spr_vis_glow_soft
+// wash - the one stamp left after the blocks lost theirs. Gone: the
+// name draws at depth 90, under the glow layer with the field, and the
+// pass gives it its halo the same way it gives the blocks theirs. The
+// menu, the save card and "remix edition" stay at 0, crisp - small
+// type under a bloom is small type you cannot read.
+__draw_name = function() {
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+	// the accent rule is the spine the whole column hangs off: title,
+	// menu and everything between share one x
+	draw_sprite_ext(spr_pixel_1x1, 0, rule_x, 44, 2, 46, 0, c_gold, .55);
+	// fnt_large at 2x (his call - sprite fonts take INTEGER scales, so
+	// 2 is the only size above 1 that is not a smear)
+	draw_set_font(fnt_large);
+	draw_set_color(merge_colour(c_gold, c_white, .55));
+	draw_set_alpha(1);
+	// ONE literal, measured once (his ask: capitalise the first letter)
+	var _nm = "Myriad";
+	draw_text_transformed(lm, 46, _nm, 2, 2, 0);
+	var _nw = string_width(_nm) * 2;
+	draw_set_color(c_gold);
+	draw_text_transformed(lm + _nw + 8, 46, "rx", 2, 2, 0);
+	// a hairline under the name, fading out to the right - it stops
+	// the wordmark floating without drawing a box around it
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, lm, 78, 190, 1, 0,
+		c_gold, c_black, c_black, c_gold, .3);
+	draw_set_font(fnt);
+};
+name_px = create_obj(0, 0, obj_draw_proxy);
+name_px.owner = id;
+name_px.depth = 90;
+name_px.fn    = __draw_name;
+
+// ⚖️ THE GRADIENT SITS OVER THE PASS, ADDED (his report, 2026-09-10:
+// "banding on the title screen gradient background"). Under the glow
+// layer it banded again, and for a reason the dither could not fix:
+// the pass adds a BLURRED copy of everything below it, and a blur of a
+// temporally dithered gradient is the gradient with its dither
+// averaged out - 8-bit steps, in the blurred copy, laid back over the
+// clean one. So the gradient draws at 40, above the layer, in bm_add:
+// black adds nothing, the teal adds itself, and the composition is the
+// old one (blocks over a bottom-lit teal) with the dither untouched
+// and nothing for the pass to smear. The field under the pass is pure
+// black plus the blocks - which is all a glow pass should ever see.
+__draw_grad = function() {
+	gpu_set_blendmode(bm_add);
+	shader_set(sh_fog_dither);
+	shader_set_uniform_f(dith_u_time, (current_time mod 100000) / 1000);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, room_width,
+		room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), 1);
+	shader_reset();
+	gpu_set_blendmode(bm_normal);
+};
+grad_px = create_obj(0, 0, obj_draw_proxy);
+grad_px.owner = id;
+grad_px.depth = 40;
+grad_px.fn    = __draw_grad;

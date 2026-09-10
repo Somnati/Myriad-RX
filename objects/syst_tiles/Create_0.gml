@@ -175,8 +175,6 @@ float_x = 0;
 float_y = 0;
 spark_x = 0;   // where the shard count sits - and where the bits fly
 spark_y = 0;
-bits_x = 0;    // where the bits LEAVE from: one point over the board
-bits_y = 0;
 
 // frames left on the table-rebirth confirm (see the Step)
 arm_rb = 0;
@@ -184,6 +182,18 @@ arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
               // misclick beside [sort] must not cost thirteen levels
 arm_ru = 0;   // and [reset upgrades]' - same rule, same reason
+// ⚖️ THE DRAWER'S TAPS LAND ON RELEASE, UNDER A DRAG BUDGET (his report,
+// 2026-09-10: "im accidentally clicking on the upgrade buttons when i
+// try to close the tile dock"). The rows bought on PRESS, and a swipe
+// to close the drawer starts with a press - on whatever row the finger
+// happened to land on, which bought it before the gate had seen a
+// single pixel of travel. menu2's rule, the dial drawer's BUDGET: a
+// press is only a tap once the finger comes up within a few px of
+// where it went down, and a press the swipe gate consumed is not a
+// tap at all.
+dp_x = -1;      // where the press landed on the drawer; -1 = no press live
+dp_y = -1;
+DR_BUDGET = 6;
 
 upg_y = 0;       // seated below, once the strip is known
 upg_h = 36;   // name+level, the BONUS line, then the buy button (his
@@ -582,33 +592,24 @@ upg_y = bar_y + bar_h * 2 + 8;
 // arrive at the number they are adding to.
 // spark_lift: how far above the board's top row the count sits. 30 put
 // it a line over the tiles; he wanted it higher (2026-09-10), and 44
-// leaves the bits (below) a real run up to it while keeping the float's
-// rise clear of the fabricator bars.
-// THE BITS' SPAWN (bits_x / bits_y): one point, dead centre, just over
-// the board's top edge. They used to leave from every occupied tile -
-// sixteen sources crossing the board every second, which he called
-// noisy. One source under the count turns that into a tight fountain
-// up into the number, and the tier colours still arrive.
+// keeps the float's rise clear of the fabricator bars.
+// (the bits leave from each tile, under it - syst_tiletimer reads the
+// slot geometry through `with`; there is no separate spawn seat)
 spark_lift = 44;
 spark_x = bx + (g.tiles.cols * pw - 4) * .5;
 spark_y = by - spark_lift;
 float_x = spark_x;
 float_y = spark_y - 2;
-bits_x = spark_x;
-bits_y = by - 5;
 __reseat = function() {
 	var _rows2 = ceil(g.tiles.slots / g.tiles.cols);
 	bx = (room_width - (g.tiles.cols * pw - 4)) * .5;
 	by = board_top + ((board_bot - board_top) - (_rows2 * ph - 4)) * .5;
-	// the spark, the float and the bits' source ride the board - a
-	// board-size upgrade must not leave any of them hanging where the
-	// old board was
+	// the spark and the float ride the board - a board-size upgrade
+	// must not leave either hanging where the old board was
 	spark_x = bx + (g.tiles.cols * pw - 4) * .5;
 	spark_y = by - spark_lift;
 	float_x = spark_x;
 	float_y = spark_y - 2;
-	bits_x = spark_x;
-	bits_y = by - 5;
 };
 
 // ⚖️ WHERE A TILE'S VALUE SITS, and it is worth being deliberate about

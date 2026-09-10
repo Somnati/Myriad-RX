@@ -13,7 +13,8 @@ repeat (_rep) {
 	tic = tic_;
 	if (g.bez_n < 48) {
 		var _o = instance_create_depth(x + random_range(-3, 3),
-			y + random_range(-3, 3), -90, obj_bezier_bit);
+			y + random_range(-3, 3), dep, obj_bezier_bit);
+		_o.depth = dep;   // the mote's Create stamps -90; this lane's wins
 		_o.col = col;
 		// hand this mote its cut and stop owing it; the LAST mote takes
 		// whatever is left, so whole-unit shares never strand a remainder

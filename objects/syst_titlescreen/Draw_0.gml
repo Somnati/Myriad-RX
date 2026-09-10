@@ -13,48 +13,14 @@
 
 draw_set_font(fnt);
 
-// ---- the backdrop and the drift are NOT here any more. They draw
-// through field_px - a draw proxy at depth 100, under the title_glow
-// effect layer at 50 - so GameMaker's own glow pass can bleed the
-// blocks without touching the type. See __draw_field in the Create.
-
-// a soft wash behind the name, so the type has somewhere to sit
-var _gw = sprite_get_width(spr_vis_glow_soft);
-draw_sprite_ext(spr_vis_glow_soft, 0, lm + 40, 68, 300 / _gw, 190 / _gw, 0,
-	c_hsv(30, 180, 255), .09);
-
-// ---- the name ----
-// The accent rule is the spine the whole column hangs off: title, menu
-// and everything between share one x, and the eye gets one edge to
-// follow instead of a centre line it has to keep finding.
+// ---- the backdrop, the drift AND THE NAME are not here any more.
+// They draw through proxies under the title_glow effect layer (field
+// at 100, name at 90, the layer at 50, the gradient at 40 over it) so
+// GameMaker's own glow pass lights them and nothing here. See the
+// Create: __draw_field, __draw_name, __draw_grad.
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
-draw_sprite_ext(spr_pixel_1x1, 0, rule_x, 44, 2, 46, 0, c_gold, .55);
-
-// fnt_large at 2x (his call - sprite fonts take INTEGER scales, so 2 is
-// the only size above 1 that is not a smear). The outline variant is
-// gone with it, which is why the wash above exists: the type needs
-// separation from the drift, and a soft ground gives it that without
-// baking a black rim into every glyph.
-draw_set_font(fnt_large);
-draw_set_color(merge_colour(c_gold, c_white, .55));
-draw_set_alpha(1);
-// ONE literal, measured once (his ask: capitalise the first letter).
-// The width for seating "rx" used to re-type the wordmark two lines
-// down, so the two could disagree the next time it changes - and a
-// capital M is not the width of a lowercase one, which is exactly the
-// change that would have caught it.
-var _nm = "Myriad";
-draw_text_transformed(lm, 46, _nm, 2, 2, 0);
-var _nw = string_width(_nm) * 2;
-draw_set_color(c_gold);
-draw_text_transformed(lm + _nw + 8, 46, "rx", 2, 2, 0);
-
 draw_set_font(fnt);
-// a hairline under the name, fading out to the right - it stops the
-// wordmark floating without drawing a box around it
-draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, lm, 78, 190, 1, 0,
-	c_gold, c_black, c_black, c_gold, .3);
 draw_set_color(sett_ink);
 draw_set_alpha(.45);
 draw_text(lm, 84, "remix edition");

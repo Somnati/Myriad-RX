@@ -1,5 +1,5 @@
 /// @description bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt],
-///              [swing], [spd], [lane]) - burst n
+///              [swing], [spd], [lane], [depth]) - burst n
 /// currency bits from (x, y) toward the target (the Myriad DE
 /// profit-particle framework: obj_bezier_emit paces the burst,
 /// obj_bezier_bit is the mote). tic = the burst style (round 8, the
@@ -29,8 +29,12 @@
 /// "profit" (the default: dials + the tap), "credit", "unit", "tile".
 /// bit_look resolves it to a bit_config row; the emitter stamps the
 /// look on every mote it spawns.
+/// THE DEPTH (same day): -90 by default, over the room and under the
+/// floats, as always. The tile fountain passes the board's depth + 1
+/// so its motes leave from UNDER the tiles (his ask: "pop out at a
+/// depth behind the tiles so they arent in front").
 function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
-	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit") {
+	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit", _dep = -90) {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
 	if (_tx == undefined) {
@@ -38,7 +42,8 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 		// with their rooms - every room targets the header corner now)
 		_tx = 24; _ty = 12;
 	}
-	var _e = instance_create_depth(_x, _y, -90, obj_bezier_emit);
+	var _e = instance_create_depth(_x, _y, _dep, obj_bezier_emit);
+	_e.dep    = _dep;
 	_e.count  = _n;
 	_e.count_ = _n;
 	_e.tic    = 0;

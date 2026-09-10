@@ -86,6 +86,7 @@ if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == 
 		}
 		else if (dr_want > 0 && (_d <= 45 || _d >= 315)) {   // RIGHT: push it shut
 			dr_want = 0; sw_tic = SW_COOL; sw_x = -1;
+			dp_x = -1;   // the press became a swipe - it is not a tap any more
 			play_sound_ext(snd_softclick, .9, 1, .4, 1);
 		}
 	}
@@ -127,14 +128,34 @@ if (qtic <= 0) {
 
 // ---- the upgrade buttons. BEFORE the board's own input, because a
 // press on the panel must never also be a press on a tile ----
+// ⚖️ ON RELEASE, UNDER DR_BUDGET (his report: swiping the drawer shut
+// bought upgrades). The press only REMEMBERS where it landed - and
+// swallows itself so the board never sees it; the tap happens when the
+// finger comes up within a few px of that spot, tested at the PRESS
+// point (where they aimed), and only if the swipe gate did not take
+// the press first. See the Create.
+if (input_free())
+if (dr_open > .5)
+if (!variable_global_exists("click_owner") || g.click_owner == noone) {
+	if (mouse_check_button_pressed(mb_left) && mouse_x > __dr_face()) {
+		dp_x = mouse_x; dp_y = mouse_y;
+		exit;   // the press is the drawer's - the board underneath never receives it
+	}
+}
+// (a separate block, not an early exit: the frames with no release
+// must fall through to the board, the quote tick and the recache)
 if (input_free())
 if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
-if (mouse_check_button_pressed(mb_left)) {
+if (mouse_check_button_released(mb_left) && dp_x >= 0) {
+	var _tpx = dp_x, _tpy = dp_y;
+	dp_x = -1;
+	if (point_distance(_tpx, _tpy, mouse_x, mouse_y) > DR_BUDGET) exit;
+
 	// the close chip, first of all: a plain tap shuts the drawer, for
 	// anyone who would rather not swipe near a board (his report)
 	var _cx2 = __cx_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _cx2.x, _cx2.y,
+	if (point_in_rectangle(_tpx, _tpy, _cx2.x, _cx2.y,
 		_cx2.x + _cx2.w, _cx2.y + _cx2.h)) {
 		dr_want = 0;
 		sw_x = -1;
@@ -144,7 +165,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	// the buy-amount button - it sits above the rows and a tap on it
 	// must never also land on one
 	var _bb2 = __bb_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _bb2.x, _bb2.y,
+	if (point_in_rectangle(_tpx, _tpy, _bb2.x, _bb2.y,
 		_bb2.x + _bb2.w, _bb2.y + _bb2.h)) {
 		__bb_cycle();
 		qtic = 0;   // requote at the new amount at once
@@ -155,7 +176,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	var _uc3 = tile_upg_config();
 	for (var _k = 0; _k < array_length(_uc3); _k++) {
 		var _ur2 = __upg_r(_k);
-		if (!point_in_rectangle(mouse_x, mouse_y, _ur2.x, _ur2.y,
+		if (!point_in_rectangle(_tpx, _tpy, _ur2.x, _ur2.y,
 			_ur2.x + _ur2.w, _ur2.y + _ur2.h)) continue;
 		var _r2 = tile_upg_bulk(_uc3[_k].id, true);
 		if (_r2.ok) {
@@ -177,7 +198,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	// is DE's own two-tap scrap pattern rather than a modal nobody
 	// reads.
 	var _rr3 = __rb_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _rr3.x, _rr3.y,
+	if (point_in_rectangle(_tpx, _tpy, _rr3.x, _rr3.y,
 		_rr3.x + _rr3.w, _rr3.y + _rr3.h)) {
 		var _rc3 = tile_rebirth_calc();
 		if (!_rc3.can) {
@@ -198,9 +219,7 @@ if (mouse_check_button_pressed(mb_left)) {
 		exit;
 	}
 
-	// anywhere else on an open drawer swallows the press, so the board
-	// underneath never receives it (the drawer is the RIGHT side now)
-	if (mouse_x > __dr_face()) exit;
+	// (anywhere else on the drawer: a tap on nothing)
 }
 
 if (input_free())

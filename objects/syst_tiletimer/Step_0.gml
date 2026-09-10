@@ -51,34 +51,35 @@ if (pay_acc >= 1) {
 			// number floating over it, and a high tier's colour arriving
 			// is a high tier paying.
 			//
-			// ⚖️ FROM ONE POINT, NOT FROM EACH TILE (his call, 2026-09-10:
-			// "pretty noisy on the screen"). Sixteen sources crossing the
-			// board every second was the noise; the colours were the
-			// information. So the motes all leave from bits_x/bits_y -
-			// centre, just over the board's top edge - and run straight
-			// up into the count: a fountain the width of a tile instead
-			// of a shower over the whole table. Each colour is still one
-			// mote, so what is paying is still legible.
+			// ⚖️ FROM EACH TILE, FROM UNDERNEATH (his call, 2026-09-10,
+			// the third shape of this). First they left from every tile
+			// over the board - "pretty noisy". Then from one point over
+			// the top edge - a fountain, quiet, but the colours no
+			// longer said WHICH tile was paying. Now each tile throws
+			// its own mote again, at a depth one below the board, so it
+			// spawns hidden under the tile and emerges from its edge on
+			// the way up - the source is legible and nothing crosses the
+			// tiles in front. The near-straight curve and the pace stay.
 			//
 			// No amount carried - that lane holds the HEADER's counter
 			// back until motes land, and shards have no such counter to
 			// hold. Purely the flow, drawn.
 			//
-			// NEARLY STRAIGHT AND QUICK (his ask, same day): swing 6 -
-			// a bow of a few px on a 35px climb, not Myriad's room-wide
-			// swoop - and x1.3 on the pace. The tight curve is most of
-			// the speed by itself: the library paces on path length,
-			// and a control point thrown across the room made a 35px
-			// hop a 250px path.
+			// NEARLY STRAIGHT AND QUICK: swing 6 - a bow of a few px,
+			// not Myriad's room-wide swoop - and x1.3 on the pace. The
+			// tight curve is most of the speed by itself: the library
+			// paces on path length, and a control point thrown across
+			// the room made a short hop a 250px path.
 			var _sx = syst_tiles.spark_x;
 			var _sy = syst_tiles.spark_y + 4;
-			var _bx = syst_tiles.bits_x;
-			var _by = syst_tiles.bits_y;
-			for (var _k = 0; _k < g.tiles.slots; _k++) {
-				var _tk = g.tiles.tier[_k];
-				if (_tk == 0) continue;
-				bezier_bits(_bx, _by, 1, tile_color(_tk), _sx, _sy, -1, 0,
-					6, 1.3, "tile");
+			var _dp = syst_tiles.depth + 1;
+			with (syst_tiles) {
+				for (var _k = 0; _k < g.tiles.slots; _k++) {
+					var _tk = g.tiles.tier[_k];
+					if (_tk == 0) continue;
+					bezier_bits(__slot_x(_k) + tw * .5, __slot_y(_k) + th * .5,
+						1, tile_color(_tk), _sx, _sy, -1, 0, 6, 1.3, "tile", _dp);
+				}
 			}
 		}
 	}
