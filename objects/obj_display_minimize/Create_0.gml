@@ -7,6 +7,7 @@ hue = 0; sat = 0; lum = 0;
 input = false
 
 cc = c_white;
+hov = 0;          // the hover ease (Draw)
 img = 0;
 
 pair

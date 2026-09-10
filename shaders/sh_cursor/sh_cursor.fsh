@@ -82,9 +82,16 @@ bool cur_cast(vec2 rp, vec2 tip, out vec3 col)
     float d = t.r * 8.0 - 4.0;
     if (d >= 0.0) return false;                // the sprite's coverage
     float ink = step(0.5, t.g);                // ...and its own ink ring
+    // ...and its own TONE (his report, 2026-09-10: the model had lost the
+    // tail's shadow shading the sprite has). The sprite is four greys -
+    // white head, a lighter step, the shadowed tail, the dark outline -
+    // and they are the ALBEDO here: the raycast lights them rather than
+    // a flat white, so the tail stays in shadow and the bevel still
+    // catches the light on top of it. Flat mode is the sprite exactly.
+    float alb = t.b;
 
     if (u_lit < 0.5) {
-        col = vec3(1.0 - ink);
+        col = vec3(alb);
         return true;
     }
 
@@ -104,17 +111,18 @@ bool cur_cast(vec2 rp, vec2 tip, out vec3 col)
     vec3 n = normalize(vec3(gv * slope * u_flat, 1.0));
 
     // ---- lighting, the puck's model, on white matte ----
-    vec3 body = vec3(0.97);
+    vec3 body = vec3(alb);
     float df  = clamp(dot(n, u_light), 0.0, 1.0);
-    col = body * (0.50 + 0.58 * df);           // flat top ~85% white, lit bevel to 100%
+    col = body * (0.55 + 0.55 * df);           // flat top ~90% of the tone, lit bevel to 100%
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), n);
     float sp2 = pow(clamp(dot(rf, u_light), 0.0, 1.0), 14.0);
     col += vec3(1.0) * sp2 * 0.22;
     float fr = pow(1.0 - clamp(abs(n.z), 0.0, 1.0), 2.0);
     col += vec3(1.0) * fr * 0.10;
 
-    // the ring stays ink; the rim only lifts it a shade
-    vec3 ring = vec3(0.02) + vec3(0.14) * fr;
+    // the ring is the sprite's own dark grey, dimmer where the wall
+    // faces away from the rim catch
+    vec3 ring = vec3(alb) * (0.6 + 0.4 * fr);
     col = clamp(mix(col, ring, ink), 0.0, 1.0);
     return true;
 }
