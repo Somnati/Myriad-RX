@@ -244,8 +244,14 @@ if (!held && spd > 0) {
 	// throw dying in a corner would bounce - and pay - forever. Strict
 	// inequalities make the clamp itself the thing that ends it.
 	var _wall = false;
-	if (x < _t.x1 || x > _t.x2) { dir = 180 - dir; _wall = true; }
-	if (y < _t.y1 || y > _t.y2) { dir = 360 - dir; _wall = true; }
+	// THE CONTACT POINT (his ask, 2026-09-10: the tap effects belong on
+	// the side that hit the wall, not the centre): the rim on the wall's
+	// side - both sides in a corner
+	var _hx = 0, _hy = 0;
+	if (x < _t.x1) { dir = 180 - dir; _wall = true; _hx = -r; }
+	else if (x > _t.x2) { dir = 180 - dir; _wall = true; _hx = r; }
+	if (y < _t.y1) { dir = 360 - dir; _wall = true; _hy = -r; }
+	else if (y > _t.y2) { dir = 360 - dir; _wall = true; _hy = r; }
 
 	if (_wall) {
 		x = clamp(x, _t.x1, _t.x2);
@@ -254,9 +260,11 @@ if (!held && spd > 0) {
 
 		// ⚖️ THE PAYOUT HAPPENS AT IMPACT SPEED, before restitution
 		// takes its cut. The number you are paid is the number you can
-		// see coming - a bounce that LOOKS fast pays fast.
+		// see coming - a bounce that LOOKS fast pays fast. It pays FROM
+		// THE POINT OF CONTACT: the float, the motes and the tap effect
+		// all leave the rim where it struck.
 		var _frac = clamp(spd / _max, 0, 1);
-		puck_pay(_frac, 1, __cx(), __cy());
+		puck_pay(_frac, 1, __cx() + _hx, __cy() + _hy);
 
 		// restitution: fast bounces keep more than slow ones, so a
 		// throw decays gently at first and then falls off a cliff -

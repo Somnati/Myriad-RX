@@ -122,7 +122,9 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 		// pay through here too (puck_pay, _stat false - they are not
 		// counted as taps), and the arrow was flinching at every wall
 		// (his report, 2026-09-10)
-		if (_stat && ui_overlay() == noone) cursor_kick();
+		// ...and only HELD taps: the press itself already kicked the
+		// arrow in obj_cursor's Step (a click is a click, everywhere)
+		if (_stat && _hold && ui_overlay() == noone) cursor_kick();
 	}
 
 	if (!_show) {

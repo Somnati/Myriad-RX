@@ -8,7 +8,7 @@
 	g.blur = true;   // settings > display "menu blur"
 	g.cursor_ray = true;   // settings > visuals "raycast pointer" (sh_cursor)
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)
-	g.tap_fx = 1;          // the money room's [fx] chip: 1 = DE's glow (syst_tapfx)
+	g.tap_fx = 1;          // the money room's [fx] chip: 0 none / 1 glow / 2 shockwave / 3 both (syst_tapfx)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

@@ -457,6 +457,16 @@ if (grab_i != -1) {
 		if (_res == 0 || _res == 1) {
 			ret_i = (_res == 0) ? grab_i : _dst;
 			ret_x = gx; ret_y = gy;
+			ret_x0 = gx; ret_y0 = gy;
+			// ⚖️ ON A CLOCK, NOT A TRICKLE (his report, 2026-09-10: a tile
+			// released far off the table kept its held look too long).
+			// trickle approaches its target asymptotically, so a long
+			// glide spent its last frames creeping the final pixel with
+			// the ghost's brighter shade and shadow still on - it read
+			// as still held. The glide runs for ret_n frames, a little
+			// longer for a longer trip, and LANDS on the last one.
+			ret_t = 0;
+			ret_n = clamp(8 + point_distance(gx, gy, __slot_x(ret_i), __slot_y(ret_i)) / 14, 10, 20);
 			_t.grab = ret_i;   // still the hand's until it lands
 		} else _t.grab = -1;
 		// the put-down tile is not "hovered" just because the pointer is
@@ -474,9 +484,12 @@ if (ret_i != -1) {
 	if (ret_i >= _t.slots || _t.tier[ret_i] == 0) { ret_i = -1; if (grab_i == -1) _t.grab = -1; }
 	else {
 		var _hx = __slot_x(ret_i), _hy = __slot_y(ret_i);
-		ret_x = trickle(ret_x, _hx, 3.5, 0);
-		ret_y = trickle(ret_y, _hy, 3.5, 0);
-		if (point_distance(ret_x, ret_y, _hx, _hy) < .4) {
+		ret_t = min(1, ret_t + delta / ret_n);
+		var _q = 1 - ret_t;
+		var _e = 1 - _q * _q * _q;                  // ease out: quick off the hand, soft landing
+		ret_x = lerp(ret_x0, _hx, _e);
+		ret_y = lerp(ret_y0, _hy, _e);
+		if (ret_t >= 1) {
 			ret_i = -1;
 			if (grab_i == -1) _t.grab = -1;
 		}

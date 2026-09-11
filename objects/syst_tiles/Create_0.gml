@@ -247,6 +247,9 @@ __dbg_r    = function(_k) {
 // (g.tiles.grab), the same lock a held tile has.
 ret_i = -1;
 ret_x = 0; ret_y = 0;
+ret_x0 = 0; ret_y0 = 0;   // where the hand let go
+ret_t  = 1;               // the glide's clock, 0..1 (eased in the Step)
+ret_n  = 12;              // its length in frames (set on release, off the distance)
 hov_mute = -1;   // the slot a released tile sits in: no hover glow until the pointer leaves it
 // THE SORT BUTTON (his ask, 2026-09-10: DE's sort button sprite,
 // "somewhere it fits outside the debug dock"): DE's spr_button_small at
