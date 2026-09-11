@@ -36,13 +36,13 @@
 //               squared the result, and a blurred line of white text
 //               is a .2 that squares to nothing; squared first, the
 //               text's energy is what spreads)
-//   roll        the rolling bar: a band a few percent DARKER drifting
-//               down the face every eight seconds, and a slow breath
-//               of a percent or so. Multiplicative only - a bar only
-//               shows on lit picture, which is what a real one does
-//               (the additive grey bar and the per-frame noise of the
-//               second cut were "really bad", his words, and they
-//               were: a grey stripe over black and static)
+//   roll        the rolling bar: a band DARKER by an eighth drifting
+//               down the face every eight seconds with a thin bright
+//               rim riding just above it, a whisper of additive so
+//               the field itself shows it passing, and a slow breath
+//               of a few percent. Three cuts to land it: 5%/1% was
+//               invisible, a grey additive stripe plus 60hz noise was
+//               "really bad", 7%/1% multiplicative was invisible again
 //   dither      the whole output rides the house IGN dither (the fog
 //               shader's law, luminance-gated, time-slid): the bloom
 //               and the band are wide dark gradients, which band in
@@ -130,9 +130,12 @@ void main()
     // ---- the rolling bar and the breath ----
     float roll = fract(u_time * 0.125);
     float bd = (suv.y - roll) * 10.0;
-    float band = exp(-bd * bd);
-    col *= 1.0 - 0.07 * u_roll * band;
-    col *= 1.0 + 0.012 * u_roll * (sin(u_time * 8.2) + 0.5 * sin(u_time * 23.0));
+    float band = exp(-bd * bd);                    // the dark body
+    float be = (suv.y - roll + 0.07) * 30.0;
+    float rim = exp(-be * be);                     // the bright rim above it
+    col *= 1.0 - 0.13 * u_roll * band + 0.10 * u_roll * rim;
+    col += vec3(0.010 * u_roll * band);
+    col *= 1.0 + 0.02 * u_roll * (sin(u_time * 8.2) + 0.5 * sin(u_time * 23.0));
 
     // ---- the glass darkens at the corners, if asked ----
     col *= 1.0 - 0.5 * u_vig * r2 * r2;

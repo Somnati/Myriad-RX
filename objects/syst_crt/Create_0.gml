@@ -40,9 +40,82 @@ persistent = true;
 // the shader's second texture: the frame blurred wide, for the bloom
 u_blur_s = shader_get_sampler_index(sh_crt, "u_blur");
 
-bright = -1;    // the bloom's source: the frame times itself, half size
-                // (see the Draw - a blend mode does the squaring, no
-                // extra shader)
+// ---- THE BLOOM CHAIN ----
+// ⚖️ ITS OWN CHAIN, IN 16-BIT FLOAT (his report, 2026-09-10: "the bloom
+// feels low res and doesnt fall off well... 8bit limit?"). Yes: the
+// house blur chain is 8-bit, and a halo's tail is a handful of levels
+// that a strength of .15 rounds to nothing - the glow stopped dead
+// where it should have faded. And blur_snap's up-pass REPLACES each
+// level with the coarsest one upscaled - one blur width, a tent - so
+// the shape had no tail to begin with. This chain:
+//   bright   the frame at half size, squared by a multiply draw (no
+//            shader): the bright things spill, the dark field doesn't
+//   down     five halvings, bilinear - each level is a wider blur
+//   up       each level gets the coarser one ADDED (bm_add), so the
+//            result is the SUM of five widths: a bright core, a long
+//            soft tail - the sum-of-gaussians shape every real bloom
+//            uses
+// in surface_rgba16float where the GPU has it (every desktop one
+// does; the 8-bit fallback keeps the sum shape at least).
+bloom_fmt = surface_format_is_supported(surface_rgba16float)
+	? surface_rgba16float : surface_rgba8unorm;
+bloom_ch  = [];   // the levels, half size down to a thirty-second
+bloom_key = "";
+#macro CRT_BLOOM_STEPS 5
+
+/// (re)build the chain for a bright pass of _w x _h
+__bloom_chain = function(_w, _h) {
+	var _key = string(_w) + "x" + string(_h);
+	var _ok = (bloom_key == _key) && (array_length(bloom_ch) == CRT_BLOOM_STEPS);
+	if (_ok) for (var _i = 0; _i < CRT_BLOOM_STEPS; _i++)
+		if (!surface_exists(bloom_ch[_i])) { _ok = false; break; }
+	if (_ok) return true;
+	for (var _i = 0; _i < array_length(bloom_ch); _i++)
+		if (surface_exists(bloom_ch[_i])) surface_free(bloom_ch[_i]);
+	bloom_ch = [];
+	for (var _i = 0; _i < CRT_BLOOM_STEPS; _i++) {
+		_w = max(1, _w div 2); _h = max(1, _h div 2);
+		array_push(bloom_ch, surface_create(_w, _h, bloom_fmt));
+	}
+	bloom_key = _key;
+	return true;
+};
+
+/// bright (already drawn) -> the chain; returns the top link or -1
+__bloom_run = function(_src) {
+	if (!surface_exists(_src)) return -1;
+	if (!__bloom_chain(surface_get_width(_src), surface_get_height(_src))) return -1;
+	gpu_set_tex_filter(true);
+	// down: each pass halves (the one ratio at which bilinear averages
+	// honestly - blur_snap's lesson)
+	var _from = _src;
+	for (var _i = 0; _i < CRT_BLOOM_STEPS; _i++) {
+		var _d = bloom_ch[_i];
+		surface_set_target(_d);
+		draw_clear_alpha(c_black, 1);
+		draw_surface_ext(_from, 0, 0,
+			surface_get_width(_d)  / surface_get_width(_from),
+			surface_get_height(_d) / surface_get_height(_from), 0, c_white, 1);
+		surface_reset_target();
+		_from = _d;
+	}
+	// up, ADDING: level i keeps its own blur and gains the wider one
+	gpu_set_blendmode(bm_add);
+	for (var _i = CRT_BLOOM_STEPS - 2; _i >= 0; _i--) {
+		var _d = bloom_ch[_i], _c = bloom_ch[_i + 1];
+		surface_set_target(_d);
+		draw_surface_ext(_c, 0, 0,
+			surface_get_width(_d)  / surface_get_width(_c),
+			surface_get_height(_d) / surface_get_height(_c), 0, c_white, 1);
+		surface_reset_target();
+	}
+	gpu_set_blendmode(bm_normal);
+	gpu_set_tex_filter(false);
+	return bloom_ch[0];
+};
+
+bright = -1;    // the bloom's source: the frame squared, half size, in
+                // bloom_fmt (see the Draw - a blend mode does the squaring)
 scratch = -1;   // the frame's copy (the surface can't sample itself);
                 // taken the way pixel_snap takes the drawer's backdrop
                 // - surface_set_target + draw_surface_ext, the capture

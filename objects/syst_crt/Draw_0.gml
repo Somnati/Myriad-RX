@@ -24,25 +24,25 @@ surface_reset_target();
 gpu_set_blendenable(true);
 t += delta / 60;
 
-// ---- the bloom's source ----
+// ---- the bloom ----
 // THE BRIGHT PASS, without a shader: the frame drawn into a half-size
-// surface, then drawn AGAIN over itself in multiply (dest colour x
-// source, nothing of the old), twice - the frame CUBED, so a white
-// line of text stays 1 while a .4 block drops to .06: only what is
-// genuinely bright spills (squared let every block haze; "really bad",
-// his words on the second cut, with the strength at 1.6). THEN the house chain
-// blurs it 8 room px wide (blur_snap's halvings, off this surface's
-// own height) and its top link is the shader's second texture. Squared
-// before the blur - see the shader's header for why the other order
-// showed nothing. Reads the application surface, so it runs here,
-// before the tube draws over it.
+// float surface, then drawn AGAIN over itself in multiply (dest colour
+// x source, nothing of the old) - the frame SQUARED, so a white line
+// of text stays 1 while a .4 block drops to .16: the bright things
+// spill, the lit blocks glow a little, the dark field not at all
+// (cubed, the blocks got nothing; squared at 1.6x, everything hazed -
+// the power and the strength are two knobs). Then the tube's own chain (see the Create)
+// blurs it at five widths and sums them, and the top link is the
+// shader's second texture. Reads the application surface, so it runs
+// here, before the tube draws over it.
 var _bloom = clamp(g.crt_bloom, 0, 100) / 100;
+var _bl_tex = -1;
 if (_bloom > 0) {
 	var _bw = max(2, _aw div 2), _bh = max(2, _ah div 2);
 	if (!surface_exists(bright) || surface_get_width(bright) != _bw
 	|| surface_get_height(bright) != _bh) {
 		if (surface_exists(bright)) surface_free(bright);
-		bright = surface_create(_bw, _bh);
+		bright = surface_create(_bw, _bh, bloom_fmt);
 	}
 	if (surface_exists(bright)) {
 		gpu_set_tex_filter(true);
@@ -51,12 +51,12 @@ if (_bloom > 0) {
 		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
 		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);
 		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
-		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
 		gpu_set_blendmode(bm_normal);
 		surface_reset_target();
 		gpu_set_tex_filter(false);
-		if (!blur_snap(8, bright)) _bloom = 0;
-	} else _bloom = 0;
+		_bl_tex = __bloom_run(bright);
+	}
+	if (_bl_tex < 0) _bloom = 0;
 }
 if (u_blur_s < 0) _bloom = 0;
 
@@ -78,9 +78,11 @@ shader_set_uniform_f(shader_get_uniform(sh_crt, "u_grille"), clamp(g.crt_grille,
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_chroma"), clamp(g.crt_chroma, 0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_vig"),    clamp(g.crt_vig,    0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_roll"),   g.crt_roll ? 1 : 0);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * .6);
+// the chain's sum peaks near CRT_BLOOM_STEPS x the source, so the
+// strength is per level
+shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * 1.0 / CRT_BLOOM_STEPS);
 if (_bloom > 0) {
-	texture_set_stage(u_blur_s, surface_get_texture(g.blur_small));
+	texture_set_stage(u_blur_s, surface_get_texture(_bl_tex));
 	gpu_set_tex_filter_ext(u_blur_s, true);   // the blur is a small surface: read it smooth
 	gpu_set_tex_repeat_ext(u_blur_s, false);
 }
