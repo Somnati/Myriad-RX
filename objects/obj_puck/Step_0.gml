@@ -64,6 +64,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	held = true;
 	sl_ang = point_direction(__cx(), __cy(), mousex, mousey);   // the sling's sweep starts here
 	sl_sum = 0; sl_charge = 0;
+	hvx = 0; hvy = 0;   // the tether starts slack (a catch stops it dead, below)
 
 	// ⚖️ THE CATCH BONUS (DE's, and the best thing in the whole toy):
 	// grabbing it MID-FLIGHT pays PUCK_CATCH times a bounce. Snatching a
@@ -150,26 +151,46 @@ if (held) {
 		tier = 0;
 	}
 
-	// ---- THE ADAPTIVE FOLLOW ----
-	// ⚖️ THE WHOLE SENSATION OF WEIGHT IS THIS ONE NUMBER. The puck
-	// never snaps to the cursor: it trickles, and the trickle gets
-	// SLOWER the further the cursor gets. Yank fast and it stretches,
-	// lags behind, then catches up. A constant rate reads as a sprite
-	// glued to the pointer; a distance-scaled one reads as mass.
+	// ---- THE HELD MASS ----
+	// ⚖️ THE WHOLE SENSATION OF WEIGHT IS HERE. The puck never snaps
+	// to the cursor and - since 2026-09-10 - never merely lags it
+	// either: it is a MASS on a SPRING to the pointer's target, with
+	// its own velocity. Move the hand and the puck takes a moment to
+	// get going, overshoots a touch when the hand stops, and swings out
+	// wide when the hand circles - momentum, which a lag can't fake
+	// (the old trickle-with-a-distance-scaled-rate could stretch, but
+	// it could never pass the hand). PUCK_HOLD_K is the spring and the
+	// weight knob; PUCK_HOLD_DAMP keeps it from ringing forever.
 	//
-	// The cannon inverts it deliberately: it locks in hard for the
-	// first PUCK_CANNON_LOCK frames (so arming feels decisive) and then
-	// goes very slow (so aiming feels deliberate). Docks freeze almost
-	// completely - a magnet that drifts is not a magnet.
-	var _adj = PUCK_FOLLOW;
-	if (_reach > PUCK_DRAG_R)
-		_adj *= lerp(1, PUCK_DRAG_MAX, clamp((_reach - PUCK_DRAG_R) / _max, 0, 1));
-	if (cannon) _adj = (cannon_t < PUCK_CANNON_LOCK) ? 1.5 : PUCK_FOLLOW * 2.5;
-	else if (docked) _adj = 1.5;
-
+	// The cannon and the docks keep the old trickle: a magnet that
+	// swings is not a magnet. The cannon locks in hard for the first
+	// PUCK_CANNON_LOCK frames (arming feels decisive) then goes very
+	// slow (aiming feels deliberate).
 	var _gx0 = gx, _gy0 = gy;
-	gx = trickle(gx, _px, _adj);
-	gy = trickle(gy, _py, _adj);
+	if (cannon || docked) {
+		var _adj = cannon ? ((cannon_t < PUCK_CANNON_LOCK) ? 1.5 : PUCK_FOLLOW * 2.5) : 1.5;
+		gx = trickle(gx, _px, _adj);
+		gy = trickle(gy, _py, _adj);
+		hvx = 0; hvy = 0;
+	} else {
+		// semi-implicit euler on the spring: the pull this frame joins
+		// the velocity first, then the velocity moves the puck - stable
+		// at every frame rate the game runs at, and delta keeps the
+		// feel the same at 144 as at 60
+		hvx += (_px - gx) * PUCK_HOLD_K * delta;
+		hvy += (_py - gy) * PUCK_HOLD_K * delta;
+		var _dk = power(PUCK_HOLD_DAMP, delta);
+		hvx *= _dk; hvy *= _dk;
+		gx += hvx * delta;
+		gy += hvy * delta;
+		// the tray's walls hold a swung puck the way they hold a thrown
+		// one: it stops at the wall and the speed INTO it is lost (no
+		// bounce while held - the hand has it)
+		if (gx < _t.x1) { gx = _t.x1; hvx = max(0, hvx); }
+		if (gx > _t.x2) { gx = _t.x2; hvx = min(0, hvx); }
+		if (gy < _t.y1) { gy = _t.y1; hvy = max(0, hvy); }
+		if (gy > _t.y2) { gy = _t.y2; hvy = min(0, hvy); }
+	}
 	x = clamp(gx, _t.x1, _t.x2);
 	y = clamp(gy, _t.y1, _t.y2);
 
@@ -182,7 +203,7 @@ if (held) {
 	sl_ang = _a;
 	if (abs(_da) < 60) sl_sum += _da;            // (a jump through the centre is not a sweep)
 	sl_sum *= power(.92, delta);
-	sl_vx = gx - _gx0; sl_vy = gy - _gy0;
+	sl_vx = gx - _gx0; sl_vy = gy - _gy0;   // the puck's own travel this frame (the tangent)
 	sl_charge = trickle(sl_charge, clamp(abs(sl_sum) / 360, 0, 2), 3, 0);
 
 	// ==================== RELEASE ====================
@@ -209,10 +230,16 @@ if (held) {
 			// a swing worth a third of a turn or more is a sling: the
 			// speed climbs with the loops banked (x2.6 at two), the
 			// combo with them, and the puck leaves along its own
-			// travel - the tangent - if it was moving at all
+			// travel - the tangent - if it was moving at all. And the
+			// puck's REAL speed at the moment of release counts too:
+			// a mass swung wide and let go carries what it had (the
+			// tether's velocity, in px/frame, scaled up to the throw's
+			// units) - so the same loops released at the fast point of
+			// the swing fly harder than at the slow point
 			var _loops = clamp(abs(sl_sum) / 360, 0, 2);
 			if (_loops > .33) {
 				spd *= 1 + .8 * _loops;
+				spd = max(spd, point_distance(0, 0, hvx, hvy) * 9);
 				resist += round(_loops * 2);
 				if (point_distance(0, 0, sl_vx, sl_vy) > 1.5)
 					dir = point_direction(0, 0, sl_vx, sl_vy);

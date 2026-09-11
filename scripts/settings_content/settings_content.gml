@@ -192,13 +192,6 @@ function settings_content() {
 		+ "same light, same finish. off keeps the raycast (the squash "
 		+ "still re-pixelates) but paints it flat white and ink.");
 
-	settings_toggle("crt title screen",
-		function() { return g.crt_title; },
-		function(_v) { g.crt_title = _v; },
-		"the title's background through a tube: 270 scanlines, a phosphor "
-		+ "stripe, a little curvature and a slow roll. the title, the "
-		+ "menu and the save card stay crisp over it. title screen only.");
-
 	settings_toggle("motion blur",
 		function() { return g.motion_blur; },
 		function(_v) { g.motion_blur = _v; },
@@ -392,6 +385,75 @@ function settings_content() {
 		function(_v) { g.random_profit_color = _v; },
 		"DE's alt profit colour: every profit mote rolls its own hue "
 		+ "instead of wearing the profit colour.");
+
+	// ============================== crt =============================
+	// THE TUBE (his ask, 2026-09-10): syst_crt + sh_crt. Its own tab:
+	// where it runs, which seat, and the five knobs. Nothing here dims
+	// a pixel except the vignette (read the shader's header).
+	settings_section("crt", c_sblue);
+
+	var _cm = ["off", "title screen", "everywhere"];
+	settings_pill("crt", "crtmode", _cm[clamp(g.crt_mode, 0, 2)],
+		function() {
+			set_pill("off",          { val : 0, col : (g.crt_mode == 0) ? c_gold : sett_ink, enabled : (g.crt_mode == 0) });
+			set_pill("title screen", { val : 1, col : (g.crt_mode == 1) ? c_gold : sett_ink, enabled : (g.crt_mode == 1) });
+			set_pill("everywhere",   { val : 2, col : (g.crt_mode == 2) ? c_gold : sett_ink, enabled : (g.crt_mode == 2) });
+		},
+		function(_v) { g.crt_mode = _v; },
+		"the picture through a tube: scanlines, a phosphor grille, curved "
+		+ "glass, a red/blue split at the edges and a slow roll. the rows "
+		+ "keep their brightness - only the gaps between them are dark.");
+
+	settings_toggle("over the interface",
+		function() { return g.crt_over_ui; },
+		function(_v) { g.crt_over_ui = _v; },
+		"on: everything is on the glass - header, menus, drawers, the "
+		+ "lot; only the pointer stays off it. off: the tube sits behind "
+		+ "the interface, so in the money room it is the visualiser, the "
+		+ "dice and the puck alone.");
+
+	settings_slider("curvature", 0, 100,
+		function() { return g.crt_curve; },
+		function(_v) { g.crt_curve = _v; },
+		"%", 5,
+		"how far the glass bulges. the frame stays put and nothing is "
+		+ "cropped; the middle magnifies. over the interface the middle "
+		+ "of the picture then sits a pixel or two from its hit regions, "
+		+ "so turn this down if taps feel off.");
+
+	settings_slider("scanlines", 0, 100,
+		function() { return g.crt_scan; },
+		function(_v) { g.crt_scan = _v; },
+		"%", 5,
+		"how dark the line between rows is. the row itself is never "
+		+ "dimmed.");
+
+	settings_slider("phosphor grille", 0, 100,
+		function() { return g.crt_grille; },
+		function(_v) { g.crt_grille = _v; },
+		"%", 5,
+		"the rgb stripe, at screen resolution. balanced so the picture's "
+		+ "brightness and colour hold - it reads as texture, not tint.");
+
+	settings_slider("chroma split", 0, 100,
+		function() { return g.crt_chroma; },
+		function(_v) { g.crt_chroma = _v; },
+		"%", 5,
+		"red and blue pulled apart toward the edges, where a lens is "
+		+ "worst.");
+
+	settings_slider("vignette", 0, 100,
+		function() { return g.crt_vig; },
+		function(_v) { g.crt_vig = _v; },
+		"%", 5,
+		"the glass darkening toward the corners. the one knob here that "
+		+ "dims pixels, so it starts at 0.");
+
+	settings_toggle("roll + flicker",
+		function() { return g.crt_roll; },
+		function(_v) { g.crt_roll = _v; },
+		"a faint bright band drifting down every few seconds, and a "
+		+ "breath of flicker.");
 
 	// ============================ readouts ==========================
 	// WHAT THE NUMBERS SAY AND WHERE (2026-09-10's tidy + DE's ports):

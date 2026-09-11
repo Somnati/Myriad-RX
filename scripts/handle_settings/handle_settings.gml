@@ -38,7 +38,15 @@ function handle_settings(_method) {
 	g.cursor_ray = handle("cursor_ray",g.cursor_ray); // the pointer's raycast shading
 	g.motion_blur = handle("motion_blur",g.motion_blur); // per-object motion blur (the puck)
 	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (syst_tapfx's chip)
-	g.crt_title = handle("crt_title",g.crt_title); // the title screen's crt pass
+	// the tube (syst_crt): where, which seat, the knobs
+	g.crt_mode    = handle("crt_mode",g.crt_mode);
+	g.crt_over_ui = handle("crt_over_ui",g.crt_over_ui);
+	g.crt_curve   = handle("crt_curve",g.crt_curve);
+	g.crt_scan    = handle("crt_scan",g.crt_scan);
+	g.crt_grille  = handle("crt_grille",g.crt_grille);
+	g.crt_chroma  = handle("crt_chroma",g.crt_chroma);
+	g.crt_vig     = handle("crt_vig",g.crt_vig);
+	g.crt_roll    = handle("crt_roll",g.crt_roll);
 	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
 	g.tap_text = handle("tap_text",g.tap_text);       // DE's taptextformat: 0 at the tap / 1 centred / 2 none
 	g.tps_readout = handle("tps_readout",g.tps_readout);

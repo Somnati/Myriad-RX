@@ -1,6 +1,6 @@
 //
-// sh_crt's vertex pass: the default pass-through. The title's captured
-// background is drawn back over itself through the fragment.
+// sh_crt's vertex pass: the default pass-through. syst_crt's captured
+// frame is drawn back over itself through the fragment.
 //
 attribute vec3 in_Position;
 attribute vec4 in_Colour;

@@ -65,6 +65,19 @@ for (var _i = 0; _i < array_length(items); _i++) {
 	if (items[_i] == "quit") _col = c_gray;
 	if (!_en) _col = c_gray;
 
+	// ⚖️ EACH ROW HAS A GROUND NOW (his ask, 2026-09-10: "the title
+	// screen buttons need a background or something for each of
+	// them"). A low plate behind every row, from the accent column to
+	// the row's far edge: black at half, a hairline of the row's own
+	// colour along the top that wakes with the hover, a darker line
+	// under. Plain text on a plate reads as a button; plain text on
+	// the field read as a caption. (The fading gradient behind the
+	// whole column was tried and scrapped; this is per row.)
+	var _bx = rule_x - 3, _bw = (lm + row_w) - _bx + 4;
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .42 + .18 * _h);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, 1, 0, _col, (_en ? .10 : .05) + .25 * _h);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry + row_h + 1, _bw, 1, 0, c_black, .35);
+
 	// the sliding bar: it grows from the row's middle so the motion
 	// reads as the row waking rather than as a box arriving
 	if (_h > .01) {

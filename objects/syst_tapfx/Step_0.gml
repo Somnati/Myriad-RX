@@ -39,10 +39,7 @@ for (var _i = array_length(fxs) - 1; _i >= 0; _i--) {
 		case "star":    _dead = (_e.t >= 8); break;
 		case "square":  _e.r += 1.6 * delta; _dead = (_e.r > (_e.crit ? 16 : 12)); break;
 		case "implode": _e.r -= 1.7 * delta; _dead = (_e.r < -3); break;
-		case "echo":    _e.r += 1.6 * delta; _dead = (_e.r > (_e.crit ? 16 : 12)); break;
-		case "dust":    _dead = (_e.t >= 18); break;
 		case "bolt":    _dead = (_e.t >= 5); break;
-		case "checker": _dead = (_e.t >= 12); break;
 		default:        _dead = true;
 	}
 	if (_dead) array_delete(fxs, _i, 1);

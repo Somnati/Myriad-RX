@@ -135,6 +135,7 @@
     {"id":{"name":"setgame","path":"objects/setgame/setgame.yy",},},
     {"id":{"name":"syst_automation_panel","path":"objects/syst_automation_panel/syst_automation_panel.yy",},},
     {"id":{"name":"syst_banner","path":"objects/syst_banner/syst_banner.yy",},},
+    {"id":{"name":"syst_crt","path":"objects/syst_crt/syst_crt.yy",},},
     {"id":{"name":"syst_dials","path":"objects/syst_dials/syst_dials.yy",},},
     {"id":{"name":"syst_display","path":"objects/syst_display/syst_display.yy",},},
     {"id":{"name":"syst_faq","path":"objects/syst_faq/syst_faq.yy",},},

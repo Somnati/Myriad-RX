@@ -17,7 +17,14 @@ function settings_defaults() {
 	g.cursor_ray            = true;
 	g.motion_blur           = true;
 	g.tap_fx                = 2;
-	g.crt_title             = true;
+	g.crt_mode              = 2;
+	g.crt_over_ui           = true;
+	g.crt_curve             = 40;
+	g.crt_scan              = 60;
+	g.crt_grille            = 50;
+	g.crt_chroma            = 50;
+	g.crt_vig               = 0;
+	g.crt_roll              = true;
 	g.num_format            = 0;
 	g.tap_text              = 0;
 	g.tps_readout           = true;

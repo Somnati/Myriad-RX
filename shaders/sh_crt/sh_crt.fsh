@@ -1,82 +1,100 @@
 //
-// THE TITLE'S TUBE (his ask, 2026-09-10): the title screen's background
-// - the field, the halo, the glow pass, the gradient - seen through a
-// CRT. syst_titlescreen captures the application surface at depth 20
-// (everything deeper has drawn; the wordmark, the menu and the save
-// card come after and stay crisp) and draws it back through this.
+// THE TUBE (his ask, 2026-09-10, first for the title screen; then "i
+// like the CRT effect but am curious if we can use it and keep the
+// vanilla brightness of all our pixels... put it in front of
+// everything... add some settings"). syst_crt captures the application
+// surface at its depth - over everything but the pointer, or behind
+// the interface - and draws it back through this. Every knob is a
+// uniform fed from settings > crt.
 //
-// What a tube does, in order:
-//   curvature   a mild barrel: the picture bows out at the middle and
-//               the corners fall off the glass (black past the edge).
-//               This is the one place the house rule against
-//               resampling is set aside - the softness IS the look,
-//               and it never leaves the title screen
-//   scanlines   one dark line per ROOM pixel row - 270 lines, which is
-//               the tube this resolution would have had. The surface is
-//               1920x1080, four rows to a room pixel, so the line is a
-//               real gap between rows rather than a stripe painted on
-//   phosphor    an RGB stripe mask at surface resolution, every third
-//               column favouring one primary - sub-room-pixel, so it
-//               reads as texture rather than as colour
-//   aberration  red and blue pulled apart a hair toward the edges,
-//               where a lens is worst
-//   vignette    the glass darkens toward the corners
-//   roll        a faint bright band drifting down every few seconds,
-//               and a breath of flicker
+// ⚖️ BRIGHTNESS-NEUTRAL BY CONSTRUCTION (his ask: vanilla brightness).
+// The first tube darkened the whole picture - a sine scanline profile
+// that never reached 1 on any row, a phosphor tint that only ever
+// took, a vignette, and an 8% gain to hide the loss. Now nothing here
+// dims a pixel that is not IN a gap:
+//   scanlines   a dark line at every ROOM-ROW boundary - the surface is
+//               1920x1080, four rows to a room pixel, and the profile
+//               (a cosine bump raised to the fourth) sits on the two
+//               rows either side of a boundary and leaves the row's
+//               middle untouched. The pixel keeps its brightness; the
+//               gap is the gap
+//   grille      the RGB stripe is NORMALISED: the column's own primary
+//               is lifted by twice what the other two lose, so the
+//               mean of every channel over three columns is exactly 1.
+//               Texture, not a tint
+//   vignette    OFF at 0 (its default) - it is the one knob that
+//               darkens pixels on purpose, so it is his to turn up
+//   gain        gone
+//
+// ⚖️ THE GLASS IS PINNED TO THE FRAME. The title's first tube barrelled
+// outward (cc = c x (1 + k r^2)) and let the corners fall off the
+// glass into black - fine behind a wordmark, fatal over an interface
+// whose corner buttons and counter live exactly there. This bulge is
+// the other way round: the source is compressed in the MIDDLE
+// (magnified to the eye) by k x (1-x^2)(1-y^2), which is 0 on every
+// edge - so the frame stays where it is, nothing is cropped, and the
+// scanlines still bow through the middle the way a curved face reads.
+// The cost is honest: over the interface the picture in the middle
+// sits a few room pixels from where its hit regions are (about 2px at
+// the default, nothing at 0), which is why curvature is a slider.
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
 
-uniform vec2  u_res;    // the surface, px
-uniform vec2  u_room;   // the room, px (scanline count = u_room.y)
-uniform float u_time;   // seconds
-uniform float u_amt;    // 0..1, the whole effect's strength
+uniform vec2  u_res;     // the surface, px
+uniform vec2  u_room;    // the room, px (scanline count = u_room.y)
+uniform float u_time;    // seconds
+uniform float u_curve;   // 0..1  the bulge
+uniform float u_scan;    // 0..1  gap darkness
+uniform float u_grille;  // 0..1  stripe contrast
+uniform float u_chroma;  // 0..1  red/blue split toward the edges
+uniform float u_vig;     // 0..1  corner darkening
+uniform float u_roll;    // 0/1   the drifting band and the flicker
 
 float hash11(float p) { return fract(sin(p * 127.1) * 43758.5453); }
 
 void main()
 {
     vec2 uv = v_vTexcoord;
-
-    // ---- curvature ----
     vec2 c = uv * 2.0 - 1.0;
+
+    // ---- the glass: a bulge pinned to the frame ----
+    float bulge = (1.0 - c.x * c.x) * (1.0 - c.y * c.y);
+    vec2 cc = c * (1.0 - 0.06 * u_curve * bulge);
+    vec2 suv = clamp(cc * 0.5 + 0.5, 0.0, 1.0);
     float r2 = dot(c, c);
-    vec2 cc = c * (1.0 + 0.045 * u_amt * r2);
-    vec2 suv = cc * 0.5 + 0.5;
-    if (suv.x < 0.0 || suv.x > 1.0 || suv.y < 0.0 || suv.y > 1.0) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
 
     // ---- aberration: red and blue pulled apart toward the edges ----
-    vec2 ab = (cc / max(length(cc), 0.001)) * r2 * 0.0018 * u_amt;
+    vec2 ab = (c / max(length(c), 0.001)) * r2 * 0.0025 * u_chroma;
     float rr = texture2D(gm_BaseTexture, clamp(suv + ab, 0.0, 1.0)).r;
     float gg = texture2D(gm_BaseTexture, suv).g;
     float bb = texture2D(gm_BaseTexture, clamp(suv - ab, 0.0, 1.0)).b;
     vec3 col = vec3(rr, gg, bb);
 
-    // ---- scanlines: one per room row ----
-    float line = 0.5 + 0.5 * sin(suv.y * u_room.y * 6.2831853 - 1.5707963);
-    col *= 1.0 - 0.28 * u_amt * (1.0 - line);
+    // ---- scanlines: a gap at every room-row boundary ----
+    float t = fract(suv.y * u_room.y);
+    float bump = 0.5 + 0.5 * cos(t * 6.2831853);
+    float gap = bump * bump * bump * bump;
+    col *= 1.0 - 0.7 * u_scan * gap;
 
-    // ---- phosphor stripe, at surface resolution ----
+    // ---- the grille, normalised (see the header) ----
     float px = floor(suv.x * u_res.x);
     float m = mod(px, 3.0);
-    vec3 mask = vec3(1.0);
-    if (m < 0.5)      mask = vec3(1.0, 0.86, 0.86);
-    else if (m < 1.5) mask = vec3(0.86, 1.0, 0.86);
-    else              mask = vec3(0.86, 0.86, 1.0);
-    col *= mix(vec3(1.0), mask, u_amt);
+    float s = 0.22 * u_grille;
+    vec3 mask = vec3(1.0 - s);
+    if (m < 0.5)      mask.r = 1.0 + 2.0 * s;
+    else if (m < 1.5) mask.g = 1.0 + 2.0 * s;
+    else              mask.b = 1.0 + 2.0 * s;
+    col *= mask;
 
     // ---- the roll and the flicker ----
     float roll = fract(u_time * 0.11);
     float band = exp(-pow((suv.y - roll) * 9.0, 2.0));
-    col *= 1.0 + 0.05 * u_amt * band;
-    col *= 1.0 + 0.012 * u_amt * (hash11(floor(u_time * 60.0)) - 0.5);
+    col *= 1.0 + 0.05 * u_roll * band;
+    col *= 1.0 + 0.012 * u_roll * (hash11(floor(u_time * 60.0)) - 0.5);
 
-    // ---- the glass darkens at the corners, and a touch of gain ----
-    float vig = 1.0 - 0.32 * u_amt * r2 * r2;
-    col *= vig * (1.0 + 0.08 * u_amt);
+    // ---- the glass darkens at the corners, if asked ----
+    col *= 1.0 - 0.5 * u_vig * r2 * r2;
 
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0) * v_vColour;
 }

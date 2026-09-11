@@ -165,6 +165,15 @@ stun0 = 1;             // ...and what it started at, for the ramp
 // x2.6 the speed for two loops, banks extra combo, and leaves along
 // the TANGENT of the swing - the puck's own direction of travel - the
 // way a sling lets go, rather than toward the pointer.
+// ⚖️ IT HAS MASS NOW (his report, 2026-09-10: "it follows the mouse
+// too easily so i can't get a satisfying fling feel"). The old hold
+// was a trickle - a lag with no momentum, so the puck could never
+// swing past the hand or out wide of it. Now it is a mass on a spring
+// to the pointer (PUCK_HOLD_K / PUCK_HOLD_DAMP): swing the pointer in
+// a circle near its natural pace and the puck orbits WIDER than the
+// hand and behind it, and the release is its own real velocity. The
+// pips orbiting it while you swing are the CHARGE readout - how many
+// loops the sling has banked - not a hit test.
 sl_ang    = 0;   // the pointer's angle about the puck, last frame
 sl_sum    = 0;   // the swept angle, signed, decaying (degrees)
 sl_vx     = 0;   // the puck's own travel last frame (the tangent)
@@ -185,6 +194,8 @@ docked  = false;       // ...and it is locked to one of the six docks
 cannon  = false;       // ...specifically the bottom-centre one
 cannon_t = 0;          // frames since the cannon armed (the wind-up)
 gx = 0; gy = 0;        // the cursor-chasing anchor, in room space
+hvx = 0; hvy = 0;      // ...and its velocity while held (the tether's
+                       // momentum - see THE HELD MASS in the Step)
 grip_x = 0; grip_y = 0;// where on the puck the pointer is holding it
 aim = 0;               // pull distance, px
 tier = 0;              // aim power tier, 0..PUCK_TIERS

@@ -312,12 +312,24 @@ function main_macros() {
 // numbers that shape it. Everything is in room px and 60hz frames.
 #macro PUCK_D           19  // diameter. Odd, so the disc has a true
                             // centre row and reads symmetrical
-#macro PUCK_FOLLOW       5  // trickle divisor toward the cursor. THE
-                            // weight knob: lower is snappier, and at 1
-                            // the puck stops feeling like an object
-#macro PUCK_DRAG_R      60  // ...past this cursor distance the follow
-#macro PUCK_DRAG_MAX     7  // slows by up to this factor. The stretch
-                            // when you yank it is entirely these two
+#macro PUCK_FOLLOW       5  // trickle divisor toward the cursor while
+                            // DOCKED (the magnet's own grip; the free
+                            // hold is the mass-spring below)
+#macro PUCK_HOLD_K    .030  // THE WEIGHT. The held puck is a mass on a
+                            // spring to the pointer: this is the spring
+                            // (px/frame^2 per px of stretch). Lower =
+                            // heavier: it lags further, swings wider,
+                            // takes longer to catch up. .03 puts its
+                            // natural period near half a second, which
+                            // is about the pace a wrist swings at - so
+                            // a circle with the pointer swings the puck
+                            // round WIDER than the hand, the trebuchet
+#macro PUCK_HOLD_DAMP  .89  // velocity kept per frame on the tether.
+                            // Under critical (.71 at this K) on
+                            // purpose: it overshoots a little and
+                            // settles, the way a weight on a string
+                            // does, and a swing at its own pace goes
+                            // about half again as wide as the hand
 #macro PUCK_CANNON_LOCK 22  // frames the cannon locks in hard before it
                             // switches to slow aiming (arming should
                             // feel decisive, aiming deliberate)

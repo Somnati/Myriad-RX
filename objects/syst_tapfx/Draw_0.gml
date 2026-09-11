@@ -44,7 +44,9 @@ for (var _i = 0; _i < array_length(fxs); _i++) {
 
 	case "star": {
 		// dashes flying out: each is `len` cells laid along its heading,
-		// the head at r0 + t x speed, fading with life
+		// the head at r0 + t x speed, fading with life. a0 turns the
+		// whole star: 0 puts the four-dash one on the compass (plus),
+		// 45 on the diagonals (x)
 		var _f = 1 - _e.t / 8;
 		var _len = (_e.n == 4) ? 4 : 3;
 		var _r0 = 2 + _e.t * 1.5;
@@ -94,33 +96,6 @@ for (var _i = 0; _i < array_length(fxs); _i++) {
 		break;
 	}
 
-	case "echo": {
-		if (_e.r < .5) break;                     // not born yet
-		var _rmax = _e.crit ? 16 : 12;
-		var _f = 1 - _e.r / _rmax;
-		var _steps = 12 + floor(_e.r * 4);
-		for (var _k = 0; _k < _steps; _k++) {
-			var _a = _k * 360 / _steps;
-			draw_sprite_ext(spr_pixel_1x1, 0,
-				floor(_e.x + lengthdir_x(_e.r, _a)), floor(_e.y + lengthdir_y(_e.r, _a)),
-				1, 1, 0, c_white, .6 * _f);
-		}
-		break;
-	}
-
-	case "dust": {
-		// puffs drifting out on their own headings, slowing, dying
-		var _f = 1 - _e.t / 18;
-		for (var _k = 0; _k < array_length(_e.puffs); _k++) {
-			var _p = _e.puffs[_k];
-			var _d = _p.s * _e.t * (1 - _e.t / 40);   // eases off as it goes
-			draw_sprite_ext(spr_pixel_1x1, 0,
-				floor(_e.x + lengthdir_x(_d, _p.a)) - 1, floor(_e.y + lengthdir_y(_d, _p.a)) - 1,
-				2, 2, 0, merge_colour(_e.col, c_black, .3), .55 * _f);
-		}
-		break;
-	}
-
 	case "bolt": {
 		// the jagged line, cell by cell along each segment; white for the
 		// first two frames, the profit colour dimming after
@@ -141,18 +116,6 @@ for (var _i = 0; _i < array_length(fxs); _i++) {
 		break;
 	}
 
-	case "checker": {
-		// 5x5 about the tap, alternating, each cell alive until its own
-		// death frame - the board dissolving rather than fading
-		for (var _k = 0; _k < 25; _k++) {
-			if (_e.t >= _e.die[_k]) continue;
-			var _cx = _k mod 5 - 2, _cy = _k div 5 - 2;
-			var _odd = ((_cx + _cy) & 1) == 1;
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_e.x) + _cx, floor(_e.y) + _cy, 1, 1, 0,
-				_odd ? _e.col : c_white, _odd ? .8 : .95);
-		}
-		break;
-	}
 	}
 }
 

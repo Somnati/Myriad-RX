@@ -26,22 +26,24 @@ __live = function() { return in_room(rm_clicker); };
 //   mono     the ring alone, white, two cells thick, no split
 //   chroma   a one-cell ring with the red/blue split closing as it fades
 // ...and the second batch (his ask, 2026-09-10: "more to test"), all
-// cells, all cheap, all in the pixel grammar the two keepers set:
-//   sparks     DE's shard sparks (the tile's, the dial's) thrown from
-//              the tap in the profit colour - the spark pool
+// cells, all cheap, all in the pixel grammar the two keepers set. His
+// cut from the list (2026-09-10): checker, echo, dust and sparks are
+// gone (git has them, 3ae7359); "i like the plus but we need an X" -
+// so the cross has a diagonal twin now:
 //   starburst  eight dashes flying out on the compass and diagonals,
 //              the fighting-game hit star
 //   plus       four dashes, the compass only, longer - a cross
+//   x          the same four dashes on the diagonals
 //   square     an expanding one-cell square outline, the visualiser's
 //              own shape
 //   implode    a ring that CLOSES on the tap and pops a white dot
-//   echo       three thin rings, three frames apart
-//   dust       five slow puffs drifting out and dying
 //   lightning  a jagged one-cell bolt from the tap, a flash then gone
-//   checker    a 5x5 checkerboard at the tap whose cells drop out one
-//              by one
+// THE INDEX IS THE SAVED PICK (settings.ini tap_fx): 0..4 hold their
+// numbers, so a saved mono/chroma/glow reads the same after the cut;
+// a saved 5+ from the fourteen-strong bench lands on whatever sits
+// there now, which is a chip tap to fix.
 fx_names = ["none", "glow", "shock mono", "shock chroma", "glow + mono",
-            "sparks", "starburst", "plus", "square", "implode", "echo", "dust", "lightning", "checker"];
+            "starburst", "plus", "x", "square", "implode", "lightning"];
 if (!variable_global_exists("tap_fx")) g.tap_fx = 2;
 fxs = [];   // the second batch's live effects: { kind, x, y, t, crit, ... }
 // the pick, always a valid index: settings.ini loads AFTER this Create
@@ -80,14 +82,14 @@ fire = function(_x, _y, _crit, _n) {
 	// ---- the second batch ----
 	var _pc = _crit ? c_gold : g.profit_color;
 	switch (_f) {
-		case 5:   // sparks: the pool does the flying
-			spark_burst(_x, _y, _crit ? 12 : 6, _pc);
-			break;
-		case 6:   // starburst: eight dashes
+		case 5:   // starburst: eight dashes
 			array_push(fxs, { kind : "star", x : _x, y : _y, t : 0, crit : _crit, col : _pc, n : 8, a0 : 0 });
 			break;
-		case 7:   // plus: four, longer
+		case 6:   // plus: four, longer, on the compass
 			array_push(fxs, { kind : "star", x : _x, y : _y, t : 0, crit : _crit, col : _pc, n : 4, a0 : 0 });
+			break;
+		case 7:   // x: the plus turned onto the diagonals
+			array_push(fxs, { kind : "star", x : _x, y : _y, t : 0, crit : _crit, col : _pc, n : 4, a0 : 45 });
 			break;
 		case 8:   // square
 			array_push(fxs, { kind : "square", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : 1 });
@@ -95,17 +97,7 @@ fire = function(_x, _y, _crit, _n) {
 		case 9:   // implode
 			array_push(fxs, { kind : "implode", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : (_crit ? 16 : 12) });
 			break;
-		case 10:  // echo: three rings, three frames apart
-			for (var _k = 0; _k < 3; _k++)
-				array_push(fxs, { kind : "echo", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : 1 - _k * 4.8 });
-			break;
-		case 11: { // dust: five puffs with their own headings
-			var _pf = [];
-			repeat (5) array_push(_pf, { a : random(360), s : random_range(.5, 1.0), d : 0 });
-			array_push(fxs, { kind : "dust", x : _x, y : _y, t : 0, crit : _crit, col : _pc, puffs : _pf });
-			break;
-		}
-		case 12: { // lightning: a bolt of four bends, rolled once
+		case 10: { // lightning: a bolt of four bends, rolled once
 			var _pts = [];
 			var _bx = _x, _by = _y;
 			var _ba = random(360);
@@ -117,12 +109,6 @@ fire = function(_x, _y, _crit, _n) {
 				array_push(_pts, _bx, _by);
 			}
 			array_push(fxs, { kind : "bolt", x : _x, y : _y, t : 0, crit : _crit, col : _pc, pts : _pts });
-			break;
-		}
-		case 13: { // checker: 5x5, each cell with its own death frame
-			var _dt = array_create(25);
-			for (var _k = 0; _k < 25; _k++) _dt[_k] = random_range(4, 11);
-			array_push(fxs, { kind : "checker", x : _x, y : _y, t : 0, crit : _crit, col : _pc, die : _dt });
 			break;
 		}
 	}

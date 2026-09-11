@@ -8,8 +8,19 @@
 	g.blur = true;   // settings > display "menu blur"
 	g.cursor_ray = true;   // settings > visuals "raycast pointer" (sh_cursor)
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)
-	g.tap_fx = 2;          // the money room's [fx] chip: 0 none / 1 glow / 2 shock mono / 3 shock chroma / 4 glow + mono
-	g.crt_title = true;    // settings > visuals "crt title screen" (sh_crt over the title's background)
+	g.tap_fx = 2;          // the money room's [fx] chip: 0 none / 1 glow / 2 shock mono / 3 shock chroma / 4 glow + mono / 5.. syst_tapfx's fx_names
+	// THE TUBE (settings > crt, syst_crt): where it runs, which seat,
+	// and the five knobs. Everything but the vignette is brightness-
+	// neutral (read sh_crt's header); the vignette is the one that
+	// darkens, so it starts at 0
+	g.crt_mode    = 2;     // 0 off / 1 the title screen only / 2 every room
+	g.crt_over_ui = true;  // the tube over the interface (false: behind it - only the room)
+	g.crt_curve   = 40;    // 0..100
+	g.crt_scan    = 60;
+	g.crt_grille  = 50;
+	g.crt_chroma  = 50;
+	g.crt_vig     = 0;
+	g.crt_roll    = true;  // the drifting band + flicker
 	g.num_format = 0;      // settings > readouts "number format" (num_format_config: 0 short)
 	// DE's settings, ported 2026-09-10 (the ones RX has the system for)
 	g.tap_text = 0;        // readouts "tap numbers": 0 at the tap / 1 centred / 2 none (DE taptextformat)
@@ -214,6 +225,8 @@
 // in the boot room before anything else; obj_cursor is persistent, so
 // this is the only time it is ever created.
 create_obj(0, 0, obj_cursor);
+// THE TUBE (settings > crt): persistent like the pointer, seated once
+create_obj(0, 0, syst_crt);
 
 // ---- THE BOOT SOUND (his ask) ----
 // A wood-and-metal cue, take one spliced out of the same six-take
