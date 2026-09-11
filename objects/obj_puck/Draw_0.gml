@@ -158,6 +158,19 @@ shader_reset();
 // what this frame drew, for the next frame's sweep
 mb_cx = _cx; mb_cy = _cy; mb_yaw = yaw;
 
+// ---- THE SLING'S CHARGE: pips orbiting the puck the way it is being
+// swung, brighter and more of them with the loops banked ----
+if (held && sl_charge > .08) {
+	var _np = 3 + round(sl_charge * 4);
+	var _spin = current_time * .35 * sign(sl_sum == 0 ? 1 : sl_sum);
+	for (var _k = 0; _k < _np; _k++) {
+		var _pa = _spin + _k * 360 / _np;
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(_cx + lengthdir_x(r + 4, _pa)), floor(_cy + lengthdir_y(r + 4, _pa)),
+			2, 2, 0, merge_colour(tint, c_white, .5), clamp(sl_charge, 0, 1) * .85);
+	}
+}
+
 // ---- the combo ring ----
 // While a throw still has bounce-resist banked, an arc of pips rides the
 // rim - one per remaining near-frictionless bounce. It is the only

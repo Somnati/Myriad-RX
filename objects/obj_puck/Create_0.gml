@@ -154,6 +154,22 @@ spd  = 0;
 dir  = 0;
 stun = 0;              // frames of impact freeze left
 stun0 = 1;             // ...and what it started at, for the ramp
+// ⚖️ THE SLING (his ask, 2026-09-10: "a cool sling throw that launches
+// the puck faster if i throw it in a loop arc kinda like a trebuchet").
+// While held, the puck trails the pointer, so whipping the pointer round
+// in a circle swings the puck round behind it. The sweep is measured
+// as the angle the pointer turns AROUND the puck each frame, summed
+// with a short memory (it decays, so only the last half second of
+// swinging counts and a straight flick charges nothing); a full turn
+// is one unit of charge. On release a charged throw launches at up to
+// x2.6 the speed for two loops, banks extra combo, and leaves along
+// the TANGENT of the swing - the puck's own direction of travel - the
+// way a sling lets go, rather than toward the pointer.
+sl_ang    = 0;   // the pointer's angle about the puck, last frame
+sl_sum    = 0;   // the swept angle, signed, decaying (degrees)
+sl_vx     = 0;   // the puck's own travel last frame (the tangent)
+sl_vy     = 0;
+sl_charge = 0;   // eased, for the ring: loops of charge, 0..2
 resist  = 0;           // near-frictionless bounces left in this throw
 resist0 = 1;
 bounces = 0;

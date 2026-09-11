@@ -27,6 +27,6 @@ for (var _i = array_length(glows) - 1; _i >= 0; _i--) {
 	if (glows[_i].t >= 10) array_delete(glows, _i, 1);
 }
 for (var _i = array_length(shocks) - 1; _i >= 0; _i--) {
-	shocks[_i].r += 1.1 * delta;
+	shocks[_i].r += 1.1 * delta;   // (a double's second ring starts below zero: the beat behind)
 	if (shocks[_i].r > (shocks[_i].crit ? 22 : 16)) array_delete(shocks, _i, 1);
 }

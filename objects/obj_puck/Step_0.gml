@@ -62,6 +62,8 @@ if (input_free())
 if (mouse_over())
 if (mouse_check_button_pressed(mb_left)) {
 	held = true;
+	sl_ang = point_direction(__cx(), __cy(), mousex, mousey);   // the sling's sweep starts here
+	sl_sum = 0; sl_charge = 0;
 
 	// ⚖️ THE CATCH BONUS (DE's, and the best thing in the whole toy):
 	// grabbing it MID-FLIGHT pays PUCK_CATCH times a bounce. Snatching a
@@ -164,10 +166,23 @@ if (held) {
 	if (cannon) _adj = (cannon_t < PUCK_CANNON_LOCK) ? 1.5 : PUCK_FOLLOW * 2.5;
 	else if (docked) _adj = 1.5;
 
+	var _gx0 = gx, _gy0 = gy;
 	gx = trickle(gx, _px, _adj);
 	gy = trickle(gy, _py, _adj);
 	x = clamp(gx, _t.x1, _t.x2);
 	y = clamp(gy, _t.y1, _t.y2);
+
+	// ---- THE SLING'S SWEEP (see the Create) ----
+	// the pointer's angle about the puck this frame against last;
+	// weighted by reach so a tight twitch is not a swing, and the sum
+	// forgets fast so it is about the swing you are making NOW
+	var _a = point_direction(__cx(), __cy(), mousex, mousey);
+	var _da = angle_difference(_a, sl_ang) * clamp((_reach - 6) / 18, 0, 1);
+	sl_ang = _a;
+	if (abs(_da) < 60) sl_sum += _da;            // (a jump through the centre is not a sweep)
+	sl_sum *= power(.92, delta);
+	sl_vx = gx - _gx0; sl_vy = gy - _gy0;
+	sl_charge = trickle(sl_charge, clamp(abs(sl_sum) / 360, 0, 2), 3, 0);
 
 	// ==================== RELEASE ====================
 	if (!mouse_check_button(mb_left)) {
@@ -188,6 +203,24 @@ if (held) {
 			// exactly twice a half-screen one
 			spd = _reach * lerp(1, 1.35, clamp(_reach / _max, 0, 1));
 			resist = PUCK_RESIST;
+
+			// ---- THE SLING RELEASE (see the Create) ----
+			// a swing worth a third of a turn or more is a sling: the
+			// speed climbs with the loops banked (x2.6 at two), the
+			// combo with them, and the puck leaves along its own
+			// travel - the tangent - if it was moving at all
+			var _loops = clamp(abs(sl_sum) / 360, 0, 2);
+			if (_loops > .33) {
+				spd *= 1 + .8 * _loops;
+				resist += round(_loops * 2);
+				if (point_distance(0, 0, sl_vx, sl_vy) > 1.5)
+					dir = point_direction(0, 0, sl_vx, sl_vy);
+				// the spin follows the swing's own sense
+				yaw_spd = (spd / max(1, _max)) * PUCK_SPIN * 1.4 * sign(sl_sum);
+				play_sound_ext(voice, lerp(1.1, 1.6, _loops * .5), lerp(1.3, 2, _loops * .5), .5, 1);
+				__burst(round(6 + 8 * _loops), 60, 3 + _loops);
+			}
+			sl_sum = 0;
 
 			if (_launch) {
 				// the cannon multiplies by tier, and buys combo with it:
@@ -210,6 +243,7 @@ if (held) {
 			// the same line can still look different.
 			var _cross = dsin(point_direction(__cx(), __cy(), mousex, mousey)
 				- point_direction(gx + r, gy + r, __cx(), __cy()));
+			if (_loops <= .33)   // (a sling set its own spin above)
 			yaw_spd = (spd / max(1, _max)) * PUCK_SPIN
 				* ((_cross == 0) ? choose(-1, 1) : sign(_cross))
 				* random_range(.6, 1.4);

@@ -9,28 +9,42 @@ for (var _i = 0; _i < array_length(glows); _i++) {
 		_g.crit ? c_gold : g.profit_color, .55 * _f);
 }
 
-// ---- shockwave: a one-cell ring, chromatic split closing as it fades ----
+// ---- shockwaves: one-cell rings, five ways (see the Create) ----
 for (var _i = 0; _i < array_length(shocks); _i++) {
 	var _sh = shocks[_i];
+	if (_sh.r < .5) continue;                  // (a double's second ring, not yet born)
 	var _rmax = _sh.crit ? 22 : 16;
 	var _f = 1 - _sh.r / _rmax;
-	var _split = round(2 * _f);
+	var _kind = _sh.kind;
+	var _split = (_kind == 1) ? 0 : round(2 * _f);
 	var _steps = 12 + floor(_sh.r * 4);
-	gpu_set_blendmode(bm_add);
+	// the ring's radius at angle a: round, or wobbling, or a diamond
+	var _pts = array_create(_steps * 2);
 	for (var _k = 0; _k < _steps; _k++) {
 		var _a = _k * 360 / _steps;
-		var _px = floor(_sh.x + lengthdir_x(_sh.r, _a));
-		var _py = floor(_sh.y + lengthdir_y(_sh.r, _a));
-		draw_sprite_ext(spr_pixel_1x1, 0, _px - _split, _py, 1, 1, 0, c_red,  .55 * _f);
-		draw_sprite_ext(spr_pixel_1x1, 0, _px + _split, _py, 1, 1, 0, c_blue, .55 * _f);
+		var _rr = _sh.r;
+		if (_kind == 3) _rr += 1.6 * dsin(_a * 3 + _sh.ph + _sh.r * 25) * (1 + _sh.r * .06);
+		var _dx = lengthdir_x(_rr, _a), _dy = lengthdir_y(_rr, _a);
+		if (_kind == 4) {
+			// city-block: push the round point out to the diamond
+			var _m = abs(_dx) + abs(_dy);
+			if (_m > 0) { _dx *= _rr / _m; _dy *= _rr / _m; }
+		}
+		_pts[_k * 2]     = floor(_sh.x + _dx);
+		_pts[_k * 2 + 1] = floor(_sh.y + _dy);
 	}
-	gpu_set_blendmode(bm_normal);
-	for (var _k = 0; _k < _steps; _k++) {
-		var _a = _k * 360 / _steps;
-		var _px = floor(_sh.x + lengthdir_x(_sh.r, _a));
-		var _py = floor(_sh.y + lengthdir_y(_sh.r, _a));
-		draw_sprite_ext(spr_pixel_1x1, 0, _px, _py, 1, 1, 0, c_white, .8 * _f);
+	if (_split > 0) {
+		gpu_set_blendmode(bm_add);
+		for (var _k = 0; _k < _steps; _k++) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _pts[_k * 2] - _split, _pts[_k * 2 + 1], 1, 1, 0, c_red,  .55 * _f);
+			draw_sprite_ext(spr_pixel_1x1, 0, _pts[_k * 2] + _split, _pts[_k * 2 + 1], 1, 1, 0, c_blue, .55 * _f);
+		}
+		gpu_set_blendmode(bm_normal);
 	}
+	var _thick = (_kind == 1) ? 2 : 1;
+	for (var _k = 0; _k < _steps; _k++)
+		draw_sprite_ext(spr_pixel_1x1, 0, _pts[_k * 2], _pts[_k * 2 + 1], _thick, _thick, 0,
+			c_white, ((_kind == 1) ? .9 : .8) * _f);
 }
 
 // ---- the [fx] chip ----
