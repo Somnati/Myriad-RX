@@ -27,8 +27,10 @@ t += delta / 60;
 // ---- the bloom's source ----
 // THE BRIGHT PASS, without a shader: the frame drawn into a half-size
 // surface, then drawn AGAIN over itself in multiply (dest colour x
-// source, nothing of the old) - the frame squared, so a white line of
-// text stays 1 while a .4 block drops to .16. THEN the house chain
+// source, nothing of the old), twice - the frame CUBED, so a white
+// line of text stays 1 while a .4 block drops to .06: only what is
+// genuinely bright spills (squared let every block haze; "really bad",
+// his words on the second cut, with the strength at 1.6). THEN the house chain
 // blurs it 8 room px wide (blur_snap's halvings, off this surface's
 // own height) and its top link is the shader's second texture. Squared
 // before the blur - see the shader's header for why the other order
@@ -48,6 +50,7 @@ if (_bloom > 0) {
 		draw_clear_alpha(c_black, 1);
 		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
 		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);
+		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
 		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
 		gpu_set_blendmode(bm_normal);
 		surface_reset_target();
@@ -75,7 +78,7 @@ shader_set_uniform_f(shader_get_uniform(sh_crt, "u_grille"), clamp(g.crt_grille,
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_chroma"), clamp(g.crt_chroma, 0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_vig"),    clamp(g.crt_vig,    0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_roll"),   g.crt_roll ? 1 : 0);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * 1.6);
+shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * .6);
 if (_bloom > 0) {
 	texture_set_stage(u_blur_s, surface_get_texture(g.blur_small));
 	gpu_set_tex_filter_ext(u_blur_s, true);   // the blur is a small surface: read it smooth

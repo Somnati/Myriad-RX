@@ -20,7 +20,7 @@
 	g.crt_grille  = 50;
 	g.crt_chroma  = 50;
 	g.crt_vig     = 0;
-	g.crt_bloom   = 35;    // the halation (adds light; the blur chain feeds it)
+	g.crt_bloom   = 25;    // the halation (adds light; the blur chain feeds it)
 	g.crt_roll    = true;  // the drifting band + flicker
 	g.num_format = 0;      // settings > readouts "number format" (num_format_config: 0 short)
 	// DE's settings, ported 2026-09-10 (the ones RX has the system for)

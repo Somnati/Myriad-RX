@@ -36,11 +36,17 @@
 //               squared the result, and a blurred line of white text
 //               is a .2 that squares to nothing; squared first, the
 //               text's energy is what spreads)
-//   roll        a band drifting down the face every six seconds - a
-//               lift the picture rides AND a faint additive glow, so
-//               it shows on the dark field too - and a flicker of a
-//               couple of percent (the first cut's 5%/1% were
-//               invisible on a picture this dark)
+//   roll        the rolling bar: a band a few percent DARKER drifting
+//               down the face every eight seconds, and a slow breath
+//               of a percent or so. Multiplicative only - a bar only
+//               shows on lit picture, which is what a real one does
+//               (the additive grey bar and the per-frame noise of the
+//               second cut were "really bad", his words, and they
+//               were: a grey stripe over black and static)
+//   dither      the whole output rides the house IGN dither (the fog
+//               shader's law, luminance-gated, time-slid): the bloom
+//               and the band are wide dark gradients, which band in
+//               8-bit - the project's oldest lesson
 //
 // ⚖️ THE GRILLE IS FLAT (his report, 2026-09-10: "bowing lines in
 // it... subtle but noticable"). It was computed on the WARPED
@@ -121,15 +127,24 @@ void main()
     vec3 bl = texture2D(u_blur, suv).rgb;
     col += bl * u_bloom;
 
-    // ---- the roll and the flicker ----
-    float roll = fract(u_time * 0.17);
-    float bd = (suv.y - roll) * 12.0;
+    // ---- the rolling bar and the breath ----
+    float roll = fract(u_time * 0.125);
+    float bd = (suv.y - roll) * 10.0;
     float band = exp(-bd * bd);
-    col = col * (1.0 + 0.12 * u_roll * band) + vec3(0.035 * u_roll * band);
-    col *= 1.0 + 0.045 * u_roll * (hash11(floor(u_time * 60.0)) - 0.5);
+    col *= 1.0 - 0.07 * u_roll * band;
+    col *= 1.0 + 0.012 * u_roll * (sin(u_time * 8.2) + 0.5 * sin(u_time * 23.0));
 
     // ---- the glass darkens at the corners, if asked ----
     col *= 1.0 - 0.5 * u_vig * r2 * r2;
+
+    // ---- the dither (sh_fog_dither's law: IGN re-seeded at 30hz,
+    // amplitude zero on black and ~1.4 levels by the dim ramp) ----
+    vec2 dp = floor(uv * u_res)
+        + fract(floor(u_time * 30.0) * vec2(0.7548776, 0.5698402)) * 64.0;
+    float dn = fract(52.9829189 * fract(0.06711056 * dp.x + 0.00583715 * dp.y));
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+    float amp = min(lum * 255.0 * 0.5, 1.4);
+    col += (dn - 0.5) * (amp / 255.0);
 
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0) * v_vColour;
 }
