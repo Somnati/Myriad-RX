@@ -64,8 +64,10 @@ if (_ok && instance_exists(syst_tapfx) && syst_tapfx.__consumes(mouse_x, mouse_y
 // A SPRITE'S press is the sprite's (obj_blob): a poke, never a tap
 if (_ok && instance_exists(obj_blob)) {
 	var _nb = instance_number(obj_blob);
-	for (var _bi = 0; _bi < _nb && _ok; _bi++)
-		if (instance_find(obj_blob, _bi).__hit(mouse_x, mouse_y)) _ok = false;
+	for (var _bi = 0; _bi < _nb && _ok; _bi++) {
+		var _bb = instance_find(obj_blob, _bi);
+		if (_bb.__hit(mouse_x, mouse_y)) _ok = false;
+	}
 }
 
 // THE DICE claim their own presses the same way (ported 2026-09-09).
