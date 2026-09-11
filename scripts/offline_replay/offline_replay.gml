@@ -43,6 +43,21 @@ function offline_replay(_secs) {
 
 	if (!variable_global_exists("dial")) return;
 
+	// ⚖️ THE BATTERY (his design, 2026-09-11): the machines run for
+	// min(absence, charge / draw) seconds and then STOP - a hard stop,
+	// his call - so a long absence cannot compound the table past what
+	// the charge allows. The time bank above banked the RAW absence (the
+	// hybrid's intent); only the replay's budget shrinks. Nothing is
+	// forked: the same prod_dials and tiles_fastforward run, on fewer
+	// seconds, at the battery panel's offline rates (autom_rate reads
+	// g.offline_replaying).
+	battery_init();
+	var _draw = battery_draw();
+	var _cov  = (_draw > 0) ? min(_secs, g.battery.charge / _draw) : _secs;
+	g.battery.charge = max(0, g.battery.charge - _cov * _draw);
+	g.battery.dry_at = (_cov < _secs - 1) ? _cov : 0;
+	g.offline_replaying = true;
+
 	var _before = g.profit;
 	var _rate   = g.all_gps;      // the rate the absence ran at
 	// ⚖️ INTO THE PILE, NOT THE POCKET (DE's offline_gold, his ask
@@ -72,7 +87,7 @@ function offline_replay(_secs) {
 	// board's own replay, which was already the honest half.
 	var _lg0 = arb_log10(tile_dial_boost());
 	if (TILES_LIVE)
-		if (variable_global_exists("tiles")) tiles_fastforward(_secs);
+		if (variable_global_exists("tiles")) tiles_fastforward(_cov);
 	var _lg1 = arb_log10(tile_dial_boost());
 	var _lgm = max(_lg0, _lg1);
 	if (abs(_lg1 - _lg0) > .0001) {
@@ -82,10 +97,11 @@ function offline_replay(_secs) {
 	g.tile_boost_override = log_to_arb(max(0, _lgm));
 
 	g.offline_pooling = true;
-	prod_dials(_secs);
+	prod_dials(_cov);
 	g.offline_pooling = false;
+	g.offline_replaying = false;
 	g.tile_boost_override = undefined;
-	credit_tick(_secs);   // the dropper's pool refills over the absence too
+	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)
@@ -101,7 +117,8 @@ function offline_replay(_secs) {
 	stats_hist_offline(_secs, _before, 0, _rate);
 
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
-		banked : _banked, bank_full : g.timebank.last_full, shown : false };
+		banked : _banked, bank_full : g.timebank.last_full, shown : false,
+		bat_ran : _cov, bat_dry : (_cov < _secs - 1) };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }

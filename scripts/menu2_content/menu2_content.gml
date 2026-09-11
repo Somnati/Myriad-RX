@@ -18,6 +18,7 @@ function menu2_content() {
 	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
 	menu2_button("automation",   function() { automation_open(); }, c_sblue);
 	menu2_button("time bank",    function() { timebank_open(); }, c_gold);
+	menu2_button("battery",      function() { battery_open(); },  c_sgreen);   // the offline budget + the crank
 	// the line says when a gift is waiting - the menu rebuilds on every
 	// open, so the label is live (Techdemo II's calendar, ported)
 	menu2_button(gift_can_claim() ? "daily gift  -  ready" : "daily gift",

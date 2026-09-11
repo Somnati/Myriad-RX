@@ -43,6 +43,13 @@ if (_bk >= 1) {
 assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0")
 	+ " - in the pile, tap to collect", g.profit_color, c_black);
 syst_banner.hp[0] *= 3;
+// the battery: only when it ran dry - "lasted the whole absence" is a
+// line about nothing
+if (_r[$ "bat_dry"] ?? false) {
+	assign_banner("battery ran " + crunch_time_long((_r[$ "bat_ran"] ?? 0) * 60)
+		+ " of it, then dry - the machines stopped", c_hred, c_black);
+	syst_banner.hp[0] *= 3;
+}
 assign_banner("idle rate " + ((_r.rate > 0) ? crunch_arb(_r.rate) : "0") + "/sec",
 	color_set_comp(g.profit_color), c_black);
 syst_banner.hp[0] *= 3;

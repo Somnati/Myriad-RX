@@ -366,6 +366,25 @@ function handle_save(){
 	// ---- the time bank: the bank itself and the two purchase counts.
 	// The cap and the rate DERIVE from those counts (timebank_cap /
 	// timebank_rate), so a tuning change reaches saves that exist ----
+	// ---- the battery: the charge, the two ladders, the offline rates.
+	// Meta, like the time bank - a rebirth keeps it, a new game wipes it ----
+	section = "battery";
+	battery_init();
+	g.battery.charge     = handle("bat_charge",  g.battery.charge);
+	g.battery.cap_lv     = handle("bat_cap_lv",  g.battery.cap_lv);
+	g.battery.rate_lv    = handle("bat_rate_lv", g.battery.rate_lv);
+	g.battery.rate.run   = handle("bat_r_run",   g.battery.rate.run);
+	g.battery.rate.fab   = handle("bat_r_fab",   g.battery.rate.fab);
+	g.battery.rate.merge = handle("bat_r_merge", g.battery.rate.merge);
+	if (action == sv_load) {
+		g.battery.cap_lv     = max(0, floor(g.battery.cap_lv));
+		g.battery.rate_lv    = max(0, floor(g.battery.rate_lv));
+		g.battery.charge     = clamp(g.battery.charge, 0, battery_cap());
+		g.battery.rate.run   = clamp(g.battery.rate.run,   5, 100);
+		g.battery.rate.fab   = clamp(g.battery.rate.fab,   5, 100);
+		g.battery.rate.merge = clamp(g.battery.rate.merge, 5, 100);
+	}
+
 	section = "timebank";
 	timebank_init();
 	g.timebank.bank    = handle("bank",    g.timebank.bank);

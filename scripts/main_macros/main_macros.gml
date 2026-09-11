@@ -307,6 +307,25 @@ function main_macros() {
 #macro UI_IN_SLIDE   17    // px the title strip drops out from behind
                            // the header, and the rail slides in by
 
+// ---- THE BATTERY (the OFFLINE budget, his design 2026-09-11) ----
+// Read battery_init. Charge is seconds of absence the machines can run;
+// it fills ONLINE (your attention, banked) and offline machines drain
+// it; empty, every machine stops for the rest of the absence.
+#macro BAT_CAP0       10800 // seconds of charge at capacity level 0 (3h)
+#macro BAT_FILL0        120 // seconds to fill from empty at level 0/0
+                            // (2 minutes - "recharge fast", his call)
+#macro BAT_CAP_STEP      .5 // capacity x(1 + STEP x level)...
+#macro BAT_RATE_STEP     .5 // ...and the charge rate x(1 + STEP x level)
+                            // - the SAME factor, so equal levels fill in
+                            // BAT_FILL0 and a capacity ahead of its rate
+                            // takes proportionally longer (his law)
+#macro BAT_COST0          5 // credits, the first level of either ladder
+#macro BAT_COST_MULT    1.5 // x per level
+#macro BAT_CRANK_REV     60 // crank revolutions from empty to full
+#macro BAT_W_RUN          1 // draw weights: the dials' cycling...
+#macro BAT_W_FAB         .5 // ...the fabricator...
+#macro BAT_W_MERGE        1 // ...and the automerger (the compounders cost)
+
 // ---- RAM (the automation budget, his design 2026-09-11) ----
 // Every automation costs sticks; the budget is ram_cap, the bill is
 // ram_used, and over budget NOTHING switches off - every clock runs at

@@ -32,6 +32,7 @@ function game_reset(_diff = 1) {
 	autom_init(true);    // preferences: a new game forgets them, a
 	                     // rebirth does not
 	gift_init(true);     // the login calendar starts over with a new game
+	battery_init(true);  // the offline budget: same rule as the bank
 	timebank_init(true); // meta, like the credits: rebirth keeps it, a
 	                     // new game does not
 	credits_init(true); // and the credits (DE: they survive rebirth, not a new game)

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"battery_lasts",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"battery_lasts",
+  "parent":{
+    "name":"battery",
+    "path":"folders/game/battery.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

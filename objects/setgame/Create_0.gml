@@ -193,6 +193,7 @@
 	// of absence, with the cap geometric and the rate capped at 45 min
 	// per hour. datafiles/timebank_twin.py walks it - run that first.
 	timebank_init();
+	battery_init();   // the offline budget (meta, like the bank)
 
 	create_dials();
 
