@@ -56,6 +56,12 @@
 function tile_dial_boost(_lv = undefined) {
 	if (!TILES_LIVE) return arb(1);
 	if (!variable_global_exists("tiles")) return arb(1);
+	// THE REPLAY'S MEAN (offline_replay, 2026-09-10): while an absence
+	// is being paid, the boost is the logarithmic mean of the board you
+	// left and the board you came back to - set there, cleared there.
+	// A quote for a specific level (the drawer's now > next) ignores it.
+	if (_lv == undefined && variable_global_exists("tile_boost_override")
+	&& g.tile_boost_override != undefined) return g.tile_boost_override;
 
 	var _t = g.tiles;
 	if (_lv == undefined) _lv = _t.upg[$ "profit"] ?? 0;

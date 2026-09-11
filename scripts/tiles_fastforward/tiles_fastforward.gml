@@ -189,6 +189,11 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 		_t.shards = (_t.shards >= arb(1)) ? do_add(_t.shards, _sadd) : _sadd;
 		_t.earned = (_t.earned >= arb(1)) ? do_add(_t.earned, _sadd) : _sadd;
 	}
+	// ...and the board's RATE is that sum, now, not at the next tick:
+	// offline_replay reads tile_dial_boost straight after this to price
+	// the dials' absence (2026-09-10), and a stale gps was the board
+	// you LEFT, not the one you came back to
+	_t.gps = _sh;
 
 	_t.dirty = true;
 	// round 2 (per-mechanic popups): no direct report anymore - the

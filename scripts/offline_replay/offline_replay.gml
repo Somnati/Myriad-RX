@@ -51,18 +51,41 @@ function offline_replay(_secs) {
 	// money room. The flag is lowered before anything else runs, so a
 	// live payout can never be caught by it.
 	var _pool0 = g.offline_pool;
+
+	// THE TILE TABLE FIRST, replayed exactly: tiles_fastforward walks
+	// the absence as a histogram rather than a loop, so a month away
+	// costs the same as a minute. Behind TILES_LIVE while the table is
+	// being finalised - a bug in the tile replay must not be able to
+	// break a LOAD, which is the one path a player cannot route around.
+	//
+	// ⚖️ AND THE DIALS PAY AT THE MEAN OF THE BOARD, NOT ITS START (the
+	// offline audit, 2026-09-10). The table multiplies every dial payout
+	// (tile_dial_boost), and online that boost climbs every second as
+	// the board merges upward. The replay paid the whole absence at the
+	// boost you LEFT with - the dials ran first and the table after -
+	// which under-paid a night away by whatever the board did in it.
+	// Now the table goes first, and the dials pay at the LOGARITHMIC
+	// MEAN of the boost you left at and the boost you returned to: for
+	// a quantity that grows geometrically that is the exact time
+	// average, and (B1 - B0) / ln(B1 / B0) is one line in log space
+	// whatever size the arbs are. Offline == online to within the
+	// board's own replay, which was already the honest half.
+	var _lg0 = arb_log10(tile_dial_boost());
+	if (TILES_LIVE)
+		if (variable_global_exists("tiles")) tiles_fastforward(_secs);
+	var _lg1 = arb_log10(tile_dial_boost());
+	var _lgm = max(_lg0, _lg1);
+	if (abs(_lg1 - _lg0) > .0001) {
+		var _hi = max(_lg0, _lg1), _lo = min(_lg0, _lg1);
+		_lgm = _hi + log10(1 - power(10, _lo - _hi)) - log10((_hi - _lo) * ln(10));
+	}
+	g.tile_boost_override = log_to_arb(max(0, _lgm));
+
 	g.offline_pooling = true;
 	prod_dials(_secs);
 	g.offline_pooling = false;
+	g.tile_boost_override = undefined;
 	credit_tick(_secs);   // the dropper's pool refills over the absence too
-
-	// THE TILE TABLE, replayed exactly: tiles_fastforward walks the
-	// absence as a histogram rather than a loop, so a month away costs
-	// the same as a minute. Behind TILES_LIVE while the table is being
-	// finalised - a bug in the tile replay must not be able to break a
-	// LOAD, which is the one path a player cannot route around.
-	if (TILES_LIVE)
-		if (variable_global_exists("tiles")) tiles_fastforward(_secs);
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)
