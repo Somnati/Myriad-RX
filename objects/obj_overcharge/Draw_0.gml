@@ -1,10 +1,15 @@
-/// DE's draw, plus the ring: the black ground disc, the coloured disc
-/// at the wiggle's radius, the ring filling clockwise from twelve as
-/// the next level nears, then "X3" in fnt_outline over all of it,
-/// popping on a level-up.
+/// DE's draw (obj_click_multi), to the pixel where it can be: the black
+/// ground disc at des_size, the coloured charge disc at the wiggle's
+/// radius inside it, "X3" in fnt_outline left-aligned at x with the
+/// discs centred under the figure, popping on a level-up. Plus the ring
+/// DE's own source carries commented out - draw_ring at des_size + 2,
+/// one px, clockwise from twelve - drawn live here through draw_arc
+/// (his ask for the circular bar), thin enough to read as part of the
+/// widget rather than a second one round it. Everything else about it
+/// is DE's; the colour law is the one thing rebuilt (see the Create).
 
 if (alpha <= 0) exit;
-var _txt = "x" + string(overcharge_multi());
+var _txt = "X" + string(overcharge_multi());   // DE's capital
 draw_set_font(fnt_outline);
 var _tw = string_width(_txt);
 var _cx = x + _tw * .5;
@@ -17,23 +22,19 @@ draw_set_alpha(alpha);
 var _cc = merge_colour(col, c_black, .5);
 if (rd > .5) draw_circle_colour(_cx, _cy, rd, _cc, _cc, false);
 
-// the ring - his circular bar, the level's colour, a dim track under it
-var _rr = OC_RING_R;
-draw_arc(_cx, _cy, _rr, 2, 1, merge_colour(col, c_black, .75), .55 * alpha);
-draw_arc(_cx, _cy, _rr, 2, fperc, col, .95 * alpha);
+// the ring - DE's commented draw_ring, live: one px at des_size + 2,
+// the level's colour, filling from twelve; a faint track under it so an
+// empty ring still says where the bar will be
+draw_arc(_cx, _cy, OC_RING_R, 1, 1, merge_colour(col, c_black, .8), .4 * alpha);
+draw_arc(_cx, _cy, OC_RING_R, 1, fperc, col, .95 * alpha);
 
-// the level-up bloom
-if (flash > 0) {
-	var _gw = sprite_get_width(spr_vis_glow_soft);
-	draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy, 40 / _gw, 40 / _gw, 0, col, .6 * flash * alpha);
-}
-
-// the figure
+// the figure: DE's placement - left at x, its middle two px above the
+// disc's centre (DE: (y + 2) - h / 2 with fa_middle)
 draw_set_alpha(alpha * talpha);
 draw_set_color(col);
 draw_set_halign(fa_left);
 draw_set_valign(fa_middle);
-draw_text_transformed(_cx - _tw * .5 * tsize, _cy + 1, _txt, tsize, tsize, 0);
+draw_text_transformed(x, _cy - 1.5, _txt, tsize, tsize, 0);
 
 draw_set_valign(fa_top);
 draw_set_alpha(1);

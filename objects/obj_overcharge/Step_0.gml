@@ -46,9 +46,15 @@ if (_live && _lv < _max && _xp >= _need) {
 	tsize  = 2;
 	talpha = 0;
 	rdv   += 2;     // DE's push_wiggle(2)
-	flash  = 1;
-	if (in_room(rm_clicker))
-		play_sound_ext(snd_pop, .9 + _lv * .06, 1 + _lv * .06, .35, 1);
+	// DE's ceremony: snd_vibrate under the taps, a burst of blue
+	// particles across the figure (create_particle_burst 25, blue) -
+	// the house sparks stand in for its particle system
+	if (in_room(rm_clicker)) {
+		play_sound_ext(snd_vibrate, .9, 1.1, .2, 0);
+		draw_set_font(fnt_outline);
+		var _bw = string_width("X" + string(overcharge_multi()));
+		spark_burst(x + _bw * .5, y, 18, c_blue);
+	}
 }
 
 // ---- the colour glides between levels - the moment they change ----

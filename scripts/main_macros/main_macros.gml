@@ -196,7 +196,7 @@ function main_macros() {
 #macro OC_HOLD      300   // frames a tap keeps the charge from draining (DE's 5s)
 #macro OC_DRAIN_SEC   4   // once draining, a level empties in this many seconds (DE's tsec*4)
 #macro OC_DISC_R      4   // the charge disc's full radius (DE's des_size)
-#macro OC_RING_R      9   // the circular bar's inner radius
+#macro OC_RING_R      6   // the circular bar's radius: DE's des_size + 2, hugging the disc, one px thin
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the

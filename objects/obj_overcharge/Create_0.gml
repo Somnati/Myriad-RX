@@ -56,7 +56,12 @@ __seat = function() {
 	// beside the per-tap figure (obj_draw_pertap draws it at 5, 37 in
 	// fnt_large and publishes text_width) - DE's placement
 	if (instance_exists(obj_draw_pertap)) {
-		x = 5 + obj_draw_pertap.text_width + 16;
-		y = 37 + 6 + ui_wordline_h();   // (down with the per-tap figure under the word line)
+		// DE's exact seat (obj_click_multi: pertap.x + 5 + text_width,
+		// pertap.y + 5, with pertap at (1, 29)): the figure starts one px
+		// past the per-tap number's end and rides level with its top -
+		// tucked into the number's corner, not floating off to its right
+		// (his look audit, 2026-09-10)
+		x = 6 + obj_draw_pertap.text_width;
+		y = 34 + ui_wordline_h();   // (down with the per-tap figure under the word line)
 	}
 };
