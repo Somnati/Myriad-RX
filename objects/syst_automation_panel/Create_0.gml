@@ -214,9 +214,16 @@ __page_rows = function() {
 		array_push(_o, __section("running", c_gold));
 		var _dn = 0;
 		for (var _i = 0; _i < array_length(_a.dial); _i++) if (_a.dial[_i].on) _dn++;
+		var _bst = "";
+		if (variable_global_exists("dial")) {
+			var _bi = -1;
+			for (var _i = 0; _i < g.dial_total; _i++)
+				if (g.dial[_i].gps >= arb(1) && (_bi == -1 || g.dial[_i].gps > g.dial[_bi].gps)) _bi = _i;
+			if (_bi >= 0) _bst = "  -  strongest: " + dial_config(_bi).name + " " + crunch_arb(g.dial[_bi].gps) + "/s";
+		}
 		array_push(_o, { kind : 6, name : "dials",
 			val : (_a.run.on ? ("cycling " + string(_a.run.spd) + "%") : "cycling off (manual)")
-			    + "  -  " + string(_dn) + " autobuy" + ((_dn == 1) ? "" : "s"),
+			    + "  -  " + string(_dn) + " autobuy" + ((_dn == 1) ? "" : "s") + _bst,
 			right : string(__ram_page(AT_DIALS)) + " ram",
 			on : true, st : -1, col : tcol[AT_DIALS], ram : 0, help : "" });
 		var _r = _a.reb;
@@ -290,11 +297,22 @@ __page_rows = function() {
 		});
 		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));
+		// WHICH DIALS ARE THE STRONGEST (his ask, 2026-09-11): each row
+		// carries the dial's own p/s, and the best of them is marked -
+		// the number you need to decide where the autobuy goes
+		var _best = -1;
+		for (var _i = 0; _i < _n; _i++) {
+			var _gp = g.dial[_i].gps;
+			if (_gp >= arb(1) && (_best == -1 || _gp > g.dial[_best].gps)) _best = _i;
+		}
 		for (var _i = 0; _i < _n; _i++) {
 			var _p = _a.dial[_i];
+			var _gp = g.dial[_i].gps;
 			array_push(_o, {
 				kind : 5, lo : 1, hi : 100,
 				name : "dial " + dial_config(_i).name,
+				sub  : (_gp >= arb(1)) ? (crunch_arb(_gp) + "/s") : "-",
+				top  : (_i == _best),
 				on   : _p.on,
 				val  : _p.pct,
 				t    : _p.t,

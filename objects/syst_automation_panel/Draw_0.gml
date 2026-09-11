@@ -155,6 +155,12 @@ for (var _i = 0; _i < _nrows; _i++) {
 	draw_set_color(_rw.on ? c_white : _dim);
 	draw_set_alpha(_rw.on ? .95 : .6);
 	draw_text(cont_x + 7, _ry + 2, _rw.name);
+	// the dial's own p/s beside its name, the strongest in gold
+	if (variable_struct_exists(_rw, "sub")) {
+		draw_set_color(_rw.top ? c_gold : merge_colour(_rw.col, c_white, .5));
+		draw_set_alpha(_rw.top ? .95 : .6);
+		draw_text(cont_x + 42, _ry + 2, _rw.sub);
+	}
 
 	// an info line: the value after the label, and a figure at the end
 	if (_rw.kind == 6) {
