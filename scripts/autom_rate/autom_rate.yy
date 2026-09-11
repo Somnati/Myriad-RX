@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"autom_rate",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"autom_rate",
+  "parent":{
+    "name":"automation",
+    "path":"folders/game/automation.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

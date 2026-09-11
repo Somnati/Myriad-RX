@@ -21,7 +21,12 @@ function tiles_tick(_tmult = 1) {
 	// merger); the deadlock failsafe below stays REAL-time (it's a UX
 	// guard, not production)
 	var _thr = _t[$ "thr"] ?? 1;
-	_t.fab += delta * _tmult * _thr;
+	// the fabricator and the merger are automations now (his design,
+	// 2026-09-11): each runs at its speed x the RAM throttle, and the
+	// fabricator stops outright when its switch is off (autom_rate)
+	var _rf = autom_rate("fab");
+	var _rm = autom_rate("merge");
+	_t.fab += delta * _tmult * _thr * _rf;
 	if (_t.fab >= _t.fab_t) {
 		// ⚖️ THE HOPPER IS OVERFLOW, NOT A CONVEYOR. This used to gate
 		// purely on hopper room, which was invisible while the hopper
@@ -101,7 +106,7 @@ function tiles_tick(_tmult = 1) {
 		// the toggle is on) and writes its throttle into thr_am - a
 		// starved pool slows the cadence, soft, exactly like a machine
 		var _thr_am = _t[$ "thr_am"] ?? 1;
-		_t.am_tic += delta * _tmult * _thr_am;
+		_t.am_tic += delta * _tmult * _thr_am * _rm;
 		if (mouse_check_button_pressed(mb_left) && _t.am_tic > _t.am_tic_ - 10)
 			_t.am_tic = _t.am_tic_ - 10;
 		if (_t.am_tic > _t.am_tic_ && _t.am_ia == -1) _t.am_tic = _t.am_tic_; // full, waiting

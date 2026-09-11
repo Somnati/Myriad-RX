@@ -28,8 +28,12 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 	// thr_am_avg (its own powered machine, on/off gated) - throttled
 	// gear runs slower offline exactly as it would have live, and the
 	// formulas are the same ones tiles_tick integrates per step
-	var _sec_fab = _sec * clamp(_t[$ "thr_avg"]    ?? 1, 0, 1);
-	var _sec_am  = _sec * clamp(_t[$ "thr_am_avg"] ?? 1, 0, 1);
+	// ...and the automation rates (his design, 2026-09-11): the
+	// fabricator's and the merger's speed x the RAM throttle, exactly
+	// what tiles_tick multiplies by live - so an absence runs at the
+	// rate the player left set, and offline == online holds
+	var _sec_fab = _sec * clamp(_t[$ "thr_avg"]    ?? 1, 0, 1) * autom_rate("fab");
+	var _sec_am  = _sec * clamp(_t[$ "thr_am_avg"] ?? 1, 0, 1) * autom_rate("merge");
 	if (_sec_fab < 1 && _sec_am < 1)
 		return { merges : 0, avail : 0, bailed : false };
 

@@ -16,10 +16,9 @@ var _eo = (1 - _ea) * UI_IN_DEAL;
 if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
 ui_fade_set(_ea);
 
-// THE PAGE AND ITS HOVER, FIRST. The dials page fills the room with
-// fourteen rows and has no footer band left, so its help line has to
-// ride the title strip - which is drawn before the rows are. Building
-// both up here is what lets either band show it.
+// THE PAGE AND ITS HOVER, FIRST. The help line rides the title strip
+// (drawn before the rows are) and the RAM band reads the hovered row's
+// cost, so both are found up here.
 var _rows = __page_rows();
 var _hov  = -1;
 if (input_free(ui_layer_overlay))   // the panel's own rung (it holds the room at 100)
@@ -30,23 +29,83 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 }
 var _help = (_hov >= 0 && variable_struct_exists(_rows[_hov], "help"))
 	? _rows[_hov].help : "";
+hov     = _hov;
+hov_ram = (_hov >= 0) ? _rows[_hov].ram : 0;
+hov_on  = (_hov >= 0) ? _rows[_hov].on  : false;
 
-// ---- the title strip ----
+// ---- the title strip: the title, and the hovered row's help ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, 16, 0, c_hsv(169, 186, 5), 1);
-draw_sprite_ext(spr_pixel_1x1, 0, 0, bby + 15, room_width, 1, 0, sett_ink, .25);
 draw_set_color(rgb(195, 205, 235));
 draw_set_alpha(.85);
 draw_text(6, bby + 5, "automation");
-if (tab == 0) {
-	draw_set_halign(fa_right);
+draw_set_halign(fa_right);
+if (_help != "" && tab == AT_DIALS) {
+	// the dials page fills the room to the bottom edge, so its help
+	// rides the strip; every other page has a footer for it
+	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
+	draw_set_alpha(.8);
+	draw_text(room_width - 8, bby + 5, _help);
+} else if (tab == AT_DIALS) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
-	draw_text(room_width - 8, bby + 5,
-		(_help != "") ? _help
-		: ((g.autom.lock_pct > 0)
-			? ("reserve is holding " + ((profit_reserved() >= arb(1))
-				? crunch_arb(profit_reserved()) : "0") + " out of spending")
-			: "the % is a CAP: the most one buy may cost, out of spendable profit"));
+	draw_text(room_width - 8, bby + 5, (g.autom.lock_pct > 0)
+		? ("reserve is holding " + ((profit_reserved() >= arb(1))
+			? crunch_arb(profit_reserved()) : "0") + " out of spending")
+		: "the % is a CAP: the most one buy may cost, out of spendable profit");
+}
+draw_set_halign(fa_left);
+
+// ---- THE RAM BAND, on every tab (his ask) ----
+// one stick per unit: lit for what is used, an outline for what is
+// free, RED past the cap (the over-budget sticks). The hovered row's
+// cost pulses red on the meter - over its own sticks if it is on (the
+// last ones of the used run), after the used run if it is off (what
+// switching it on would take, and whether that crosses the cap).
+{
+	var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
+	var _n = max(_c, _u);
+	__stick_seat(_n);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_black, .45);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y + band_h - 1, room_width, 1, 0, sett_ink, .25);
+	draw_set_color(c_gold);
+	draw_set_alpha(.85);
+	draw_text(6, band_y + 2, "ram " + string(_u) + "/" + string(_c));
+
+	var _pulse = .35 + .65 * (.5 + .5 * sin(current_time / 170));
+	// which sticks the hover paints: [h0, h0 + hov_ram)
+	var _h0 = -1;
+	if (hov_ram > 0) _h0 = hov_on ? max(0, _u - hov_ram) : _u;
+	for (var _k = 0; _k < _n; _k++) {
+		var _sr = __stick_r(_k);
+		var _used = (_k < _u);
+		var _over = (_k >= _c);
+		var _col  = _over ? c_hred : c_seagreen;
+		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, _col, .85);
+		else       draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _over ? c_hred : c_seagreen, .25);
+		if (_h0 >= 0 && _k >= _h0 && _k < _h0 + hov_ram) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
+			draw_px_rect(_sr.x - 1, _sr.y - 1, _sr.w + 2, _sr.h + 2, c_hred, .6 * _pulse);
+		}
+	}
+	// a hover that would run past every drawn stick: the extra sticks,
+	// outlined red past the meter's end
+	if (_h0 >= 0 && _h0 + hov_ram > _n) {
+		for (var _k = _n; _k < _h0 + hov_ram; _k++) {
+			var _sr = __stick_r(_k);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
+		}
+	}
+	// the verdict, right
+	draw_set_halign(fa_right);
+	if (_th < 1) {
+		draw_set_color(c_hred);
+		draw_set_alpha(.9);
+		draw_text(room_width - 8, band_y + 2, "over budget  x" + string_format(_th, 1, 2));
+	} else {
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(room_width - 8, band_y + 2, string(_c - _u) + " free");
+	}
 	draw_set_halign(fa_left);
 }
 
@@ -84,7 +143,36 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	draw_set_halign(fa_left);
 	draw_set_color(_rw.on ? c_white : _dim);
 	draw_set_alpha(_rw.on ? .95 : .6);
-	draw_text(cont_x + 7, _ry + 3, _rw.name);
+	draw_text(cont_x + 7, _ry + 2, _rw.name);
+
+	// an info line: the value, after the label
+	if (_rw.kind == 6) {
+		draw_set_color(merge_colour(_rw.col, c_white, .6));
+		draw_set_alpha(.8);
+		draw_text(cont_x + 72, _ry + 2, _rw.val);
+		continue;
+	}
+
+	// an action row: a note, then its buttons from the right
+	if (_rw.kind == 7) {
+		draw_set_color(_dim);
+		draw_set_alpha(.7);
+		draw_text(cont_x + 72, _ry + 2, _rw.val);
+		var _nb = array_length(_rw.btns);
+		for (var _b = 0; _b < _nb; _b++) {
+			var _br = __btn_r(_i, _b, _nb);
+			var _en = _rw.on || (_rw.btns[_b] == "save");
+			draw_sprite_ext(spr_pixel_1x1, 0, _br.x, _br.y, _br.w, _br.h, 0,
+				_en ? merge_colour(_rw.col, c_black, .55) : c_black, _en ? .95 : .5);
+			draw_px_rect(_br.x, _br.y, _br.w, _br.h, _rw.col, _en ? .9 : .3);
+			draw_set_halign(fa_center);
+			draw_set_color(_en ? c_white : _dim);
+			draw_set_alpha(_en ? .95 : .6);
+			draw_text(_br.x + _br.w / 2 + 1, _br.y + 1, _rw.btns[_b]);
+			draw_set_halign(fa_left);
+		}
+		continue;
+	}
 
 	// the rarity chips, in place of everything else on their row
 	if (_rw.kind == 3) {
@@ -109,7 +197,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	}
 
 	// the toggle
-	if (_rw.kind == 0 || _rw.kind == 2 || _rw.kind == 4) {
+	if (_rw.kind == 0 || _rw.kind == 2 || _rw.kind == 4 || _rw.kind == 5) {
 		var _tg = __tog_r(_i);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tg.x, _tg.y, _tg.w, _tg.h, 0,
 			_rw.on ? merge_colour(_rw.col, c_black, .5) : c_black,
@@ -118,35 +206,51 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		draw_set_halign(fa_center);
 		draw_set_color(_rw.on ? c_white : _dim);
 		draw_set_alpha(_rw.on ? .95 : .6);
-		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 2,
+		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 1,
 			(_rw.kind == 4) ? (_rw.on ? "keep" : "sell") : (_rw.on ? "on" : "off"));
 		draw_set_halign(fa_left);
 	}
 
-	// the slider - dim while its toggle is off, because a number that
-	// is not being used should not read as one that is
-	if (_rw.kind == 1 || _rw.kind == 2) {
+	// the sliders - dim while their toggle is off, because a number
+	// that is not being used should not read as one that is
+	var _sa = _rw.on ? 1 : .35;
+	if (_rw.kind == 1 || _rw.kind == 2) {   // the wide track
 		var _tk = __trk_r(_i);
 		var _f  = clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
-		var _a  = _rw.on ? 1 : .35;
-		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w, _tk.h, 0,
-			c_black, .7 * _a);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w * _f, _tk.h, 0,
-			_rw.col, .8 * _a);
-		draw_px_rect(_tk.x, _tk.y, _tk.w, _tk.h, _rw.col, .35 * _a);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x + _tk.w * _f - 1, _tk.y - 2,
-			3, _tk.h + 4, 0, c_white, .8 * _a);
-
+		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w, _tk.h, 0, c_black, .7 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w * _f, _tk.h, 0, _rw.col, .8 * _sa);
+		draw_px_rect(_tk.x, _tk.y, _tk.w, _tk.h, _rw.col, .35 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x + _tk.w * _f - 1, _tk.y - 2, 3, _tk.h + 4, 0, c_white, .8 * _sa);
 		draw_set_halign(fa_right);
 		draw_set_color(_rw.on ? c_white : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);
 		// clear of the verdict pill's column when there is one
-		draw_text(cont_x + cont_w - ((_rw.st >= 0) ? 48 : 4), _ry + 3,
-			string(_rw.val) + _rw.sfx);
+		draw_text(cont_x + cont_w - ((_rw.st >= 0) ? 48 : 4), _ry + 2, string(_rw.val) + _rw.sfx);
 		draw_set_halign(fa_left);
 	}
+	if (_rw.kind == 5) {   // the cap track, then the timer track
+		var _ck = __cap_r(_i);
+		var _f  = clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w, _ck.h, 0, c_black, .7 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w * _f, _ck.h, 0, _rw.col, .8 * _sa);
+		draw_px_rect(_ck.x, _ck.y, _ck.w, _ck.h, _rw.col, .35 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x + _ck.w * _f - 1, _ck.y - 2, 3, _ck.h + 4, 0, c_white, .8 * _sa);
+		draw_set_color(_rw.on ? c_white : _dim);
+		draw_set_alpha(_rw.on ? .9 : .5);
+		draw_text(_ck.x + _ck.w + 4, _ry + 2, string(_rw.val) + _rw.sfx);
 
-	// the dial pages' verdict pill: what the automation did last pulse
+		var _tm = __tm_r(_i);
+		var _tf = clamp((_rw.t - RAM_TIMER_MIN) / max(1, RAM_TIMER_MAX - RAM_TIMER_MIN), 0, 1);
+		// the timer's colour is its price: the faster, the redder
+		var _tc = merge_colour(c_seagreen, c_hred, (ram_cost("timer", _rw.t) - 1) / 3);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w, _tm.h, 0, c_black, .7 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w * _tf, _tm.h, 0, _tc, .8 * _sa);
+		draw_px_rect(_tm.x, _tm.y, _tm.w, _tm.h, _tc, .35 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tf - 1, _tm.y - 2, 3, _tm.h + 4, 0, c_white, .8 * _sa);
+		draw_text(_tm.x + _tm.w + 4, _ry + 2, string(_rw.t) + "s");
+	}
+
+	// the autobuy rows' verdict pill: what the automation did last attempt
 	if (_rw.st >= 0) {
 		var _px = cont_x + cont_w - 4;
 		draw_set_halign(fa_right);
@@ -155,7 +259,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		draw_set_color((_rw.st == 2) ? c_sgreen
 			: ((_rw.st == 1) ? c_horange : _dim));
 		draw_set_alpha((_rw.st == 0) ? .35 : .8);
-		draw_text(_px, _ry + 3,
+		draw_text(_px, _ry + 2,
 			(_rw.st == 2) ? "buying" : ((_rw.st == 1) ? "waiting" : "off"));
 		draw_set_halign(fa_left);
 	}
@@ -169,14 +273,12 @@ var _fy = room_height - 30;
 draw_set_color(_dim);
 draw_set_alpha(.55);
 
-if (tab != 0 && _help != "") {
+if (tab != AT_DIALS && _help != "") {
 	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
 	draw_set_alpha(.75);
 	draw_text(cont_x, _fy, _help);
-	draw_set_color(_dim);
-	draw_set_alpha(.55);
 } else
-if (tab == 1) {
+if (tab == AT_REB) {
 	draw_text(cont_x, _fy,
 		"EVERY enabled condition must pass - they are rails, not triggers");
 	var _c = rebirth_calc();
@@ -187,12 +289,7 @@ if (tab == 1) {
 		+ "   run " + crunch_time_long(_c.run_s * 60)
 		+ (_c.cool > 0 ? ("   cooldown " + string(ceil(_c.cool)) + "s") : ""));
 } else
-// ⚖️ `else if`, NOT a second `if` (his report: the text overlapped).
-// The hover line and this note share one y, so a bare `if` here painted
-// the standing note straight through whatever the pointer was
-// explaining. Every band on this screen is one line deep; anything that
-// wants the slot has to take it from something else.
-if (tab == 2) {
+if (tab == AT_UPG) {
 	// SAY WHAT THE QUICK-SET WOULD DO. A percentage is only a useful
 	// control if the screen also says which rung it lands on today - the
 	// whole point of reading the live odds is that the answer moves, and
@@ -205,7 +302,7 @@ if (tab == 2) {
 	draw_text(cont_x, _fy + 10,
 		"it never sells a slot you have bought tiers into");
 } else
-if (tab == 3) {
+if (tab == AT_FILT) {
 	// WHAT THE FILTER WOULD DO RIGHT NOW, through the same call the
 	// runner uses - a preview computed a second way is a preview that
 	// will eventually be wrong.
@@ -222,6 +319,16 @@ if (tab == 3) {
 			+ " on the table would be sold"
 			+ (g.autom.upg.sell ? "" : " - auto sell is off"))
 		: "nothing on the table matches the filter");
+} else
+if (tab == AT_TILES) {
+	draw_text(cont_x, _fy,
+		"the fabricator and the merger cost a stick per 20% of speed; an autobuy 1 to 4 by its timer");
+} else
+if (tab == AT_OVER) {
+	draw_text(cont_x, _fy,
+		"a stick per 20% of speed on the three machines; 4 sticks at 1s down to 1 at 6s+ on an autobuy");
+	draw_text(cont_x, _fy + 10,
+		"the autorebirth is " + string(RAM_REBIRTH) + " once armed; roll and sell are 1 each");
 }
 
 draw_set_alpha(1);

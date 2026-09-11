@@ -14,18 +14,20 @@
 /// BUY spends credits while the bill is at most pct% of the CURRENT
 /// balance, cheapest slot first - cheapest maximises tiers per credit,
 /// and tiers are what the bonus actually counts.
-function autom_upgrades() {
+/// @param buy_due   this call may BUY (the buy row's own clock fired)
+/// @param pulse     this call may SELL and ROLL (the base pulse)
+function autom_upgrades(_buy_due = true, _pulse = true) {
 	autom_init();
 	if (!variable_global_exists("upg")) return;
 	var _u = g.autom.upg;
 	if (!(_u.roll || _u.buy || _u.sell)) { _u.st = 0; return; }
-	_u.st = 1;
+	if (_pulse) _u.st = 1;
 
 	var _n = upgrade_slots();
 
 	// ---- SELL what the filter rejects (upgrade_autosell_wants is the
 	// ---- one rule; the room previews it through the same call) ----
-	if (_u.sell)
+	if (_u.sell && _pulse)
 	for (var _i = 0; _i < _n; _i++) {
 		if (!upgrade_autosell_wants(_i)) continue;
 		upgrade_sell(_i);
@@ -33,7 +35,7 @@ function autom_upgrades() {
 	}
 
 	// ---- ROLL into what is empty ----
-	if (_u.roll)
+	if (_u.roll && _pulse)
 	for (var _i = 0; _i < _n; _i++) {
 		if (is_struct(g.upg.slot[_i])) continue;
 		var _r = upgrade_roll(_i);
@@ -48,7 +50,7 @@ function autom_upgrades() {
 	// with the autosell OFF, autobuy silently refused to level a common
 	// the player had chosen to keep - a filter doing a job nobody asked
 	// it to do.
-	if (_u.buy) {
+	if (_u.buy && _buy_due) {
 		// gather what is buyable, then take them in price order:
 		// cheapest first maximises tiers per credit, and tiers are what
 		// the bonus actually counts

@@ -3,10 +3,13 @@
 /// heartbeat, so it runs in every room rather than only while the
 /// automation screen is open.
 ///
-/// ONE ATTEMPT PER SECOND, and the adaptive step size is what scales
-/// throughput (Myriad's cadence). Never speed the clock up to buy more:
-/// a faster pulse spends the same money in smaller, more expensive
-/// pieces, because every dial curve accelerates.
+/// EVERY AUTOBUY ON ITS OWN CLOCK (his ask, 2026-09-11: "a timer slider
+/// for each autobuy"): a row attempts once per its t seconds, and the
+/// adaptive step size is what scales throughput (Myriad's cadence). A
+/// faster clock costs RAM (ram_cost "timer") and over the budget every
+/// clock runs at ram_throttle - the countdown counts throttled seconds.
+/// The autorebirth rails and the table's roll/sell keep the one-second
+/// base pulse.
 ///
 /// AUTOREBIRTH FIRES THROUGH rebirth_calc AND rebirth_do, the same two
 /// scripts the button uses. That is not tidiness - it is what makes the
@@ -20,26 +23,39 @@
 /// room's UI promises otherwise.
 function autom_tick() {
 	autom_init();
-	var _a = g.autom;
-	_a.tic -= delta / 60;
-	if (_a.tic > 0) return;
-	_a.tic = 1;
+	var _a  = g.autom;
+	var _dt = delta / 60;
+	var _th = ram_throttle();   // one read a step; every clock below rides it
 
-	// ---- autobuy: the dials ----
+	// ---- autobuy: the dials, each on its own clock ----
 	if (variable_global_exists("dial")) {
 		var _dn = min(g.dial_total, array_length(_a.dial));
 		for (var _i = 0; _i < _dn; _i++) {
 			var _p = _a.dial[_i];
-			if (!_p.on) { _p.st = 0; continue; }
+			if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
+			_p.tic -= _dt * _th;
+			if (_p.tic > 0) continue;
+			_p.tic = max(RAM_TIMER_MIN, _p.t);
 			autom_piece(_p, _i);
 		}
 	}
 
-	// ---- the upgrade table ----
-	autom_upgrades();
+	// ---- the upgrade table: buy on its clock, roll/sell on the pulse ----
+	var _u = _a.upg;
+	var _buy_due = false;
+	if (_u.buy) {
+		_u.tic -= _dt * _th;
+		if (_u.tic <= 0) { _u.tic = max(RAM_TIMER_MIN, _u.t); _buy_due = true; }
+	} else _u.tic = 0;
 
-	// ---- the tile table's upgrades ----
-	autom_tiles();
+	// ---- the tile table's upgrades, each on its own clock ----
+	autom_tiles(_dt * _th);
+
+	// ---- the base pulse ----
+	_a.tic -= _dt;
+	if (_a.tic > 0) { if (_buy_due) autom_upgrades(true, false); return; }
+	_a.tic = 1;
+	autom_upgrades(_buy_due, true);
 
 	// ---- autorebirth: EVERY enabled condition must pass ----
 	var _r = _a.reb;

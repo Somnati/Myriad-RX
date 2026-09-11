@@ -13,6 +13,7 @@ function prod_dials(_secs = -1) {
 	if (!variable_global_exists("dial")) return;
 	if (_secs < 0) _secs = delta / 60;
 	if (_secs <= 0) return;
+	var _run = autom_rate("run");   // the dials' cycling: speed x the RAM throttle, 0 = every dial manual
 
 	for (var _i = 0; _i < g.dial_total; _i++) {
 		var _d = g.dial[_i];
@@ -23,15 +24,21 @@ function prod_dials(_secs = -1) {
 		// the cycle's visual decay rides real time, never the budget
 		if (_d.glow > 0) _d.glow = max(0, _d.glow - .04 * delta);
 
-		_d.cycle += _d.cps * _secs;
+		// THE DIALS' OWN CYCLING IS AN AUTOMATION NOW (his design,
+		// 2026-09-11): autom_rate("run") is 0 with it switched off in
+		// the automation panel - every dial manual, DE's rule - and
+		// otherwise its speed x the RAM throttle. A manual dial accrues
+		// at full rate: the tap is the player's own work
+		var _auto = _d.auto && (_run > 0);
+		_d.cycle += _d.cps * _secs * (_auto ? _run : 1);
 		if (_d.cycle < 1) continue;
 
 		// a manual dial banks ONE cycle and stops until tapped again
 		// (DE's rule); an autonomous one takes every whole cycle
 		var _n = floor(_d.cycle);
-		if (!_d.auto) _n = 1;
+		if (!_auto) _n = 1;
 		_d.cycle -= _n;
-		if (!_d.auto) _d.cycle = 0;
+		if (!_auto) _d.cycle = 0;
 
 		var _pay = (_n > 1) ? do_scale(_d.gpc, _n) : _d.gpc;
 		// ⚖️ THE TILE TABLE MULTIPLIES THIS (DE's update_auto, its last

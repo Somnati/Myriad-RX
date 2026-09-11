@@ -307,6 +307,25 @@ function main_macros() {
 #macro UI_IN_SLIDE   17    // px the title strip drops out from behind
                            // the header, and the rail slides in by
 
+// ---- RAM (the automation budget, his design 2026-09-11) ----
+// Every automation costs sticks; the budget is ram_cap, the bill is
+// ram_used, and over budget NOTHING switches off - every clock runs at
+// cap/used instead (ram_throttle). Read ram_cost for the prices.
+#macro RAM_BASE        16  // sticks a fresh game holds. The two things
+                            // that are ON by default - the dials' own
+                            // cycling and the fabricator, 5 each at
+                            // full speed - fit with room for one fast
+                            // autobuy or several slow ones
+#macro RAM_STEP         4  // sticks per capacity level (ram_upg)
+#macro RAM_REB          2  // sticks per rebirth banked (g.rebirth.total)
+#macro RAM_COST_LG0     6  // log10 of the first capacity level (1e6)
+#macro RAM_COST_STEP  .75  // decades per level after it (x5.6): the
+                            // late-game profit sink shape the ngu cap
+                            // and the time bank use
+#macro RAM_REBIRTH      4  // sticks the autorebirth costs, armed
+#macro RAM_TIMER_MIN    1  // the fastest an autobuy may pulse, seconds
+#macro RAM_TIMER_MAX   30
+
 // ---- THE PUCK (obj_puck - Myriad DE's throwable, rebuilt) ----
 // Read obj_puck's Create for what each mechanic is FOR; these are the
 // numbers that shape it. Everything is in room px and 60hz frames.

@@ -288,15 +288,15 @@ function handle_save(){
 				if (_p4[_k] != "") g.autom.upg.kind[$ _p4[_k]] = false;
 		}
 	}
-	// THE TILE AUTOBUY, keyed by id like the kinds: "id=on:pct|..." -
-	// a roster entry added later reads as off/50 rather than as
+	// THE TILE AUTOBUY, keyed by id like the kinds: "id=on:pct:t|..." -
+	// a roster entry added later reads as off/50/1s rather than as
 	// whatever sat at its index
 	var _ft = "";
 	var _tn = variable_struct_get_names(g.autom.tiles);
 	for (var _k = 0; _k < array_length(_tn); _k++) {
 		var _tp = g.autom.tiles[$ _tn[_k]];
 		_ft += ((_ft == "") ? "" : "|") + _tn[_k] + "="
-		     + (_tp.on ? "1" : "0") + ":" + string(_tp.pct);
+		     + (_tp.on ? "1" : "0") + ":" + string(_tp.pct) + ":" + string(_tp.t);
 	}
 	_ft = handle("tiles_auto", _ft);
 	if (action == sv_load && _ft != "") {
@@ -309,7 +309,41 @@ function handle_save(){
 			var _op = string_split(_kv[1], ":");
 			_tp.on  = (array_length(_op) > 0) && (_op[0] == "1");
 			_tp.pct = (array_length(_op) > 1 && _op[1] != "") ? clamp(real(_op[1]), 1, 100) : 50;
+			_tp.t   = (array_length(_op) > 2 && _op[2] != "") ? clamp(real(_op[2]), RAM_TIMER_MIN, RAM_TIMER_MAX) : 1;
 		}
+	}
+
+	// THE DIAL TIMERS (one string, like the toggles), the upgrade buy
+	// clock, and RAM: the capacity level, the two default automations
+	// with their speeds, the merger's speed, the three presets
+	var _atm = "";
+	for (var _k = 0; _k < _an; _k++)
+		_atm += ((_k > 0) ? "," : "") + string(g.autom.dial[_k].t);
+	_atm = handle("dial_auto_t", _atm);
+	if (action == sv_load) {
+		var _p6 = string_split(_atm, ",");
+		for (var _k = 0; _k < _an; _k++) {
+			var _d6 = (_k < array_length(_p6)) ? _p6[_k] : "";
+			g.autom.dial[_k].t = (_d6 == "") ? 1 : clamp(real(_d6), RAM_TIMER_MIN, RAM_TIMER_MAX);
+		}
+	}
+	g.autom.upg.t     = handle("upg_t",     g.autom.upg.t);
+	g.autom.ram_lv    = handle("ram_lv",    g.autom.ram_lv);
+	g.autom.run.on    = handle("run_on",    g.autom.run.on);
+	g.autom.run.spd   = handle("run_spd",   g.autom.run.spd);
+	g.autom.fab.on    = handle("fab_on",    g.autom.fab.on);
+	g.autom.fab.spd   = handle("fab_spd",   g.autom.fab.spd);
+	g.autom.am_speed  = handle("am_speed",  g.autom.am_speed);
+	for (var _k = 0; _k < 3; _k++)
+		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
+	if (action == sv_load) {
+		g.autom.upg.t    = clamp(g.autom.upg.t, RAM_TIMER_MIN, RAM_TIMER_MAX);
+		g.autom.ram_lv   = max(0, floor(g.autom.ram_lv));
+		g.autom.run.spd  = clamp(g.autom.run.spd, 5, 100);
+		g.autom.fab.spd  = clamp(g.autom.fab.spd, 5, 100);
+		g.autom.am_speed = clamp(g.autom.am_speed, 5, 100);
+		for (var _k = 0; _k < 3; _k++)
+			if (!is_string(g.autom.presets[_k])) g.autom.presets[_k] = "";
 	}
 
 	if (action == sv_load) {

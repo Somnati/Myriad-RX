@@ -7,13 +7,16 @@
 /// lawyer, so the curve, the cap, the inflation and the dirty mark all
 /// hold for automation exactly as they hold for a press.
 ///
-/// ONE LEVEL PER ROW PER PULSE. Every row climbs decades a level, so a
-/// second pulse is never the bottleneck - the shards are - and there is
-/// no q/h ramp to keep, unlike the dials. Rows run in roster order,
-/// which puts the profit boost first: the one that compounds.
+/// ONE LEVEL PER ROW PER ATTEMPT, each row on its own clock (t seconds,
+/// counted in throttled time - autom_tick hands in this step's share).
+/// Every row climbs decades a level, so the clock is never the
+/// bottleneck - the shards are - and there is no q/h ramp to keep,
+/// unlike the dials. Rows run in roster order, which puts the profit
+/// boost first: the one that compounds.
 ///
 /// st is the panel's verdict pill: 0 off, 1 waiting, 2 bought.
-function autom_tiles() {
+/// @param dt   throttled seconds elapsed this step
+function autom_tiles(_dt) {
 	autom_init();
 	if (!variable_global_exists("tiles")) return;
 	var _t   = g.autom.tiles;
@@ -22,7 +25,10 @@ function autom_tiles() {
 		var _id = _cfg[_i].id;
 		var _p  = _t[$ _id];
 		if (_p == undefined) continue;
-		if (!_p.on) { _p.st = 0; continue; }
+		if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
+		_p.tic -= _dt;
+		if (_p.tic > 0) continue;
+		_p.tic = max(RAM_TIMER_MIN, _p.t);
 		var _q = tile_upg(_id, false);
 		if (_q.max) { _p.st = 1; continue; }
 		// the cap, off the live bank: a share of nothing buys nothing

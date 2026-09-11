@@ -11,8 +11,11 @@
 ///     is a guess about the current wallet, and the wallet is not the
 ///     same after a reload.
 ///
-///   dial[i] { on, pct, q, h, st }
+///   dial[i] { on, pct, t, q, h, st, tic }
 ///     on   the toggle
+///     t    seconds between attempts (RAM_TIMER_MIN..MAX): its clock,
+///          and what it costs - ram_cost("timer", t). tic is the
+///          countdown, session-only
 ///     pct  spend threshold as a % of CURRENT profit. His semantics
 ///          from the techdemo, and the right ones: the dial buys only
 ///          while the bill is at most pct% of the wallet AT THAT
@@ -33,8 +36,24 @@
 ///        a percentage that SETS rar[] from the live odds when dragged
 ///        (see upgrade_keep_rarity) rather than a standing rule.
 ///
+///   RAM (his design, 2026-09-11 - read ram_cost / ram_used /
+///   ram_throttle). Everything below that is ON costs sticks; over
+///   the budget every clock slows, nothing stops.
+///     ram_lv    capacity levels bought (ram_upg) - a purchase, so it
+///               survives a preset load and a rebirth
+///     run       the dials' OWN CYCLING as an automation { on, spd }:
+///               on by default at 100%; slower is cheaper; off makes
+///               every dial manual (tap to run, DE's rule). prod_dials
+///               reads autom_rate("run")
+///     fab       the fabricator, the same shape (tiles_tick reads
+///               autom_rate("fab"))
+///     am_speed  the automerger's speed, 5..100% (its switch is the
+///               table's own g.tiles.automerge)
+///     presets   three pack strings (autom_pack) - the whole setup,
+///               saved and reloaded from the overview
+///
 ///   tiles  the tile table's upgrade autobuy (his ask, 2026-09-11):
-///        one { on, pct, st } per tile_upg_config id, keyed BY ID like
+///        one { on, pct, t, st, tic } per tile_upg_config id, keyed BY ID like
 ///        the upgrade filter, pct the cap as a share of the SHARDS
 ///        held. Pre-seated for every roster id so the panel and the
 ///        save never meet a missing row. (The automerger's own switch
@@ -70,7 +89,7 @@ function autom_init(_force = false) {
 		// so the self-adjusting logic is still there as a one-drag way
 		// to configure the flags. The flags themselves are the truth.
 		upg  : { roll : false, buy : false, sell : false,
-		         pct : 50, keep : 50, st : 0,
+		         pct : 50, keep : 50, st : 0, t : 1, tic : 0,
 		         rar : array_create(UPG_RARITY_N, true),
 		         kind : {} },
 		// THE RESERVE, as a percentage of every earning. 0 = off.
@@ -80,6 +99,11 @@ function autom_init(_force = false) {
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
 		tiles : {},
+		ram_lv   : 0,
+		run      : { on : true, spd : 100 },
+		fab      : { on : true, spd : 100 },
+		am_speed : 100,
+		presets  : ["", "", ""],
 		// THE WATERMARK the reserve is measured against: the highest
 		// pile ever held on this run. It exists because a reserve
 		// measured against the CURRENT pile is not a floor - spending
@@ -92,8 +116,8 @@ function autom_init(_force = false) {
 		tic  : 0,
 	};
 	repeat (_dn) array_push(g.autom.dial,
-		{ on : false, pct : 50, q : 1, h : 0, st : 0 });
+		{ on : false, pct : 50, t : 1, q : 1, h : 0, st : 0, tic : 0 });
 	var _tc = tile_upg_config();
 	for (var _i = 0; _i < array_length(_tc); _i++)
-		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, st : 0 };
+		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, t : 1, st : 0, tic : 0 };
 }
