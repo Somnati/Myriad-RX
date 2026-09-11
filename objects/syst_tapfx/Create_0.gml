@@ -25,8 +25,25 @@ __live = function() { return in_room(rm_clicker); };
 // are the keepers, mono the default; smaller and faster than the trial):
 //   mono     the ring alone, white, two cells thick, no split
 //   chroma   a one-cell ring with the red/blue split closing as it fades
-fx_names = ["none", "glow", "shock mono", "shock chroma", "glow + mono"];
+// ...and the second batch (his ask, 2026-09-10: "more to test"), all
+// cells, all cheap, all in the pixel grammar the two keepers set:
+//   sparks     DE's shard sparks (the tile's, the dial's) thrown from
+//              the tap in the profit colour - the spark pool
+//   starburst  eight dashes flying out on the compass and diagonals,
+//              the fighting-game hit star
+//   plus       four dashes, the compass only, longer - a cross
+//   square     an expanding one-cell square outline, the visualiser's
+//              own shape
+//   implode    a ring that CLOSES on the tap and pops a white dot
+//   echo       three thin rings, three frames apart
+//   dust       five slow puffs drifting out and dying
+//   lightning  a jagged one-cell bolt from the tap, a flash then gone
+//   checker    a 5x5 checkerboard at the tap whose cells drop out one
+//              by one
+fx_names = ["none", "glow", "shock mono", "shock chroma", "glow + mono",
+            "sparks", "starburst", "plus", "square", "implode", "echo", "dust", "lightning", "checker"];
 if (!variable_global_exists("tap_fx")) g.tap_fx = 2;
+fxs = [];   // the second batch's live effects: { kind, x, y, t, crit, ... }
 // the pick, always a valid index: settings.ini loads AFTER this Create
 // (boot, step 1) and a save from the seven-strong bench holds 4..7
 __fx = function() {
@@ -59,4 +76,54 @@ fire = function(_x, _y, _crit, _n) {
 	// kinds: 1 mono, 0 chroma
 	if (_f == 2 || _f == 4) array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : 1 });
 	if (_f == 3)            array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : 0 });
+
+	// ---- the second batch ----
+	var _pc = _crit ? c_gold : g.profit_color;
+	switch (_f) {
+		case 5:   // sparks: the pool does the flying
+			spark_burst(_x, _y, _crit ? 12 : 6, _pc);
+			break;
+		case 6:   // starburst: eight dashes
+			array_push(fxs, { kind : "star", x : _x, y : _y, t : 0, crit : _crit, col : _pc, n : 8, a0 : 0 });
+			break;
+		case 7:   // plus: four, longer
+			array_push(fxs, { kind : "star", x : _x, y : _y, t : 0, crit : _crit, col : _pc, n : 4, a0 : 0 });
+			break;
+		case 8:   // square
+			array_push(fxs, { kind : "square", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : 1 });
+			break;
+		case 9:   // implode
+			array_push(fxs, { kind : "implode", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : (_crit ? 16 : 12) });
+			break;
+		case 10:  // echo: three rings, three frames apart
+			for (var _k = 0; _k < 3; _k++)
+				array_push(fxs, { kind : "echo", x : _x, y : _y, t : 0, crit : _crit, col : _pc, r : 1 - _k * 4.8 });
+			break;
+		case 11: { // dust: five puffs with their own headings
+			var _pf = [];
+			repeat (5) array_push(_pf, { a : random(360), s : random_range(.5, 1.0), d : 0 });
+			array_push(fxs, { kind : "dust", x : _x, y : _y, t : 0, crit : _crit, col : _pc, puffs : _pf });
+			break;
+		}
+		case 12: { // lightning: a bolt of four bends, rolled once
+			var _pts = [];
+			var _bx = _x, _by = _y;
+			var _ba = random(360);
+			array_push(_pts, _bx, _by);
+			repeat (_crit ? 6 : 4) {
+				var _seg = random_range(3, 6);
+				var _sa = _ba + random_range(-35, 35);
+				_bx += lengthdir_x(_seg, _sa); _by += lengthdir_y(_seg, _sa);
+				array_push(_pts, _bx, _by);
+			}
+			array_push(fxs, { kind : "bolt", x : _x, y : _y, t : 0, crit : _crit, col : _pc, pts : _pts });
+			break;
+		}
+		case 13: { // checker: 5x5, each cell with its own death frame
+			var _dt = array_create(25);
+			for (var _k = 0; _k < 25; _k++) _dt[_k] = random_range(4, 11);
+			array_push(fxs, { kind : "checker", x : _x, y : _y, t : 0, crit : _crit, col : _pc, die : _dt });
+			break;
+		}
+	}
 };

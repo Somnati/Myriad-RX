@@ -1,4 +1,4 @@
-if (!__live()) { glows = []; shocks = []; exit; }
+if (!__live()) { glows = []; shocks = []; fxs = []; exit; }
 
 // ---- the pick lands (the pillbox hands it back on this instance) ----
 if (_pselid != -1) {
@@ -29,4 +29,21 @@ for (var _i = array_length(glows) - 1; _i >= 0; _i--) {
 for (var _i = array_length(shocks) - 1; _i >= 0; _i--) {
 	shocks[_i].r += 1.6 * delta;   // (was 1.1 to 16: smaller and faster, his call)
 	if (shocks[_i].r > (shocks[_i].crit ? 16 : 12)) array_delete(shocks, _i, 1);
+}
+// the second batch: each kind has its own clock
+for (var _i = array_length(fxs) - 1; _i >= 0; _i--) {
+	var _e = fxs[_i];
+	_e.t += delta;
+	var _dead = false;
+	switch (_e.kind) {
+		case "star":    _dead = (_e.t >= 8); break;
+		case "square":  _e.r += 1.6 * delta; _dead = (_e.r > (_e.crit ? 16 : 12)); break;
+		case "implode": _e.r -= 1.7 * delta; _dead = (_e.r < -3); break;
+		case "echo":    _e.r += 1.6 * delta; _dead = (_e.r > (_e.crit ? 16 : 12)); break;
+		case "dust":    _dead = (_e.t >= 18); break;
+		case "bolt":    _dead = (_e.t >= 5); break;
+		case "checker": _dead = (_e.t >= 12); break;
+		default:        _dead = true;
+	}
+	if (_dead) array_delete(fxs, _i, 1);
 }
