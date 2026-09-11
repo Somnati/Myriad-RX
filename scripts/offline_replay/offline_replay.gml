@@ -134,7 +134,7 @@ function offline_replay(_secs) {
 		banked : _banked, bank_full : g.timebank.last_full, shown : false,
 		bat_ran : _cov, bat_dry : (_cov < _secs - 1),
 		bat_opt : (_opt == undefined) ? 0 : _opt.s,
-		spr_taps : _spr_taps, spr_n : array_length(g.sprites) };
+		sprite_taps : _spr_taps, sprite_n : array_length(g.sprites) };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }

@@ -44,9 +44,9 @@ assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0")
 	+ " - in the pile, tap to collect", g.profit_color, c_black);
 syst_banner.hp[0] *= 3;
 // the sprites, when there are any: what they tapped, and that they dozed off
-var _sn = _r[$ "spr_n"] ?? 0;
+var _sn = _r[$ "sprite_n"] ?? 0;
 if (_sn > 0) {
-	var _st = _r[$ "spr_taps"] ?? 0;
+	var _st = _r[$ "sprite_taps"] ?? 0;
 	assign_banner(((_sn == 1) ? "your sprite" : ("your " + string(_sn) + " sprites"))
 		+ " tapped " + string(_st) + " time" + ((_st == 1) ? "" : "s")
 		+ ((_r.secs > SPRITE_NAP) ? " - then dozed off. poke them" : ""), c_sgreen, c_black);
