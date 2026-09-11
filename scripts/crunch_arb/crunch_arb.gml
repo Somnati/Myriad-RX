@@ -14,10 +14,38 @@ function crunch_arb() {
 	if _acoe >= 10 {_acoe /= 10; _aexp += 1;}
 
 	_e = floor(_aexp/3);
-	//abrieviation
-	_abr = "$" + string(_aexp);
-	_abr_id = _e-1;
-	if _e <= 4 get_abri_scientific();
+
+	// ---- THE FORMAT (his ask, 2026-09-10; num_format_config is the
+	// roster, g.num_format the pick). Everything under a thousand is
+	// digits in every format; from there each format has its own idea
+	// of where the digits stop.
+	var _fmt = variable_global_exists("num_format") ? g.num_format : 0;
+	if (_fmt >= 2 && _aexp >= 3) {
+		// ---- the exponent formats: digits with commas under a million ----
+		if (_aexp < 6) return crunch_arb_full(argument[0], 6);   // (the cap is an EXPONENT: digits under a million)
+		if (_fmt == 4) {
+			// logarithmic: the log10 itself, two decimals
+			return "e" + string_format(_aexp + log10(_acoe), 1, 2);
+		}
+		if (_fmt == 2) {
+			// scientific: 1.23e15 - a mantissa that rounds up to 10 carries
+			var _m = round(_acoe * 100) / 100;
+			var _x = _aexp;
+			if (_m >= 10) { _m = 1; _x += 1; }
+			return string_format(_m, 1, 2) + "e" + string(_x);
+		}
+		// engineering: the exponent held to threes, the mantissa 1..999.9
+		var _x3 = _aexp - (_aexp mod 3);
+		var _m3 = _acoe * power(10, _aexp mod 3);
+		var _d3 = (_m3 >= 100) ? 0 : ((_m3 >= 10) ? 1 : 2);
+		_m3 = round(_m3 * power(10, _d3)) / power(10, _d3);
+		if (_m3 >= 1000) { _m3 = 1; _x3 += 3; _d3 = 2; }
+		return string_format(_m3, 1, _d3) + "e" + string(_x3);
+	}
+
+	//abbreviation: short letters or the words, the groups of three
+	_abr = num_suffix(_e, _fmt);
+	_abr_id = _e + 1;   // (every group has a suffix now: the 3-digit path always runs)
 
 	tot = 1; dec = 2;
 	_val_ = _acoe;

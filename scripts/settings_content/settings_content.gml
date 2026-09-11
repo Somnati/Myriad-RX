@@ -508,6 +508,22 @@ function settings_content() {
 	// player would look under, not where a row landed first)
 	settings_section("gameplay", c_seagreen);
 
+	// THE NUMBER FORMAT (his ask, 2026-09-10): num_format_config's five.
+	// Every crunch_arb reads the pick, so this is how the whole game
+	// counts. [compare] on the menu's misc list lays them side by side.
+	var _nfl = num_format_config();
+	settings_pill("number format", "numfmt", _nfl[clamp(g.num_format, 0, array_length(_nfl) - 1)].name,
+		function() {
+			var _l = num_format_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _j, col : (g.num_format == _j) ? c_gold : sett_ink,
+				                        enabled : (g.num_format == _j) });
+		},
+		function(_v) { g.num_format = _v; },
+		"how big numbers read everywhere: short (k m b t aa ab...), the "
+		+ "short-scale names, scientific, engineering, or the log itself. "
+		+ "menu > misc > number formats compares them side by side.");
+
 	settings_toggle("rounded bulk buys",
 		function() { return g.buy_round; },
 		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },

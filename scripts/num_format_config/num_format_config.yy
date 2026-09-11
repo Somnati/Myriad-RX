@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"num_format_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"num_format_config",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

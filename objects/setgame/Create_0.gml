@@ -10,6 +10,7 @@
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)
 	g.tap_fx = 2;          // the money room's [fx] chip: 0 none / 1 glow / 2 shock mono / 3 shock chroma / 4 glow + mono
 	g.crt_title = true;    // settings > visuals "crt title screen" (sh_crt over the title's background)
+	g.num_format = 0;      // settings > gameplay "number format" (num_format_config: 0 short)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

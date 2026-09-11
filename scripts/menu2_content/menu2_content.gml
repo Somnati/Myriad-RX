@@ -29,6 +29,7 @@ function menu2_content() {
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 
 	menu2_section("misc");
+	menu2_button("number formats", rm_numfmt,      c_gold);   // the comparison table (his ask)
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);

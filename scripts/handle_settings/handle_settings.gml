@@ -39,6 +39,8 @@ function handle_settings(_method) {
 	g.motion_blur = handle("motion_blur",g.motion_blur); // per-object motion blur (the puck)
 	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (syst_tapfx's chip)
 	g.crt_title = handle("crt_title",g.crt_title); // the title screen's crt pass
+	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
+	if (_method == sv_load) g.num_format = clamp(floor(g.num_format), 0, array_length(num_format_config()) - 1);
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);
 	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve
