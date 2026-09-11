@@ -164,6 +164,15 @@ function handle_save(){
 			_tt += ((_k > 0) ? "," : "") + string(g.tiles.tier[_k]);
 		_tt = handle("board", _tt);
 		g.tiles.fab     = handle("fab",     g.tiles.fab);
+		// ⚖️ THE AUTOMERGE SWITCH WAS NEVER SAVED (his report,
+		// 2026-09-11: "I want the automerger to work offline"). It
+		// defaults off in tiles_init, so every closed-app absence
+		// replayed with the merger OFF - tiles_fastforward's merge loop
+		// was right all along and simply never armed. Its timer carry
+		// rides with it, so a merge due at the moment you left lands.
+		g.tiles.automerge = handle("automerge", g.tiles.automerge);
+		g.tiles.am_tic    = handle("am_tic",    g.tiles.am_tic);
+		g.tiles.aim_center = handle("aim_center", g.tiles.aim_center ?? false);
 		g.tiles.stored  = handle("stored",  g.tiles.stored);
 		g.tiles.highest = handle("highest", g.tiles.highest);
 		g.tiles.merges  = handle("merges",  g.tiles.merges);

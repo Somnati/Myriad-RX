@@ -1,6 +1,13 @@
-// ---- toggle ----
-if (keyboard_check_pressed(vk_f1)) {
-    enabled = !enabled;
+// ---- the switch: system.debug, THE one flag ----
+// ⚖️ (his report, 2026-09-11: "the debug mode option doesn't do
+// anything"). F1 used to toggle two flags at once - system.debug in
+// system's Step and this object's own `enabled` here - which worked
+// only because both heard the same key. The settings toggle flips
+// system.debug alone, so this object was created with enabled false
+// and drew nothing. Now `enabled` simply FOLLOWS system.debug; F1
+// lives in system's Step and nowhere else.
+if (enabled != system.debug) {
+    enabled = system.debug;
     edit_index = -1;
 }
 

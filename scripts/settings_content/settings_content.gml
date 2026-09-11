@@ -758,6 +758,6 @@ function settings_content() {
 	settings_toggle("debug overlay",
 		function() { return system.debug; },
 		function(_v) { system.debug = _v; },
-		"the developer watch overlay (same as F1 on pc). not saved - "
-		+ "it always boots off.");
+		"the developer watch overlay: fps, globals you can edit, objects, "
+		+ "the log (same as F1 on pc). not saved - it always boots off.");
 }
