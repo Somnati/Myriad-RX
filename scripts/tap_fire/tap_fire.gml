@@ -161,9 +161,9 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	// across, two-fifths down), or none at all
 	var _tt = variable_global_exists("tap_text") ? g.tap_text : 0;
 	if (_tt != 2) {
-		var _fx = _x, _fy = _y - 4;
-		if (_tt == 1) { _fx = room_width * .5; _fy = room_height / 2.5; }
-		var _f = float_text(_fx, _fy, _fstr, _col, fnt_outline);
+		var _flx = _x, _fly = _y - 4;   // (_fx is the argument - the effects flag)
+		if (_tt == 1) { _flx = room_width * .5; _fly = room_height / 2.5; }
+		var _f = float_text(_flx, _fly, _fstr, _col, fnt_outline);
 		if (_tt == 1) _f.scale_ = _crit ? 1.6 : 1.25;
 		if (_crit) {
 			if (_tt != 1) _f.scale_ = 1.3;

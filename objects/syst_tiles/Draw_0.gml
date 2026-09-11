@@ -173,9 +173,9 @@ if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
 if (_t.automerge && _t.am_ia != -1 && _t.am_ib != -1
 && _t.am_ib != grab_i && _t.am_ib != ret_i && _t.tier[_t.am_ib] != 0) {
 	var _ap = clamp(_t.am_tic / _t.am_tic_, 0, 1);
-	var _am0 = __am_move_from();
-	if (_ap > _am0) {
-		var _af = (_ap - _am0) / max(.0001, 1 - _am0);
+	var _amf = __am_move_from();   // (_am0 is the aim point, declared above)
+	if (_ap > _amf) {
+		var _af = (_ap - _amf) / max(.0001, 1 - _amf);
 		_af = _af * _af;                            // ease IN: slow start, fast landing
 		var _fx = lerp(__slot_x(_t.am_ib), __slot_x(_t.am_ia), _af);
 		var _fy = lerp(__slot_y(_t.am_ib), __slot_y(_t.am_ia), _af);
