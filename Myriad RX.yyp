@@ -192,6 +192,7 @@
     {"id":{"name":"autom_init","path":"scripts/autom_init/autom_init.yy",},},
     {"id":{"name":"autom_piece","path":"scripts/autom_piece/autom_piece.yy",},},
     {"id":{"name":"autom_tick","path":"scripts/autom_tick/autom_tick.yy",},},
+    {"id":{"name":"autom_tiles","path":"scripts/autom_tiles/autom_tiles.yy",},},
     {"id":{"name":"autom_upgrades","path":"scripts/autom_upgrades/autom_upgrades.yy",},},
     {"id":{"name":"automation_close","path":"scripts/automation_close/automation_close.yy",},},
     {"id":{"name":"automation_open","path":"scripts/automation_open/automation_open.yy",},},

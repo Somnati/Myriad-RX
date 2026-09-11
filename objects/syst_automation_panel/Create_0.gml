@@ -11,7 +11,7 @@
 /// A LEFT RAIL OF TABS, the settings / saves shape - because three
 /// sections that each want a full page is exactly the problem that rail
 /// was built for, and a fourth invented layout is a fourth thing to
-/// learn. [dials] [rebirth] [upgrades].
+/// learn. [dials] [rebirth] [upgrades] [filter] [tiles].
 ///
 /// DRAW-ONLY PLUS REGION HITS, all off the geometry declared here. The
 /// sliders are drawn tracks with a drag handled in the Step rather than
@@ -32,9 +32,9 @@ cont_x  = rail_w + 6;
 cont_w  = room_width - cont_x - 8;
 
 tab   = 0;
-tabs  = ["dials", "rebirth", "upgrades", "filter"];
-tcol  = [c_sblue, c_hred, c_lavender, c_horange];
-NTAB  = 4;
+tabs  = ["dials", "rebirth", "upgrades", "filter", "tiles"];
+tcol  = [c_sblue, c_hred, c_lavender, c_horange, c_seagreen];
+NTAB  = 5;
 
 // THE RARITY CHIPS on the filter page: eight of them across one row,
 // seated off the content band so they fit whatever the ladder grows to.
@@ -179,6 +179,27 @@ __page_rows = function() {
 			     + "rarity flags from the live odds" });
 	}
 
+	// ---- THE TILE TABLE (his ask, 2026-09-11) ----
+	// The automerger's switch first - the table's own flag, the same
+	// one the tile room's dock flips - then one autobuy row per tile
+	// upgrade, capped as a share of the SHARDS held (autom_tiles).
+	if (tab == 4) {
+		array_push(_o, { kind : 0, name : "auto merge",
+			on : (variable_global_exists("tiles") && g.tiles.automerge),
+			val : 0, sfx : "", st : -1, col : c_seagreen,
+			help : "the table merges its lowest equal pair on its own clock" });
+		var _tc = tile_upg_config();
+		for (var _i = 0; _i < array_length(_tc); _i++) {
+			var _e = _tc[_i];
+			var _p = _a.tiles[$ _e.id];
+			if (_p == undefined) continue;
+			array_push(_o, { kind : 2, lo : 1, hi : 100,
+				name : _e.name, on : _p.on, val : _p.pct, sfx : "% cap",
+				st : _p.st, col : c_seagreen, id : _e.id,
+				help : "buys a level while its price fits that share of shards" });
+		}
+	}
+
 	// ---- THE FILTER PAGE ----
 	// One row of rarity chips, then one row per roster entry. Both are
 	// explicit keep/sell flags rather than a threshold, because "I am
@@ -233,6 +254,21 @@ __flip = function(_t, _i) {
 		}
 		return;
 	}
+	if (_t == 4) {
+		// row 0 is the automerger - the TABLE's flag, saved with it
+		if (_i == 0) {
+			if (variable_global_exists("tiles")) g.tiles.automerge = !g.tiles.automerge;
+			return;
+		}
+		var _tc = tile_upg_config();
+		var _k = _i - 1;
+		if (_k < 0 || _k >= array_length(_tc)) return;
+		var _p = _a.tiles[$ _tc[_k].id];
+		if (_p == undefined) return;
+		_p.on = !_p.on;
+		if (!_p.on) _p.st = 0;
+		return;
+	}
 
 	// the filter page: row 0 is the chip strip (handled by __flip_chip),
 	// every row under it is one roster entry, addressed BY ID
@@ -277,6 +313,14 @@ __set_slider = function(_t, _i, _v) {
 			case 2: _r.g_pct = _v; break;
 			case 3: _r.p_oom = _v; break;
 		}
+		return;
+	}
+	if (_t == 4) {
+		var _tc = tile_upg_config();
+		var _k = _i - 1;
+		if (_k < 0 || _k >= array_length(_tc)) return;
+		var _p = _a.tiles[$ _tc[_k].id];
+		if (_p != undefined) _p.pct = _v;
 		return;
 	}
 	var _u = _a.upg;

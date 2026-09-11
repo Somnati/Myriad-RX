@@ -288,6 +288,30 @@ function handle_save(){
 				if (_p4[_k] != "") g.autom.upg.kind[$ _p4[_k]] = false;
 		}
 	}
+	// THE TILE AUTOBUY, keyed by id like the kinds: "id=on:pct|..." -
+	// a roster entry added later reads as off/50 rather than as
+	// whatever sat at its index
+	var _ft = "";
+	var _tn = variable_struct_get_names(g.autom.tiles);
+	for (var _k = 0; _k < array_length(_tn); _k++) {
+		var _tp = g.autom.tiles[$ _tn[_k]];
+		_ft += ((_ft == "") ? "" : "|") + _tn[_k] + "="
+		     + (_tp.on ? "1" : "0") + ":" + string(_tp.pct);
+	}
+	_ft = handle("tiles_auto", _ft);
+	if (action == sv_load && _ft != "") {
+		var _p5 = string_split(_ft, "|");
+		for (var _k = 0; _k < array_length(_p5); _k++) {
+			var _kv = string_split(_p5[_k], "=");
+			if (array_length(_kv) != 2) continue;
+			var _tp = g.autom.tiles[$ _kv[0]];
+			if (_tp == undefined) continue;
+			var _op = string_split(_kv[1], ":");
+			_tp.on  = (array_length(_op) > 0) && (_op[0] == "1");
+			_tp.pct = (array_length(_op) > 1 && _op[1] != "") ? clamp(real(_op[1]), 1, 100) : 50;
+		}
+	}
+
 	if (action == sv_load) {
 		g.autom.lock_pct  = clamp(g.autom.lock_pct, 0, 90);
 		// the watermark is a packed arb, and a save written before it

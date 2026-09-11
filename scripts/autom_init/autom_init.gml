@@ -33,6 +33,14 @@
 ///        a percentage that SETS rar[] from the live odds when dragged
 ///        (see upgrade_keep_rarity) rather than a standing rule.
 ///
+///   tiles  the tile table's upgrade autobuy (his ask, 2026-09-11):
+///        one { on, pct, st } per tile_upg_config id, keyed BY ID like
+///        the upgrade filter, pct the cap as a share of the SHARDS
+///        held. Pre-seated for every roster id so the panel and the
+///        save never meet a missing row. (The automerger's own switch
+///        is g.tiles.automerge - the table's, saved with the table -
+///        and the panel flips that directly.)
+///
 ///   lock_pct  the reserve: what share of every earning is locked out
 ///        of spending (give_profit does the split, profit_spendable
 ///        reads it). 0 = off.
@@ -71,6 +79,7 @@ function autom_init(_force = false) {
 		// autobuy would otherwise eat the pile rebirth is calculated
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
+		tiles : {},
 		// THE WATERMARK the reserve is measured against: the highest
 		// pile ever held on this run. It exists because a reserve
 		// measured against the CURRENT pile is not a floor - spending
@@ -84,4 +93,7 @@ function autom_init(_force = false) {
 	};
 	repeat (_dn) array_push(g.autom.dial,
 		{ on : false, pct : 50, q : 1, h : 0, st : 0 });
+	var _tc = tile_upg_config();
+	for (var _i = 0; _i < array_length(_tc); _i++)
+		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, st : 0 };
 }

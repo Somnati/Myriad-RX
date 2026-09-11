@@ -38,6 +38,9 @@ function autom_tick() {
 	// ---- the upgrade table ----
 	autom_upgrades();
 
+	// ---- the tile table's upgrades ----
+	autom_tiles();
+
 	// ---- autorebirth: EVERY enabled condition must pass ----
 	var _r = _a.reb;
 	if (!(_r.t_on || _r.u_on || _r.g_on || _r.c_on || _r.p_on)) return;
