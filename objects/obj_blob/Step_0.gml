@@ -28,14 +28,14 @@ else {
 	if (st == 3) { st = 0; st_t = 30; }
 	st_t -= delta;
 	if (st == 1) {
-		// walk to the target, a little bob in the step
+		// walk to the target, then stand there until the slot ends
 		var _d = point_distance(x, y, tx, ty);
-		if (_d < 1.5 || st_t <= 0) __next_state();
-		else {
+		if (_d >= 1.5) {
 			var _spd = .35 * _p.pace * delta;
 			x += (tx - x) / _d * _spd;
 			y += (ty - y) / _d * _spd;
 		}
+		if (st_t <= 0) __next_state();
 	} else if (st == 2) {
 		// working: a tap on its cadence, a hop with each
 		tap_t -= delta * _p.pace;

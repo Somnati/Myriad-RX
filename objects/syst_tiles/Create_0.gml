@@ -394,20 +394,27 @@ urow_h = [];          // ... and heights
 __upg_layout = function() {
 	var _n = upg_n;
 	var _y = upg_y;
+	// which rows want to fold - and THE NEXT TARGET NEVER DOES: the
+	// cheapest row you cannot yet afford stays open however far off it
+	// is, so a fresh table (no shards, everything a hundred times away)
+	// still shows one full row to save toward rather than seven whispers
+	var _wants = array_create(_n, 0);
+	var _next = -1;
+	for (var _k = 0; _k < _n; _k++) {
+		if (_k >= array_length(uq)) continue;
+		var _q = uq[_k];
+		if (_q.max || !(_q.cost >= arb(1))) continue;
+		var _sh = g.tiles.shards;
+		var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
+		if (_gap > UPG_FOLD_OOM) _wants[_k] = 1;
+		if (!_q.ok && (_next == -1 || _q.cost < uq[_next].cost)) _next = _k;
+	}
+	if (_next >= 0) _wants[_next] = 0;
 	for (var _k = 0; _k < _n; _k++) {
 		while (array_length(ufold)  <= _k) array_push(ufold, 0);
 		while (array_length(uflash) <= _k) array_push(uflash, 0);
 		while (array_length(upop)   <= _k) array_push(upop, 1);
-		var _want = 0;
-		if (_k < array_length(uq)) {
-			var _q = uq[_k];
-			if (!_q.max && _q.cost >= arb(1)) {
-				var _sh = g.tiles.shards;
-				var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
-				if (_gap > UPG_FOLD_OOM) _want = 1;
-			}
-		}
-		ufold[_k] = trickle(ufold[_k], _want, 6, 0);
+		ufold[_k] = trickle(ufold[_k], _wants[_k], 6, 0);
 		uflash[_k] = max(0, uflash[_k] - delta);
 		upop[_k]  = trickle(upop[_k], 1, 5, 0);
 		var _h = round(lerp(UPG_H_FULL, UPG_H_FOLD, ufold[_k]));

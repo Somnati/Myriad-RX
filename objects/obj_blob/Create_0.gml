@@ -47,18 +47,26 @@ __bounds = function() {
 	return { x1 : 14, x2 : room_width - 14, y1 : room_height * .60, y2 : room_height - 28 };
 };
 
-/// pick the next state, weighted so working averages the personality
+/// pick the next state, weighted so working averages the personality.
+/// ⚖️ EVERY SLOT IS THE SAME LENGTH (sprites_twin, 2026-09-11): the
+/// first cut gave work slots twice the length of idle ones, so the
+/// live sprite spent 7-15% MORE of its time working than the
+/// personality said - and than the headless runner paid when you were
+/// in another room. With P(work) = work and equal slot lengths the
+/// time fraction IS work, and watching it changes nothing it earns. A
+/// wander walks to its spot and then stands there for the rest of its
+/// slot rather than ending on arrival, for the same reason.
 __next_state = function() {
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
-	if (random(1) < _p.work) { st = 2; st_t = random_range(240, 480); tap_t = min(tap_t, 30); }
-	else if (random(1) < .5) { st = 0; st_t = random_range(90, 200); }
+	st_t = random_range(200, 320);
+	if (random(1) < _p.work) { st = 2; tap_t = min(tap_t, 30); }
+	else if (random(1) < .5) st = 0;
 	else {
 		st = 1;
 		var _b = __bounds();
 		tx = random_range(_b.x1, _b.x2);
 		ty = random_range(_b.y1, _b.y2);
-		st_t = 600;   // or until it arrives
 	}
 };
 
