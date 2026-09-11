@@ -37,8 +37,9 @@
 depth = CRT_OVER;
 persistent = true;
 
-// the shader's second texture: the frame blurred wide, for the bloom
-u_blur_s = shader_get_sampler_index(sh_crt, "u_blur");
+// the bloom is drawn over the tube through the house dither shader
+// (its alpha-compensated IGN carries the halo's tail into 8-bit)
+dith_u_time = shader_get_uniform(sh_fog_dither, "u_time");
 
 // ---- THE BLOOM CHAIN ----
 // ⚖️ ITS OWN CHAIN, IN 16-BIT FLOAT (his report, 2026-09-10: "the bloom
@@ -51,10 +52,17 @@ u_blur_s = shader_get_sampler_index(sh_crt, "u_blur");
 //   bright   the frame at half size, squared by a multiply draw (no
 //            shader): the bright things spill, the dark field doesn't
 //   down     five halvings, bilinear - each level is a wider blur
-//   up       each level gets the coarser one ADDED (bm_add), so the
-//            result is the SUM of five widths: a bright core, a long
-//            soft tail - the sum-of-gaussians shape every real bloom
-//            uses
+//   up       each level gets the coarser one ADDED at half weight
+//            (bm_add, alpha .5), so the result is the sum of five
+//            widths with weights 1, .5, .25, .125, .0625: a bright
+//            core, a long soft tail - the sum-of-gaussians shape
+//            every real bloom uses, and a total that stays under 2
+//   add      drawn OVER the finished tube in bm_add at the slider's
+//            strength through sh_fog_dither - see the Draw. Not a
+//            sampler inside sh_crt: that cut came back "blinding even
+//            at 5%", the picture replaced by the sum rather than
+//            gaining a hundredth of it - a texture-stage problem the
+//            separate pass sidesteps entirely
 // in surface_rgba16float where the GPU has it (every desktop one
 // does; the 8-bit fallback keeps the sum shape at least).
 bloom_fmt = surface_format_is_supported(surface_rgba16float)
@@ -99,14 +107,18 @@ __bloom_run = function(_src) {
 		surface_reset_target();
 		_from = _d;
 	}
-	// up, ADDING: level i keeps its own blur and gains the wider one
-	gpu_set_blendmode(bm_add);
+	// up, ADDING at half weight: level i keeps its own blur and gains
+	// the wider one at .5 (src x alpha + dst on the colour; the ALPHA
+	// stays at the 1 the down pass wrote - the final pass reads the
+	// link's alpha as its own weight, so a summed alpha would double
+	// the strength)
+	gpu_set_blendmode_ext_sepalpha(bm_src_alpha, bm_one, bm_zero, bm_one);
 	for (var _i = CRT_BLOOM_STEPS - 2; _i >= 0; _i--) {
 		var _d = bloom_ch[_i], _c = bloom_ch[_i + 1];
 		surface_set_target(_d);
 		draw_surface_ext(_c, 0, 0,
 			surface_get_width(_d)  / surface_get_width(_c),
-			surface_get_height(_d) / surface_get_height(_c), 0, c_white, 1);
+			surface_get_height(_d) / surface_get_height(_c), 0, c_white, .5);
 		surface_reset_target();
 	}
 	gpu_set_blendmode(bm_normal);

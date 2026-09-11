@@ -58,7 +58,6 @@ if (_bloom > 0) {
 	}
 	if (_bl_tex < 0) _bloom = 0;
 }
-if (u_blur_s < 0) _bloom = 0;
 
 // ---- and draw it back through the tube ----
 // the bulge and the chroma split resample, so the filter is on for the
@@ -78,14 +77,25 @@ shader_set_uniform_f(shader_get_uniform(sh_crt, "u_grille"), clamp(g.crt_grille,
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_chroma"), clamp(g.crt_chroma, 0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_vig"),    clamp(g.crt_vig,    0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_roll"),   g.crt_roll ? 1 : 0);
-// the chain's sum peaks near CRT_BLOOM_STEPS x the source, so the
-// strength is per level
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * 1.0 / CRT_BLOOM_STEPS);
-if (_bloom > 0) {
-	texture_set_stage(u_blur_s, surface_get_texture(_bl_tex));
-	gpu_set_tex_filter_ext(u_blur_s, true);   // the blur is a small surface: read it smooth
-	gpu_set_tex_repeat_ext(u_blur_s, false);
-}
 draw_surface_ext(scratch, 0, 0, room_width / _aw, room_height / _ah, 0, c_white, 1);
 shader_reset();
+
+// ---- the bloom, over the tube ----
+// The chain's top link (the summed halo, under 2 at its brightest)
+// added onto the finished picture: bm_add is src x alpha + dst, so the
+// slider IS the alpha - .5 x it, which at the default 25% lays a
+// white line's halo on at an eighth. Through sh_fog_dither (the
+// house IGN, luminance-gated and alpha-compensated) so the tail lands
+// in 8-bit without rings. It is not put through the bulge: a soft
+// glow a couple of px off its source is a soft glow.
+if (_bloom > 0) {
+	gpu_set_blendmode(bm_add);
+	shader_set(sh_fog_dither);
+	shader_set_uniform_f(dith_u_time, t);
+	draw_surface_ext(_bl_tex, 0, 0,
+		room_width / surface_get_width(_bl_tex), room_height / surface_get_height(_bl_tex),
+		0, c_white, _bloom * .5);
+	shader_reset();
+	gpu_set_blendmode(bm_normal);
+}
 gpu_set_tex_filter(false);
