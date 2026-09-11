@@ -16,7 +16,7 @@ if (!variable_global_exists("click_gps")) exit;
 
 // the soft shadow the readout sits on
 var _gs = 72 / sprite_get_width(spr_vis_glow_soft);
-draw_sprite_ext(spr_vis_glow_soft, 0, x + 39, y + 39, _gs, _gs, 0, c_black, .25);
+draw_sprite_ext(spr_vis_glow_soft, 0, x + 39, y + 39 + ui_wordline_h(), _gs, _gs, 0, c_black, .25);
 
 draw_set_font(fnt);
 draw_set_alpha(alpha);
@@ -24,7 +24,8 @@ draw_set_halign(fa_left);
 // a triad off the profit colour: related to the money, not the same as
 // it, so the caption never reads as another profit figure
 draw_set_color(color_set_triadic(g.profit_color, 1));
-draw_text(3, 28, "per tap");
+var _wo = ui_wordline_h();   // the word line under the counter (words format)
+draw_text(3, 28 + _wo, "per tap");
 
 draw_set_font(fnt_large);
 var _t = crunch_arb(g.click_gps);
@@ -32,7 +33,7 @@ var _t = crunch_arb(g.click_gps);
 // the bottom two. draw_text_color takes its own alpha, which is why the
 // fade-in works on a call that ignores draw_set_alpha.
 var _c = merge_colour(c_gray, c_glow, v_glow);
-draw_text_color(5, 37, _t, c_white, c_white, _c, _c, alpha);
+draw_text_color(5, 37 + _wo, _t, c_white, c_white, _c, _c, alpha);
 text_width = string_width(_t);
 
 draw_set_font(fnt);

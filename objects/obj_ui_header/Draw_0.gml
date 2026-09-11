@@ -117,6 +117,17 @@ if (variable_global_exists("profit")) {
 	draw_set_alpha(.95);
 	draw_text(6, 14, _ptxt);
 
+	// THE WORD LINE (ui_wordline): under the words format the pile's
+	// full name sits on its own line just under the bar - "quadrillion"
+	// under 5.43qa - dim, in the profit colour. The readouts below the
+	// header step down by ui_wordline_h() to make room.
+	var _wl = ui_wordline(log_to_arb(max(0, prof_lg)));
+	if (prof_lg != -1 && _wl != "") {
+		draw_set_alpha(.6);
+		draw_text(6, bar_h + 1, _wl);
+		draw_set_alpha(.95);
+	}
+
 	// ---- the gain float: profit LANDED (spending only glides down) ----
 	// It seats itself just past the counter, so it never lands on the
 	// number it is describing however wide that number has grown.

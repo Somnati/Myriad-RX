@@ -10,7 +10,7 @@ draw_set_alpha(.85);
 draw_text(6, bby + 5, "number formats");
 draw_set_halign(fa_right);
 draw_set_alpha(.55);
-draw_text(room_width - 6, bby + 5, "tap a column to make it the game's");
+draw_text(room_width - 6, bby + 5, "tap a column to make it the game's - words spells out under the counter");
 draw_set_alpha(1);
 
 // ---- the column headers ----

@@ -15,18 +15,22 @@
 ///                skip a rung
 ///   scientific   1.23e15 - mantissa to two decimals, the true exponent.
 ///                Plain digits under a million (DE wrote 1.23$15)
-///   engineering  123.4e15 - the exponent held to a multiple of three, so
-///                the mantissa runs 1..999 and the suffix reads as k/m/b
-///                did. Plain digits under a million
 ///   logarithmic  e15.09 - the log10 itself to two decimals; the one
 ///                format where a x10 is always "+1". Plain digits under a
 ///                million
+/// (engineering - 123.4e15 - was built and cut the same day, his call:
+/// it read as scientific two magnitudes in three.)
+///
+/// WORDS SPELLS ITSELF OUT UNDER THE COUNTER (his ask): with this format
+/// on, the header draws the shown pile's full name - "quadrillion" -
+/// under the profit figure (ui_wordline), and everything else in the
+/// game - costs, rates, floats - keeps the abbreviation, because a buy
+/// button has no room for "novemquadragintillion".
 function num_format_config() {
 	return [
 		{ id : "short",       name : "short",       help : "k m b t, then aa ab ac... - three decades a step" },
-		{ id : "words",       name : "words",       help : "quadrillion, quintillion... the short-scale names, abbreviated" },
+		{ id : "words",       name : "words",       help : "quadrillion, quintillion... abbreviated on costs, spelled out under the counter" },
 		{ id : "scientific",  name : "scientific",  help : "1.23e15 - the true exponent" },
-		{ id : "engineering", name : "engineering", help : "123.4e15 - exponents in threes, like k m b" },
 		{ id : "logarithmic", name : "logarithmic", help : "e15.09 - the log itself; x10 is always +1" },
 	];
 }

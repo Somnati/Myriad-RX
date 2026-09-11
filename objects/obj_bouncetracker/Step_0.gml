@@ -1,5 +1,6 @@
 if (!instance_exists(obj_puck)) { alpha = 0; exit; }
 var _o = obj_puck;
+y = 50 + ui_wordline_h();   // under the per-tap figure, which steps down under the word line
 
 // DE's pop: the number's target size kicks up a step on every new bounce
 // and the shown size springs after it

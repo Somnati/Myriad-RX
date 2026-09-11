@@ -57,6 +57,6 @@ __seat = function() {
 	// fnt_large and publishes text_width) - DE's placement
 	if (instance_exists(obj_draw_pertap)) {
 		x = 5 + obj_draw_pertap.text_width + 16;
-		y = 37 + 6;
+		y = 37 + 6 + ui_wordline_h();   // (down with the per-tap figure under the word line)
 	}
 };

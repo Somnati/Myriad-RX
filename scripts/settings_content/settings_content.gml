@@ -521,8 +521,8 @@ function settings_content() {
 		},
 		function(_v) { g.num_format = _v; },
 		"how big numbers read everywhere: short (k m b t aa ab...), the "
-		+ "short-scale names, scientific, engineering, or the log itself. "
-		+ "menu > misc > number formats compares them side by side.");
+		+ "short-scale names (spelled out under the counter), scientific, "
+		+ "or the log itself. menu > misc > number formats compares them.");
 
 	settings_toggle("rounded bulk buys",
 		function() { return g.buy_round; },

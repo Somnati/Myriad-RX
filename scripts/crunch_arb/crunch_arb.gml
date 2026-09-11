@@ -23,24 +23,15 @@ function crunch_arb() {
 	if (_fmt >= 2 && _aexp >= 3) {
 		// ---- the exponent formats: digits with commas under a million ----
 		if (_aexp < 6) return crunch_arb_full(argument[0], 6);   // (the cap is an EXPONENT: digits under a million)
-		if (_fmt == 4) {
+		if (_fmt == 3) {
 			// logarithmic: the log10 itself, two decimals
 			return "e" + string_format(_aexp + log10(_acoe), 1, 2);
 		}
-		if (_fmt == 2) {
-			// scientific: 1.23e15 - a mantissa that rounds up to 10 carries
-			var _m = round(_acoe * 100) / 100;
-			var _x = _aexp;
-			if (_m >= 10) { _m = 1; _x += 1; }
-			return string_format(_m, 1, 2) + "e" + string(_x);
-		}
-		// engineering: the exponent held to threes, the mantissa 1..999.9
-		var _x3 = _aexp - (_aexp mod 3);
-		var _m3 = _acoe * power(10, _aexp mod 3);
-		var _d3 = (_m3 >= 100) ? 0 : ((_m3 >= 10) ? 1 : 2);
-		_m3 = round(_m3 * power(10, _d3)) / power(10, _d3);
-		if (_m3 >= 1000) { _m3 = 1; _x3 += 3; _d3 = 2; }
-		return string_format(_m3, 1, _d3) + "e" + string(_x3);
+		// scientific: 1.23e15 - a mantissa that rounds up to 10 carries
+		var _m = round(_acoe * 100) / 100;
+		var _x = _aexp;
+		if (_m >= 10) { _m = 1; _x += 1; }
+		return string_format(_m, 1, 2) + "e" + string(_x);
 	}
 
 	//abbreviation: short letters or the words, the groups of three
