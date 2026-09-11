@@ -44,20 +44,52 @@ function bignum_visualizer_create() {
                             // replicating .35 * frac(gold/2) exactly
                             // (including its hard reset at each pair)
         follow_smooth: 6, // camera ease toward the assembling square
+                          // at the auto zoom; the ease goes to INSTANT
+                          // as the wheel approaches the freeze (below)
+
+        // ---- THE FREEZE (his ask, 2026-09-11: "the visualizer camera
+        // is all over the place due to profit being earned and moving
+        // the origin") ----
+        // Zoomed in, the camera follows the assembling square at the
+        // level nearest it, and that square is placed by the LOW digits
+        // - which churn every frame while profit lands. So past
+        // freeze_oom of manual zoom-in the display value is a SNAPSHOT:
+        // every digit below the leading one is held, and the focus
+        // (the auto zoom) is held with it, so nothing on screen moves
+        // until you zoom back out. The leading digit stays live: when
+        // it (or the magnitude) changes the picture has changed anyway,
+        // so the snapshot is retaken. The counter in the header keeps
+        // counting - the blocks are the thing being inspected.
+        //   zin  0 at the auto zoom .. 1 at the freeze (manual_bias /
+        //        -freeze_oom, clamped); the camera's follow ease goes
+        //        from follow_smooth to instant along it, so the camera
+        //        is exactly ON the target the moment the picture
+        //        freezes - no glide finishing over a frozen picture
+        freeze_oom:  1,      // wheel OOMs in (two clicks) to freeze
+        live_val:    0,      // what the host fed this frame
+        frozen:      false,
+        frozen_lead: "",     // the snapshot's leading digit
+        frozen_mag:  0,      // ...and magnitude
+        frozen_focus: 0,
+        zin:         0,
         cam_x:       0,   // follow point in pixels, DERIVED each frame
         cam_y:       0,   // from the eased invariant coords below
         cam_kx:      0,   // eased follow point in zoom-INVARIANT space
         cam_ky:      0,   // (units of the content field's square size)
         cam_oc:      -2,  // content-field reference the k coords use
 
-        /// what gets drawn as squares (total profit)
+        /// what gets drawn as squares (total profit). Held back while
+        /// the freeze is on - see update, which decides per frame
         set_display_value: function(_bignum) {
-            display_win.set_value(_bignum);
+            live_val = _bignum;
+            if (!frozen) display_win.set_value(_bignum);
         },
 
-        /// profit/sec rate: drives the camera target ONLY, never drawn
+        /// profit/sec rate: drives the camera target ONLY, never drawn.
+        /// Held at the snapshot's while frozen (or the auto zoom would
+        /// still creep out under a frozen picture)
         set_focus_value: function(_bignum) {
-            focus_mag = bignum_vis_magnitude(_bignum);
+            focus_mag = frozen ? frozen_focus : bignum_vis_magnitude(_bignum);
         },
 
         /// startup framing as ONE continuous knob: how many px a single
@@ -86,6 +118,28 @@ function bignum_visualizer_create() {
         },
 
         update: function(_dt) {
+            // ---- the freeze (see the fields) ----
+            zin = clamp(-lod.manual_bias / max(freeze_oom, .01), 0, 1);
+            if (zin >= 1) {
+                var _lead = string_char_at(bignum_vis_mantissa_string(live_val), 1);
+                var _lmag = bignum_vis_magnitude(live_val);
+                if (!frozen || _lead != frozen_lead || _lmag != frozen_mag) {
+                    // take (or retake) the snapshot: the leading digit
+                    // or the magnitude moved, or the freeze just began
+                    display_win.set_value(live_val);
+                    frozen       = true;
+                    frozen_lead  = _lead;
+                    frozen_mag   = _lmag;
+                    frozen_focus = _lmag;
+                    focus_mag    = _lmag;
+                }
+            } else if (frozen) {
+                // zoomed back out: the live value is the picture again
+                frozen = false;
+                display_win.set_value(live_val);
+                focus_mag = bignum_vis_magnitude(live_val);
+            }
+
             lod.set_focus_magnitude(focus_mag);
             lod.update(_dt);
 
@@ -130,7 +184,9 @@ function bignum_visualizer_create() {
                 cam_oc  = _oc;
             }
 
-            var _k = min(1, follow_smooth * _dt);
+            // the follow ease: follow_smooth at the auto zoom, INSTANT
+            // at the freeze, lerped along the wheel's approach (zin)
+            var _k = lerp(min(1, follow_smooth * _dt), 1, zin);
             cam_kx += (_tkx - cam_kx) * _k;
             cam_ky += (_tky - cam_ky) * _k;
             cam_x   = cam_kx * _ref;
