@@ -10,9 +10,13 @@
 /// no longer dims anything.
 ///
 /// TWO SEATS (settings > crt "over the interface"):
-///   over    depth CRT_OVER, just under the pointer (-20000): the
-///           header, the menus, the drawers, the overlays and the room
-///           are all on the glass; the pointer alone stays a pointer
+///   over    depth CRT_OVER, under the pointer (-20000) and over
+///           everything else (the deepest interface is syst_unfold at
+///           -1500): the header, the menus, the drawers, the overlays
+///           and the room are all on the glass; the pointer alone
+///           stays a pointer. -15000 rather than -19000: GameMaker
+///           documents its drawable depth range as -16000..16000, and
+///           the first seat outside it went black on him (2026-09-10)
 ///   behind  depth CRT_BEHIND: only what draws DEEPER than 5 is on the
 ///           tube - in the money room the visualiser, its glow pass,
 ///           the dice and the puck; on the title the field, the halo
@@ -27,13 +31,16 @@
 /// PERSISTENT, made once by setgame after the pointer. Free-standing:
 /// nothing else reads it.
 
-#macro CRT_OVER   -19000
+#macro CRT_OVER   -15000
 #macro CRT_BEHIND      5
 
 depth = CRT_OVER;
 persistent = true;
 
-scratch = -1;   // the frame's copy (the surface can't sample itself)
+scratch = -1;   // the frame's copy (the surface can't sample itself);
+                // taken the way pixel_snap takes the drawer's backdrop
+                // - surface_set_target + draw_surface_ext, the capture
+                // this project has proven - not surface_copy
 t = 0;          // the tube's own clock, seconds
 
 /// is the pass on in this room?
