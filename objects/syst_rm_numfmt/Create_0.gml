@@ -14,7 +14,11 @@ fmts = num_format_config();
 // the amounts: one per decade band that matters, then the far ones -
 // packed arbs, so they are what the game actually formats
 amounts = [];
-var _lg = [0, 1, 2, 3, 4, 5, 6, 7, 9, 12, 14, 15, 18, 24, 33, 36, 63, 93, 100, 123, 150, 200, 303, 307];
+// ...and the far end: e308 is where reals stop, the arb does not - a
+// thousand, fifty thousand (past three letters), a million (his "E1M"),
+// a billion (the exponent itself abbreviates)
+var _lg = [0, 1, 2, 3, 4, 5, 6, 7, 9, 12, 15, 18, 24, 33, 63, 100, 200, 303, 307,
+           1000, 52700, 1000000, 1000000000];
 for (var _i = 0; _i < array_length(_lg); _i++) {
 	// a mantissa that is not 1, so rounding shows: 1.234...
 	var _v = (_lg[_i] == 0) ? arb(7) : log_to_arb(_lg[_i] + log10(1.234 + (_i mod 3) * 2.1));

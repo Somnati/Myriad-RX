@@ -29,14 +29,20 @@ function num_suffix(_e, _fmt) {
 		// (falls through to the letters past the centillion)
 	}
 
-	// ---- the letters: aa = e 5, ab = 6 ... az = 30, ba = 31 ... zz = 680 ----
-	var _i = _e - 5;
-	var _a = _i div 26, _b = _i mod 26;
-	if (_a >= 26) {
-		// three letters past zz (e 681+): aaa ... - the game never gets
-		// here (e308 is e 102) but a table that ends is a table that lies
-		var _c = _a div 26; _a = _a mod 26;
-		return chr(97 + _c - 1) + chr(97 + _a) + chr(97 + _b);
+	// ---- the letters: aa = e 5, ab = 6 ... az, ba ... zz, aaa, aab ... ----
+	// ⚖️ WITHOUT END (his question, 2026-09-10: "how does it hold up at
+	// E1M"). The first cut hand-built two letters and a third, which ran
+	// out at e 681 - exponent ~52,700 - and printed garbage past it. This
+	// is the spreadsheet column rule, bijective base 26: a..z, aa..zz,
+	// aaa..zzz, as many letters as the number needs. "aa" is column 27,
+	// so the e-th group maps to column (e - 5) + 27. At an exponent of a
+	// million (e 333,333) that is four letters; at a billion, six.
+	var _k = (_e - 5) + 27;
+	var _s = "";
+	while (_k > 0) {
+		var _r = (_k - 1) mod 26;
+		_s = chr(97 + _r) + _s;
+		_k = (_k - 1) div 26;
 	}
-	return chr(97 + _a) + chr(97 + _b);
+	return _s;
 }

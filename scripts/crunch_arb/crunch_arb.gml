@@ -1,5 +1,6 @@
 /// @description  crunch_arb(val);
 /// @param val
+
 function crunch_arb() {
 
 
@@ -23,14 +24,24 @@ function crunch_arb() {
 	if (_fmt >= 2 && _aexp >= 3) {
 		// ---- the exponent formats: digits with commas under a million ----
 		if (_aexp < 6) return crunch_arb_full(argument[0], 6);   // (the cap is an EXPONENT: digits under a million)
+		// ⚖️ THE EXPONENT ABBREVIATES PAST 100k (his question: E1M). An
+		// exponent of a million is seven digits, a billion ten - the
+		// short suffix takes over on the exponent itself, DE's own move
+		// (it crunched past 10k): 5.43e1.00m, e1.00m. The arb packs the
+		// exponent as the whole part of a double, so a billion is exact
+		// and the mantissa still has six digits of room beside it.
 		if (_fmt == 3) {
-			// logarithmic: the log10 itself, two decimals
-			return "e" + string_format(_aexp + log10(_acoe), 1, 2);
+			// logarithmic: the log10 itself, two decimals - or its short
+			// form once the decimals stop meaning anything
+			var _lgv = _aexp + log10(_acoe);
+			if (_lgv >= 100000) return "e" + num_exp_short(_lgv);
+			return "e" + string_format(_lgv, 1, 2);
 		}
 		// scientific: 1.23e15 - a mantissa that rounds up to 10 carries
 		var _m = round(_acoe * 100) / 100;
 		var _x = _aexp;
 		if (_m >= 10) { _m = 1; _x += 1; }
+		if (_x >= 100000) return string_format(_m, 1, 2) + "e" + num_exp_short(_x);
 		return string_format(_m, 1, 2) + "e" + string(_x);
 	}
 

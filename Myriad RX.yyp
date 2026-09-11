@@ -340,6 +340,7 @@
     {"id":{"name":"mouse_over","path":"scripts/mouse_over/mouse_over.yy",},},
     {"id":{"name":"move_to","path":"scripts/move_to/move_to.yy",},},
     {"id":{"name":"newgame_start","path":"scripts/newgame_start/newgame_start.yy",},},
+    {"id":{"name":"num_exp_short","path":"scripts/num_exp_short/num_exp_short.yy",},},
     {"id":{"name":"num_format_config","path":"scripts/num_format_config/num_format_config.yy",},},
     {"id":{"name":"num_suffix","path":"scripts/num_suffix/num_suffix.yy",},},
     {"id":{"name":"num_word_full","path":"scripts/num_word_full/num_word_full.yy",},},
