@@ -26,11 +26,21 @@
 //               darkens pixels on purpose, so it is his to turn up
 //   gain        gone
 //   bloom       ADDS light (his ask, 2026-09-10: "since its crt doesnt
-//               it need a subtle bloom?"): the frame blurred wide by
-//               the house chain (blur_snap, handed in as u_blur),
-//               squared so only the bright things spill, added after
-//               the scanlines so the glow fills the gaps the way
-//               halation in the glass does - the bloom has no lines
+//               it need a subtle bloom?"): u_blur is the frame SQUARED
+//               and then blurred wide (syst_crt's bright pass through
+//               blur_snap), added after the scanlines so the glow
+//               fills the gaps the way halation in the glass does -
+//               the bloom has no lines. Squared BEFORE the blur, not
+//               after (his report: "bloom doesn't appear to do
+//               anything" - the first cut blurred the plain frame and
+//               squared the result, and a blurred line of white text
+//               is a .2 that squares to nothing; squared first, the
+//               text's energy is what spreads)
+//   roll        a band drifting down the face every six seconds - a
+//               lift the picture rides AND a faint additive glow, so
+//               it shows on the dark field too - and a flicker of a
+//               couple of percent (the first cut's 5%/1% were
+//               invisible on a picture this dark)
 //
 // ⚖️ THE GRILLE IS FLAT (his report, 2026-09-10: "bowing lines in
 // it... subtle but noticable"). It was computed on the WARPED
@@ -66,8 +76,8 @@ uniform float u_grille;  // 0..1  stripe contrast
 uniform float u_chroma;  // 0..1  red/blue split toward the edges
 uniform float u_vig;     // 0..1  corner darkening
 uniform float u_roll;    // 0/1   the drifting band and the flicker
-uniform float u_bloom;   // 0..1  halation strength (0 = u_blur unused)
-uniform sampler2D u_blur;   // the frame blurred wide (blur_snap's top link)
+uniform float u_bloom;   // halation strength (0 = u_blur unused)
+uniform sampler2D u_blur;   // the frame squared then blurred wide (blur_snap's top link)
 
 float hash11(float p) { return fract(sin(p * 127.1) * 43758.5453); }
 
@@ -109,13 +119,14 @@ void main()
     // inside flow control is the one thing the HLSL side is picky
     // about; at u_bloom 0 the read costs a fetch and adds nothing) ----
     vec3 bl = texture2D(u_blur, suv).rgb;
-    col += bl * bl * u_bloom;
+    col += bl * u_bloom;
 
     // ---- the roll and the flicker ----
-    float roll = fract(u_time * 0.11);
-    float band = exp(-pow((suv.y - roll) * 9.0, 2.0));
-    col *= 1.0 + 0.05 * u_roll * band;
-    col *= 1.0 + 0.012 * u_roll * (hash11(floor(u_time * 60.0)) - 0.5);
+    float roll = fract(u_time * 0.17);
+    float bd = (suv.y - roll) * 12.0;
+    float band = exp(-bd * bd);
+    col = col * (1.0 + 0.12 * u_roll * band) + vec3(0.035 * u_roll * band);
+    col *= 1.0 + 0.045 * u_roll * (hash11(floor(u_time * 60.0)) - 0.5);
 
     // ---- the glass darkens at the corners, if asked ----
     col *= 1.0 - 0.5 * u_vig * r2 * r2;

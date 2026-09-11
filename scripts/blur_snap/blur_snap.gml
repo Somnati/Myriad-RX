@@ -28,10 +28,15 @@
 /// texture by then. The manual warns about drawing a surface ONTO
 /// ITSELF, which this never does.
 /// @param room_px
-function blur_snap(_room_px = 6) {
-	if (!surface_exists(application_surface)) return false;
-	var _aw = surface_get_width(application_surface);
-	var _ah = surface_get_height(application_surface);
+/// @param [src]  the surface to reduce (default: the application
+///               surface). syst_crt hands in its bright pass - the
+///               frame squared - so the tube's bloom spills only from
+///               the bright things. Any size: the reach is still in
+///               room px, solved off THIS surface's height
+function blur_snap(_room_px = 6, _src = application_surface) {
+	if (!surface_exists(_src)) return false;
+	var _aw = surface_get_width(_src);
+	var _ah = surface_get_height(_src);
 	if (_aw < 2 || _ah < 2) return false;
 
 	// room pixels -> halvings. One halving blurs about two surface
@@ -69,7 +74,6 @@ function blur_snap(_room_px = 6) {
 	// DOWN the chain: each pass halves, which is the only ratio at which
 	// bilinear averages honestly (see above). This is where the WIDTH of
 	// the blur comes from - 2^steps surface pixels of reach.
-	var _src = application_surface;
 	for (var _i = 0; _i < _steps; _i++) {
 		var _d = g.blur_chain[_i];
 		surface_set_target(_d);

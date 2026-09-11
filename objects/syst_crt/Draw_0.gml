@@ -24,11 +24,38 @@ surface_reset_target();
 gpu_set_blendenable(true);
 t += delta / 60;
 
-// ---- the bloom's source: the frame blurred wide by the house chain ----
-// blur_snap reads the application surface too, so it runs here, before
-// the tube draws over it; 5 room px of reach is the halation's spread
+// ---- the bloom's source ----
+// THE BRIGHT PASS, without a shader: the frame drawn into a half-size
+// surface, then drawn AGAIN over itself in multiply (dest colour x
+// source, nothing of the old) - the frame squared, so a white line of
+// text stays 1 while a .4 block drops to .16. THEN the house chain
+// blurs it 8 room px wide (blur_snap's halvings, off this surface's
+// own height) and its top link is the shader's second texture. Squared
+// before the blur - see the shader's header for why the other order
+// showed nothing. Reads the application surface, so it runs here,
+// before the tube draws over it.
 var _bloom = clamp(g.crt_bloom, 0, 100) / 100;
-if (_bloom > 0 && !blur_snap(5)) _bloom = 0;
+if (_bloom > 0) {
+	var _bw = max(2, _aw div 2), _bh = max(2, _ah div 2);
+	if (!surface_exists(bright) || surface_get_width(bright) != _bw
+	|| surface_get_height(bright) != _bh) {
+		if (surface_exists(bright)) surface_free(bright);
+		bright = surface_create(_bw, _bh);
+	}
+	if (surface_exists(bright)) {
+		gpu_set_tex_filter(true);
+		surface_set_target(bright);
+		draw_clear_alpha(c_black, 1);
+		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
+		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);
+		draw_surface_ext(application_surface, 0, 0, _bw / _aw, _bh / _ah, 0, c_white, 1);
+		gpu_set_blendmode(bm_normal);
+		surface_reset_target();
+		gpu_set_tex_filter(false);
+		if (!blur_snap(8, bright)) _bloom = 0;
+	} else _bloom = 0;
+}
+if (u_blur_s < 0) _bloom = 0;
 
 // ---- and draw it back through the tube ----
 // the bulge and the chroma split resample, so the filter is on for the
@@ -48,7 +75,7 @@ shader_set_uniform_f(shader_get_uniform(sh_crt, "u_grille"), clamp(g.crt_grille,
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_chroma"), clamp(g.crt_chroma, 0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_vig"),    clamp(g.crt_vig,    0, 100) / 100);
 shader_set_uniform_f(shader_get_uniform(sh_crt, "u_roll"),   g.crt_roll ? 1 : 0);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * .9);
+shader_set_uniform_f(shader_get_uniform(sh_crt, "u_bloom"),  _bloom * 1.6);
 if (_bloom > 0) {
 	texture_set_stage(u_blur_s, surface_get_texture(g.blur_small));
 	gpu_set_tex_filter_ext(u_blur_s, true);   // the blur is a small surface: read it smooth
