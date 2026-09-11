@@ -37,6 +37,9 @@
 depth = CRT_OVER;
 persistent = true;
 
+// the shader's second texture: the frame blurred wide, for the bloom
+u_blur_s = shader_get_sampler_index(sh_crt, "u_blur");
+
 scratch = -1;   // the frame's copy (the surface can't sample itself);
                 // taken the way pixel_snap takes the drawer's backdrop
                 // - surface_set_target + draw_surface_ext, the capture

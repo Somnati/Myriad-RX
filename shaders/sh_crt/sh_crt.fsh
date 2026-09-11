@@ -25,6 +25,22 @@
 //   vignette    OFF at 0 (its default) - it is the one knob that
 //               darkens pixels on purpose, so it is his to turn up
 //   gain        gone
+//   bloom       ADDS light (his ask, 2026-09-10: "since its crt doesnt
+//               it need a subtle bloom?"): the frame blurred wide by
+//               the house chain (blur_snap, handed in as u_blur),
+//               squared so only the bright things spill, added after
+//               the scanlines so the glow fills the gaps the way
+//               halation in the glass does - the bloom has no lines
+//
+// ⚖️ THE GRILLE IS FLAT (his report, 2026-09-10: "bowing lines in
+// it... subtle but noticable"). It was computed on the WARPED
+// coordinate, so the stripe pitch changed across the bulge - 3.0 px in
+// the middle, 2.8 at the edges - and a stripe that is not a whole
+// number of pixels beats against the pixel grid: moire, bowed with
+// the glass. The mask sits on the front of the tube, not in the
+// picture, so it reads the SCREEN coordinate - an exact 3px pitch
+// everywhere. The scanlines keep the warp on purpose: they are the
+// beam, and a beam bows with the face.
 //
 // ⚖️ THE GLASS IS PINNED TO THE FRAME. The title's first tube barrelled
 // outward (cc = c x (1 + k r^2)) and let the corners fall off the
@@ -50,6 +66,8 @@ uniform float u_grille;  // 0..1  stripe contrast
 uniform float u_chroma;  // 0..1  red/blue split toward the edges
 uniform float u_vig;     // 0..1  corner darkening
 uniform float u_roll;    // 0/1   the drifting band and the flicker
+uniform float u_bloom;   // 0..1  halation strength (0 = u_blur unused)
+uniform sampler2D u_blur;   // the frame blurred wide (blur_snap's top link)
 
 float hash11(float p) { return fract(sin(p * 127.1) * 43758.5453); }
 
@@ -77,8 +95,8 @@ void main()
     float gap = bump * bump * bump * bump;
     col *= 1.0 - 0.7 * u_scan * gap;
 
-    // ---- the grille, normalised (see the header) ----
-    float px = floor(suv.x * u_res.x);
+    // ---- the grille, normalised and FLAT (see the header) ----
+    float px = floor(uv.x * u_res.x);
     float m = mod(px, 3.0);
     float s = 0.22 * u_grille;
     vec3 mask = vec3(1.0 - s);
@@ -86,6 +104,12 @@ void main()
     else if (m < 1.5) mask.g = 1.0 + 2.0 * s;
     else              mask.b = 1.0 + 2.0 * s;
     col *= mask;
+
+    // ---- the halation (sampled unconditionally: a gradient read
+    // inside flow control is the one thing the HLSL side is picky
+    // about; at u_bloom 0 the read costs a fetch and adds nothing) ----
+    vec3 bl = texture2D(u_blur, suv).rgb;
+    col += bl * bl * u_bloom;
 
     // ---- the roll and the flicker ----
     float roll = fract(u_time * 0.11);

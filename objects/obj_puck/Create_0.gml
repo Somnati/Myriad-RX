@@ -5,8 +5,9 @@
 ///
 /// ⚖️ WHAT IT IS. A disc you drag and fling around the tap room. Every
 /// wall bounce pays taps. Catching it mid-flight pays triple. Docking it
-/// bottom-centre turns it into a cannon with power tiers. It is the
-/// game's one skill expression, and it converts aim into income.
+/// bottom-centre turned it into a cannon with power tiers (off for now,
+/// his call 2026-09-10 - see __docks). It is the game's one skill
+/// expression, and it converts aim into income.
 ///
 /// ⚖️ THE ONE IDEA WORTH PRESERVING ABOVE ALL THE REST: a bounce pays a
 /// MULTIPLE OF YOUR OWN TAP RATE, not a number of its own. DE used the
@@ -291,13 +292,17 @@ __grip = function() {
 /// you when you let go without pulling and throws you when you pull.
 /// A radius small enough not to catch a throw is a radius too small to
 /// catch a park.
+///
+/// ⚖️ AND NOW THERE ARE NONE (his call, 2026-09-10: "remove the puck
+/// cannon for now"). The list is empty, so docked/cannon never set and
+/// the whole cannon path - the lock-in, the aim line, the tiers, the
+/// tier launch - stays dormant rather than deleted. To bring it back,
+/// put the row back:
+///   { x : (room_width - d) * .5, y : _t.y2,
+///     r : max(room_width, room_height) * .12,
+///     cannon : true, snd : snd_autostart }
 __docks = function() {
-	var _t = __tray();
-	return [
-		{ x : (room_width - d) * .5, y : _t.y2,
-		  r : max(room_width, room_height) * .12,
-		  cannon : true, snd : snd_autostart },
-	];
+	return [];
 };
 
 /// @func __burst(n, spread, [spd])

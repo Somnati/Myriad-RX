@@ -435,6 +435,14 @@ function settings_content() {
 		"the rgb stripe, at screen resolution. balanced so the picture's "
 		+ "brightness and colour hold - it reads as texture, not tint.");
 
+	settings_slider("bloom", 0, 100,
+		function() { return g.crt_bloom; },
+		function(_v) { g.crt_bloom = _v; },
+		"%", 5,
+		"the glass glowing around bright things - halation. adds light "
+		+ "(only the bright parts spill), and it fills the scanline gaps "
+		+ "softly the way a real tube does.");
+
 	settings_slider("chroma split", 0, 100,
 		function() { return g.crt_chroma; },
 		function(_v) { g.crt_chroma = _v; },

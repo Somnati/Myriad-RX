@@ -46,6 +46,7 @@ function handle_settings(_method) {
 	g.crt_grille  = handle("crt_grille",g.crt_grille);
 	g.crt_chroma  = handle("crt_chroma",g.crt_chroma);
 	g.crt_vig     = handle("crt_vig",g.crt_vig);
+	g.crt_bloom   = handle("crt_bloom",g.crt_bloom);
 	g.crt_roll    = handle("crt_roll",g.crt_roll);
 	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
 	g.tap_text = handle("tap_text",g.tap_text);       // DE's taptextformat: 0 at the tap / 1 centred / 2 none
