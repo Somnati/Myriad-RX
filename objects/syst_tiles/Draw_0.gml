@@ -114,9 +114,15 @@ for (var _i = 0; _i < _t.slots; _i++) {
 	} else {
 		var _held = (_i == grab_i) || (_i == ret_i);   // in hand, or gliding home
 		// the automerge's approach: the folding tile leaves its slot for
-		// the last stretch of the bar (drawn in flight below the loop)
-		if (_t.automerge && _i == _t.am_ib && _t.am_ia != -1 && grab_i != _i && ret_i != _i
-		&& clamp(_t.am_tic / _t.am_tic_, 0, 1) > __am_move_from()) _held = true;
+		// the last stretch of the bar (drawn in flight below the loop).
+		// It LEAVES - the socket shows, not an echo, and not the
+		// candidate glow either (his report: "a dup left in its og spot")
+		var _flying = (_t.automerge && _i == _t.am_ib && _t.am_ia != -1 && grab_i != _i && ret_i != _i
+			&& clamp(_t.am_tic / _t.am_tic_, 0, 1) > __am_move_from());
+		if (_flying) {
+			tile_shape_draw(0, _x, _y, tw, th, slot_col, .9);
+			continue;
+		}
 		// the resident tile (a held one leaves a dim echo in its slot)
 		tile_shape_draw(_tier, _x, _y, tw, th,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
@@ -134,8 +140,10 @@ for (var _i = 0; _i < _t.slots; _i++) {
 			draw_text_transformed(_x + tw * .5, __val_y(_y, val_sc[_i]),
 				val_str[_i], val_sc[_i], val_sc[_i], 0);
 		}
-		// hover feedback when nothing is held
-		if (grab_i == -1 && _i == _hov)
+		// hover feedback when nothing is held - and not on the tile you
+		// just put down, until the pointer leaves it (his ask, 2026-09-10:
+		// "when i deselect a held tile it loses its highlight")
+		if (grab_i == -1 && _i == _hov && _i != hov_mute)
 			tile_shape_draw(_tier, _x, _y, tw, th, col[_i], .25);
 	}
 

@@ -1,3 +1,5 @@
+if (!__live()) exit;
+
 // ---- THE WARP PASS: the ripple and the hold heat bend the room ----
 if (array_length(rings) > 0 || heat > .003) {
 	if (surface_exists(application_surface)) {

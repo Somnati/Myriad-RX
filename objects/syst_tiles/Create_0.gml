@@ -247,6 +247,7 @@ __dbg_r    = function(_k) {
 // (g.tiles.grab), the same lock a held tile has.
 ret_i = -1;
 ret_x = 0; ret_y = 0;
+hov_mute = -1;   // the slot a released tile sits in: no hover glow until the pointer leaves it
 // THE SORT BUTTON (his ask, 2026-09-10: DE's sort button sprite,
 // "somewhere it fits outside the debug dock"): DE's spr_button_small at
 // DE's 1.2 scale, dark blue with "sort" in aqua, under the info box on

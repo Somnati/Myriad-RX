@@ -31,6 +31,13 @@
 /// it is missing or the wrong size.
 
 depth = -95;
+// PERSISTENT, like the chip and the overcharger: obj_clicker is
+// persistent and runs its Create exactly once, at boot, in the load
+// room - a room-local instance made there died with that room and the
+// chip never reached the money room (his report). It lives everywhere
+// now and simply does nothing outside rm_clicker (__live).
+persistent = true;
+__live = function() { return in_room(rm_clicker); };
 
 fx_names = ["none", "glow (DE)", "ripple", "crater", "shockwave", "counter spray", "hold heat", "crit slash"];
 if (!variable_global_exists("tap_fx")) g.tap_fx = 1;

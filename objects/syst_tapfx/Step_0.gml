@@ -1,4 +1,9 @@
 tm += delta / 60;
+if (!__live()) {
+	// nothing performs outside the money room; drop what was in flight
+	glows = []; rings = []; craters = []; shocks = []; slashes = []; heat = 0;
+	exit;
+}
 
 // ---- the pick lands (the pillbox hands it back on this instance) ----
 if (_pselid != -1) {

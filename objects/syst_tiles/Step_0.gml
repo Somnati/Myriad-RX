@@ -459,9 +459,15 @@ if (grab_i != -1) {
 			ret_x = gx; ret_y = gy;
 			_t.grab = ret_i;   // still the hand's until it lands
 		} else _t.grab = -1;
+		// the put-down tile is not "hovered" just because the pointer is
+		// still over it (see hov_mute)
+		hov_mute = (_res == 0) ? grab_i : ((_res == 1) ? _dst : -1);
 		grab_i = -1;
 	}
 }
+
+// the hover mute lifts once the pointer has left that slot
+if (hov_mute != -1 && __slot_at(mouse_x, mouse_y) != hov_mute) hov_mute = -1;
 
 // ---- the glide home (see ret_i in the Create) ----
 if (ret_i != -1) {
