@@ -79,6 +79,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	bounces = 0;
 	peak = 0;
 	resist = 0;
+	cur_profit = 0;   // a new throw starts its ledger fresh (the tracker has faded by then)
 	docked = false;
 	cannon = false;
 	__roll_voice();

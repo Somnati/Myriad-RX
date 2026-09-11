@@ -193,18 +193,5 @@ for (var _i = 0; _i < array_length(sparks); _i++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _s.x, _s.y, 1, 1, 0, _s.c, _a * .9);
 }
 
-// ---- the bounce counter ----
-// Only while a throw is actually running, and only past the second
-// bounce: a "1" on every toss is noise, a climbing number on a good
-// throw is the score. It rides the puck rather than sitting in a
-// corner, because the puck is where you are looking.
-if (!held && spd > 0 && bounces > 1) {
-	draw_set_font(fnt);
-	draw_set_halign(fa_center);
-	draw_set_color(c_gold);
-	draw_set_alpha(clamp(_fr * 2.2, .3, .95));
-	draw_text(_cx, _cy - r - 10, "x" + string(bounces));
-	draw_set_halign(fa_left);
-	draw_set_alpha(1);
-	draw_set_color(c_white);
-}
+// (the bounce counter that rode the puck is gone - DE's bounce tracker
+// top-left has the count, the throw's profit and its speed: his ask)

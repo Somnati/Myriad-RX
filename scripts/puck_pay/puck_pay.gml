@@ -48,5 +48,10 @@ function puck_pay(_frac, _mult, _x, _y) {
 	// are the entire reason to route a bounce through tap_fire instead
 	// of give_profit. If it ever sounds crowded, the tapper's sound has
 	// a "none" option and that is the honest lever.
-	tap_fire(_n, _x, _y, true, true, false);
+	var _paid = tap_fire(_n, _x, _y, true, true, false);
+	// the throw's ledger (DE's cur_profit): what this throw has earned,
+	// for the bounce tracker's "profit" line
+	if (instance_exists(obj_puck))
+		obj_puck.cur_profit = (obj_puck.cur_profit >= arb(1))
+			? do_add(obj_puck.cur_profit, _paid) : _paid;
 }

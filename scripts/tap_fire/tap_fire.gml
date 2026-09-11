@@ -137,7 +137,7 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 		// this profit, so nothing should be waiting on it.
 		g.profit_flight = (g.profit_flight > _pay)
 			? do_subtract(g.profit_flight, _pay) : 0;
-		return;
+		return _pay;
 	}
 
 	// ---- THE FLOAT ----
@@ -177,7 +177,8 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (_crit) _bn = min(12, _bn + 4);   // a crit throws a fatter handful
 	bezier_bits(_x, _y, _bn, _col, undefined, undefined, 0, _pay);
 
-	// THE TAP EFFECT (syst_tapfx, his bench of seven - the [fx] chip in
-	// the money room picks): only a performed tap, so it sits here
+	// THE TAP EFFECT (syst_tapfx - the [fx] chip in the money room
+	// picks): only a performed tap, so it sits here
 	tapfx_fire(_x, _y, _crit, _n);
+	return _pay;   // (the puck's throw ledger reads it - see puck_pay)
 }

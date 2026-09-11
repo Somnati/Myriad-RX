@@ -183,6 +183,13 @@ function settings_content() {
 		+ "same light, same finish. off keeps the raycast (the squash "
 		+ "still re-pixelates) but paints it flat white and ink.");
 
+	settings_toggle("crt title screen",
+		function() { return g.crt_title; },
+		function(_v) { g.crt_title = _v; },
+		"the title's background through a tube: 270 scanlines, a phosphor "
+		+ "stripe, a little curvature and a slow roll. the title, the "
+		+ "menu and the save card stay crisp over it. title screen only.");
+
 	settings_toggle("motion blur",
 		function() { return g.motion_blur; },
 		function(_v) { g.motion_blur = _v; },

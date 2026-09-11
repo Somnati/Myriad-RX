@@ -173,6 +173,10 @@ sl_charge = 0;   // eased, for the ring: loops of charge, 0..2
 resist  = 0;           // near-frictionless bounces left in this throw
 resist0 = 1;
 bounces = 0;
+cur_profit = 0;        // what THIS throw has earned (puck_pay's ledger; the tracker reads it)
+// THE BOUNCE TRACKER - DE's obj_bouncetracker, top-left (his ask,
+// 2026-09-10); it reads this puck and dies with the room
+if (!instance_exists(obj_bouncetracker)) create_obj(3, 50, obj_bouncetracker);
 peak    = 0;           // fastest this throw got, for the readout
 
 // ---- interaction ----

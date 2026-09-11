@@ -21,16 +21,12 @@ depth = -95;
 persistent = true;
 __live = function() { return in_room(rm_clicker); };
 
-// the shockwaves, five ways (his ask for variations, 2026-09-10):
-//   chroma   the original - a one-cell ring with the red/blue split
+// the shockwaves (his verdict on the five, 2026-09-10: chroma and mono
+// are the keepers, mono the default; smaller and faster than the trial):
 //   mono     the ring alone, white, two cells thick, no split
-//   double   two rings, the second a beat behind, both split
-//   wave     the ring wobbles - its radius varies round the circle by
-//            a three-lobe sine that turns as it grows
-//   diamond  the ring is a diamond (city-block distance), the
-//            visualiser's own geometry
-fx_names = ["none", "glow", "shock chroma", "shock mono", "shock double", "shock wave", "shock diamond", "glow + chroma"];
-if (!variable_global_exists("tap_fx")) g.tap_fx = 1;
+//   chroma   a one-cell ring with the red/blue split closing as it fades
+fx_names = ["none", "glow", "shock mono", "shock chroma", "glow + mono"];
+if (!variable_global_exists("tap_fx")) g.tap_fx = 2;
 // the pick, always a valid index: settings.ini loads AFTER this Create
 // (boot, step 1) and a save from the seven-strong bench holds 4..7
 __fx = function() {
@@ -58,14 +54,9 @@ __consumes = function(_mx, _my) {
 /// @func fire(x, y, crit, n)
 fire = function(_x, _y, _crit, _n) {
 	var _f = __fx();
-	if (_f == 1 || _f == 7)
+	if (_f == 1 || _f == 4)
 		array_push(glows, { x : _x, y : _y, t : 0, crit : _crit });
-	// kinds: 0 chroma, 1 mono, 2 double, 3 wave, 4 diamond
-	if (_f >= 2 && _f <= 6) {
-		var _k = _f - 2;
-		array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : _k, ph : random(360) });
-		if (_k == 2) array_push(shocks, { x : _x, y : _y, r : -4, crit : _crit, kind : 2, ph : 0 });
-	}
-	if (_f == 7)
-		array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : 0, ph : 0 });
+	// kinds: 1 mono, 0 chroma
+	if (_f == 2 || _f == 4) array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : 1 });
+	if (_f == 3)            array_push(shocks, { x : _x, y : _y, r : 1, crit : _crit, kind : 0 });
 };

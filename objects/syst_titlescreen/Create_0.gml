@@ -295,4 +295,38 @@ __draw_grad = function() {
 grad_px = create_obj(0, 0, obj_draw_proxy);
 grad_px.owner = id;
 grad_px.depth = 40;
+
+// THE CRT PASS (his ask, 2026-09-10): at depth 20 - the field (100),
+// the halo (90), the glow layer (50) and the gradient (40) have drawn;
+// the wordmark, menu and card draw at 0, after. The slot captures the
+// application surface into a scratch and draws the room back through
+// sh_crt (read its header). Settings > visuals "crt title screen".
+crt_scratch = -1;
+crt_t = 0;
+__draw_crt = function() {
+	if (!(variable_global_exists("crt_title") ? g.crt_title : true)) return;
+	if (!surface_exists(application_surface)) return;
+	var _aw = surface_get_width(application_surface);
+	var _ah = surface_get_height(application_surface);
+	if (!surface_exists(crt_scratch) || surface_get_width(crt_scratch) != _aw
+	|| surface_get_height(crt_scratch) != _ah) {
+		if (surface_exists(crt_scratch)) surface_free(crt_scratch);
+		crt_scratch = surface_create(_aw, _ah);
+	}
+	surface_copy(crt_scratch, 0, 0, application_surface);
+	crt_t += delta / 60;
+	gpu_set_tex_filter(true);   // the curvature resamples; the tube's softness is the point
+	shader_set(sh_crt);
+	shader_set_uniform_f(shader_get_uniform(sh_crt, "u_res"), _aw, _ah);
+	shader_set_uniform_f(shader_get_uniform(sh_crt, "u_room"), room_width, room_height);
+	shader_set_uniform_f(shader_get_uniform(sh_crt, "u_time"), crt_t);
+	shader_set_uniform_f(shader_get_uniform(sh_crt, "u_amt"), 1);
+	draw_surface_stretched(crt_scratch, 0, 0, room_width, room_height);
+	shader_reset();
+	gpu_set_tex_filter(false);
+};
+crt_px = create_obj(0, 0, obj_draw_proxy);
+crt_px.owner = id;
+crt_px.depth = 20;
+crt_px.fn    = __draw_crt;
 grad_px.fn    = __draw_grad;
