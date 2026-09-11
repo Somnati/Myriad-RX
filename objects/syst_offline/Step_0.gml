@@ -43,6 +43,13 @@ if (_bk >= 1) {
 assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0")
 	+ " - in the pile, tap to collect", g.profit_color, c_black);
 syst_banner.hp[0] *= 3;
+// the optimiser, when it changed something
+var _bo = _r[$ "bat_opt"] ?? 0;
+if (_bo > 0) {
+	assign_banner("optimiser ran the machines at x" + string_format(_bo, 1, 2)
+		+ " of your offline rates", c_sgreen, c_black);
+	syst_banner.hp[0] *= 3;
+}
 // the battery: only when it ran dry - "lasted the whole absence" is a
 // line about nothing
 if (_r[$ "bat_dry"] ?? false) {

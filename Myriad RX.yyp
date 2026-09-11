@@ -209,6 +209,7 @@
     {"id":{"name":"battery_init","path":"scripts/battery_init/battery_init.yy",},},
     {"id":{"name":"battery_lasts","path":"scripts/battery_lasts/battery_lasts.yy",},},
     {"id":{"name":"battery_open","path":"scripts/battery_open/battery_open.yy",},},
+    {"id":{"name":"battery_optimise","path":"scripts/battery_optimise/battery_optimise.yy",},},
     {"id":{"name":"battery_rate","path":"scripts/battery_rate/battery_rate.yy",},},
     {"id":{"name":"battery_tick","path":"scripts/battery_tick/battery_tick.yy",},},
     {"id":{"name":"battery_upg","path":"scripts/battery_upg/battery_upg.yy",},},

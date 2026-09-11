@@ -12,11 +12,14 @@ function battery_draw() {
 	battery_init();
 	autom_init();
 	var _a = g.autom, _b = g.battery;
+	// the optimiser's rates during a replay it ran (battery_optimise),
+	// the player's own otherwise
+	var _r = _b[$ "opt_rate"] ?? _b.rate;
 	var _sum = BAT_W_RUN + BAT_W_FAB + BAT_W_MERGE;
 	var _d = 0;
-	if (_a.run.on) _d += BAT_W_RUN   * sqr(_b.rate.run   / 100);
-	if (_a.fab.on) _d += BAT_W_FAB   * sqr(_b.rate.fab   / 100);
+	if (_a.run.on) _d += BAT_W_RUN   * sqr(_r.run   / 100);
+	if (_a.fab.on) _d += BAT_W_FAB   * sqr(_r.fab   / 100);
 	if (variable_global_exists("tiles") && g.tiles.automerge)
-	               _d += BAT_W_MERGE * sqr(_b.rate.merge / 100);
+	               _d += BAT_W_MERGE * sqr(_r.merge / 100);
 	return _d / _sum;
 }

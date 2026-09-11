@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"battery_optimise",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"battery_optimise",
+  "parent":{
+    "name":"battery",
+    "path":"folders/game/battery.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

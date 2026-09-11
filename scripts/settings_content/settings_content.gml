@@ -651,6 +651,16 @@ function settings_content() {
 	// not where a row landed first)
 	settings_section("gameplay", c_seagreen);
 
+	// THE BATTERY OPTIMISER - an unlockable ability later; a toggle here
+	// so he can feel it first (his idea, 2026-09-11)
+	settings_toggle("battery optimiser (debug)",
+		function() { return g.bat_opt; },
+		function(_v) { g.bat_opt = _v; },
+		"when you return, the replay runs the machines at the offline rates "
+		+ "that make the most of the charge over exactly that absence - up "
+		+ "for a short one, down for a long one - instead of the rates you "
+		+ "left. your sliders are never changed.");
+
 	settings_toggle("rounded bulk buys",
 		function() { return g.buy_round; },
 		function(_v) { g.buy_round = _v; if (instance_exists(syst_dials)) syst_dials.qtic = 0; },

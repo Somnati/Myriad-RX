@@ -179,4 +179,40 @@ say(abs(cov1 - 2 * 3600) < 1e-6, "an absence inside the charge is covered whole"
 cov2, left2, _ = absence(BAT_CAP0, 2 * 3600, 100, 100, 100)
 say(abs((BAT_CAP0 - left2) - 2 * 3600) < 1e-6, "...and costs exactly its length in charge at draw 1")
 
+# ---------------------------------------------------------------- 6. the optimiser
+print("\n== 6. the optimiser (battery_optimise: the rates that make the most of the charge over EXACTLY the absence) ==")
+
+
+def optimise(charge, away_s, r_run, r_fab, r_merge):
+    """bisect the scale s so draw(s x rates) x away == charge, every machine clamped at 100"""
+    rates = (r_run, r_fab, r_merge)
+    smax = max(1.0, max(100.0 / max(5, r) for r in rates))
+    target = charge / away_s
+    def d(sc): return draw(*[min(100.0, r * sc) for r in rates])
+    if d(smax) <= target: return smax
+    lo, hi = 0.0, smax
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if d(mid) > target: hi = mid
+        else: lo = mid
+    return lo
+
+
+print(f"  {'away':>6} | {'left at':>7} | {'output as left':>14} | {'optimised':>9} | {'output opt':>10} | {'sqrt(C x A)':>11}")
+opt_ok = True
+for away_h in (0.17, 1, 3, 8, 24, 168):
+    for r in (100, 30):
+        s_ = optimise(BAT_CAP0, away_h * 3600, r, r, r)
+        ro = min(100.0, r * s_)
+        _, _, o0 = absence(BAT_CAP0, away_h * 3600, r, r, r)
+        _, _, o1 = absence(BAT_CAP0, away_h * 3600, ro, ro, ro)
+        ceil_ = math.sqrt(BAT_CAP0 * away_h * 3600)
+        opt_ok = opt_ok and (o1["run"] + 1e-6 >= o0["run"]) and (o1["run"] <= min(away_h * 3600, ceil_) + 1)
+        print(f"  {away_h:>5.2g}h | {r:>6}% | {hms(o0['run']):>14} | {ro:>8.0f}% | {hms(o1['run']):>10} | {hms(ceil_):>11}")
+say(opt_ok, "optimised output is never below the player's setting and never above sqrt(C x A)")
+say(optimise(BAT_CAP0, 600, 30, 30, 30) > 1, "10 minutes away with the rates at 30%: it scales UP",
+    f"x{optimise(BAT_CAP0, 600, 30, 30, 30):.2f}")
+say(optimise(BAT_CAP0, 86400, 100, 100, 100) < 1, "a day away at 100%: it scales DOWN",
+    f"x{optimise(BAT_CAP0, 86400, 100, 100, 100):.2f}")
+
 print("\n" + ("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port"))

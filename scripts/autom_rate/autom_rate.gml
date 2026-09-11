@@ -16,7 +16,8 @@ function autom_rate(_kind) {
 	var _a = g.autom;
 	if (variable_global_exists("offline_replaying") && g.offline_replaying) {
 		battery_init();
-		var _r = g.battery.rate;
+		// the optimiser's rates for THIS replay, if it ran (battery_optimise)
+		var _r = g.battery[$ "opt_rate"] ?? g.battery.rate;
 		switch (_kind) {
 			case "run":   return _a.run.on ? _r.run   / 100 : 0;
 			case "fab":   return _a.fab.on ? _r.fab   / 100 : 0;

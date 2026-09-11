@@ -52,6 +52,14 @@ function offline_replay(_secs) {
 	// seconds, at the battery panel's offline rates (autom_rate reads
 	// g.offline_replaying).
 	battery_init();
+	// THE OPTIMISER (his idea, 2026-09-11 - read battery_optimise): with
+	// the ability on, the replay runs at the rates that make the most
+	// of the charge over exactly this absence, not the ones you left.
+	// The player's own rates are never written; this is a per-replay
+	// override autom_rate and battery_draw read
+	var _opt = undefined;
+	if (variable_global_exists("bat_opt") && g.bat_opt) _opt = battery_optimise(_secs);
+	g.battery.opt_rate = _opt;
 	var _draw = battery_draw();
 	var _cov  = (_draw > 0) ? min(_secs, g.battery.charge / _draw) : _secs;
 	g.battery.charge = max(0, g.battery.charge - _cov * _draw);
@@ -100,6 +108,7 @@ function offline_replay(_secs) {
 	prod_dials(_cov);
 	g.offline_pooling = false;
 	g.offline_replaying = false;
+	g.battery.opt_rate = undefined;
 	g.tile_boost_override = undefined;
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 
@@ -118,7 +127,8 @@ function offline_replay(_secs) {
 
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
 		banked : _banked, bank_full : g.timebank.last_full, shown : false,
-		bat_ran : _cov, bat_dry : (_cov < _secs - 1) };
+		bat_ran : _cov, bat_dry : (_cov < _secs - 1),
+		bat_opt : (_opt == undefined) ? 0 : _opt.s };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }
