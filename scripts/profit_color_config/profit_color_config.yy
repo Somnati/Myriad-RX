@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"profit_color_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"profit_color_config",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

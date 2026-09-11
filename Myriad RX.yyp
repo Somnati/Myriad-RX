@@ -364,6 +364,7 @@
     {"id":{"name":"port_vis_line","path":"scripts/port_vis_line/port_vis_line.yy",},},
     {"id":{"name":"port_vis_square","path":"scripts/port_vis_square/port_vis_square.yy",},},
     {"id":{"name":"prod_dials","path":"scripts/prod_dials/prod_dials.yy",},},
+    {"id":{"name":"profit_color_config","path":"scripts/profit_color_config/profit_color_config.yy",},},
     {"id":{"name":"profit_reserved","path":"scripts/profit_reserved/profit_reserved.yy",},},
     {"id":{"name":"profit_spendable","path":"scripts/profit_spendable/profit_spendable.yy",},},
     {"id":{"name":"puck_pay","path":"scripts/puck_pay/puck_pay.yy",},},

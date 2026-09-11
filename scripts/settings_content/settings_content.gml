@@ -215,6 +215,26 @@ function settings_content() {
 		"how room changes look: slice = staggered slats snapping across, "
 		+ "circle = the classic closing wipe.");
 
+	// THE PROFIT COLOUR - DE's four (profit_color_config), the one global
+	// every profit-denominated thing reads: the counter, the motes, the
+	// dial payouts, rates, prices, the offline pile. Picking here changes
+	// nothing but g.profit_color, which is the whole design.
+	var _pcl = profit_color_config();
+	var _pcn = "custom";
+	for (var _pk = 0; _pk < array_length(_pcl); _pk++)
+		if (_pcl[_pk].col == g.profit_color) _pcn = _pcl[_pk].name;
+	settings_pill("profit colour", "profitcol", _pcn,
+		function() {
+			var _l = profit_color_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].col, col : _l[_j].col,
+				                        enabled : (_l[_j].col == g.profit_color) });
+		},
+		function(_v) { g.profit_color = _v; },
+		"what colour your money is - the counter, the motes, every "
+		+ "payout and price. DE's four.",
+		g.profit_color);
+
 	// THE VISUALISER GRID. The renderer multiplies every grid piece -
 	// the border, the inner rules and the outer frame - by one master
 	// alpha, so this single number takes the lattice from solid to
