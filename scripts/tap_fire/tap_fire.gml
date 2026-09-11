@@ -156,12 +156,21 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (_n > 1) _fstr += "  " + string(_n) + "x";
 	var _col = g.profit_color;
 	if (_crit) _col = c_gold;
-	var _f = float_text(_x, _y - 4, _fstr, _col, fnt_outline);
-	if (_crit) {
-		_f.scale_ = 1.3;
-		_f.life   = 60;   // DE doubles the float's hp on a crit
-		_f.life_  = 60;   // life_ is the rise's clock too - move both or
-		                  // the float drifts as if it were already old
+	// TAP NUMBERS, DE's taptextformat (settings > readouts): at the
+	// tap, one big figure in the middle of the room (DE's centre: half
+	// across, two-fifths down), or none at all
+	var _tt = variable_global_exists("tap_text") ? g.tap_text : 0;
+	if (_tt != 2) {
+		var _fx = _x, _fy = _y - 4;
+		if (_tt == 1) { _fx = room_width * .5; _fy = room_height / 2.5; }
+		var _f = float_text(_fx, _fy, _fstr, _col, fnt_outline);
+		if (_tt == 1) _f.scale_ = _crit ? 1.6 : 1.25;
+		if (_crit) {
+			if (_tt != 1) _f.scale_ = 1.3;
+			_f.life   = 60;   // DE doubles the float's hp on a crit
+			_f.life_  = 60;   // life_ is the rise's clock too - move both or
+			                  // the float drifts as if it were already old
+		}
 	}
 
 	// THE SPIT: bezier profit bits fly from the tap to the counter. The

@@ -19,6 +19,12 @@ function settings_defaults() {
 	g.tap_fx                = 2;
 	g.crt_title             = true;
 	g.num_format            = 0;
+	g.tap_text              = 0;
+	g.tps_readout           = true;
+	g.bounce_text           = true;
+	g.mote_arc              = 0;
+	g.random_profit_color   = false;
+	g.swipe_protect         = false;
 	g.show_fps              = false;
 	g.fit_margin            = 12;   // % of screen height kept for OS chrome
 	g.orient                = -1;   // -1 auto / 0 portrait / 1 landscape

@@ -1,4 +1,5 @@
 if (alpha <= .01) exit;
+if (variable_global_exists("bounce_text") && !g.bounce_text) exit;   // settings > readouts (DE's switch)
 if (!instance_exists(obj_puck)) exit;
 var _o = obj_puck;
 var _mx = max(room_width, room_height);   // the puck's speed scale (its _max)

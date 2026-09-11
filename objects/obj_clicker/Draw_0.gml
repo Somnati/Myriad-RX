@@ -19,6 +19,7 @@
 // this would be a number floating over somebody's settings page.
 // in_room is orientation-aware, so this covers the landscape twin.
 if (!in_room(rm_clicker)) exit;
+if (variable_global_exists("tps_readout") && !g.tps_readout) exit;   // settings > readouts (DE's tapgps_pos)
 
 // DE's seat: 3px in from the left, 9 off the bottom, slid into rather
 // than snapped to (its y trickles). Seeded off-screen in the Create, so

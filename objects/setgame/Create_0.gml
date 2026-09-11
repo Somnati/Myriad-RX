@@ -10,7 +10,14 @@
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)
 	g.tap_fx = 2;          // the money room's [fx] chip: 0 none / 1 glow / 2 shock mono / 3 shock chroma / 4 glow + mono
 	g.crt_title = true;    // settings > visuals "crt title screen" (sh_crt over the title's background)
-	g.num_format = 0;      // settings > gameplay "number format" (num_format_config: 0 short)
+	g.num_format = 0;      // settings > readouts "number format" (num_format_config: 0 short)
+	// DE's settings, ported 2026-09-10 (the ones RX has the system for)
+	g.tap_text = 0;        // readouts "tap numbers": 0 at the tap / 1 centred / 2 none (DE taptextformat)
+	g.tps_readout = true;  // readouts "tap rate": the bottom-left tps line (DE tapgps_pos)
+	g.bounce_text = true;  // readouts "bounce tracker" (DE bounce_text)
+	g.mote_arc = 0;        // visuals "mote path": 0 swoop / 1 bow / 2 straight (DE part_grav)
+	g.random_profit_color = false;   // visuals "rainbow motes" (DE alt profit color)
+	g.swipe_protect = false;         // input "swipe protection": drawers close only from their own side (DE)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

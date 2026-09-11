@@ -70,6 +70,12 @@ aim = function() {
 	}
 	p0x = x;
 	p0y = y;
+	// THE MOTE PATH (settings > visuals, DE's part_grav three ways): a
+	// caller that named its own swing keeps it (the tile fountain); the
+	// default throw takes the setting - Myriad's swoop, a bow, or dead
+	// straight
+	if (swing < 0 && variable_global_exists("mote_arc") && g.mote_arc != 0)
+		swing = (g.mote_arc == 1) ? 14 : 0;
 	if (swing < 0) {
 		cx = random(room_width);
 		cy = y + random_range(-50, 100); // the original's throw, mostly down

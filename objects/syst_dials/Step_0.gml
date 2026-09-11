@@ -140,7 +140,12 @@ if (mouse_check_button_pressed(mb_left)) {
 	// sits in this very band (syst_input's owner - the tile board's
 	// rule, which this drawer lacked)
 	var _owned = variable_global_exists("click_owner") && g.click_owner != noone;
-	if ((mouse_x >= room_width - SW_EDGE || stage > 0) && !_owned) {
+	// SWIPE PROTECTION (settings > input, DE's): with it on, the close
+	// swipe has to START on the drawer's own side too - a press on the
+	// room's far half is the room's, drawer open or not
+	var _near = !(variable_global_exists("swipe_protect") && g.swipe_protect)
+		|| mouse_x >= face - 24;
+	if ((mouse_x >= room_width - SW_EDGE || (stage > 0 && _near)) && !_owned) {
 		press_x    = mouse_x;
 		press_y    = mouse_y;
 		hold_fired = false;

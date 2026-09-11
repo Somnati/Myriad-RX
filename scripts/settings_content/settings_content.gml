@@ -160,6 +160,15 @@ function settings_content() {
 		"how many frames per second the game runs at. higher = smoother "
 		+ "and hungrier; on battery, lower is kinder.");
 
+	// the frame rate readout sits with the frame rate cap (2026-09-10's
+	// tidy: it was under about, where nobody looks for a display switch)
+	settings_toggle("show fps",
+		function() { return g.show_fps; },
+		function(_v) { g.show_fps = _v; },
+		"a small live frame rate readout in the bottom-left corner, "
+		+ "in every room.");
+
+
 	// ============================ visuals ===========================
 	// THE LOOK, split out of display 2026-09-06 (his ask to organise the
 	// room): display had grown into eleven rows mixing window management
@@ -366,6 +375,69 @@ function settings_content() {
 		+ "default: that many halos in one place stop being motes.");
 
 
+	// ---- the motes' flight (DE's part_grav / alt profit color) ----
+	var _man = ["swoop", "bow", "straight"];
+	settings_pill("mote path", "motearc", _man[clamp(g.mote_arc, 0, 2)],
+		function() {
+			set_pill("swoop",    { val : 0, col : (g.mote_arc == 0) ? c_gold : sett_ink, enabled : (g.mote_arc == 0) });
+			set_pill("bow",      { val : 1, col : (g.mote_arc == 1) ? c_gold : sett_ink, enabled : (g.mote_arc == 1) });
+			set_pill("straight", { val : 2, col : (g.mote_arc == 2) ? c_gold : sett_ink, enabled : (g.mote_arc == 2) });
+		},
+		function(_v) { g.mote_arc = _v; },
+		"how a payout's motes fly to the counter: myriad's lazy swoop, a "
+		+ "shallow bow, or a straight line. the tile fountain keeps its own.");
+
+	settings_toggle("rainbow motes",
+		function() { return g.random_profit_color; },
+		function(_v) { g.random_profit_color = _v; },
+		"DE's alt profit colour: every profit mote rolls its own hue "
+		+ "instead of wearing the profit colour.");
+
+	// ============================ readouts ==========================
+	// WHAT THE NUMBERS SAY AND WHERE (2026-09-10's tidy + DE's ports):
+	// how figures are written, the tap's own number, the two corner
+	// readouts. A player who wants a quieter screen looks here.
+	settings_section("readouts", c_aqua);
+
+	// THE NUMBER FORMAT (his ask, 2026-09-10): num_format_config's five.
+	// Every crunch_arb reads the pick, so this is how the whole game
+	// counts. [compare] on the menu's misc list lays them side by side.
+	var _nfl = num_format_config();
+	settings_pill("number format", "numfmt", _nfl[clamp(g.num_format, 0, array_length(_nfl) - 1)].name,
+		function() {
+			var _l = num_format_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _j, col : (g.num_format == _j) ? c_gold : sett_ink,
+				                        enabled : (g.num_format == _j) });
+		},
+		function(_v) { g.num_format = _v; },
+		"how big numbers read everywhere: short (k m b t aa ab...), the "
+		+ "short-scale names (spelled out under the counter), scientific, "
+		+ "or the log itself. menu > misc > number formats compares them.");
+
+	var _ttn = ["at the tap", "centred", "none"];
+	settings_pill("tap numbers", "taptext", _ttn[clamp(g.tap_text, 0, 2)],
+		function() {
+			set_pill("at the tap", { val : 0, col : (g.tap_text == 0) ? c_gold : sett_ink, enabled : (g.tap_text == 0) });
+			set_pill("centred",    { val : 1, col : (g.tap_text == 1) ? c_gold : sett_ink, enabled : (g.tap_text == 1) });
+			set_pill("none",       { val : 2, col : (g.tap_text == 2) ? c_gold : sett_ink, enabled : (g.tap_text == 2) });
+		},
+		function(_v) { g.tap_text = _v; },
+		"DE's tap text format: the +profit float rises from the tap, or "
+		+ "one big figure in the middle of the room, or nothing.");
+
+	settings_toggle("tap rate readout",
+		function() { return g.tps_readout; },
+		function(_v) { g.tps_readout = _v; },
+		"the 'tps N +X/s' line in the money room's bottom-left while you "
+		+ "tap (DE's tap gps position, minus the position).");
+
+	settings_toggle("bounce tracker",
+		function() { return g.bounce_text; },
+		function(_v) { g.bounce_text = _v; },
+		"the puck's throw readout top-left: bounces, the throw's profit, "
+		+ "its speed (DE's bounce text).");
+
 	// ============================ audio =============================
 	settings_section("audio", c_gold);
 
@@ -504,25 +576,10 @@ function settings_content() {
 
 	// ============================ gameplay ==========================
 	// how buying and the money room BEHAVE. (autosave moved to data,
-	// the two clocks to about - 2026-09-10's tidy: a section is what a
-	// player would look under, not where a row landed first)
+	// the two clocks to about, the number format to readouts -
+	// 2026-09-10's tidies: a section is what a player would look under,
+	// not where a row landed first)
 	settings_section("gameplay", c_seagreen);
-
-	// THE NUMBER FORMAT (his ask, 2026-09-10): num_format_config's five.
-	// Every crunch_arb reads the pick, so this is how the whole game
-	// counts. [compare] on the menu's misc list lays them side by side.
-	var _nfl = num_format_config();
-	settings_pill("number format", "numfmt", _nfl[clamp(g.num_format, 0, array_length(_nfl) - 1)].name,
-		function() {
-			var _l = num_format_config();
-			for (var _j = 0; _j < array_length(_l); _j++)
-				set_pill(_l[_j].name, { val : _j, col : (g.num_format == _j) ? c_gold : sett_ink,
-				                        enabled : (g.num_format == _j) });
-		},
-		function(_v) { g.num_format = _v; },
-		"how big numbers read everywhere: short (k m b t aa ab...), the "
-		+ "short-scale names (spelled out under the counter), scientific, "
-		+ "or the log itself. menu > misc > number formats compares them.");
 
 	settings_toggle("rounded bulk buys",
 		function() { return g.buy_round; },
@@ -539,6 +596,12 @@ function settings_content() {
 
 	// ============================ input =============================
 	settings_section("input", c_horange);
+
+	settings_toggle("swipe protection",
+		function() { return g.swipe_protect; },
+		function(_v) { g.swipe_protect = _v; },
+		"DE's: a drawer's close swipe has to start on the drawer's own "
+		+ "side. off, a swipe from anywhere shuts an open drawer.");
 
 	if (!_desktop)
 		settings_toggle("haptics",
@@ -622,12 +685,6 @@ function settings_content() {
 
 
 	// the debug overlay lived on F1 - which mobile doesn't have
-	settings_toggle("show fps",
-		function() { return g.show_fps; },
-		function(_v) { g.show_fps = _v; },
-		"a small live frame rate readout in the bottom-left corner, "
-		+ "in every room.");
-
 	settings_toggle("debug overlay",
 		function() { return system.debug; },
 		function(_v) { system.debug = _v; },

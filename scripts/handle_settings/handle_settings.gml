@@ -40,6 +40,12 @@ function handle_settings(_method) {
 	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (syst_tapfx's chip)
 	g.crt_title = handle("crt_title",g.crt_title); // the title screen's crt pass
 	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
+	g.tap_text = handle("tap_text",g.tap_text);       // DE's taptextformat: 0 at the tap / 1 centred / 2 none
+	g.tps_readout = handle("tps_readout",g.tps_readout);
+	g.bounce_text = handle("bounce_text",g.bounce_text);
+	g.mote_arc = handle("mote_arc",g.mote_arc);       // DE's part_grav, three ways
+	g.random_profit_color = handle("random_profit_color",g.random_profit_color);
+	g.swipe_protect = handle("swipe_protect",g.swipe_protect);
 	if (_method == sv_load) g.num_format = clamp(floor(g.num_format), 0, array_length(num_format_config()) - 1);
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);

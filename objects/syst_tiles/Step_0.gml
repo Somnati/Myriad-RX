@@ -85,7 +85,10 @@ if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == 
 		var _on_tile = (_s0 != -1 && _t.tier[_s0] != 0);
 		if (!_on_tile) {
 			if (dr_want == 0 && mouse_x >= room_width - sw_edge) { sw_x = mouse_x; sw_y = mouse_y; }
-			if (dr_want >  0)                                    { sw_x = mouse_x; sw_y = mouse_y; }
+			// (swipe protection, settings > input: the close swipe starts
+			// on the drawer's own side or not at all)
+			if (dr_want >  0 && (!(variable_global_exists("swipe_protect") && g.swipe_protect)
+			                     || mouse_x >= __dr_face() - 24))    { sw_x = mouse_x; sw_y = mouse_y; }
 		}
 	}
 	// A HELD TILE CANCELS THE PRESS AS A SWIPE, for the rest of the

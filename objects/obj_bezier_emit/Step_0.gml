@@ -16,6 +16,10 @@ repeat (_rep) {
 			y + random_range(-3, 3), dep, obj_bezier_bit);
 		_o.depth = dep;   // the mote's Create stamps -90; this lane's wins
 		_o.col = col;
+		// RAINBOW MOTES (settings > visuals, DE's "alt profit color"): the
+		// profit lane's motes each roll their own hue
+		if (lane == "profit" && variable_global_exists("random_profit_color") && g.random_profit_color)
+			_o.col = make_colour_hsv(random(255), 210, 255);
 		// hand this mote its cut and stop owing it; the LAST mote takes
 		// whatever is left, so whole-unit shares never strand a remainder
 		var _cut = (count <= 0) ? amt : share;
