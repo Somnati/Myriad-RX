@@ -599,6 +599,7 @@
     {"id":{"name":"snd_tap2","path":"sounds/snd_tap2/snd_tap2.yy",},},
     {"id":{"name":"snd_tapheavy","path":"sounds/snd_tapheavy/snd_tapheavy.yy",},},
     {"id":{"name":"snd_tierup","path":"sounds/snd_tierup/snd_tierup.yy",},},
+    {"id":{"name":"snd_vibrate","path":"sounds/snd_vibrate/snd_vibrate.yy",},},
     {"id":{"name":"spr_banner_endcap","path":"sprites/spr_banner_endcap/spr_banner_endcap.yy",},},
     {"id":{"name":"spr_boost_spd","path":"sprites/spr_boost_spd/spr_boost_spd.yy",},},
     {"id":{"name":"spr_button_bevel_long","path":"sprites/spr_button_bevel_long/spr_button_bevel_long.yy",},},

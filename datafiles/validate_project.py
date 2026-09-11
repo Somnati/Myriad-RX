@@ -486,6 +486,32 @@ check("no local named after one of its function's arguments",
 check("every .gml balances its braces, parens and brackets",
       not bal, "; ".join(bal[:3]))
 
+# --- 8g. every asset NAME the code mentions is a registered resource.
+# A sound/sprite/room/shader/object referenced by a prefix name that
+# nothing registers is "variable not set before reading it" at the
+# first run - snd_vibrate was written into obj_overcharge straight from
+# DE on 2026-09-10 without porting the sound. Sources are comment- and
+# string-stripped, so a name in a comment does not count. Exempt: every
+# #macro (fnt_outline, scrl_faq...), any name the project ASSIGNS
+# somewhere (instance/global variables such as obj_float's fnt_use or
+# obj_puck's snd_pool) and each file's own `var` lists.
+_unres = []
+_PFX = re.compile(r"(?<![\w.])((?:snd|spr|rm|sh|obj|fnt|syst|scrl)_[A-Za-z0-9_]+)")
+_defined = set()
+for _s in srcs.values():
+    _defined.update(re.findall(r"#macro\s+(\w+)", _s))
+    _defined.update(re.findall(r"(?<![\w.])(\w+)\s*=(?!=)", _s))
+for _p, _s in srcs.items():
+    _locals = set()
+    for _m in _VAR.finditer(_s):
+        _locals.update(_decl_names(_m.group(1)))
+    for _nm in sorted(set(_PFX.findall(_s))):
+        if _nm in reg or _nm in _locals or _nm in _defined:
+            continue
+        _unres.append(f"{_p}: {_nm}")
+check("every asset name the code mentions is registered",
+      not _unres, "; ".join(_unres[:4]))
+
 # --- 8d. every settings global reachable by handle_settings needs a
 # BOOT default, or the very first load reads an unset global and the
 # game dies at the splash. settings_defaults() does not count: it only
