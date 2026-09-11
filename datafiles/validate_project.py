@@ -444,6 +444,45 @@ for p, s in srcs.items():
                        ("[", "]", "brackets")):
         if s.count(o) != s.count(c):
             bal.append(f"{p}: {what} {s.count(o) - s.count(c):+d}")
+# --- 8f. a local named after one of its function's arguments. "cannot
+# use argument name for a variable" is a hard compile error (tap_fire's
+# `var _fx` shipped on 2026-09-10 behind an argument called _fx). The
+# unit is each named function of a script (events have no arguments).
+# Re-declaring a `var` twice in one event is LEGAL GML (the IDE's GM2044
+# is a warning, and ~170 spots in this project do it) so that is not
+# checked here.
+_shadow = []
+_VAR = re.compile(r"\bvar\s+([^;]+?);")
+def _decl_names(_body):
+    """the identifiers a `var a = f(x, y), b;` list declares: split on
+    depth-0 commas, take the name before each `=`."""
+    _out, _d, _part = [], 0, ""
+    for _c in _body + ",":
+        if _c in "([{": _d += 1
+        elif _c in ")]}": _d -= 1
+        if _c == "," and _d == 0:
+            _m = re.match(r"\s*([A-Za-z_]\w*)", _part)
+            if _m: _out.append(_m.group(1))
+            _part = ""
+        else:
+            _part += _c
+    return _out
+for _p, _s in srcs.items():
+    _units = re.split(r"\bfunction\s+\w+\s*\(", _s)
+    _heads = re.findall(r"\bfunction\s+\w+\s*\(([^)]*)\)", _s)
+    for _ui, _u in enumerate(_units):
+        if _ui == 0 or _ui - 1 >= len(_heads):
+            continue
+        _args = {a.strip().split("=")[0].strip() for a in _heads[_ui - 1].split(",") if a.strip()}
+        if not _args:
+            continue
+        for _m in _VAR.finditer(_u):
+            for _nm in _decl_names(_m.group(1)):
+                if _nm in _args:
+                    _shadow.append(f"{_p}: var {_nm} is an argument")
+check("no local named after one of its function's arguments",
+      not _shadow, "; ".join(_shadow[:4]))
+
 check("every .gml balances its braces, parens and brackets",
       not bal, "; ".join(bal[:3]))
 
