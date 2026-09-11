@@ -1,0 +1,71 @@
+//
+// A SPRITE'S BODY (his ask, 2026-09-11: "different eyes and colors and
+// maybe even shaders/materials"). A raycast sphere seen straight on -
+// the cheapest raycast there is: one ray per ROOM-PIXEL CELL (the
+// house rule: quantise the quad coordinate, one exact sample, never
+// averaged), a ray-sphere hit is p.x^2 + p.y^2 <= 1, the normal is
+// (p, sqrt(1 - r^2)). A body is a dozen cells across, so twenty of
+// them cost less than one dial row - his performance question.
+//
+// The quad is square; u_sq is the body's extent inside it (x, y), so a
+// squash is two numbers and the sphere becomes the ellipsoid the pixel
+// blob was. Four materials on one uniform:
+//   0 matte   lambert + a soft rim - the pixel blob's look, lit
+//   1 glass   his inspiration: a bubble - dark interior grading from
+//             u_col2 (top) to u_col (bottom), a bright fresnel RING at
+//             the rim in the body colour, two glints, a touch of
+//             translucency at the centre
+//   2 metal   dark base, a hard specular, the rim in the body colour
+//   3 jelly   translucent, the shading wobbles slowly (u_time), a soft
+//             glint
+//
+varying vec2 v_pos;
+
+uniform vec4  u_quad;    // x, y, w, h in room px (square)
+uniform float u_cells;   // cells across the quad - one per room px
+uniform vec3  u_col;     // the body
+uniform vec3  u_col2;    // the second colour (glass top, jelly depth)
+uniform float u_mat;     // 0 matte, 1 glass, 2 metal, 3 jelly
+uniform vec3  u_light;   // the dice's light
+uniform vec2  u_sq;      // the body's half-extent inside the quad, 0..1 each
+uniform float u_time;
+
+void main()
+{
+    vec2 uv = (v_pos - u_quad.xy) / u_quad.zw;
+    vec2 cell = (floor(uv * u_cells) + 0.5) / u_cells;
+    vec2 p = (cell * 2.0 - 1.0) / max(u_sq, vec2(0.05));
+    float r2 = dot(p, p);
+    if (r2 > 1.0) discard;
+    float z = sqrt(1.0 - r2);
+    vec3 n = normalize(vec3(p.x, -p.y, z));
+    vec3 L = normalize(u_light);
+    float dif = max(dot(n, L), 0.0);
+    vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
+    float spec = pow(max(dot(n, H), 0.0), 24.0);
+    float fres = pow(1.0 - z, 2.5);
+    vec3 glint2 = normalize(vec3(-0.5, 0.6, 0.6));
+
+    vec3 col;
+    float a = 1.0;
+    if (u_mat < 0.5) {
+        col = u_col * (0.40 + 0.60 * dif) + vec3(0.10) * fres;
+    } else if (u_mat < 1.5) {
+        float dep = 1.0 - z;
+        vec3 inner = mix(u_col2, u_col, clamp(0.5 - p.y * 0.5, 0.0, 1.0));
+        col  = inner * (0.16 + 0.30 * dif) * (0.55 + 0.45 * dep);
+        col += u_col * 0.95 * pow(fres, 1.2);
+        col += vec3(0.85) * pow(spec, 2.0) * 0.6;
+        col += mix(u_col, vec3(1.0), 0.4) * pow(max(dot(n, glint2), 0.0), 40.0) * 0.5;
+        a = 0.86 + 0.14 * dep;
+    } else if (u_mat < 2.5) {
+        col = u_col * (0.12 + 0.45 * dif) + vec3(1.0) * spec * 0.8 + u_col * 0.5 * fres;
+    } else {
+        float wob = sin(u_time * 2.0 + p.x * 3.0) * 0.5 + sin(u_time * 1.4 + p.y * 4.0) * 0.5;
+        vec3 nw = normalize(vec3(p.x + wob * 0.08, -p.y, z));
+        float d2 = max(dot(nw, L), 0.0);
+        col = mix(u_col2, u_col, z) * (0.35 + 0.55 * d2) + vec3(0.6) * pow(spec, 1.5) * 0.35 + u_col * 0.3 * fres;
+        a = 0.88;
+    }
+    gl_FragColor = vec4(clamp(col, 0.0, 1.0), a);
+}

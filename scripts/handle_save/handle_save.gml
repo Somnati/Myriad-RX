@@ -389,7 +389,8 @@ function handle_save(){
 		var _sp = g.sprites[_k];
 		_sps += ((_k > 0) ? "|" : "") + _sp.name + "/" + string(_sp.col) + "/" + string(_sp.pers)
 		      + "/" + _sp.job + "/" + string(_sp.taps) + "/" + string_format(_sp.fx, 1, 3)
-		      + "/" + string_format(_sp.fy, 1, 3) + "/" + string(_sp.away) + "/" + (_sp.asleep ? "1" : "0");
+		      + "/" + string_format(_sp.fy, 1, 3) + "/" + string(_sp.away) + "/" + (_sp.asleep ? "1" : "0")
+		      + "/" + string(_sp[$ "eyes"] ?? 0) + "/" + string(_sp[$ "mat"] ?? 0) + "/" + string(_sp[$ "col2"] ?? _sp.col);
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -404,6 +405,10 @@ function handle_save(){
 					id : g.sprite_seq++, name : _f[0], col : real(_f[1]), pers : real(_f[2]),
 					job : _f[3], taps : real(_f[4]), fx : real(_f[5]), fy : real(_f[6]),
 					away : real(_f[7]), asleep : (_f[8] == "1"), acc : 0,
+					// the look (2026-09-11): a sprite saved before it had one is a matte dot-eyed one
+					eyes : (array_length(_f) > 9)  ? real(_f[9])  : 0,
+					mat  : (array_length(_f) > 10) ? real(_f[10]) : 0,
+					col2 : (array_length(_f) > 11) ? real(_f[11]) : real(_f[1]),
 				});
 			}
 		}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sprite_voice",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sprite_voice",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

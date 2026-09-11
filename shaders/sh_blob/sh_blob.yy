@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_blob",
+  "name":"sh_blob",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

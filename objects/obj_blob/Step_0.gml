@@ -43,6 +43,7 @@ else {
 			tap_t = SPRITE_TAP_T * 60;
 			sq = .8; hop = 3;
 			tap_fire(1, x, y - r, true, true, false);
+			sprite_voice(s, "tap");
 			s.taps += 1;
 		}
 		if (st_t <= 0) __next_state();

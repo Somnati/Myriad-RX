@@ -3,11 +3,13 @@
 /// money room is up (syst_sprites makes it); the struct is the truth,
 /// this is its face and its hands.
 ///
-/// DRAWN AS ROOM PIXELS, not a smooth ellipse: the body is stamped row
-/// by row with spr_pixel_1x1 (a rasterised ellipse), the eyes are 2x2
-/// whites with a 1px pupil that LOOKS AT THE POINTER, so it sits in the
-/// house's pixel grammar beside the dice and the puck rather than
-/// floating over it as vector art.
+/// THE BODY IS A RAYCAST SPHERE (sh_blob, 2026-09-11 - his ask for
+/// materials): one ray per room-pixel cell, so it sits in the house's
+/// pixel grammar beside the dice and the puck, lit by the same light,
+/// in one of four materials (matte / glass / metal / jelly - the glass
+/// is his inspiration, a bubble with a lit rim). The eyes are pixel
+/// stamps over it in one of seven styles (sprite_looks); the pupils
+/// LOOK AT THE POINTER where the style has them.
 ///
 /// THE LOOP: work (it taps through tap_fire on its own cadence, hopping
 /// on each) / idle (it bobs) / wander (it walks somewhere else in the
@@ -77,16 +79,31 @@ __poke = function() {
 	happy = 70;
 	sq = 1; hop = 4;
 	spark_burst(x, y - r * 2, 8, s.col);
-	play_sound_ext(snd_pop, 1.5 + random(.4), 1.9 + random(.3), .45, 1);
 	if (s.asleep) {
 		s.asleep = false;
 		st = 0; st_t = 60;
 		bub = "wha? ...oh, hi";
+		sprite_voice(s, "wake");
 		save_mark_dirty();
-	} else bub = _p.lines[irandom(array_length(_p.lines) - 1)];
+	} else {
+		bub = _p.lines[irandom(array_length(_p.lines) - 1)];
+		sprite_voice(s, "poke");
+	}
 	bub_t = 110;
 	card = (card > 0) ? 0 : 360;
 };
+
+// the shader's handles, once
+u_quad_b  = shader_get_uniform(sh_blob, "u_quad");
+u_cells_b = shader_get_uniform(sh_blob, "u_cells");
+u_col_b   = shader_get_uniform(sh_blob, "u_col");
+u_col2_b  = shader_get_uniform(sh_blob, "u_col2");
+u_mat_b   = shader_get_uniform(sh_blob, "u_mat");
+u_light_b = shader_get_uniform(sh_blob, "u_light");
+u_sq_b    = shader_get_uniform(sh_blob, "u_sq");
+u_time_b  = shader_get_uniform(sh_blob, "u_time");
+spk = [];   // the glass ones' orbiting specks: { a, r, ph }
+repeat (3) array_push(spk, { a : random(360), r : random_range(4, 8), ph : random(360) });
 
 /// is this press mine? (obj_clicker asks before it taps the surface)
 __hit = function(_mx, _my) {
