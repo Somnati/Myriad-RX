@@ -25,10 +25,13 @@
 ///     st   the last verdict, for the room's pills: 0 off, 1 waiting,
 ///          2 bought
 ///
-///   reb  the autorebirth conditions - EVERY ENABLED ONE MUST PASS.
-///        AND rather than OR, because these are safety rails: a player
-///        turning on "at least 30 minutes" and "at least 5 units" means
-///        both, and an OR would fire on the weaker one and feel broken.
+///   reb  the autorebirth: ONE MASTER SWITCH (on - what costs the RAM
+///        and what the panel's meter shows) over the trigger rails,
+///        and EVERY ENABLED RAIL MUST PASS. AND rather than OR, because
+///        these are safety rails: a player turning on "at least 30
+///        minutes" and "at least 5 units" means both, and an OR would
+///        fire on the weaker one and feel broken. The switch alone
+///        never fires: it needs at least one rail armed.
 ///
 ///   upg  { roll, buy, sell, pct, keep, rar[], kind } - the upgrade
 ///        table's automation. rar[] and kind are the FILTER: one
@@ -39,8 +42,6 @@
 ///   RAM (his design, 2026-09-11 - read ram_cost / ram_used /
 ///   ram_throttle). Everything below that is ON costs sticks; over
 ///   the budget every clock slows, nothing stops.
-///     ram_lv    capacity levels bought (ram_upg) - a purchase, so it
-///               survives a preset load and a rebirth
 ///     run       the dials' OWN CYCLING as an automation { on, spd }:
 ///               on by default at 100%; slower is cheaper; off makes
 ///               every dial manual (tap to run, DE's rule). prod_dials
@@ -69,6 +70,7 @@ function autom_init(_force = false) {
 	g.autom = {
 		dial : [],
 		reb  : {
+			on   : false,                // the master switch
 			t_on : false, t_min  : 30,   // minutes into the run
 			u_on : false, u_min  : 5,    // units the press would award
 			g_on : false, g_pct  : 10,   // that award as % of units held
@@ -89,7 +91,7 @@ function autom_init(_force = false) {
 		// so the self-adjusting logic is still there as a one-drag way
 		// to configure the flags. The flags themselves are the truth.
 		upg  : { roll : false, buy : false, sell : false,
-		         pct : 50, keep : 50, st : 0, t : 1, tic : 0,
+		         pct : 50, keep : 50, st : 0, t : 30, tic : 0,
 		         rar : array_create(UPG_RARITY_N, true),
 		         kind : {} },
 		// THE RESERVE, as a percentage of every earning. 0 = off.
@@ -99,7 +101,6 @@ function autom_init(_force = false) {
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
 		tiles : {},
-		ram_lv   : 0,
 		run      : { on : true, spd : 100 },
 		fab      : { on : true, spd : 100 },
 		am_speed : 100,
@@ -116,8 +117,8 @@ function autom_init(_force = false) {
 		tic  : 0,
 	};
 	repeat (_dn) array_push(g.autom.dial,
-		{ on : false, pct : 50, t : 1, q : 1, h : 0, st : 0, tic : 0 });
+		{ on : false, pct : 50, t : 30, q : 1, h : 0, st : 0, tic : 0 });
 	var _tc = tile_upg_config();
 	for (var _i = 0; _i < array_length(_tc); _i++)
-		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, t : 1, st : 0, tic : 0 };
+		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, t : 30, st : 0, tic : 0 };
 }

@@ -20,6 +20,15 @@ if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
 if (keyboard_check_pressed(vk_escape)) { automation_close(); exit; }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
+
+// ---- the wheel scrolls a page taller than the room ----
+var _wh = (mouse_wheel_down() ? 1 : 0) - (mouse_wheel_up() ? 1 : 0);
+if (_wh != 0 && mouse_x >= cont_x) {
+	var _n = array_length(__page_rows());
+	var _mx = max(0, _n - __rows_fit());
+	scroll[tab] = clamp(scroll[tab] + _wh, 0, _mx);
+}
+
 if (!mouse_check_button_pressed(mb_left)) exit;
 
 // ---- the rail ----
@@ -35,6 +44,8 @@ for (var _t = 0; _t < NTAB; _t++) {
 var _rows = __page_rows();
 for (var _i = 0; _i < array_length(_rows); _i++) {
 	var _rw = _rows[_i];
+	if (!__row_vis(_i)) continue;
+	if (_rw.kind == 8) continue;
 
 	// the rarity chip strip: eight targets in one row
 	if (_rw.kind == 3) {

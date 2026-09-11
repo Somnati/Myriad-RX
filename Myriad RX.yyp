@@ -382,7 +382,6 @@
     {"id":{"name":"ram_cap","path":"scripts/ram_cap/ram_cap.yy",},},
     {"id":{"name":"ram_cost","path":"scripts/ram_cost/ram_cost.yy",},},
     {"id":{"name":"ram_throttle","path":"scripts/ram_throttle/ram_throttle.yy",},},
-    {"id":{"name":"ram_upg","path":"scripts/ram_upg/ram_upg.yy",},},
     {"id":{"name":"ram_used","path":"scripts/ram_used/ram_used.yy",},},
     {"id":{"name":"rarity_label","path":"scripts/rarity_label/rarity_label.yy",},},
     {"id":{"name":"rarity_odds","path":"scripts/rarity_odds/rarity_odds.yy",},},

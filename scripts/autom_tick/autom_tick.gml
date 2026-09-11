@@ -57,9 +57,14 @@ function autom_tick() {
 	_a.tic = 1;
 	autom_upgrades(_buy_due, true);
 
-	// ---- autorebirth: EVERY enabled condition must pass ----
+	// ---- autorebirth: the master switch, at least one rail armed, and
+	// ---- EVERY armed rail must pass ----
 	var _r = _a.reb;
+	if (!_r.on) return;
 	if (!(_r.t_on || _r.u_on || _r.g_on || _r.c_on || _r.p_on)) return;
+	// NEVER WHILE THE REBIRTH PAGE IS OPEN (his ask): you are setting
+	// the rails, not asking for the press
+	if (instance_exists(syst_automation_panel) && syst_automation_panel.tab == AT_REB) return;
 	var _c = rebirth_calc();
 	if (!_c.can || _c.cool > 0) return;   // the lawyer's laws hold for auto
 

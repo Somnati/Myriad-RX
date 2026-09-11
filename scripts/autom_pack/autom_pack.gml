@@ -16,7 +16,8 @@ function autom_pack() {
 	}
 	_o += "d=" + _d;
 	var _r = _a.reb;
-	_o += "/r=" + (_r.t_on ? "1" : "0") + ":" + string(_r.t_min)
+	_o += "/r=" + (_r.on ? "1" : "0")
+	     + "," + (_r.t_on ? "1" : "0") + ":" + string(_r.t_min)
 	     + "," + (_r.u_on ? "1" : "0") + ":" + string(_r.u_min)
 	     + "," + (_r.g_on ? "1" : "0") + ":" + string(_r.g_pct)
 	     + "," + (_r.p_on ? "1" : "0") + ":" + string(_r.p_oom)

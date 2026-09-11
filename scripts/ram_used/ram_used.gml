@@ -27,8 +27,7 @@ function ram_used() {
 		var _p = _a.tiles[$ _tn[_i]];
 		if (_p.on) _u += ram_cost("timer", _p.t);
 	}
-	// the autorebirth, if any condition is armed
-	var _r = _a.reb;
-	if (_r.t_on || _r.u_on || _r.g_on || _r.c_on || _r.p_on) _u += ram_cost("rebirth");
+	// the autorebirth: its master switch is what costs
+	if (_a.reb.on) _u += ram_cost("rebirth");
 	return _u;
 }

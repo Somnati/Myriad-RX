@@ -29,11 +29,12 @@ function autom_unpack(_s) {
 		case "r": {
 			var _l = string_split(_v, ",");
 			var _r = _a.reb;
-			if (array_length(_l) > 0) { var _q = string_split(_l[0], ":"); _r.t_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.t_min = max(1, real(_q[1])); }
-			if (array_length(_l) > 1) { var _q = string_split(_l[1], ":"); _r.u_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.u_min = max(1, real(_q[1])); }
-			if (array_length(_l) > 2) { var _q = string_split(_l[2], ":"); _r.g_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.g_pct = max(1, real(_q[1])); }
-			if (array_length(_l) > 3) { var _q = string_split(_l[3], ":"); _r.p_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.p_oom = max(1, real(_q[1])); }
-			if (array_length(_l) > 4) _r.c_on = (_l[4] == "1");
+			if (array_length(_l) > 0) _r.on = (_l[0] == "1");
+			if (array_length(_l) > 1) { var _q = string_split(_l[1], ":"); _r.t_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.t_min = max(1, real(_q[1])); }
+			if (array_length(_l) > 2) { var _q = string_split(_l[2], ":"); _r.u_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.u_min = max(1, real(_q[1])); }
+			if (array_length(_l) > 3) { var _q = string_split(_l[3], ":"); _r.g_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.g_pct = max(1, real(_q[1])); }
+			if (array_length(_l) > 4) { var _q = string_split(_l[4], ":"); _r.p_on = (_q[0] == "1"); if (array_length(_q) > 1) _r.p_oom = max(1, real(_q[1])); }
+			if (array_length(_l) > 5) _r.c_on = (_l[5] == "1");
 			break;
 		}
 		case "u": {

@@ -23,6 +23,7 @@ var _rows = __page_rows();
 var _hov  = -1;
 if (input_free(ui_layer_overlay))   // the panel's own rung (it holds the room at 100)
 for (var _i = 0; _i < array_length(_rows); _i++) {
+	if (!__row_vis(_i) || _rows[_i].kind == 8) continue;
 	var _hy = __row_y(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, cont_x, _hy,
 		cont_x + cont_w, _hy + row_h)) _hov = _i;
@@ -127,10 +128,20 @@ for (var _t = 0; _t < NTAB; _t++) {
 }
 
 // ---- the page ----
-for (var _i = 0; _i < array_length(_rows); _i++) {
+var _nrows = array_length(_rows);
+for (var _i = 0; _i < _nrows; _i++) {
+	if (!__row_vis(_i)) continue;
 	var _rw = _rows[_i];
 	var _ry = __row_y(_i);
-	if (_ry + row_h > room_height - 4) break;
+
+	// a section band: a label and a rule, nothing to touch
+	if (_rw.kind == 8) {
+		draw_set_color(merge_colour(_rw.col, c_white, .4));
+		draw_set_alpha(.75);
+		draw_text(cont_x + 2, _ry + 2, _rw.name);
+		draw_sprite_ext(spr_pixel_1x1, 0, cont_x, _ry + row_h - 1, cont_w, 1, 0, _rw.col, .35);
+		continue;
+	}
 
 	// the row surface, statistics' language
 	var _c = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
@@ -145,11 +156,18 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	draw_set_alpha(_rw.on ? .95 : .6);
 	draw_text(cont_x + 7, _ry + 2, _rw.name);
 
-	// an info line: the value, after the label
+	// an info line: the value after the label, and a figure at the end
 	if (_rw.kind == 6) {
 		draw_set_color(merge_colour(_rw.col, c_white, .6));
 		draw_set_alpha(.8);
 		draw_text(cont_x + 72, _ry + 2, _rw.val);
+		if (variable_struct_exists(_rw, "right")) {
+			draw_set_halign(fa_right);
+			draw_set_color(_rw.col);
+			draw_set_alpha(.9);
+			draw_text(cont_x + cont_w - 4, _ry + 2, _rw.right);
+			draw_set_halign(fa_left);
+		}
 		continue;
 	}
 
@@ -273,6 +291,14 @@ var _fy = room_height - 30;
 draw_set_color(_dim);
 draw_set_alpha(.55);
 
+if (_nrows > __rows_fit()) {
+	// the scroll hint takes the second line; the notes keep the first
+	draw_set_halign(fa_right);
+	draw_text(room_width - 8, _fy + 10, "wheel: "
+		+ string(scroll[tab] + 1) + "-" + string(min(_nrows, scroll[tab] + __rows_fit()))
+		+ " of " + string(_nrows));
+	draw_set_halign(fa_left);
+}
 if (tab != AT_DIALS && _help != "") {
 	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
 	draw_set_alpha(.75);
@@ -280,7 +306,7 @@ if (tab != AT_DIALS && _help != "") {
 } else
 if (tab == AT_REB) {
 	draw_text(cont_x, _fy,
-		"EVERY enabled condition must pass - they are rails, not triggers");
+		"the switch never fires while this page is open");
 	var _c = rebirth_calc();
 	draw_set_color(_c.can ? c_sgreen : _dim);
 	draw_set_alpha(.7);
@@ -290,45 +316,29 @@ if (tab == AT_REB) {
 		+ (_c.cool > 0 ? ("   cooldown " + string(ceil(_c.cool)) + "s") : ""));
 } else
 if (tab == AT_UPG) {
-	// SAY WHAT THE QUICK-SET WOULD DO. A percentage is only a useful
-	// control if the screen also says which rung it lands on today - the
-	// whole point of reading the live odds is that the answer moves, and
-	// a moving answer you cannot see is a mystery.
-	draw_text(cont_x, _fy, "quick-set lands on "
-		+ upgrade_rarity_info(upgrade_keep_rarity()).name
-		+ " and above - the filter page holds the flags it writes");
-	draw_set_color(c_horange);
-	draw_set_alpha(.6);
-	draw_text(cont_x, _fy + 10,
-		"it never sells a slot you have bought tiers into");
-} else
-if (tab == AT_FILT) {
 	// WHAT THE FILTER WOULD DO RIGHT NOW, through the same call the
 	// runner uses - a preview computed a second way is a preview that
-	// will eventually be wrong.
+	// will eventually be wrong. (The quick-set lands on a rung the live
+	// odds pick; the chips show it.)
 	var _would = 0;
 	if (variable_global_exists("upg"))
 		for (var _i = 0; _i < upgrade_slots(); _i++)
 			if (upgrade_autosell_wants(_i)) _would += 1;
-	draw_text(cont_x, _fy,
-		"a slot goes if EITHER its rarity or its kind is switched to sell");
 	draw_set_color((_would > 0) ? c_horange : _dim);
 	draw_set_alpha(.7);
-	draw_text(cont_x, _fy + 10, (_would > 0)
+	draw_text(cont_x, _fy, (_would > 0)
 		? (string(_would) + " slot" + ((_would == 1) ? "" : "s")
 			+ " on the table would be sold"
 			+ (g.autom.upg.sell ? "" : " - auto sell is off"))
-		: "nothing on the table matches the filter");
+		: "nothing on the table matches the filter - a slot with tiers bought is never sold");
 } else
 if (tab == AT_TILES) {
 	draw_text(cont_x, _fy,
-		"the fabricator and the merger cost a stick per 20% of speed; an autobuy 1 to 4 by its timer");
+		"a stick per 20% of speed on the machines; an autobuy 1 to 4 sticks by its timer");
 } else
 if (tab == AT_OVER) {
 	draw_text(cont_x, _fy,
-		"a stick per 20% of speed on the three machines; 4 sticks at 1s down to 1 at 6s+ on an autobuy");
-	draw_text(cont_x, _fy + 10,
-		"the autorebirth is " + string(RAM_REBIRTH) + " once armed; roll and sell are 1 each");
+		"a stick per 20% of speed on a machine; an autobuy 4 at 1s down to 1 at 6s and slower");
 }
 
 draw_set_alpha(1);
