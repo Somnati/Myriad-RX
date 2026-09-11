@@ -43,9 +43,13 @@ function bignum_visualizer_create() {
                             // ramps up across each tier pair and resets,
                             // replicating .35 * frac(gold/2) exactly
                             // (including its hard reset at each pair)
-        follow_smooth: 6, // camera ease toward the assembling square
-                          // at the auto zoom; the ease goes to INSTANT
-                          // as the wheel approaches the freeze (below)
+        follow_smooth: 6, // camera ease toward the assembling square.
+                          // ONE speed at every zoom: an ease that went
+                          // to instant toward the freeze was tried and
+                          // "snaps into place as i cross layers" (his
+                          // report, 2026-09-11) - the chain re-levels
+                          // at each field handoff, and instant follow
+                          // shows every one of those as a jump
 
         // ---- THE FREEZE (his ask, 2026-09-11: "the visualizer camera
         // is all over the place due to profit being earned and moving
@@ -61,10 +65,10 @@ function bignum_visualizer_create() {
         // so the snapshot is retaken. The counter in the header keeps
         // counting - the blocks are the thing being inspected.
         //   zin  0 at the auto zoom .. 1 at the freeze (manual_bias /
-        //        -freeze_oom, clamped); the camera's follow ease goes
-        //        from follow_smooth to instant along it, so the camera
-        //        is exactly ON the target the moment the picture
-        //        freezes - no glide finishing over a frozen picture
+        //        -freeze_oom, clamped). Only the freeze reads it now;
+        //        the follow ease stays follow_smooth throughout, so a
+        //        freeze taken mid-glide finishes that glide onto the
+        //        (now still) target and settles
         freeze_oom:  1,      // wheel OOMs in (two clicks) to freeze
         live_val:    0,      // what the host fed this frame
         frozen:      false,
@@ -184,9 +188,7 @@ function bignum_visualizer_create() {
                 cam_oc  = _oc;
             }
 
-            // the follow ease: follow_smooth at the auto zoom, INSTANT
-            // at the freeze, lerped along the wheel's approach (zin)
-            var _k = lerp(min(1, follow_smooth * _dt), 1, zin);
+            var _k = min(1, follow_smooth * _dt);
             cam_kx += (_tkx - cam_kx) * _k;
             cam_ky += (_tky - cam_ky) * _k;
             cam_x   = cam_kx * _ref;
