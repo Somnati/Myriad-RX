@@ -134,12 +134,24 @@ for (var _i = 0; _i < _nrows; _i++) {
 	var _rw = _rows[_i];
 	var _ry = __row_y(_i);
 
-	// a section band: a label and a rule, nothing to touch
+	// a section band: a label and a rule - and a button, if it has one
 	if (_rw.kind == 8) {
 		draw_set_color(merge_colour(_rw.col, c_white, .4));
 		draw_set_alpha(.75);
 		draw_text(cont_x + 2, _ry + 2, _rw.name);
 		draw_sprite_ext(spr_pixel_1x1, 0, cont_x, _ry + row_h - 1, cont_w, 1, 0, _rw.col, .35);
+		if (_rw.btn != "") {
+			// the drawer's view button, in the drawer's colours
+			var _bb = __btn_r(_i, 0, 1);
+			var _vc = (_rw.btn == "p/c") ? c_rarity_common : ((_rw.btn == "p/s") ? c_steelblue : c_gold);
+			draw_sprite_ext(spr_pixel_1x1, 0, _bb.x, _bb.y, _bb.w, _bb.h, 0, merge_colour(_vc, c_black, .55), .95);
+			draw_px_rect(_bb.x, _bb.y, _bb.w, _bb.h, _vc, .9);
+			draw_set_halign(fa_center);
+			draw_set_color(c_white);
+			draw_set_alpha(.95);
+			draw_text(_bb.x + _bb.w / 2 + 1, _bb.y + 1, _rw.btn);
+			draw_set_halign(fa_left);
+		}
 		continue;
 	}
 

@@ -45,7 +45,17 @@ var _rows = __page_rows();
 for (var _i = 0; _i < array_length(_rows); _i++) {
 	var _rw = _rows[_i];
 	if (!__row_vis(_i)) continue;
-	if (_rw.kind == 8) continue;
+	if (_rw.kind == 8) {
+		// a band's button, if it has one
+		if (_rw.btn != "") {
+			var _bb = __btn_r(_i, 0, 1);
+			if (point_in_rectangle(mouse_x, mouse_y, _bb.x, _bb.y, _bb.x + _bb.w, _bb.y + _bb.h)) {
+				__action(_rw, 0);
+				exit;
+			}
+		}
+		continue;
+	}
 
 	// the rarity chip strip: eight targets in one row
 	if (_rw.kind == 3) {

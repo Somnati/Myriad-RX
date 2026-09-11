@@ -179,9 +179,30 @@ __ram_page = function(_t) {
 	return _u;
 };
 
-/// a section band
-__section = function(_name, _col) {
-	return { kind : 8, name : _name, on : true, val : 0, st : -1, col : _col, ram : 0, help : "" };
+/// a section band, with an optional button at its right (btn + act)
+__section = function(_name, _col, _btn = "", _act = "") {
+	return { kind : 8, name : _name, on : true, val : 0, st : -1, col : _col, ram : 0,
+	         help : "", btn : _btn, act : _act };
+};
+
+/// the dial rows' readout in the DRAWER's own view (g.display_gps: 0 p/c,
+/// 1 p/s, 2 the share of the fleet) - his ask, 2026-09-11: the drawer's
+/// view button brought over, and it IS the drawer's setting, so the
+/// two pages can never show different figures. The share is the
+/// drawer's law verbatim (log space; hidden under 10/s)
+__dial_readout = function(_d) {
+	var _m = variable_global_exists("display_gps") ? g.display_gps : 1;
+	if (_m == 0) return (_d.gpc >= arb(1)) ? (crunch_arb(_d.gpc) + "/c") : "-";
+	if (_m == 2) {
+		if (!(g.all_gps_raw >= arb(10)) || !(_d.gps >= arb(1))) return "-";
+		var _lg = arb_log10(_d.gps) - arb_log10(g.all_gps_raw) + 2;
+		return (_lg >= 0) ? (crunch_arb(log_to_arb(_lg)) + "%") : ("-E" + string(round(abs(_lg))));
+	}
+	return (_d.gps >= arb(1)) ? (crunch_arb(_d.gps) + "/s") : "-";
+};
+__view_label = function() {
+	var _m = variable_global_exists("display_gps") ? g.display_gps : 1;
+	return (_m == 0) ? "p/c" : ((_m == 1) ? "p/s" : "%");
 };
 
 // ==================================================================
@@ -277,7 +298,7 @@ __page_rows = function() {
 			col : c_sgreen, ram : ram_cost("speed", _a.run.spd),
 			help : "the dials running on their own - slower is cheaper, off "
 			     + "makes every dial manual" });
-		array_push(_o, __section("autobuy", tcol[AT_DIALS]));
+		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
 		// THE RESERVE heads the autobuys, because it is the counterweight
 		// to everything under it: autobuy spends profit, and this is the
 		// share autobuy may not touch.
@@ -307,11 +328,10 @@ __page_rows = function() {
 		}
 		for (var _i = 0; _i < _n; _i++) {
 			var _p = _a.dial[_i];
-			var _gp = g.dial[_i].gps;
 			array_push(_o, {
 				kind : 5, lo : 1, hi : 100,
 				name : "dial " + dial_config(_i).name,
-				sub  : (_gp >= arb(1)) ? (crunch_arb(_gp) + "/s") : "-",
+				sub  : __dial_readout(g.dial[_i]),
 				top  : (_i == _best),
 				on   : _p.on,
 				val  : _p.pct,
@@ -557,6 +577,14 @@ __defaults = function() {
 
 /// an action row's button was tapped: the row and which button
 __action = function(_rw, _b) {
+	if (_rw.act == "view") {
+		// the drawer's view button: p/c > p/s > % - the drawer's own
+		// setting, so it follows there too
+		g.display_gps = ((variable_global_exists("display_gps") ? g.display_gps : 1) + 1) mod 3;
+		save_mark_dirty();
+		play_sound_ext(snd_softclick, .9, 1.1, .4, 1);
+		return;
+	}
 	if (_rw.act == "defaults") {
 		__defaults();
 		play_sound_ext(snd_apply, .9, 1.1, .5, 1);
