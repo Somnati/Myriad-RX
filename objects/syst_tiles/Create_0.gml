@@ -364,14 +364,79 @@ __bb_cycle = function() {
 ///       the drawer sells, paid in progress instead of shards.
 __rb_r = function() {
 	// SNUG TO THE BOTTOM, a couple of px up (his ask, 2026-09-10) - it
-	// used to hang under the last row, wherever that fell
-	return { x : __dr_face() + 4, y : room_height - 26 - 3,
-	         w : dr_w - 8 - 4, h : 26 };
+	// used to hang under the last row, wherever that fell. Half height
+	// while it cannot fire (a whisper), full when it can
+	var _h = tile_rebirth_calc().can ? 26 : 12;
+	return { x : __dr_face() + 4, y : room_height - _h - 3,
+	         w : dr_w - 8 - 4, h : _h };
 };
 
+// ⚖️ THE ROWS FOLD (his report, 2026-09-11: the drawer "feels noisy,
+// claustrophobic"). Seven full rows competed equally whether or not a
+// row was anywhere near buyable, and early on four of them are a
+// thousand times out of reach. A row whose price is more than 100x the
+// shards in hand folds to a half-height whisper - name and price, dim
+// - and unfolds as you approach it, on an ease so the list breathes
+// rather than jumps. The hierarchy the drawer was missing is
+// AFFORDABILITY: the rows you can buy are the only bright ones, the
+// near ones are quiet, the far ones are whispers. Heights are laid out
+// cumulatively once a frame (__upg_layout) and both the Draw and the
+// Step read the result, so a tap can never land on a row the fold has
+// moved.
+UPG_H_FULL = 22;
+UPG_H_FOLD = 11;
+UPG_FOLD_OOM = 2;     // fold past this many decades from affordable
+ufold  = [];          // 0 full .. 1 folded, eased, one per row
+uflash = [];          // frames of the buy flash left, one per row
+upop   = [];          // the level's pop scale on a buy, eased to 1
+urow_y = [];          // this frame's row seats (top) ...
+urow_h = [];          // ... and heights
+__upg_layout = function() {
+	var _n = upg_n;
+	var _y = upg_y;
+	for (var _k = 0; _k < _n; _k++) {
+		while (array_length(ufold)  <= _k) array_push(ufold, 0);
+		while (array_length(uflash) <= _k) array_push(uflash, 0);
+		while (array_length(upop)   <= _k) array_push(upop, 1);
+		var _want = 0;
+		if (_k < array_length(uq)) {
+			var _q = uq[_k];
+			if (!_q.max && _q.cost >= arb(1)) {
+				var _sh = g.tiles.shards;
+				var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
+				if (_gap > UPG_FOLD_OOM) _want = 1;
+			}
+		}
+		ufold[_k] = trickle(ufold[_k], _want, 6, 0);
+		uflash[_k] = max(0, uflash[_k] - delta);
+		upop[_k]  = trickle(upop[_k], 1, 5, 0);
+		var _h = round(lerp(UPG_H_FULL, UPG_H_FOLD, ufold[_k]));
+		urow_y[_k] = _y;
+		urow_h[_k] = _h;
+		_y += _h + upg_g;
+	}
+};
 __upg_r = function(_k) {
-	return { x : __dr_face() + 4, y : upg_y + _k * (upg_h + upg_g),
-	         w : dr_w - 8 - 4, h : upg_h };
+	var _y = (_k < array_length(urow_y)) ? urow_y[_k] : upg_y + _k * (upg_h + upg_g);
+	var _h = (_k < array_length(urow_h)) ? urow_h[_k] : upg_h;
+	return { x : __dr_face() + 4, y : _y, w : dr_w - 8 - 4, h : _h };
+};
+/// is row _k unfolded enough to sell? (the fold's midpoint)
+__upg_live = function(_k) {
+	return (_k >= array_length(ufold)) || (ufold[_k] < .5);
+};
+/// the row's colour family: what the upgrade is ABOUT, so seven rows
+/// scan without reading - one accent per meaning, on the tab and the
+/// lit price only
+__upg_col = function(_id) {
+	switch (_id) {
+		case "profit": return c_gold;
+		case "fab":    return c_sgreen;
+		case "rarity": return c_lavender;
+		case "dup":
+		case "tierup": return c_steelblue;
+	}
+	return rgb(170, 180, 200);   // the board's own rows: slots, hopper
 };
 // THE BUY BUTTON inside a row - the cost bar. It is the row's tap
 // target now (his ask, 2026-09-10: "make the tap position for the tile
@@ -450,13 +515,14 @@ __draw_drawer = function() {
 		draw_set_halign(fa_left);
 		draw_set_valign(fa_top);
 
-		// the body: the PIXELATED copy of what is behind it, then a dim over
-		// that - the dial drawer's treatment (his ask). The dim stays light
-		// because the pixelation already separates the drawer from the room;
-		// dimming hard on top of it just reads as a black panel again.
+		// the body: the PIXELATED copy of what is behind it - the dial
+		// drawer's treatment (his ask) - under a plate dark enough to be
+		// flat where the rows sit. ⚖️ .72, not .45 (his report,
+		// 2026-09-11: "noisy"): the pixelation is the drawer's edge
+		// treatment, and text over texture was most of the noise
 		draw_pixel_region(_fx, dr_top, dr_w, room_height - dr_top, dr_open);
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx, dr_top, dr_w, room_height - dr_top,
-			0, c_black, .45 * dr_open);
+			0, c_black, .72 * dr_open);
 		// the accent runs down the drawer's INNER edge, which is its left
 		// one now that it comes from the right - and along its top, now
 		// that the top is an edge in the room rather than the header's
@@ -495,51 +561,64 @@ __draw_drawer = function() {
 		draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y + (bb_down ? 1 : 0),
 			1, 1, 0, merge_colour(_bbc, c_white, .5), .95 * dr_open);
 
+		__upg_layout();
 		var _ucfg = tile_upg_config();
+		var _dimc = rgb(110, 120, 140);
 		for (var _k = 0; _k < array_length(_ucfg); _k++) {
 			var _ur = __upg_r(_k);
 			var _uq = (_k < array_length(uq)) ? uq[_k]
 				: { ok : false, cost : arb(1), lv : 0, txt : "-", max : false, n : 0 };
 			var _uc = _ucfg[_k];
 			var _ua = dr_open;
+			var _rc = __upg_col(_uc.id);
+			var _ucap = _uc[$ "max"] ?? -1;
 
+			// ---- a folded row: the whisper ----
+			if (!__upg_live(_k)) {
+				draw_row_collapsed(_ur.x, _ur.y, _ur.w, _ur.h, _uc.name, _uq.txt, _rc);
+				continue;
+			}
+
+			// ---- a live row. THE HIERARCHY IS AFFORDABILITY: a row you
+			// can buy is bright in its own colour; one you cannot is one
+			// quiet grey, tab to price ----
+			var _ok = _uq.ok;
 			var _ucol = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
-			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0,
-				_ucol, _ua);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0, _ucol, _ua);
 			draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _ur.x, _ur.y,
 				_ur.w, 1, 0, _ucol, c_black, c_black, _ucol, .5 * _ua);
-			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0, c_aqua,
-				(_uq.ok ? .9 : .3) * _ua);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, 2, _ur.h, 0,
+				_ok ? _rc : _dimc, (_ok ? .95 : .25) * _ua);
+			// the buy flash: the row goes white and fades
+			if (uflash[_k] > 0)
+				draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _ur.y, _ur.w, _ur.h, 0,
+					_rc, .45 * (uflash[_k] / 14) * _ua);
 
-			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-			draw_set_alpha(.95 * _ua);
+			// the name, and the level right - popping on a buy
+			draw_set_color(_ok ? c_white : _dimc);
+			draw_set_alpha((_ok ? .95 : .6) * _ua);
 			draw_text(_ur.x + 7, _ur.y + 2, _uc.name);
 			draw_set_halign(fa_right);
-			draw_set_color(rgb(120, 130, 150));
-			draw_set_alpha(.6 * _ua);
-			// the cap beside the level - "lv 6/30" (his ask, 2026-09-10);
-			// a full fraction says maxed on its own
-			var _ucap = _uc[$ "max"] ?? -1;
-			draw_text(_ur.x + _ur.w - 6, _ur.y + 2,
-				"lv " + string(_uq.lv) + ((_ucap > 0) ? ("/" + string(_ucap)) : ""));
+			var _lvt = "lv " + string(_uq.lv) + ((_ucap > 0) ? ("/" + string(_ucap)) : "");
+			if (!_uq.max && _uq.n > 1) _lvt += "  +" + string(_uq.n);
+			draw_set_color(_ok ? merge_colour(_rc, c_white, .4) : _dimc);
+			draw_set_alpha((_ok ? .85 : .5) * _ua);
+			draw_text_transformed(_ur.x + _ur.w - 6, _ur.y + 2 - (upop[_k] - 1) * 3,
+				_lvt, upop[_k], upop[_k], 0);
 			draw_set_halign(fa_left);
 
-			// ---- THE BAR: the tap target, the cost LEFT, the bonus RIGHT
-			// (his layout, 2026-09-10) ----
+			// ---- THE BAR: the tap target. the cost left, WHAT IT BUYS
+			// right - only the next value, an arrow before it (the
+			// current value is on the board and beside the level;
+			// printing it a third time was the noise) ----
 			var _ubr = __upg_btn_r(_k);
 			var _bx2 = _ubr.x, _by2 = _ubr.y, _bw2 = _ubr.w, _bh2 = _ubr.h;
 			draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _by2, _bw2, _bh2, 0,
-				_uq.ok ? merge_colour(c_black, c_aqua, .2) : c_black, .85 * _ua);
-			// THE SOFT FILL (his ask, 2026-09-10): how much of the quoted
-			// cost the shards in hand cover, as a wash across the button
-			// under the price. LINEAR, not log - "based off current
-			// currency" is a ratio, and a bar that read 60% at a
-			// thousandth of the price would be the drawer flattering
-			// you. It reads the LIVE pile against the cached quote, so
-			// it creeps every second as shards land rather than jumping
-			// on the requote tick; the ease is for the requote itself
-			// (a bought level drops the fill to near zero - it glides).
-			// At the cap there is nothing to fill toward.
+				_ok ? merge_colour(c_black, _rc, .2) : c_black, .85 * _ua);
+			// THE SOFT FILL: how much of the quoted cost the shards in hand
+			// cover, linear ("based off current currency" is a ratio), off
+			// the LIVE pile against the cached quote, eased so a requote
+			// glides. Nothing to fill toward at the cap
 			var _ft = 0;
 			if (!_uq.max && _uq.cost >= arb(1)) {
 				var _sh2 = g.tiles.shards;
@@ -551,55 +630,28 @@ __draw_drawer = function() {
 			ufill[_k] = trickle(ufill[_k], _ft, 6, 0);
 			if (ufill[_k] > .002)
 				draw_sprite_ext(spr_pixel_1x1, 0, _bx2, _by2,
-					floor(_bw2 * ufill[_k]), _bh2, 0, c_aqua, .16 * _ua);
-			draw_px_rect(_bx2, _by2, _bw2, _bh2, _uq.ok ? c_aqua : c_gray,
-				(_uq.ok ? .8 : .3) * _ua);
+					floor(_bw2 * ufill[_k]), _bh2, 0, _ok ? _rc : _dimc, (_ok ? .18 : .10) * _ua);
+			draw_px_rect(_bx2, _by2, _bw2, _bh2, _ok ? _rc : _dimc, (_ok ? .85 : .25) * _ua);
 
 			// the cost, tied to the left
 			draw_set_halign(fa_left);
-			draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-			draw_set_alpha((_uq.ok ? .95 : .5) * _ua);
+			draw_set_color(_ok ? c_white : _dimc);
+			draw_set_alpha((_ok ? .95 : .55) * _ua);
 			draw_text(_bx2 + 4, _by2 + 2, _uq.txt);
-			var _cw = string_width(_uq.txt);
 
-			// WHAT YOU HAVE > WHAT THIS BUYS, tied to the right. The
-			// roster formats both - it is the only thing that knows
-			// whether an upgrade is measured in percent or seconds - so
-			// this prints fmt(lv) then fmt(lv + n) and never has to
-			// care. At the cap there is no next, so no arrow and no
-			// second figure. WHEN THE BAR IS TOO NARROW FOR BOTH beside
-			// the cost (x10 on the profit row: "x10  1.3B" and "x82.07
-			// > x123.60" do not share 134px), the "now" drops and only
-			// "> next" stays - what the button BUYS is the half a
-			// button needs.
-			if (variable_struct_exists(_uc, "fmt") && !_uq.max) {
-				var _now = _uc.fmt(_uq.lv);
-				var _nxt = _uc.fmt(_uq.lv + max(1, _uq.n));
-				var _wn = string_width(_now), _wa = string_width(">"), _wx = string_width(_nxt);
-				var _rx = _bx2 + _bw2 - 4;
-				var _fits = (_cw + 8 + _wn + 4 + _wa + 4 + _wx) <= (_bw2 - 8);
+			// what it buys, tied to the right
+			if (variable_struct_exists(_uc, "fmt")) {
 				draw_set_halign(fa_right);
-				draw_set_color(_uq.ok ? c_white : rgb(120, 130, 150));
-				draw_set_alpha((_uq.ok ? .9 : .45) * _ua);
-				draw_text(_rx, _by2 + 2, _nxt);
-				_rx -= _wx + 4;
-				draw_set_color(rgb(120, 130, 150));
-				draw_set_alpha(.5 * _ua);
-				draw_text(_rx, _by2 + 2, ">");
-				_rx -= _wa + 4;
-				if (_fits) {
-					draw_set_color(c_aqua);
-					draw_set_alpha(.75 * _ua);
-					draw_text(_rx, _by2 + 2, _now);
+				if (!_uq.max) {
+					var _nxt = "> " + _uc.fmt(_uq.lv + max(1, _uq.n));
+					draw_set_color(_ok ? merge_colour(_rc, c_white, .3) : _dimc);
+					draw_set_alpha((_ok ? .95 : .5) * _ua);
+					draw_text(_bx2 + _bw2 - 4, _by2 + 2, _nxt);
+				} else {
+					draw_set_color(_dimc);
+					draw_set_alpha(.6 * _ua);
+					draw_text(_bx2 + _bw2 - 4, _by2 + 2, _uc.fmt(_uq.lv));
 				}
-				draw_set_halign(fa_left);
-			}
-			else if (variable_struct_exists(_uc, "fmt")) {
-				// maxed: the figure you have, alone on the right
-				draw_set_halign(fa_right);
-				draw_set_color(c_aqua);
-				draw_set_alpha(.75 * _ua);
-				draw_text(_bx2 + _bw2 - 4, _by2 + 2, _uc.fmt(_uq.lv));
 				draw_set_halign(fa_left);
 			}
 		}
@@ -608,36 +660,36 @@ __draw_drawer = function() {
 		// Under the upgrades, because it is the most expensive thing
 		// this drawer sells - it just charges progress instead of
 		// shards. The readout is EARNED, not held: that is what it
-		// prices off, and quoting the wrong number here would have the
-		// player watching their shard pile for a threshold it has
-		// nothing to do with.
+		// prices off. ⚖️ ONE DIM LINE until it can fire (his report,
+		// 2026-09-11): two lines of red arithmetic under a list you are
+		// trying to read were the loudest thing in the drawer. Ready, it
+		// is the full box, lit, with the two-press confirm.
 		var _rr = __rb_r();
 		var _rc = tile_rebirth_calc();
-		var _rbcol = _rc.can ? c_hred : rgb(120, 130, 150);
-		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0,
-			c_black, .55 * dr_open);
-		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _rbcol,
-			(_rc.can ? .8 : .3) * dr_open);
-		draw_set_halign(fa_left);
-		draw_set_color(_rbcol);
-		draw_set_alpha((_rc.can ? .95 : .6) * dr_open);
-		draw_text(_rr.x + 6, _rr.y + 3, "table rebirth");
-		draw_set_halign(fa_right);
 		var _rf = g.tiles[$ "flux"] ?? 0;
-		draw_set_color((_rf > 0) ? c_hred : rgb(120, 130, 150));
-		draw_set_alpha(.7 * dr_open);
-		draw_text(_rr.x + _rr.w - 6, _rr.y + 3,
-			(_rf > 0) ? (crunch_arb(arb(_rf)) + " flux  x"
-			             + string_format(tile_rebirth_boost(), 1, 2))
-			          : "no flux");
-		draw_set_halign(fa_left);
-		draw_set_color(_rbcol);
-		draw_set_alpha((_rc.can ? .9 : .5) * dr_open);
-		var _rbtxt = "earn 1e" + string(TILE_RB_GATE) + " shards - "
-			+ string(_rc.lack_oom) + " decades to go";
-		if (_rc.can) _rbtxt = "reset for +" + crunch_arb(arb(_rc.flux)) + " flux";
-		if (_rc.can && arm_rb > 0) _rbtxt = "press again to confirm";
-		draw_text(_rr.x + 6, _rr.y + 14, _rbtxt);
+		if (!_rc.can) {
+			draw_row_collapsed(_rr.x, _rr.y, _rr.w, _rr.h,
+				"table rebirth  -  " + string(_rc.lack_oom) + " decades to go",
+				(_rf > 0) ? (crunch_arb(arb(_rf)) + " flux") : "", c_hred);
+		} else {
+			draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0,
+				merge_colour(c_black, c_hred, .15), .85 * dr_open);
+			draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, c_hred, .85 * dr_open);
+			draw_set_halign(fa_left);
+			draw_set_color(c_hred);
+			draw_set_alpha(.95 * dr_open);
+			draw_text(_rr.x + 6, _rr.y + 3, "table rebirth");
+			draw_set_halign(fa_right);
+			draw_set_alpha(.7 * dr_open);
+			draw_text(_rr.x + _rr.w - 6, _rr.y + 3,
+				(_rf > 0) ? (crunch_arb(arb(_rf)) + " flux  x"
+				             + string_format(tile_rebirth_boost(), 1, 2)) : "no flux");
+			draw_set_halign(fa_left);
+			draw_set_color(c_white);
+			draw_set_alpha(.9 * dr_open);
+			draw_text(_rr.x + 6, _rr.y + 14, (arm_rb > 0) ? "press again to confirm"
+				: ("reset for +" + crunch_arb(arb(_rc.flux)) + " flux"));
+		}
 		draw_set_halign(fa_left);
 
 		// (the per-second rate lives in the title strip now - see above)

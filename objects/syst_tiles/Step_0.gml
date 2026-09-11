@@ -219,7 +219,9 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 	var _uc3 = tile_upg_config();
 	for (var _k = 0; _k < array_length(_uc3); _k++) {
 		// the COST BAR is the target, not the row (his ask) - see
-		// __upg_btn_r; the float still rises off the row
+		// __upg_btn_r; the float still rises off the row. A folded row
+		// (a whisper) sells nothing
+		if (!__upg_live(_k)) continue;
 		var _ur2 = __upg_r(_k);
 		var _ub2 = __upg_btn_r(_k);
 		if (!point_in_rectangle(_tpx, _tpy, _ub2.x, _ub2.y,
@@ -230,9 +232,19 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 			// the house purchase sound (upgrade_buy's), not the tier-up
 			// ding - see the event drain at the top of this file
 			play_sound_ext(snd_diamond, .95, 1.05, .5, 2);
+			// THE BUY LANDS IN THE ROW (his report, 2026-09-11: "not
+			// satisfying"): the row flashes its colour, the level pops,
+			// sparks leave the bar in the row's colour, and the float
+			// says what it bought
+			var _rc2 = __upg_col(_uc3[_k].id);
+			while (array_length(uflash) <= _k) array_push(uflash, 0);
+			while (array_length(upop)   <= _k) array_push(upop, 1);
+			uflash[_k] = 14;
+			upop[_k]   = 1.45;
+			spark_burst(_ub2.x + _ub2.w * .5, _ub2.y + _ub2.h * .5, 8, _rc2);
 			float_text(_ur2.x + _ur2.w * .5, _ur2.y - 6,
 				_uc3[_k].name + ((_r2.n > 1) ? (" +" + string(_r2.n)) : " up"),
-				c_aqua, fnt_outline);
+				_rc2, fnt_outline);
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
 		exit;
 	}
