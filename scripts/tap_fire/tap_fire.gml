@@ -174,4 +174,8 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (arb(15) >= _pay) _bn = clamp(unarb(_pay), 1, 7);
 	if (_crit) _bn = min(12, _bn + 4);   // a crit throws a fatter handful
 	bezier_bits(_x, _y, _bn, _col, undefined, undefined, 0, _pay);
+
+	// THE TAP EFFECT (syst_tapfx, his bench of seven - the [fx] chip in
+	// the money room picks): only a performed tap, so it sits here
+	tapfx_fire(_x, _y, _crit, _n);
 }

@@ -16,6 +16,7 @@ function settings_defaults() {
 	g.blur                  = true;
 	g.cursor_ray            = true;
 	g.motion_blur           = true;
+	g.tap_fx                = 1;
 	g.show_fps              = false;
 	g.fit_margin            = 12;   // % of screen height kept for OS chrome
 	g.orient                = -1;   // -1 auto / 0 portrait / 1 landscape

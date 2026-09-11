@@ -51,23 +51,6 @@ draw_set_alpha(.45);
 draw_text(lm, 84, "remix edition");
 draw_set_alpha(1);
 
-// ---- the menu's ground (his ask, 2026-09-10: "a fading black
-// gradient background") ----
-// spr_menu_back_3 is the menu backing's own ramp - opaque at column 0,
-// gone by 143 - so a plate drawn from the left edge fades out to the
-// right on its own. It is drawn one row at a time so it can ALSO fade
-// in from the top and out at the bottom: a soft dark pool the menu
-// column sits in, rather than a box with a hard top and bottom.
-{
-	var _gy0 = row_y0 - 14;
-	var _gy1 = row_y0 + (array_length(items) - 1) * row_p + row_h + 14;
-	var _gw  = (lm + row_w + 40) / 144;   // the ramp reaches past the row's hit width
-	for (var _gy = _gy0; _gy < _gy1; _gy++) {
-		var _ea = min(1, (_gy - _gy0) / 14, (_gy1 - 1 - _gy) / 14);
-		draw_sprite_ext(spr_menu_back_3, 0, 0, _gy, _gw, 1, 0, c_black, .62 * _ea);
-	}
-}
-
 // ---- the menu ----
 // No chrome. The label brightens, slides right, and grows a bar beside
 // it, all off the one hover ease - a row you are pointing at should

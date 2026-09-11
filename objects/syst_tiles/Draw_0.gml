@@ -116,7 +116,7 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		// the automerge's approach: the folding tile leaves its slot for
 		// the last stretch of the bar (drawn in flight below the loop)
 		if (_t.automerge && _i == _t.am_ib && _t.am_ia != -1 && grab_i != _i && ret_i != _i
-		&& clamp(_t.am_tic / _t.am_tic_, 0, 1) > AM_MOVE_FROM) _held = true;
+		&& clamp(_t.am_tic / _t.am_tic_, 0, 1) > __am_move_from()) _held = true;
 		// the resident tile (a held one leaves a dim echo in its slot)
 		tile_shape_draw(_tier, _x, _y, tw, th,
 			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
@@ -158,15 +158,17 @@ if (_t.tier[_hov] == 0 || _t.tier[_hov] == _t.tier[grab_i])
 	tile_shape_draw(g.tiles.tier[_hov], __slot_x(_hov), __slot_y(_hov), tw, th,
 		c_gold, .12 + .08 * dsin(current_time * .35));
 
-// ---- THE AUTOMERGE'S APPROACH (see AM_MOVE_FROM in the Create) ----
-// past the mark the folding tile slides onto its partner, eased in, so
-// it arrives exactly as the bar fills; the slot behind it shows the echo
+// ---- THE AUTOMERGE'S APPROACH (see AM_MOVE_TIME in the Create) ----
+// past the mark the folding tile slides onto its partner - slow off its
+// slot, fastest as it lands - so it arrives exactly as the bar fills;
+// the slot behind it shows the echo
 if (_t.automerge && _t.am_ia != -1 && _t.am_ib != -1
 && _t.am_ib != grab_i && _t.am_ib != ret_i && _t.tier[_t.am_ib] != 0) {
 	var _ap = clamp(_t.am_tic / _t.am_tic_, 0, 1);
-	if (_ap > AM_MOVE_FROM) {
-		var _af = (_ap - AM_MOVE_FROM) / (1 - AM_MOVE_FROM);
-		_af = _af * _af * (3 - 2 * _af);            // smoothstep
+	var _am0 = __am_move_from();
+	if (_ap > _am0) {
+		var _af = (_ap - _am0) / max(.0001, 1 - _am0);
+		_af = _af * _af;                            // ease IN: slow start, fast landing
 		var _fx = lerp(__slot_x(_t.am_ib), __slot_x(_t.am_ia), _af);
 		var _fy = lerp(__slot_y(_t.am_ib), __slot_y(_t.am_ia), _af);
 		var _ib = _t.am_ib;

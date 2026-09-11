@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_tapwarp",
+  "name":"sh_tapwarp",
+  "parent":{
+    "name":"tap",
+    "path":"folders/game/tap.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

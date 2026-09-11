@@ -59,6 +59,8 @@ if (instance_exists(syst_dials))
 // frames is a press landing on empty tap surface. Holding it is the
 // gesture; nothing inside it is also a tap.
 if (_ok && instance_exists(obj_puck) && obj_puck.held) _ok = false;
+// the [fx] chip's press is the chip's (syst_tapfx)
+if (_ok && instance_exists(syst_tapfx) && syst_tapfx.__consumes(mouse_x, mouse_y)) _ok = false;
 
 // THE DICE claim their own presses the same way (ported 2026-09-09).
 // obj_dice checks a scoop radius rather than a rectangle and never

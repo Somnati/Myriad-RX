@@ -265,9 +265,22 @@ __sort_r = function() {
 // branch's trick): the tile that is about to fold (am_ib) sits still
 // until the last stretch of the automerge bar, then slides onto the
 // tile it folds into (am_ia) so the two are on top of each other the
-// instant the merge lands. Driven by the bar's own progress, not a
-// clock, so it holds at any merge rate - a fast bar is a fast slide.
-AM_MOVE_FROM = .78;   // the fraction of the bar where the slide starts
+// instant the merge lands. Driven by the bar's own progress, so the
+// two can never disagree about when the merge is.
+// ⚖️ A FIXED SLIDE TIME, NOT A FIXED FRACTION (his correction): the
+// slide takes AM_MOVE_TIME ticks whatever the interval is - the start
+// mark on the bar is 1 - time/interval, so a ten-second merger slides
+// in its last third of a second exactly like a two-second one. Only
+// when the interval itself is SHORTER than the slide does the mark hit
+// zero and the slide compress to the whole bar - that is the one case
+// it speeds up, and it is the case where the merger is faster than
+// the vanilla slide. And it EASES IN: slow off its slot, fastest as it
+// lands (he had it the other way round and it read as arriving early).
+AM_MOVE_TIME = 18;   // ticks of slide (60 = a second at x1)
+__am_move_from = function() {
+	var _t = g.tiles;
+	return (_t.am_tic_ > 0) ? max(0, 1 - AM_MOVE_TIME / _t.am_tic_) : 1;
+};
 arm_rs = 0;   // the board's RESET button's own confirm window - it
               // wipes the shards and the upgrades too now, and a
               // misclick beside [sort] must not cost thirteen levels

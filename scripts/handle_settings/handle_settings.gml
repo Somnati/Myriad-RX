@@ -37,6 +37,7 @@ function handle_settings(_method) {
 	g.blur = handle("blur",g.blur);
 	g.cursor_ray = handle("cursor_ray",g.cursor_ray); // the pointer's raycast shading
 	g.motion_blur = handle("motion_blur",g.motion_blur); // per-object motion blur (the puck)
+	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (syst_tapfx's chip)
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);
 	g.fit_margin = handle("fit_margin",g.fit_margin); // portrait chrome reserve

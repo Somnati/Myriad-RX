@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tapfx_fire",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tapfx_fire",
+  "parent":{
+    "name":"tap",
+    "path":"folders/game/tap.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
