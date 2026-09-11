@@ -230,6 +230,10 @@
 create_obj(0, 0, obj_cursor);
 // THE TUBE (settings > crt): persistent like the pointer, seated once
 create_obj(0, 0, syst_crt);
+// THE SPRITES' RUNNER (his idea): their headless work, and their bodies
+// in the money room
+sprites_init();
+create_obj(0, 0, syst_sprites);
 
 // ---- THE BOOT SOUND (his ask) ----
 // A wood-and-metal cue, take one spliced out of the same six-take

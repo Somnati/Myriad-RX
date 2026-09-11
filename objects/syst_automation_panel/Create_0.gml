@@ -159,6 +159,7 @@ __ram_page = function(_t) {
 	var _a = g.autom;
 	var _u = 0;
 	if (_t == AT_DIALS) {
+		if (_a.tap.on) _u += ram_cost("speed", _a.tap.rate * 10);
 		if (_a.run.on) _u += ram_cost("speed", _a.run.spd);
 		for (var _i = 0; _i < array_length(_a.dial); _i++)
 			if (_a.dial[_i].on) _u += ram_cost("timer", _a.dial[_i].t);
@@ -243,7 +244,8 @@ __page_rows = function() {
 			if (_bi >= 0) _bst = "  -  strongest: " + dial_config(_bi).name + " " + crunch_arb(g.dial[_bi].gps) + "/s";
 		}
 		array_push(_o, { kind : 6, name : "dials",
-			val : (_a.run.on ? ("cycling " + string(_a.run.spd) + "%") : "cycling off (manual)")
+			val : (_a.tap.on ? ("autotap " + string(_a.tap.rate) + "/s  -  ") : "")
+			    + (_a.run.on ? ("cycling " + string(_a.run.spd) + "%") : "cycling off (manual)")
 			    + "  -  " + string(_dn) + " autobuy" + ((_dn == 1) ? "" : "s") + _bst,
 			right : string(__ram_page(AT_DIALS)) + " ram",
 			on : true, st : -1, col : tcol[AT_DIALS], ram : 0, help : "" });
@@ -292,6 +294,14 @@ __page_rows = function() {
 	}
 
 	if (tab == AT_DIALS) {
+		// THE AUTOTAPPER (his ask, 2026-09-11) heads the page: the
+		// tapper is the money room's first machine
+		array_push(_o, __section("tap process automation", tcol[AT_DIALS]));
+		array_push(_o, { kind : 2, lo : 1, hi : 10, name : "auto tap",
+			on : _a.tap.on, val : _a.tap.rate, sfx : " taps/s", st : -1,
+			col : c_gold, ram : ram_cost("speed", _a.tap.rate * 10),
+			help : "taps the money room for you, that many a second - a stick "
+			     + "per 2 taps/s. its taps are not counted as yours" });
 		array_push(_o, __section("dial process automation", tcol[AT_DIALS]));
 		array_push(_o, { kind : 2, lo : 5, hi : 100, name : "cycling",
 			on : _a.run.on, val : _a.run.spd, sfx : "% speed", st : -1,
@@ -438,10 +448,12 @@ __page_rows = function() {
 __flip = function(_t, _i) {
 	var _a = g.autom;
 	if (_t == AT_DIALS) {
-		// 0 band, 1 cycling, 2 band, 3 reserve (no toggle), 4.. the dials
-		if (_i == 1) { _a.run.on = !_a.run.on; return; }
-		if (_i < 4) return;
-		var _d = _a.dial[_i - 4];
+		// 0 band, 1 auto tap, 2 band, 3 cycling, 4 band, 5 reserve (no
+		// toggle), 6.. the dials
+		if (_i == 1) { _a.tap.on = !_a.tap.on; return; }
+		if (_i == 3) { _a.run.on = !_a.run.on; return; }
+		if (_i < 6) return;
+		var _d = _a.dial[_i - 6];
 		_d.on = !_d.on;
 		if (!_d.on) _d.st = 0;
 		return;
@@ -510,11 +522,12 @@ __quickset = function() {
 __set_slider = function(_t, _i, _v, _which = 0) {
 	var _a = g.autom;
 	if (_t == AT_DIALS) {
-		if (_i == 1)      _a.run.spd  = clamp(_v, 5, 100);
-		else if (_i == 3) _a.lock_pct = clamp(_v, 0, 90);
-		else if (_i >= 4) {
-			if (_which == 1) _a.dial[_i - 4].t   = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX);
-			else             _a.dial[_i - 4].pct = _v;
+		if (_i == 1)      _a.tap.rate = clamp(_v, 1, 10);
+		else if (_i == 3) _a.run.spd  = clamp(_v, 5, 100);
+		else if (_i == 5) _a.lock_pct = clamp(_v, 0, 90);
+		else if (_i >= 6) {
+			if (_which == 1) _a.dial[_i - 6].t   = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX);
+			else             _a.dial[_i - 6].pct = _v;
 		}
 		return;
 	}
@@ -554,6 +567,7 @@ __set_slider = function(_t, _i, _v, _which = 0) {
 /// and the rebirth off, caps and timers at their defaults
 __defaults = function() {
 	var _a = g.autom;
+	_a.tap = { on : false, rate : 1, acc : 0 };
 	_a.run = { on : true, spd : 100 };
 	_a.fab = { on : true, spd : 100 };
 	_a.am_speed = 100;

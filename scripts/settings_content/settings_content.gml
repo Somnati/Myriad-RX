@@ -697,6 +697,24 @@ function settings_content() {
 	// ============================ data ==============================
 	settings_section("data", c_pink);
 
+	// THE SPRITES' DEBUG SPAWN (his ask, 2026-09-11): how they are earned
+	// is not decided; this is how you meet one
+	settings_action("debug: spawn a sprite",
+		function() {
+			var _sp = sprite_spawn("tap");
+			assign_banner(_sp.name + " showed up in the money room", _sp.col, c_black);
+		},
+		"a little helper appears in the money room and taps for you - "
+		+ "slowly, lazily, and while you are away. its taps are its own, "
+		+ "not yours. poke it.", c_sgreen);
+	settings_action("debug: clear sprites",
+		function() {
+			g.sprites = [];
+			save_mark_dirty();
+			assign_banner("the sprites have gone", c_gray, c_black);
+		},
+		"sends every sprite away. debug only.", c_gray);
+
 	// autosave and its backup ladder live here, with the saves they
 	// write (they sat under gameplay - a save cadence is not play)
 	settings_toggle("autosave",

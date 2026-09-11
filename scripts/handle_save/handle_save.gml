@@ -338,6 +338,8 @@ function handle_save(){
 		}
 	}
 	g.autom.upg.t     = handle("upg_t",     g.autom.upg.t);
+	g.autom.tap.on    = handle("tap_on",    g.autom.tap.on);
+	g.autom.tap.rate  = handle("tap_rate",  g.autom.tap.rate);
 	g.autom.run.on    = handle("run_on",    g.autom.run.on);
 	g.autom.run.spd   = handle("run_spd",   g.autom.run.spd);
 	g.autom.fab.on    = handle("fab_on",    g.autom.fab.on);
@@ -347,6 +349,7 @@ function handle_save(){
 		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
 	if (action == sv_load) {
 		g.autom.upg.t    = clamp(g.autom.upg.t, RAM_TIMER_MIN, RAM_TIMER_MAX);
+		g.autom.tap.rate = clamp(g.autom.tap.rate, 1, 10);
 		g.autom.run.spd  = clamp(g.autom.run.spd, 5, 100);
 		g.autom.fab.spd  = clamp(g.autom.fab.spd, 5, 100);
 		g.autom.am_speed = clamp(g.autom.am_speed, 5, 100);
@@ -377,6 +380,35 @@ function handle_save(){
 	// timebank_rate), so a tuning change reaches saves that exist ----
 	// ---- the battery: the charge, the two ladders, the offline rates.
 	// Meta, like the time bank - a rebirth keeps it, a new game wipes it ----
+	// ---- the sprites: one packed string, "name/col/pers/job/taps/fx/fy/
+	// away/asleep" per sprite, "|"-joined. Meta: a rebirth keeps them ----
+	section = "sprites";
+	sprites_init();
+	var _sps = "";
+	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		var _sp = g.sprites[_k];
+		_sps += ((_k > 0) ? "|" : "") + _sp.name + "/" + string(_sp.col) + "/" + string(_sp.pers)
+		      + "/" + _sp.job + "/" + string(_sp.taps) + "/" + string_format(_sp.fx, 1, 3)
+		      + "/" + string_format(_sp.fy, 1, 3) + "/" + string(_sp.away) + "/" + (_sp.asleep ? "1" : "0");
+	}
+	_sps = handle("sprites", _sps);
+	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
+	if (action == sv_load) {
+		g.sprites = [];
+		if (_sps != "") {
+			var _pp = string_split(_sps, "|");
+			for (var _k = 0; _k < array_length(_pp); _k++) {
+				var _f = string_split(_pp[_k], "/");
+				if (array_length(_f) < 9) continue;
+				array_push(g.sprites, {
+					id : g.sprite_seq++, name : _f[0], col : real(_f[1]), pers : real(_f[2]),
+					job : _f[3], taps : real(_f[4]), fx : real(_f[5]), fy : real(_f[6]),
+					away : real(_f[7]), asleep : (_f[8] == "1"), acc : 0,
+				});
+			}
+		}
+	}
+
 	section = "battery";
 	battery_init();
 	g.battery.charge     = handle("bat_charge",  g.battery.charge);

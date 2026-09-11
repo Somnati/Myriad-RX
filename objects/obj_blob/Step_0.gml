@@ -1,0 +1,59 @@
+if (s == undefined) { instance_destroy(); exit; }
+if (!in_room(rm_clicker)) { instance_destroy(); exit; }
+
+var _pl = sprite_personalities();
+var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
+
+// ---- the clocks ----
+sq    = max(0, sq - .09 * delta);
+hop   = max(0, hop - .35 * delta);
+happy = max(0, happy - delta);
+bub_t = max(0, bub_t - delta);
+card  = max(0, card - delta);
+bob  += 2.2 * delta;
+blink = max(0, blink - delta);
+blink_t -= delta;
+if (blink_t <= 0) { blink = 6; blink_t = random_range(90, 260); }
+// the pupils follow the pointer, a px either way
+look_x = lerp(look_x, clamp((mouse_x - x) / 40, -1, 1), .15 * delta);
+look_y = lerp(look_y, clamp((mouse_y - (y - r)) / 40, -1, 1), .15 * delta);
+
+// ---- the poke, before the state: a press on it is its own ----
+if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone))
+if (mouse_check_button_pressed(mb_left) && __hit(mouse_x, mouse_y)) __poke();
+
+// ---- the loop ----
+if (s.asleep) { st = 3; }
+else {
+	if (st == 3) { st = 0; st_t = 30; }
+	st_t -= delta;
+	if (st == 1) {
+		// walk to the target, a little bob in the step
+		var _d = point_distance(x, y, tx, ty);
+		if (_d < 1.5 || st_t <= 0) __next_state();
+		else {
+			var _spd = .35 * _p.pace * delta;
+			x += (tx - x) / _d * _spd;
+			y += (ty - y) / _d * _spd;
+		}
+	} else if (st == 2) {
+		// working: a tap on its cadence, a hop with each
+		tap_t -= delta * _p.pace;
+		if (tap_t <= 0) {
+			tap_t = SPRITE_TAP_T * 60;
+			sq = .8; hop = 3;
+			tap_fire(1, x, y - r, true, true, false);
+			s.taps += 1;
+		}
+		if (st_t <= 0) __next_state();
+	} else {
+		if (st_t <= 0) __next_state();
+	}
+}
+
+// stay in its patch, and remember where it stands
+var _b = __bounds();
+x = clamp(x, _b.x1, _b.x2);
+y = clamp(y, _b.y1, _b.y2);
+s.fx = x / room_width;
+s.fy = y / room_height;

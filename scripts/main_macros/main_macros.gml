@@ -307,6 +307,13 @@ function main_macros() {
 #macro UI_IN_SLIDE   17    // px the title strip drops out from behind
                            // the header, and the rail slides in by
 
+// ---- SPRITES (his idea, 2026-09-11: little blob helpers) ----
+// Read sprites_init. Free (no RAM, off the battery), passive, stacking.
+#macro SPRITE_TAP_T      3  // seconds between one sprite's taps while it WORKS
+#macro SPRITE_ATTN    7200  // attention: offline work decays as 1/(1+t/T),
+                            // T seconds - 8h away yields T ln(1+8h/T) of work
+#macro SPRITE_NAP     3600  // away longer than this and they are found asleep
+
 // ---- THE BATTERY (the OFFLINE budget, his design 2026-09-11) ----
 // Read battery_init. Charge is seconds of absence the machines can run;
 // it fills ONLINE (your attention, banked) and offline machines drain

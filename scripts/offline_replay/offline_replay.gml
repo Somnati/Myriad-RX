@@ -106,6 +106,11 @@ function offline_replay(_secs) {
 
 	g.offline_pooling = true;
 	prod_dials(_cov);
+	// THE SPRITES, on their own law (attention decay, off the battery -
+	// sprites_offline), into the pool with everything else
+	sprites_offline(_secs);
+	var _spr_taps = 0;
+	for (var _si = 0; _si < array_length(g.sprites); _si++) _spr_taps += g.sprites[_si].away;
 	g.offline_pooling = false;
 	g.offline_replaying = false;
 	g.battery.opt_rate = undefined;
@@ -128,7 +133,8 @@ function offline_replay(_secs) {
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
 		banked : _banked, bank_full : g.timebank.last_full, shown : false,
 		bat_ran : _cov, bat_dry : (_cov < _secs - 1),
-		bat_opt : (_opt == undefined) ? 0 : _opt.s };
+		bat_opt : (_opt == undefined) ? 0 : _opt.s,
+		spr_taps : _spr_taps, spr_n : array_length(g.sprites) };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }

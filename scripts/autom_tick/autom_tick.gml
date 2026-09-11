@@ -40,6 +40,19 @@ function autom_tick() {
 		}
 	}
 
+	// ---- THE AUTOTAPPER: rate taps a second, banked fractionally and
+	// paid in whole taps (tap_fire's batch law), at the throttle. Not
+	// your taps (_stat false); the ceremony plays in the money room ----
+	var _tp = _a.tap;
+	if (_tp.on) {
+		_tp.acc += _tp.rate * _dt * _th;
+		var _nt = floor(_tp.acc);
+		if (_nt >= 1) {
+			_tp.acc -= _nt;
+			tap_fire(_nt, room_width * .5, room_height / 2.5, true, true, false);
+		}
+	} else _tp.acc = 0;
+
 	// ---- the upgrade table: buy on its clock, roll/sell on the pulse ----
 	var _u = _a.upg;
 	var _buy_due = false;

@@ -8,6 +8,7 @@ function ram_used() {
 	var _u = 0;
 	// the two things on by default: the dials' own cycling and the
 	// fabricator, priced on their speed
+	if (_a.tap.on) _u += ram_cost("speed", _a.tap.rate * 10);
 	if (_a.run.on) _u += ram_cost("speed", _a.run.spd);
 	if (_a.fab.on) _u += ram_cost("speed", _a.fab.spd);
 	// the automerger: the TABLE's switch, this page's speed

@@ -43,6 +43,7 @@ function autom_pack() {
 	_o += "/tl=" + _tl;
 	_o += "/am=" + ((variable_global_exists("tiles") && g.tiles.automerge) ? "1" : "0")
 	     + ":" + string(_a.am_speed);
+	_o += "/tap=" + (_a.tap.on ? "1" : "0") + ":" + string(_a.tap.rate);
 	_o += "/run=" + (_a.run.on ? "1" : "0") + ":" + string(_a.run.spd);
 	_o += "/fab=" + (_a.fab.on ? "1" : "0") + ":" + string(_a.fab.spd);
 	return _o;

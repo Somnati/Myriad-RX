@@ -42,6 +42,12 @@
 ///   RAM (his design, 2026-09-11 - read ram_cost / ram_used /
 ///   ram_throttle). Everything below that is ON costs sticks; over
 ///   the budget every clock slows, nothing stops.
+///     tap       THE AUTOTAPPER (his ask, 2026-09-11) { on, rate, acc }:
+///               rate taps a second (1..10), paid through tap_fire on
+///               the heartbeat, NOT counted as your taps; costs
+///               ram_cost("speed", rate x 10) - 1 stick at 1/s, 5 at
+///               10/s. Online only (RAM's world); the sprites are the
+///               ones that tap for you while you are away
 ///     run       the dials' OWN CYCLING as an automation { on, spd }:
 ///               on by default at 100%; slower is cheaper; off makes
 ///               every dial manual (tap to run, DE's rule). prod_dials
@@ -101,6 +107,7 @@ function autom_init(_force = false) {
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
 		tiles : {},
+		tap      : { on : false, rate : 1, acc : 0 },
 		run      : { on : true, spd : 100 },
 		fab      : { on : true, spd : 100 },
 		am_speed : 100,

@@ -85,6 +85,12 @@ function autom_unpack(_s) {
 			if (array_length(_q) > 1 && _q[1] != "") _a.am_speed = clamp(real(_q[1]), 5, 100);
 			break;
 		}
+		case "tap": {
+			var _q = string_split(_v, ":");
+			if (array_length(_q) > 0) _a.tap.on = (_q[0] == "1");
+			if (array_length(_q) > 1 && _q[1] != "") _a.tap.rate = clamp(real(_q[1]), 1, 10);
+			break;
+		}
 		case "run": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.run.on = (_q[0] == "1");
