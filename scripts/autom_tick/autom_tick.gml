@@ -43,9 +43,14 @@ function autom_tick() {
 	// ---- THE AUTOTAPPER: rate taps a second, banked fractionally and
 	// paid in whole taps (tap_fire's batch law), at the throttle. Not
 	// your taps (_stat false); the ceremony plays in the money room ----
+	// ...AND IT SCALES WITH EVERY TPS BONUS (his ask): the slider is a
+	// base rate, multiplied by whatever tap_rate() multiplies the hold's
+	// base by - upgrades today, abilities and gear tomorrow - so the
+	// autotapper climbs into the thousands with them exactly as DE's did
 	var _tp = _a.tap;
 	if (_tp.on) {
-		_tp.acc += _tp.rate * _dt * _th;
+		var _tps = _tp.rate * (tap_rate() / TAP_HOLD_BASE);
+		_tp.acc += _tps * _dt * _th;
 		var _nt = floor(_tp.acc);
 		if (_nt >= 1) {
 			_tp.acc -= _nt;

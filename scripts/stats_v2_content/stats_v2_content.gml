@@ -178,7 +178,7 @@ function stats_v2_content() {
 				// drawer's rows and the bank agree on
 				var _hd = "dial " + dial_config(_i).name + "   "
 					+ crunch_arb(_bd.gps) + " / sec";
-				if (stats_v2_folder(_hd, dial_color(_i))) {
+				if (stats_v2_folder(_hd, dial_color(_i), "dial " + dial_config(_i).name)) {
 					// the bar first: the answer before the working
 					stats_v2_bar("share of output", _bd.steps, 4);
 
@@ -229,7 +229,7 @@ function stats_v2_content() {
 				var _d  = g.dial[_i];
 				var _ms = milestone_get(_i, _d.level);
 				var _hd = "dial " + dial_config(_i).name + "  lv " + string(_d.level);
-				if (stats_v2_folder(_hd, dial_color(_i))) {
+				if (stats_v2_folder(_hd, dial_color(_i), "dial " + dial_config(_i).name)) {
 					stats_v2_line("speed", "x" + string(_ms.speed), -1, (_ms.speed > 1) ? c_sgreen : c_gray);
 					stats_v2_line("profit", "x" + string(_ms.profit), -1, (_ms.profit > 1) ? c_sgreen : c_gray);
 					for (var _k = 0; _k < array_length(g.milestones); _k++) {

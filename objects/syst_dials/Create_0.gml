@@ -318,3 +318,6 @@ __consumes = function(_px, _py) {
 	}
 	return false;
 };
+
+// the hand-crank's hold: nothing held until a press says so
+g.dial_hold = -1;

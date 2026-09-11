@@ -25,11 +25,13 @@ col_w   = 292;
 bat_y   = hh + 30;     // the charge meter
 bat_w   = 220;
 bat_h   = 22;
-rate_y  = hh + 96;     // the three offline rate rows
+rate_y  = hh + 110;    // the three offline rate rows (the meter's
+                       // "lasts N away" line ends at hh + 92; the
+                       // caption sat on it - his report, 2026-09-11)
 rate_p  = 18;
 trk_x   = col_x + 92;
 trk_w   = 120;
-upg_y   = hh + 160;    // the two upgrade rows
+upg_y   = hh + 172;    // the two upgrade rows
 upg_p   = 22;
 btn_w   = 62;
 

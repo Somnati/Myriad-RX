@@ -13,8 +13,14 @@
 /// shape. open state persists in g.stats_open keyed by the full PATH
 /// ("/tiles/rarity"), so two subfolders can share a name. everything
 /// starts COLLAPSED.
-function stats_v2_folder(_name, _col = c_sblue) {
-	_fpath += "/" + _name;
+/// @param [key]   the folder's identity when its NAME carries a live
+///                figure ("dial a   1.2k / sec"): the open state and
+///                the favourite are keyed by this rather than the
+///                name, so a figure moving does not read as a
+///                different folder (his report, 2026-09-11: the dial
+///                folder snapped shut on a buy)
+function stats_v2_folder(_name, _col = c_sblue, _key = "") {
+	_fpath += "/" + ((_key != "") ? _key : _name);
 	// A TOP-LEVEL FOLDER IS A RAIL TAB (2026-09-06, the settings-room
 	// rebuild), and the rail is its label - so it is always OPEN and its
 	// children always build. Only nested folders still fold, which is

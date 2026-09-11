@@ -13,7 +13,13 @@ function prod_dials(_secs = -1) {
 	if (!variable_global_exists("dial")) return;
 	if (_secs < 0) _secs = delta / 60;
 	if (_secs <= 0) return;
-	var _run = autom_rate("run");   // the dials' cycling: speed x the RAM throttle, 0 = every dial manual
+	var _run = autom_rate("run");   // the dials' cycling: speed x the RAM throttle, 0 = every dial frozen
+	// THE HAND-CRANK (his ask, 2026-09-11): with the cycling off, a dial
+	// the pointer is HELD on runs at full rate for as long as it is held
+	// (syst_dials publishes which one); let go and it freezes where it
+	// is. Never during a replay - a hand is not there
+	var _hold = (variable_global_exists("dial_hold") && !(variable_global_exists("offline_replaying") && g.offline_replaying))
+		? g.dial_hold : -1;
 
 	for (var _i = 0; _i < g.dial_total; _i++) {
 		var _d = g.dial[_i];
@@ -25,12 +31,23 @@ function prod_dials(_secs = -1) {
 		if (_d.glow > 0) _d.glow = max(0, _d.glow - .04 * delta);
 
 		// THE DIALS' OWN CYCLING IS AN AUTOMATION NOW (his design,
-		// 2026-09-11): autom_rate("run") is 0 with it switched off in
-		// the automation panel - every dial manual, DE's rule - and
-		// otherwise its speed x the RAM throttle. A manual dial accrues
-		// at full rate: the tap is the player's own work
-		var _auto = _d.auto && (_run > 0);
-		_d.cycle += _d.cps * _secs * (_auto ? _run : 1);
+		// 2026-09-11): autom_rate("run") is its speed x the RAM
+		// throttle. ⚖️ OFF MEANS FROZEN, NOT MANUAL (his report: "turning
+		// it off doesn't stop dial progress... i don't want dial progress
+		// to reset, just freeze where it's at"). The first cut made every
+		// dial manual with the cycling off - accruing at full rate and
+		// banking a cycle, DE's autonomy-off rule - which is the opposite
+		// of a machine that is switched off. Now: cycling off, the cycle
+		// holds where it is; held by the pointer it runs at full rate
+		// (the hand-crank); a dial with its own autonomy off (d.auto,
+		// rm_automation's run column) keeps DE's manual rule
+		var _cranked = (_i == _hold);
+		var _rate = 0;
+		if (_cranked)      _rate = 1;
+		else if (_run > 0) _rate = _d.auto ? _run : 1;
+		if (_rate <= 0) continue;
+		var _auto = _d.auto || _cranked;
+		_d.cycle += _d.cps * _secs * _rate;
 		if (_d.cycle < 1) continue;
 
 		// a manual dial banks ONE cycle and stops until tapped again

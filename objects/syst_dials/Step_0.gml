@@ -157,6 +157,21 @@ var _held = (press_x >= 0 && mouse_check_button(mb_left));
 bb_down = _held && stage >= 2 && point_in_rectangle(mouse_x, mouse_y, bb_cx, bb_y, bb_cx + bb_w, bb_y + bb_h);
 vb_down = _held && point_in_rectangle(mouse_x, mouse_y, vb_cx, vb_y, vb_cx + vb_w, vb_y + vb_h);
 
+// ---- THE HAND-CRANK (his ask, 2026-09-11): which dial the pointer is
+// held on, for prod_dials - with the cycling switched off that dial
+// runs at full rate while held and freezes when released ----
+g.dial_hold = -1;
+if (_held && sp >= .5) {
+	var _bwh = lerp(row_w, row_w2, clamp(sp - 1, 0, 1));
+	if (mouse_x >= face && mouse_x < face + _bwh)
+	for (var _i = 0; _i < _n; _i++) {
+		var _ry = row_y1 - _i * row_p;
+		if (mouse_y < _ry - 2 || mouse_y >= _ry + row_h + 2) continue;
+		if (g.dial[_i].level > 0) g.dial_hold = _i;
+		break;
+	}
+}
+
 // ---- THE MANUAL START (Myriad DE's click_dial): the pointer HELD on a
 // dial that is still winding up skips the wind-up - its cycle jumps to
 // the end of the spin-up and the bar starts filling now, with DE's

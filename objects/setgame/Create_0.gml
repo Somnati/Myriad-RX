@@ -31,6 +31,7 @@
 	g.random_profit_color = false;   // visuals "rainbow motes" (DE alt profit color)
 	g.swipe_protect = false;         // input "swipe protection": drawers close only from their own side (DE)
 	g.bat_opt = false;               // gameplay "battery optimiser" - an ABILITY later, a debug toggle now (battery_optimise)
+	g.dial_hold = -1;                // the dial the pointer is held on (syst_dials -> prod_dials' hand-crank)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----

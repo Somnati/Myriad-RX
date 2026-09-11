@@ -121,8 +121,10 @@ print("  cost   :", "  ".join(f"lv{n}={ladder_cost(n)}cr" for n in (0, 1, 2, 5, 
 cum = sum(ladder_cost(n) for n in range(10))
 print(f"  ten levels of ONE ladder cost {cum} credits; both ladders {2 * cum};"
       f" at {CREDITS_PER_HOUR}/h income that is {hms(2 * cum / CREDITS_PER_HOUR * 3600)} of play")
-say(cum / CREDITS_PER_HOUR <= 200,
-    "both ladders to lv10 fit inside ~200 hours of credit income", f"{2 * cum / CREDITS_PER_HOUR:.0f}h")
+print(f"  (his numbers, 2026-09-11 - the ladders are meant to be a long sink; the first three"
+      f" rungs are {ladder_cost(0)} / {ladder_cost(1)} / {ladder_cost(2)}, at {CREDITS_PER_HOUR}/h"
+      f" that is {hms(ladder_cost(0) / CREDITS_PER_HOUR * 3600)} of dropper income for the first)")
+say(ladder_cost(0) >= 100, "the first level costs at least 100 credits (his floor)")
 
 # ---------------------------------------------------------------- 2. the draw law
 print("\n== 2. the draw law (weight x rate^2, normalised) ==")

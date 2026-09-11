@@ -72,8 +72,10 @@ __chip_seat = function() {
 	chip_w  = floor((cont_x + cont_w - chip_x0 - (_n - 1) * chip_gap) / _n);
 };
 __chip_r = function(_k, _ry) {
-	return { x : chip_x0 + _k * (chip_w + chip_gap), y : _ry + 2,
-	         w : chip_w, h : row_h - 4 };
+	// the full row height less a px each side: 7px glyphs need 9 with
+	// their air, and row_h - 4 clipped them (his report)
+	return { x : chip_x0 + _k * (chip_w + chip_gap), y : _ry + 1,
+	         w : chip_w, h : row_h - 2 };
 };
 
 row_h = 12;
@@ -159,7 +161,7 @@ __ram_page = function(_t) {
 	var _a = g.autom;
 	var _u = 0;
 	if (_t == AT_DIALS) {
-		if (_a.tap.on) _u += ram_cost("speed", _a.tap.rate * 10);
+		if (_a.tap.on) _u += ram_cost("tap", _a.tap.rate);
 		if (_a.run.on) _u += ram_cost("speed", _a.run.spd);
 		for (var _i = 0; _i < array_length(_a.dial); _i++)
 			if (_a.dial[_i].on) _u += ram_cost("timer", _a.dial[_i].t);
@@ -297,17 +299,18 @@ __page_rows = function() {
 		// THE AUTOTAPPER (his ask, 2026-09-11) heads the page: the
 		// tapper is the money room's first machine
 		array_push(_o, __section("tap process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 1, hi : 10, name : "auto tap",
+		array_push(_o, { kind : 2, lo : 2, hi : 10, snap : 2, name : "auto tap",
 			on : _a.tap.on, val : _a.tap.rate, sfx : " taps/s", st : -1,
-			col : c_gold, ram : ram_cost("speed", _a.tap.rate * 10),
-			help : "taps the money room for you, that many a second - a stick "
-			     + "per 2 taps/s. its taps are not counted as yours" });
+			col : c_gold, ram : ram_cost("tap", _a.tap.rate),
+			help : "taps the money room for you, that many a second (x your tps "
+			     + "bonuses) - a stick per 2 taps/s. its taps are not counted as yours" });
 		array_push(_o, __section("dial process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 5, hi : 100, name : "cycling",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling",
 			on : _a.run.on, val : _a.run.spd, sfx : "% speed", st : -1,
 			col : c_sgreen, ram : ram_cost("speed", _a.run.spd),
-			help : "the dials running on their own - slower is cheaper, off "
-			     + "makes every dial manual" });
+			help : "the dials running on their own - slower is cheaper. off "
+			     + "FREEZES them where they are; hold the pointer on one to "
+			     + "crank it by hand" });
 		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
 		// THE RESERVE heads the autobuys, because it is the counterweight
 		// to everything under it: autobuy spends profit, and this is the
@@ -377,9 +380,11 @@ __page_rows = function() {
 		array_push(_o, { kind : 2, lo : 1, hi : 60, name : "profit reach",
 			on : _r.p_on, val : _r.p_oom, sfx : " ooms", st : -1, col : c_hred, ram : 0,
 			help : "profit has passed 10^this" });
-		array_push(_o, { kind : 0, name : "no timeclamp",
+		array_push(_o, { kind : 0, name : "penalty over",
 			on : _r.c_on, val : 0, sfx : "", st : -1, col : c_hred, ram : 0,
-			help : "wait until the early-run penalty has expired" });
+			help : "the timeclamp: a rebirth inside the first 5 minutes of a "
+			     + "run pays only a fraction of its units. armed, it waits "
+			     + "until that penalty has fully expired" });
 	}
 
 	// ---- THE UPGRADE TABLE, filter included (his call: the filter is
@@ -417,12 +422,12 @@ __page_rows = function() {
 	// ---- THE TILE TABLE ----
 	if (tab == AT_TILES) {
 		array_push(_o, __section("tile process automation", tcol[AT_TILES]));
-		array_push(_o, { kind : 2, lo : 5, hi : 100, name : "fabricator",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "fabricator",
 			on : _a.fab.on, val : _a.fab.spd, sfx : "% speed", st : -1,
 			col : c_seagreen, ram : ram_cost("speed", _a.fab.spd),
 			help : "the table making tiles on its own - slower is cheaper, "
 			     + "off makes nothing" });
-		array_push(_o, { kind : 2, lo : 5, hi : 100, name : "auto merge",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "auto merge",
 			on : (variable_global_exists("tiles") && g.tiles.automerge),
 			val : _a.am_speed, sfx : "% speed", st : -1, col : c_seagreen,
 			ram : ram_cost("speed", _a.am_speed),
@@ -522,8 +527,8 @@ __quickset = function() {
 __set_slider = function(_t, _i, _v, _which = 0) {
 	var _a = g.autom;
 	if (_t == AT_DIALS) {
-		if (_i == 1)      _a.tap.rate = clamp(_v, 1, 10);
-		else if (_i == 3) _a.run.spd  = clamp(_v, 5, 100);
+		if (_i == 1)      _a.tap.rate = clamp(round(_v / 2) * 2, 2, 10);
+		else if (_i == 3) _a.run.spd  = clamp(round(_v / 20) * 20, 20, 100);
 		else if (_i == 5) _a.lock_pct = clamp(_v, 0, 90);
 		else if (_i >= 6) {
 			if (_which == 1) _a.dial[_i - 6].t   = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX);
@@ -550,8 +555,8 @@ __set_slider = function(_t, _i, _v, _which = 0) {
 		return;
 	}
 	if (_t == AT_TILES) {
-		if (_i == 1) { _a.fab.spd  = clamp(_v, 5, 100); return; }
-		if (_i == 2) { _a.am_speed = clamp(_v, 5, 100); return; }
+		if (_i == 1) { _a.fab.spd  = clamp(round(_v / 20) * 20, 20, 100); return; }
+		if (_i == 2) { _a.am_speed = clamp(round(_v / 20) * 20, 20, 100); return; }
 		var _tc = tile_upg_config();
 		var _k = _i - 4;
 		if (_k < 0 || _k >= array_length(_tc)) return;
@@ -567,7 +572,7 @@ __set_slider = function(_t, _i, _v, _which = 0) {
 /// and the rebirth off, caps and timers at their defaults
 __defaults = function() {
 	var _a = g.autom;
-	_a.tap = { on : false, rate : 1, acc : 0 };
+	_a.tap = { on : false, rate : 2, acc : 0 };
 	_a.run = { on : true, spd : 100 };
 	_a.fab = { on : true, spd : 100 };
 	_a.am_speed = 100;

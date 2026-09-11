@@ -6,7 +6,12 @@
 ///                         2s 3, 3-5s 2, slower 1 - speed is what costs
 ///               "speed"   v = a rate in % (the dials' cycling, the
 ///                         fabricator, the automerger): 1 stick per
-///                         20%, so 5% is 1 and 100% is 5
+///                         20%, so 5% is 1 and 100% is 5. The panel's
+///                         speed sliders SNAP to 20/40/60/80/100 (his
+///                         report: two settings, one price - "segment
+///                         the slider so it snaps to ram points")
+///               "tap"     v = the autotapper's taps a second, 2..10 in
+///                         steps of 2: a stick per 2 taps/s
 ///               "flag"    a switch with no speed (roll, sell): 1
 ///               "rebirth" the autorebirth, armed: RAM_REBIRTH
 /// @param [v]
@@ -18,6 +23,7 @@ function ram_cost(_kind, _v = 0) {
 			if (_v <= 5) return 2;
 			return 1;
 		case "speed":   return max(1, ceil(_v / 20));
+		case "tap":     return max(1, ceil(_v / 2));
 		case "rebirth": return RAM_REBIRTH;
 	}
 	return 1;

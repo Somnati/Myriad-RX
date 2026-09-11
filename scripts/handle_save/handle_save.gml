@@ -349,10 +349,10 @@ function handle_save(){
 		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
 	if (action == sv_load) {
 		g.autom.upg.t    = clamp(g.autom.upg.t, RAM_TIMER_MIN, RAM_TIMER_MAX);
-		g.autom.tap.rate = clamp(g.autom.tap.rate, 1, 10);
-		g.autom.run.spd  = clamp(g.autom.run.spd, 5, 100);
-		g.autom.fab.spd  = clamp(g.autom.fab.spd, 5, 100);
-		g.autom.am_speed = clamp(g.autom.am_speed, 5, 100);
+		g.autom.tap.rate = clamp(round(g.autom.tap.rate / 2) * 2, 2, 10);
+		g.autom.run.spd  = clamp(round(g.autom.run.spd / 20) * 20, 20, 100);
+		g.autom.fab.spd  = clamp(round(g.autom.fab.spd / 20) * 20, 20, 100);
+		g.autom.am_speed = clamp(round(g.autom.am_speed / 20) * 20, 20, 100);
 		for (var _k = 0; _k < 3; _k++)
 			if (!is_string(g.autom.presets[_k])) g.autom.presets[_k] = "";
 	}

@@ -55,8 +55,13 @@ def cost_timer(t):
 
 
 def cost_speed(pct):
-    """ram_cost('speed', pct): a stick per 20%"""
+    """ram_cost('speed', pct): a stick per 20% (the sliders snap to 20/40/60/80/100)"""
     return max(1, math.ceil(pct / 20.0))
+
+
+def cost_tap(tps):
+    """ram_cost('tap', tps): a stick per 2 taps/s (the slider snaps to 2..10 by 2)"""
+    return max(1, math.ceil(tps / 2.0))
 
 
 def cap(rebirths=0):

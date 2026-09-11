@@ -82,25 +82,25 @@ function autom_unpack(_s) {
 		case "am": {
 			var _q = string_split(_v, ":");
 			if (variable_global_exists("tiles") && array_length(_q) > 0) g.tiles.automerge = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.am_speed = clamp(real(_q[1]), 5, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.am_speed = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
 			break;
 		}
 		case "tap": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.tap.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.tap.rate = clamp(real(_q[1]), 1, 10);
+			if (array_length(_q) > 1 && _q[1] != "") _a.tap.rate = clamp(round(real(_q[1]) / 2) * 2, 2, 10);
 			break;
 		}
 		case "run": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.run.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.run.spd = clamp(real(_q[1]), 5, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.run.spd = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
 			break;
 		}
 		case "fab": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.fab.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.fab.spd = clamp(real(_q[1]), 5, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.fab.spd = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
 			break;
 		}
 		}

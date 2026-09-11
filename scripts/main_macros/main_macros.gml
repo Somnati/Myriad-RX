@@ -326,8 +326,10 @@ function main_macros() {
                             // - the SAME factor, so equal levels fill in
                             // BAT_FILL0 and a capacity ahead of its rate
                             // takes proportionally longer (his law)
-#macro BAT_COST0          5 // credits, the first level of either ladder
-#macro BAT_COST_MULT    1.5 // x per level
+#macro BAT_COST0        100 // credits, the first level of either ladder
+                            // (his call, 2026-09-11: 5 was "WAY too
+                            // cheap" - 100, then 250, 500...)
+#macro BAT_COST_MULT   2.25 // x per level: 100 / 225 / 506 / 1139
 #macro BAT_CRANK_REV     60 // crank revolutions from empty to full
 #macro BAT_W_RUN          1 // draw weights: the dials' cycling...
 #macro BAT_W_FAB         .5 // ...the fabricator...

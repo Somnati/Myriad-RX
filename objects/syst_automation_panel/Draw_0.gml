@@ -167,12 +167,8 @@ for (var _i = 0; _i < _nrows; _i++) {
 	draw_set_color(_rw.on ? c_white : _dim);
 	draw_set_alpha(_rw.on ? .95 : .6);
 	draw_text(cont_x + 7, _ry + 2, _rw.name);
-	// the dial's own p/s beside its name, the strongest in gold
-	if (variable_struct_exists(_rw, "sub")) {
-		draw_set_color(_rw.top ? c_gold : merge_colour(_rw.col, c_white, .5));
-		draw_set_alpha(_rw.top ? .95 : .6);
-		draw_text(cont_x + 42, _ry + 2, _rw.sub);
-	}
+	// (the dial's p/s sits at the row's end and the verdict pill beside
+	// the name - swapped, his ask 2026-09-11)
 
 	// an info line: the value after the label, and a figure at the end
 	if (_rw.kind == 6) {
@@ -225,7 +221,7 @@ for (var _i = 0; _i < _nrows; _i++) {
 			draw_set_alpha(_kp ? .95 : .5);
 			// three letters: eight full rarity names do not fit a row,
 			// and the colour is carrying most of the identity anyway
-			draw_text(_ch.x + _ch.w / 2 + 1, _ch.y + 2,
+			draw_text(_ch.x + _ch.w / 2 + 1, _ch.y + 1,
 				string_copy(_ri.name, 1, 3));
 			draw_set_halign(fa_left);
 		}
@@ -256,6 +252,13 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w, _tk.h, 0, c_black, .7 * _sa);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w * _f, _tk.h, 0, _rw.col, .8 * _sa);
 		draw_px_rect(_tk.x, _tk.y, _tk.w, _tk.h, _rw.col, .35 * _sa);
+		// a snapping track shows its stops - one notch per ram point
+		if (variable_struct_exists(_rw, "snap")) {
+			for (var _sv = _rw.lo; _sv <= _rw.hi; _sv += _rw.snap) {
+				var _sx = _tk.x + _tk.w * (_sv - _rw.lo) / max(1, _rw.hi - _rw.lo);
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tk.y - 1, 1, _tk.h + 2, 0, c_white, .35 * _sa);
+			}
+		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x + _tk.w * _f - 1, _tk.y - 2, 3, _tk.h + 4, 0, c_white, .8 * _sa);
 		draw_set_halign(fa_right);
 		draw_set_color(_rw.on ? c_white : _dim);
@@ -286,17 +289,24 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_text(_tm.x + _tm.w + 4, _ry + 2, string(_rw.t) + "s");
 	}
 
-	// the autobuy rows' verdict pill: what the automation did last attempt
+	// the autobuy rows' verdict pill: what the automation did last
+	// attempt - beside the name; the dial's own p/s takes the row's end
+	// (the strongest in gold)
 	if (_rw.st >= 0) {
-		var _px = cont_x + cont_w - 4;
-		draw_set_halign(fa_right);
+		draw_set_halign(fa_left);
 		// GML will not parse a ternary whose ELSE branch is itself a bare
 		// ternary - the nested one has to be parenthesised
 		draw_set_color((_rw.st == 2) ? c_sgreen
 			: ((_rw.st == 1) ? c_horange : _dim));
 		draw_set_alpha((_rw.st == 0) ? .35 : .8);
-		draw_text(_px, _ry + 2,
+		draw_text(cont_x + 42, _ry + 2,
 			(_rw.st == 2) ? "buying" : ((_rw.st == 1) ? "waiting" : "off"));
+	}
+	if (variable_struct_exists(_rw, "sub")) {
+		draw_set_halign(fa_right);
+		draw_set_color(_rw.top ? c_gold : merge_colour(_rw.col, c_white, .5));
+		draw_set_alpha(_rw.top ? .95 : .6);
+		draw_text(cont_x + cont_w - 4, _ry + 2, _rw.sub);
 		draw_set_halign(fa_left);
 	}
 }
