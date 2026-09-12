@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ccore_perc",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ccore_perc",
+  "parent":{
+    "name":"credits",
+    "path":"folders/game/credits.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

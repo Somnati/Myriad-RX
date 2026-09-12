@@ -30,6 +30,7 @@ function ui_overlay() {
 	if (instance_exists(syst_upgrades))         return syst_upgrades;
 	if (instance_exists(syst_rm_ability))       return syst_rm_ability;
 	if (instance_exists(syst_tiles))            return syst_tiles;
+	if (instance_exists(syst_ccore_panel))      return syst_ccore_panel;
 	// the rebirth overlay counts only while it is up or still fading -
 	// closed, the money room's instance is dormant furniture
 	if (instance_exists(syst_rebirth) && (syst_rebirth.open || syst_rebirth.alpha > .01))

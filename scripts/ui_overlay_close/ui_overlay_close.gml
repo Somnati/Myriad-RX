@@ -18,5 +18,6 @@ function ui_overlay_close() {
 	if (instance_exists(syst_upgrades))         { upgrades_close();   return; }
 	if (instance_exists(syst_rm_ability))       { abilities_close();  return; }
 	if (instance_exists(syst_tiles))            { tiles_close();      return; }
+	if (instance_exists(syst_ccore_panel))      { ccore_close();      return; }
 	if (instance_exists(syst_rebirth) && syst_rebirth.open) { syst_rebirth.open = false; return; }
 }

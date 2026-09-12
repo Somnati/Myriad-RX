@@ -420,6 +420,21 @@ function handle_save(){
 		}
 	}
 
+	section = "ccore";
+	ccore_init();
+	g.ccore.lv        = handle("cc_lv",    g.ccore.lv);
+	g.ccore.split     = handle("cc_split", g.ccore.split);
+	g.ccore.xp        = handle("cc_xp",    g.ccore.xp);
+	g.ccore.st        = handle("cc_st",    g.ccore.st);
+	g.ccore.cool_from = handle("cc_cool",  g.ccore.cool_from);
+	if (action == sv_load) {
+		g.ccore.lv    = max(0, floor(g.ccore.lv));
+		g.ccore.split = clamp(round(g.ccore.split / 5) * 5, 0, 100);
+		g.ccore.st    = clamp(floor(g.ccore.st), 0, 3);
+		g.ccore.xp    = max(0, g.ccore.xp);
+		if (g.ccore.lv <= 0) g.ccore.st = 0;
+	}
+
 	section = "battery";
 	battery_init();
 	g.battery.charge     = handle("bat_charge",  g.battery.charge);

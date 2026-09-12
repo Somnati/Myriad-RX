@@ -116,6 +116,7 @@ function offline_replay(_secs) {
 	g.battery.opt_rate = undefined;
 	g.tile_boost_override = undefined;
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
+	ccore_tick(_secs);    // ...and the credit core's well fills (to its cap) on the same clock
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)
@@ -135,7 +136,8 @@ function offline_replay(_secs) {
 		bat_ran : _cov, bat_dry : (_cov < _secs - 1),
 		bat_pct : floor(100 * g.battery.charge / max(1, battery_cap())), // what is LEFT (his ask, 2026-09-11)
 		bat_opt : (_opt == undefined) ? 0 : _opt.s,
-		sprite_taps : _spr_taps, sprite_n : array_length(g.sprites) };
+		sprite_taps : _spr_taps, sprite_n : array_length(g.sprites),
+		ccore_full : (g.ccore.st == 2) };
 	show("offline > away " + crunch_time_long(_secs * 60)
 		+ ", earned +" + ((_gain > 0) ? crunch_arb(_gain) : "0"));
 }

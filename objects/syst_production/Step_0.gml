@@ -17,6 +17,7 @@ var _secs = timebank_spend();
 
 prod_dials(_secs);
 credit_tick(_secs);   // the dropper's pool + cooldown, same clock
+ccore_tick(_secs);    // the credit core's well, same clock
 
 // AUTOMATION runs on the REAL clock, not the accelerated one: a pulse a
 // second is a pacing decision, and speeding it up would only spend the

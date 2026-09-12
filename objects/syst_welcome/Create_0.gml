@@ -33,6 +33,8 @@ else
 		c : (_bp >= 0 && _bp < 25) ? c_horange : c_sgreen });
 var _bo = _r[$ "bat_opt"] ?? 0;
 if (_bo > 0) array_push(rows, { l : "optimiser", v : "x" + string_format(_bo, 1, 2), c : c_sgreen });
+if (_r[$ "ccore_full"] ?? false)
+	array_push(rows, { l : "credit core", v : "full - collect it", c : c_lavender });
 var _sn = _r[$ "sprite_n"] ?? 0;
 if (_sn > 0) {
 	var _st = _r[$ "sprite_taps"] ?? 0;

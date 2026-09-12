@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ccore_collect",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ccore_collect",
+  "parent":{
+    "name":"credits",
+    "path":"folders/game/credits.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

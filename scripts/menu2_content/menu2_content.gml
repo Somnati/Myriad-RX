@@ -19,6 +19,7 @@ function menu2_content() {
 	menu2_button("automation",   function() { automation_open(); }, c_sblue);
 	menu2_button("time bank",    function() { timebank_open(); }, c_gold);
 	menu2_button("battery",      function() { battery_open(); },  c_sgreen);   // the offline budget + the crank
+	menu2_button("credit core",  function() { ccore_open(); },    c_lavender); // DE's credit farm, the well of credits
 	// the line says when a gift is waiting - the menu rebuilds on every
 	// open, so the label is live (Techdemo II's calendar, ported)
 	menu2_button(gift_can_claim() ? "daily gift  -  ready" : "daily gift",

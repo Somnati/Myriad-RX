@@ -33,6 +33,7 @@ function timebank_burn(_secs) {
 	var _before = g.profit;
 	prod_dials(_secs);
 	credit_tick(_secs);
+	ccore_tick(_secs);
 
 	for (var _i = 0; _i < g.dial_total; _i++) g.dial[_i].paid = false;
 

@@ -339,6 +339,18 @@ function main_macros() {
 #macro BAT_W_FAB         .5 // ...the fabricator...
 #macro BAT_W_MERGE        1 // ...and the automerger (the compounders cost)
 
+// ---- THE CREDIT CORE (Myriad DE's credit farm, ported 2026-09-12 -
+// "as is", his call; read ccore_tick) ----
+// A slow well of credits you collect by hand. ONE level ladder, split
+// by a slider between CAPACITY (how many it holds) and RATE (how fast
+// it fills); it fills to the cap and stops, a collect pays what is in
+// it and the core cools for CCORE_COOL seconds before it fills again.
+// DE's numbers: 30 credits at level 0, filled in 150 minutes.
+#macro CCORE_CAP0   30     // credits the well holds at split-level 0
+#macro CCORE_MIN0  150     // minutes it takes to fill at rate-level 0
+#macro CCORE_COOL   10     // seconds the cooldown takes after a collect
+#macro CCORE_COST0   5     // credits the first level costs (DE's 5 + (1 + lv/20) x lv)
+
 // ---- THE TITLE SCREEN ----
 // The bottom-lit teal gradient over the field (syst_titlescreen's
 // __draw_grad). OFF to see the title bare - "more black and less fog"
