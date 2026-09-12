@@ -569,6 +569,13 @@ function main_macros() {
                                 // literal: GML will not parse 1e8)
 #macro TILE_FLUX_STEP   .01   // output x (1 + STEP x flux^POW): +1% each
 #macro TILE_FLUX_RAR    50    // the flux ladder's rarity floor, rate a level (tile_flux_config)
+// ⚖️ THE SHARD ROSTER RESHAPED (the twin, 2026-09-12, after the split
+// took the profit row out): curve 2 packed a quarter of every ladder
+// into a hundredth of its span - 32 buys in the first hour, a slot
+// machine - and left the mid ladder so sparse the late day walled for
+// eight hours. 1.25 with every base x3 buys eleven in the first hour
+// and the plateau lands where the reset is on offer (tiles_twin
+// sections 3-5, checked across seeds)
 #macro TILE_FLUX_POW      1   // linear - his call
 
 #macro TILE_DIAL_DIV    100
@@ -615,7 +622,7 @@ function main_macros() {
 // early half nobody would ever climb. CURVE 2 spends the same span
 // unevenly: level 5 at 1e7, level 10 at 1e16, level 50 still exactly on
 // TOP. The budget does not move; only who can reach which part of it.
-#macro TILE_UPG_CURVE     2  // every upgrade's price curve (his call):
+#macro TILE_UPG_CURVE  1.25  // every upgrade's price curve (his call):
                              // 1 = a straight line, higher = a slower
                              // start and a steeper finish
 #macro TILE_PROFIT_CURVE 1.25 // ...except profit's, which must NOT

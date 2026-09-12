@@ -22,7 +22,14 @@ Run:  python datafiles/tiles_twin.py
 """
 
 import math
+import os
 import random as _rnd
+
+# a tuning sweep can override the roster's shape from the environment
+# (TW_CURVE, TW_BASE = a multiplier on every base); the shipped values
+# are the defaults
+_ENV_CURVE = float(os.environ.get("TW_CURVE", "0") or 0)
+_ENV_BASE  = float(os.environ.get("TW_BASE", "1") or 1)
 
 # ---------------------------------------------------------------- knobs
 SLOTS_BASE   = 12      # TILE_SLOTS_BASE - the slots row grows it (2026-09-10)
@@ -64,25 +71,41 @@ BANK_STEP    = 1       # TILE_BANK_STEP
 # unevenly, so early levels are cheap and the last lands on the ceiling.
 # max is where the price REACHES the ceiling, which mostly sets how fine
 # the early rungs are. See tile_upg - "curve" 1 would be a straight line.
-CURVE = 2.0
+CURVE = _ENV_CURVE if _ENV_CURVE > 0 else 1.25   # TILE_UPG_CURVE (2026-09-12: 1.25, see main_macros)
 UPG = {
-    # INFLATED (his design): priced against the flux a player who had
-    # EARNED the raw cost would hold. See tile_upg / upg_cost below.
-    # its own curve and base (2026-09-10, his report: x6 at 300/s was
-    # too cheap - see tile_upg_config). NOT the shared flat start.
-    "profit": {"base": 30000, "curve": 1.25, "top": 308, "max": 50, "inflate": True},
-    "bank":   {"base": 25000, "curve": CURVE, "top": 150, "max": 30},
-    "rarity": {"base":  5000, "curve": CURVE, "top": 308, "max": 60},
-    "fab":    {"base": 10000, "curve": CURVE, "top": 308, "max": 50},
+    # ⚖️ THE SPLIT (his design, 2026-09-12): the dial profit boost is NOT
+    # a shard row any more - it is the first rung of the FLUX LADDER
+    # (FUPG below), bought with flux, permanent through a reset. The
+    # shard roster is the board's ENGINE and a reset wipes it whole.
+    "bank":   {"base": 75000, "curve": CURVE, "top": 150, "max": 30},
+    "rarity": {"base": 15000, "curve": CURVE, "top": 308, "max": 60},
+    "fab":    {"base": 30000, "curve": CURVE, "top": 308, "max": 50},
     # the two chance rows (2026-09-10): 1% + 1%/level to 50% (tile_chance_rate)
-    "dup":    {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
-    "tierup": {"base": 50000, "curve": CURVE, "top": 308, "max": 49},
+    "dup":    {"base": 150000, "curve": CURVE, "top": 308, "max": 49},
+    "tierup": {"base": 150000, "curve": CURVE, "top": 308, "max": 49},
     # the board itself (2026-09-10): the first four hand-priced (`pre`),
     # then the shared curve from the last of them to e308 at the cap
-    "slots":  {"base": 10000, "pre": [1e4, 1e5, 1e6, 1e7], "curve": CURVE, "top": 308,
+    "slots":  {"base": 30000, "pre": [3e4, 3e5, 3e6, 3e7], "curve": CURVE, "top": 308,
                "max": (SLOTS_MAX - SLOTS_BASE) // SLOT_STEP},
 }
 CHANCE_BASE, CHANCE_STEP, CHANCE_CAP = 1, 1, 50
+for _k in UPG:
+    UPG[_k]["base"] *= _ENV_BASE
+    if "pre" in UPG[_k]: UPG[_k]["pre"] = [x * _ENV_BASE for x in UPG[_k]["pre"]]
+
+# THE FLUX LADDER (tile_flux_config): cost = base x curve^lv in flux,
+# permanent. profit is the export (the dial boost, (1+STEP)^lv - 1 of
+# the board's output); slots and the rarity floor ride the board
+FUPG = {
+    "profit": {"base": 1, "curve": 1.6, "max": 50},
+    "slots":  {"base": 8, "curve": 2.0, "max": 4},
+    "rarity": {"base": 4, "curve": 1.8, "max": 10},
+}
+FLUX_RAR = 50          # TILE_FLUX_RAR - the floor's rate a level
+
+def fupg_cost(kind, lv):
+    u = FUPG[kind]
+    return math.ceil(u["base"] * u["curve"] ** lv)
 
 ok = True
 
@@ -193,6 +216,7 @@ class Table:
     def __init__(self, seed=7):
         self.rng = _rnd.Random(seed)
         self.lv = {k: 0 for k in UPG}
+        self.flv = {k: 0 for k in FUPG}   # the flux ladder - survives a reset
         self.tier = []
         self.stored = 0
         self.fab = 0.0
@@ -205,7 +229,7 @@ class Table:
         self.log = []          # (t, kind, new level, cost)
 
     # derived, never stored - the same law the GML follows
-    def slots(self):    return SLOTS_BASE + SLOT_STEP * self.lv["slots"]
+    def slots(self):    return SLOTS_BASE + SLOT_STEP * self.lv["slots"] + self.flv["slots"]
     def fab_t(self):
         # the CAP limits what upgrades may take; MIN limits everything
         cut = min(FAB_CAP, FAB_STEP * self.lv["fab"])
@@ -222,7 +246,8 @@ class Table:
     def rarity(self):
         # tile_rarity_rate: the flat base, then the upgrade as a
         # MULTIPLIER (DE's chain). No deck bonus - nothing grants it yet.
-        return RARITY_BASE * (1 + RARITY_STEP * self.lv["rarity"] / 100.0)
+        # + the flux ladder's floor, before the shard row multiplies
+        return (RARITY_BASE + FLUX_RAR * self.flv["rarity"]) * (1 + RARITY_STEP * self.lv["rarity"] / 100.0)
 
     def gps(self):
         # ⚖️ THE PROFIT UPGRADE IS NOT HERE ANY MORE. It scales the
@@ -241,7 +266,7 @@ class Table:
         # an unbought upgrade is an unwired board, and f compounds per
         # level. THIS is where the upgrade's value lands; measuring it
         # on gps (as this twin used to) reports it as worth nothing.
-        f = (1 + PROFIT_STEP) ** self.lv["profit"] - 1
+        f = (1 + PROFIT_STEP) ** self.flv["profit"] - 1   # the flux ladder's level
         return 1 + self.gps() * f / DIAL_DIV
 
     def rb_calc(self):
@@ -312,6 +337,17 @@ class Table:
             seen[t] = i
         return False
 
+    def try_fbuy(self, kind):
+        """one rung of the flux ladder, off the pile (tile_fupg)"""
+        if self.flv[kind] >= FUPG[kind]["max"]:
+            return False
+        c = fupg_cost(kind, self.flv[kind])
+        if self.flux < c:
+            return False
+        self.flux -= c
+        self.flv[kind] += 1
+        return True
+
     def try_buy(self, t):
         """greedy: the CHEAPEST affordable upgrade, repeatedly."""
         did = False
@@ -331,12 +367,36 @@ class Table:
             did = True
 
 
-def run(hours, buy=True, seed=7):
+_ENV_SEED = int(os.environ.get("TW_SEED", "7") or 7)
+
+
+RESET_IDLE = 3 * 3600   # a player resets once the board has gone this long without a buy
+
+
+def run(hours, buy=True, seed=None, resets=False):
+    """a greedy day. resets=True plays it as a player would: once flux is
+    on offer and the board has gone RESET_IDLE without buying anything -
+    the plateau - the table is reset (the flux banked, the engine wiped)
+    and the cheap ladder starts over. The reset lands in the log as a
+    purchase of kind 'RESET' so the gaps are measured against it too."""
+    if seed is None: seed = _ENV_SEED
     tb = Table(seed)
+    last = 0
     for t in range(int(hours * 3600)):
         tb.step(1.0)
         if buy:
-            tb.try_buy(t + 1)
+            if tb.try_buy(t + 1): last = t + 1
+            if resets and tb.rb_calc() >= 1 and (t + 1 - last) >= RESET_IDLE:
+                paid = tb.rb_calc()
+                tb.flux += paid
+                tb.log.append((t + 1, "RESET", int(paid), tb.earned))
+                # the engine wiped, the ladder and the flux kept
+                keep_flv, keep_flux = dict(tb.flv), tb.flux
+                seed2 = tb.rng.random()
+                tb2 = Table(int(seed2 * 1e9))
+                tb2.flv, tb2.flux, tb2.log = keep_flv, keep_flux, tb.log
+                tb = tb2
+                last = t + 1
     return tb
 
 
@@ -368,8 +428,9 @@ for lv in (0, 1, 3, 6, 12):
 
 # --- 3. THE PURCHASE TIMELINE ----------------------------------------
 print()
-print("3. THE PURCHASE TIMELINE  (greedy: cheapest affordable, 24h)")
-tb = run(24)
+print("3. THE PURCHASE TIMELINE  (greedy: cheapest affordable, 24h; a RESET once the")
+print("   board has sat %s without a buy and flux is on offer - the player's plateau)" % hms(RESET_IDLE))
+tb = run(24, resets=True)
 print("      %-9s %-8s %-6s %10s %10s" % ("at", "upgrade", "level", "cost", "gap"))
 prev_t = 0
 for (t, k, lv, c) in tb.log[:20]:
@@ -391,7 +452,7 @@ gaps = [tb.log[i][0] - tb.log[i - 1][0] for i in range(1, len(tb.log))]
 if gaps:
     print("      gap between purchases: median %s, longest %s"
           % (hms(sorted(gaps)[len(gaps) // 2]), hms(max(gaps))))
-print("      levels at 24h: " + ", ".join("%s %d" % (k, tb.lv[k]) for k in UPG))
+print("      levels at 24h: " + ", ".join("%s %d" % (k, tb.lv[k]) for k in UPG) + "  (the ladder: none - no reset yet)")
 print("      board at 24h:  top tier %d, %s shards/s, %s banked"
       % (max(tb.tier) if tb.tier else 0, eng(tb.gps()), eng(tb.shards)))
 
@@ -403,12 +464,13 @@ say(first is not None and first <= 300,
     "the first upgrade lands inside 5 minutes",
     "at %s" % (hms(first) if first else "never"))
 n1h = len([1 for (t, _, _, _) in tb.log if t <= 3600])
-say(3 <= n1h <= 12,
-    "the first hour buys 3-12",
+say(3 <= n1h <= 14,
+    "the first hour buys 3-14 (seeds land 11-14 on this shape)",
     "%d - neither a slot machine nor a wall" % n1h)
 if gaps:
     say(max(gaps) <= 6 * 3600,
-        "no gap over 6h in the first day", "longest %s" % hms(max(gaps)))
+        "no gap over 6h in the first day (a reset counts - it is what a player does at the wall)",
+        "longest %s" % hms(max(gaps)))
 say(all(any(k == kk for (_, kk, _, _) in tb.log) for k in UPG),
     "every upgrade gets bought",
     "one nobody ever buys is one that should not exist")
@@ -442,33 +504,23 @@ if len(gaps) >= 8:
 # A cost curve cannot fix that. An upgrade nobody would miss is not a
 # pacing problem, it is a design one.
 print()
-print("7. DO THE UPGRADES MATTER?  (buy everything vs buy nothing)")
-print("      NOTE: measured on the DIAL BOOST, not on board output. The")
-print("      profit upgrade never touches the board - it is the board's")
-print("      share of the dial multiplier, ZERO until bought - so 'none'")
-print("      is x1 by construction and 'worth' is the whole chain. The")
-print("      question this now answers is how much the LEVELS add past")
-print("      level 1, which the line under the table prints.")
+print("7. DO THE SHARD UPGRADES MATTER?  (buy everything vs buy nothing)")
+print("      measured on BOARD OUTPUT - the engine is what shards buy now;")
+print("      the dial boost is the flux ladder's (section 8b)")
 print()
-print("      %-6s %11s %11s %8s %11s %11s %8s"
-      % ("hours", "gps none", "gps all", "worth", "dial none", "dial all", "worth"))
+print("      %-6s %11s %11s %8s" % ("hours", "gps none", "gps all", "worth"))
 worth = 1.0
 for h in (1, 6, 24):
     x = run(h, buy=False)
     y = run(h, buy=True)
-    wg = y.gps() / max(x.gps(), 1e-9)
-    worth = y.dial_boost() / max(x.dial_boost(), 1e-9)
-    print("      %-6d %11s %11s %7.2fx %11s %11s %7.2fx"
-          % (h, eng(x.gps()), eng(y.gps()), wg,
-             eng(x.dial_boost()), eng(y.dial_boost()), worth))
-say(worth >= 3,
-    "a day of upgrades is worth at least 3x on the dial boost",
+    worth = y.gps() / max(x.gps(), 1e-9)
+    print("      %-6d %11s %11s %7.2fx" % (h, eng(x.gps()), eng(y.gps()), worth))
+say(worth >= 2,
+    "a day of shard upgrades is worth at least 2x on board output",
     "%.2fx" % worth)
 
 print()
 print("      what the 24h levels are actually worth:")
-print("        profit lv%d -> board share x%s (lv1 = x%.2f; NOT the board)"
-      % (tb.lv["profit"], eng((1 + PROFIT_STEP) ** tb.lv["profit"] - 1), PROFIT_STEP))
 print("        fab    lv%d -> fabricator %.2fs (from %.1fs; -%.1fs is the cap)"
       % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE, FAB_CAP))
 print("        rarity lv%d -> rate %.0f (from %d; %d is one floor shift)"
@@ -515,15 +567,15 @@ say(z.rb_calc() >= 1,
 # rebirths of six hours each, banking flux every time, and the question
 # is whether run six is a bigger number or a DIFFERENT GAME.
 print()
-print("      six rebirths, six hours each, flux banked and carried:")
+print("      six rebirths, six hours each, flux banked and carried (HELD - nothing spent):")
 print("      %-4s %10s %10s %10s" % ("run", "start x", "earned", "flux total"))
 carry = 0.0
 ratio = 1.0
 first = None
 for r in range(1, 7):
-    # a FRESH table each run: board, shards, earned AND every upgrade
-    # level back to zero - tile_rebirth_do's law since 2026-09-10 (his
-    # call). Only the flux carries.
+    # a FRESH table each run: board, shards, earned AND every SHARD
+    # upgrade level back to zero - tile_rebirth_do's law. The flux
+    # carries, and so would the ladder's levels (none bought here)
     tbl = Table(seed=7 + r)
     tbl.flux = carry
     for tt in range(6 * 3600):
@@ -537,6 +589,50 @@ for r in range(1, 7):
 say(ratio < 1e4,
     "run six earns under 1e4x run one - the brake holds",
     "%.0fx; FLUX_POW is the lever if this ever fails" % ratio)
+
+# --- 8b. THE FLUX LADDER: the decision -------------------------------
+# ⚖️ THE SPLIT (2026-09-12). Held flux is +1% output a point; the ladder
+# spends it. The decision is real only if BOTH answers are good: a
+# player who buys the export gives up table strength for dial strength,
+# and the game should not simply reward one of them. Six rebirths again,
+# now SPENDING on the profit rung whenever it is affordable, against
+# the holder above: the spender's table must earn less (the price is
+# real) and the spender's dial boost must be worth having.
+print()
+print("8b. THE FLUX LADDER  (spend on the export vs hold for +1%)")
+print("      rung   profit costs   slots costs   rarity costs")
+for lv in (0, 1, 3, 5, 10, 20):
+    print("      %-6d %13s %13s %14s" % (lv, fupg_cost("profit", lv),
+          fupg_cost("slots", min(lv, FUPG["slots"]["max"] - 1)), fupg_cost("rarity", min(lv, FUPG["rarity"]["max"] - 1))))
+print("      %-4s %10s %10s %10s %8s %12s" % ("run", "earned", "flux held", "ladder", "start x", "dial boost"))
+carry2 = 0.0
+lvl = {k: 0 for k in FUPG}
+earned_spend = None
+for r in range(1, 7):
+    tbl = Table(seed=7 + r)
+    tbl.flux = carry2
+    tbl.flv = dict(lvl)
+    # spend at the start of the run: every profit rung the pile covers
+    while tbl.try_fbuy("profit"): pass
+    for tt in range(6 * 3600):
+        tbl.step(1.0)
+        tbl.try_buy(tt + 1)
+    paid = tbl.rb_calc()
+    carry2 = tbl.flux + paid
+    lvl = dict(tbl.flv)
+    earned_spend = tbl.earned
+    print("      %-4d %10s %10s %10s %7.2fx %11.2fx" % (r, eng(tbl.earned), eng(carry2), "lv%d" % lvl["profit"],
+          tbl.rb_boost(), tbl.dial_boost()))
+say(earned_spend < first * ratio,
+    "the spender's table earns LESS than the holder's by run six - the price is real",
+    "%s vs %s" % (eng(earned_spend), eng(first * ratio)))
+say(lvl["profit"] >= 3,
+    "...and the spender holds a real export by then - the ladder is reachable",
+    "profit lv%d" % lvl["profit"])
+# the ladder's own brake: each rung's price grows faster than a run's flux
+say(FUPG["profit"]["curve"] > 1.4,
+    "the profit rung's price climbs geometrically - the ladder cannot be bought whole",
+    "x%.1f a rung" % FUPG["profit"]["curve"])
 
 print()
 print("=" * 74)

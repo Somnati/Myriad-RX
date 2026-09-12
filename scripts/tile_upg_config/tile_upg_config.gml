@@ -71,7 +71,7 @@ function tile_upg_config() {
 			// 1 would be the old straight line, 2 puts a quarter of the
 			// levels inside a hundredth of the span, 3 makes the first
 			// ten nearly free.
-			id : "fab", name : "fabrication speed", base : 10000,
+			id : "fab", name : "fabrication speed", base : 30000,
 			curve : TILE_UPG_CURVE, top : TILE_FAB_TOP,
 			max : TILE_FAB_CAP div TILE_FAB_STEP,
 			fmt : function(_lv) {
@@ -113,7 +113,7 @@ function tile_upg_config() {
 			// because each one is +50% of a rate whose thresholds are
 			// 400 apart - a rarity level is a bigger event than a profit
 			// level and should be spaced like one
-			id : "rarity", name : "tile rarity", base : 5000,
+			id : "rarity", name : "tile rarity", base : 15000,
 			curve : TILE_UPG_CURVE, top : 308, max : 60,
 			fmt : function(_lv) {
 				return "+" + string(TILE_RARITY_STEP * _lv) + "%";
@@ -144,7 +144,7 @@ function tile_upg_config() {
 			// - the same thirty rungs to the same 1e150 - so only the
 			// FLOOR moved, and a first hopper tile now costs what a
 			// fourth profit level does rather than a second.
-			id : "bank", name : "hopper", base : 25000,
+			id : "bank", name : "hopper", base : 75000,
 			curve : TILE_UPG_CURVE, top : 150, max : 30,
 			fmt : function(_lv) {
 				return string(TILE_BANK_BASE + TILE_BANK_STEP * _lv);
@@ -172,8 +172,8 @@ function tile_upg_config() {
 			// for the automerger, a longer fabricator queue before the
 			// hopper matters - which is why it earns a curve of its own
 			// opening rather than the hopper's low flat base.
-			id : "slots", name : "tile slots", base : 10000,
-			pre : [10000, 100000, 1000000, 10000000],
+			id : "slots", name : "tile slots", base : 30000,
+			pre : [30000, 300000, 3000000, 30000000],
 			curve : TILE_UPG_CURVE, top : 308,
 			max : (TILE_SLOTS_MAX - TILE_SLOTS_BASE) div TILE_SLOT_STEP,
 			fmt : function(_lv) {
@@ -194,7 +194,7 @@ function tile_upg_config() {
 			// nudges to the ceiling is the fab row's shape exactly.
 			// The cap is DERIVED from the three macros so the row can
 			// never quote a level the rate would clamp.
-			id : "dup", name : "duplication", base : 50000,
+			id : "dup", name : "duplication", base : 150000,
 			curve : TILE_UPG_CURVE, top : 308,
 			max : (TILE_CHANCE_CAP - TILE_CHANCE_BASE) div TILE_CHANCE_STEP,
 			fmt : function(_lv) {
@@ -208,7 +208,7 @@ function tile_upg_config() {
 			     + "room - a full board and hopper drop it",
 		},
 		{
-			id : "tierup", name : "tier up", base : 50000,
+			id : "tierup", name : "tier up", base : 150000,
 			curve : TILE_UPG_CURVE, top : 308,
 			max : (TILE_CHANCE_CAP - TILE_CHANCE_BASE) div TILE_CHANCE_STEP,
 			fmt : function(_lv) {
