@@ -533,6 +533,22 @@ for _p, _s in srcs.items():
                 _mshadow.append(f"{_p}: var {_nm}")
 check("no variable named after a #macro", not _mshadow, "; ".join(_mshadow[:4]))
 
+# --- 8i. no primitive draw in a file that sets a shader. GM's
+# draw_circle / draw_line / draw_rectangle / draw_triangle vertices
+# carry no texcoord, and a shader that reads in_TextureCoord cannot
+# build an input layout over them ("Could not generate input layout" -
+# the battery crank under sh_ui_fade, 2026-09-11). The house draws in
+# spr_pixel_1x1 stamps; a primitive in a file that also sets a shader
+# (ui_fade_set counts) is flagged.
+_prim = re.compile(r"(?<![\w.])(draw_circle|draw_line|draw_line_width|draw_rectangle|draw_triangle|draw_ellipse|draw_roundrect|draw_arrow|draw_primitive_begin)\s*\(")
+_prims = []
+for _p, _s in srcs.items():
+    if "shader_set(" not in _s and "ui_fade_set(" not in _s and "__part(" not in _s:
+        continue
+    for _m in _prim.finditer(_s):
+        _prims.append(f"{_p}: {_m.group(1)}")
+check("no primitive draw (no texcoord) in a file that sets a shader", not _prims, "; ".join(_prims[:4]))
+
 # --- 8d. every settings global reachable by handle_settings needs a
 # BOOT default, or the very first load reads an unset global and the
 # game dies at the splash. settings_defaults() does not count: it only

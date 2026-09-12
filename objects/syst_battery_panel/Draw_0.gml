@@ -129,27 +129,44 @@ if (__part(4) > 0) {
 // ---- THE CRANK ----
 if (__part(5) > 0) {
 	var _gc = merge_colour(c_sgreen, c_white, .3 * crank_glow);
-	// the wheel: rim, hub, four spokes, the handle
-	draw_set_color(c_black);
-	draw_set_alpha(.7);
-	draw_circle(crank_cx, crank_cy, crank_r, false);
-	draw_set_alpha(.85);
-	draw_set_color(_gc);
-	draw_circle(crank_cx, crank_cy, crank_r, true);
-	draw_circle(crank_cx, crank_cy, crank_r - 1, true);
+	// ⚖️ STAMPS, NOT PRIMITIVES (his report, 2026-09-11: "Could not
+	// generate input layout"). While the panel is arriving __part
+	// leaves sh_ui_fade set, and that shader reads in_TextureCoord -
+	// which GM's draw_circle / draw_line_width vertices do not carry,
+	// so the input layout could not be built. Everything here is
+	// spr_pixel_1x1 now, in the house grammar: a rasterised disc
+	// (rows), a one-cell ring, spokes as cells along the radius.
+	// the disc, row by row
+	for (var _dy = -crank_r; _dy <= crank_r; _dy++) {
+		var _hw = sqrt(max(0, sqr(crank_r) - sqr(_dy)));
+		draw_sprite_ext(spr_pixel_1x1, 0, floor(crank_cx - _hw), floor(crank_cy + _dy),
+			max(1, round(_hw * 2)), 1, 0, c_black, .7);
+	}
+	// the rim: one cell per degree-ish, two px thick
+	var _steps = round(crank_r * 6.3);
+	for (var _k = 0; _k < _steps; _k++) {
+		var _ra = _k * 360 / _steps;
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(crank_cx + lengthdir_x(crank_r - 1, _ra)), floor(crank_cy + lengthdir_y(crank_r - 1, _ra)),
+			2, 2, 0, _gc, .85);
+	}
+	// four spokes, cells along the radius
 	for (var _k = 0; _k < 4; _k++) {
 		var _sa = ang + _k * 90;
-		draw_line_width(crank_cx, crank_cy,
-			crank_cx + lengthdir_x(crank_r - 2, _sa), crank_cy + lengthdir_y(crank_r - 2, _sa), 2);
+		for (var _d = 4; _d < crank_r - 2; _d++)
+			draw_sprite_ext(spr_pixel_1x1, 0,
+				floor(crank_cx + lengthdir_x(_d, _sa)), floor(crank_cy + lengthdir_y(_d, _sa)),
+				2, 2, 0, _gc, .85);
 	}
-	draw_set_color(merge_colour(_gc, c_black, .4));
-	draw_circle(crank_cx, crank_cy, 5, false);
+	// the hub
+	draw_sprite_ext(spr_pixel_1x1, 0, floor(crank_cx) - 4, floor(crank_cy) - 4, 9, 9, 0,
+		merge_colour(_gc, c_black, .4), .95);
 	// the handle knob, on the rim at the crank's angle
-	var _hx = crank_cx + lengthdir_x(crank_r, ang);
-	var _hy = crank_cy + lengthdir_y(crank_r, ang);
-	draw_set_color(held ? c_gold : c_white);
-	draw_set_alpha(.95);
-	draw_circle(_hx, _hy, 4, false);
+	var _hx = floor(crank_cx + lengthdir_x(crank_r, ang));
+	var _hy = floor(crank_cy + lengthdir_y(crank_r, ang));
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, held ? c_gold : c_white, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, held ? c_gold : c_white, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, held ? c_gold : c_white, .95);
 	draw_set_halign(fa_center);
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);

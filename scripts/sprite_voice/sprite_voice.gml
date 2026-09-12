@@ -11,9 +11,14 @@ function sprite_voice(_s, _kind) {
 	// the downloads folder, converted to 16-bit mono): one pool per
 	// kind, any length; an empty one falls back to the pop
 	var _pool = [];
+	// ⚖️ A SPRITE'S TAP IS THE TAP SOUND (his call, 2026-09-11: "only be
+	// the standard tap sounds... no sprite sound cause it's loud"): the
+	// player's own pick from settings > audio, through sfx_play at a
+	// quiet share of the tap fader - so changing the tap sound changes
+	// theirs, and muting taps mutes them
+	if (_kind == "tap") { sfx_play("tap", .45); return; }
 	switch (_kind) {
 		case "poke":  _pool = [snd_sprite_poke];  break;
-		case "tap":   _pool = [snd_sprite_tap];   break;
 		case "wake":  _pool = [snd_sprite_wake];  break;
 		case "sleep": _pool = [snd_sprite_sleep]; break;
 	}
