@@ -251,15 +251,26 @@ for (var _i = 0; _i < _nrows; _i++) {
 	// the toggle
 	if (_rw.kind == 0 || _rw.kind == 2 || _rw.kind == 4 || _rw.kind == 5) {
 		var _tg = __tog_r(_i);
+		// ⚖️ THE AUTOBUY ROWS' PILL IS THE VERDICT (his report, 2026-09-12:
+		// the "waiting" beside the name overlapped the tile rows' long
+		// names, and the dials' p/s owns the row's end). An autobuy row
+		// has three states, not two - off / waiting / buying - and the
+		// switch you press is the one place that can hold them for every
+		// row alike: orange while it waits, green while it buys
+		var _vc = _rw.col, _vt = (_rw.on ? "on" : "off");
+		if (_rw.kind == 4) _vt = (_rw.on ? "keep" : "sell");
+		if (_rw.kind == 5 && _rw.on) {
+			_vt = (_rw.st == 2) ? "buying" : "waiting";
+			_vc = (_rw.st == 2) ? c_sgreen : c_horange;
+		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tg.x, _tg.y, _tg.w, _tg.h, 0,
-			_rw.on ? merge_colour(_rw.col, c_black, .5) : c_black,
+			_rw.on ? merge_colour(_vc, c_black, .5) : c_black,
 			_rw.on ? .95 : .5);
-		draw_px_rect(_tg.x, _tg.y, _tg.w, _tg.h, _rw.col, _rw.on ? .9 : .3);
+		draw_px_rect(_tg.x, _tg.y, _tg.w, _tg.h, _vc, _rw.on ? .9 : .3);
 		draw_set_halign(fa_center);
 		draw_set_color(_rw.on ? c_white : _dim);
 		draw_set_alpha(_rw.on ? .95 : .6);
-		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 1,
-			(_rw.kind == 4) ? (_rw.on ? "keep" : "sell") : (_rw.on ? "on" : "off"));
+		draw_text(_tg.x + _tg.w / 2 + 1, _tg.y + 1, _vt);
 		draw_set_halign(fa_left);
 	}
 
@@ -335,19 +346,8 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_text(_tm.x + _tm.w + 4, _ry + 2, __tm_str(_rw.t));
 	}
 
-	// the autobuy rows' verdict pill: what the automation did last
-	// attempt - beside the name; the dial's own p/s takes the row's end
-	// (the strongest in gold)
-	if (_rw.st >= 0) {
-		draw_set_halign(fa_left);
-		// GML will not parse a ternary whose ELSE branch is itself a bare
-		// ternary - the nested one has to be parenthesised
-		draw_set_color((_rw.st == 2) ? c_sgreen
-			: ((_rw.st == 1) ? c_horange : _dim));
-		draw_set_alpha((_rw.st == 0) ? .35 : .8);
-		draw_text(cont_x + 42, _ry + 2,
-			(_rw.st == 2) ? "buying" : ((_rw.st == 1) ? "waiting" : "off"));
-	}
+	// (the autobuy rows' verdict rides their toggle pill - see above;
+	// the dial's own p/s takes the row's end, the strongest in gold)
 	if (variable_struct_exists(_rw, "sub")) {
 		draw_set_halign(fa_right);
 		draw_set_color(_rw.top ? c_gold : merge_colour(_rw.col, c_white, .5));

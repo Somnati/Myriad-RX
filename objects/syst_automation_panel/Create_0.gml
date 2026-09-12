@@ -118,7 +118,7 @@ __tab_rect = function(_i) {
 // the autobuy rows a second, shorter track for the timer. Not every
 // row uses all of it; the ones that do all put it in the same place,
 // which is the only reason a page of them is readable.
-tog_x = 0; tog_w = 30;
+tog_x = 0; tog_w = 36;      // wide enough for "waiting" - the autobuy rows' pill IS the verdict
 trk_x = 0; trk_w = 150;     // the wide track (kinds 1 and 2)
 cap_x = 0; cap_w = 76;      // the cap track (kind 5)...
 tm_x  = 0; tm_w  = 56;      // ...and the timer track beside it
@@ -130,8 +130,8 @@ __seat = function() {
 	// a verdict pill, and they were being right-aligned to the same
 	// pixel - the pill drew straight over the number
 	trk_w = cont_w - 134 - 96;
-	cap_x = cont_x + 132;
-	tm_x  = cont_x + 240;
+	cap_x = cont_x + 138;
+	tm_x  = cont_x + 246;
 };
 __seat();
 __chip_seat();
