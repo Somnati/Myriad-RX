@@ -30,7 +30,7 @@ function num_format_config() {
 	return [
 		{ id : "short",       name : "short",       help : "k m b t, then aa ab ac... - three decades a step" },
 		{ id : "words",       name : "words",       help : "quadrillion, quintillion... abbreviated on costs, spelled out under the counter" },
-		{ id : "scientific",  name : "scientific",  help : "1.23e15 - the true exponent" },
+		{ id : "scientific",  name : "scientific",  help : "k m b t up to a trillion, then 1.23e15 - the true exponent" },
 		{ id : "logarithmic", name : "logarithmic", help : "e15.09 - the log itself; x10 is always +1" },
 	];
 }

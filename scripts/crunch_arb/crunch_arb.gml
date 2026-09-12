@@ -21,6 +21,13 @@ function crunch_arb() {
 	// digits in every format; from there each format has its own idea
 	// of where the digits stop.
 	var _fmt = variable_global_exists("num_format") ? g.num_format : 0;
+	// ⚖️ SCIENTIFIC WEARS THE SHORT SUFFIXES UP TO A TRILLION (his ask,
+	// 2026-09-11: "show the words up to trillion then switch to normal
+	// scientific"). Under 1e15 it is the short format - 1.23k, 45.6m,
+	// 7.89b, 1.20t, the numbers everyone reads at a glance - and from
+	// 1e15 the true exponent takes over. Logarithmic keeps its own
+	// shape throughout (a log is a log).
+	if (_fmt == 2 && _aexp < 15) _fmt = 0;
 	if (_fmt >= 2 && _aexp >= 3) {
 		// ---- the exponent formats: digits with commas under a million ----
 		if (_aexp < 6) return crunch_arb_full(argument[0], 6);   // (the cap is an EXPONENT: digits under a million)
