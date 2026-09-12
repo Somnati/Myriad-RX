@@ -395,6 +395,13 @@ function settings_content() {
 		"DE's alt profit colour: every profit mote rolls its own hue "
 		+ "instead of wearing the profit colour.");
 
+
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset visuals to defaults",
+		function() { settings_defaults("visuals"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - blur, pointer, motion blur, transition, colours, the visualiser's grid and glow, the finishes. "
+		+ "the other tabs are not touched.", c_hred);
+
 	// ============================== crt =============================
 	// THE TUBE (his ask, 2026-09-10): syst_crt + sh_crt. Its own tab:
 	// where it runs, which seat, and the five knobs. Nothing here dims
@@ -472,6 +479,13 @@ function settings_content() {
 		"a faint bright band drifting down every few seconds, and a "
 		+ "breath of flicker.");
 
+
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset crt to defaults",
+		function() { settings_defaults("crt"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - the tube back to everywhere, over the interface, its five knobs and the roll. "
+		+ "the other tabs are not touched.", c_hred);
+
 	// ============================ readouts ==========================
 	// WHAT THE NUMBERS SAY AND WHERE (2026-09-10's tidy + DE's ports):
 	// how figures are written, the tap's own number, the two corner
@@ -516,6 +530,12 @@ function settings_content() {
 		function(_v) { g.bounce_text = _v; },
 		"the puck's throw readout top-left: bounces, the throw's profit, "
 		+ "its speed (DE's bounce text).");
+
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset readouts to defaults",
+		function() { settings_defaults("readouts"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - number format, tap numbers, the tap rate and bounce readouts, the dial view. "
+		+ "the other tabs are not touched.", c_hred);
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);
@@ -653,6 +673,12 @@ function settings_content() {
 	//     function() { return g.vol_music; },
 	//     function(_v) { g.vol_music = _v; }, "%", 1);
 
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset audio to defaults",
+		function() { settings_defaults("audio"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - every volume and the three swappable sounds. "
+		+ "the other tabs are not touched.", c_hred);
+
 	// ============================ gameplay ==========================
 	// how buying and the money room BEHAVE. (autosave moved to data,
 	// the two clocks to about, the number format to readouts -
@@ -683,6 +709,12 @@ function settings_content() {
 		"myriad's setting: the credit panel stays out in the money room "
 		+ "instead of sliding in only when credits drop.");
 
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset gameplay to defaults",
+		function() { settings_defaults("gameplay"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - bulk-buy rounding, the credit panel, the battery optimiser. "
+		+ "the other tabs are not touched.", c_hred);
+
 	// ============================ input =============================
 	settings_section("input", c_horange);
 
@@ -702,6 +734,12 @@ function settings_content() {
 		settings_info("keybinds", "soon",
 			"nothing is rebindable yet - when keybinds exist, this is "
 			+ "where they'll live.");
+
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset input to defaults",
+		function() { settings_defaults("input"); dirty_tic = 45; },
+		"puts every option on THIS tab back to its default - haptics and swipe protection. "
+		+ "the other tabs are not touched.", c_hred);
 
 	// ============================ data ==============================
 	settings_section("data", c_pink);
