@@ -512,6 +512,27 @@ for _p, _s in srcs.items():
 check("every asset name the code mentions is registered",
       not _unres, "; ".join(_unres[:4]))
 
+# --- 8h. no variable named after a #macro. A macro is textual: a
+# `key = "";` where main_macros says `#macro key keyboard_check`
+# compiles as `keyboard_check = ""` and the IDE reports three errors
+# that name the macro's expansion, not the line that wrote it
+# (syst_scene_light, 2026-09-11). Assignments and `var` declarations of
+# any macro name, in any .gml, fail the build.
+_macros = set()
+for _s in srcs.values():
+    _macros.update(re.findall(r"#macro\s+(\w+)", _s))
+_mshadow = []
+for _p, _s in srcs.items():
+    for _m in re.finditer(r"(?<![\w.$])(\w+)\s*(?:=(?!=)|\+=|-=|\*=|/=)", _s):
+        _nm = _m.group(1)
+        if _nm in _macros and not re.search(r"#macro\s+" + _nm + r"\b", _s):
+            _mshadow.append(f"{_p}: {_nm}")
+    for _m in _VAR.finditer(_s):
+        for _nm in _decl_names(_m.group(1)):
+            if _nm in _macros:
+                _mshadow.append(f"{_p}: var {_nm}")
+check("no variable named after a #macro", not _mshadow, "; ".join(_mshadow[:4]))
+
 # --- 8d. every settings global reachable by handle_settings needs a
 # BOOT default, or the very first load reads an unset global and the
 # game dies at the splash. settings_defaults() does not count: it only

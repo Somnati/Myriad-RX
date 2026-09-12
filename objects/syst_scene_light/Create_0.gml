@@ -28,14 +28,14 @@ persistent = true;
 
 ready = false;     // a capture happened this frame (the Step clears it)
 chain = [];        // the halvings, half size down to a thirty-second
-key   = "";
+ckey  = "";        // (not `key` - that is a house macro for keyboard_check)
 tight = -1;        // the two links the shaders read
 wide  = -1;
 
 /// (re)build the chain for an application surface of _w x _h
 __build = function(_w, _h) {
 	var _k = string(_w) + "x" + string(_h);
-	var _ok = (key == _k) && (array_length(chain) == 6);
+	var _ok = (ckey == _k) && (array_length(chain) == 6);
 	if (_ok) for (var _i = 0; _i < 6; _i++) if (!surface_exists(chain[_i])) { _ok = false; break; }
 	if (_ok) return true;
 	for (var _i = 0; _i < array_length(chain); _i++)
@@ -46,6 +46,6 @@ __build = function(_w, _h) {
 		_cw = max(1, _cw div 2); _ch = max(1, _ch div 2);
 		array_push(chain, surface_create(_cw, _ch));
 	}
-	key = _k;
+	ckey = _k;
 	return true;
 };
