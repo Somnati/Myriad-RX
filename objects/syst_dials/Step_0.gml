@@ -90,6 +90,17 @@ for (var _i = 0; _i < _n; _i++) {
 		// the machine that made it.
 		spark_burst(_sx, _sy, choose(1, 2, 3), dial_color(_i));
 	}
+	// AN AUTOBUY LANDED (his list, 2026-09-12: automation should be
+	// visible where you play): sparks in the dial's colour from the
+	// same seat, and the count floats off the bar - the hand-buy's
+	// ceremony, so the game reads as working for you
+	if ((_d[$ "auto_n"] ?? 0) > 0) {
+		var _ax = (sp >= .5) ? (face + 39) : (room_width - dock_w * .5);
+		var _ay = __dot_y(_i);
+		spark_burst(_ax, _ay, choose(2, 3, 4), dial_color(_i));
+		if (sp >= .5) float_text(_ax + 30, _ay - 6, "auto +" + string(_d.auto_n), dial_color(_i), fnt_outline);
+		_d.auto_n = 0;
+	}
 	// the spring, both terms delta-correct
 	rv[_i] += (_t - rd[_i]) * WIG_K * delta;
 	rv[_i] *= power(WIG_DAMP, delta);

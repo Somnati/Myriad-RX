@@ -36,6 +36,9 @@ function autom_tiles(_dt) {
 		var _budget = do_scale(g.tiles.shards, _p.pct / 100);
 		var _q = tile_upg_bulk(_id, false, "max", _budget);
 		if (_q.max || !_q.ok) { _p.st = 1; continue; }
-		_p.st = tile_upg_bulk(_id, true, "max", _budget).ok ? 2 : 1;
+		var _r = tile_upg_bulk(_id, true, "max", _budget);
+		_p.st = _r.ok ? 2 : 1;
+		if (_r.ok) autom_log("tiles: " + _cfg[_i].name + "  +" + string(_r.n) + " lv  -  " + crunch_arb(_r.cost) + " shards",
+			c_seagreen, "tile", _r.cost);
 	}
 }

@@ -107,6 +107,7 @@ function autom_tick() {
 		play_sound_ext(snd_rebirthcollect, .9, 1.1, .5, 1);
 		assign_banner("auto rebirth  units +"
 			+ crunch_arb(g.rebirth.prev_units), c_hred, c_black);
+		autom_log("auto rebirth  +" + crunch_arb(g.rebirth.prev_units) + " units", c_hred, "reb");
 		// a fresh run gets fresh ramps: the old q was a guess about a
 		// wallet that no longer exists
 		for (var _k = 0; _k < array_length(_a.dial); _k++) {

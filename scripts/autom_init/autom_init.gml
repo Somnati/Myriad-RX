@@ -126,6 +126,10 @@ function autom_init(_force = false) {
 		// upward, so spending cannot erode it.
 		lock_peak : 0,
 		tic  : 0,
+		// THE LEDGER (his list, 2026-09-12): what automation did, newest
+		// first, and the session's tallies - see autom_log. Neither saves
+		ledger : [],
+		stat   : autom_stat_new(),
 	};
 	repeat (_dn) array_push(g.autom.dial,
 		{ on : false, pct : 50, t : 30, q : 1, h : 0, st : 0, tic : 0 });

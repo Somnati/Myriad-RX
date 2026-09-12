@@ -77,11 +77,28 @@ draw_set_halign(fa_left);
 	// which sticks the hover paints: [h0, h0 + hov_ram)
 	var _h0 = -1;
 	if (hov_ram > 0) _h0 = hov_on ? max(0, _u - hov_ram) : _u;
+	// THE STICKS WEAR THE SECTION THAT EATS THEM (his list, 2026-09-12):
+	// the used run is coloured in runs - dials, tiles, upgrades, rebirth
+	// - in the rail's colours, so the meter says WHICH twelve, not how
+	// many. (The overclock's orange lean sits on top while it is hot)
+	var _runs = [ { n : __ram_page(AT_DIALS), c : tcol[AT_DIALS] },
+	              { n : __ram_page(AT_TILES), c : tcol[AT_TILES] },
+	              { n : __ram_page(AT_UPG),   c : tcol[AT_UPG] },
+	              { n : __ram_page(AT_REB),   c : tcol[AT_REB] } ];
 	for (var _k = 0; _k < _n; _k++) {
 		var _sr = __stick_r(_k);
 		var _used = (_k < _u);
 		var _over = (_k >= _c);
-		var _col  = _over ? c_hred : (_hot ? merge_colour(c_seagreen, c_horange, .55) : c_seagreen);
+		var _col  = c_seagreen;
+		if (_used) {
+			var _acc = 0;
+			for (var _q = 0; _q < array_length(_runs); _q++) {
+				if (_k < _acc + _runs[_q].n) { _col = _runs[_q].c; break; }
+				_acc += _runs[_q].n;
+			}
+		}
+		if (_over) _col = c_hred;
+		else if (_hot) _col = merge_colour(_col, c_horange, .5);
 		// the used run ramps, subtly, from a shade darker at the left to
 		// full at its leading edge (his ask, 2026-09-12) - the fill reads
 		// as filling rather than as a flat bar of sticks
@@ -344,14 +361,21 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_set_color(_rw.on ? (_tok ? c_horange : c_white) : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);
 		draw_text(_tm.x + _tm.w + 4, _ry + 2, __tm_str(_rw.t));
+		// THE COUNTDOWN (his list: predict, do not only report): a thin
+		// line under the track drains toward the next pulse
+		if (_rw.on && variable_struct_exists(_rw, "tic") && _rw.t > 0) {
+			var _cf = clamp(_rw.tic / max(.01, _rw.t), 0, 1);
+			draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y + _tm.h + 1, _tm.w * (1 - _cf), 1, 0, c_white, .5);
+		}
 	}
 
 	// (the autobuy rows' verdict rides their toggle pill - see above;
 	// the dial's own p/s takes the row's end, the strongest in gold)
-	if (variable_struct_exists(_rw, "sub")) {
+	if (variable_struct_exists(_rw, "sub") && _rw.sub != "") {
+		var _top = (_rw[$ "top"] ?? false);
 		draw_set_halign(fa_right);
-		draw_set_color(_rw.top ? c_gold : merge_colour(_rw.col, c_white, .5));
-		draw_set_alpha(_rw.top ? .95 : .6);
+		draw_set_color(_top ? c_gold : merge_colour(_rw.col, c_white, .5));
+		draw_set_alpha(_top ? .95 : .6);
 		draw_text(cont_x + cont_w - 4, _ry + 2, _rw.sub);
 		draw_set_halign(fa_left);
 	}

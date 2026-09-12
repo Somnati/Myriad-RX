@@ -318,6 +318,7 @@ __view_label = function() {
 __page_rows = function() {
 	var _o = [];
 	var _a = g.autom;
+	var _dim_c = rgb(120, 130, 150);
 
 	if (tab == AT_OVER) {
 		var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
@@ -330,6 +331,28 @@ __page_rows = function() {
 			help : "every automation costs sticks. over the budget nothing "
 			     + "switches off - every clock runs at cap / used instead. "
 			     + "rebirths bank +" + string(RAM_REB) + " each" });
+
+		// THE LEDGER (his list): the last few things automation did,
+		// newest first, then the session's tallies per section
+		var _st = _a.stat;
+		array_push(_o, __section("ledger  -  this session", c_gold));
+		var _ln = array_length(_a.ledger);
+		if (_ln == 0)
+			array_push(_o, { kind : 6, name : "", val : "nothing yet - switch something on",
+				right : "", on : true, st : -1, col : _dim_c, ram : 0, help : "" });
+		for (var _i = 0; _i < min(_ln, 6); _i++) {
+			var _le = _a.ledger[_i];
+			array_push(_o, { kind : 6, name : "", val : _le.txt, right : autom_ago(_le.at),
+				on : true, st : -1, col : _le.col, ram : 0, help : "" });
+		}
+		array_push(_o, { kind : 6, name : "spent",
+			val : "dials " + ((_st.dial_spent >= arb(1)) ? crunch_arb(_st.dial_spent) : "0") + " (" + string(_st.dial_n) + ")"
+			    + "   tiles " + ((_st.tile_spent >= arb(1)) ? crunch_arb(_st.tile_spent) : "0") + " (" + string(_st.tile_n) + ")"
+			    + "   upgrades " + ((_st.upg_spent >= arb(1)) ? crunch_arb(_st.upg_spent) : "0") + " cr (" + string(_st.upg_n) + ")"
+			    + "   rebirths " + string(_st.reb_n),
+			right : "since " + autom_ago(_st.since),
+			on : true, st : -1, col : c_gold, ram : 0,
+			help : "what automation spent this session, by section - and how many times it acted" });
 
 		array_push(_o, __section("running", c_gold));
 		var _dn = 0;
@@ -446,6 +469,7 @@ __page_rows = function() {
 				on   : _p.on,
 				val  : _p.pct,
 				t    : _p.t,
+				tic  : _p.tic,
 				sfx  : "%",
 				st   : _p.st,
 				col  : dial_color(_i), ram : ram_cost("timer", _p.t),
@@ -459,7 +483,15 @@ __page_rows = function() {
 		var _r = _a.reb;
 		// ONE MASTER SWITCH costs the RAM; the rails under it are free
 		// conditions, and it needs at least one of them armed to fire
-		array_push(_o, { kind : 0, name : "auto rebirth",
+		var _eta = "";
+		if (_r.on && variable_global_exists("rebirth")) {
+			var _rc = rebirth_calc();
+			if (_r.t_on && _rc.run_s < _r.t_min * 60) _eta = "time rail in " + crunch_time_long((_r.t_min * 60 - _rc.run_s) * 60);
+			else if (_r.u_on && !(_rc.units >= arb(_r.u_min))) _eta = "units " + ((_rc.units >= arb(1)) ? crunch_arb(_rc.units) : "0") + " of " + string(_r.u_min);
+			else if (_rc.cool > 0) _eta = "cooldown " + crunch_time_long(_rc.cool * 60);
+			else if (_r.t_on || _r.u_on || _r.g_on || _r.c_on || _r.p_on) _eta = "rails passing - fires when you leave this page";
+		}
+		array_push(_o, { kind : 0, name : "auto rebirth", sub : _eta,
 			on : _r.on, val : 0, sfx : "", st : -1, col : c_hred,
 			ram : ram_cost("rebirth"),
 			help : "the switch. it fires only when every armed rail below passes "
@@ -493,7 +525,7 @@ __page_rows = function() {
 			on : _u.roll, val : 0, sfx : "", st : -1, col : c_sblue, ram : 1,
 			help : "fills every empty slot, once a second" });
 		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy", ock : "timer",
-			on : _u.buy, val : _u.pct, t : _u.t, sfx : "%", st : -1,
+			on : _u.buy, val : _u.pct, t : _u.t, tic : _u.tic, sfx : "%", st : -1,
 			col : c_sgreen, ram : ram_cost("timer", _u.t),
 			help : "buys a tier while its price fits that share of credits - "
 			     + "timer: secs between tries, right is faster" });
@@ -537,7 +569,7 @@ __page_rows = function() {
 			var _p = _a.tiles[$ _e.id];
 			if (_p == undefined) continue;
 			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer",
-				name : _e.name, on : _p.on, val : _p.pct, t : _p.t, sfx : "%",
+				name : _e.name, on : _p.on, val : _p.pct, t : _p.t, tic : _p.tic, sfx : "%",
 				st : _p.st, col : c_seagreen, id : _e.id, ram : ram_cost("timer", _p.t),
 				help : "cap % of the shards per buy - timer: secs between tries, right is faster" });
 		}

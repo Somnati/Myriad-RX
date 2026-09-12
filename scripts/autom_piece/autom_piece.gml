@@ -34,6 +34,12 @@ function autom_piece(_p, _i) {
 	// belt to its braces (a single level past the share never buys)
 	var _quote = dial_buy_ext(_i, "max", false, _budget);
 	if (!_quote.ok || !(_budget >= _quote.cost)) { _p.st = 1; return; }
-	dial_buy_ext(_i, "max", true, _budget);
+	var _r = dial_buy_ext(_i, "max", true, _budget);
 	_p.st = 2;
+	// the ledger, and the money room's ceremony (syst_dials reads auto_n)
+	autom_log("dial " + dial_config(_i).name + "  +" + string(_r.n) + " lv  -  " + crunch_arb(_r.cost),
+		dial_color(_i), "dial", _r.cost);
+	var _d = g.dial[_i];
+	_d.auto_n = (_d[$ "auto_n"] ?? 0) + _r.n;
+	_d.glow = max(_d.glow, .6);
 }
