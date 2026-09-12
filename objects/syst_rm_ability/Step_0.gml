@@ -17,6 +17,9 @@ if (closing && oa <= 0) {
 // rebuild passes, the info crossfade) keeps running so the list is
 // whole when the ease lands
 var _live = (oa >= .999 && !closing && input_free(ui_layer_overlay));
+// the scrollbar fades itself out on `enabled`, so it leaves with the
+// panel instead of hanging in an empty room
+if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
 if (_live && keyboard_check_pressed(vk_escape)) { abilities_close(); exit; }
 
 // ---- rebuild passes ----

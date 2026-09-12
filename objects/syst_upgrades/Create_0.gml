@@ -201,8 +201,12 @@ __row_y = function(_i) { return list_y + 16 + _i * row_sp; };
 // the inspector shares the table's top edge and runs to the bottom
 // margin - the two columns are one rectangle cut in two. Portrait: it
 // sits under the table, above the [modifiers] button
-desc_y = land ? __row_y(0) : (__row_y(UPG_SLOT_MAX) + 4);
-desc_h = (land ? (room_height - 8) : (room_height - 30)) - desc_y;
+// ...the inspector's top is the strip's edge again (the purse only
+// takes the table's column, so it left an awkward gap up here - his
+// report 2026-09-12) and its bottom leaves room for [modifiers], which
+// sits under it as the column's last row
+desc_y = land ? (list_y + 5) : (__row_y(UPG_SLOT_MAX) + 4);
+desc_h = (room_height - 8 - 14 - 6) - desc_y;
 
 // the row's one button, right-aligned so every row's action sits in the
 // same column no matter how long its name is. An EMPTY row has none any
@@ -248,11 +252,11 @@ __mode_rect = function(_m) {
 	return { x : row_x + row_w - 58 + _m * 30, y : bby + 2, w : 30, h : 12 };
 };
 
-// the [modifiers] button: the strip's right end in landscape, a wide
-// button under the inspector in portrait (the strip is full there)
+// the [modifiers] button: the inspector column's last row, bottom
+// right (his call, 2026-09-12 - the strip's right end left the
+// inspector floating under a gap)
 __mod_rect = function() {
-	if (land) return { x : room_width - 8 - 62, y : bby + 2, w : 62, h : 12 };
-	return { x : row_x, y : room_height - 22, w : row_w, h : 14 };
+	return { x : desc_x, y : room_height - 8 - 14, w : desc_w, h : 14 };
 };
 
 // the rarity's name and colour, both from upgrade_rarity_info - which

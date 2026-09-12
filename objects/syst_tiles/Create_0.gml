@@ -517,6 +517,9 @@ __btn_a = function(_x1, _x2) {
 };
 
 __draw_drawer = function() {
+	// the drawer dissolves with the panel (the proxy is its own draw
+	// slot, so it sets the fade itself and takes it off at the end)
+	ui_fade_set(ui_anim_in(oa, 0));
 	// THE DRAWER'S BACKDROP (his ask: the dial drawer's treatment).
 	// pixel_snap grabs the screen as it stands and draw_pixel_region paints
 	// the chunky copy back under the panel, so the board reads as being
@@ -753,6 +756,7 @@ __draw_drawer = function() {
 	draw_set_color(c_white);
 	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
+	ui_fade_set(1);
 };
 
 /// @func __draw_shards()

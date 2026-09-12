@@ -349,12 +349,17 @@ if (!_has_pick) {
 if (mod_a > .001) {
 	ui_fade_set(_ea * mod_a);
 	var _ty = list_y;
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, _ty, room_width, room_height - _ty, 0, c_black, .82);
+	// MUCH DARKER (his report, 2026-09-12: the rows clashed with what
+	// was behind them) - the sheet is near-solid, and the list sits on
+	// a solid plate of its own
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, _ty, room_width, room_height - _ty, 0, c_black, .96);
 	var _lx = land ? (room_width div 2 - 150) : 8;
 	var _lw = land ? 300 : (room_width - 16);
 	var _lr = _lx + _lw;
 	var _yy = _ty + 8;
 	var _lh2 = 11;
+	draw_sprite_ext(spr_pixel_1x1, 0, _lx - 6, _ty + 3, _lw + 12, room_height - _ty - 8, 0, c_black, 1);
+	draw_px_rect(_lx - 6, _ty + 3, _lw + 12, room_height - _ty - 8, c_lavender, .25);
 	var _pri = merge_colour(c_white, merge_colour(c_black, c_sblue, .15), .5);   // DE's c_primary
 	// the head: what the sheet is, and the tally
 	draw_set_halign(fa_left);

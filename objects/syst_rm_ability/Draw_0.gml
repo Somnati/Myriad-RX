@@ -5,9 +5,15 @@
 // THE GROUND (the overlay, 2026-09-12): the room it was had a black
 // background; the panel paints one from the header down, fading in on
 // the open ease (the slots draw over it in their own slot, a step up)
+// ...and the whole panel dissolves through ui_fade_set (the shader in
+// front of every draw below - all stamps and text here), so the ground
+// and the chrome leave together instead of the chrome vanishing whole
+var _ea0 = ui_anim_in(oa, 0);
+if (_ea0 < .001) exit;
+ui_fade_set(_ea0);
 draw_set_alpha(1);
 var _bby0 = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 27;
-draw_sprite_ext(spr_pixel_1x1, 0, 0, _bby0, room_width, room_height - _bby0, 0, c_black, .94 * ui_anim_in(oa, 0));
+draw_sprite_ext(spr_pixel_1x1, 0, 0, _bby0, room_width, room_height - _bby0, 0, c_black, .94);
 
 draw_set_font(fnt);
 
@@ -277,3 +283,4 @@ draw_set_font(fnt);
 draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
+ui_fade_set(1);   // never leave the shader on for the next drawer

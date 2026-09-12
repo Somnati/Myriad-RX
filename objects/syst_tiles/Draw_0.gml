@@ -17,9 +17,16 @@ __grow();   // a slot bought this frame (see the Create)
 // THE GROUND: the room it was had a black background; as an overlay
 // the board paints one from the header down (the blurred room shows
 // through the last few percent, which is how you know where you are).
-// The whole board rides the open ease - it slides up into its seat
+// THE WHOLE BOARD RIDES THE OPEN EASE - it slides up into its seat and
+// DISSOLVES with it, ground and all, through ui_fade_set (the shader
+// in front of every draw below; the tiles are stamps, so it is safe).
+// The first cut faded the ground and let the board vanish whole at
+// the end - "the fade out isn't smooth", his report 2026-09-12
+var _ea = ui_anim_in(oa, 0);
+if (_ea < .001) exit;
+ui_fade_set(_ea);
 draw_set_alpha(1);
-draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height - bby, 0, c_black, .94 * ui_anim_in(oa, 0));
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height - bby, 0, c_black, .94);
 var _eo = (1 - ui_anim_in(oa, 1)) * UI_IN_DEAL;
 if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
 
@@ -364,7 +371,8 @@ draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
 
-// the open ease's slide comes off before the next drawer (the proxies
-// draw in their own slots, unslid - the drawer only exists once the
-// panel has arrived)
+// the open ease's slide and fade come off before the next drawer (the
+// proxies draw in their own slots, unslid - the drawer only exists once
+// the panel has arrived; it sets its own fade)
+ui_fade_set(1);
 matrix_set(matrix_world, matrix_build_identity());

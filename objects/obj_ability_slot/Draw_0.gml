@@ -20,7 +20,7 @@ if (_y < _band_t) _fade = 1 - (_band_t - _y) / 12;
 if (_y + 11 > _band_b) _fade = 1 - ((_y + 11) - _band_b) / 12;
 _fade = clamp(_fade, 0, 1);
 if (_fade <= 0) exit;
-var _ea = alpha * _fade; // every alpha below rides this
+var _ea = alpha * _fade * ui_anim_in(_o.oa, 0); // every alpha below rides this - and the panel's ease
 
 var _w = _o.list_w;
 var _h = 11; // the capsule height the endcap sprites are built for
