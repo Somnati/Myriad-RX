@@ -164,9 +164,15 @@ if (__part(5) > 0) {
 	// the handle knob, on the rim at the crank's angle
 	var _hx = floor(crank_cx + lengthdir_x(crank_r, ang));
 	var _hy = floor(crank_cy + lengthdir_y(crank_r, ang));
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, held ? c_gold : c_white, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, held ? c_gold : c_white, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, held ? c_gold : c_white, .95);
+	// the eight notches the detents reel it into, fixed on the rim
+	for (var _k = 0; _k < 8; _k++)
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(crank_cx + lengthdir_x(crank_r + 4, _k * 45)), floor(crank_cy + lengthdir_y(crank_r + 4, _k * 45)),
+			1, 1, 0, _gc, (_k == 0) ? .9 : .4);
+	var _kc = (crank_flash > 0) ? c_white : (held ? c_gold : merge_colour(c_white, _gc, .3));
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, _kc, .95);
 	draw_set_halign(fa_center);
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);

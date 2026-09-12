@@ -44,9 +44,10 @@ rate_col = [c_sgreen, c_seagreen, c_seagreen];
 // and drag it round: every degree swept in either direction is charge
 // - a full revolution is a sixtieth of the capacity (BAT_CRANK_REV),
 // so a hard thirty seconds of cranking fills it from empty. Let go
-// and it keeps spinning on its momentum, still charging, winding down
-// on friction - the one bit of physics that makes a crank feel like a
-// crank rather than a dial. A ratchet click every 45 degrees.
+// and it coasts on its momentum like the techdemo's heavy knob (his
+// ask, 2026-09-11), still charging, and the detent spring reels it
+// into the nearest of eight notches as it dies; the clicks ride the
+// speed. The knob flashes white on each.
 crank_cx = 396;
 crank_cy = hh + 118;
 crank_r  = 34;
@@ -54,7 +55,9 @@ ang      = 0;       // the handle's angle
 vel      = 0;       // degrees per frame, free-spinning
 held     = false;
 grab_a   = 0;       // pointer angle at the last frame while held
-ratchet  = 0;       // degrees since the last click
+crank_turn = 0;     // the unbounded sweep, for the detent clicks
+crank_cell = 0;     // the last notch crossed
+crank_flash = 0;    // frames the knob flashes white after a click
 crank_glow = 0;     // eased, lights the wheel while it turns
 
 // the quote cache for the two ladders (a slow tick, the Draw reads it)
@@ -87,9 +90,5 @@ __crank_add = function(_deg) {
 	var _b = g.battery;
 	var _cap = battery_cap();
 	_b.charge = min(_cap, _b.charge + abs(_deg) / 360 * _cap / BAT_CRANK_REV);
-	ratchet += abs(_deg);
-	if (ratchet >= 45) {
-		ratchet -= 45;
-		play_sound_ext(snd_softclick, 1.3 + random(.3), 1.6, .25, 0);
-	}
+	crank_turn += _deg;   // the Step's detent clicks read this
 };

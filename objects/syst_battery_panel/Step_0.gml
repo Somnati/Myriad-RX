@@ -25,17 +25,40 @@ if (held) {
 			__crank_add(_da);
 		}
 	}
-} else if (abs(vel) > .05) {
-	// free-spinning on its momentum, charging as it goes, friction
-	// bleeding it down - power() so it winds down the same at 144
+} else {
+	// ⚖️ THE HEAVY KNOB'S FEEL (his ask, 2026-09-11: the techdemo's
+	// obj_fid_knob - "the one that looks like a safe lock"): a FLYWHEEL
+	// that coasts a long time (.988 a frame, not .955), and a DETENT
+	// SPRING that reels the handle into the nearest notch once it is
+	// slow, so it never dies mid-air. Charging rides every degree it
+	// turns, spring included
 	var _d = vel * delta;
 	ang += _d;
-	__crank_add(_d);
-	vel *= power(.955, delta);
-	if (abs(vel) < .05) vel = 0;
+	if (abs(_d) > .001) __crank_add(_d);
+	vel *= power(.988, delta);
+	if (abs(vel) < 1.4) {
+		var _near = round(ang / 45) * 45;
+		vel += angle_difference(_near, ang) * .05 * delta;
+		vel *= power(.9, delta);
+		if (abs(angle_difference(_near, ang)) < .3 && abs(vel) < .05) {
+			ang = _near;
+			vel = 0;
+		}
+	}
 }
 if (ang >= 360 || ang < 0) ang -= 360 * floor(ang / 360);
 crank_glow = trickle(crank_glow, (held || abs(vel) > .5) ? 1 : 0, 6, 0);
+// THE DETENT CLICKS ride the speed (the knob's law): faster is higher
+// and louder, a crawl is a soft tick - one per notch crossed, on the
+// unbounded sweep (crank_turn, kept by __crank_add)
+var _cell = floor((crank_turn + 22.5) / 45);
+if (_cell != crank_cell) {
+	var _sp = clamp(abs(vel), .5, 14);
+	play_sound_ext(snd_matclick, .7 + _sp * .05, .85 + _sp * .05, clamp(.12 + _sp * .02, .12, .4), 1);
+	crank_cell = _cell;
+	crank_flash = 5;
+}
+crank_flash = max(0, crank_flash - delta);
 
 // ---- the live drag on a rate track: it owns the pointer until released ----
 if (drag_row >= 0) {
