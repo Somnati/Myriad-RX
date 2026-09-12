@@ -18,58 +18,15 @@ if (variable_global_exists("game_started") && g.game_started)
 if (in_room(rm_clicker) && g.unfold == 0 && !instance_exists(syst_unfold))
 	create_obj(0, 0, syst_unfold);
 
-// ---- the report (DE's obj_idletime: banners in the money room) ----
+// ---- the report: THE WELCOME-BACK CARD (his ask, 2026-09-11 - the
+// stack of banners is gone; syst_welcome tells the absence's story in
+// one card, and a tap closes it) ----
 if (!variable_global_exists("offline_report")) exit;
 var _r = g.offline_report;
 if (_r.shown) exit;
 if (!in_room(rm_clicker)) exit;
 if (!variable_global_exists("game_started") || !g.game_started) exit;
-if (!instance_exists(syst_banner)) exit;
+if (ui_overlay() != noone) exit;   // wait for whatever is up to go
 _r.shown = true;
 if (_r.secs < REPORT_MIN) exit;
-
-// assign_banner pushes onto the TOP of the stack, so the last line
-// assigned is the first one read - DE's order, verbatim. hp x3 keeps
-// each line up three times longer than a passing toast.
-// the time bank's slice, only when there is one to report - a line
-// saying "banked 0s" is a line about nothing
-var _bk = _r[$ "banked"] ?? 0;
-if (_bk >= 1) {
-	assign_banner("banked " + crunch_time_long(_bk * 60)
-		+ ((_r[$ "bank_full"] ?? false) ? " - bank full" : ""),
-		c_gold, c_black);
-	syst_banner.hp[0] *= 3;
-}
-assign_banner("earned +" + ((_r.gain > 0) ? crunch_arb(_r.gain) : "0")
-	+ " - in the pile, tap to collect", g.profit_color, c_black);
-syst_banner.hp[0] *= 3;
-// the sprites, when there are any: what they tapped, and that they dozed off
-var _sn = _r[$ "sprite_n"] ?? 0;
-if (_sn > 0) {
-	var _st = _r[$ "sprite_taps"] ?? 0;
-	assign_banner(((_sn == 1) ? "your sprite" : ("your " + string(_sn) + " sprites"))
-		+ " tapped " + string(_st) + " time" + ((_st == 1) ? "" : "s")
-		+ ((_r.secs > SPRITE_NAP) ? " - then dozed off. poke them" : ""), c_sgreen, c_black);
-	syst_banner.hp[0] *= 3;
-}
-// the optimiser, when it changed something
-var _bo = _r[$ "bat_opt"] ?? 0;
-if (_bo > 0) {
-	assign_banner("optimiser ran the machines at x" + string_format(_bo, 1, 2)
-		+ " of your offline rates", c_sgreen, c_black);
-	syst_banner.hp[0] *= 3;
-}
-// the battery: only when it ran dry - "lasted the whole absence" is a
-// line about nothing
-if (_r[$ "bat_dry"] ?? false) {
-	assign_banner("battery ran " + crunch_time_long((_r[$ "bat_ran"] ?? 0) * 60)
-		+ " of it, then dry - the machines stopped", c_hred, c_black);
-	syst_banner.hp[0] *= 3;
-}
-assign_banner("idle rate " + ((_r.rate > 0) ? crunch_arb(_r.rate) : "0") + "/sec",
-	color_set_comp(g.profit_color), c_black);
-syst_banner.hp[0] *= 3;
-assign_banner("time away " + crunch_time_long(_r.secs * 60), c_gold, c_black);
-syst_banner.hp[0] *= 3;
-assign_banner("welcome back", c_white, c_black);
-syst_banner.hp[0] *= 3;
+create_obj(0, 0, syst_welcome);

@@ -9,7 +9,10 @@ sq    = max(0, sq - .09 * delta);
 hop   = max(0, hop - .35 * delta);
 happy = max(0, happy - delta);
 bub_t = max(0, bub_t - delta);
-card  = max(0, card - delta);
+// the card fades toward its state; a press anywhere NOT on this sprite
+// closes it (his report: they lingered)
+card_a = trickle(card_a, card_open ? 1 : 0, 4, 0);
+if (card_open && mouse_check_button_pressed(mb_left) && !__hit(mouse_x, mouse_y)) card_open = false;
 bob  += 2.2 * delta;
 blink = max(0, blink - delta);
 blink_t -= delta;

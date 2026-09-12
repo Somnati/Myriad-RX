@@ -40,7 +40,8 @@ hop   = 0;         // px of lift from a hop, decays
 happy = 0;         // frames of ^ ^ eyes
 bub   = "";        // the speech bubble
 bub_t = 0;
-card  = 0;         // frames the card stays up
+card_open = false; // the card: up until a press lands anywhere but on it
+card_a    = 0;     // ...eased, so it fades rather than pops
 tap_t = 0;         // frames to the next tap while working
 look_x = 0; look_y = 0;   // the pupils, eased toward the pointer
 
@@ -90,7 +91,7 @@ __poke = function() {
 		sprite_voice(s, "poke");
 	}
 	bub_t = 110;
-	card = (card > 0) ? 0 : 360;
+	card_open = !card_open;
 };
 
 // the shader's handles, once
@@ -109,6 +110,75 @@ u_sceneuv_b = shader_get_uniform(sh_blob, "u_scene_uv");
 u_sceneam_b = shader_get_uniform(sh_blob, "u_scene_amt");
 spk = [];   // the glass ones' orbiting specks: { a, r, ph }
 repeat (3) array_push(spk, { a : random(360), r : random_range(4, 8), ph : random(360) });
+
+/// THE CARD AND THE BUBBLE, drawn OVER every sprite (his report: the
+/// popup sat behind other sprites) - syst_sprites' proxy at depth -70
+/// calls this on every blob after all the bodies have drawn
+__draw_over = function() {
+	if (s == undefined) return;
+	var _pl = sprite_personalities();
+	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
+	var _lk = sprite_looks();
+	var _ey = _lk.eyes[clamp(s[$ "eyes"] ?? 0, 0, array_length(_lk.eyes) - 1)];
+	var _mat = s[$ "mat"] ?? 0;
+	var _col = s.col;
+	var _ry = r * (1 - sq * .30) + ((st == 3) ? -1 : 0);
+	var _cy = y - _ry - hop + ((st == 0 || st == 3) ? dsin(bob) * .6 : 0);
+	draw_set_font(fnt);
+
+	// ---- the bubble ----
+	if (bub_t > 0 && bub != "") {
+		draw_set_halign(fa_center);
+		var _bw = string_width(bub) + 6;
+		var _bx = clamp(floor(x), _bw * .5 + 2, room_width - _bw * .5 - 2);
+		var _by = floor(_cy - _ry - 14);
+		var _ba = min(1, bub_t / 20);
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx - _bw * .5, _by - 1, _bw, 10, 0, c_black, .75 * _ba);
+		draw_px_rect(_bx - _bw * .5, _by - 1, _bw, 10, _col, .6 * _ba);
+		draw_set_color(c_white);
+		draw_set_alpha(.95 * _ba);
+		draw_text(_bx, _by + 1, bub);
+		draw_set_alpha(1);
+		draw_set_halign(fa_left);
+	}
+
+	// ---- the card ----
+	if (card_a > .01) {
+		draw_set_halign(fa_left);
+		var _ri = upgrade_rarity_info(s[$ "rar"] ?? 0);
+		var _mn = _lk.mats[clamp(_mat, 0, array_length(_lk.mats) - 1)].name;
+		var _lines = [
+			s.name,
+			_ri.name + "  -  " + _p.name + "  -  " + _mn + ", " + _ey.name,
+			"taps " + string(s.taps) + ((s.away > 0) ? ("  (" + string(s.away) + " while idle)") : ""),
+			sprite_lore(s),
+		];
+		var _cw = 0;
+		for (var _k = 0; _k < 4; _k++) _cw = max(_cw, string_width(_lines[_k]));
+		_cw += 10;
+		var _ch = 44;
+		var _cx = clamp(floor(x + r + 6), 2, room_width - _cw - 2);
+		var _cy2 = clamp(floor(_cy - _ch), 20, room_height - _ch - 2);
+		var _ca = card_a;
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, _cw, _ch, 0, c_black, .82 * _ca);
+		draw_px_rect(_cx, _cy2, _cw, _ch, _ri.col, .8 * _ca);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, 2, _ch, 0, _ri.col, .95 * _ca);
+		draw_set_color(_col);
+		draw_set_alpha(.95 * _ca);
+		draw_text(_cx + 5, _cy2 + 3, _lines[0]);
+		draw_set_color(_ri.col);
+		draw_set_alpha(.9 * _ca);
+		draw_text(_cx + 5, _cy2 + 13, _lines[1]);
+		draw_set_color(sett_ink);
+		draw_set_alpha(.8 * _ca);
+		draw_text(_cx + 5, _cy2 + 23, _lines[2]);
+		draw_set_color(merge_colour(sett_ink, _col, .5));
+		draw_set_alpha(.6 * _ca);
+		draw_text(_cx + 5, _cy2 + 33, _lines[3]);
+		draw_set_alpha(1);
+	}
+	draw_set_color(c_white);
+};
 
 /// is this press mine? (obj_clicker asks before it taps the surface)
 __hit = function(_mx, _my) {

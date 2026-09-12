@@ -19,14 +19,14 @@ function sprite_spawn(_job = "tap") {
 	if (random(1) < .25) _nm += choose("t", "n", "p", "k");
 	var _pl = sprite_personalities();
 	var _lk = sprite_looks();
-	// the material, by weight
-	var _wt = 0;
-	for (var _k = 0; _k < array_length(_lk.mats); _k++) _wt += _lk.mats[_k].weight;
-	var _roll = random(_wt), _mat = 0;
-	for (var _k = 0; _k < array_length(_lk.mats); _k++) {
-		_roll -= _lk.mats[_k].weight;
-		if (_roll <= 0) { _mat = _k; break; }
-	}
+	// THE RARITY (his ask, 2026-09-11): the house calculator, the
+	// tiles' shape (.3 / .03 / 800), eight rungs - common .. ultimate.
+	// g.sprite_rarity_rate is the lane a future upgrade raises
+	if (!variable_global_exists("sprite_rarity_rate")) g.sprite_rarity_rate = 100;
+	var _rar = clamp(calculate_rarity(g.sprite_rarity_rate, .3, .03, 800, 8), 0, 7);
+	// the material follows the rarity: commons are matte, the exotic
+	// finishes are for the exotic ones
+	var _mat = _lk.mat_by_rar[_rar];
 	// two colours: the body, and a second a third of the wheel round
 	// for the glass interior / the jelly's depth
 	var _hue = random(255);
@@ -37,6 +37,7 @@ function sprite_spawn(_job = "tap") {
 		col2   : make_colour_hsv((_hue + random_range(50, 90)) mod 256, random_range(170, 230), random_range(160, 230)),
 		eyes   : irandom(array_length(_lk.eyes) - 1),
 		mat    : _mat,
+		rar    : _rar,
 		pers   : irandom(array_length(_pl) - 1),
 		job    : _job,
 		taps   : 0,

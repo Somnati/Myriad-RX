@@ -18,6 +18,10 @@
 //   2 metal   dark base, a hard specular, the rim in the body colour
 //   3 jelly   translucent, the shading wobbles slowly (u_time), a soft
 //             glint
+//   4 opal    the glass with an iridescent film on its rim: the hue
+//             travels with the fresnel and the light, so the colour
+//             moves across the body as it turns and the room moves -
+//             the divine and ultimate rungs
 //
 varying vec2 v_pos;
 varying vec2 v_uv;
@@ -26,7 +30,7 @@ uniform vec4  u_quad;    // x, y, w, h in room px (square)
 uniform float u_cells;   // cells across the quad - one per room px
 uniform vec3  u_col;     // the body
 uniform vec3  u_col2;    // the second colour (glass top, jelly depth)
-uniform float u_mat;     // 0 matte, 1 glass, 2 metal, 3 jelly
+uniform float u_mat;     // 0 matte, 1 glass, 2 metal, 3 jelly, 4 opal
 uniform vec3  u_light;   // the dice's light
 uniform vec2  u_sq;      // the body's half-extent inside the quad, 0..1 each
 uniform float u_time;
@@ -96,6 +100,16 @@ void main()
         a = 0.86 + 0.14 * dep;
     } else if (u_mat < 2.5) {
         col = u_col * (0.12 + 0.45 * dif) + vec3(1.0) * spec * 0.8 + u_col * 0.5 * fres;
+    } else if (u_mat > 3.5) {
+        float dep = 1.0 - z;
+        vec3 inner = mix(u_col2, u_col, clamp(0.5 + p.y * 0.5, 0.0, 1.0));
+        col  = inner * (0.14 + 0.26 * dif) * (0.55 + 0.45 * dep);
+        // the film: a hue from how edge-on this cell is and the light
+        float hue = fract(fres * 1.4 + dif * 0.35 + u_time * 0.06);
+        vec3 film = 0.5 + 0.5 * cos(6.2831853 * (hue + vec3(0.0, 0.33, 0.67)));
+        col += film * pow(fres, 1.1) * 0.95;
+        col += mix(film, vec3(1.0), 0.5) * pow(spec, 2.0) * 0.6;
+        a = 0.88 + 0.12 * dep;
     } else {
         float wob = sin(u_time * 2.0 + p.x * 3.0) * 0.5 + sin(u_time * 1.4 + p.y * 4.0) * 0.5;
         vec3 nw = normalize(vec3(p.x + wob * 0.08, p.y, z));
@@ -111,6 +125,7 @@ void main()
     if (u_mat < 0.5)      col += u_col * amb * u_scene_amt * 1.2;
     else if (u_mat < 1.5) col += refl * u_scene_amt * (0.45 + 0.75 * fres) + amb * u_scene_amt * 0.3;
     else if (u_mat < 2.5) col += refl * u_scene_amt * (0.6 + 0.5 * fres) * mix(vec3(1.0), u_col, 0.5);
+    else if (u_mat > 3.5) col += refl * u_scene_amt * (0.4 + 0.7 * fres) + amb * u_scene_amt * 0.3;
     else                  col += mix(u_col2, u_col, z) * amb * u_scene_amt * 1.0 + refl * u_scene_amt * 0.2;
 
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), a * keep);

@@ -7,7 +7,7 @@ var _mat = s[$ "mat"] ?? 0;
 var _col  = s.col;
 var _col2 = s[$ "col2"] ?? s.col;
 var _dark = merge_colour(_col, c_black, .45);
-var _glass = (_mat == 1);
+var _glass = (_mat == 1 || _mat == 4);
 
 // ---- the body's geometry: an ellipsoid squashed by the impulse ----
 var _idle_bob = (st == 0 || st == 3) ? dsin(bob) * .6 : 0;
@@ -28,7 +28,7 @@ if (_glass) {
 	draw_sprite_ext(spr_vis_glow_soft, 0, x, _cy, _gs, _gs, 0, _col, .10);
 	gpu_set_blendmode(bm_normal);
 }
-if (sprite_rate(s) >= SPRITE_SPECK_RATE) {
+if ((s[$ "rar"] ?? 0) >= SPRITE_SPECK_RAR) {
 	for (var _k = 0; _k < array_length(spk); _k++) {
 		var _sk = spk[_k];
 		var _sa = _sk.a + bob * .35 * (1 + _k * .3);
@@ -103,50 +103,6 @@ if (st == 3) {
 	draw_set_alpha(1);
 }
 
-// ---- the bubble ----
-if (bub_t > 0 && bub != "") {
-	draw_set_font(fnt);
-	draw_set_halign(fa_center);
-	var _bw = string_width(bub) + 6;
-	var _bx = clamp(floor(x), _bw * .5 + 2, room_width - _bw * .5 - 2);
-	var _by = floor(_cy - _ry - 14);
-	var _ba = min(1, bub_t / 20);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx - _bw * .5, _by - 1, _bw, 10, 0, c_black, .75 * _ba);
-	draw_px_rect(_bx - _bw * .5, _by - 1, _bw, 10, _col, .6 * _ba);
-	draw_set_color(c_white);
-	draw_set_alpha(.95 * _ba);
-	draw_text(_bx, _by + 1, bub);
-	draw_set_alpha(1);
-	draw_set_halign(fa_left);
-}
-
-// ---- the card ----
-if (card > 0) {
-	draw_set_font(fnt);
-	draw_set_halign(fa_left);
-	var _mn = _lk.mats[clamp(_mat, 0, array_length(_lk.mats) - 1)].name;
-	var _lines = [
-		s.name,
-		_p.name + "  -  " + _mn + ", " + _ey.name + "  -  autotapper",
-		"taps " + string(s.taps) + ((s.away > 0) ? ("  (" + string(s.away) + " while you were away)") : ""),
-	];
-	var _cw = 0;
-	for (var _k = 0; _k < 3; _k++) _cw = max(_cw, string_width(_lines[_k]));
-	_cw += 10;
-	var _ch = 34;
-	var _cx = clamp(floor(x + r + 6), 2, room_width - _cw - 2);
-	var _cy2 = clamp(floor(_cy - _ch), 20, room_height - _ch - 2);
-	var _ca = min(1, card / 20);
-	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, _cw, _ch, 0, c_black, .8 * _ca);
-	draw_px_rect(_cx, _cy2, _cw, _ch, _col, .8 * _ca);
-	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, 2, _ch, 0, _col, .95 * _ca);
-	draw_set_color(_col);
-	draw_set_alpha(.95 * _ca);
-	draw_text(_cx + 5, _cy2 + 3, _lines[0]);
-	draw_set_color(sett_ink);
-	draw_set_alpha(.8 * _ca);
-	draw_text(_cx + 5, _cy2 + 13, _lines[1]);
-	draw_text(_cx + 5, _cy2 + 23, _lines[2]);
-	draw_set_alpha(1);
-}
+// (the bubble and the card draw OVER every sprite - __draw_over, from
+// syst_sprites' proxy at depth -70)
 draw_set_color(c_white);

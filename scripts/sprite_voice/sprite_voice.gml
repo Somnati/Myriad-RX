@@ -7,14 +7,15 @@
 /// @param s      the struct
 /// @param kind   "poke" / "tap" / "wake" / "sleep"
 function sprite_voice(_s, _kind) {
-	// >>> THE CHIRPS GO HERE: one array per kind, any length. A pool
-	// >>> of one is fine; an empty one falls back to the pop.
+	// THE CHIRPS (his four, 2026-09-11 - 2017 noises from the bottom of
+	// the downloads folder, converted to 16-bit mono): one pool per
+	// kind, any length; an empty one falls back to the pop
 	var _pool = [];
 	switch (_kind) {
-		case "poke":  _pool = []; break;   // e.g. [snd_chirp1, snd_chirp2]
-		case "tap":   _pool = []; break;
-		case "wake":  _pool = []; break;
-		case "sleep": _pool = []; break;
+		case "poke":  _pool = [snd_sprite_poke];  break;
+		case "tap":   _pool = [snd_sprite_tap];   break;
+		case "wake":  _pool = [snd_sprite_wake];  break;
+		case "sleep": _pool = [snd_sprite_sleep]; break;
 	}
 	// the sprite's own pitch: a stable roll off its id, in a cute band
 	var _seed = (_s.id * 2654435761) mod 1000;
@@ -22,7 +23,7 @@ function sprite_voice(_s, _kind) {
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(_s.pers, 0, array_length(_pl) - 1)];
 	_base *= lerp(.92, 1.08, clamp((_p.pace - .8) / .5, 0, 1));
-	var _vol = (_kind == "tap") ? .18 : .45;
+	var _vol = (_kind == "tap") ? .22 : .5;
 	if (array_length(_pool) > 0) {
 		var _snd = _pool[irandom(array_length(_pool) - 1)];
 		play_sound_ext(_snd, _base * .95, _base * 1.05, _vol, 1);

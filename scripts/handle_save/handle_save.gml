@@ -390,7 +390,8 @@ function handle_save(){
 		_sps += ((_k > 0) ? "|" : "") + _sp.name + "/" + string(_sp.col) + "/" + string(_sp.pers)
 		      + "/" + _sp.job + "/" + string(_sp.taps) + "/" + string_format(_sp.fx, 1, 3)
 		      + "/" + string_format(_sp.fy, 1, 3) + "/" + string(_sp.away) + "/" + (_sp.asleep ? "1" : "0")
-		      + "/" + string(_sp[$ "eyes"] ?? 0) + "/" + string(_sp[$ "mat"] ?? 0) + "/" + string(_sp[$ "col2"] ?? _sp.col);
+		      + "/" + string(_sp[$ "eyes"] ?? 0) + "/" + string(_sp[$ "mat"] ?? 0) + "/" + string(_sp[$ "col2"] ?? _sp.col)
+		      + "/" + string(_sp[$ "rar"] ?? 0);
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -409,6 +410,7 @@ function handle_save(){
 					eyes : (array_length(_f) > 9)  ? real(_f[9])  : 0,
 					mat  : (array_length(_f) > 10) ? real(_f[10]) : 0,
 					col2 : (array_length(_f) > 11) ? real(_f[11]) : real(_f[1]),
+					rar  : (array_length(_f) > 12) ? real(_f[12]) : 0,
 				});
 			}
 		}

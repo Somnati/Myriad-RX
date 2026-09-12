@@ -8,8 +8,9 @@
 ///     pupil  true = a 1px pupil that looks at the pointer
 ///     mouth  true = the little mouth dot below
 ///     gap    px between the two eyes' inner edges (0 = one eye)
-///   mats[i]  { name, weight }  the sh_blob material by index; weight
-///            is the roll's odds
+///   mats[i]  { name }  the sh_blob material by index - picked by RARITY
+///            (sprite_spawn's table: commons are matte, exotic finishes
+///            are for the exotic ones; opal is divine and up)
 function sprite_looks() {
 	if (variable_global_exists("sprite_looks_cfg")) return g.sprite_looks_cfg;
 	g.sprite_looks_cfg = {
@@ -23,11 +24,14 @@ function sprite_looks() {
 			{ name : "beady",   w : 1, h : 1, pupil : false, mouth : true,  gap : 4 },
 		],
 		mats : [
-			{ name : "matte", weight : 3 },
-			{ name : "glass", weight : 4 },
-			{ name : "metal", weight : 1 },
-			{ name : "jelly", weight : 2 },
+			{ name : "matte" },
+			{ name : "glass" },
+			{ name : "metal" },
+			{ name : "jelly" },
+			{ name : "opal"  },
 		],
+		// the material by rarity: common .. ultimate
+		mat_by_rar : [0, 0, 3, 3, 1, 1, 2, 4],
 	};
 	return g.sprite_looks_cfg;
 }

@@ -14,5 +14,6 @@ function ui_overlay_close() {
 	if (instance_exists(syst_faq))            { faq_close();        return; }
 	if (instance_exists(syst_automation_panel)) { automation_close(); return; }
 	if (instance_exists(syst_battery_panel))    { battery_close();    return; }
+	if (instance_exists(syst_welcome))          { welcome_close();    return; }
 	if (instance_exists(syst_rebirth) && syst_rebirth.open) { syst_rebirth.open = false; return; }
 }
