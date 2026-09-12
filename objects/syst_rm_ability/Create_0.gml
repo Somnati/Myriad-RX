@@ -12,6 +12,18 @@
 /// what changed: input is arbitrated (region pattern), the info panel
 /// crossfade kept but on one i_/o_ set, UI rebuilt for 480x270
 
+// AN OVERLAY, NOT A ROOM (his ask, 2026-09-12): spawned over whatever
+// room you stand in by abilities_open, on the contract every panel
+// shares - oa / closing, ui_overlay lists it, the burger's X and escape
+// close it. It paints its own black ground (the room it was is black),
+// and it is OPAQUE: the tapper does not fire through it. The slots,
+// the scrollbar and the draft cards sit a step above it in depth and
+// die with it. No back button. (The layout is the 480x270 room's.)
+depth   = -510;   // over the room and its drawers, under the menu (-520) and the header (-1000)
+oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
+closing = false;  // armed by abilities_close; the Step destroys at zero
+opaque  = true;   // obj_clicker reads this: no paid taps under the deck
+
 // ---- layout: scrollbar hugging the LEFT edge, list beside it,
 // info column right (house style). the list stops ABOVE the debug
 // row so slots never pass behind the bottom buttons ----
@@ -238,7 +250,7 @@ __draft_spawn = function() {
 		if (_ci.rarity == 3) _rw2 = "legendary";
 		if (_ci.rarity == 4) _rw2 = "epic";
 		var _c = create_obj(240 - (_n - 1) * 54 + _i * 108, 148, obj_card);
-		_c.depth = -50;  // above the modal backdrop (controller depth 0)
+		_c.depth = depth - 5;  // above the modal backdrop, under the menu (-520)
 		_c.auto  = false; // the deck drives it
 		_c.face  = { name : _ci.name, rword : _rw2, desc : _ci.desc,
 			ap : _ci.ap, col : rcol_tab[clamp(_ci.rarity, 0, 4)] };
@@ -288,3 +300,4 @@ sb.image_yscale = (visible_rows * row_h) / sprite_get_height(spr_scrollbar);
 
 var _sl = create_obj(list_x, list_y, obj_ability_slot);
 _sl.a_ = 0;
+_sl.depth = depth - 1;   // the rows over the ground plate (the chain copies it)

@@ -1,3 +1,9 @@
+// ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+if (closing && oa <= 0) { instance_destroy(); exit; }   // the proxies die with their owner
+if (__in() && keyboard_check_pressed(vk_escape)) { tiles_close(); exit; }
+
 /// pure presentation + input: the sim itself (fabricator, automerge,
 /// failsafe, gps total) runs globally in syst_tiletimer via
 /// tiles_tick(). this drains the engine's events into glow/sounds,
@@ -65,7 +71,7 @@ dbg_open += (dbg_want - dbg_open) * min(1, .22 * delta);
 if (abs(dbg_want - dbg_open) < .004) dbg_open = dbg_want;
 __reseat();   // a board-size upgrade re-centres the table at once
 
-if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
+if (__in() && (!variable_global_exists("click_owner") || g.click_owner == noone)) {
 	// ⚖️ WHERE THE PRESS LANDED ARMS THE SWIPE, OR REFUSES IT.
 	//   on an occupied slot    never - that press is a tile's, and the
 	//                          gate below refuses the whole press while
@@ -177,7 +183,7 @@ if (qtic <= 0) {
 // finger comes up within a few px of that spot, tested at the PRESS
 // point (where they aimed), and only if the swipe gate did not take
 // the press first. See the Create.
-if (input_free())
+if (__in())
 if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 	if (mouse_check_button_pressed(mb_left) && mouse_x > __dr_face()) {
@@ -187,7 +193,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 }
 // (a separate block, not an early exit: the frames with no release
 // must fall through to the board, the quote tick and the recache)
-if (input_free())
+if (__in())
 if (dr_open > .5)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_released(mb_left) && dp_x >= 0) {
@@ -280,7 +286,7 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 	// (anywhere else on the drawer: a tap on nothing)
 }
 
-if (input_free())
+if (__in())
 if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 
 	if (mouse_check_button_pressed(mb_left)) {

@@ -48,7 +48,24 @@ save_mark_dirty();
 // bars sit SNUG under it: DE stacks its module meters immediately below
 // the strip with no gap, and a gap is what made them read as floating
 // debris here.
-bby     = obj_ui_header.bar_h;   // 27 - the bar, not its 2px shadow (his call: flush)
+// AN OVERLAY, NOT A ROOM (his ask, 2026-09-12: "port the tiles to a
+// standalone layer thing instead of its own room"): spawned over
+// whatever room you stand in by tiles_open, on the contract every
+// panel shares - oa / closing, ui_overlay lists it, the burger's X and
+// escape close it. It paints its own black ground (the room it was is
+// black) and it is OPAQUE: the tapper does not fire through it. The
+// three draw slots keep their order a step under the panel's depth.
+// The table itself never lived here - syst_tiletimer runs tiles_tick
+// everywhere - so nothing about the sim changes. (The layout is the
+// 480x270 room's.)
+depth   = -510;   // over the room and its drawers, under the menu (-520) and the header (-1000)
+oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
+closing = false;  // armed by tiles_close; the Step destroys at zero
+opaque  = true;   // obj_clicker reads this: no paid taps under the board
+/// is the panel here and unblocked - the gate every press below asks
+__in = function() { return oa >= .999 && !closing && input_free(ui_layer_overlay); };
+
+bby     = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 27;   // the bar, not its 2px shadow (his call: flush)
 strip_y = bby;
 strip_h = 16;
 bar_y   = strip_y + strip_h;             // snug, no gap
@@ -782,12 +799,12 @@ __draw_shards = function() {
 // instance, more than one depth.
 snap_px = create_obj(0, 0, obj_draw_proxy);
 snap_px.owner = id;
-snap_px.depth = -25;
+snap_px.depth = depth - 1;   // (was -25 under the board's 0: the same order, a step under the panel)
 snap_px.fn    = function() { if (dr_open > .001) pixel_snap(3, 4); };
 
 draw_px = create_obj(0, 0, obj_draw_proxy);
 draw_px.owner = id;
-draw_px.depth = -50;
+draw_px.depth = depth - 2;
 draw_px.fn    = __draw_drawer;
 
 

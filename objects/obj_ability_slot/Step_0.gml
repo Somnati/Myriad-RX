@@ -47,4 +47,5 @@ if (instance_number(obj_ability_slot) < o.visible_rows + 1)
 if (instance_number(obj_ability_slot) <= a_ + 1) {
 	var _o = create_obj(x, y + o.row_h, obj_ability_slot);
 	_o.a_ = a_ + 1;
+	_o.depth = depth;   // the whole chain rides the controller's slot
 }

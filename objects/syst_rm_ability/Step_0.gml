@@ -1,4 +1,24 @@
 
+// ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+if (closing && oa <= 0) {
+	// the furniture goes with the panel (the slots kill themselves when
+	// the controller is gone; the cards and the bar are ours to take)
+	for (var _d = 0; _d < array_length(draft_ids); _d++)
+		if (instance_exists(draft_ids[_d])) instance_destroy(draft_ids[_d]);
+	with (obj_ability_slot) instance_destroy();
+	if (instance_exists(sb)) instance_destroy(sb);
+	instance_destroy();
+	exit;
+}
+// input only once the panel has fully arrived and nothing sits over it
+// (the menu, a popup); escape closes it. Everything else below (the
+// rebuild passes, the info crossfade) keeps running so the list is
+// whole when the ease lands
+var _live = (oa >= .999 && !closing && input_free(ui_layer_overlay));
+if (_live && keyboard_check_pressed(vk_escape)) { abilities_close(); exit; }
+
 // ---- rebuild passes ----
 // the controller's grab is always a FULL pass (a_ = -1): it reseeds
 // the batch offsets and materializes the inspected card in one sweep
@@ -91,7 +111,7 @@ if (array_length(g.abi_draft) > 0) {
 		_c.rot_x = trickle(_c.rot_x, _tx2, 6);
 	}
 
-	if (input_free())
+	if (_live)
 	if (mouse_check_button_pressed(mb_left)) {
 		// did the press land on ANY card? tracked separately from the
 		// pick, because a press on a card still mid-flip is a press on a
@@ -138,16 +158,11 @@ if (array_length(g.abi_draft) > 0) {
 }
 
 // ---- input (region pattern, fully arbitrated) ----
-if (input_free())
+if (_live)
 if (!variable_global_exists("click_owner") || g.click_owner == noone)
 if (mouse_check_button_pressed(mb_left)) {
 
-	// back, top right
-	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62, 30, room_width - 6, 46)) {
-		play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-		back_room();
-		exit;
-	}
+	// (no back button - the burger is the X, the overlay's rule)
 
 	// discover: spend units, then a DRAFT of up to three seeded
 	// candidates rises - the player picks one. gate on the POOL, not

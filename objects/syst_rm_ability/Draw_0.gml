@@ -2,6 +2,13 @@
 /// info panel with the native crossfade, discover button, reveal
 /// flash. the list itself is drawn by the slots.
 
+// THE GROUND (the overlay, 2026-09-12): the room it was had a black
+// background; the panel paints one from the header down, fading in on
+// the open ease (the slots draw over it in their own slot, a step up)
+draw_set_alpha(1);
+var _bby0 = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 27;
+draw_sprite_ext(spr_pixel_1x1, 0, 0, _bby0, room_width, room_height - _bby0, 0, c_black, .94 * ui_anim_in(oa, 0));
+
 draw_set_font(fnt);
 
 // ---- top strip, under the header: the status BAR stays high, the
@@ -228,14 +235,7 @@ if (view == 1) {
 	}
 }
 
-// ---- back, top right ----
-var _bbx = room_width - 62;
-draw_set_alpha(1);
-draw_sprite_ext(spr_pixel_1x1, 0, _bbx, 30, 56, 16, 0, c_black, .8);
-draw_px_rect(_bbx, 30, 56, 16, rgb(170, 190, 230), .9);
-draw_set_color(c_white);
-draw_set_alpha(.9);
-draw_text(_bbx + 28, 34, "back");
+// (no back button - the burger is the X, the overlay's rule)
 
 // ---- discovery reveal: the fanfare card, fading out ----
 if (reveal_t > 0) {

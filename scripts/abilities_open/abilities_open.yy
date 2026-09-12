@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"abilities_open",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"abilities_open",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

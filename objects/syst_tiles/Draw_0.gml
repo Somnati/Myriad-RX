@@ -14,6 +14,15 @@
 var _t = g.tiles;
 __grow();   // a slot bought this frame (see the Create)
 
+// THE GROUND: the room it was had a black background; as an overlay
+// the board paints one from the header down (the blurred room shows
+// through the last few percent, which is how you know where you are).
+// The whole board rides the open ease - it slides up into its seat
+draw_set_alpha(1);
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, room_height - bby, 0, c_black, .94 * ui_anim_in(oa, 0));
+var _eo = (1 - ui_anim_in(oa, 1)) * UI_IN_DEAL;
+if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
+
 draw_set_font(fnt);
 draw_set_halign(fa_center);
 
@@ -248,7 +257,7 @@ for (var _i = 0; _i < array_length(_lines); _i++) {
 // hidden while the debug drawer is out over it
 if (dbg_open < .5) {
 	var _sr = __sort_r();
-	var _sov = input_free() && grab_i == -1
+	var _sov = __in() && grab_i == -1
 		&& point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h);
 	sort_hov  = trickle(sort_hov, _sov ? 1 : 0, 3, 0);
 	sort_glow = trickle(sort_glow, 0, 5, 0);
@@ -354,3 +363,8 @@ if (!is_undefined(_t.report)) {
 draw_set_halign(fa_left);
 draw_set_color(c_white);
 draw_set_alpha(1);
+
+// the open ease's slide comes off before the next drawer (the proxies
+// draw in their own slots, unslid - the drawer only exists once the
+// panel has arrived)
+matrix_set(matrix_world, matrix_build_identity());

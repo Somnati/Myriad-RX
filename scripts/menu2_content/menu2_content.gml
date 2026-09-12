@@ -14,8 +14,8 @@ function menu2_content() {
 	menu2_button("clicker",      rm_clicker,       c_horange);
 	menu2_button("rebirth",      function() { rebirth_open(); }, c_hred); // myriad
 	menu2_button("upgrades",     function() { upgrades_open(); }, c_lavender); // myriad (an overlay, 2026-09-12)
-	menu2_button("tiles",        rm_tiles,         c_aqua);     // myriad
-	menu2_button("abilities",    rm_abilitydeck,   c_rarity_epic); // techdemo
+	menu2_button("tiles",        function() { tiles_open(); },     c_aqua);        // myriad (an overlay, 2026-09-12)
+	menu2_button("abilities",    function() { abilities_open(); }, c_rarity_epic); // techdemo (an overlay, 2026-09-12)
 	menu2_button("automation",   function() { automation_open(); }, c_sblue);
 	menu2_button("time bank",    function() { timebank_open(); }, c_gold);
 	menu2_button("battery",      function() { battery_open(); },  c_sgreen);   // the offline budget + the crank

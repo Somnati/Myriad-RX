@@ -45,6 +45,14 @@ var _ok = input_free(ui_layer_overlay)
 	&& (mouse_y >= tap_y0)
 	&& (mouse_y <= tap_y1)
 	&& variable_global_exists("click_gps");
+// ⚖️ BUT NOT UNDER AN OPAQUE ONE (2026-09-12, with the tiles, the deck
+// and the upgrades as overlays): a panel that covers the whole room
+// declares `opaque`, and a press on it is a press on the panel - a
+// tile dragged, a slot held - never a paid tap on the surface it hides
+if (_ok) {
+	var _ov = ui_overlay();
+	if (_ov != noone && (_ov[$ "opaque"] ?? false)) _ok = false;
+}
 // the dial drawer claims ONLY its bars, buy buttons and docked strip
 // (his rule: profit taps fire even with the dials open). It answers
 // from the same rectangles its own tap handling uses, so a press on a
