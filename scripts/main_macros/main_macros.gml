@@ -619,9 +619,15 @@ function main_macros() {
 // ⚖️ AND THE PRICE CURVES (his ask). The straight line spent its 304
 // decades evenly, which put the SECOND level at 1e10 and dropped the
 // fabricator out of the first day entirely - a fifty-rung ladder whose
-// early half nobody would ever climb. CURVE 2 spends the same span
-// unevenly: level 5 at 1e7, level 10 at 1e16, level 50 still exactly on
+// early half nobody would ever climb. A curve spends the same span
+// unevenly: a slow start, a steep finish, level 50 still exactly on
 // TOP. The budget does not move; only who can reach which part of it.
+// ⚖️ 1.25, NOT 2 (the twin, 2026-09-12): curve 2 bought thirty-five
+// upgrades in the first hour - the cheap half of every row fell in a
+// heap - and then walled for eight late in the day. 1.25 with every
+// base x3 (tile_upg_config) buys eleven in hour one and its plateau
+// lands where the flux reset is on offer. datafiles/tiles_twin.py
+// reads the same numbers; it must print HOLD before these move again.
 #macro TILE_UPG_CURVE  1.25  // every upgrade's price curve (his call):
                              // 1 = a straight line, higher = a slower
                              // start and a steeper finish
