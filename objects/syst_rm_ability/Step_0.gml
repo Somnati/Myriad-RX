@@ -200,6 +200,10 @@ if (mouse_check_button_pressed(mb_left)) {
 	if (point_in_rectangle(mouse_x, mouse_y, 234, 250, 304, 264)) {
 		view = 1 - view;
 		g.ability_page = 0;
+		// the scrollbar's touch position IS the page (it writes
+		// g.ability_page back every step) - move both or the list
+		// lands wherever the bar was, not at the top
+		if (instance_exists(sb)) { sb.ty = 0; sb.ty_speed_actual = 0; sb.ty_speed = 0; }
 		if (view == 0) update_ap = true; // restore the deck's row count
 		play_sound_ext(snd_matclick2, 1.0, 1.1, .5, 1);
 	}

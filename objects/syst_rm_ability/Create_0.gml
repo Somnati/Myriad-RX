@@ -282,9 +282,9 @@ grab_deck_ap();
 
 // ---- the furniture: scrollbar + the first list slot (it chain-
 // spawns the rest, native style) ----
-var _sb = create_obj(1, list_y, obj_scrollbar);
-_sb.i = scrl_abilitydeck;
-_sb.image_yscale = (visible_rows * row_h) / sprite_get_height(spr_scrollbar);
+sb = create_obj(1, list_y, obj_scrollbar);
+sb.i = scrl_abilitydeck;
+sb.image_yscale = (visible_rows * row_h) / sprite_get_height(spr_scrollbar);
 
 var _sl = create_obj(list_x, list_y, obj_ability_slot);
 _sl.a_ = 0;
