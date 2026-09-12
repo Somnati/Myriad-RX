@@ -27,22 +27,22 @@ hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under
 // landscape and stack below in portrait (the money room is both).
 land    = (room_width > 300);
 disc_cx = room_width * .5;
-disc_r  = land ? 54 : 42;
-disc_cy = land ? (hh + 12 + disc_r) : (hh + 10 + disc_r);
+disc_r  = land ? 38 : 32;     // (54 was "ugly" - his word; a dial, not a moon)
+disc_cy = land ? (hh + 22 + disc_r) : (hh + 12 + disc_r);
 crank_cx = disc_cx;   // the crank's centre and radius ARE the disc's
 crank_cy = disc_cy;
 crank_r  = disc_r;
 // the two readouts under the disc: "full in" left, "lasts" right
-read_y  = disc_cy + disc_r + 12;
+read_y  = disc_cy + disc_r + 14;
 // the offline rate rows
 rate_p  = land ? 18 : 14;
-rate_y  = land ? (hh + 44) : (read_y + 28);
+rate_y  = land ? (hh + 48) : (read_y + 30);
 rate_x  = land ? 14 : 8;
 trk_x   = land ? (rate_x + 64) : (rate_x + 40);
 trk_w   = land ? 78 : 60;
 // the two ladders
 upg_p   = land ? 22 : 18;
-upg_y   = land ? (hh + 44) : (rate_y + 3 * rate_p + 8);
+upg_y   = land ? (hh + 48) : (rate_y + 3 * rate_p + 8);
 upg_x   = land ? (room_width - 14 - 150) : 8;
 upg_w   = land ? 150 : (room_width - 16);
 btn_w   = land ? 54 : 44;
@@ -60,9 +60,9 @@ rate_col = [c_sgreen, c_seagreen, c_seagreen];
 // ask, 2026-09-11), still charging, and the detent spring reels it
 // into the nearest of eight notches as it dies; the clicks ride the
 // speed. The knob flashes white on each.
-crank_cx = 396;
-crank_cy = hh + 118;
-crank_r  = 34;
+// (the crank's centre and radius are the disc's - set with the layout
+// above. Three stale lines here put the grab at the OLD spot, top
+// right, while the dial drew in the middle: "the crank don't work")
 ang      = 0;       // the handle's angle
 vel      = 0;       // degrees per frame, free-spinning
 held     = false;

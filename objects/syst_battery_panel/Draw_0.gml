@@ -41,115 +41,118 @@ if (_sp > .001) {
 if (__part(2) > 0) {
 	var _cx = disc_cx, _cy = disc_cy, _R = disc_r;
 
-	// the glow behind it, the theme colour, breathing while it cranks
-	var _gs = (_R * 4.2) / sprite_get_width(spr_vis_glow_soft);
+	// a soft glow behind it, breathing while it cranks
+	var _gs = (_R * 4.6) / sprite_get_width(spr_vis_glow_soft);
 	gpu_set_blendmode(bm_add);
-	draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy, _gs, _gs, 0, _gc, .10 + .08 * crank_glow);
+	draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy, _gs, _gs, 0, _gc, .05 + .07 * crank_glow);
 	gpu_set_blendmode(bm_normal);
 
-	// the disc: a dark rasterised circle
+	// the interior: a dark rasterised disc (the phone's - the liquid
+	// lives in the dark, it does not flood the face)
 	for (var _dy = -_R; _dy <= _R; _dy++) {
 		var _hw = sqrt(max(0, sqr(_R) - sqr(_dy)));
 		draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx - _hw), floor(_cy + _dy),
-			max(1, round(_hw * 2)), 1, 0, merge_colour(c_black, _gc, .08), .92);
+			max(1, round(_hw * 2)), 1, 0, merge_colour(c_black, _gc, .06), .95);
 	}
 
-	// ⚖️ THE LIQUID (his ask: "a nice moving minimal liquid"). The fill
-	// line eases toward the charge so a crank's burst RISES; two waves
-	// ride it - a back one, dim, and the front one with a lit crest -
-	// and both slosh harder while the crank turns. Column by column:
-	// each x fills from its wave's height down to the disc's floor,
-	// clipped to the circle - one stamp a column, no shader
+	// ⚖️ THE LIQUID (his ask, then "improve the green liquid look"). A
+	// TRANSLUCENT dark green, not a lime flood: the fill line eases
+	// toward the charge (a crank's burst rises), and it never quite
+	// reaches the top - at 100% a sliver of dark stays above the crest
+	// so the surface is always there to read. Two waves: a dim back
+	// one and the front one with a lit crest and a lighter band under
+	// it for depth; both slosh harder while the crank turns. Column by
+	// column, one stamp each, clipped to the circle
 	liq_t += delta * (1 + min(abs(vel), 10) * .15);
-	var _target = _cy + _R - 2 * _R * _f;
+	var _target = _cy + _R - 2 * (_R - 5) * _f - 1;
 	if (liq_lvl < 0) liq_lvl = _target;
 	liq_lvl += (_target - liq_lvl) * min(1, .12 * delta);
 	var _amp = 1 + min(abs(vel), 10) * .25;
+	var _liq  = merge_colour(_gc, c_black, .35);
+	var _liqb = merge_colour(_gc, c_black, .55);
 	for (var _pass = 0; _pass < 2; _pass++) {
 		var _back = (_pass == 0);
-		for (var _x = -_R + 1; _x < _R; _x++) {
-			var _hw = sqrt(max(0, sqr(_R) - sqr(_x)));
+		for (var _x = -_R + 2; _x < _R - 1; _x++) {
+			var _hw = sqrt(max(0, sqr(_R - 2) - sqr(_x)));
 			var _top = _cy - _hw, _bot = _cy + _hw;
 			var _w = _back
-				? liq_lvl - 1.5 + (2.0 * dsin(_x * 8 - liq_t * 1.9) + 1.2 * dsin(_x * 15 + liq_t * 1.3)) * _amp
-				: liq_lvl       + (2.2 * dsin(_x * 9 + liq_t * 2.4) + 1.4 * dsin(_x * 17 - liq_t * 1.6)) * _amp;
+				? liq_lvl - 1.5 + (1.6 * dsin(_x * 8 - liq_t * 1.9) + 1.0 * dsin(_x * 15 + liq_t * 1.3)) * _amp
+				: liq_lvl       + (1.8 * dsin(_x * 9 + liq_t * 2.4) + 1.1 * dsin(_x * 17 - liq_t * 1.6)) * _amp;
 			var _y0 = clamp(_w, _top, _bot);
 			if (_y0 >= _bot) continue;
 			var _yy = floor(_y0);
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, ceil(_bot) - _yy, 0,
-				_back ? merge_colour(_gc, c_black, .45) : merge_colour(_gc, c_black, .2), _back ? .55 : .85);
-			if (!_back)   // the crest
-				draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, 1, 0, merge_colour(_gc, c_white, .45), .95);
+			var _hh2 = ceil(_bot) - _yy;
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, _hh2, 0, _back ? _liqb : _liq, _back ? .5 : .62);
+			if (!_back) {
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, 1, 0, merge_colour(_gc, c_white, .4), .95);
+				if (_hh2 > 2) draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy + 1, 1, 1, 0, _gc, .45);
+			}
 		}
 	}
 
-	// the ring: a two-cell band on the rim
+	// the ring: a dark gap inside a one-cell bright rim, so it reads
+	// as a ring whatever the liquid does under it
 	var _steps = round(_R * 6.3);
 	for (var _k = 0; _k < _steps; _k++) {
 		var _ra = _k * 360 / _steps;
 		draw_sprite_ext(spr_pixel_1x1, 0,
-			floor(_cx + lengthdir_x(_R - 1, _ra)), floor(_cy + lengthdir_y(_R - 1, _ra)),
-			2, 2, 0, _gl, .9);
+			floor(_cx + lengthdir_x(_R - 2, _ra)), floor(_cy + lengthdir_y(_R - 2, _ra)), 1, 1, 0, c_black, .7);
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(_cx + lengthdir_x(_R, _ra)), floor(_cy + lengthdir_y(_R, _ra)), 1, 1, 0, _gl, .95);
 	}
 	// the eight notches the detents reel the handle into, just outside
 	for (var _k = 0; _k < 8; _k++)
 		draw_sprite_ext(spr_pixel_1x1, 0,
 			floor(_cx + lengthdir_x(_R + 4, _k * 45)), floor(_cy + lengthdir_y(_R + 4, _k * 45)),
-			1, 1, 0, _gc, (_k == 0) ? .9 : .4);
-	// the crank's handle, riding the rim
+			1, 1, 0, _gc, (_k == 0) ? .8 : .3);
+	// the crank's handle, riding the rim: a small knob, theme green
+	// with a white heart, gold in the hand, white on a click
 	var _hx = floor(_cx + lengthdir_x(_R, ang));
 	var _hy = floor(_cy + lengthdir_y(_R, ang));
-	var _kc = (crank_flash > 0) ? c_white : (held ? c_gold : merge_colour(c_white, _gc, .3));
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, _kc, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, _kc, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, _kc, .95);
+	var _kc = (crank_flash > 0) ? c_white : (held ? c_gold : _gc);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 2, 5, 5, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 1, _hy - 3, 3, 7, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 1, 7, 3, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx, _hy, 1, 1, 0, c_white, .9);
 
-	// the bolt above the number, lit while it charges (always, here -
-	// brighter while cranking): a five-cell glyph
-	var _bx = floor(_cx), _by = floor(_cy - _R * .55);
-	var _ba = .6 + .35 * crank_glow;
+	// the bolt above the number, brighter while it cranks
+	var _bx = floor(_cx), _by = floor(_cy - _R * .5);
+	var _ba = .55 + .4 * crank_glow;
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx + 1, _by,     2, 1, 0, _gc, _ba);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx,     _by + 1, 2, 1, 0, _gc, _ba);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx - 1, _by + 2, 3, 1, 0, _gc, _ba);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx,     _by + 3, 2, 1, 0, _gc, _ba);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx - 1, _by + 4, 2, 1, 0, _gc, _ba);
 
-	// the percentage, big, and the sign under it
+	// the percentage, big, the sign under it
 	draw_set_halign(fa_center);
 	draw_set_font(fnt_large_outline);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
-	var _pct = string(floor(_f * 100));
-	draw_text_transformed(_cx, _cy - 10, _pct, 2, 2, 0);
+	draw_text(_cx, _cy - 6, string(floor(_f * 100)));
 	draw_set_font(fnt);
-	draw_set_color(merge_colour(c_white, _gc, .3));
-	draw_set_alpha(.8);
-	draw_text(_cx, _cy + 12, "%");
+	draw_set_color(merge_colour(c_white, _gc, .35));
+	draw_set_alpha(.75);
+	draw_text(_cx, _cy + 8, "%");
 	draw_set_halign(fa_left);
 	__part_end();
 }
 
-// ---- the two readouts under the disc ----
+// ---- the two readouts, centred under the disc ----
 if (__part(3) > 0) {
-	var _need = (_cap - _b.charge) / max(.001, battery_rate());
+	var _need  = (_cap - _b.charge) / max(.001, battery_rate());
 	var _lasts = battery_lasts();
 	var _draw  = battery_draw();
-	var _lx = land ? (disc_cx - disc_r - 8) : 8;
-	var _rx = land ? (disc_cx + disc_r + 8) : (room_width - 8);
-	draw_set_halign(land ? fa_right : fa_left);
+	draw_set_halign(fa_center);
 	draw_set_color(c_white);
-	draw_set_alpha(.95);
-	draw_text(_lx, read_y, (_b.charge >= _cap - 1) ? "full" : ("full in " + crunch_time_long(_need * 60)));
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(_lx, read_y + 10, (_b.charge >= _cap - 1) ? (crunch_time_long(_cap * 60) + " of charge") : "here, or crank it");
-	draw_set_halign(land ? fa_left : fa_right);
+	draw_set_alpha(.9);
+	draw_text(disc_cx, read_y, (_b.charge >= _cap - 1)
+		? ("full  -  " + crunch_time_long(_cap * 60) + " of charge")
+		: ("full in " + crunch_time_long(_need * 60)));
 	draw_set_color(c_gold);
-	draw_set_alpha(.95);
-	draw_text(_rx, read_y, (_draw <= 0) ? "nothing draws" : ("lasts " + crunch_time_long(_lasts * 60)));
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(_rx, read_y + 10, (_draw <= 0) ? "forever, away" : ("away at these rates" + ((_draw < .999) ? ("  x" + string_format(_draw, 1, 2)) : "")));
+	draw_set_alpha(.85);
+	draw_text(disc_cx, read_y + 11, (_draw <= 0) ? "nothing draws - it lasts forever"
+		: ("lasts " + crunch_time_long(_lasts * 60) + " away" + ((_draw < .999) ? ("  (x" + string_format(_draw, 1, 2) + ")") : "")));
 	draw_set_halign(fa_left);
 	__part_end();
 }
@@ -158,7 +161,7 @@ if (__part(3) > 0) {
 if (__part(4) > 0) {
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);
-	draw_text(rate_x, rate_y - 11, land ? "offline speed - slower draws much less" : "offline speed");
+	draw_text(rate_x, rate_y - 11, "offline speed");
 	var _a = g.autom;
 	for (var _i = 0; _i < 3; _i++) {
 		var _ry = rate_y + _i * rate_p;
@@ -186,7 +189,7 @@ if (__part(4) > 0) {
 if (__part(5) > 0) {
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);
-	draw_text(upg_x, upg_y - 11, land ? "upgrades - credits" : "upgrades");
+	draw_text(upg_x, upg_y - 11, "upgrades");
 	for (var _r = 0; _r < 2; _r++) {
 		var _ry = upg_y + _r * upg_p;
 		var _q  = (_r == 0) ? q_cap : q_rate;
@@ -204,13 +207,6 @@ if (__part(5) > 0) {
 		draw_ui_button(_br.x, _br.y, _br.w, _br.h, string(_q.cost) + " cr",
 			_q.ok ? c_sgreen : c_gray, _q.ok, _q.ok);
 	}
-	if (land) {
-		draw_set_color(_dim);
-		draw_set_alpha(.5);
-		draw_text(upg_x, upg_y + 2 * upg_p + 4, "equal levels fill in the same time; a cap");
-		draw_text(upg_x, upg_y + 2 * upg_p + 14, "ahead of its speed fills slower. the time");
-		draw_text(upg_x, upg_y + 2 * upg_p + 24, "bank still banks the whole absence.");
-	}
 	__part_end();
 }
 
@@ -219,7 +215,7 @@ if (__part(6) > 0) {
 	draw_set_halign(fa_center);
 	draw_set_color(_dim);
 	draw_set_alpha(.45);
-	draw_text(disc_cx, room_height - 12, _cranking ? "cranking" : "grab the ring and turn it to fast charge");
+	draw_text(disc_cx, room_height - 12, _cranking ? "cranking" : "turn the ring to fast charge");
 	draw_set_halign(fa_left);
 	__part_end();
 }
