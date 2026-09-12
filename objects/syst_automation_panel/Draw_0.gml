@@ -231,9 +231,11 @@ for (var _i = 0; _i < _nrows; _i++) {
 		for (var _b = 0; _b < _nb; _b++) {
 			var _br = __btn_r(_i, _b, _nb);
 			var _en = _rw.on || (_rw.btns[_b] == "save");
+			var _pk = (variable_struct_exists(_rw, "sel") && _rw.sel == _b);   // the chosen one, on a pill row
 			draw_sprite_ext(spr_pixel_1x1, 0, _br.x, _br.y, _br.w, _br.h, 0,
-				_en ? merge_colour(_rw.col, c_black, .55) : c_black, _en ? .95 : .5);
-			draw_px_rect(_br.x, _br.y, _br.w, _br.h, _rw.col, _en ? .9 : .3);
+				_pk ? merge_colour(_rw.col, c_black, .35) : (_en ? merge_colour(_rw.col, c_black, .55) : c_black),
+				(_en || _pk) ? .95 : .5);
+			draw_px_rect(_br.x, _br.y, _br.w, _br.h, _pk ? c_white : _rw.col, _pk ? .9 : (_en ? .9 : .3));
 			draw_set_halign(fa_center);
 			draw_set_color(_en ? c_white : _dim);
 			draw_set_alpha(_en ? .95 : .6);

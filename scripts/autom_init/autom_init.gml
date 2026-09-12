@@ -106,6 +106,16 @@ function autom_init(_force = false) {
 		// autobuy would otherwise eat the pile rebirth is calculated
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
+		// THE STRATEGY (his list, 2026-09-12: "priority instead of
+		// thirteen identical rows"): 0 manual (a row per dial), 1
+		// strongest first, 2 cheapest first, 3 round-robin - the three
+		// strategies share ONE row (dial_all) and walk the dials in their
+		// order with the cap share, the leftovers trickling down
+		strat    : 0,
+		dial_all : { on : false, pct : 50, t : 30, tic : 0, st : 0, cur : 0 },
+		// THE RAILS (his list: the rebirth's armed conditions, for the
+		// autobuys too): a floor under which an autobuy holds its fire
+		rails    : { d_on : false, d_oom : 6, t_on : false, t_oom : 3 },
 		tiles : {},
 		tap      : { on : false, rate : 2, acc : 0 },
 		run      : { on : true, spd : 100 },

@@ -12,6 +12,7 @@ function ram_oc_any() {
 	for (var _i = 0; _i < array_length(_a.dial); _i++)
 		if (_a.dial[_i].on && _a.dial[_i].t < RAM_TIMER_MIN) return true;
 	if (_a.upg.buy && _a.upg.t < RAM_TIMER_MIN) return true;
+	if (_a.strat != 0 && _a.dial_all.on && _a.dial_all.t < RAM_TIMER_MIN) return true;
 	var _tn = variable_struct_get_names(_a.tiles);
 	for (var _i = 0; _i < array_length(_tn); _i++) {
 		var _p = _a.tiles[$ _tn[_i]];

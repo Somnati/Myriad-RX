@@ -27,16 +27,39 @@ function autom_tick() {
 	var _dt = delta / 60;
 	var _th = ram_throttle();   // one read a step; every clock below rides it
 
-	// ---- autobuy: the dials, each on its own clock ----
+	// ---- autobuy: the dials ----
+	// THE RAIL first (his list): under the profit floor every dial
+	// autobuy holds its fire - the clocks keep running, nothing buys
+	var _d_rail = true;
+	if (_a.rails.d_on) {
+		var _plg = (g.profit >= arb(1)) ? arb_log10(g.profit) : 0;
+		_d_rail = (_plg >= _a.rails.d_oom);
+	}
 	if (variable_global_exists("dial")) {
 		var _dn = min(g.dial_total, array_length(_a.dial));
-		for (var _i = 0; _i < _dn; _i++) {
-			var _p = _a.dial[_i];
-			if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
-			_p.tic -= _dt * _th;
-			if (_p.tic > 0) continue;
-			_p.tic = max(RAM_TIMER_FLOOR, _p.t);
-			autom_piece(_p, _i);
+		if (_a.strat == 0) {
+			// MANUAL: each dial on its own clock, its own cap
+			for (var _i = 0; _i < _dn; _i++) {
+				var _p = _a.dial[_i];
+				if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
+				_p.tic -= _dt * _th;
+				if (_p.tic > 0) continue;
+				_p.tic = max(RAM_TIMER_FLOOR, _p.t);
+				if (!_d_rail) { _p.st = 1; continue; }
+				autom_piece(_p, _i);
+			}
+		} else {
+			// A STRATEGY: one clock, one cap, the dials in its order
+			var _s = _a.dial_all;
+			if (!_s.on) { _s.st = 0; _s.tic = 0; for (var _i = 0; _i < _dn; _i++) _a.dial[_i].st = 0; }
+			else {
+				_s.tic -= _dt * _th;
+				if (_s.tic <= 0) {
+					_s.tic = max(RAM_TIMER_FLOOR, _s.t);
+					if (!_d_rail) _s.st = 1;
+					else autom_strategy(_s, _dn);
+				}
+			}
 		}
 	}
 

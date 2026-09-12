@@ -348,6 +348,14 @@ function handle_save(){
 	for (var _k = 0; _k < 3; _k++)
 		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
 	g.autom.oc        = handle("oc",        g.autom.oc);   // the overclock toggle (ram_oc)
+	g.autom.strat        = handle("strat",     g.autom.strat);        // the dials' strategy (autom_order)
+	g.autom.dial_all.on  = handle("da_on",     g.autom.dial_all.on);  // ...and its one row
+	g.autom.dial_all.pct = handle("da_pct",    g.autom.dial_all.pct);
+	g.autom.dial_all.t   = handle("da_t",      g.autom.dial_all.t);
+	g.autom.rails.d_on   = handle("rail_d_on", g.autom.rails.d_on);   // the autobuy rails
+	g.autom.rails.d_oom  = handle("rail_d_oom", g.autom.rails.d_oom);
+	g.autom.rails.t_on   = handle("rail_t_on", g.autom.rails.t_on);
+	g.autom.rails.t_oom  = handle("rail_t_oom", g.autom.rails.t_oom);
 	if (action == sv_load) {
 		// every overclockable value snaps to its ladder (normal stops or
 		// a notch), then the notches close if the toggle is off
@@ -356,6 +364,11 @@ function handle_save(){
 		g.autom.run.spd  = ram_snap("speed", g.autom.run.spd);
 		g.autom.fab.spd  = ram_snap("speed", g.autom.fab.spd);
 		g.autom.am_speed = ram_snap("speed", g.autom.am_speed);
+		g.autom.strat        = clamp(floor(g.autom.strat), 0, 3);
+		g.autom.dial_all.pct = clamp(g.autom.dial_all.pct, 1, 100);
+		g.autom.dial_all.t   = ram_snap("timer", g.autom.dial_all.t);
+		g.autom.rails.d_oom  = clamp(g.autom.rails.d_oom, 1, 60);
+		g.autom.rails.t_oom  = clamp(g.autom.rails.t_oom, 1, 30);
 		if (!g.autom.oc) ram_oc_clamp();
 		for (var _k = 0; _k < 3; _k++)
 			if (!is_string(g.autom.presets[_k])) g.autom.presets[_k] = "";

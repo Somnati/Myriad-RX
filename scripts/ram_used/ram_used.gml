@@ -14,9 +14,15 @@ function ram_used() {
 	// the automerger: the TABLE's switch, this page's speed
 	if (variable_global_exists("tiles") && g.tiles.automerge)
 		_u += ram_cost("speed", _a.am_speed);
-	// the dial autobuys, each on its own clock
-	for (var _i = 0; _i < array_length(_a.dial); _i++)
-		if (_a.dial[_i].on) _u += ram_cost("timer", _a.dial[_i].t);
+	// the dial autobuys: each on its own clock in manual; a strategy's
+	// one clock prices a stick-run per dial it watches (every dial with
+	// a level) - the same attention, one hand on it
+	if (_a.strat == 0) {
+		for (var _i = 0; _i < array_length(_a.dial); _i++)
+			if (_a.dial[_i].on) _u += ram_cost("timer", _a.dial[_i].t);
+	} else if (_a.dial_all.on) {
+		_u += ram_cost("timer", _a.dial_all.t) * max(1, autom_strat_n());
+	}
 	// the upgrade table
 	var _g = _a.upg;
 	if (_g.roll) _u += ram_cost("flag");

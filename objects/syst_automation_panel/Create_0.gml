@@ -418,25 +418,33 @@ __page_rows = function() {
 		// THE AUTOTAPPER (his ask, 2026-09-11) heads the page: the
 		// tapper is the money room's first machine
 		array_push(_o, __section("tap process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 2, hi : 10, snap : 2, name : "auto tap", ock : "tap",
+		array_push(_o, { kind : 2, lo : 2, hi : 10, snap : 2, name : "auto tap", ock : "tap", tag : "tap",
 			on : _a.tap.on, val : _a.tap.rate, sfx : " taps/s", st : -1,
 			col : c_gold, ram : ram_cost("tap", _a.tap.rate),
 			help : "taps the money room for you, that many a second (x your tps "
 			     + "bonuses) - a stick per 2 taps/s; the red notches overclock it. "
 			     + "its taps are not counted as yours" });
 		array_push(_o, __section("dial process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling", ock : "speed",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling", ock : "speed", tag : "run",
 			on : _a.run.on, val : _a.run.spd, sfx : "% speed", st : -1,
 			col : c_sgreen, ram : ram_cost("speed", _a.run.spd),
 			help : "the dials running on their own - slower is cheaper, the red "
 			     + "notches overclock them. off FREEZES them where they are; hold "
 			     + "the pointer on one to crank it by hand" });
 		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
+		// THE STRATEGY (his list): manual keeps a row per dial; the other
+		// three share one row and walk the dials in their order
+		array_push(_o, { kind : 7, name : "strategy", tag : "strat",
+			val : ["a row per dial", "the best dial first, leftovers down the list",
+			       "the cheapest level first, leftovers down the list", "every dial gets a turn at the front"][_a.strat],
+			btns : ["manual", "strongest", "cheapest", "robin"], act : "strat", sel : _a.strat,
+			on : true, st : -1, col : tcol[AT_DIALS], ram : 0,
+			help : "how the autobuy spreads the cap share over the dials" });
 		// THE RESERVE heads the autobuys, because it is the counterweight
 		// to everything under it: autobuy spends profit, and this is the
 		// share autobuy may not touch.
 		array_push(_o, {
-			kind : 1, lo : 0, hi : 90,
+			kind : 1, lo : 0, hi : 90, tag : "reserve",
 			name : "reserve",
 			on   : (_a.lock_pct > 0),
 			val  : _a.lock_pct,
@@ -449,8 +457,34 @@ __page_rows = function() {
 			help : "held out of spending: this share of the HIGHEST pile "
 			     + "you have held this run. turn it down to release it",
 		});
+		// THE RAIL (his list): a profit floor under which every dial
+		// autobuy holds its fire - the reserve's cousin, as a condition
+		array_push(_o, { kind : 2, lo : 1, hi : 60, name : "only past 10^", tag : "rail_d",
+			on : _a.rails.d_on, val : _a.rails.d_oom, sfx : " profit", st : -1, col : c_gold, ram : 0,
+			help : "armed, the dial autobuys wait until the pile has passed this power of ten" });
 		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));
+		if (_a.strat != 0) {
+			// ONE ROW for every dial, then the order it will walk them in
+			var _sa = _a.dial_all;
+			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer", tag : "dial_all",
+				name : "all dials", on : _sa.on, val : _sa.pct, t : _sa.t, tic : _sa.tic, sfx : "%",
+				st : _sa.st, col : tcol[AT_DIALS], ram : ram_cost("timer", _sa.t) * max(1, autom_strat_n()),
+				help : "cap % of spendable profit per pulse, spread down the order - "
+				     + "timer: secs between pulses; a stick-run per dial it watches" });
+			var _ord = autom_order(_n);
+			for (var _k = 0; _k < array_length(_ord); _k++) {
+				var _i = _ord[_k];
+				var _dd = g.dial[_i];
+				var _why = (_a.strat == 2)
+					? ("next lv " + crunch_arb(dial_cost(_i, _dd.level, _dd.level + 1)))
+					: __dial_readout(_dd);
+				array_push(_o, { kind : 6, name : string(_k + 1) + ".", val : "dial " + dial_config(_i).name
+					+ ((_a.dial[_i].st == 2) ? "  -  bought" : ""), right : _why,
+					on : true, st : -1, col : dial_color(_i), ram : 0, help : "" });
+			}
+			return _o;
+		}
 		// WHICH DIALS ARE THE STRONGEST (his ask, 2026-09-11): each row
 		// carries the dial's own p/s, and the best of them is marked -
 		// the number you need to decide where the autobuy goes
@@ -462,7 +496,7 @@ __page_rows = function() {
 		for (var _i = 0; _i < _n; _i++) {
 			var _p = _a.dial[_i];
 			array_push(_o, {
-				kind : 5, lo : 1, hi : 100, ock : "timer",
+				kind : 5, lo : 1, hi : 100, ock : "timer", tag : "dial", k : _i,
 				name : "dial " + dial_config(_i).name,
 				sub  : __dial_readout(g.dial[_i]),
 				top  : (_i == _best),
@@ -491,25 +525,25 @@ __page_rows = function() {
 			else if (_rc.cool > 0) _eta = "cooldown " + crunch_time_long(_rc.cool * 60);
 			else if (_r.t_on || _r.u_on || _r.g_on || _r.c_on || _r.p_on) _eta = "rails passing - fires when you leave this page";
 		}
-		array_push(_o, { kind : 0, name : "auto rebirth", sub : _eta,
+		array_push(_o, { kind : 0, name : "auto rebirth", sub : _eta, tag : "reb",
 			on : _r.on, val : 0, sfx : "", st : -1, col : c_hred,
 			ram : ram_cost("rebirth"),
 			help : "the switch. it fires only when every armed rail below passes "
 			     + "- and never while this page is open" });
 		array_push(_o, __section("rails - every armed one must pass", c_hred));
-		array_push(_o, { kind : 2, lo : 1, hi : 240, name : "run length",
+		array_push(_o, { kind : 2, lo : 1, hi : 240, name : "run length", tag : "reb_t",
 			on : _r.t_on, val : _r.t_min, sfx : "m", st : -1, col : c_hred, ram : 0,
 			help : "at least this long into the run" });
-		array_push(_o, { kind : 2, lo : 1, hi : 500, name : "units gained",
+		array_push(_o, { kind : 2, lo : 1, hi : 500, name : "units gained", tag : "reb_u",
 			on : _r.u_on, val : _r.u_min, sfx : "", st : -1, col : c_hred, ram : 0,
 			help : "the press would award at least this many" });
-		array_push(_o, { kind : 2, lo : 1, hi : 200, name : "gain vs held",
+		array_push(_o, { kind : 2, lo : 1, hi : 200, name : "gain vs held", tag : "reb_g",
 			on : _r.g_on, val : _r.g_pct, sfx : "%", st : -1, col : c_hred, ram : 0,
 			help : "the award is at least this much of what you hold" });
-		array_push(_o, { kind : 2, lo : 1, hi : 60, name : "profit reach",
+		array_push(_o, { kind : 2, lo : 1, hi : 60, name : "profit reach", tag : "reb_p",
 			on : _r.p_on, val : _r.p_oom, sfx : " ooms", st : -1, col : c_hred, ram : 0,
 			help : "profit has passed 10^this" });
-		array_push(_o, { kind : 0, name : "penalty over",
+		array_push(_o, { kind : 0, name : "penalty over", tag : "reb_c",
 			on : _r.c_on, val : 0, sfx : "", st : -1, col : c_hred, ram : 0,
 			help : "the timeclamp: a rebirth inside the first 5 minutes of a "
 			     + "run pays only a fraction of its units. armed, it waits "
@@ -521,15 +555,15 @@ __page_rows = function() {
 	if (tab == AT_UPG) {
 		var _u = _a.upg;
 		array_push(_o, __section("upgrade table automation", tcol[AT_UPG]));
-		array_push(_o, { kind : 0, name : "auto roll",
+		array_push(_o, { kind : 0, name : "auto roll", tag : "upg_roll",
 			on : _u.roll, val : 0, sfx : "", st : -1, col : c_sblue, ram : 1,
 			help : "fills every empty slot, once a second" });
-		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy", ock : "timer",
+		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy", ock : "timer", tag : "upg_buy",
 			on : _u.buy, val : _u.pct, t : _u.t, tic : _u.tic, sfx : "%", st : -1,
 			col : c_sgreen, ram : ram_cost("timer", _u.t),
 			help : "buys a tier while its price fits that share of credits - "
 			     + "timer: secs between tries, right is faster" });
-		array_push(_o, { kind : 2, lo : 1, hi : 100, name : "auto sell",
+		array_push(_o, { kind : 2, lo : 1, hi : 100, name : "auto sell", tag : "upg_sell",
 			on : _u.sell, val : _u.keep, sfx : "% quick-set", st : -1,
 			col : c_lavender, ram : 1,
 			help : "sells what the filter below rejects - drag to set the "
@@ -541,7 +575,7 @@ __page_rows = function() {
 		var _cfg = upgrade_config();
 		for (var _i = 0; _i < array_length(_cfg); _i++) {
 			var _e = _cfg[_i];
-			array_push(_o, { kind : 4, name : _e.name,
+			array_push(_o, { kind : 4, name : _e.name, tag : "upg_kind",
 				on : (_u.kind[$ _e.id] ?? true), val : 0, sfx : "",
 				st : -1, col : _e.col, id : _e.id, ram : 0,
 				help : _e.help });
@@ -551,24 +585,27 @@ __page_rows = function() {
 	// ---- THE TILE TABLE ----
 	if (tab == AT_TILES) {
 		array_push(_o, __section("tile process automation", tcol[AT_TILES]));
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "fabricator", ock : "speed",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "fabricator", ock : "speed", tag : "fab",
 			on : _a.fab.on, val : _a.fab.spd, sfx : "% speed", st : -1,
 			col : c_seagreen, ram : ram_cost("speed", _a.fab.spd),
 			help : "the table making tiles on its own - slower is cheaper, the "
 			     + "red notches overclock it, off makes nothing" });
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "auto merge", ock : "speed",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "auto merge", ock : "speed", tag : "merge",
 			on : (variable_global_exists("tiles") && g.tiles.automerge),
 			val : _a.am_speed, sfx : "% speed", st : -1, col : c_seagreen,
 			ram : ram_cost("speed", _a.am_speed),
 			help : "the table merging its lowest equal pair on its own clock - "
 			     + "the speed scales that clock, the red notches overclock it" });
 		array_push(_o, __section("autobuy", tcol[AT_TILES]));
+		array_push(_o, { kind : 2, lo : 1, hi : 30, name : "only past 10^", tag : "rail_t",
+			on : _a.rails.t_on, val : _a.rails.t_oom, sfx : " shards", st : -1, col : c_seagreen, ram : 0,
+			help : "armed, the tile autobuys wait until the shards have passed this power of ten" });
 		var _tc = tile_upg_config();
 		for (var _i = 0; _i < array_length(_tc); _i++) {
 			var _e = _tc[_i];
 			var _p = _a.tiles[$ _e.id];
 			if (_p == undefined) continue;
-			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer",
+			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer", tag : "tile", id : _e.id,
 				name : _e.name, on : _p.on, val : _p.pct, t : _p.t, tic : _p.tic, sfx : "%",
 				st : _p.st, col : c_seagreen, id : _e.id, ram : ram_cost("timer", _p.t),
 				help : "cap % of the shards per buy - timer: secs between tries, right is faster" });
@@ -577,62 +614,44 @@ __page_rows = function() {
 	return _o;
 };
 
-// the toggle, per page and row (row indices follow __page_rows' order,
-// section bands included)
-__flip = function(_t, _i) {
+// THE TOGGLE, by the row's TAG (2026-09-12: the rows used to be found
+// by their index on the page, which broke the moment a page gained a
+// row; every row carries a tag now and the strategy / rails / sprites
+// rows slot in anywhere)
+__flip_row = function(_rw) {
 	var _a = g.autom;
-	if (_t == AT_DIALS) {
-		// 0 band, 1 auto tap, 2 band, 3 cycling, 4 band, 5 reserve (no
-		// toggle), 6.. the dials
-		if (_i == 1) { _a.tap.on = !_a.tap.on; return; }
-		if (_i == 3) { _a.run.on = !_a.run.on; return; }
-		if (_i < 6) return;
-		var _d = _a.dial[_i - 6];
-		_d.on = !_d.on;
-		if (!_d.on) _d.st = 0;
-		return;
-	}
-	if (_t == AT_REB) {
-		var _r = _a.reb;
-		switch (_i) {
-			case 0: _r.on   = !_r.on;   break;
-			case 2: _r.t_on = !_r.t_on; break;
-			case 3: _r.u_on = !_r.u_on; break;
-			case 4: _r.g_on = !_r.g_on; break;
-			case 5: _r.p_on = !_r.p_on; break;
-			case 6: _r.c_on = !_r.c_on; break;
-		}
-		return;
-	}
-	if (_t == AT_UPG) {
-		// 0 band, 1 roll, 2 buy, 3 sell, 4 band, 5 chips, 6.. the kinds
-		var _u = _a.upg;
-		switch (_i) {
-			case 1: _u.roll = !_u.roll; return;
-			case 2: _u.buy  = !_u.buy;  return;
-			case 3: _u.sell = !_u.sell; return;
-		}
-		var _cfg = upgrade_config();
-		var _k = _i - 6;
-		if (_k < 0 || _k >= array_length(_cfg)) return;
-		var _id = _cfg[_k].id;
-		_u.kind[$ _id] = !(_u.kind[$ _id] ?? true);
-		return;
-	}
-	if (_t == AT_TILES) {
-		// 0 band, 1 fabricator, 2 merge, 3 band, 4.. the upgrades
-		if (_i == 1) { _a.fab.on = !_a.fab.on; return; }
-		if (_i == 2) {   // the automerger - the TABLE's flag, saved with it
-			if (variable_global_exists("tiles")) g.tiles.automerge = !g.tiles.automerge;
+	if (!variable_struct_exists(_rw, "tag")) return;
+	switch (_rw.tag) {
+		case "tap":  _a.tap.on = !_a.tap.on; return;
+		case "run":  _a.run.on = !_a.run.on; return;
+		case "fab":  _a.fab.on = !_a.fab.on; return;
+		case "merge": if (variable_global_exists("tiles")) g.tiles.automerge = !g.tiles.automerge; return;
+		case "dial": {
+			var _d = _a.dial[_rw.k];
+			_d.on = !_d.on;
+			if (!_d.on) _d.st = 0;
 			return;
 		}
-		var _tc = tile_upg_config();
-		var _k = _i - 4;
-		if (_k < 0 || _k >= array_length(_tc)) return;
-		var _p = _a.tiles[$ _tc[_k].id];
-		if (_p == undefined) return;
-		_p.on = !_p.on;
-		if (!_p.on) _p.st = 0;
+		case "dial_all": _a.dial_all.on = !_a.dial_all.on; if (!_a.dial_all.on) _a.dial_all.st = 0; return;
+		case "rail_d": _a.rails.d_on = !_a.rails.d_on; return;
+		case "rail_t": _a.rails.t_on = !_a.rails.t_on; return;
+		case "reb":   _a.reb.on   = !_a.reb.on;   return;
+		case "reb_t": _a.reb.t_on = !_a.reb.t_on; return;
+		case "reb_u": _a.reb.u_on = !_a.reb.u_on; return;
+		case "reb_g": _a.reb.g_on = !_a.reb.g_on; return;
+		case "reb_p": _a.reb.p_on = !_a.reb.p_on; return;
+		case "reb_c": _a.reb.c_on = !_a.reb.c_on; return;
+		case "upg_roll": _a.upg.roll = !_a.upg.roll; return;
+		case "upg_buy":  _a.upg.buy  = !_a.upg.buy;  return;
+		case "upg_sell": _a.upg.sell = !_a.upg.sell; return;
+		case "upg_kind": _a.upg.kind[$ _rw.id] = !(_a.upg.kind[$ _rw.id] ?? true); return;
+		case "tile": {
+			var _p = _a.tiles[$ _rw.id];
+			if (_p == undefined) return;
+			_p.on = !_p.on;
+			if (!_p.on) _p.st = 0;
+			return;
+		}
 	}
 };
 
@@ -652,56 +671,39 @@ __quickset = function() {
 	for (var _k = 0; _k < UPG_RARITY_N; _k++) g.autom.upg.rar[_k] = (_k >= _fl);
 };
 
-// the slider, per page and row. which: 0 the main track, 1 the timer
-__set_slider = function(_t, _i, _v, _which = 0) {
+// THE SLIDER, by the row's tag. which: 0 the main track, 1 the timer
+__set_row = function(_rw, _v, _which = 0) {
 	var _a = g.autom;
-	if (_t == AT_DIALS) {
-		if (_i == 1)      _a.tap.rate = ram_snap("tap", _v);
-		else if (_i == 3) _a.run.spd  = ram_snap("speed", _v);
-		else if (_i == 5) _a.lock_pct = clamp(_v, 0, 90);
-		else if (_i >= 6) {
-			if (_which == 1) _a.dial[_i - 6].t   = ram_snap("timer", _v);
-			else             _a.dial[_i - 6].pct = _v;
+	if (!variable_struct_exists(_rw, "tag")) return;
+	switch (_rw.tag) {
+		case "tap":     _a.tap.rate = ram_snap("tap", _v); return;
+		case "run":     _a.run.spd  = ram_snap("speed", _v); return;
+		case "fab":     _a.fab.spd  = ram_snap("speed", _v); return;
+		case "merge":   _a.am_speed = ram_snap("speed", _v); return;
+		case "reserve": _a.lock_pct = clamp(_v, 0, 90); return;
+		case "rail_d":  _a.rails.d_oom = clamp(_v, 1, 60); return;
+		case "rail_t":  _a.rails.t_oom = clamp(_v, 1, 30); return;
+		case "dial": {
+			var _d = _a.dial[_rw.k];
+			if (_which == 1) _d.t = ram_snap("timer", _v); else _d.pct = _v;
+			return;
 		}
-		return;
-	}
-	if (_t == AT_REB) {
-		var _r = _a.reb;
-		switch (_i) {
-			case 2: _r.t_min = _v; break;
-			case 3: _r.u_min = _v; break;
-			case 4: _r.g_pct = _v; break;
-			case 5: _r.p_oom = _v; break;
+		case "dial_all":
+			if (_which == 1) _a.dial_all.t = ram_snap("timer", _v); else _a.dial_all.pct = _v;
+			return;
+		case "reb_t": _a.reb.t_min = _v; return;
+		case "reb_u": _a.reb.u_min = _v; return;
+		case "reb_g": _a.reb.g_pct = _v; return;
+		case "reb_p": _a.reb.p_oom = _v; return;
+		case "upg_buy":  if (_which == 1) _a.upg.t = ram_snap("timer", _v); else _a.upg.pct = _v; return;
+		case "upg_sell": _a.upg.keep = _v; __quickset(); return;
+		case "tile": {
+			var _p = _a.tiles[$ _rw.id];
+			if (_p == undefined) return;
+			if (_which == 1) _p.t = ram_snap("timer", _v); else _p.pct = _v;
+			return;
 		}
-		return;
 	}
-	if (_t == AT_UPG) {
-		var _u = _a.upg;
-		switch (_i) {
-			case 2: if (_which == 1) _u.t = ram_snap("timer", _v); else _u.pct = _v; break;
-			case 3: _u.keep = _v; __quickset(); break;
-		}
-		return;
-	}
-	if (_t == AT_TILES) {
-		if (_i == 1) { _a.fab.spd  = ram_snap("speed", _v); return; }
-		if (_i == 2) { _a.am_speed = ram_snap("speed", _v); return; }
-		var _tc = tile_upg_config();
-		var _k = _i - 4;
-		if (_k < 0 || _k >= array_length(_tc)) return;
-		var _p = _a.tiles[$ _tc[_k].id];
-		if (_p == undefined) return;
-		if (_which == 1) _p.t = ram_snap("timer", _v);
-		else             _p.pct = _v;
-	}
-};
-
-// the [overclock] chip: open or close the notches
-__oc_flip = function() {
-	g.autom.oc = !g.autom.oc;
-	if (!g.autom.oc) ram_oc_clamp();
-	save_mark_dirty();
-	play_sound_ext(g.autom.oc ? snd_matclick2 : snd_matclick, 1.1, 1.3, .5, 1);
 };
 
 // ---- the overview's actions ----
@@ -714,6 +716,9 @@ __defaults = function() {
 	_a.fab = { on : true, spd : 100 };
 	_a.am_speed = 100;
 	_a.oc = false;
+	_a.strat = 0;
+	_a.dial_all = { on : false, pct : 50, t : 30, tic : 0, st : 0, cur : 0 };
+	_a.rails = { d_on : false, d_oom : 6, t_on : false, t_oom : 3 };
 	if (variable_global_exists("tiles")) g.tiles.automerge = false;
 	for (var _i = 0; _i < array_length(_a.dial); _i++) {
 		var _d = _a.dial[_i];
@@ -734,6 +739,14 @@ __defaults = function() {
 
 /// an action row's button was tapped: the row and which button
 __action = function(_rw, _b) {
+	if (_rw.act == "strat") {
+		// the strategy pill: manual / strongest / cheapest / robin
+		g.autom.strat = _b;
+		g.autom.dial_all.cur = 0;
+		save_mark_dirty();
+		play_sound_ext(snd_softclick, 1, 1.1, .45, 1);
+		return;
+	}
 	if (_rw.act == "view") {
 		// the drawer's view button: p/c > p/s > % - the drawer's own
 		// setting, so it follows there too

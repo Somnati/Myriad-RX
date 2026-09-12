@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"autom_strat_n",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"autom_strat_n",
+  "parent":{
+    "name":"automation",
+    "path":"folders/game/automation.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

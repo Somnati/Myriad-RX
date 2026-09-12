@@ -47,5 +47,9 @@ function autom_pack() {
 	_o += "/run=" + (_a.run.on ? "1" : "0") + ":" + string(_a.run.spd);
 	_o += "/fab=" + (_a.fab.on ? "1" : "0") + ":" + string(_a.fab.spd);
 	_o += "/oc=" + (_a.oc ? "1" : "0");
+	var _sa = _a.dial_all;
+	_o += "/st=" + string(_a.strat) + ":" + (_sa.on ? "1" : "0") + ":" + string(_sa.pct) + ":" + string(_sa.t);
+	var _rl = _a.rails;
+	_o += "/rl=" + (_rl.d_on ? "1" : "0") + ":" + string(_rl.d_oom) + ":" + (_rl.t_on ? "1" : "0") + ":" + string(_rl.t_oom);
 	return _o;
 }

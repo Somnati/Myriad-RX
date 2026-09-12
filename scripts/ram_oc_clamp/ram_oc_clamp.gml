@@ -13,6 +13,7 @@ function ram_oc_clamp() {
 	for (var _i = 0; _i < array_length(_a.dial); _i++)
 		_a.dial[_i].t = max(_a.dial[_i].t, RAM_TIMER_MIN);
 	_a.upg.t = max(_a.upg.t, RAM_TIMER_MIN);
+	_a.dial_all.t = max(_a.dial_all.t, RAM_TIMER_MIN);
 	var _tn = variable_struct_get_names(_a.tiles);
 	for (var _i = 0; _i < array_length(_tn); _i++)
 		_a.tiles[$ _tn[_i]].t = max(_a.tiles[$ _tn[_i]].t, RAM_TIMER_MIN);

@@ -9,7 +9,7 @@ if (drag_row >= 0) {
 	else {
 		var _tr = (drag_which == 1) ? __tm_r(drag_row)
 		        : ((drag_which == 2) ? __cap_r(drag_row) : __trk_r(drag_row));
-		__set_slider(drag_tab, drag_row, __pick(drag_rw, _tr, drag_which), (drag_which == 1) ? 1 : 0);
+		__set_row(drag_rw, __pick(drag_rw, _tr, drag_which), (drag_which == 1) ? 1 : 0);
 		exit;
 	}
 }
@@ -98,7 +98,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	if (_rw.kind == 0 || _rw.kind == 2 || _rw.kind == 4 || _rw.kind == 5) {   // has a toggle
 		var _tg = __tog_r(_i);
 		if (point_in_rectangle(mouse_x, mouse_y, _tg.x, _tg.y, _tg.x + _tg.w, _tg.y + _tg.h)) {
-			__flip(tab, _i);
+			__flip_row(_rw);
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			save_mark_dirty();
 			exit;
@@ -112,7 +112,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 			_tk.x + _tk.w + 3, _tk.y + _tk.h + 5)) {
 			drag_row = _i; drag_tab = tab; drag_which = 0; drag_rw = _rw;
 			drag_lo  = _rw.lo; drag_hi = _rw.hi;
-			__set_slider(tab, _i, __pick(_rw, _tk, 0));
+			__set_row(_rw, __pick(_rw, _tk, 0));
 			exit;
 		}
 	}
@@ -122,7 +122,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 			_ck.x + _ck.w + 3, _ck.y + _ck.h + 5)) {
 			drag_row = _i; drag_tab = tab; drag_which = 2; drag_rw = _rw;
 			drag_lo  = _rw.lo; drag_hi = _rw.hi;
-			__set_slider(tab, _i, __pick(_rw, _ck, 2), 0);
+			__set_row(_rw, __pick(_rw, _ck, 2), 0);
 			exit;
 		}
 		var _tm = __tm_r(_i);
@@ -130,7 +130,7 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 			_tm.x + _tm.w + 3, _tm.y + _tm.h + 5)) {
 			drag_row = _i; drag_tab = tab; drag_which = 1; drag_rw = _rw;
 			drag_lo  = RAM_TIMER_MIN; drag_hi = RAM_TIMER_MAX;
-			__set_slider(tab, _i, __pick(_rw, _tm, 1), 1);
+			__set_row(_rw, __pick(_rw, _tm, 1), 1);
 			exit;
 		}
 	}
