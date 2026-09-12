@@ -152,6 +152,7 @@ shader_set_uniform_f(u_ring_p,
 shader_set_uniform_f(u_metal_p, cannon ? lerp(mat_metal, max(mat_metal, .5), clamp(aim / 120, 0, 1)) : mat_metal);
 shader_set_uniform_f(u_pad_p, _qh / r);
 shader_set_uniform_f(u_cells_p, _qh * 2);   // one cell per room pixel
+scene_light_bind(s_scene_p, s_scene_pw, u_sceneuv_p, u_sceneam_p);
 draw_sprite_ext(spr_pixel_1x1, 0, _qcx - _qh, _qcy - _qh,
 	_qh * 2, _qh * 2, 0, c_white, 1);
 shader_reset();

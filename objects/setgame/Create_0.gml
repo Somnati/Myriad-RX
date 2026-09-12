@@ -32,6 +32,7 @@
 	g.swipe_protect = false;         // input "swipe protection": drawers close only from their own side (DE)
 	g.bat_opt = false;               // gameplay "battery optimiser" - an ABILITY later, a debug toggle now (battery_optimise)
 	g.dial_hold = -1;                // the dial the pointer is held on (syst_dials -> prod_dials' hand-crank)
+	g.scene_light = 60;              // visuals "scene light": the field's colour on the dice / puck / sprites, % (syst_scene_light)
 	g.save_dirty = false; // set by save_mark_dirty(), read by autosave
 
 	// ---- the currency ----
@@ -231,6 +232,7 @@
 create_obj(0, 0, obj_cursor);
 // THE TUBE (settings > crt): persistent like the pointer, seated once
 create_obj(0, 0, syst_crt);
+create_obj(0, 0, syst_scene_light);   // the room's light on the solids
 // THE SPRITES' RUNNER (his idea): their headless work, and their bodies
 // in the money room
 sprites_init();

@@ -27,6 +27,11 @@ uniform vec3  u_ring;  // the stamped ring on the crown - the throw's
 uniform float u_metal; // finish: 0 = matte rubber, 1 = polished
 uniform float u_pad;   // quad half-extent in puck radii
 uniform float u_cells; // pixel cells across the quad. 0 = off
+// THE ROOM'S LIGHT (syst_scene_light, 2026-09-11) - see sh_dice
+uniform sampler2D u_scene;
+uniform sampler2D u_scene2;
+uniform vec2  u_scene_uv;
+uniform float u_scene_amt;
 // ⚖️ MOTION BLUR, THE REAL KIND (his ask, 2026-09-10: per-object blur
 // for the mouse, puck, dice and bits - the puck first). The quad is
 // centred on the MIDPOINT of this frame's sweep (last drawn centre to
@@ -58,7 +63,7 @@ float sd_puck(vec3 p)
 // one ray, one transform (puck_cast: `cast` is an HLSL intrinsic and the
 // Windows build cross-compiles to HLSL): the cell's quad point s (in radii, about the
 // quad centre), the puck's yaw at that instant. Returns false on a miss.
-bool puck_cast(vec2 s, float yaw, out vec3 col)
+bool puck_cast(vec2 s, float yaw, vec3 sw0, vec3 swx, vec3 swy, vec3 st0, vec3 stx, vec3 sty, out vec3 col)
 {
     // view -> object is a yaw about z, so it is a 2x2 on xy and nothing
     // on the axis. Inverse of a rotation by yaw is a rotation by -yaw.
@@ -135,6 +140,13 @@ bool puck_cast(vec2 s, float yaw, out vec3 col)
     // separates it from the room behind it
     float fr = pow(1.0 - clamp(abs(n.z), 0.0, 1.0), 2.0);
     col += spc * fr * 0.13 * (1.0 - top);
+
+    // ---- the room's light, along the normal (rubber takes a wash,
+    // polish takes a reflection; the taps were read in main) ----
+    vec3 amb  = max(sw0 + swx * 0.5 * n.x + swy * 0.5 * n.y, 0.0);
+    vec3 refl = max(st0 + stx * 0.5 * n.x + sty * 0.5 * n.y, 0.0);
+    col += body * amb * u_scene_amt * 1.3;
+    col += spc * refl * u_scene_amt * (0.55 * u_metal + 0.25 * fr);
     return true;
 }
 
@@ -146,6 +158,22 @@ void main()
     vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
     if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
     vec2 s = (q * 2.0 - 1.0) * u_pad;
+
+    // ---- THE ROOM'S LIGHT: five taps of each blurred copy around this
+    // cell, read HERE - before the raymarch's early exit - because the
+    // HLSL side forbids a texture read inside divergent flow. The
+    // normal mixes them later: a face leaning left takes the left tap
+    vec2 spos = u_quad.xy + q * u_quad.zw;
+    vec3 sw0 = texture2D(u_scene2, clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swx = texture2D(u_scene2, clamp((spos + vec2( 16.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(-16.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swy = texture2D(u_scene2, clamp((spos + vec2(0.0,  16.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(0.0, -16.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 st0 = texture2D(u_scene,  clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 stx = texture2D(u_scene,  clamp((spos + vec2( 6.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(-6.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 sty = texture2D(u_scene,  clamp((spos + vec2(0.0,  6.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(0.0, -6.0)) * u_scene_uv, 0.0, 1.0)).rgb;
 
     // K transforms along the sweep (see u_mb): the puck's centre at
     // sub-frame t sits (t - .5) of the sweep from the quad centre, and
@@ -160,7 +188,7 @@ void main()
         vec2 off = (ft - 0.5) * u_mb.xy;
         float yw = u_yaw - (1.0 - ft) * u_mb.z;
         vec3 c;
-        if (puck_cast(s - off, yw, c)) { acc += c; hits += 1.0; }
+        if (puck_cast(s - off, yw, sw0, swx, swy, st0, stx, sty, c)) { acc += c; hits += 1.0; }
     }
     if (hits < 0.5) discard;
     gl_FragColor = vec4(acc / hits, hits / float(K));

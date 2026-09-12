@@ -26,6 +26,7 @@ function settings_defaults() {
 	g.crt_vig               = 0;
 	g.crt_bloom             = 25;
 	g.bat_opt               = false;
+	g.scene_light           = 60;
 	g.crt_roll              = true;
 	g.num_format            = 0;
 	g.tap_text              = 0;

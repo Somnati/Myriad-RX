@@ -29,16 +29,41 @@ uniform float u_mat;     // 0 matte, 1 glass, 2 metal, 3 jelly
 uniform vec3  u_light;   // the dice's light
 uniform vec2  u_sq;      // the body's half-extent inside the quad, 0..1 each
 uniform float u_time;
+// THE ROOM'S LIGHT (syst_scene_light, 2026-09-11) - see sh_dice
+uniform sampler2D u_scene;
+uniform sampler2D u_scene2;
+uniform vec2  u_scene_uv;
+uniform float u_scene_amt;
 
 void main()
 {
     vec2 uv = (v_pos - u_quad.xy) / u_quad.zw;
     vec2 cell = (floor(uv * u_cells) + 0.5) / u_cells;
     vec2 p = (cell * 2.0 - 1.0) / max(u_sq, vec2(0.05));
+    vec2 q = cell;
+    // ---- THE ROOM'S LIGHT: five taps of each blurred copy around this
+    // cell, read HERE - before the raymarch's early exit - because the
+    // HLSL side forbids a texture read inside divergent flow. The
+    // normal mixes them later: a face leaning left takes the left tap
+    vec2 spos = u_quad.xy + q * u_quad.zw;
+    vec3 sw0 = texture2D(u_scene2, clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swx = texture2D(u_scene2, clamp((spos + vec2( 12.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(-12.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swy = texture2D(u_scene2, clamp((spos + vec2(0.0,  12.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(0.0, -12.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 st0 = texture2D(u_scene,  clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 stx = texture2D(u_scene,  clamp((spos + vec2( 5.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(-5.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 sty = texture2D(u_scene,  clamp((spos + vec2(0.0,  5.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(0.0, -5.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+
     float r2 = dot(p, p);
     if (r2 > 1.0) discard;
     float z = sqrt(1.0 - r2);
-    vec3 n = normalize(vec3(p.x, -p.y, z));
+    // y-DOWN, like the dice's view space - the shared light (-.42, -.62,
+    // .66) is from the upper left in that frame (the first cut flipped
+    // y and lit the blob from below)
+    vec3 n = normalize(vec3(p.x, p.y, z));
     vec3 L = normalize(u_light);
     float dif = max(dot(n, L), 0.0);
     vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
@@ -52,7 +77,7 @@ void main()
         col = u_col * (0.40 + 0.60 * dif) + vec3(0.10) * fres;
     } else if (u_mat < 1.5) {
         float dep = 1.0 - z;
-        vec3 inner = mix(u_col2, u_col, clamp(0.5 - p.y * 0.5, 0.0, 1.0));
+        vec3 inner = mix(u_col2, u_col, clamp(0.5 + p.y * 0.5, 0.0, 1.0));
         col  = inner * (0.16 + 0.30 * dif) * (0.55 + 0.45 * dep);
         col += u_col * 0.95 * pow(fres, 1.2);
         col += vec3(0.85) * pow(spec, 2.0) * 0.6;
@@ -62,10 +87,20 @@ void main()
         col = u_col * (0.12 + 0.45 * dif) + vec3(1.0) * spec * 0.8 + u_col * 0.5 * fres;
     } else {
         float wob = sin(u_time * 2.0 + p.x * 3.0) * 0.5 + sin(u_time * 1.4 + p.y * 4.0) * 0.5;
-        vec3 nw = normalize(vec3(p.x + wob * 0.08, -p.y, z));
+        vec3 nw = normalize(vec3(p.x + wob * 0.08, p.y, z));
         float d2 = max(dot(nw, L), 0.0);
         col = mix(u_col2, u_col, z) * (0.35 + 0.55 * d2) + vec3(0.6) * pow(spec, 1.5) * 0.35 + u_col * 0.3 * fres;
         a = 0.88;
     }
+    // ---- the room's light, along the normal: glass and metal reflect
+    // the tight copy (the rim most of all), matte and jelly take the
+    // wide wash on their colour (the taps were read at the top) ----
+    vec3 amb  = max(sw0 + swx * 0.5 * n.x + swy * 0.5 * n.y, 0.0);
+    vec3 refl = max(st0 + stx * 0.5 * n.x + sty * 0.5 * n.y, 0.0);
+    if (u_mat < 0.5)      col += u_col * amb * u_scene_amt * 1.2;
+    else if (u_mat < 1.5) col += refl * u_scene_amt * (0.45 + 0.75 * fres) + amb * u_scene_amt * 0.3;
+    else if (u_mat < 2.5) col += refl * u_scene_amt * (0.6 + 0.5 * fres) * mix(vec3(1.0), u_col, 0.5);
+    else                  col += mix(u_col2, u_col, z) * amb * u_scene_amt * 1.0 + refl * u_scene_amt * 0.2;
+
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), a);
 }

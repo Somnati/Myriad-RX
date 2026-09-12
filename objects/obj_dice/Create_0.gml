@@ -177,6 +177,11 @@ u_cells2 = shader_get_uniform(sh_dice, "u_cells");
 u_ink2   = shader_get_uniform(sh_dice, "u_ink");
 u_metal2 = shader_get_uniform(sh_dice, "u_metal");
 u_iri2   = shader_get_uniform(sh_dice, "u_iri");
+// the room's light (syst_scene_light / scene_light_bind)
+s_scene2   = shader_get_sampler_index(sh_dice, "u_scene");
+s_scene2w  = shader_get_sampler_index(sh_dice, "u_scene2");
+u_sceneuv2 = shader_get_uniform(sh_dice, "u_scene_uv");
+u_sceneam2 = shader_get_uniform(sh_dice, "u_scene_amt");
 
 // impact clack, pitch/volume by impulse, throttled
 __clack = function(_j) {

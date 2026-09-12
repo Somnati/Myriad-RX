@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scene_light_bind",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scene_light_bind",
+  "parent":{
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

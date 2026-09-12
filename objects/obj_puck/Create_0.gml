@@ -140,6 +140,11 @@ u_light_p = shader_get_uniform(sh_puck, "u_light");
 u_col_p   = shader_get_uniform(sh_puck, "u_col");
 u_ring_p  = shader_get_uniform(sh_puck, "u_ring");
 u_metal_p = shader_get_uniform(sh_puck, "u_metal");
+// the room's light (syst_scene_light / scene_light_bind)
+s_scene_p   = shader_get_sampler_index(sh_puck, "u_scene");
+s_scene_pw  = shader_get_sampler_index(sh_puck, "u_scene2");
+u_sceneuv_p = shader_get_uniform(sh_puck, "u_scene_uv");
+u_sceneam_p = shader_get_uniform(sh_puck, "u_scene_amt");
 u_pad_p   = shader_get_uniform(sh_puck, "u_pad");
 u_cells_p = shader_get_uniform(sh_puck, "u_cells");
 u_mb_p    = shader_get_uniform(sh_puck, "u_mb");

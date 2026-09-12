@@ -102,6 +102,11 @@ u_mat_b   = shader_get_uniform(sh_blob, "u_mat");
 u_light_b = shader_get_uniform(sh_blob, "u_light");
 u_sq_b    = shader_get_uniform(sh_blob, "u_sq");
 u_time_b  = shader_get_uniform(sh_blob, "u_time");
+// the room's light (syst_scene_light / scene_light_bind)
+s_scene_b   = shader_get_sampler_index(sh_blob, "u_scene");
+s_scene_bw  = shader_get_sampler_index(sh_blob, "u_scene2");
+u_sceneuv_b = shader_get_uniform(sh_blob, "u_scene_uv");
+u_sceneam_b = shader_get_uniform(sh_blob, "u_scene_amt");
 spk = [];   // the glass ones' orbiting specks: { a, r, ph }
 repeat (3) array_push(spk, { a : random(360), r : random_range(4, 8), ph : random(360) });
 

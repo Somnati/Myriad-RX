@@ -18,6 +18,13 @@ uniform float u_iri;   // iridescence 0..1 (pearl, oil, opal). 0 = off,
                        // and off is bit-identical to before it existed
 uniform float u_pad;   // quad half-extent in die half-extents
 uniform float u_cells; // pixel cells across the quad. 0 = off
+// THE ROOM'S LIGHT (syst_scene_light, 2026-09-11): the screen around
+// the die, blurred at two widths, read along the normal and added as
+// ambient - the field's colour on the faces. u_scene_amt 0 = off
+uniform sampler2D u_scene;    // tight (reflection)
+uniform sampler2D u_scene2;   // wide (ambient wash)
+uniform vec2  u_scene_uv;     // room px -> uv
+uniform float u_scene_amt;
 
 const float RD = 0.17; // edge rounding (die half-extent = 1)
 
@@ -85,6 +92,22 @@ void main()
     vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
     if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
     vec2 s = (q * 2.0 - 1.0) * u_pad;
+
+    // ---- THE ROOM'S LIGHT: five taps of each blurred copy around this
+    // cell, read HERE - before the raymarch's early exit - because the
+    // HLSL side forbids a texture read inside divergent flow. The
+    // normal mixes them later: a face leaning left takes the left tap
+    vec2 spos = u_quad.xy + q * u_quad.zw;
+    vec3 sw0 = texture2D(u_scene2, clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swx = texture2D(u_scene2, clamp((spos + vec2( 18.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(-18.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 swy = texture2D(u_scene2, clamp((spos + vec2(0.0,  18.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene2, clamp((spos + vec2(0.0, -18.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 st0 = texture2D(u_scene,  clamp( spos                     * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 stx = texture2D(u_scene,  clamp((spos + vec2( 7.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(-7.0, 0.0)) * u_scene_uv, 0.0, 1.0)).rgb;
+    vec3 sty = texture2D(u_scene,  clamp((spos + vec2(0.0,  7.0)) * u_scene_uv, 0.0, 1.0)).rgb
+             - texture2D(u_scene,  clamp((spos + vec2(0.0, -7.0)) * u_scene_uv, 0.0, 1.0)).rgb;
 
     // orthographic ray, view space -> object space
     vec3 rov = vec3(s, 3.2);
@@ -156,6 +179,13 @@ void main()
     col += spc * sp * mix(0.22, 0.95, u_metal) * (1.0 - m * 0.35);
     // ...and the rim, which iridescence rides hardest of all
     col += spc * fr * mix(0.22 * u_metal, 0.5, u_iri);
+
+    // ---- the room's light, along the normal (the taps were read at
+    // the top; a face turned left takes the left one) ----
+    vec3 amb  = max(sw0 + swx * 0.5 * nv.x + swy * 0.5 * nv.y, 0.0);
+    vec3 refl = max(st0 + stx * 0.5 * nv.x + sty * 0.5 * nv.y, 0.0);
+    col += u_col * amb * u_scene_amt * 1.1 * (1.0 - m * 0.6);
+    col += spc * refl * u_scene_amt * (0.5 * u_metal + 0.35 * fr);
 
     gl_FragColor = vec4(col, 1.0);
 }

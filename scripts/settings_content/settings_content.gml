@@ -241,6 +241,15 @@ function settings_content() {
 	// the border, the inner rules and the outer frame - by one master
 	// alpha, so this single number takes the lattice from solid to
 	// gone without touching the blocks themselves.
+	// THE ROOM'S LIGHT ON THE SOLIDS (his brother's argument, 2026-09-11)
+	settings_slider("scene light", 0, 100,
+		function() { return g.scene_light; },
+		function(_v) { g.scene_light = _v; },
+		"%", 5,
+		"the field's own colour on the dice, the puck and the sprites: each "
+		+ "takes the blurred screen around it, along its surface - a die "
+		+ "beside a gold block goes gold on that side. 0 turns the pass off.");
+
 	settings_slider("visualiser grid", 0, 100,
 		function() { return g.vis_grid_alpha; },
 		function(_v) {

@@ -48,6 +48,7 @@ function handle_settings(_method) {
 	g.crt_vig     = handle("crt_vig",g.crt_vig);
 	g.crt_bloom   = handle("crt_bloom",g.crt_bloom);
 	g.bat_opt     = handle("bat_opt",g.bat_opt);       // the battery optimiser (debug toggle for now)
+	g.scene_light = handle("scene_light",g.scene_light); // the field's light on the solids, %
 	g.crt_roll    = handle("crt_roll",g.crt_roll);
 	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
 	g.tap_text = handle("tap_text",g.tap_text);       // DE's taptextformat: 0 at the tap / 1 centred / 2 none

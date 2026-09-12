@@ -45,6 +45,7 @@ shader_set_uniform_f(u_mat_b, _mat);
 shader_set_uniform_f(u_light_b, -.42, -.62, .66);   // the dice's light
 shader_set_uniform_f(u_sq_b, _rx / _half, _ry / _half);
 shader_set_uniform_f(u_time_b, (current_time mod 100000) / 1000);
+scene_light_bind(s_scene_b, s_scene_bw, u_sceneuv_b, u_sceneam_b);
 draw_sprite_stretched(spr_pixel_1x1, 0, _qx, _qy, _qs, _qs);
 shader_reset();
 
