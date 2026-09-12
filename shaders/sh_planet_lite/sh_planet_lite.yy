@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_planet_lite",
+  "name":"sh_planet_lite",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

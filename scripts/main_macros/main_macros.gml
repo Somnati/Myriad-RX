@@ -351,6 +351,17 @@ function main_macros() {
 #macro CCORE_COOL   10     // seconds the cooldown takes after a collect
 #macro CCORE_COST0   5     // credits the first level costs (DE's 5 + (1 + lv/20) x lv)
 
+// ---- EXPEDITIONS (the mock, 2026-09-12 - read exped_tick) ----
+// A trip is travel -> delve (EXPED_ROOMS rooms) -> return, on real
+// seconds; the debug speed knob (g.exped.spd) multiplies the clock.
+// The stage shares are of the destination's distance.
+#macro EXPED_ROOMS     5     // rooms a delve walks
+#macro EXPED_TRAVEL  .35     // share of the trip spent getting there
+#macro EXPED_RETURN  .15     // ...and getting back; the delve is the rest
+#macro EXPED_DIST0   90      // seconds a tier-1 world is away (x2 a tier - the mock's scale)
+#macro EXPED_NAP     600     // seconds a routed sprite naps on return
+#macro EXPED_FIGHT_T   1     // seconds a fight turn takes on the clock
+
 // ---- THE TITLE SCREEN ----
 // The bottom-lit teal gradient over the field (syst_titlescreen's
 // __draw_grad). OFF to see the title bare - "more black and less fog"

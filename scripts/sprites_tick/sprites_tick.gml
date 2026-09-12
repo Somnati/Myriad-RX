@@ -9,6 +9,10 @@ function sprites_tick() {
 	var _dt = delta / 60;
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _s = g.sprites[_i];
+		// a hurt sprite (routed on an expedition) naps its EXPED_NAP out, then wakes on its own
+		var _h = _s[$ "hurt"] ?? 0;
+		if (_h > 0) { _s.hurt = _h - _dt; if (_s.hurt <= 0) { _s.hurt = 0; _s.asleep = false; } }
+		if (_s[$ "trip"] ?? false) continue;   // away on an expedition: not here to tap
 		if (_s.asleep) continue;
 		if (variable_struct_exists(_s, "view") && instance_exists(_s.view)) continue;
 		_s.acc += sprite_rate(_s) * _dt;

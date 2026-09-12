@@ -33,7 +33,8 @@ function game_reset(_diff = 1) {
 	                     // rebirth does not
 	gift_init(true);     // the login calendar starts over with a new game
 	battery_init(true);
-	ccore_init(true);  // the offline budget: same rule as the bank
+	ccore_init(true);
+	exped_init(true);  // the offline budget: same rule as the bank
 	sprites_init(true);  // the helpers: meta, a new game starts without them
 	timebank_init(true); // meta, like the credits: rebirth keeps it, a
 	                     // new game does not

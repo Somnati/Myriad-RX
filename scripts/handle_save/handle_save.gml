@@ -420,6 +420,33 @@ function handle_save(){
 		}
 	}
 
+	section = "exped";
+	exped_init();
+	g.exped.depth  = handle("ex_depth",  g.exped.depth);
+	g.exped.charms = handle("ex_charms", g.exped.charms);
+	g.exped.seq    = handle("ex_seq",    g.exped.seq);
+	var _xm = "";
+	var _xk = variable_struct_get_names(g.exped.mats);
+	for (var _i = 0; _i < array_length(_xk); _i++)
+		_xm += ((_i > 0) ? "|" : "") + _xk[_i] + "=" + string(g.exped.mats[$ _xk[_i]]);
+	_xm = handle("ex_mats", _xm);
+	var _xt = handle("ex_trip", exped_pack());
+	if (action == sv_load) {
+		g.exped.depth  = clamp(floor(g.exped.depth), 1, 8);
+		g.exped.charms = max(0, floor(g.exped.charms));
+		g.exped.seq    = max(0, floor(g.exped.seq));
+		g.exped.mats = {};
+		if (_xm != "") {
+			var _xl = string_split(_xm, "|");
+			for (var _i = 0; _i < array_length(_xl); _i++) {
+				var _kv = string_split(_xl[_i], "=");
+				if (array_length(_kv) == 2) g.exped.mats[$ _kv[0]] = real(_kv[1]);
+			}
+		}
+		exped_unpack(_xt);
+		exped_board_roll();
+	}
+
 	section = "ccore";
 	ccore_init();
 	g.ccore.lv        = handle("cc_lv",    g.ccore.lv);

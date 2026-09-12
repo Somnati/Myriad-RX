@@ -13,5 +13,6 @@ function luck_points() {
 	var _l = 0;
 	if (variable_global_exists("upg")) _l += upgrade_bonus_live().luck;   // the gated reader: preview upgrades do not lean the game
 	if (variable_global_exists("gift")) _l += g.gift.claims;
+	if (variable_global_exists("exped")) _l += g.exped.charms;   // charms found on expeditions
 	return max(0, _l);
 }

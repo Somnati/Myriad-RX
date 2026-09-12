@@ -1,5 +1,9 @@
 if (s == undefined) { instance_destroy(); exit; }
 if (!in_room(rm_clicker)) { instance_destroy(); exit; }
+// away on an expedition: the body is not in the room (the card and
+// the bubble go with it - __draw_over checks visible)
+visible = !(s[$ "trip"] ?? false);
+if (!visible) exit;
 
 var _pl = sprite_personalities();
 var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];

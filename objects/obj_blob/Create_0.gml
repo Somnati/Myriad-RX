@@ -128,7 +128,7 @@ repeat (3) array_push(spk, { a : random(360), r : random_range(4, 8), ph : rando
 /// popup sat behind other sprites) - syst_sprites' proxy at depth -70
 /// calls this on every blob after all the bodies have drawn
 __draw_over = function() {
-	if (s == undefined) return;
+	if (s == undefined || !visible) return;
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
 	var _lk = sprite_looks();

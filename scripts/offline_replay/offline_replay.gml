@@ -117,6 +117,7 @@ function offline_replay(_secs) {
 	g.tile_boost_override = undefined;
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 	ccore_tick(_secs);    // ...and the credit core's well fills (to its cap) on the same clock
+	exped_tick(_secs);    // ...and an expedition walks its rooms (the fights resolve as they come)
 
 	// the paid flags are for the drawer's motes; nothing flies for a
 	// bulk absence (thirteen bursts on the first frame would be noise)
