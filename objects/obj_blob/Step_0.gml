@@ -9,6 +9,12 @@ sq    = max(0, sq - .09 * delta);
 hop   = max(0, hop - .35 * delta);
 happy = max(0, happy - delta);
 bub_t = max(0, bub_t - delta);
+// the line it would say drifts on its own clock (see the Create)
+bub_next -= delta;
+if (bub_next <= 0) {
+	bub_next = random_range(240, 720);
+	bub_cur = _p.lines[irandom(array_length(_p.lines) - 1)];
+}
 // the card fades toward its state; a press anywhere NOT on this sprite
 // closes it (his report: they lingered)
 card_a = trickle(card_a, card_open ? 1 : 0, 4, 0);

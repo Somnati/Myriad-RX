@@ -40,6 +40,15 @@ hop   = 0;         // px of lift from a hop, decays
 happy = 0;         // frames of ^ ^ eyes
 bub   = "";        // the speech bubble
 bub_t = 0;
+// ⚖️ WHAT IT SAYS IS ON ITS OWN CLOCK, NOT THE POKE'S (his report,
+// 2026-09-11: "weird that it changes each time i touch it"). The
+// current line changes every few random seconds (bub_next), and a
+// poke only SHOWS the current line - and only one poke in twenty
+// (SPRITE_TALK_PCT); the rest are the hop and the sparks. Waking is
+// its own line, always
+bub_cur  = "";
+bub_next = random_range(240, 720);
+#macro SPRITE_TALK_PCT 5
 card_open = false; // the card: up until a press lands anywhere but on it
 card_a    = 0;     // ...eased, so it fades rather than pops
 tap_t = 0;         // frames to the next tap while working
@@ -84,13 +93,17 @@ __poke = function() {
 		s.asleep = false;
 		st = 0; st_t = 60;
 		bub = "wha? ...oh, hi";
+		bub_t = 110;
 		sprite_voice(s, "wake");
 		save_mark_dirty();
 	} else {
-		bub = _p.lines[irandom(array_length(_p.lines) - 1)];
 		sprite_voice(s, "poke");
+		if (random(100) < SPRITE_TALK_PCT) {
+			if (bub_cur == "") bub_cur = _p.lines[irandom(array_length(_p.lines) - 1)];
+			bub = bub_cur;
+			bub_t = 110;
+		}
 	}
-	bub_t = 110;
 	card_open = !card_open;
 };
 
