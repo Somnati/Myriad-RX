@@ -339,6 +339,12 @@ function main_macros() {
 #macro BAT_W_FAB         .5 // ...the fabricator...
 #macro BAT_W_MERGE        1 // ...and the automerger (the compounders cost)
 
+// ---- THE TITLE SCREEN ----
+// The bottom-lit teal gradient over the field (syst_titlescreen's
+// __draw_grad). OFF to see the title bare - "more black and less fog"
+// (his ask, 2026-09-12); flip it back on if the fog wins
+#macro TITLE_GRAD false
+
 // ---- RAM (the automation budget, his design 2026-09-11) ----
 // Every automation costs sticks; the budget is ram_cap, the bill is
 // ram_used, and over budget NOTHING switches off - every clock runs at

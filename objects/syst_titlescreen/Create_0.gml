@@ -292,10 +292,15 @@ __draw_grad = function() {
 	shader_reset();
 	gpu_set_blendmode(bm_normal);
 };
-grad_px = create_obj(0, 0, obj_draw_proxy);
-grad_px.owner = id;
-grad_px.depth = 40;
-grad_px.fn    = __draw_grad;
+// (behind TITLE_GRAD - off, the field is black plus the blocks, his
+// "less fog" look; the proxy simply is not made)
+grad_px = noone;
+if (TITLE_GRAD) {
+	grad_px = create_obj(0, 0, obj_draw_proxy);
+	grad_px.owner = id;
+	grad_px.depth = 40;
+	grad_px.fn    = __draw_grad;
+}
 
 // THE CRT PASS moved out (2026-09-10): it was this screen's own proxy
 // at depth 20; now syst_crt (persistent, settings > crt) runs the same

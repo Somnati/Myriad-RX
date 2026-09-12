@@ -232,13 +232,15 @@ var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
 if (_has_pick) {
 	// the picked row's plate, at the inspector's size: the rim's
 	// coloured reach says the rarity here too
+	// (the plate under the rim is the inner's own colour: no line past
+	// the reach - the rows' rule)
 	var _prar = g.upg.slot[pick].rar;
-	__rr(desc_x, desc_y, desc_w, desc_h, merge_colour(__rar_col(_prar), c_black, .96), 1);
+	__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
 	__rr_grad_l(desc_x, desc_y, __rar_grad(_prar, desc_w, c_black).w, desc_h,
-		merge_colour(__rar_col(_prar), c_black, .2), merge_colour(__rar_col(_prar), c_black, .96), 1);
+		merge_colour(__rar_col(_prar), c_black, .2), _dc, 1);
 } else {
 	__rr_grad(desc_x, desc_y, desc_w, desc_h,
-		merge_colour(_ink, c_black, .6), merge_colour(_ink, c_black, .96), 1);
+		merge_colour(_ink, c_black, .6), _dc, 1);
 }
 __inner(desc_x, desc_y, desc_w, desc_h, _dc);
 

@@ -165,8 +165,12 @@ mod_a    = 0;
 // room. Returns { w, col } for a panel of width _w.
 __rar_grad = function(_rar, _w, _base_col) {
 	var _t = clamp(_rar / max(1, UPG_RARITY_N - 1), 0, 1);
+	// ⚖️ DE'S PROPORTION (his report, 2026-09-12: a common's rim should
+	// barely wrap the left bevel). DE drew the outline cs = w x rung/10
+	// / 1.5 wide - nothing for a common, 46% of the slot for the top
+	// rung. 6% here (the bevel and a breath past it) to 60%
 	return {
-		w   : _w * (.28 + .62 * _t),
+		w   : _w * (.06 + .54 * _t),
 		col : merge_colour(_base_col, __rar_col(_rar), .12 + .34 * _t),
 	};
 };
@@ -202,10 +206,14 @@ __rr_grad_l = function(_x, _y, _w, _h, _c1, _c2, _a) {
 ///       inner black capsule (__inner) leaves only the rim of it
 ///       showing - so a common's rim colours its left end and an
 ///       ultimate's runs nearly the whole way round.
+//       ⚖️ NOTHING BEYOND THE REACH (his report): the plate under the
+///       rim is the inner capsule's own black, so past the coloured
+///       stretch there is no line at all - the near-black plate the
+///       first cut used showed as a faint grey outline all the way
+///       round, the exact thing DE's short outline frame never had.
 __plate = function(_x, _y, _w, _h, _rar, _c1) {
-	var _c2 = merge_colour(__rar_col(_rar), c_black, .94);
-	__rr(_x, _y, _w, _h, _c2, 1);
-	__rr_grad_l(_x, _y, __rar_grad(_rar, _w, c_black).w, _h, _c1, _c2, 1);
+	__rr(_x, _y, _w, _h, c_black, 1);
+	__rr_grad_l(_x, _y, __rar_grad(_rar, _w, c_black).w, _h, _c1, c_black, 1);
 	__inner(_x, _y, _w, _h);
 };
 
