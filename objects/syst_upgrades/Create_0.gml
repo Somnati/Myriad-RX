@@ -171,6 +171,44 @@ __rar_grad = function(_rar, _w, _base_col) {
 	};
 };
 
+/// @func __rr_grad_l(x, y, w, h, c_left, c_right, alpha)
+/// @desc A capsule rounded on the LEFT only - the right edge straight -
+///       filled left-to-right with a gradient. It is the piece the
+///       rarity reach is painted with: it starts at the plate's left
+///       end and stops partway along, inside the plate, where a round
+///       right end would read as a second capsule.
+__rr_grad_l = function(_x, _y, _w, _h, _c1, _c2, _a) {
+	var _n = array_length(ROUND);
+	for (var _k = 0; _k < _n; _k++) {
+		var _in = ROUND[_k];
+		if (_w - _in <= 0) continue;
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_x + _in, _y + _k, _w - _in, 1, 0, _c1, _c2, _c2, _c1, _a);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+			_x + _in, _y + _h - 1 - _k, _w - _in, 1, 0, _c1, _c2, _c2, _c1, _a);
+	}
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1,
+		_x, _y + _n, _w, _h - _n * 2, 0, _c1, _c2, _c2, _c1, _a);
+};
+
+/// @func __plate(x, y, w, h, rar, c_left, [strength])
+/// @desc THE RARITY PLATE, DE's way (his ask, 2026-09-12): the outline's
+///       coloured stretch is as LONG as the rarity is high. DE drew its
+///       slot's outline frame `cs` wide - cs off the rarity - with a
+///       gradient from the rarity colour out to the plate; here the
+///       plate is near-black end to end, the rarity's colour is painted
+///       from the left edge to __rar_grad's reach (28% of the width for
+///       a common, 90% for an ultimate) fading into the plate, and the
+///       inner black capsule (__inner) leaves only the rim of it
+///       showing - so a common's rim colours its left end and an
+///       ultimate's runs nearly the whole way round.
+__plate = function(_x, _y, _w, _h, _rar, _c1) {
+	var _c2 = merge_colour(__rar_col(_rar), c_black, .94);
+	__rr(_x, _y, _w, _h, _c2, 1);
+	__rr_grad_l(_x, _y, __rar_grad(_rar, _w, c_black).w, _h, _c1, _c2, 1);
+	__inner(_x, _y, _w, _h);
+};
+
 // ---- THE STATUS LINE ----
 // This screen used the house banner, which stacks down the RIGHT edge
 // from the top - directly over the eight rows it was reporting on. Its

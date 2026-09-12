@@ -146,10 +146,9 @@ for (var _i = 0; _i < _n; _i++) {
 	// the rows): the gradient capsule, then a black capsule a pixel
 	// inside it on the left, top and bottom - the rim carries the
 	// rarity, the words sit on black
-	var _cl = merge_colour(_rcl, c_black, _own ? .15 : .5);
-	var _cr = merge_colour(_rcl, c_black, .94);
-	__rr_grad(row_x, _ry, row_w, row_h, _cl, _cr, 1);
-	__inner(row_x, _ry, row_w, row_h);
+	// ...and the coloured stretch of that rim is as long as the rarity
+	// is high (DE's trick, his ask) - __plate
+	__plate(row_x, _ry, row_w, row_h, _s.rar, merge_colour(_rcl, c_black, _own ? .15 : .5));
 	// ---- THE HOLD BAR (DE's): a wash sweeping the WHOLE ROW - what is
 	// being spent, or consumed, is the slot. GREEN AND LINEAR to buy,
 	// RED AND SQUARED to sell (the squared one crawls at the start, so a
@@ -230,9 +229,17 @@ var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .3);
 // && short-circuits, so an out-of-range pick never indexes the array -
 // which it can be for a frame after the slot count changes
 var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
-var _rim = _has_pick ? __rar_col(g.upg.slot[pick].rar) : _ink;
-__rr_grad(desc_x, desc_y, desc_w, desc_h,
-	merge_colour(_rim, c_black, _has_pick ? .2 : .6), merge_colour(_rim, c_black, .96), 1);
+if (_has_pick) {
+	// the picked row's plate, at the inspector's size: the rim's
+	// coloured reach says the rarity here too
+	var _prar = g.upg.slot[pick].rar;
+	__rr(desc_x, desc_y, desc_w, desc_h, merge_colour(__rar_col(_prar), c_black, .96), 1);
+	__rr_grad_l(desc_x, desc_y, __rar_grad(_prar, desc_w, c_black).w, desc_h,
+		merge_colour(__rar_col(_prar), c_black, .2), merge_colour(__rar_col(_prar), c_black, .96), 1);
+} else {
+	__rr_grad(desc_x, desc_y, desc_w, desc_h,
+		merge_colour(_ink, c_black, .6), merge_colour(_ink, c_black, .96), 1);
+}
 __inner(desc_x, desc_y, desc_w, desc_h, _dc);
 
 var _px = desc_x + 10;
