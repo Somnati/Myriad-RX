@@ -156,6 +156,7 @@ scene_light_bind(s_scene_p, s_scene_pw, u_sceneuv_p, u_sceneam_p);
 draw_sprite_ext(spr_pixel_1x1, 0, _qcx - _qh, _qcy - _qh,
 	_qh * 2, _qh * 2, 0, c_white, 1);
 shader_reset();
+scene_light_unbind();
 // what this frame drew, for the next frame's sweep
 mb_cx = _cx; mb_cy = _cy; mb_yaw = yaw;
 

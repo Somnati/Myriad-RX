@@ -313,6 +313,9 @@ function main_macros() {
 #macro SPRITE_ATTN    7200  // attention: offline work decays as 1/(1+t/T),
                             // T seconds - 8h away yields T ln(1+8h/T) of work
 #macro SPRITE_NAP     3600  // away longer than this and they are found asleep
+#macro SPRITE_SPECK_RATE .30 // taps/s at which a sprite wears the orbiting
+                            // specks (eager .347 and greedy .300 today -
+                            // the strong ones; acquisition will grade this)
 
 // ---- THE BATTERY (the OFFLINE budget, his design 2026-09-11) ----
 // Read battery_init. Charge is seconds of absence the machines can run;

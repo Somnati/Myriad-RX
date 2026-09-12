@@ -7,6 +7,7 @@
 // razor-sharp blocks, never averaged (the house pixelation rule).
 //
 varying vec2 v_pos;
+varying vec2 v_uv;
 
 uniform vec4  u_quad;  // quad x, y, w, h in room px
 uniform vec3  u_or[3]; // object-from-view rotation rows
@@ -92,6 +93,16 @@ void main()
     vec2 q = (v_pos - u_quad.xy) / u_quad.zw;
     if (u_cells > 0.5) q = (floor(q * u_cells) + 0.5) / u_cells;
     vec2 s = (q * 2.0 - 1.0) * u_pad;
+
+    // ⚖️ gm_BaseTexture MUST STAY SAMPLER 0 (his report, 2026-09-11:
+    // "interpolation on random UI elements"). A shader that never reads
+    // it does not get it, so u_scene became sampler 0 - the stage
+    // draw_sprite binds the quad's own texture to, which clobbered the
+    // scene copy, and the filter scene_light_bind switched on for that
+    // stage was then the filter for EVERY draw after. One read of the
+    // base texture keeps it in slot 0 and the scene samplers in 1 / 2;
+    // max(a, 1) is 1 for the opaque pixel quad and is not optimised out
+    float keep = max(texture2D(gm_BaseTexture, v_uv).a, 1.0);
 
     // ---- THE ROOM'S LIGHT: five taps of each blurred copy around this
     // cell, read HERE - before the raymarch's early exit - because the
@@ -187,5 +198,5 @@ void main()
     col += u_col * amb * u_scene_amt * 1.1 * (1.0 - m * 0.6);
     col += spc * refl * u_scene_amt * (0.5 * u_metal + 0.35 * fr);
 
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(col, keep);
 }

@@ -20,6 +20,7 @@
 //             glint
 //
 varying vec2 v_pos;
+varying vec2 v_uv;
 
 uniform vec4  u_quad;    // x, y, w, h in room px (square)
 uniform float u_cells;   // cells across the quad - one per room px
@@ -41,6 +42,16 @@ void main()
     vec2 cell = (floor(uv * u_cells) + 0.5) / u_cells;
     vec2 p = (cell * 2.0 - 1.0) / max(u_sq, vec2(0.05));
     vec2 q = cell;
+    // ⚖️ gm_BaseTexture MUST STAY SAMPLER 0 (his report, 2026-09-11:
+    // "interpolation on random UI elements"). A shader that never reads
+    // it does not get it, so u_scene became sampler 0 - the stage
+    // draw_sprite binds the quad's own texture to, which clobbered the
+    // scene copy, and the filter scene_light_bind switched on for that
+    // stage was then the filter for EVERY draw after. One read of the
+    // base texture keeps it in slot 0 and the scene samplers in 1 / 2;
+    // max(a, 1) is 1 for the opaque pixel quad and is not optimised out
+    float keep = max(texture2D(gm_BaseTexture, v_uv).a, 1.0);
+
     // ---- THE ROOM'S LIGHT: five taps of each blurred copy around this
     // cell, read HERE - before the raymarch's early exit - because the
     // HLSL side forbids a texture read inside divergent flow. The
@@ -102,5 +113,5 @@ void main()
     else if (u_mat < 2.5) col += refl * u_scene_amt * (0.6 + 0.5 * fres) * mix(vec3(1.0), u_col, 0.5);
     else                  col += mix(u_col2, u_col, z) * amb * u_scene_amt * 1.0 + refl * u_scene_amt * 0.2;
 
-    gl_FragColor = vec4(clamp(col, 0.0, 1.0), a);
+    gl_FragColor = vec4(clamp(col, 0.0, 1.0), a * keep);
 }

@@ -29,3 +29,4 @@ shader_set_uniform_f(u_cells2, px_cell > 0 ? (_qh * 2) / px_cell : 0);
 scene_light_bind(s_scene2, s_scene2w, u_sceneuv2, u_sceneam2);
 draw_sprite_ext(spr_pixel_1x1, 0, x - _qh, y - _qh, _qh * 2, _qh * 2, 0, c_white, 1);
 shader_reset();
+scene_light_unbind();

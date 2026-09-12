@@ -17,12 +17,18 @@ var _cy = y - _ry - hop + _idle_bob;    // the body's centre; y is the feet
 // the shadow
 draw_sprite_ext(spr_pixel_1x1, 0, floor(x - _rx), floor(y), ceil(_rx * 2) + 1, 1, 0, c_black, .35);
 
-// the glass ones glow a little, and carry specks (his inspiration)
+// the glass ones glow a little; the orbiting specks are RANK (his
+// call, 2026-09-11: "those circles should only spawn on more powerful
+// sprites") - a sprite in the top tier of its personality's rate wears
+// them, whatever its material, so the specks read as strength rather
+// than as glass
 if (_glass) {
 	var _gs = (r * 6) / sprite_get_width(spr_vis_glow_soft);
 	gpu_set_blendmode(bm_add);
 	draw_sprite_ext(spr_vis_glow_soft, 0, x, _cy, _gs, _gs, 0, _col, .10);
 	gpu_set_blendmode(bm_normal);
+}
+if (sprite_rate(s) >= SPRITE_SPECK_RATE) {
 	for (var _k = 0; _k < array_length(spk); _k++) {
 		var _sk = spk[_k];
 		var _sa = _sk.a + bob * .35 * (1 + _k * .3);
@@ -48,6 +54,7 @@ shader_set_uniform_f(u_time_b, (current_time mod 100000) / 1000);
 scene_light_bind(s_scene_b, s_scene_bw, u_sceneuv_b, u_sceneam_b);
 draw_sprite_stretched(spr_pixel_1x1, 0, _qx, _qy, _qs, _qs);
 shader_reset();
+scene_light_unbind();
 
 // ---- the eyes, in their style ----
 var _ew = _ey.w, _eh = _ey.h;
