@@ -1,7 +1,16 @@
 /// the panel's face. Draw-only; the Step's hits share this geometry.
+/// THE DIAL (his inspiration, 2026-09-11): a ring, the percentage,
+/// the charge as a liquid with a moving surface, the crank's handle on
+/// the rim. Everything is spr_pixel_1x1 stamps - no primitives, ever,
+/// under a shader (the input-layout lesson).
 var _b   = g.battery;
 var _cap = battery_cap();
 var _dim = rgb(120, 130, 150);
+var _f   = clamp(_b.charge / max(1, _cap), 0, 1);
+var _low = (_f < .2);
+var _gc  = _low ? c_hred : c_sgreen;                 // the theme: green, red when low
+var _gl  = merge_colour(_gc, c_white, .3 * crank_glow);
+var _cranking = (held || abs(vel) > .5);
 
 draw_set_font(fnt);
 draw_set_halign(fa_left);
@@ -18,59 +27,138 @@ if (_sp > .001) {
 	draw_set_color(c_sgreen);
 	draw_set_alpha(.95);
 	draw_text(6, hh + 5, "battery");
-	draw_set_halign(fa_right);
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(room_width - 8, hh + 5, "what runs while you are away, and for how long");
+	if (land) {
+		draw_set_halign(fa_right);
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(room_width - 8, hh + 5, "what runs while you are away, and for how long");
+		draw_set_halign(fa_left);
+	}
+	__part_end();
+}
+
+// ---- THE DIAL ----
+if (__part(2) > 0) {
+	var _cx = disc_cx, _cy = disc_cy, _R = disc_r;
+
+	// the glow behind it, the theme colour, breathing while it cranks
+	var _gs = (_R * 4.2) / sprite_get_width(spr_vis_glow_soft);
+	gpu_set_blendmode(bm_add);
+	draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy, _gs, _gs, 0, _gc, .10 + .08 * crank_glow);
+	gpu_set_blendmode(bm_normal);
+
+	// the disc: a dark rasterised circle
+	for (var _dy = -_R; _dy <= _R; _dy++) {
+		var _hw = sqrt(max(0, sqr(_R) - sqr(_dy)));
+		draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx - _hw), floor(_cy + _dy),
+			max(1, round(_hw * 2)), 1, 0, merge_colour(c_black, _gc, .08), .92);
+	}
+
+	// ⚖️ THE LIQUID (his ask: "a nice moving minimal liquid"). The fill
+	// line eases toward the charge so a crank's burst RISES; two waves
+	// ride it - a back one, dim, and the front one with a lit crest -
+	// and both slosh harder while the crank turns. Column by column:
+	// each x fills from its wave's height down to the disc's floor,
+	// clipped to the circle - one stamp a column, no shader
+	liq_t += delta * (1 + min(abs(vel), 10) * .15);
+	var _target = _cy + _R - 2 * _R * _f;
+	if (liq_lvl < 0) liq_lvl = _target;
+	liq_lvl += (_target - liq_lvl) * min(1, .12 * delta);
+	var _amp = 1 + min(abs(vel), 10) * .25;
+	for (var _pass = 0; _pass < 2; _pass++) {
+		var _back = (_pass == 0);
+		for (var _x = -_R + 1; _x < _R; _x++) {
+			var _hw = sqrt(max(0, sqr(_R) - sqr(_x)));
+			var _top = _cy - _hw, _bot = _cy + _hw;
+			var _w = _back
+				? liq_lvl - 1.5 + (2.0 * dsin(_x * 8 - liq_t * 1.9) + 1.2 * dsin(_x * 15 + liq_t * 1.3)) * _amp
+				: liq_lvl       + (2.2 * dsin(_x * 9 + liq_t * 2.4) + 1.4 * dsin(_x * 17 - liq_t * 1.6)) * _amp;
+			var _y0 = clamp(_w, _top, _bot);
+			if (_y0 >= _bot) continue;
+			var _yy = floor(_y0);
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, ceil(_bot) - _yy, 0,
+				_back ? merge_colour(_gc, c_black, .45) : merge_colour(_gc, c_black, .2), _back ? .55 : .85);
+			if (!_back)   // the crest
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + _x), _yy, 1, 1, 0, merge_colour(_gc, c_white, .45), .95);
+		}
+	}
+
+	// the ring: a two-cell band on the rim
+	var _steps = round(_R * 6.3);
+	for (var _k = 0; _k < _steps; _k++) {
+		var _ra = _k * 360 / _steps;
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(_cx + lengthdir_x(_R - 1, _ra)), floor(_cy + lengthdir_y(_R - 1, _ra)),
+			2, 2, 0, _gl, .9);
+	}
+	// the eight notches the detents reel the handle into, just outside
+	for (var _k = 0; _k < 8; _k++)
+		draw_sprite_ext(spr_pixel_1x1, 0,
+			floor(_cx + lengthdir_x(_R + 4, _k * 45)), floor(_cy + lengthdir_y(_R + 4, _k * 45)),
+			1, 1, 0, _gc, (_k == 0) ? .9 : .4);
+	// the crank's handle, riding the rim
+	var _hx = floor(_cx + lengthdir_x(_R, ang));
+	var _hy = floor(_cy + lengthdir_y(_R, ang));
+	var _kc = (crank_flash > 0) ? c_white : (held ? c_gold : merge_colour(c_white, _gc, .3));
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, _kc, .95);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, _kc, .95);
+
+	// the bolt above the number, lit while it charges (always, here -
+	// brighter while cranking): a five-cell glyph
+	var _bx = floor(_cx), _by = floor(_cy - _R * .55);
+	var _ba = .6 + .35 * crank_glow;
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx + 1, _by,     2, 1, 0, _gc, _ba);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx,     _by + 1, 2, 1, 0, _gc, _ba);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx - 1, _by + 2, 3, 1, 0, _gc, _ba);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx,     _by + 3, 2, 1, 0, _gc, _ba);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx - 1, _by + 4, 2, 1, 0, _gc, _ba);
+
+	// the percentage, big, and the sign under it
+	draw_set_halign(fa_center);
+	draw_set_font(fnt_large_outline);
+	draw_set_color(c_white);
+	draw_set_alpha(.95);
+	var _pct = string(floor(_f * 100));
+	draw_text_transformed(_cx, _cy - 10, _pct, 2, 2, 0);
+	draw_set_font(fnt);
+	draw_set_color(merge_colour(c_white, _gc, .3));
+	draw_set_alpha(.8);
+	draw_text(_cx, _cy + 12, "%");
 	draw_set_halign(fa_left);
 	__part_end();
 }
 
-// ---- the charge meter ----
-if (__part(2) > 0) {
-	var _f = clamp(_b.charge / max(1, _cap), 0, 1);
-	var _bx = col_x, _by = bat_y;
-	// the battery: a body of ten cells and a nub
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _by, bat_w, bat_h, 0, c_black, .8);
-	draw_px_rect(_bx, _by, bat_w, bat_h, c_sgreen, .6);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx + bat_w, _by + 6, 4, bat_h - 12, 0, c_sgreen, .6);
-	var _cells = 10;
-	var _cw = (bat_w - 4 - (_cells - 1) * 2) / _cells;
-	for (var _k = 0; _k < _cells; _k++) {
-		var _lo = _k / _cells, _hi = (_k + 1) / _cells;
-		var _fill = clamp((_f - _lo) / (_hi - _lo), 0, 1);
-		var _cx = _bx + 2 + _k * (_cw + 2);
-		if (_fill > 0)
-			draw_sprite_ext(spr_pixel_1x1, 0, _cx, _by + 3, _cw * _fill, bat_h - 6, 0,
-				(_f < .2) ? c_hred : c_sgreen, .9);
-		draw_px_rect(_cx, _by + 3, _cw, bat_h - 6, c_sgreen, .15);
-	}
-	// the numbers
-	draw_set_color(c_white);
-	draw_set_alpha(.95);
-	draw_text(_bx, _by + bat_h + 4,
-		((_b.charge >= 1) ? crunch_time_long(_b.charge * 60) : "empty") + " of " + crunch_time_long(_cap * 60));
-	draw_set_color(_dim);
-	draw_set_alpha(.7);
+// ---- the two readouts under the disc ----
+if (__part(3) > 0) {
 	var _need = (_cap - _b.charge) / max(.001, battery_rate());
-	draw_text(_bx, _by + bat_h + 14, (_b.charge >= _cap - 1) ? "full"
-		: ("full in " + crunch_time_long(_need * 60) + " here  -  or crank it"));
-	// how long it lasts away, the readout the sliders are for
 	var _lasts = battery_lasts();
 	var _draw  = battery_draw();
+	var _lx = land ? (disc_cx - disc_r - 8) : 8;
+	var _rx = land ? (disc_cx + disc_r + 8) : (room_width - 8);
+	draw_set_halign(land ? fa_right : fa_left);
+	draw_set_color(c_white);
+	draw_set_alpha(.95);
+	draw_text(_lx, read_y, (_b.charge >= _cap - 1) ? "full" : ("full in " + crunch_time_long(_need * 60)));
+	draw_set_color(_dim);
+	draw_set_alpha(.6);
+	draw_text(_lx, read_y + 10, (_b.charge >= _cap - 1) ? (crunch_time_long(_cap * 60) + " of charge") : "here, or crank it");
+	draw_set_halign(land ? fa_left : fa_right);
 	draw_set_color(c_gold);
-	draw_set_alpha(.9);
-	draw_text(_bx, _by + bat_h + 30, (_draw <= 0) ? "nothing draws - it lasts forever"
-		: ("lasts " + crunch_time_long(_lasts * 60) + " away at these rates"
-			+ ((_draw < .999) ? ("  (draw x" + string_format(_draw, 1, 2) + ")") : "")));
+	draw_set_alpha(.95);
+	draw_text(_rx, read_y, (_draw <= 0) ? "nothing draws" : ("lasts " + crunch_time_long(_lasts * 60)));
+	draw_set_color(_dim);
+	draw_set_alpha(.6);
+	draw_text(_rx, read_y + 10, (_draw <= 0) ? "forever, away" : ("away at these rates" + ((_draw < .999) ? ("  x" + string_format(_draw, 1, 2)) : "")));
+	draw_set_halign(fa_left);
 	__part_end();
 }
 
 // ---- the offline rates ----
-if (__part(3) > 0) {
+if (__part(4) > 0) {
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);
-	draw_text(col_x, rate_y - 12, "offline speed - slower draws much less (the square)");
+	draw_text(rate_x, rate_y - 11, land ? "offline speed - slower draws much less" : "offline speed");
 	var _a = g.autom;
 	for (var _i = 0; _i < 3; _i++) {
 		var _ry = rate_y + _i * rate_p;
@@ -80,22 +168,25 @@ if (__part(3) > 0) {
 		var _sa = _on ? 1 : .4;
 		draw_set_color(_on ? c_white : _dim);
 		draw_set_alpha(.9 * _sa);
-		draw_text(col_x, _ry + 2, rate_lbl[_i]);
+		draw_text(rate_x, _ry + 2, rate_lbl[_i]);
 		var _t = __trk_r(_i);
-		var _f = clamp((_v - 5) / 95, 0, 1);
+		var _fr = clamp((_v - 5) / 95, 0, 1);
 		draw_sprite_ext(spr_pixel_1x1, 0, _t.x, _t.y, _t.w, _t.h, 0, c_black, .7 * _sa);
-		draw_sprite_ext(spr_pixel_1x1, 0, _t.x, _t.y, _t.w * _f, _t.h, 0, rate_col[_i], .8 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _t.x, _t.y, _t.w * _fr, _t.h, 0, rate_col[_i], .8 * _sa);
 		draw_px_rect(_t.x, _t.y, _t.w, _t.h, rate_col[_i], .35 * _sa);
-		draw_sprite_ext(spr_pixel_1x1, 0, _t.x + _t.w * _f - 1, _t.y - 2, 3, _t.h + 4, 0, c_white, .8 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _t.x + _t.w * _fr - 1, _t.y - 2, 3, _t.h + 4, 0, c_white, .8 * _sa);
 		draw_set_color(_on ? c_white : _dim);
 		draw_set_alpha(.9 * _sa);
-		draw_text(_t.x + _t.w + 6, _ry + 2, string(_v) + "%" + (_on ? "" : "  (off in automation)"));
+		draw_text(_t.x + _t.w + 5, _ry + 2, string(_v) + "%" + ((_on || !land) ? "" : "  (off)"));
 	}
 	__part_end();
 }
 
 // ---- the two ladders ----
-if (__part(4) > 0) {
+if (__part(5) > 0) {
+	draw_set_color(sett_ink);
+	draw_set_alpha(.55);
+	draw_text(upg_x, upg_y - 11, land ? "upgrades - credits" : "upgrades");
 	for (var _r = 0; _r < 2; _r++) {
 		var _ry = upg_y + _r * upg_p;
 		var _q  = (_r == 0) ? q_cap : q_rate;
@@ -103,89 +194,32 @@ if (__part(4) > 0) {
 		draw_set_alpha(.9);
 		if (_r == 0) {
 			var _next = BAT_CAP0 * (1 + BAT_CAP_STEP * (_b.cap_lv + 1));
-			draw_text(col_x, _ry + 3, "capacity  lv " + string(_b.cap_lv) + "  "
-				+ crunch_time_long(_cap * 60) + " > " + crunch_time_long(_next * 60));
+			draw_text(upg_x, _ry + 3, (land ? "capacity  " : "cap ") + crunch_time_long(_cap * 60) + " > " + crunch_time_long(_next * 60));
 		} else {
-			var _fill = _cap / battery_rate();
+			var _fill  = _cap / battery_rate();
 			var _fill2 = _cap / ((BAT_CAP0 / BAT_FILL0) * (1 + BAT_RATE_STEP * (_b.rate_lv + 1)));
-			draw_text(col_x, _ry + 3, "charge speed  lv " + string(_b.rate_lv) + "  full in "
-				+ crunch_time_long(_fill * 60) + " > " + crunch_time_long(_fill2 * 60));
+			draw_text(upg_x, _ry + 3, (land ? "speed  full in " : "spd ") + crunch_time_long(_fill * 60) + " > " + crunch_time_long(_fill2 * 60));
 		}
 		var _br = __btn_r(_r);
 		draw_ui_button(_br.x, _br.y, _br.w, _br.h, string(_q.cost) + " cr",
 			_q.ok ? c_sgreen : c_gray, _q.ok, _q.ok);
 	}
-	draw_set_color(_dim);
-	draw_set_alpha(.55);
-	draw_text(col_x, upg_y + 2 * upg_p + 4,
-		"credits, the dropper's. equal levels fill in the same two minutes;");
-	draw_text(col_x, upg_y + 2 * upg_p + 14,
-		"a capacity ahead of its charge speed takes longer. the time bank still");
-	draw_text(col_x, upg_y + 2 * upg_p + 24,
-		"banks the whole absence; only the machines stop when this runs dry.");
+	if (land) {
+		draw_set_color(_dim);
+		draw_set_alpha(.5);
+		draw_text(upg_x, upg_y + 2 * upg_p + 4, "equal levels fill in the same time; a cap");
+		draw_text(upg_x, upg_y + 2 * upg_p + 14, "ahead of its speed fills slower. the time");
+		draw_text(upg_x, upg_y + 2 * upg_p + 24, "bank still banks the whole absence.");
+	}
 	__part_end();
 }
 
-// ---- THE CRANK ----
-if (__part(5) > 0) {
-	var _gc = merge_colour(c_sgreen, c_white, .3 * crank_glow);
-	// ⚖️ STAMPS, NOT PRIMITIVES (his report, 2026-09-11: "Could not
-	// generate input layout"). While the panel is arriving __part
-	// leaves sh_ui_fade set, and that shader reads in_TextureCoord -
-	// which GM's draw_circle / draw_line_width vertices do not carry,
-	// so the input layout could not be built. Everything here is
-	// spr_pixel_1x1 now, in the house grammar: a rasterised disc
-	// (rows), a one-cell ring, spokes as cells along the radius.
-	// the disc, row by row
-	for (var _dy = -crank_r; _dy <= crank_r; _dy++) {
-		var _hw = sqrt(max(0, sqr(crank_r) - sqr(_dy)));
-		draw_sprite_ext(spr_pixel_1x1, 0, floor(crank_cx - _hw), floor(crank_cy + _dy),
-			max(1, round(_hw * 2)), 1, 0, c_black, .7);
-	}
-	// the rim: one cell per degree-ish, two px thick
-	var _steps = round(crank_r * 6.3);
-	for (var _k = 0; _k < _steps; _k++) {
-		var _ra = _k * 360 / _steps;
-		draw_sprite_ext(spr_pixel_1x1, 0,
-			floor(crank_cx + lengthdir_x(crank_r - 1, _ra)), floor(crank_cy + lengthdir_y(crank_r - 1, _ra)),
-			2, 2, 0, _gc, .85);
-	}
-	// four spokes, cells along the radius
-	for (var _k = 0; _k < 4; _k++) {
-		var _sa = ang + _k * 90;
-		for (var _d = 4; _d < crank_r - 2; _d++)
-			draw_sprite_ext(spr_pixel_1x1, 0,
-				floor(crank_cx + lengthdir_x(_d, _sa)), floor(crank_cy + lengthdir_y(_d, _sa)),
-				2, 2, 0, _gc, .85);
-	}
-	// the hub
-	draw_sprite_ext(spr_pixel_1x1, 0, floor(crank_cx) - 4, floor(crank_cy) - 4, 9, 9, 0,
-		merge_colour(_gc, c_black, .4), .95);
-	// the handle knob, on the rim at the crank's angle
-	var _hx = floor(crank_cx + lengthdir_x(crank_r, ang));
-	var _hy = floor(crank_cy + lengthdir_y(crank_r, ang));
-	// the eight notches the detents reel it into, fixed on the rim
-	for (var _k = 0; _k < 8; _k++)
-		draw_sprite_ext(spr_pixel_1x1, 0,
-			floor(crank_cx + lengthdir_x(crank_r + 4, _k * 45)), floor(crank_cy + lengthdir_y(crank_r + 4, _k * 45)),
-			1, 1, 0, _gc, (_k == 0) ? .9 : .4);
-	var _kc = (crank_flash > 0) ? c_white : (held ? c_gold : merge_colour(c_white, _gc, .3));
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _hy - 3, 7, 7, 0, _kc, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _hy - 4, 5, 9, 0, _kc, .95);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx - 4, _hy - 2, 9, 5, 0, _kc, .95);
+// the crank hint, under everything
+if (__part(6) > 0) {
 	draw_set_halign(fa_center);
-	draw_set_color(sett_ink);
-	draw_set_alpha(.55);
-	draw_text(crank_cx, crank_cy + crank_r + 8, "crank to fast charge");
 	draw_set_color(_dim);
-	draw_set_alpha(.5);
-	draw_text(crank_cx, crank_cy + crank_r + 18,
-		"a turn is 1/" + string(BAT_CRANK_REV) + " of the capacity");
-	if (abs(vel) > .5 && !held) {
-		draw_set_color(c_gold);
-		draw_set_alpha(.7);
-		draw_text(crank_cx, crank_cy - crank_r - 12, "spinning");
-	}
+	draw_set_alpha(.45);
+	draw_text(disc_cx, room_height - 12, _cranking ? "cranking" : "grab the ring and turn it to fast charge");
 	draw_set_halign(fa_left);
 	__part_end();
 }

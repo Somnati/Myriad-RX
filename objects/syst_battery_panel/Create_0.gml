@@ -19,24 +19,36 @@ closing = false;  // armed by battery_close; the Step destroys at zero
 hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar
 
 // ---- layout (region law: Step's hits and Draw share these) ----
-// the left column: the charge, the rates, the upgrades. the right: the crank
-col_x   = 14;
-col_w   = 292;
-bat_y   = hh + 30;     // the charge meter
-bat_w   = 220;
-bat_h   = 22;
-rate_y  = hh + 110;    // the three offline rate rows (the meter's
-                       // "lasts N away" line ends at hh + 92; the
-                       // caption sat on it - his report, 2026-09-11)
-rate_p  = 18;
-trk_x   = col_x + 92;
-trk_w   = 120;
-upg_y   = hh + 172;    // the two upgrade rows
-upg_p   = 22;
-btn_w   = 62;
+// ⚖️ THE DIAL (his inspiration, 2026-09-11: a phone's charging screen -
+// one big ring with the percentage inside and the charge as a LIQUID
+// at the bottom). The disc sits in the middle; the crank's handle
+// rides its rim - the whole ring IS the crank, grab anywhere on the
+// disc and turn. The rates and the two ladders keep to the sides in
+// landscape and stack below in portrait (the money room is both).
+land    = (room_width > 300);
+disc_cx = room_width * .5;
+disc_r  = land ? 54 : 42;
+disc_cy = land ? (hh + 12 + disc_r) : (hh + 10 + disc_r);
+crank_cx = disc_cx;   // the crank's centre and radius ARE the disc's
+crank_cy = disc_cy;
+crank_r  = disc_r;
+// the two readouts under the disc: "full in" left, "lasts" right
+read_y  = disc_cy + disc_r + 12;
+// the offline rate rows
+rate_p  = land ? 18 : 14;
+rate_y  = land ? (hh + 44) : (read_y + 28);
+rate_x  = land ? 14 : 8;
+trk_x   = land ? (rate_x + 64) : (rate_x + 40);
+trk_w   = land ? 78 : 60;
+// the two ladders
+upg_p   = land ? 22 : 18;
+upg_y   = land ? (hh + 44) : (rate_y + 3 * rate_p + 8);
+upg_x   = land ? (room_width - 14 - 150) : 8;
+upg_w   = land ? 150 : (room_width - 16);
+btn_w   = land ? 54 : 44;
 
 rates   = ["run", "fab", "merge"];
-rate_lbl = ["dials cycling", "fabricator", "auto merge"];
+rate_lbl = land ? ["dials cycling", "fabricator", "auto merge"] : ["dials", "fab", "merge"];
 rate_col = [c_sgreen, c_seagreen, c_seagreen];
 
 // ---- THE CRANK ----
@@ -59,6 +71,8 @@ crank_turn = 0;     // the unbounded sweep, for the detent clicks
 crank_cell = 0;     // the last notch crossed
 crank_flash = 0;    // frames the knob flashes white after a click
 crank_glow = 0;     // eased, lights the wheel while it turns
+liq_t = random(1000);   // the liquid's own clock (the waves)
+liq_lvl = -1;           // the eased fill line, so a crank's charge rises rather than jumps
 
 // the quote cache for the two ladders (a slow tick, the Draw reads it)
 qtic   = 0;
@@ -83,7 +97,7 @@ __part_end = function() {
 };
 
 __trk_r = function(_i) { return { x : trk_x, y : rate_y + _i * rate_p + 4, w : trk_w, h : 5 }; };
-__btn_r = function(_i) { return { x : col_x + col_w - btn_w, y : upg_y + _i * upg_p, w : btn_w, h : 14 }; };
+__btn_r = function(_i) { return { x : upg_x + upg_w - btn_w, y : upg_y + _i * upg_p, w : btn_w, h : 14 }; };
 
 /// charge from a sweep of the crank, in degrees
 __crank_add = function(_deg) {

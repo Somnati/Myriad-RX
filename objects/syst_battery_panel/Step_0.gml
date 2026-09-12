@@ -79,7 +79,7 @@ if (keyboard_check_pressed(vk_escape)) { battery_close(); exit; }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
 
-// ---- the crank: grab anywhere on the wheel ----
+// ---- the crank: grab anywhere on the dial - the ring IS the crank ----
 if (point_distance(mouse_x, mouse_y, crank_cx, crank_cy) <= crank_r + 8) {
 	held   = true;
 	grab_a = point_direction(crank_cx, crank_cy, mouse_x, mouse_y);
