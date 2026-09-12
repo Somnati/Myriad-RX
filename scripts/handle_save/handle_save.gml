@@ -345,8 +345,28 @@ function handle_save(){
 	g.autom.fab.on    = handle("fab_on",    g.autom.fab.on);
 	g.autom.fab.spd   = handle("fab_spd",   g.autom.fab.spd);
 	g.autom.am_speed  = handle("am_speed",  g.autom.am_speed);
-	for (var _k = 0; _k < 3; _k++)
-		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
+	// THE MODES: a count, then name / pack / away per mode (up to eight).
+	// The three numbered slots this replaced ("preset0..2") migrate on
+	// load into named modes
+	var _pn = handle("mode_n", array_length(g.autom.presets));
+	for (var _k = 0; _k < 8; _k++) {
+		var _has = (_k < array_length(g.autom.presets));
+		var _nm = handle("mode" + string(_k) + "_name", _has ? g.autom.presets[_k].name : "");
+		var _pk = handle("mode" + string(_k) + "_pack", _has ? g.autom.presets[_k].pack : "");
+		var _of = handle("mode" + string(_k) + "_away", _has ? g.autom.presets[_k].offline : false);
+		if (action == sv_load && _k < _pn && is_string(_pk) && _pk != "")
+			g.autom.presets[_k] = { name : (is_string(_nm) && _nm != "") ? _nm : ("mode " + string(_k + 1)),
+			                        pack : _pk, offline : (_of == true || _of == 1) };
+	}
+	if (action == sv_load) {
+		array_resize(g.autom.presets, min(array_length(g.autom.presets), max(0, floor(_pn))));
+		if (array_length(g.autom.presets) == 0)
+			for (var _k = 0; _k < 3; _k++) {
+				var _old = handle("preset" + string(_k), "");
+				if (is_string(_old) && _old != "")
+					array_push(g.autom.presets, { name : "mode " + string(array_length(g.autom.presets) + 1), pack : _old, offline : false });
+			}
+	}
 	g.autom.oc        = handle("oc",        g.autom.oc);   // the overclock toggle (ram_oc)
 	g.autom.strat        = handle("strat",     g.autom.strat);        // the dials' strategy (autom_order)
 	g.autom.dial_all.on  = handle("da_on",     g.autom.dial_all.on);  // ...and its one row
@@ -370,8 +390,6 @@ function handle_save(){
 		g.autom.rails.d_oom  = clamp(g.autom.rails.d_oom, 1, 60);
 		g.autom.rails.t_oom  = clamp(g.autom.rails.t_oom, 1, 30);
 		if (!g.autom.oc) ram_oc_clamp();
-		for (var _k = 0; _k < 3; _k++)
-			if (!is_string(g.autom.presets[_k])) g.autom.presets[_k] = "";
 	}
 
 	if (action == sv_load) {

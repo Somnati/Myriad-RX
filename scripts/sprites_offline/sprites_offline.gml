@@ -14,6 +14,9 @@ function sprites_offline(_secs) {
 	var _work = SPRITE_ATTN * ln(1 + _secs / SPRITE_ATTN);
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _s = g.sprites[_i];
+		// away, asleep or on a machine: no room taps from it (the machine's
+		// rate carries its share through autom_rate)
+		if ((_s[$ "trip"] ?? false) || _s.asleep || (_s[$ "job"] ?? "tap") != "tap") { _s.away = 0; continue; }
 		var _n = floor(_work * sprite_rate(_s));
 		_s.away = _n;
 		if (_n >= 1) {

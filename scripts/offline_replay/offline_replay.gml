@@ -52,6 +52,15 @@ function offline_replay(_secs) {
 	// seconds, at the battery panel's offline rates (autom_rate reads
 	// g.offline_replaying).
 	battery_init();
+	// THE AWAY MODE (his list, 2026-09-12): a saved setup flagged for
+	// offline is applied around the replay - the machines it switches
+	// off draw nothing, the automerger it switches on runs - and the
+	// setup you left is put back after. autom_pack / unpack is the one
+	// road in and out, so nothing here can drift from a load
+	var _online = undefined;
+	autom_init();
+	for (var _mi = 0; _mi < array_length(g.autom.presets); _mi++)
+		if (g.autom.presets[_mi].offline) { _online = autom_pack(); autom_unpack(g.autom.presets[_mi].pack); break; }
 	// THE OPTIMISER (his idea, 2026-09-11 - read battery_optimise): with
 	// the ability on, the replay runs at the rates that make the most
 	// of the charge over exactly this absence, not the ones you left.
@@ -115,6 +124,7 @@ function offline_replay(_secs) {
 	g.offline_replaying = false;
 	g.battery.opt_rate = undefined;
 	g.tile_boost_override = undefined;
+	if (!is_undefined(_online)) autom_unpack(_online);   // the away mode comes off
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 	ccore_tick(_secs);    // ...and the credit core's well fills (to its cap) on the same clock
 	exped_tick(_secs);    // ...and an expedition walks its rooms (the fights resolve as they come)

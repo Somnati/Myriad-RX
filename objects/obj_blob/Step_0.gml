@@ -55,9 +55,13 @@ else {
 		if (tap_t <= 0) {
 			tap_t = SPRITE_TAP_T * 60;
 			sq = .8; hop = 3;
-			tap_fire(1, x, y - r, true, true, false);
-			sprite_voice(s, "tap");
-			s.taps += 1;
+			// a sprite on a machine (sprite_staff) works there, not here:
+			// it hops as if working but the tap is the machine's
+			if ((s[$ "job"] ?? "tap") == "tap") {
+				tap_fire(1, x, y - r, true, true, false);
+				sprite_voice(s, "tap");
+				s.taps += 1;
+			}
 		}
 		if (st_t <= 0) __next_state();
 	} else {

@@ -125,7 +125,10 @@ function autom_init(_force = false) {
 		// on, every speed / tap / timer track grows its red notches; off,
 		// ram_oc_clamp drops anything sitting on them
 		oc       : false,
-		presets  : ["", "", ""],
+		// MODES (his list, 2026-09-12): saved setups, only the ones you
+		// made, add / delete, and ONE may be the away mode - applied
+		// around the offline replay and undone after (offline_replay)
+		presets  : [],   // { name, pack, offline }
 		// THE WATERMARK the reserve is measured against: the highest
 		// pile ever held on this run. It exists because a reserve
 		// measured against the CURRENT pile is not a floor - spending

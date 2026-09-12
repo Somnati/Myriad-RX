@@ -72,7 +72,7 @@ function autom_tick() {
 	// autotapper climbs into the thousands with them exactly as DE's did
 	var _tp = _a.tap;
 	if (_tp.on) {
-		var _tps = _tp.rate * (tap_rate() / TAP_HOLD_BASE);
+		var _tps = _tp.rate * (tap_rate() / TAP_HOLD_BASE) * (1 + sprite_staff("tapper"));   // the staff on it
 		_tp.acc += _tps * _dt * _th;
 		var _nt = floor(_tp.acc);
 		if (_nt >= 1) {

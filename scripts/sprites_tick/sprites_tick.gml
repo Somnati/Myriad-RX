@@ -13,6 +13,7 @@ function sprites_tick() {
 		var _h = _s[$ "hurt"] ?? 0;
 		if (_h > 0) { _s.hurt = _h - _dt; if (_s.hurt <= 0) { _s.hurt = 0; _s.asleep = false; } }
 		if (_s[$ "trip"] ?? false) continue;   // away on an expedition: not here to tap
+		if ((_s[$ "job"] ?? "tap") != "tap") continue;   // on a machine (sprite_staff): not the room's tapper
 		if (_s.asleep) continue;
 		if (variable_struct_exists(_s, "view") && instance_exists(_s.view)) continue;
 		_s.acc += sprite_rate(_s) * _dt;

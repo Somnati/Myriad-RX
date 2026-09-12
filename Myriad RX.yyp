@@ -517,6 +517,7 @@
     {"id":{"name":"sprite_personalities","path":"scripts/sprite_personalities/sprite_personalities.yy",},},
     {"id":{"name":"sprite_rate","path":"scripts/sprite_rate/sprite_rate.yy",},},
     {"id":{"name":"sprite_spawn","path":"scripts/sprite_spawn/sprite_spawn.yy",},},
+    {"id":{"name":"sprite_staff","path":"scripts/sprite_staff/sprite_staff.yy",},},
     {"id":{"name":"sprite_voice","path":"scripts/sprite_voice/sprite_voice.yy",},},
     {"id":{"name":"sprites_init","path":"scripts/sprites_init/sprites_init.yy",},},
     {"id":{"name":"sprites_offline","path":"scripts/sprites_offline/sprites_offline.yy",},},

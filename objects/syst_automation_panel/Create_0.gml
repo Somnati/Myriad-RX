@@ -396,21 +396,50 @@ __page_rows = function() {
 			right : string(__ram_page(AT_TILES)) + " ram",
 			on : true, st : -1, col : tcol[AT_TILES], ram : 0, help : "" });
 
-		array_push(_o, __section("presets", c_gold));
+		// STAFF (his list): every sprite and the machine it works - no
+		// RAM, works offline, and it stops tapping the room while it is
+		// on one (sprite_staff)
+		if (variable_global_exists("sprites") && array_length(g.sprites) > 0) {
+			array_push(_o, __section("staff  -  sprites on the machines", c_seagreen));
+			for (var _k = 0; _k < array_length(g.sprites); _k++) {
+				var _sp = g.sprites[_k];
+				var _jobs = ["tap", "run", "fab", "merge", "tapper"];
+				var _ji = 0;
+				for (var _q = 0; _q < 5; _q++) if ((_sp[$ "job"] ?? "tap") == _jobs[_q]) _ji = _q;
+				var _bn = SPRITE_STAFF * (1 + (_sp[$ "rar"] ?? 0));
+				array_push(_o, { kind : 7, name : _sp.name,
+					val : upgrade_rarity_info(_sp[$ "rar"] ?? 0).name + "  +" + string(round(_bn * 100)) + "%"
+					    + (_sp.asleep ? "  zzz" : ((_sp[$ "trip"] ?? false) ? "  away" : "")),
+					btns : ["room", "cycling", "fab", "merge", "tapper"], act : "staff", k : _k, sel : _ji,
+					on : true, st : -1, col : _sp.col, ram : 0,
+					help : "room: it taps the money room itself. a machine: its bonus rides "
+					     + "that machine's rate instead - no ram, and it works while you are away" });
+			}
+		}
+
+		// MODES (his list): only the ones you made; [+ new] saves the
+		// current setup as another; one may be the AWAY mode
+		array_push(_o, __section("modes", c_gold));
 		array_push(_o, { kind : 7, name : "defaults",
 			val : "cycling + fabricator on at 100%, nothing else",
 			btns : ["load"], act : "defaults",
 			on : true, st : -1, col : c_white, ram : 0,
 			help : "the shipped setup: the two machines on, no autobuys, no rebirth" });
-		for (var _k = 0; _k < 3; _k++) {
-			var _has = (_a.presets[_k] != "");
-			array_push(_o, { kind : 7, name : "preset " + string(_k + 1),
-				val : _has ? "saved" : "empty",
-				btns : _has ? ["load", "save"] : ["save"], act : "preset", k : _k,
-				on : _has, st : -1, col : c_white, ram : 0,
-				help : "save keeps the whole setup here - every switch, cap, "
-				     + "timer and speed; load restores it" });
+		for (var _k = 0; _k < array_length(_a.presets); _k++) {
+			var _pm = _a.presets[_k];
+			array_push(_o, { kind : 7, name : _pm.name,
+				val : _pm.offline ? "the away mode - applied while you are gone" : "",
+				btns : ["load", "save", _pm.offline ? "away *" : "away", "x"], act : "mode", k : _k,
+				on : true, st : -1, col : _pm.offline ? c_gold : c_white, ram : 0,
+				help : "load restores it, save overwrites it with the setup now, away "
+				     + "marks it the mode used while you are offline, x deletes it" });
 		}
+		if (array_length(_a.presets) < 8)
+			array_push(_o, { kind : 7, name : "new mode",
+				val : "save the setup as it is now",
+				btns : ["+ new"], act : "mode_new",
+				on : true, st : -1, col : c_white, ram : 0,
+				help : "every switch, cap, timer, speed, strategy and rail, as they are now" });
 		return _o;
 	}
 
@@ -761,19 +790,51 @@ __action = function(_rw, _b) {
 		assign_banner("automation reset to defaults", c_white, c_black);
 		return;
 	}
-	if (_rw.act == "preset") {
+	if (_rw.act == "staff") {
+		var _sp = g.sprites[_rw.k];
+		_sp.job = ["tap", "run", "fab", "merge", "tapper"][_b];
+		save_mark_dirty();
+		play_sound_ext(snd_softclick, 1, 1.1, .45, 1);
+		return;
+	}
+	if (_rw.act == "mode_new") {
+		var _nn = array_length(g.autom.presets) + 1;
+		array_push(g.autom.presets, { name : "mode " + string(_nn), pack : autom_pack(), offline : false });
+		save_mark_dirty();
+		play_sound_ext(snd_apply, 1.0, 1.2, .5, 1);
+		assign_banner("mode " + string(_nn) + " saved", c_white, c_black);
+		return;
+	}
+	if (_rw.act == "mode") {
 		var _k = _rw.k;
-		var _lbl = _rw.btns[_b];
-		if (_lbl == "save") {
-			g.autom.presets[_k] = autom_pack();
-			save_mark_dirty();
-			play_sound_ext(snd_apply, 1.0, 1.2, .5, 1);
-			assign_banner("preset " + string(_k + 1) + " saved", c_white, c_black);
-		} else if (_lbl == "load") {
-			if (autom_unpack(g.autom.presets[_k])) {
-				play_sound_ext(snd_apply, .9, 1.1, .5, 1);
-				assign_banner("preset " + string(_k + 1) + " loaded", c_white, c_black);
+		if (_k < 0 || _k >= array_length(g.autom.presets)) return;
+		var _pm = g.autom.presets[_k];
+		switch (_b) {
+			case 0:   // load
+				if (autom_unpack(_pm.pack)) {
+					play_sound_ext(snd_apply, .9, 1.1, .5, 1);
+					assign_banner(_pm.name + " loaded", c_white, c_black);
+				}
+				break;
+			case 1:   // save over it
+				_pm.pack = autom_pack();
+				save_mark_dirty();
+				play_sound_ext(snd_apply, 1.0, 1.2, .5, 1);
+				assign_banner(_pm.name + " saved", c_white, c_black);
+				break;
+			case 2: { // the away mode: one at a time
+				var _was = _pm.offline;
+				for (var _q = 0; _q < array_length(g.autom.presets); _q++) g.autom.presets[_q].offline = false;
+				_pm.offline = !_was;
+				save_mark_dirty();
+				play_sound_ext(snd_softclick, _pm.offline ? 1.1 : .9, _pm.offline ? 1.2 : 1, .4, 1);
+				break;
 			}
+			case 3:   // delete
+				array_delete(g.autom.presets, _k, 1);
+				save_mark_dirty();
+				play_sound_ext(snd_matclick, .8, .9, .5, 1);
+				break;
 		}
 	}
 };
