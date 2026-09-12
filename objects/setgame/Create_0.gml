@@ -5,6 +5,7 @@
 
 	// visual option globals: initialized here so rooms that READ them
 	// never depend on the settings-room toggles having run first
+	g.fs_on_boot = false;   // settings > display "always fullscreen on startup" (handle_settings forces g.fullscreen on a load)
 	g.blur = true;   // settings > display "menu blur"
 	g.cursor_ray = true;   // settings > visuals "raycast pointer" (sh_cursor)
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)

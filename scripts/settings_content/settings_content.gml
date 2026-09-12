@@ -63,6 +63,12 @@ function settings_content() {
 			"fill the whole screen. off = the floating window (which you "
 			+ "can throw around, yes).");
 
+		settings_toggle("always fullscreen on startup",
+			function() { return g.fs_on_boot; },
+			function(_v) { g.fs_on_boot = _v; },
+			"every boot starts fullscreen, whatever the last session ended "
+			+ "in. the fullscreen toggle above still works while you play.");
+
 		settings_toggle("borderless fullscreen",
 			function() { return g.fullscreen_borderless; },
 			function(_v) { g.fullscreen_borderless = _v; },

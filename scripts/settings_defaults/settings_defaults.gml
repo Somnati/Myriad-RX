@@ -12,6 +12,7 @@ function settings_defaults(_section = "all") {
 
 	if (_all || _section == "display") {
 		g.fullscreen            = true;
+		g.fs_on_boot            = false;
 		g.fullscreen_borderless = true;
 		g.screen_size_user      = scr_res_list()[0].w; // native / best fit
 		g.screen_size           = -abs(g.screen_size_user); // re-arm the swap

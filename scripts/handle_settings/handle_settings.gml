@@ -27,6 +27,13 @@ function handle_settings(_method) {
 	if (syst_display.fs_restore) g.fullscreen = true;
 
 	g.fullscreen = handle("fullscreen",g.fullscreen);
+	// ALWAYS FULLSCREEN ON STARTUP (his ask, 2026-09-11): a boot load
+	// forces the choice to fullscreen whatever the last session left -
+	// the toggle in settings still works for the session; this only
+	// says what the game boots into. Saves keep the live choice as
+	// before, so nothing else about the key changes
+	g.fs_on_boot = handle("fs_on_boot", g.fs_on_boot);
+	if (_method == sv_load && g.fs_on_boot) g.fullscreen = true;
 
 	if (_method == sv_save) g.fullscreen = _fs_live; // keep the live state
 	// the CHOSEN size persists, never the live one (which portrait
