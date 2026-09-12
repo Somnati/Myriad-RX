@@ -568,6 +568,7 @@ function main_macros() {
 #macro TILE_FLUX_DIV 100000000  // flux paid = earned / this (a plain
                                 // literal: GML will not parse 1e8)
 #macro TILE_FLUX_STEP   .01   // output x (1 + STEP x flux^POW): +1% each
+#macro TILE_FLUX_RAR    50    // the flux ladder's rarity floor, rate a level (tile_flux_config)
 #macro TILE_FLUX_POW      1   // linear - his call
 
 #macro TILE_DIAL_DIV    100

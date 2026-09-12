@@ -545,6 +545,8 @@
     {"id":{"name":"tile_chance_rate","path":"scripts/tile_chance_rate/tile_chance_rate.yy",},},
     {"id":{"name":"tile_color","path":"scripts/tile_color/tile_color.yy",},},
     {"id":{"name":"tile_dial_boost","path":"scripts/tile_dial_boost/tile_dial_boost.yy",},},
+    {"id":{"name":"tile_flux_config","path":"scripts/tile_flux_config/tile_flux_config.yy",},},
+    {"id":{"name":"tile_fupg","path":"scripts/tile_fupg/tile_fupg.yy",},},
     {"id":{"name":"tile_gps","path":"scripts/tile_gps/tile_gps.yy",},},
     {"id":{"name":"tile_out","path":"scripts/tile_out/tile_out.yy",},},
     {"id":{"name":"tile_rarity_rate","path":"scripts/tile_rarity_rate/tile_rarity_rate.yy",},},

@@ -226,6 +226,25 @@ function handle_save(){
 			tiles_sync();   // the board takes the loaded levels' shape
 		}
 	}
+	// THE FLUX LADDER (tile_flux_config), by key like the shard rows -
+	// permanent, so it is simply stored and read back. A save from
+	// before the split carries a shard-bought "upg_profit" level: it
+	// moves to the ladder whole (they paid for it) and the shard key is
+	// zeroed so the drawer cannot show a row that no longer exists
+	if (!variable_struct_exists(g.tiles, "fupg")) g.tiles.fupg = {};
+	var _fcfg = tile_flux_config();
+	for (var _k = 0; _k < array_length(_fcfg); _k++) {
+		var _fid = _fcfg[_k].id;
+		g.tiles.fupg[$ _fid] = handle("fupg_" + _fid, g.tiles.fupg[$ _fid] ?? 0);
+		if (action == sv_load) g.tiles.fupg[$ _fid] = clamp(floor(g.tiles.fupg[$ _fid]), 0, _fcfg[_k].max);
+	}
+	if (action == sv_load) {
+		var _oldp = handle("upg_profit", 0);
+		if (is_real(_oldp) && _oldp > 0) {
+			g.tiles.fupg.profit = max(g.tiles.fupg[$ "profit"] ?? 0, min(50, floor(_oldp)));
+			g.tiles.upg[$ "profit"] = 0;
+		}
+	}
 
 	// ---- automation: PREFERENCES only. The q/h pacing ramps are
 	// session state by design (autom_init) - a ramp is a guess about

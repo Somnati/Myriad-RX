@@ -64,7 +64,7 @@ function tile_dial_boost(_lv = undefined) {
 	&& g.tile_boost_override != undefined) return g.tile_boost_override;
 
 	var _t = g.tiles;
-	if (_lv == undefined) _lv = _t.upg[$ "profit"] ?? 0;
+	if (_lv == undefined) _lv = _t.fupg[$ "profit"] ?? 0;   // the flux ladder's, permanent (2026-09-12)
 	if (_lv <= 0) return arb(1);              // unbought: the board is not wired in
 	if (!(_t.gps >= arb(1))) return arb(1);   // an empty board boosts nothing
 

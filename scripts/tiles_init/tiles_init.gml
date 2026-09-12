@@ -37,6 +37,8 @@ function tiles_init(_force = false) {
 		// they ARE what it pays.
 		flux       : 0,      // the currency a table rebirth pays (a
 		                     // plain real - see tile_rebirth_calc)
+		fupg       : {},     // THE FLUX LADDER's levels (tile_flux_config)
+		                     // - permanent: a reset never touches them
 		rb_total   : 0,
 
 		stored     : 0,

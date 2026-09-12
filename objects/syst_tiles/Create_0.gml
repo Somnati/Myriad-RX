@@ -329,7 +329,20 @@ upg_h = 22;   // ⚖️ CONDENSED (his ask, 2026-09-10): the name + level line,
               // and seven at 22 + 2 (168px) still clear the rebirth
               // box at 241 from a top of 68.
 upg_g = 2;    // the gap between rows
-upg_n = array_length(tile_upg_config());
+upg_n = array_length(tile_upg_config()) + array_length(tile_flux_config());   // the shard rows, then the flux rows
+/// THE DRAWER'S ROWS: the shard roster (the engine, wiped by a reset)
+/// then the flux ladder (the export, permanent) - one list, each row
+/// carrying its currency so the layout, the quotes, the draw and the
+/// hit test walk the same array
+__rows = function() {
+	var _o = [];
+	var _uc = tile_upg_config();
+	for (var _k = 0; _k < array_length(_uc); _k++) array_push(_o, { cfg : _uc[_k], cur : "shards" });
+	var _fc = tile_flux_config();
+	for (var _k = 0; _k < array_length(_fc); _k++) array_push(_o, { cfg : _fc[_k], cur : "flux" });
+	return _o;
+};
+UPG_DIV_H = 12;   // the divider above the flux rows
 // ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
 // put the CLOSED drawer's right edge at 0 - so the tab was off screen -
 // and the OPEN one's left edge at +9, leaving a strip of room showing
@@ -416,17 +429,28 @@ __upg_layout = function() {
 	// is, so a fresh table (no shards, everything a hundred times away)
 	// still shows one full row to save toward rather than seven whispers
 	var _wants = array_create(_n, 0);
-	var _next = -1;
+	var _next = -1, _fnext = -1;
+	var _ns = array_length(tile_upg_config());   // the first flux row's index
 	for (var _k = 0; _k < _n; _k++) {
 		if (_k >= array_length(uq)) continue;
 		var _q = uq[_k];
-		if (_q.max || !(_q.cost >= arb(1))) continue;
-		var _sh = g.tiles.shards;
-		var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
-		if (_gap > UPG_FOLD_OOM) _wants[_k] = 1;
-		if (!_q.ok && (_next == -1 || _q.cost < uq[_next].cost)) _next = _k;
+		if (_q.max) continue;
+		if (_k < _ns) {
+			if (!(_q.cost >= arb(1))) continue;
+			var _sh = g.tiles.shards;
+			var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
+			if (_gap > UPG_FOLD_OOM) _wants[_k] = 1;
+			if (!_q.ok && (_next == -1 || _q.cost < uq[_next].cost)) _next = _k;
+		} else {
+			// a flux row: the gap against the flux in hand, plain reals
+			var _fl = max(1, g.tiles[$ "flux"] ?? 0);
+			var _gap = log10(max(1, _q.cost)) - log10(_fl);
+			if (_gap > UPG_FOLD_OOM) _wants[_k] = 1;
+			if (!_q.ok && (_fnext == -1 || _q.cost < uq[_fnext].cost)) _fnext = _k;
+		}
 	}
 	if (_next >= 0) _wants[_next] = 0;
+	if (_fnext >= 0) _wants[_fnext] = 0;
 	for (var _k = 0; _k < _n; _k++) {
 		while (array_length(ufold)  <= _k) array_push(ufold, 0);
 		while (array_length(uflash) <= _k) array_push(uflash, 0);
@@ -435,6 +459,7 @@ __upg_layout = function() {
 		uflash[_k] = max(0, uflash[_k] - delta);
 		upop[_k]  = trickle(upop[_k], 1, 5, 0);
 		var _h = round(lerp(UPG_H_FULL, UPG_H_FOLD, ufold[_k]));
+		if (_k == _ns) _y += UPG_DIV_H;   // the divider above the flux ladder
 		urow_y[_k] = _y;
 		urow_h[_k] = _h;
 		_y += _h + upg_g;
@@ -455,6 +480,7 @@ __upg_live = function(_k) {
 __upg_col = function(_id) {
 	switch (_id) {
 		case "profit": return c_gold;
+		case "floor":  return c_hred;
 		case "fab":    return c_sgreen;
 		case "rarity": return c_lavender;
 		case "dup":
@@ -589,16 +615,35 @@ __draw_drawer = function() {
 			1, 1, 0, merge_colour(_bbc, c_white, .5), .95 * dr_open);
 
 		__upg_layout();
-		var _ucfg = tile_upg_config();
+		var _rows = __rows();
+		var _nsh  = array_length(tile_upg_config());
 		var _dimc = rgb(110, 120, 140);
-		for (var _k = 0; _k < array_length(_ucfg); _k++) {
+		for (var _k = 0; _k < array_length(_rows); _k++) {
 			var _ur = __upg_r(_k);
 			var _uq = (_k < array_length(uq)) ? uq[_k]
 				: { ok : false, cost : arb(1), lv : 0, txt : "-", max : false, n : 0 };
-			var _uc = _ucfg[_k];
+			var _uc = _rows[_k].cfg;
+			var _isf = (_rows[_k].cur == "flux");
 			var _ua = dr_open;
-			var _rc = __upg_col(_uc.id);
+			var _rc = _isf ? merge_colour(c_hred, c_white, .25) : __upg_col(_uc.id);
 			var _ucap = _uc[$ "max"] ?? -1;
+
+			// THE DIVIDER above the flux ladder: what it is, and the flux
+			// in hand with the boost it pays while held
+			if (_k == _nsh) {
+				var _dvy = _ur.y - UPG_DIV_H;
+				var _fl2 = g.tiles[$ "flux"] ?? 0;
+				draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _dvy + 5, _ur.w, 1, 0, c_hred, .35 * _ua);
+				draw_set_halign(fa_left);
+				draw_set_color(c_hred);
+				draw_set_alpha(.85 * _ua);
+				draw_text(_ur.x + 2, _dvy - 1, "flux  -  permanent");
+				draw_set_halign(fa_right);
+				draw_set_color(merge_colour(c_hred, c_white, .4));
+				draw_text(_ur.x + _ur.w - 2, _dvy - 1, crunch_arb(arb(max(0, floor(_fl2)))) + " held  x"
+					+ string_format(tile_rebirth_boost(), 1, 2));
+				draw_set_halign(fa_left);
+			}
 
 			// ---- a folded row: the whisper ----
 			if (!__upg_live(_k)) {
@@ -647,11 +692,14 @@ __draw_drawer = function() {
 			// the LIVE pile against the cached quote, eased so a requote
 			// glides. Nothing to fill toward at the cap
 			var _ft = 0;
-			if (!_uq.max && _uq.cost >= arb(1)) {
-				var _sh2 = g.tiles.shards;
-				_ft = (_sh2 >= arb(1))
-					? clamp(power(10, arb_log10(_sh2) - arb_log10(_uq.cost)), 0, 1)
-					: 0;
+			if (!_uq.max) {
+				if (_isf) _ft = clamp((g.tiles[$ "flux"] ?? 0) / max(1, _uq.cost), 0, 1);
+				else if (_uq.cost >= arb(1)) {
+					var _sh2 = g.tiles.shards;
+					_ft = (_sh2 >= arb(1))
+						? clamp(power(10, arb_log10(_sh2) - arb_log10(_uq.cost)), 0, 1)
+						: 0;
+				}
 			}
 			while (array_length(ufill) <= _k) array_push(ufill, 0);
 			ufill[_k] = trickle(ufill[_k], _ft, 6, 0);

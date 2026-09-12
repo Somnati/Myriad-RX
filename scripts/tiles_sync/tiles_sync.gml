@@ -18,7 +18,8 @@ function tiles_sync() {
 	var _t = g.tiles;
 	if (!is_struct(_t[$ "upg"])) return;
 
-	var _slots = TILE_SLOTS_BASE + TILE_SLOT_STEP * (_t.upg[$ "slots"] ?? 0);
+	var _slots = TILE_SLOTS_BASE + TILE_SLOT_STEP * (_t.upg[$ "slots"] ?? 0)
+	           + ((_t[$ "fupg"] ?? {})[$ "slots"] ?? 0);   // + the flux ladder's permanent ones
 	if (_slots != _t.slots) {
 		var _old = array_length(_t.tier);
 		_t.slots = _slots;

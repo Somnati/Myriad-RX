@@ -155,12 +155,19 @@ bb_down = (dr_open > .5) && mouse_check_button(mb_left)
 qtic -= delta;
 if (qtic <= 0) {
 	qtic = 15;
-	var _uc2 = tile_upg_config();
+	var _rw2 = __rows();
 	uq = [];
-	for (var _k = 0; _k < array_length(_uc2); _k++) {
+	for (var _k = 0; _k < array_length(_rw2); _k++) {
+		// a flux row: one level, priced in flux (tile_fupg)
+		if (_rw2[_k].cur == "flux") {
+			var _fq = tile_fupg(_rw2[_k].cfg.id, false);
+			array_push(uq, { ok : _fq.ok, cost : _fq.cost, lv : _fq.lv, max : _fq.max, n : 1,
+				txt : _fq.max ? "maxed" : (string(_fq.cost) + " flux") });
+			continue;
+		}
 		// the bulk quote: cost is the TOTAL for however many the buy
 		// mode would take right now, and n says how many that is
-		var _q2 = tile_upg_bulk(_uc2[_k].id, false);
+		var _q2 = tile_upg_bulk(_rw2[_k].cfg.id, false);
 		var _mx2 = _q2[$ "max"] ?? false;
 		var _txt2 = "maxed";
 		if (!_mx2) {
@@ -222,8 +229,8 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 		exit;
 	}
 
-	var _uc3 = tile_upg_config();
-	for (var _k = 0; _k < array_length(_uc3); _k++) {
+	var _rw3 = __rows();
+	for (var _k = 0; _k < array_length(_rw3); _k++) {
 		// the COST BAR is the target, not the row (his ask) - see
 		// __upg_btn_r; the float still rises off the row. A folded row
 		// (a whisper) sells nothing
@@ -232,7 +239,9 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 		var _ub2 = __upg_btn_r(_k);
 		if (!point_in_rectangle(_tpx, _tpy, _ub2.x, _ub2.y,
 			_ub2.x + _ub2.w, _ub2.y + _ub2.h)) continue;
-		var _r2 = tile_upg_bulk(_uc3[_k].id, true);
+		var _uc3 = [];
+		for (var _q3 = 0; _q3 < array_length(_rw3); _q3++) array_push(_uc3, _rw3[_q3].cfg);
+		var _r2 = (_rw3[_k].cur == "flux") ? tile_fupg(_rw3[_k].cfg.id, true) : tile_upg_bulk(_rw3[_k].cfg.id, true);
 		if (_r2.ok) {
 			qtic = 0;
 			// the house purchase sound (upgrade_buy's), not the tier-up
@@ -242,14 +251,14 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 			// satisfying"): the row flashes its colour, the level pops,
 			// sparks leave the bar in the row's colour, and the float
 			// says what it bought
-			var _rc2 = __upg_col(_uc3[_k].id);
+			var _rc2 = (_rw3[_k].cur == "flux") ? merge_colour(c_hred, c_white, .25) : __upg_col(_uc3[_k].id);
 			while (array_length(uflash) <= _k) array_push(uflash, 0);
 			while (array_length(upop)   <= _k) array_push(upop, 1);
 			uflash[_k] = 14;
 			upop[_k]   = 1.45;
 			spark_burst(_ub2.x + _ub2.w * .5, _ub2.y + _ub2.h * .5, 8, _rc2);
 			float_text(_ur2.x + _ur2.w * .5, _ur2.y - 6,
-				_uc3[_k].name + ((_r2.n > 1) ? (" +" + string(_r2.n)) : " up"),
+				_uc3[_k].name + (((_r2[$ "n"] ?? 1) > 1) ? (" +" + string(_r2.n)) : " up"),
 				_rc2, fnt_outline);
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 1);
 		exit;

@@ -45,6 +45,10 @@ function tile_rarity_rate() {
 	if (variable_global_exists("ad_tilerarity") && g.ad_tilerarity == 1)
 		_r += 400;
 
+	// the flux ladder's floor, permanent (tile_flux_config)
+	if (variable_global_exists("tiles"))
+		_r += TILE_FLUX_RAR * ((g.tiles[$ "fupg"] ?? {})[$ "rarity"] ?? 0);
+
 	// ---- then the upgrade, as a multiplier ----
 	// TILE_RARITY_STEP is PERCENTAGE POINTS a level (his +50%), summed the
 	// way DE sums u_rarityrate and applied as one multiply - so ten

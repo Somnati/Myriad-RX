@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_fupg",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_fupg",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

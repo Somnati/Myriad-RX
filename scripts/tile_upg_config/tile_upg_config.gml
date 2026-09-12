@@ -49,85 +49,9 @@
 function tile_upg_config() {
 	if (variable_global_exists("tile_upg_cfg")) return g.tile_upg_cfg;
 	g.tile_upg_cfg = [
-		{
-			// ⚖️ THIS IS DE'S TILE-INTO-DIAL CHAIN, AND THE UPGRADE IS
-			// THE WHOLE OF IT (his ask, restated 2026-09-09: "i didnt
-			// want dials to have the bonus from the combined tile amount
-			// like DE... instead i wanted that mechanic ported to the
-			// profit upgrade"). What the tile table does in DE is
-			// MULTIPLY DIAL PROFIT by (1 + board total / 100), for free.
-			// Here the board's share of that is f(level) = (1 + STEP)^lv
-			// - 1, which is ZERO until this is bought - see
-			// tile_dial_boost. Level 1 wires the table into the main
-			// game; every level after compounds the board's share.
-			//
-			// So the row reads "dials x1.00 > x1.25" and that is exactly
-			// what it is: the LIVE dial multiplier this level buys, off
-			// the board as it stands now. It grows on its own between
-			// purchases because the board does - the readout is honest
-			// about that too.
-			//
-			// ITS PRICE CANNOT BE SET AGAINST ITS OWN INCREMENT (his
-			// point). The board's total climbs every second by itself -
-			// the merge loop is exponential in tier - so this lane
-			// compounds whether or not anybody buys anything. +2.5
-			// decades a level is priced against the LANE, not the step.
-			// ⚖️ EVERY ROW CURVES NOW (his call: the fab shape on all of
-			// them - cheap early, steep to a ceiling). A curved ladder
-			// needs a last level to normalise against, so the two rows
-			// that were uncapped gained one. The cap is not a limit you
-			// will meet: it is WHERE THE PRICE REACHES THE CEILING, and
-			// a level past 1e308 was never buyable anyway. What the cap
-			// really sets is GRANULARITY - a hundred rungs to the top
-			// means each early rung is a hair's breadth, which is why
-			// this row buys so freely in the first hour.
-			// ⚖️ FIFTY RUNGS, NOT A HUNDRED (his ask: more growth on the
-			// cost, because the table can rebirth now and its output -
-			// which this multiplies - climbs with flux). Same ceiling,
-			// half the rungs, so every one is twice as steep. It also
-			// answers the twin's slot-machine minute: a hundred rungs put
-			// eight profit levels under 1e5 and the first ten minutes
-			// bought nineteen upgrades.
-			// ⚖️ INFLATED (his design - see tile_upg). This is the one row
-			// whose value compounds with flux, so its price is modelled
-			// against the flux a player at each level would hold. The
-			// other three do not have that loop, and inflating them
-			// would just be tax.
-			// ⚖️ ITS OWN CURVE, AND A BIGGER BASE (his report, 2026-09-10:
-			// "im sitting at 300p/s spark and i already have x6 profit
-			// from the upgrade which translates to DE's 600 combined
-			// tile score"). The shared curve-2 ladder is flat where it
-			// starts - five profit levels cost 36k shards all told, two
-			// minutes of a 300/s board, and paid x10 on every dial. In
-			// DE a 600 board score is a tier-7 board, hours in. This
-			// row's levels are multipliers on the whole game, so the
-			// early ones cannot be the cheap ones: base 30k, curve 1.25
-			// puts level 1 at 30k (the on-switch), 2 at 4e5, 3 at 2e7,
-			// 4 at 1e9, 5 at 1e12 - each level asks the BOARD to grow a
-			// tier or two first, which is the pacing DE had for free.
-			// The twin's purchase timeline (section 3) shows where they
-			// land; the same ceiling (e308 at 50) still holds.
-			id : "profit", name : "dial profit boost", base : 30000,
-			curve : TILE_PROFIT_CURVE, top : 308, max : 50, inflate : true,
-			fmt : function(_lv) {
-				// the live multiplier at that level - a packed arb, so
-				// small values get two decimals (crunch_arb rounds
-				// anything under 1000 to a whole number, and "x2" for
-				// x1.83 is the row lying) and big ones crunch
-				var _b = tile_dial_boost(_lv);
-				var _lg = arb_log10(_b);
-				// no "dials" prefix (his ask): the row is CALLED dial
-				// profit boost now, and the bar has no room for it twice
-				return "x" + ((_lg < 3)
-					? string_format(power(10, _lg), 1, 2) : crunch_arb(_b));
-			},
-			help : "wires the tile table into dial profit. nothing at "
-			     + "level 0; each level compounds +"
-			     + string(round(TILE_PROFIT_STEP * 100)) + "% of the "
-			     + "board's output into a multiplier on every dial ("
-			     + string(TILE_DIAL_DIV) + " output at full share = "
-			     + "double). the board grows by itself, so does this",
-		},
+		// (the dial profit boost moved to the FLUX LADDER - tile_flux_config,
+		// 2026-09-12: the table's export is permanent now, and the reset
+		// wipes only the engine below)
 		{
 			// ⚖️ CURVED, NOT STRAIGHT (his ask: start small and rise to
 			// the ceiling, so more levels fit early and they slow down

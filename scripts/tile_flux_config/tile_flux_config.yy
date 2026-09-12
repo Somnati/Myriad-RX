@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tile_flux_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tile_flux_config",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
