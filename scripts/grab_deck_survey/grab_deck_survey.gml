@@ -29,5 +29,25 @@ function grab_deck_survey() {
 	ability(g.ad_autosurvey, "Auto Survey", legendary, 8,
 		"finished sites relaunch\ntheir probes automatically", false, false);
 
+	// ---- the second half (2026-09-11): made up, unwired placeholders ----
+	ability(g.ad_signalboost, "Signal Boost", common, 2,
+		"probe reports arrive\n30% sooner", false, false);
+	ability_flavor("-30%", "report delay", "", -1);
+
+	ability(g.ad_orbitalmap, "Orbital Cartography", uncommon, 3,
+		"surveyed sites stay marked\nfrom orbit forever", false, false);
+
+	ability(g.ad_probeswarm, "Probe Swarm", rare, 5,
+		"one launch sends three\nprobes toward a site", false, false);
+	ability_flavor("+2", "probes per launch", "", -1);
+
+	ability(g.ad_coresampler, "Core Sampler", legendary, 7,
+		"surveys can strike the\nmantle: rare finds doubled", false, false);
+	ability_flavor("x2", "rare finds", "", -1);
+
+	ability(g.ad_geologist, "Field Geologist", epic, 9,
+		"every tenth survey is a\nguaranteed discovery", false, false);
+	ability_flavor("1 in 10", "sure finds", "", -1);
+
 	if (oo) if (a_ == -1) syst_rm_ability.batch_survey = _a;
 }

@@ -17,16 +17,11 @@ function stats_v2_content() {
 	var _sess = (variable_global_exists("stats_mode") && g.stats_mode == 1);
 	var _sc = c_seagreen; // session values read green, prefixed +
 
-	// ORDER (2026-09-10's tidy): options first because it changes how
-	// every row below reads; then the account, the money room, the two
-	// boards, the meta systems.
-
-	// ---- options: LIVE toggles + cycles (data-driven - each row
-	// flips or advances the global it names) ----
-	if (stats_v2_folder("options", c_steelblue)) {
-		stats_v2_cycle("values", "stats_mode", ["total", "session"]);
-	}
-	stats_v2_folder_end();
+	// ORDER (2026-09-10's tidy): the account, the money room, the two
+	// boards, the meta systems. (The total/session switch used to be a
+	// one-row "options" folder up here; it is the [total]/[session]
+	// pill in the title strip now - his ask, 2026-09-11: "we dont need
+	// a whole tab... dedicated to 1 option".)
 
 	// ---- general ----
 	if (stats_v2_folder("general", c_sgreen)) {

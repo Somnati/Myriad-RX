@@ -88,16 +88,24 @@ reveal_t    = 0;
 // this section map in sync when the deck changes ----
 view = 0;
 coll_rows = [];
+// (the second half of every section, 2026-09-11, is the made-up
+// unwired set - see create_new_deck's key list)
 var _secs = [
 	["survey",  ["ad_probespeed", "ad_probespeed2", "ad_multiprobe",
-		"ad_deepscan", "ad_autosurvey"]],
-	["fleet",   ["ad_warptune", "ad_fuelcells", "ad_autopilot", "ad_deepspace"]],
+		"ad_deepscan", "ad_autosurvey",
+		"ad_signalboost", "ad_orbitalmap", "ad_probeswarm", "ad_coresampler", "ad_geologist"]],
+	["fleet",   ["ad_warptune", "ad_fuelcells", "ad_autopilot", "ad_deepspace",
+		"ad_cargohold", "ad_slingshot", "ad_hullplate", "ad_starcharts", "ad_wormhole"]],
 	["tiles",   ["ad_automerger", "ad_automerger2", "ad_fabricator",
-		"ad_fabricator2", "ad_duplicator", "ad_tilerarity", "ad_hotswap"]],
-	["colony",  ["ad_cityloans", "ad_nightshift", "ad_census", "ad_terraformer"]],
-	["combat",  ["ad_initiative", "ad_counterschool", "ad_fieldmedic", "ad_warcry"]],
+		"ad_fabricator2", "ad_duplicator", "ad_tilerarity", "ad_hotswap",
+		"ad_magnet", "ad_sorter", "ad_smelter", "ad_overclock", "ad_goldleaf"]],
+	["colony",  ["ad_cityloans", "ad_nightshift", "ad_census", "ad_terraformer",
+		"ad_lanterns", "ad_marketday", "ad_aqueducts", "ad_observatory", "ad_guilds", "ad_capital"]],
+	["combat",  ["ad_initiative", "ad_counterschool", "ad_fieldmedic", "ad_warcry",
+		"ad_drillsgt", "ad_ambush", "ad_shieldwall", "ad_lastword", "ad_veterans", "ad_ironwill"]],
 	["support", ["ad_onefinger", "ad_autobuy", "ad_aputilizer", "ad_luckcharm",
-		"ad_notekeeper", "ad_bargain", "ad_deeppockets", "ad_scholar"]],
+		"ad_notekeeper", "ad_bargain", "ad_deeppockets", "ad_scholar",
+		"ad_alarmclock", "ad_archivist", "ad_nightowl", "ad_tinkerer", "ad_secondwind"]],
 ];
 for (var _s = 0; _s < array_length(_secs); _s++) {
 	array_push(coll_rows, { key : "", title : _secs[_s][0] });

@@ -35,7 +35,19 @@
 ///    up (they must cover the scrollbar and pills).
 
 if (!variable_global_exists("settings_page")) g.settings_page = 0;
-if (!variable_global_exists("settings_tab"))  g.settings_tab  = 0;
+// (tab 1: the first REAL tab. Tab 0 is the favorites tab, which is
+// empty until something is starred - a poor first sight)
+if (!variable_global_exists("settings_tab"))  g.settings_tab  = 1;
+// ⚖️ FAVORITE SETTINGS (his ask, 2026-09-11: "if we can favorite
+// statistics i also want to be able to favorite settings"). Starred
+// rows are keyed "<tab>/<label>" in g.settings_fav and gather on a
+// synthetic FIRST tab, grouped under a title naming the tab each came
+// from (his spec). The star gutter shows on [favs] like statistics'
+// (g.settings_fav_show); both persist in settings.ini (handle_settings)
+if (!variable_global_exists("settings_fav"))      g.settings_fav      = {};
+if (!variable_global_exists("settings_fav_show")) g.settings_fav_show = false;
+fav_show = g.settings_fav_show;
+fav_t    = fav_show ? 1 : 0;   // the gutter's ease: the pips slide out from under the rail
 // the "?" hint whispers, hidden by default (ui stays clean); the
 // round ? button in the strip flips them all on/off at once.
 // session-remembered, deliberately not saved to settings.ini
@@ -225,10 +237,54 @@ __slice = function() {
 	mx = array_length(view);
 };
 
+// the star key: a row is one of a tab's, so tab + label names it
+__fav_key = function(_row) { return _row.sec + "/" + _row.name; };
+
 __rebuild = function() {
 	rows     = [];
 	sections = [];
 	settings_content();
+
+	// ---- THE FAVORITES TAB, synthesised after the build (his spec,
+	// 2026-09-11: starred settings sorted into sections titled by the
+	// tab they came from). Every row learns its tab (sec) first; then
+	// the starred ones are COPIED - the same struct, the same live
+	// widget, so the switch you flip here is the switch on its home
+	// tab - under a group-title row per source tab, and the whole
+	// block goes in FRONT as section 0. Empty, it explains itself ----
+	var _fav = [];
+	var _si = -1;
+	for (var _i = 0; _i < array_length(rows); _i++) {
+		var _r = rows[_i];
+		if (_r.kind == sett_kind_section) _si++;
+		_r.sec   = (_si >= 0) ? sections[_si].name : "";
+		_r.group = false;
+	}
+	for (var _s = 0; _s < array_length(sections); _s++) {
+		var _from = sections[_s].row + 1;
+		var _to   = (_s + 1 < array_length(sections)) ? sections[_s + 1].row : array_length(rows);
+		var _any  = false;
+		for (var _i = _from; _i < _to; _i++) {
+			var _r = rows[_i];
+			if (!(g.settings_fav[$ __fav_key(_r)] ?? false)) continue;
+			if (!_any) {
+				_any = true;
+				array_push(_fav, { kind : sett_kind_info, name : sections[_s].name, val : "",
+					col : sections[_s].col, help : "", ind : 0, inst : noone, data : -1,
+					sec : "favorites", group : true });
+			}
+			array_push(_fav, _r);
+		}
+	}
+	if (array_length(_fav) == 0)
+		array_push(_fav, { kind : sett_kind_info, name : "nothing starred yet", val : "",
+			col : c_gray, help : "", ind : 0, inst : noone, data : -1, sec : "favorites", group : false });
+	array_insert(_fav, 0, { kind : sett_kind_section, name : "favorites", val : "", col : c_gold,
+		help : "", ind : 0, inst : noone, data : -1, sec : "favorites", group : false });
+	for (var _s = 0; _s < array_length(sections); _s++) sections[_s].row += array_length(_fav);
+	array_insert(sections, 0, { name : "favorites", col : c_gold, row : 0 });
+	rows = array_concat(_fav, rows);
+
 	__slice();
 };
 
@@ -317,6 +373,17 @@ __draw_strip = function() {
 	draw_set_color(g.settings_hints ? c_gold : sett_ink);
 	draw_set_alpha(g.settings_hints ? .95 : .6);
 	draw_text(_hx + 1, _hy - 3, "?");
+
+	// [favs]: the star gutter's switch (statistics' twin - pinning is
+	// rare, so the pips can be put away without unpinning anything)
+	var _fx = room_width - 62;
+	draw_set_alpha(1);
+	draw_sprite_ext(spr_pixel_1x1, 0, _fx, bby + 1, 40, 13, 0, c_black, .8);
+	draw_px_rect(_fx, bby + 1, 40, 13, fav_show ? c_gold : rgb(170, 190, 230),
+		fav_show ? .9 : .5);
+	draw_set_color(fav_show ? c_gold : c_white);
+	draw_set_alpha(.9);
+	draw_text(_fx + 20, bby + 4, "favs");
 
 
 	draw_set_halign(fa_left);

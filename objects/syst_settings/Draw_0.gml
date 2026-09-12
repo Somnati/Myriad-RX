@@ -49,18 +49,37 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 	if (point_in_rectangle(mouse_x, mouse_y, rail_w, _ry, room_width, _ry + row_h - 1))
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw, row_h, 0, c_white, .04);
 
+	// the star gutter (statistics' twin): a pip per row, gold when the
+	// row is pinned, a dim socket otherwise - it slides out from behind
+	// the rail (which paints after the rows) and the names walk right
+	// to meet it. Group titles on the favorites tab carry none
+	if (fav_t > .01 && !_row.group && _row.sec != "favorites") {
+		var _px = lerp(rail_w - 6, rail_w + 3, fav_t);
+		var _pinned = (g.settings_fav[$ __fav_key(_row)] ?? false);
+		draw_sprite_ext(spr_pixel_1x1, 0, _px, _ry + 5, 4, 4, 0,
+			_pinned ? c_gold : c_black, _pinned ? .95 : .55);
+		if (!_pinned) draw_px_rect(_px, _ry + 5, 4, 4, c_gray, .35);
+	}
+
 	// label (radios indent one notch under their group)
-	var _tx = content_x + 2 + _row.ind * 8;
+	var _tx = content_x + 2 + _row.ind * 8 + round(fav_t * 8);
 	draw_set_halign(fa_left);
 	draw_set_color(_row.col);
-	draw_set_alpha(.9);
+	draw_set_alpha(_row.group ? .95 : .9);
 	draw_text(_tx, _ry + 4, _row.name);
+	// a group title (the favorites tab's "from this tab" headers): a
+	// rule in the source tab's colour runs from the name to the edge
+	if (_row.group)
+		draw_sprite_ext(spr_pixel_1x1, 0, _tx + string_width(_row.name) + 6, _ry + 7,
+			max(0, val_x - (_tx + string_width(_row.name) + 6)), 1, 0, _row.col, .35);
 
 	// a whisper of a "?" marks rows with an explainer - only while the
 	// strip's round ? button has hints switched on (ui stays clean)
 	if (_row.help != "" && g.settings_hints) {
-		draw_set_alpha(.3);
-		draw_text(_tx + string_width(_row.name) + 5, _ry + 4, "?");
+		var _qx = _tx + string_width(_row.name) + 5;
+		var _hot = (mouse_y >= list_y
+			&& point_in_rectangle(mouse_x, mouse_y, _qx - 2, _ry, _qx + 11, _ry + row_h - 1));
+		draw_help_chip(_qx, _ry + 3, _row.col, _hot);
 	}
 
 	if (_row.kind == sett_kind_info && _row.val != "") {

@@ -47,6 +47,18 @@ if instance_exists(syst_settings) {
 
 
 
+// THE ABILITY DECK (2026-09-11): the room spawned this bar from day
+// one but never gave it a lane, so the list past the thirteenth row
+// was unreachable - and now it is twice as long
+if i = scrl_abilitydeck
+if instance_exists(syst_rm_ability) {
+	mn = syst_rm_ability.visible_rows;
+	mx = syst_rm_ability.mx;
+	input = g.ability_page;
+	slot_height = syst_rm_ability.row_h;
+	depth = syst_rm_ability.depth - 1;
+}
+
 if i = scrl_stats_rail
 if instance_exists(syst_statistics_v2) {
 	// PIXEL MODE: the rail's tabs, 19px each, against the band under the strip
@@ -132,6 +144,7 @@ if not selected
 // output \\
 if i = scrl_statistics g.stats_page = clamp_min(input, 0);
 if i = scrl_settings g.settings_page = clamp_min(input, 0);
+if i = scrl_abilitydeck if instance_exists(syst_rm_ability) g.ability_page = clamp_min(input, 0);
 if i = scrl_menu2 if instance_exists(syst_menu2) syst_menu2.scr = clamp_min(input, 0);
 if i = scrl_stats_rail if instance_exists(syst_statistics_v2) syst_statistics_v2.rail_scroll = clamp_min(input, 0);
 if i = scrl_faq if instance_exists(syst_faq) syst_faq.scroll = clamp_min(input, 0);

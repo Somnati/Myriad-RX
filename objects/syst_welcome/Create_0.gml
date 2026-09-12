@@ -22,10 +22,15 @@ array_push(rows, { l : "idle rate", v : ((_r.rate > 0) ? crunch_arb(_r.rate) : "
 var _bk = _r[$ "banked"] ?? 0;
 if (_bk >= 1) array_push(rows, { l : "time bank", v : "+" + crunch_time_long(_bk * 60)
 	+ ((_r[$ "bank_full"] ?? false) ? " (full)" : ""), c : c_gold });
+// the battery row says what is LEFT (his ask, 2026-09-11: "should
+// show its percentage when returning") - dry is 0%, so that case
+// says how long it held instead
+var _bp = _r[$ "bat_pct"] ?? -1;
 if (_r[$ "bat_dry"] ?? false)
 	array_push(rows, { l : "battery", v : "dry after " + crunch_time_long((_r[$ "bat_ran"] ?? 0) * 60), c : c_hred });
 else
-	array_push(rows, { l : "battery", v : "lasted", c : c_sgreen });
+	array_push(rows, { l : "battery", v : (_bp >= 0) ? (string(_bp) + "% left") : "lasted",
+		c : (_bp >= 0 && _bp < 25) ? c_horange : c_sgreen });
 var _bo = _r[$ "bat_opt"] ?? 0;
 if (_bo > 0) array_push(rows, { l : "optimiser", v : "x" + string_format(_bo, 1, 2), c : c_sgreen });
 var _sn = _r[$ "sprite_n"] ?? 0;

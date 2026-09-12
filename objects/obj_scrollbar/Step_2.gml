@@ -10,6 +10,10 @@ if i = scrl_settings
 	if not instance_exists(syst_settings)
 kill;
 
+if i = scrl_abilitydeck
+	if not instance_exists(syst_rm_ability)
+kill;
+
 if i = scrl_menu2
 	if not instance_exists(syst_menu2)
 kill;

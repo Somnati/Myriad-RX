@@ -30,6 +30,7 @@ if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
 // live rebuilding is what lets rows appear/vanish/dim conditionally ----
 __rebuild();
 g.settings_page = clamp(g.settings_page, 0, max(0, mx - full_rows));
+fav_t += ((fav_show ? 1 : 0) - fav_t) * min(1, .2 * delta);
 
 // ---- dropdown pick lands here (the syst_fidget pattern): route it
 // to the pill row that owns the open box's kind tag ----
@@ -198,6 +199,15 @@ if (mouse_check_button_pressed(mb_left)) {
 		exit;
 	}
 
+	// [favs]: show or hide the star gutter
+	if (point_in_rectangle(mouse_x, mouse_y, room_width - 62, bby + 1, room_width - 22, bby + 14)) {
+		fav_show = !fav_show;
+		g.settings_fav_show = fav_show;
+		dirty_tic = 45;
+		play_sound_ext(snd_softclick, fav_show ? 1.1 : .9, fav_show ? 1.2 : .9, .4, 1);
+		exit;
+	}
+
 	// the category rail: switch tabs, fresh scroll
 	var _tb = __tabs();
 	for (var _i = 0; _i < array_length(_tb); _i++) {
@@ -227,13 +237,26 @@ if (mouse_check_button_pressed(mb_left)) {
 			if (help_txt != "") {
 				help_txt = ""; // an open explainer eats the next tap
 			}
+			else if (fav_show && !_hr.group && _hr.sec != "favorites"
+			&& mouse_x <= content_x + 8) {
+				// THE STAR GUTTER: pin/unpin the row on the favorites tab
+				// (only while the gutter is out - otherwise a tap here is
+				// just a tap on the row). The same key from either tab
+				var _fk = __fav_key(_hr);
+				var _now = !(g.settings_fav[$ _fk] ?? false);
+				if (_now) g.settings_fav[$ _fk] = true;
+				else if (variable_struct_exists(g.settings_fav, _fk))
+					variable_struct_remove(g.settings_fav, _fk);
+				dirty_tic = 45;
+				play_sound_ext(snd_softclick, _now ? 1.2 : .8, _now ? 1.3 : .9, .4, 1);
+			}
 			else {
 				// the "?" zone opens help on ANY row that carries it
 				// (only while the strip's ? button has hints showing)
-				var _tx = content_x + 2 + _hr.ind * 8;
+				var _tx = content_x + 2 + _hr.ind * 8 + round(fav_t * 8);
 				var _qx = _tx + string_width(_hr.name) + 5;
 				if (g.settings_hints
-				&&  _hr.help != "" && mouse_x >= _qx - 3 && mouse_x <= _qx + 9) {
+				&&  _hr.help != "" && mouse_x >= _qx - 2 && mouse_x <= _qx + 11) {
 					help_txt = _hr.help;
 					help_x = mouse_x;
 					help_y = mouse_y;

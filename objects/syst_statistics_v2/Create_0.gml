@@ -90,6 +90,9 @@ __tick  = 0;
 // OFF BY DEFAULT (his call 2026-09-06): pinning is a thing you set up
 // once, so the controls stay out of the way until asked for.
 fav_show = variable_global_exists("stats_fav_show") ? g.stats_fav_show : false;
+// the values mode: 0 total / 1 session (the strip's pill flips it;
+// stats_v2_content reads it for every row)
+if (!variable_global_exists("stats_mode")) g.stats_mode = 0;
 // the gutter SLIDES: names sit close to the left with it off, and step
 // right as the star comes out from behind the rail. fav_t is the eased
 // 0..1 the draw reads for both.
@@ -443,9 +446,7 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(rgb(195, 205, 235));
 	draw_set_alpha(.85);
-	var _ttl = "statistics";
-	if (variable_global_exists("stats_mode") && g.stats_mode == 1) _ttl += " (session)";
-	draw_text(6, _bby + 8, _ttl);
+	draw_text(6, _bby + 8, "statistics");
 
 	// [favs] [back]  (copy and find retired 2026-09-06, his call - he is
 	// cleaning this screen up)
@@ -462,6 +463,19 @@ __draw_strip = function() {
 	draw_set_color(fav_show ? c_gold : c_white);
 	draw_set_alpha(.9);
 	draw_text(_bx + 20, _bby + 10, "favs");
+
+	// [total]/[session] - what every value below counts (his ask,
+	// 2026-09-11: the one-row "options" folder was not worth a folder).
+	// Lit gold in session mode, the same chrome as [favs] beside it
+	var _sess = (g.stats_mode == 1);
+	var _mx = _bx - 4 - 56;
+	draw_set_alpha(1);
+	draw_sprite_ext(spr_pixel_1x1, 0, _mx, _bby + 6, 56, 16, 0, c_black, .8);
+	draw_px_rect(_mx, _bby + 6, 56, 16, _sess ? c_gold : rgb(170, 190, 230),
+		_sess ? .9 : .5);
+	draw_set_color(_sess ? c_gold : c_white);
+	draw_set_alpha(.9);
+	draw_text(_mx + 28, _bby + 10, _sess ? "session" : "total");
 
 
 	// the tap-for-info explainer, floated near the tap, clamped in-room

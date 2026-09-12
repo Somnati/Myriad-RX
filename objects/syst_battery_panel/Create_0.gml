@@ -23,28 +23,34 @@ hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under
 // one big ring with the percentage inside and the charge as a LIQUID
 // at the bottom). The disc sits in the middle; the crank's handle
 // rides its rim - the whole ring IS the crank, grab anywhere on the
-// disc and turn. The rates and the two ladders keep to the sides in
-// landscape and stack below in portrait (the money room is both).
+// disc and turn. THE DIAL OWNS THE MIDDLE OF THE SCREEN and every
+// control sits in ONE BAND along the bottom (his ask, 2026-09-11:
+// "move battery center piece to the middle of the screen and all
+// sliders and upgrades to the bottom") - rates left of the ladders in
+// landscape, the ladders under the rates in portrait (the money room
+// is both). The band's top edge is band_y; the dial centres in what
+// is left above it.
 land    = (room_width > 300);
 disc_cx = room_width * .5;
 disc_r  = land ? 38 : 32;     // (54 was "ugly" - his word; a dial, not a moon)
-disc_cy = land ? (hh + 22 + disc_r) : (hh + 12 + disc_r);
+disc_cy = land ? 104 : 90;    // the disc + its two readouts sit centred between the strip and the band
 crank_cx = disc_cx;   // the crank's centre and radius ARE the disc's
 crank_cy = disc_cy;
 crank_r  = disc_r;
-// the two readouts under the disc: "full in" left, "lasts" right
+// the two readouts under the disc, centred
 read_y  = disc_cy + disc_r + 14;
-// the offline rate rows
+// the offline rate rows - the band's left column (landscape) / top (portrait)
 rate_p  = land ? 18 : 14;
-rate_y  = land ? (hh + 48) : (read_y + 30);
+rate_y  = land ? (room_height - 62) : (room_height - 103);
 rate_x  = land ? 14 : 8;
 trk_x   = land ? (rate_x + 64) : (rate_x + 40);
 trk_w   = land ? 78 : 60;
-// the two ladders
+band_y  = rate_y - 17;        // the faint rule the band sits under
+// the two ladders - the band's right column / bottom
 upg_p   = land ? 22 : 18;
-upg_y   = land ? (hh + 48) : (rate_y + 3 * rate_p + 8);
-upg_x   = land ? (room_width - 14 - 150) : 8;
-upg_w   = land ? 150 : (room_width - 16);
+upg_y   = land ? rate_y : (rate_y + 3 * rate_p + 19);
+upg_w   = land ? 190 : (room_width - 16);
+upg_x   = land ? (room_width - 14 - upg_w) : 8;
 btn_w   = land ? 54 : 44;
 
 rates   = ["run", "fab", "merge"];

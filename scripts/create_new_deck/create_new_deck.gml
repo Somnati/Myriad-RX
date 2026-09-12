@@ -76,6 +76,22 @@ function create_new_deck() {
 		// support
 		"ad_onefinger", "ad_autobuy", "ad_aputilizer", "ad_luckcharm",
 		"ad_notekeeper", "ad_bargain", "ad_deeppockets", "ad_scholar",
+		// ---- THE SECOND HALF (his ask, 2026-09-11: "twice the
+		// abilities... just make them up... don't wire in"). Every one
+		// is a placeholder for a system that does not exist yet; the
+		// deck framework treats them like the first half ----
+		// survey
+		"ad_signalboost", "ad_orbitalmap", "ad_probeswarm", "ad_coresampler", "ad_geologist",
+		// fleet
+		"ad_cargohold", "ad_slingshot", "ad_hullplate", "ad_starcharts", "ad_wormhole",
+		// tiles
+		"ad_magnet", "ad_sorter", "ad_smelter", "ad_overclock", "ad_goldleaf",
+		// colony
+		"ad_lanterns", "ad_marketday", "ad_aqueducts", "ad_observatory", "ad_guilds", "ad_capital",
+		// combat
+		"ad_drillsgt", "ad_ambush", "ad_shieldwall", "ad_lastword", "ad_veterans", "ad_ironwill",
+		// support
+		"ad_alarmclock", "ad_archivist", "ad_nightowl", "ad_tinkerer", "ad_secondwind",
 	];
 	for (var _i = 0; _i < array_length(g.abi_keys); _i++)
 		variable_global_set(g.abi_keys[_i], -1);

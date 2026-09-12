@@ -133,6 +133,7 @@ function offline_replay(_secs) {
 	g.offline_report = { secs : _secs, gain : _gain, rate : _rate,
 		banked : _banked, bank_full : g.timebank.last_full, shown : false,
 		bat_ran : _cov, bat_dry : (_cov < _secs - 1),
+		bat_pct : floor(100 * g.battery.charge / max(1, battery_cap())), // what is LEFT (his ask, 2026-09-11)
 		bat_opt : (_opt == undefined) ? 0 : _opt.s,
 		sprite_taps : _spr_taps, sprite_n : array_length(g.sprites) };
 	show("offline > away " + crunch_time_long(_secs * 60)

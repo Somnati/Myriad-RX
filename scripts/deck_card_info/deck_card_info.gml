@@ -76,6 +76,77 @@ function deck_card_info(_key) {
 			desc : "raises max ap by +4" };
 		case "ad_scholar":     return { name : "Scholar",         rarity : 3, ap : 4,
 			desc : "discovered abilities arrive\nalready enabled when the\nap can cover them" };
+		// ---- the second half (2026-09-11): made up, unwired placeholders ----
+		// survey
+		case "ad_signalboost": return { name : "Signal Boost", rarity : 0, ap : 2,
+			desc : "probe reports arrive\n30% sooner" };
+		case "ad_orbitalmap": return { name : "Orbital Cartography", rarity : 1, ap : 3,
+			desc : "surveyed sites stay marked\nfrom orbit forever" };
+		case "ad_probeswarm": return { name : "Probe Swarm", rarity : 2, ap : 5,
+			desc : "one launch sends three\nprobes toward a site" };
+		case "ad_coresampler": return { name : "Core Sampler", rarity : 3, ap : 7,
+			desc : "surveys can strike the\nmantle: rare finds doubled" };
+		case "ad_geologist": return { name : "Field Geologist", rarity : 4, ap : 9,
+			desc : "every tenth survey is a\nguaranteed discovery" };
+		// fleet
+		case "ad_cargohold": return { name : "Cargo Hold", rarity : 0, ap : 2,
+			desc : "the ship carries 25%\nmore between systems" };
+		case "ad_slingshot": return { name : "Gravity Sling", rarity : 1, ap : 3,
+			desc : "a warp that passes a star\ncosts nothing" };
+		case "ad_hullplate": return { name : "Hull Plating", rarity : 1, ap : 4,
+			desc : "re-entry wear on the\nhull is halved" };
+		case "ad_starcharts": return { name : "Star Charts", rarity : 2, ap : 5,
+			desc : "unvisited systems show\ntheir planet count" };
+		case "ad_wormhole": return { name : "Wormhole Key", rarity : 4, ap : 10,
+			desc : "one free jump to any\nvisited star, once a day" };
+		// tiles
+		case "ad_magnet": return { name : "Tile Magnet", rarity : 0, ap : 2,
+			desc : "a dropped tile snaps to\nthe nearest matching pair" };
+		case "ad_sorter": return { name : "Sorting Arm", rarity : 1, ap : 4,
+			desc : "the table tidies itself\nby tier once a minute" };
+		case "ad_smelter": return { name : "Smelter", rarity : 2, ap : 5,
+			desc : "three tiles of one tier\nmerge as a single pair" };
+		case "ad_overclock": return { name : "Overclock", rarity : 3, ap : 7,
+			desc : "the fabricator runs at\ndouble speed for 30s\nafter every merge" };
+		case "ad_goldleaf": return { name : "Gold Leaf", rarity : 4, ap : 9,
+			desc : "a merged tile has a 2%\nchance to skip a tier" };
+		// colony
+		case "ad_lanterns": return { name : "Lanterns", rarity : 0, ap : 1,
+			desc : "city lights reach further\ninto the night side" };
+		case "ad_marketday": return { name : "Market Day", rarity : 0, ap : 2,
+			desc : "tribute collects 10%\nfaster on the day side" };
+		case "ad_aqueducts": return { name : "Aqueducts", rarity : 1, ap : 3,
+			desc : "cities grow one size past\nwhat their biome allows" };
+		case "ad_observatory": return { name : "Observatory", rarity : 2, ap : 4,
+			desc : "a city with an observatory\nreveals its whole system" };
+		case "ad_guilds": return { name : "Guilds", rarity : 2, ap : 5,
+			desc : "settled cities trade with\neach other: +15% tribute" };
+		case "ad_capital": return { name : "Capital", rarity : 3, ap : 8,
+			desc : "name one city the capital:\nit pays double" };
+		// combat
+		case "ad_drillsgt": return { name : "Drill Sergeant", rarity : 0, ap : 2,
+			desc : "recruits arrive with\n+10% hp" };
+		case "ad_ambush": return { name : "Ambush", rarity : 1, ap : 3,
+			desc : "the enemy's first turn\nis skipped" };
+		case "ad_shieldwall": return { name : "Shield Wall", rarity : 2, ap : 5,
+			desc : "pawns standing together\ntake 15% less" };
+		case "ad_lastword": return { name : "Last Word", rarity : 2, ap : 6,
+			desc : "a falling pawn lands one\nfree strike first" };
+		case "ad_veterans": return { name : "Veterans", rarity : 3, ap : 7,
+			desc : "survivors keep 5% of the\nxp they earned" };
+		case "ad_ironwill": return { name : "Iron Will", rarity : 4, ap : 9,
+			desc : "once a battle, a killing\nblow leaves 1 hp instead" };
+		// support
+		case "ad_alarmclock": return { name : "Alarm Clock", rarity : 0, ap : 1,
+			desc : "the welcome-back card\nsays what ran dry, and when" };
+		case "ad_archivist": return { name : "Archivist", rarity : 1, ap : 2,
+			desc : "the statistics remember\ntwice as far back" };
+		case "ad_nightowl": return { name : "Night Owl", rarity : 1, ap : 3,
+			desc : "the battery drains 10%\nslower while you are away" };
+		case "ad_tinkerer": return { name : "Tinkerer", rarity : 2, ap : 4,
+			desc : "the crank charges 25%\nmore per turn" };
+		case "ad_secondwind": return { name : "Second Wind", rarity : 3, ap : 6,
+			desc : "the time bank fills 20%\nfaster while it is empty" };
 	}
 	return { name : "???", rarity : 0, ap : 0, desc : "" };
 }

@@ -27,13 +27,13 @@ if (_sp > .001) {
 	draw_set_color(c_sgreen);
 	draw_set_alpha(.95);
 	draw_text(6, hh + 5, "battery");
-	if (land) {
-		draw_set_halign(fa_right);
-		draw_set_color(_dim);
-		draw_set_alpha(.6);
-		draw_text(room_width - 8, hh + 5, "what runs while you are away, and for how long");
-		draw_set_halign(fa_left);
-	}
+	// the crank hint lives in the strip now (the band took the bottom)
+	draw_set_halign(fa_right);
+	draw_set_color(_cranking ? _gc : _dim);
+	draw_set_alpha(_cranking ? .9 : .6);
+	draw_text(room_width - 8, hh + 5, _cranking ? "cranking"
+		: (land ? "turn the ring to fast charge" : "turn to charge"));
+	draw_set_halign(fa_left);
 	__part_end();
 }
 
@@ -157,8 +157,9 @@ if (__part(3) > 0) {
 	__part_end();
 }
 
-// ---- the offline rates ----
+// ---- THE BAND: a faint rule, then the rates ----
 if (__part(4) > 0) {
+	draw_sprite_ext(spr_pixel_1x1, 0, 8, band_y, room_width - 16, 1, 0, sett_ink, .18);
 	draw_set_color(sett_ink);
 	draw_set_alpha(.55);
 	draw_text(rate_x, rate_y - 11, "offline speed");
@@ -207,16 +208,6 @@ if (__part(5) > 0) {
 		draw_ui_button(_br.x, _br.y, _br.w, _br.h, string(_q.cost) + " cr",
 			_q.ok ? c_sgreen : c_gray, _q.ok, _q.ok);
 	}
-	__part_end();
-}
-
-// the crank hint, under everything
-if (__part(6) > 0) {
-	draw_set_halign(fa_center);
-	draw_set_color(_dim);
-	draw_set_alpha(.45);
-	draw_text(disc_cx, room_height - 12, _cranking ? "cranking" : "turn the ring to fast charge");
-	draw_set_halign(fa_left);
 	__part_end();
 }
 

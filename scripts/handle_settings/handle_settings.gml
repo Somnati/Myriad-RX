@@ -107,6 +107,26 @@ function handle_settings(_method) {
 	g.vol_tap      = handle("vol_tap",      g.vol_tap);
 	g.vol_dial     = handle("vol_dial",     g.vol_dial);
 
+	section = "favorites";
+
+	// STARRED SETTINGS (the settings screen's favorites tab) ride the
+	// ini as a pipe-joined key list, statistics' pattern - device-side,
+	// like every other preference about the settings screen itself
+	if (!variable_global_exists("settings_fav"))      g.settings_fav      = {};
+	if (!variable_global_exists("settings_fav_show")) g.settings_fav_show = false;
+	g.settings_fav_show = handle("settings_fav_show", g.settings_fav_show);
+	var _sf_keys = struct_get_names(g.settings_fav);
+	var _sf_txt = "";
+	for (var _i = 0; _i < array_length(_sf_keys); _i++)
+		_sf_txt += ((_i > 0) ? "|" : "") + _sf_keys[_i];
+	_sf_txt = handle("settings_fav", _sf_txt);
+	if (_method == sv_load) {
+		g.settings_fav = {};
+		var _sfs = string_split(_sf_txt, "|", true);
+		for (var _i = 0; _i < array_length(_sfs); _i++)
+			g.settings_fav[$ _sfs[_i]] = true;
+	}
+
 	// MYRIAD RX: the "balance" section returns when the DE parity
 	// rebuild lands its balance_init - every knob a rebuilt system
 	// gains gets its handle() line here (device-side by design: tuning

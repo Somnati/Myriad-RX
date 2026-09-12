@@ -34,5 +34,25 @@ function grab_deck_support() {
 	ability(g.ad_scholar, "Scholar", legendary, 4,
 		"discovered abilities arrive\nalready enabled when the\nap can cover them", false, false);
 
+	// ---- the second half (2026-09-11): made up, unwired placeholders ----
+	ability(g.ad_alarmclock, "Alarm Clock", common, 1,
+		"the welcome-back card\nsays what ran dry, and when", false, false);
+
+	ability(g.ad_archivist, "Archivist", uncommon, 2,
+		"the statistics remember\ntwice as far back", false, false);
+	ability_flavor("x2", "history", "", -1);
+
+	ability(g.ad_nightowl, "Night Owl", uncommon, 3,
+		"the battery drains 10%\nslower while you are away", false, false);
+	ability_flavor("-10%", "offline draw", "", -1);
+
+	ability(g.ad_tinkerer, "Tinkerer", rare, 4,
+		"the crank charges 25%\nmore per turn", false, false);
+	ability_flavor("+25%", "crank", "", -1);
+
+	ability(g.ad_secondwind, "Second Wind", legendary, 6,
+		"the time bank fills 20%\nfaster while it is empty", false, false);
+	ability_flavor("+20%", "bank fill", "", -1);
+
 	if (oo) if (a_ == -1) syst_rm_ability.batch_support = _a;
 }

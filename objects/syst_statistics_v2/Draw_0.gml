@@ -128,9 +128,12 @@ for (var _r = _lo; _r < _hi; _r++) {
 		draw_set_alpha(.9);
 		draw_text(_tx, _ry + 4, _row.name);
 		if (_row.kind == 0 && _row.help != "") {
-			// a whisper of a "?" marks tappable explainers
-			draw_set_alpha(.3);
-			draw_text(_tx + string_width(_row.name) + 5, _ry + 4, "?");
+			// the "?" chip marks tappable explainers (draw_help_chip);
+			// the whole row opens one here, so it lights with the row
+			var _qx = _tx + string_width(_row.name) + 5;
+			var _hot = (mouse_y >= list_y && mouse_x >= content_x
+				&& point_in_rectangle(mouse_x, mouse_y, content_x, _ry, val_x, _ry + row_h - 1));
+			draw_help_chip(_qx, _ry + 3, _row.c1, _hot);
 		}
 	}
 	if (_row.kind == 0 && _row.val != "") {

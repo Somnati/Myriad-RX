@@ -19,5 +19,27 @@ function grab_deck_combat() {
 	ability(g.ad_warcry, "War Cry", legendary, 8,
 		"the first attack of every\nbattle is a quality hit", false, false);
 
+	// ---- the second half (2026-09-11): made up, unwired placeholders ----
+	ability(g.ad_drillsgt, "Drill Sergeant", common, 2,
+		"recruits arrive with\n+10% hp", false, false);
+	ability_flavor("+10%", "recruit hp", "", -1);
+
+	ability(g.ad_ambush, "Ambush", uncommon, 3,
+		"the enemy's first turn\nis skipped", false, false);
+
+	ability(g.ad_shieldwall, "Shield Wall", rare, 5,
+		"pawns standing together\ntake 15% less", false, false);
+	ability_flavor("-15%", "flanked damage", "", -1);
+
+	ability(g.ad_lastword, "Last Word", rare, 6,
+		"a falling pawn lands one\nfree strike first", false, false);
+
+	ability(g.ad_veterans, "Veterans", legendary, 7,
+		"survivors keep 5% of the\nxp they earned", false, false);
+	ability_flavor("+5%", "xp kept", "", -1);
+
+	ability(g.ad_ironwill, "Iron Will", epic, 9,
+		"once a battle, a killing\nblow leaves 1 hp instead", false, false);
+
 	if (oo) if (a_ == -1) syst_rm_ability.batch_combat = _a;
 }

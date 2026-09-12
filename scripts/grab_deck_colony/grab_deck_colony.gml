@@ -19,5 +19,28 @@ function grab_deck_colony() {
 		"biome shifts crawl\ntwice as fast", false, false);
 	ability_flavor("x2", "terraform speed", "", -1);
 
+	// ---- the second half (2026-09-11): made up, unwired placeholders ----
+	ability(g.ad_lanterns, "Lanterns", common, 1,
+		"city lights reach further\ninto the night side", false, false);
+
+	ability(g.ad_marketday, "Market Day", common, 2,
+		"tribute collects 10%\nfaster on the day side", false, false);
+	ability_flavor("+10%", "day tribute", "", -1);
+
+	ability(g.ad_aqueducts, "Aqueducts", uncommon, 3,
+		"cities grow one size past\nwhat their biome allows", false, false);
+	ability_flavor("+1", "city size", "", -1);
+
+	ability(g.ad_observatory, "Observatory", rare, 4,
+		"a city with an observatory\nreveals its whole system", false, false);
+
+	ability(g.ad_guilds, "Guilds", rare, 5,
+		"settled cities trade with\neach other: +15% tribute", false, false);
+	ability_flavor("+15%", "tribute", "", -1);
+
+	ability(g.ad_capital, "Capital", legendary, 8,
+		"name one city the capital:\nit pays double", false, false);
+	ability_flavor("x2", "capital tribute", "", -1);
+
 	if (oo) if (a_ == -1) syst_rm_ability.batch_colony = _a;
 }
