@@ -23,7 +23,10 @@
 /// snapped down and left up to 95 levels unbought (his check,
 /// 2026-09-03). Can't afford one level: quotes level+1 anyway, so the
 /// button can show the price, dimmed.
-function buy_resolve(_i, _from, _mode) {
+/// @param [wallet]  what "max" may spend - the spendable pile by default;
+///                  autobuy hands in its cap share (his call, 2026-09-12:
+///                  buy max within the cap, every pulse)
+function buy_resolve(_i, _from, _mode, _wallet = undefined) {
 	var _to = _from + 1;
 
 	if (is_real(_mode)) {
@@ -41,7 +44,7 @@ function buy_resolve(_i, _from, _mode) {
 	}
 	else if (_mode == "max") {
 		// the RESERVE is not the wallet - see profit_spendable
-		var _wal = profit_spendable();
+		var _wal = _wallet ?? profit_spendable();
 		if (!(_wal >= dial_cost(_i, _from, _from + 1))) return _from + 1;
 		var _step = 1;
 		while (_step < 1000000

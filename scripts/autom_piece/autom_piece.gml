@@ -1,27 +1,21 @@
 /// @description autom_piece(p, i);
 /// @param p   the dial's automation struct
 /// @param i   the dial index
-/// ONE DIAL'S AUTOBUY PULSE, carrying Myriad DE's dynamic-quantity law
-/// out of auto_buy_dial (evo_lv / elvtic) as law rather than as code -
-/// the original is archaeology, the behaviour is the point:
+/// ONE DIAL'S AUTOBUY PULSE: BUY MAX WITHIN THE CAP (his call,
+/// 2026-09-12). The cap (p.pct) is a share of the SPENDABLE pile - the
+/// reserve is never touched - and every pulse buys as many levels as
+/// that share reaches, through dial_buy_ext's "max" mode handed the
+/// share as its wallet. The timer is pace, the cap is size, nothing
+/// hides between them.
 ///
-///   - the step size q GROWS on every landed buy: q += max(1 + h, 1),
-///     and past q 50 the ramp itself accelerates (h += 1). Buys
-///     compound while income comfortably outpaces cost, so autobuy
-///     consumes income at whatever rate income arrives - no fixed
-///     x10 / x100 mode to pick, and none to outgrow.
-///   - the moment a buy cannot be afforded the ramp COLLAPSES HARD:
-///     q = 1, h = -50. It re-grows one per landed buy, so it walks back
-///     through the cooldown and only starts accelerating again once the
-///     heat climbs past zero. That asymmetry is what stops it
-///     oscillating between "buy 400" and "buy nothing".
+/// (It carried Myriad DE's dynamic-quantity law before - a step size
+/// that grew on every landed buy and collapsed on a miss. That ramp was
+/// a way to approach "max" one pulse at a time; with max itself on
+/// every pulse it had nothing left to do. The q / h fields survive on
+/// the struct unread, for saves that still carry them.)
 ///
-/// THE BUDGET is the spend threshold: the bill must be at most pct% of
-/// the CURRENT wallet. Set 50 and this dial never takes profit below
-/// half of whatever it happens to be holding.
-///
-/// Every purchase routes through dial_buy_ext, the pricing lawyer.
-/// Autobuy owns no cost math of its own and must never grow any.
+/// st is the panel's verdict pill: 1 waiting (the share does not reach
+/// a level), 2 buying.
 function autom_piece(_p, _i) {
 	// no wallet, no shopping (this also keeps do_scale off sub-1 arbs).
 	// THE WALLET IS THE SPENDABLE PILE, never the whole one - budgeting
@@ -31,31 +25,15 @@ function autom_piece(_p, _i) {
 	if (!(_wallet >= arb(1))) { _p.st = 1; return; }
 	var _budget = do_scale(_wallet, _p.pct / 100);
 
-	var _q     = max(1, _p.q);
-	var _quote = dial_buy_ext(_i, _q, false);
-	var _fits  = _quote.ok && (_budget >= _quote.cost);
-
-	// too rich a step: collapse the ramp and retry a single level on
-	// THIS pulse, so a starved ramp still trickles +1s rather than
-	// standing still for a second
-	if (!_fits && _q > 1) {
-		_p.q = 1;
-		_p.h = -50;
-		_q   = 1;
-		_quote = dial_buy_ext(_i, 1, false);
-		_fits  = _quote.ok && (_budget >= _quote.cost);
-	}
-
-	if (!_fits) {
-		_p.h  = -50;   // keep the heat floored so recovery starts gentle
-		_p.st = 1;
-		return;
-	}
-
-	dial_buy_ext(_i, _q, true);
-
-	_p.q += max(1 + _p.h, 1);
-	if (_p.q > 50) _p.h += 1;
-	_p.q  = min(_p.q, 100000);   // one pulse, one planet
+	// ⚖️ BUY MAX WITHIN THE CAP (his call, 2026-09-12): every pulse buys
+	// as many levels as the cap share reaches - the timer is PACE, the
+	// cap is SIZE, and there is no third, hidden ramp between them (the
+	// q/h ramp that used to live here climbed a level at a time and
+	// needed its own recovery rules). buy_resolve's "max" walks the
+	// exact edge of the wallet it is handed; the check below is the
+	// belt to its braces (a single level past the share never buys)
+	var _quote = dial_buy_ext(_i, "max", false, _budget);
+	if (!_quote.ok || !(_budget >= _quote.cost)) { _p.st = 1; return; }
+	dial_buy_ext(_i, "max", true, _budget);
 	_p.st = 2;
 }

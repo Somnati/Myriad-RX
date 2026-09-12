@@ -383,8 +383,14 @@ function main_macros() {
                             // grows with rebirths, and whatever else
                             // earns it later
 #macro RAM_REBIRTH      4  // sticks the autorebirth costs, switched on
-#macro RAM_TIMER_MIN    1  // the fastest an autobuy may pulse, seconds
-#macro RAM_TIMER_MAX   30
+// THE TIMER RANGE (his call, 2026-09-12): 5s to 60s, 30s the default.
+// With buy-max under every pulse (autom_piece / autom_tiles /
+// autom_upgrades - the timer is pace, the cap is size) a second-long
+// pulse was continuous spending with extra steps; five reads as a
+// beat. The overclock notches cut UNDER the floor - 5 / 1.2, / 1.5,
+// / 2 = 4.2, 3.3, 2.5s - at the ladder's RAM prices (ram_oc)
+#macro RAM_TIMER_MIN    5  // the fastest an autobuy may pulse, seconds
+#macro RAM_TIMER_MAX   60
 // ---- OVERCLOCK (his design, 2026-09-12 - read ram_oc) ----
 // One toggle in the RAM band opens THREE RED NOTCHES past the end of
 // every "more is better" track - the speeds, the autotapper, every
@@ -396,7 +402,7 @@ function main_macros() {
 #macro RAM_OC_N         3  // notches past the end
 #macro RAM_OC_NF       .7  // the share of a track the normal range keeps
                            // while the notches are open (the rest is red)
-#macro RAM_TIMER_FLOOR .5  // the fastest an overclocked autobuy pulses
+#macro RAM_TIMER_FLOOR (RAM_TIMER_MIN * .5)  // the fastest an overclocked autobuy pulses (the x2 notch)
 
 // ---- THE PUCK (obj_puck - Myriad DE's throwable, rebuilt) ----
 // Read obj_puck's Create for what each mechanic is FOR; these are the

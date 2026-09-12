@@ -67,9 +67,9 @@ def cost_timer(t):
     """ram_cost('timer', t)"""
     k = oc_k("timer", t)
     if k >= 0: return math.ceil(4 * OC_COST[k])
-    if t <= 1: return 4
-    if t <= 2: return 3
-    if t <= 5: return 2
+    if t <= RAM_TIMER_MIN: return 4
+    if t <= RAM_TIMER_MIN * 2: return 3
+    if t <= RAM_TIMER_MIN * 4: return 2
     return 1
 
 
@@ -125,7 +125,7 @@ say(free >= 4, "a first-hour player can run the profit-boost autobuy fast OR sev
 
 # ---------------------------------------------------------------- 2. the throttle
 print("\n== 2. over the budget ==")
-u = used(autobuys=[1, 1, 1])          # three dials at 1s
+u = used(autobuys=[RAM_TIMER_MIN] * 3)          # three dials at 1s
 th = throttle(u, cap())
 say(0 < th < 1, "three 1s dial autobuys over the base budget throttle, never stop",
     f"used {u} of {cap():.0f} -> x{th:.2f} on every clock")
@@ -134,11 +134,11 @@ print("  what x{:.2f} means: production (the dials' cycling) at {:.0f}%, every t
 # the trade: attempts per minute of an autobuy at timer t under throttle th
 def attempts_per_min(t, th): return 60.0 * th / t
 configs = {
-    "one dial at 1s (fits)":            dict(autobuys=[1]),
-    "three dials at 1s (over)":         dict(autobuys=[1, 1, 1]),
-    "three dials at 5s (fits)":         dict(autobuys=[5, 5, 5]),
-    "six dials at 30s (fits)":          dict(autobuys=[30] * 6),
-    "six dials at 5s (over)":           dict(autobuys=[5] * 6),
+    "one dial at the floor (fits)":            dict(autobuys=[RAM_TIMER_MIN]),
+    "three dials at the floor (over)":         dict(autobuys=[RAM_TIMER_MIN] * 3),
+    "three dials at 2x floor (fits)":         dict(autobuys=[RAM_TIMER_MIN * 2] * 3),
+    "six dials at 60s (fits)":          dict(autobuys=[RAM_TIMER_MAX] * 6),
+    "six dials at 2x floor (over)":           dict(autobuys=[RAM_TIMER_MIN * 2] * 6),
 }
 print(f"  {'setup':<28} {'used':>4} {'throttle':>8} {'autobuy attempts/min':>22} {'production':>10}")
 for name, kw in configs.items():
@@ -146,12 +146,12 @@ for name, kw in configs.items():
     tt = throttle(uu, cap())
     apm = sum(attempts_per_min(t, tt) for t in kw["autobuys"])
     print(f"  {name:<28} {uu:>4} {tt:>8.2f} {apm:>22.1f} {tt * 100:>9.0f}%")
-say(throttle(used(autobuys=[5] * 6), cap()) < 1,
-    "six dials at 5s does NOT fit the base budget - a real choice between speed and breadth")
+say(throttle(used(autobuys=[RAM_TIMER_MIN * 2] * 6), cap()) < 1,
+    "six dials at twice the floor do NOT fit the base budget - a real choice between speed and breadth")
 
 # ---------------------------------------------------------------- 3. the price list
 print("\n== 3. the price list ==")
-print("  timer:", "  ".join(f"{t}s={cost_timer(t)}" for t in (1, 2, 3, 5, 6, 10, 30)))
+print("  timer:", "  ".join(f"{t}s={cost_timer(t)}" for t in (5, 6, 10, 11, 20, 21, 60)))
 print("  speed:", "  ".join(f"{p}%={cost_speed(p)}" for p in (5, 20, 21, 40, 60, 80, 100)))
 say(cost_timer(RAM_TIMER_MAX) == 1 and cost_timer(RAM_TIMER_MIN) == 4,
     "the slowest timer is 1 stick, the fastest 4")
@@ -170,8 +170,8 @@ say(cap(20) - u0 >= 13, "twenty rebirths in, every dial can autobuy at once (slo
 
 # ---------------------------------------------------------------- 5. the full-table player
 print("\n== 5. the everything-on player ==")
-u_all = used(merge=100, autobuys=[30] * 13, roll=True, sell=True, buy_t=30,
-             tile_buys=[30] * 7, rebirth=True)
+u_all = used(merge=100, autobuys=[RAM_TIMER_MAX] * 13, roll=True, sell=True, buy_t=RAM_TIMER_MAX,
+             tile_buys=[RAM_TIMER_MAX] * 7, rebirth=True)
 print(f"  all three machines at 100%, thirteen dials + the table + seven tile rows at 30s,"
       f" roll, sell, the autorebirth: {u_all} sticks")
 need = math.ceil((u_all - RAM_BASE) / RAM_REB)
@@ -205,7 +205,7 @@ th3 = throttle(u_oc3, cap())
 say(2 * th3 + th3 < 1.5 + 1, "200% over a fresh budget does less total work than 150% inside it",
     f"200%: cycling {200 * th3:.0f}% + fabricator {100 * th3:.0f}% vs 150% + 100%")
 # an overclocked timer: 0.5s at 12 sticks vs two dials at 1s for 8
-say(cost_timer(0.5) > 2 * cost_timer(1), "one 0.5s autobuy costs more than two at 1s - breadth beats depth by default",
-    f"0.5s: {cost_timer(0.5)}, 2 x 1s: {2 * cost_timer(1)}")
+say(cost_timer(RAM_TIMER_MIN / 2) > 2 * cost_timer(RAM_TIMER_MIN), "one autobuy at the x2 notch costs more than two at the floor - breadth beats depth by default",
+    f"notch: {cost_timer(RAM_TIMER_MIN / 2)}, 2 x floor: {2 * cost_timer(RAM_TIMER_MIN)}")
 
 print("\n" + ("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port"))

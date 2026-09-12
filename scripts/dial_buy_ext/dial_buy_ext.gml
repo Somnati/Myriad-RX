@@ -10,14 +10,16 @@
 /// quotes on demand through buy_resolve + dial_cost, both closed form.
 /// A DORMANT dial (level 0) ignores the mode: its first level is its
 /// purchase, always exactly one (DE's rule).
-function dial_buy_ext(_i, _mode, _commit = true) {
+/// @param [wallet]  what a "max" quote may reach for (buy_resolve) -
+///                  the spendable pile by default, autobuy's cap share
+function dial_buy_ext(_i, _mode, _commit = true, _wallet = undefined) {
 	var _dead = { ok : false, n : 0, to : 0, cost : 0 };
 	if (!variable_global_exists("dial")) return _dead;
 	if (_i < 0 || _i >= g.dial_total) return _dead;
 
 	var _d    = g.dial[_i];
 	var _from = _d.level;
-	var _to   = (_from <= 0) ? 1 : buy_resolve(_i, _from, _mode);
+	var _to   = (_from <= 0) ? 1 : buy_resolve(_i, _from, _mode, _wallet);
 	var _cost = dial_cost(_i, _from, _to);
 	var _ok   = (_to > _from) && (profit_spendable() >= _cost);
 

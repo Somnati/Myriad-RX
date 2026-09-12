@@ -7,12 +7,11 @@
 /// lawyer, so the curve, the cap, the inflation and the dirty mark all
 /// hold for automation exactly as they hold for a press.
 ///
-/// ONE LEVEL PER ROW PER ATTEMPT, each row on its own clock (t seconds,
-/// counted in throttled time - autom_tick hands in this step's share).
-/// Every row climbs decades a level, so the clock is never the
-/// bottleneck - the shards are - and there is no q/h ramp to keep,
-/// unlike the dials. Rows run in roster order, which puts the profit
-/// boost first: the one that compounds.
+/// BUY MAX PER ROW PER ATTEMPT (his call, 2026-09-12), each row on its
+/// own clock (t seconds, counted in throttled time - autom_tick hands
+/// in this step's share): as many levels as the cap share of the
+/// shards reaches, in one pulse. Rows run in roster order, which puts
+/// the profit boost first: the one that compounds.
 ///
 /// st is the panel's verdict pill: 0 off, 1 waiting, 2 bought.
 /// @param dt   throttled seconds elapsed this step
@@ -29,11 +28,14 @@ function autom_tiles(_dt) {
 		_p.tic -= _dt;
 		if (_p.tic > 0) continue;
 		_p.tic = max(RAM_TIMER_FLOOR, _p.t);
-		var _q = tile_upg(_id, false);
-		if (_q.max) { _p.st = 1; continue; }
 		// the cap, off the live bank: a share of nothing buys nothing
 		if (!(g.tiles.shards >= arb(1))) { _p.st = 1; continue; }
-		if (!(do_scale(g.tiles.shards, _p.pct / 100) >= _q.cost)) { _p.st = 1; continue; }
-		_p.st = tile_upg(_id, true).ok ? 2 : 1;
+		// ⚖️ BUY MAX WITHIN THE CAP (his call, 2026-09-12): tile_upg_bulk's
+		// "max" walk, handed the cap share as its bank - as many levels
+		// as the share reaches, one pulse
+		var _budget = do_scale(g.tiles.shards, _p.pct / 100);
+		var _q = tile_upg_bulk(_id, false, "max", _budget);
+		if (_q.max || !_q.ok) { _p.st = 1; continue; }
+		_p.st = tile_upg_bulk(_id, true, "max", _budget).ok ? 2 : 1;
 	}
 }

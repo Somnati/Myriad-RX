@@ -36,8 +36,12 @@
 /// the dry walk, which advances the struct's level to price each next
 /// rung off the one formula and puts it back - a dry run must leave no
 /// trace, and this leaves none.
-function tile_upg_bulk(_id, _commit = false) {
-	var _mode = variable_global_exists("tile_buy_lv") ? g.tile_buy_lv : 1;
+/// @param [mode]  the buy amount - the drawer's button by default
+///                (g.tile_buy_lv); autobuy hands in "max"
+/// @param [bank]  what the walk may spend - the shards by default;
+///                autobuy hands in its cap share (his call, 2026-09-12)
+function tile_upg_bulk(_id, _commit = false, _mode = undefined, _bank_in = undefined) {
+	if (is_undefined(_mode)) _mode = variable_global_exists("tile_buy_lv") ? g.tile_buy_lv : 1;
 
 	var _q = tile_upg(_id, false);
 	if (_q.max) return { ok : false, cost : arb(1), lv : _q.lv, n : 0, max : true };
@@ -48,7 +52,7 @@ function tile_upg_bulk(_id, _commit = false) {
 		if (_cfg[_i].id == _id) _e = _cfg[_i];
 	var _cap  = (_e == -1) ? -1 : (_e[$ "max"] ?? -1);
 	var _lv0  = _q.lv;
-	var _bank = g.tiles.shards;
+	var _bank = _bank_in ?? g.tiles.shards;
 
 	// ---- how many the mode names ----
 	var _n = 1;

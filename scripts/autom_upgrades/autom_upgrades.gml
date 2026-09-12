@@ -63,17 +63,31 @@ function autom_upgrades(_buy_due = true, _pulse = true) {
 		}
 		array_sort(_cand, function(_a, _b) { return _a.c - _b.c; });
 
-		for (var _k = 0; _k < array_length(_cand); _k++) {
-			var _c = _cand[_k].c;
-			// THE BUDGET IS RE-READ EVERY TIME, off the live balance -
-			// the same semantics the dials use. Taking it once at the
-			// top of the loop would let one pulse spend several times
-			// the share the player set, because each purchase lowers
-			// the balance the next share should have been measured
-			// against.
-			if (!(g.credits >= arb(1))) break;
-			if (!(do_scale(g.credits, _u.pct / 100) >= arb(_c))) continue;
-			if (upgrade_buy(_cand[_k].i)) _u.st = 2;
+		// ⚖️ BUY MAX WITHIN THE CAP (his call, 2026-09-12): the share is
+		// taken ONCE at the top of the pulse - it is the pulse's budget -
+		// and tiers are bought cheapest-first until it is spent: every
+		// tier's price is re-quoted after the one before it (a slot's
+		// price climbs with its tier), so the walk stops exactly where
+		// the budget does. Re-reading the share per buy (the old rule)
+		// was the one-tier-a-pulse law; a max buy wants the whole share
+		var _budget = do_scale(g.credits, _u.pct / 100);
+		var _spent  = 0;
+		var _guard  = 0;
+		while (_guard++ < 200) {
+			// the cheapest tier on the table right now
+			var _bi = -1, _bc = 0;
+			for (var _i = 0; _i < _n; _i++) {
+				if (!is_struct(g.upg.slot[_i])) continue;
+				var _c = upgrade_cost(_i);
+				if (_c <= 0) continue;
+				if (_bi == -1 || _c < _bc) { _bi = _i; _bc = _c; }
+			}
+			if (_bi == -1) break;
+			if (!(g.credits >= arb(_bc))) break;
+			if (!(_budget >= arb(_spent + _bc))) break;
+			if (!upgrade_buy(_bi)) break;
+			_spent += _bc;
+			_u.st = 2;
 		}
 	}
 }

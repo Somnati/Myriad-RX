@@ -25,10 +25,10 @@ function ram_cost(_kind, _v = 0) {
 		return ceil(_end * ram_oc(_k).cost);
 	}
 	switch (_kind) {
-		case "timer":
-			if (_v <= 1) return 4;
-			if (_v <= 2) return 3;
-			if (_v <= 5) return 2;
+		case "timer":   // the steps ride the range: the floor is 4, twice it 3, four times it 2
+			if (_v <= RAM_TIMER_MIN)     return 4;
+			if (_v <= RAM_TIMER_MIN * 2) return 3;
+			if (_v <= RAM_TIMER_MIN * 4) return 2;
 			return 1;
 		case "speed":   return max(1, ceil(_v / 20));
 		case "tap":     return max(1, ceil(_v / 2));
