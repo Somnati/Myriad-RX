@@ -22,11 +22,23 @@
 /// room under it. Everything that was on the second line - the help
 /// text, the per-tier value - either fits on the first or was only ever
 /// restating the name.
+///
+/// ⚖️ THE OVERHAUL (his ask, 2026-09-11: "clean, easy on the eyes and
+/// polished with a well laid out minimal look"). TWO COLUMNS AND
+/// NOTHING ELSE: the table on the left, the inspector on the right, the
+/// bonus totals in a band under the table, the purse in the corner.
+/// What went: the rarity gradient wash across every row (the 3px band
+/// carries the rarity now, and the inspector names it), the rarity
+/// name and the "3 / 5" text columns (the dots under the name say it),
+/// the separate roll button (the FIRST EMPTY ROW is the roll row), the
+/// status line under the table (messages live in the title strip and
+/// fade), and the three-line footer (two tidy lines of six totals).
+/// A row says four things: what, how much, how deep, and the price.
 
 bby    = obj_ui_header.bar_h;   // flush under the bar, not its shadow
 list_y = bby + 16;
-row_h  = 16;
-row_sp = 19;
+row_h  = 18;    // name on the top line, the tier dots under it
+row_sp = 21;
 // ⚖️ ROUNDED CORNERS (his ask: like the ability deck slots). The deck
 // caps its bars with spr_dial_endcaps, a 3x11 sprite built for one
 // exact capsule height - these rows are 16 tall, and scaling that
@@ -78,8 +90,10 @@ __rr_grad = function(_x, _y, _w, _h, _c1, _c2, _a) {
 		_x, _y + _n, _w, _h - _n * 2, 0, _c1, _c2, _c2, _c1, _a);
 };
 
+// THE TWO COLUMNS. The table takes the left 292, the inspector the
+// rest, an 8px gutter between and around - one grid, every edge on it
 row_x  = 8;
-row_w  = room_width - 16;
+row_w  = 292;
 
 mode = 0;      // 0 = buy, 1 = sell
 sel  = -1;     // the slot under the pointer, for the hover wash
@@ -106,11 +120,9 @@ sel  = -1;     // the slot under the pointer, for the hover wash
 // tapping a row PICKS it and this panel answers all three, once, in the
 // space under the table where nothing was using the pixels.
 pick    = -1;
-// ⚖️ IT SITS UNDER THE TABLE, NOT ON IT. The header is 29 tall, not 16,
-// so list_y is 45 and the eighth row runs to y 200 - the panel was at
-// 190 and covered the last slot (his report). It starts where the rows
-// actually end now.
-desc_x  = 236;
+// THE INSPECTOR IS THE RIGHT COLUMN, top to bottom (the overhaul): it
+// used to sit under the table and cover the eighth slot (his report)
+desc_x  = row_x + row_w + 8;
 desc_w  = room_width - desc_x - 8;
 desc_y  = 0;   // seated below, once __row_y exists
 desc_h  = 0;
@@ -147,28 +159,32 @@ hold_spd  = 1;    // DE's hp_spd: the repeat ramp, 1..7
 hold_lock = false;  // set when a hold completes something that must not
                     // repeat (DE's `hp = -1`), cleared on release
 
-__row_y = function(_i) { return list_y + 6 + _i * row_sp; };
+__row_y = function(_i) { return list_y + 5 + _i * row_sp; };
 
-// the panel starts where the LAST ROW ENDS, off the same function the
-// rows use, so it can never be seated by a number that happens to look
-// right (it was, and it covered slot eight)
-desc_y = __row_y(UPG_SLOT_MAX) + 2;
-desc_h = room_height - desc_y - 6;
+// the inspector shares the table's top edge and runs to the bottom
+// margin - the two columns are one rectangle cut in two
+desc_y = __row_y(0);
+desc_h = room_height - 8 - desc_y;
+
+// THE TOTALS BAND under the table: a hairline, then two lines of three
+// totals each. It ends above the purse, which is pinned in the corner
+tot_y = __row_y(UPG_SLOT_MAX) + 3;
 
 // the row's one button, right-aligned so every row's action sits in the
 // same column no matter how long its name is. An EMPTY row has none any
 // more - see __roll_rect.
 __btn = function(_i) {
-	return { x : row_x + row_w - 56, y : __row_y(_i) + 2, w : 54, h : 13 };
+	return { x : row_x + row_w - 54, y : __row_y(_i) + 2, w : 52, h : 14 };
 };
 
-// THE ONE ROLL BUTTON (his call), under the table. Eight identical
-// [roll] buttons in a column was eight controls for a decision that has
-// no per-row content: a roll does not care WHICH empty slot it lands
-// in, so making the player pick one was asking a question with no
-// answer. One button, and it fills the first slot that is free.
+// THE ROLL ROW (his call: ONE roll control, not one per slot - a roll
+// does not care WHICH empty slot it lands in). It IS the first empty
+// row: the plate wears a blue frame and says "roll a slot" and the
+// stake, and a tap anywhere on it rolls. No free slot, no roll row
 __roll_rect = function() {
-	return { x : row_x, y : __row_y(upgrade_slots()) + 2, w : 118, h : 15 };
+	var _fs = __free_slot();
+	if (_fs == -1) return { x : -1, y : -1, w : 0, h : 0 };
+	return { x : row_x, y : __row_y(_fs), w : row_w, h : row_h };
 };
 
 // the row's body - everything left of its button. Tapping HERE picks
@@ -188,9 +204,11 @@ __free_slot = function() {
 	return -1;
 };
 
-// the mode pills, in the title strip beside the screen's name
+// the mode switch: ONE segmented pill in the title strip after the
+// name - [buy|sell], the live half filled. Two halves of one shape
+// rather than two buttons, because it is one choice
 __mode_rect = function(_m) {
-	return { x : 62 + _m * 38, y : bby + 3, w : 34, h : 11 };
+	return { x : 68 + _m * 30, y : bby + 2, w : 30, h : 12 };
 };
 
 __back_rect = function() {
@@ -242,6 +260,10 @@ __next_str = function(_i) {
 // rules earn their keep: a full row of lit dots says nothing the tier
 // column has not already said, and the eye should be drawn to the slots
 // with something left in them.
+//
+// THE OVERHAUL SEATS THEM INSIDE THE ROW, on its second line under the
+// name, in the slot's rarity colour - the row is 18 tall now and has a
+// second line for exactly this, so nothing spills into the gap
 __dots = function(_i, _ry) {
 	var _s = g.upg.slot[_i];
 	if (!is_struct(_s)) return;
@@ -249,12 +271,13 @@ __dots = function(_i, _ry) {
 	if (_cap <= 1) return;
 	if (_s.tier >= _cap) return;
 
-	var _dx = row_x + 7;
-	var _dy = _ry + row_h - 2;
+	var _rc = __rar_col(_s.rar);
+	var _dx = row_x + 8;
+	var _dy = _ry + 12;
 	for (var _d = 0; _d < _cap; _d++) {
 		var _on = (_s.tier > _d);
 		draw_sprite_ext(spr_pixel_1x1, 0, _dx, _dy, 3, 3, 0,
-			_on ? c_lavender : merge_colour(c_lavender, c_black, .72), 1);
+			_on ? _rc : merge_colour(_rc, c_black, .7), _on ? .95 : .8);
 		_dx += 4;
 	}
 };

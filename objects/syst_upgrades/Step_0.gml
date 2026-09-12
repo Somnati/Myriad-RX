@@ -3,11 +3,12 @@
 // visible the whole time rather than for three seconds after a drop.
 // desy is DE's protocol: a REQUEST, consumed and cleared by the panel
 // each frame, so a screen that stops asking releases it without having
-// to remember to. It sits under the table rather than at its default
-// y 46, where it would land on top of the second row.
+// to remember to. It sits in the BOTTOM-LEFT CORNER under the totals
+// band (the overhaul) rather than at its default y 46, where it would
+// land on top of the second row.
 if (instance_exists(obj_display_credits)) {
 	obj_display_credits.pin  = true;
-	obj_display_credits.desy = room_height - 22;
+	obj_display_credits.desy = room_height - 16;
 }
 
 msg_hp = max(0, msg_hp - delta);
@@ -111,7 +112,25 @@ for (var _m = 0; _m < 2; _m++) {
 	exit;
 }
 
-// ---- PICKING A ROW for the description panel ----
+// ---- THE ROLL ROW (the first empty row IS the roll control) ----
+// Before the pick loop, because it is an empty row and the pick loop
+// would otherwise swallow the tap as "nothing to describe"
+var _rr = __roll_rect();
+if (_rr.w > 0 && point_in_rectangle(_mx, _my, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
+	var _fs = __free_slot();
+	var _r0 = upgrade_roll(_fs);
+	if (_r0 == -1)
+		__say("nothing to offer yet", c_gray);
+	else if (_r0 == -2)
+		__say("not enough credits to roll", c_hred);
+	else {
+		play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
+		pick = _fs;   // a fresh roll is the thing you want to read about
+	}
+	exit;
+}
+
+// ---- PICKING A ROW for the inspector ----
 // Before the buttons, and it does not consume the press: a tap on a
 // row's body picks it, a tap on its button still acts. An EMPTY row
 // picks nothing - there is nothing to describe - but it clears the
@@ -122,26 +141,6 @@ for (var _i = 0; _i < _n; _i++) {
 		continue;
 	pick = is_struct(g.upg.slot[_i]) ? _i : -1;
 	play_sound_ext(snd_softclick, 1.1, 1.2, .3, 0);
-	exit;
-}
-
-// ---- THE ONE ROLL BUTTON ----
-var _rr = __roll_rect();
-if (point_in_rectangle(_mx, _my, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
-	var _fs = __free_slot();
-	if (_fs == -1) {
-		__say("no free slot", c_gray);
-		exit;
-	}
-	var _r0 = upgrade_roll(_fs);
-	if (_r0 == -1)
-		__say("nothing to offer yet", c_gray);
-	else if (_r0 == -2)
-		__say("not enough credits to roll", c_hred);
-	else {
-		play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
-		pick = _fs;   // a fresh roll is the thing you want to read about
-	}
 	exit;
 }
 
