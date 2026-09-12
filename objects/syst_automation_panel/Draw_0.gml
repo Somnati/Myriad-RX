@@ -65,10 +65,11 @@ draw_set_halign(fa_left);
 {
 	var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
 	var _n = max(_c, _u);
+	var _hot = ram_oc_any();   // something runs on a notch: the band leans orange
 	__stick_seat(_n);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_black, .45);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y + band_h - 1, room_width, 1, 0, sett_ink, .25);
-	draw_set_color(c_gold);
+	draw_set_color(_hot ? c_horange : c_gold);
 	draw_set_alpha(.85);
 	draw_text(6, band_y + 2, "ram " + string(_u) + "/" + string(_c));
 
@@ -80,7 +81,7 @@ draw_set_halign(fa_left);
 		var _sr = __stick_r(_k);
 		var _used = (_k < _u);
 		var _over = (_k >= _c);
-		var _col  = _over ? c_hred : c_seagreen;
+		var _col  = _over ? c_hred : (_hot ? merge_colour(c_seagreen, c_horange, .55) : c_seagreen);
 		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, _col, .85);
 		else       draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _over ? c_hred : c_seagreen, .25);
 		if (_h0 >= 0 && _k >= _h0 && _k < _h0 + hov_ram) {
@@ -95,6 +96,21 @@ draw_set_halign(fa_left);
 			var _sr = __stick_r(_k);
 			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
 		}
+	}
+	// THE [overclock] CHIP (read ram_oc): orange while the notches are
+	// open, breathing while something runs on one
+	{
+		var _oc = __oc_rect();
+		var _on = g.autom.oc;
+		var _hv = point_in_rectangle(mouse_x, mouse_y, _oc.x, _oc.y, _oc.x + _oc.w, _oc.y + _oc.h);
+		draw_set_alpha(1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _oc.x, _oc.y, _oc.w, _oc.h, 0,
+			_on ? merge_colour(c_horange, c_black, _hot ? (.45 + .15 * _pulse) : .6) : c_black, _on ? .95 : .5);
+		draw_px_rect(_oc.x, _oc.y, _oc.w, _oc.h, c_horange, _on ? .9 : (_hv ? .6 : .3));
+		draw_set_halign(fa_center);
+		draw_set_color(_on ? c_white : merge_colour(c_horange, c_white, _hv ? .6 : .25));
+		draw_set_alpha(_on ? .95 : .7);
+		draw_text(_oc.x + _oc.w / 2 + 1, _oc.y + 2, "overclock");
 	}
 	// the verdict, right
 	draw_set_halign(fa_right);
@@ -247,21 +263,33 @@ for (var _i = 0; _i < _nrows; _i++) {
 	// that is not being used should not read as one that is
 	var _sa = _rw.on ? 1 : .35;
 	if (_rw.kind == 1 || _rw.kind == 2) {   // the wide track
-		var _tk = __trk_r(_i);
-		var _f  = clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
+		var _tk  = __trk_r(_i);
+		var _snp = variable_struct_exists(_rw, "snap");
+		var _nf  = __nf(_rw);
+		var _ock = (variable_struct_exists(_rw, "ock") && ram_oc_k(_rw.ock, _rw.val) >= 0);
+		var _f   = _snp ? __stop_f(_rw, _rw.val)
+		         : clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
+		var _fc  = _ock ? c_horange : _rw.col;
 		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w, _tk.h, 0, c_black, .7 * _sa);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w * _f, _tk.h, 0, _rw.col, .8 * _sa);
-		draw_px_rect(_tk.x, _tk.y, _tk.w, _tk.h, _rw.col, .35 * _sa);
-		// a snapping track shows its stops - one notch per ram point
-		if (variable_struct_exists(_rw, "snap")) {
-			for (var _sv = _rw.lo; _sv <= _rw.hi; _sv += _rw.snap) {
-				var _sx = _tk.x + _tk.w * (_sv - _rw.lo) / max(1, _rw.hi - _rw.lo);
-				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tk.y - 1, 1, _tk.h + 2, 0, c_white, .35 * _sa);
+		// the notches' stretch of the track wears orange under everything
+		if (_nf < 1)
+			draw_sprite_ext(spr_pixel_1x1, 0, _tk.x + _tk.w * _nf, _tk.y, _tk.w * (1 - _nf), _tk.h, 0,
+				merge_colour(c_horange, c_black, .6), .8 * _sa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x, _tk.y, _tk.w * _f, _tk.h, 0, _fc, .8 * _sa);
+		draw_px_rect(_tk.x, _tk.y, _tk.w, _tk.h, _fc, .35 * _sa);
+		// a snapping track shows its stops - one notch per ram point,
+		// the overclock ones orange
+		if (_snp) {
+			var _st = __stops(_rw);
+			for (var _q = 0; _q < array_length(_st); _q++) {
+				var _sx = _tk.x + _tk.w * _st[_q].f;
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tk.y - 1, 1, _tk.h + 2, 0,
+					(_st[_q].k >= 0) ? c_horange : c_white, ((_st[_q].k >= 0) ? .7 : .35) * _sa);
 			}
 		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tk.x + _tk.w * _f - 1, _tk.y - 2, 3, _tk.h + 4, 0, c_white, .8 * _sa);
 		draw_set_halign(fa_right);
-		draw_set_color(_rw.on ? c_white : _dim);
+		draw_set_color(_rw.on ? (_ock ? c_horange : c_white) : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);
 		// clear of the verdict pill's column when there is one
 		draw_text(cont_x + cont_w - ((_rw.st >= 0) ? 48 : 4), _ry + 2, string(_rw.val) + _rw.sfx);
@@ -278,15 +306,29 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_set_alpha(_rw.on ? .9 : .5);
 		draw_text(_ck.x + _ck.w + 4, _ry + 2, string(_rw.val) + _rw.sfx);
 
-		var _tm = __tm_r(_i);
-		var _tf = clamp((_rw.t - RAM_TIMER_MIN) / max(1, RAM_TIMER_MAX - RAM_TIMER_MIN), 0, 1);
-		// the timer's colour is its price: the faster, the redder
-		var _tc = merge_colour(c_seagreen, c_hred, (ram_cost("timer", _rw.t) - 1) / 3);
+		var _tm  = __tm_r(_i);
+		var _tnf = __nf(_rw);
+		var _tf  = __tm_f(_rw, _rw.t);   // right = fastest (his call)
+		var _tok = (ram_oc_k("timer", _rw.t) >= 0);
+		// the timer's colour is its price: the faster, the redder; an
+		// overclocked one is orange
+		var _tc = _tok ? c_horange
+		        : merge_colour(c_seagreen, c_hred, clamp((ram_cost("timer", _rw.t) - 1) / 3, 0, 1));
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w, _tm.h, 0, c_black, .7 * _sa);
+		if (_tnf < 1) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tnf, _tm.y, _tm.w * (1 - _tnf), _tm.h, 0,
+				merge_colour(c_horange, c_black, .6), .8 * _sa);
+			for (var _q = 0; _q < RAM_OC_N; _q++) {
+				var _sx = _tm.x + _tm.w * (_tnf + (1 - _tnf) * (_q + 1) / RAM_OC_N);
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tm.y - 1, 1, _tm.h + 2, 0, c_horange, .7 * _sa);
+			}
+		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w * _tf, _tm.h, 0, _tc, .8 * _sa);
 		draw_px_rect(_tm.x, _tm.y, _tm.w, _tm.h, _tc, .35 * _sa);
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tf - 1, _tm.y - 2, 3, _tm.h + 4, 0, c_white, .8 * _sa);
-		draw_text(_tm.x + _tm.w + 4, _ry + 2, string(_rw.t) + "s");
+		draw_set_color(_rw.on ? (_tok ? c_horange : c_white) : _dim);
+		draw_set_alpha(_rw.on ? .9 : .5);
+		draw_text(_tm.x + _tm.w + 4, _ry + 2, __tm_str(_rw.t));
 	}
 
 	// the autobuy rows' verdict pill: what the automation did last

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ram_oc_value",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ram_oc_value",
+  "parent":{
+    "name":"automation",
+    "path":"folders/game/automation.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

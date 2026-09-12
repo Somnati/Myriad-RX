@@ -46,5 +46,6 @@ function autom_pack() {
 	_o += "/tap=" + (_a.tap.on ? "1" : "0") + ":" + string(_a.tap.rate);
 	_o += "/run=" + (_a.run.on ? "1" : "0") + ":" + string(_a.run.spd);
 	_o += "/fab=" + (_a.fab.on ? "1" : "0") + ":" + string(_a.fab.spd);
+	_o += "/oc=" + (_a.oc ? "1" : "0");
 	return _o;
 }

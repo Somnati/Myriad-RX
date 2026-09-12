@@ -16,6 +16,14 @@
 ///               "rebirth" the autorebirth, armed: RAM_REBIRTH
 /// @param [v]
 function ram_cost(_kind, _v = 0) {
+	// AN OVERCLOCKED VALUE prices at its notch's multiple of the track's
+	// END price (ram_oc): 1s costs 4, so 0.5s costs 12; 100% costs 5,
+	// so 120% costs 8, 150% 11, 200% 15
+	var _k = ram_oc_k(_kind, _v);
+	if (_k >= 0) {
+		var _end = (_kind == "timer") ? 4 : 5;
+		return ceil(_end * ram_oc(_k).cost);
+	}
 	switch (_kind) {
 		case "timer":
 			if (_v <= 1) return 4;

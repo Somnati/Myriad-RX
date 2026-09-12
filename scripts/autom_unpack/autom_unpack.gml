@@ -21,7 +21,7 @@ function autom_unpack(_s) {
 				var _p = _a.dial[_j];
 				_p.on  = (array_length(_q) > 0) && (_q[0] == "1");
 				if (array_length(_q) > 1 && _q[1] != "") _p.pct = clamp(real(_q[1]), 1, 100);
-				if (array_length(_q) > 2 && _q[2] != "") _p.t   = clamp(real(_q[2]), RAM_TIMER_MIN, RAM_TIMER_MAX);
+				if (array_length(_q) > 2 && _q[2] != "") _p.t   = ram_snap("timer", real(_q[2]));
 				if (!_p.on) _p.st = 0;
 			}
 			break;
@@ -45,7 +45,7 @@ function autom_unpack(_s) {
 			if (array_length(_l) > 2) _u.sell = (_l[2] == "1");
 			if (array_length(_l) > 3 && _l[3] != "") _u.pct  = clamp(real(_l[3]), 1, 100);
 			if (array_length(_l) > 4 && _l[4] != "") _u.keep = clamp(real(_l[4]), 1, 100);
-			if (array_length(_l) > 5 && _l[5] != "") _u.t    = clamp(real(_l[5]), RAM_TIMER_MIN, RAM_TIMER_MAX);
+			if (array_length(_l) > 5 && _l[5] != "") _u.t    = ram_snap("timer", real(_l[5]));
 			break;
 		}
 		case "rar": {
@@ -74,7 +74,7 @@ function autom_unpack(_s) {
 				var _q = string_split(_e[1], ":");
 				_tp.on  = (array_length(_q) > 0) && (_q[0] == "1");
 				if (array_length(_q) > 1 && _q[1] != "") _tp.pct = clamp(real(_q[1]), 1, 100);
-				if (array_length(_q) > 2 && _q[2] != "") _tp.t   = clamp(real(_q[2]), RAM_TIMER_MIN, RAM_TIMER_MAX);
+				if (array_length(_q) > 2 && _q[2] != "") _tp.t   = ram_snap("timer", real(_q[2]));
 				if (!_tp.on) _tp.st = 0;
 			}
 			break;
@@ -82,29 +82,33 @@ function autom_unpack(_s) {
 		case "am": {
 			var _q = string_split(_v, ":");
 			if (variable_global_exists("tiles") && array_length(_q) > 0) g.tiles.automerge = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.am_speed = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.am_speed = ram_snap("speed", real(_q[1]));
 			break;
 		}
 		case "tap": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.tap.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.tap.rate = clamp(round(real(_q[1]) / 2) * 2, 2, 10);
+			if (array_length(_q) > 1 && _q[1] != "") _a.tap.rate = ram_snap("tap", real(_q[1]));
 			break;
 		}
 		case "run": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.run.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.run.spd = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.run.spd = ram_snap("speed", real(_q[1]));
 			break;
 		}
 		case "fab": {
 			var _q = string_split(_v, ":");
 			if (array_length(_q) > 0) _a.fab.on = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.fab.spd = clamp(round(real(_q[1]) / 20) * 20, 20, 100);
+			if (array_length(_q) > 1 && _q[1] != "") _a.fab.spd = ram_snap("speed", real(_q[1]));
 			break;
 		}
+		case "oc": _a.oc = (_v == "1"); break;
 		}
 	}
+	// a preset packed before the overclock existed, or with it off,
+	// closes the notches - nothing may sit on a notch that is not open
+	if (!_a.oc) ram_oc_clamp();
 	save_mark_dirty();
 	return true;
 }

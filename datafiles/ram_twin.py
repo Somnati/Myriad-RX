@@ -34,6 +34,9 @@ RAM_REB       = macro("RAM_REB")
 RAM_REBIRTH   = macro("RAM_REBIRTH")
 RAM_TIMER_MIN = macro("RAM_TIMER_MIN")
 RAM_TIMER_MAX = macro("RAM_TIMER_MAX")
+RAM_OC_N      = int(macro("RAM_OC_N"))
+OC_MULT = [1.2, 1.5, 2]     # ram_oc's ladder: the notch's multiple of the track's end...
+OC_COST = [1.6, 2.2, 3]     # ...and of the track's end PRICE (ceil'd)
 
 ok = True
 
@@ -46,8 +49,24 @@ def say(passed, label, detail=""):
 
 
 # ---------------------------------------------------------------- laws
+def oc_k(kind, v):
+    """ram_oc_k: the notch a value sits on, -1 if not overclocked"""
+    if kind == "speed":
+        if v <= 100: return -1
+        m = v / 100.0
+    elif kind == "tap":
+        if v <= 10: return -1
+        m = v / 10.0
+    else:
+        if v >= RAM_TIMER_MIN or v <= 0: return -1
+        m = RAM_TIMER_MIN / v
+    return min(range(RAM_OC_N), key=lambda k: abs(OC_MULT[k] - m))
+
+
 def cost_timer(t):
     """ram_cost('timer', t)"""
+    k = oc_k("timer", t)
+    if k >= 0: return math.ceil(4 * OC_COST[k])
     if t <= 1: return 4
     if t <= 2: return 3
     if t <= 5: return 2
@@ -56,11 +75,15 @@ def cost_timer(t):
 
 def cost_speed(pct):
     """ram_cost('speed', pct): a stick per 20% (the sliders snap to 20/40/60/80/100)"""
+    k = oc_k("speed", pct)
+    if k >= 0: return math.ceil(5 * OC_COST[k])
     return max(1, math.ceil(pct / 20.0))
 
 
 def cost_tap(tps):
     """ram_cost('tap', tps): a stick per 2 taps/s (the slider snaps to 2..10 by 2)"""
+    k = oc_k("tap", tps)
+    if k >= 0: return math.ceil(5 * OC_COST[k])
     return max(1, math.ceil(tps / 2.0))
 
 
@@ -156,5 +179,33 @@ print(f"  that fits the budget after {need} rebirths; before that it runs at"
       f" x{throttle(u_all, cap()):.2f} on a fresh save")
 say(throttle(u_all, cap()) >= .3, "even everything-on from a fresh save keeps a third of full speed",
     f"x{throttle(u_all, cap()):.2f}")
+
+# ---------------------------------------------------------------- 6. overclock
+print("\n== 6. overclock (the three red notches) ==")
+print("  speed notches:", "  ".join(f"{round(100 * OC_MULT[k])}%={cost_speed(round(100 * OC_MULT[k]))}" for k in range(RAM_OC_N)))
+print("  tap notches:  ", "  ".join(f"{round(10 * OC_MULT[k])}/s={cost_tap(round(10 * OC_MULT[k]))}" for k in range(RAM_OC_N)))
+print("  timer notches:", "  ".join(f"{RAM_TIMER_MIN / OC_MULT[k]:.2f}s={cost_timer(RAM_TIMER_MIN / OC_MULT[k])}" for k in range(RAM_OC_N)))
+# the law: the price climbs faster than the gain, notch by notch
+per_gain = [cost_speed(round(100 * OC_MULT[k])) / OC_MULT[k] for k in range(RAM_OC_N)]
+say(all(per_gain[k] > per_gain[k - 1] for k in range(1, RAM_OC_N)) and per_gain[0] > cost_speed(100),
+    "every notch costs more per unit of speed than the one before (and than 100%)",
+    "sticks per x: " + ", ".join(f"{p:.1f}" for p in per_gain))
+# a fresh save: the defaults (cycling + fabricator at 100%) leave 6 free
+u_oc1 = used(run=120)
+u_oc2 = used(run=150)
+u_oc3 = used(run=200)
+say(u_oc1 <= cap() and u_oc2 <= cap(), "a fresh save can overclock its cycling to 150% inside the budget",
+    f"120%: {u_oc1}, 150%: {u_oc2} of {cap():.0f}")
+say(u_oc3 > cap(), "200% cycling is out of a fresh save's reach - the x2 notch is a rebirth prize",
+    f"200%: {u_oc3} of {cap():.0f}; fits after {math.ceil((u_oc3 - RAM_BASE) / RAM_REB)} rebirths")
+# overclocking past the cap defeats itself: the throttle slows EVERYTHING,
+# so what the notch gains the other machine loses - the sum of the two
+# defaults' speeds is lower over budget at 200% than inside it at 150%
+th3 = throttle(u_oc3, cap())
+say(2 * th3 + th3 < 1.5 + 1, "200% over a fresh budget does less total work than 150% inside it",
+    f"200%: cycling {200 * th3:.0f}% + fabricator {100 * th3:.0f}% vs 150% + 100%")
+# an overclocked timer: 0.5s at 12 sticks vs two dials at 1s for 8
+say(cost_timer(0.5) > 2 * cost_timer(1), "one 0.5s autobuy costs more than two at 1s - breadth beats depth by default",
+    f"0.5s: {cost_timer(0.5)}, 2 x 1s: {2 * cost_timer(1)}")
 
 print("\n" + ("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port"))

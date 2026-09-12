@@ -356,6 +356,18 @@ function main_macros() {
 #macro RAM_REBIRTH      4  // sticks the autorebirth costs, switched on
 #macro RAM_TIMER_MIN    1  // the fastest an autobuy may pulse, seconds
 #macro RAM_TIMER_MAX   30
+// ---- OVERCLOCK (his design, 2026-09-12 - read ram_oc) ----
+// One toggle in the RAM band opens THREE RED NOTCHES past the end of
+// every "more is better" track - the speeds, the autotapper, every
+// autobuy timer - at x1.2 / x1.5 / x2 of the track's end, costing
+// x1.6 / x2.2 / x3 of the track's end price. The cost climbs faster than
+// the gain, so the last notch is the one you save rebirth sticks for.
+// A toggle today; an ability later (tier I = the first two notches,
+// tier II = the x2 one - same tracks, same costs, one gate per notch).
+#macro RAM_OC_N         3  // notches past the end
+#macro RAM_OC_NF       .7  // the share of a track the normal range keeps
+                           // while the notches are open (the rest is red)
+#macro RAM_TIMER_FLOOR .5  // the fastest an overclocked autobuy pulses
 
 // ---- THE PUCK (obj_puck - Myriad DE's throwable, rebuilt) ----
 // Read obj_puck's Create for what each mechanic is FOR; these are the

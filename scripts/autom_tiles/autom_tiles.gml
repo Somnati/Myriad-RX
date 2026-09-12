@@ -28,7 +28,7 @@ function autom_tiles(_dt) {
 		if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
 		_p.tic -= _dt;
 		if (_p.tic > 0) continue;
-		_p.tic = max(RAM_TIMER_MIN, _p.t);
+		_p.tic = max(RAM_TIMER_FLOOR, _p.t);
 		var _q = tile_upg(_id, false);
 		if (_q.max) { _p.st = 1; continue; }
 		// the cap, off the live bank: a share of nothing buys nothing

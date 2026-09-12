@@ -111,6 +111,10 @@ function autom_init(_force = false) {
 		run      : { on : true, spd : 100 },
 		fab      : { on : true, spd : 100 },
 		am_speed : 100,
+		// THE OVERCLOCK TOGGLE (his design, 2026-09-12 - read ram_oc):
+		// on, every speed / tap / timer track grows its red notches; off,
+		// ram_oc_clamp drops anything sitting on them
+		oc       : false,
 		presets  : ["", "", ""],
 		// THE WATERMARK the reserve is measured against: the highest
 		// pile ever held on this run. It exists because a reserve

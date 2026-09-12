@@ -35,7 +35,7 @@ function autom_tick() {
 			if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
 			_p.tic -= _dt * _th;
 			if (_p.tic > 0) continue;
-			_p.tic = max(RAM_TIMER_MIN, _p.t);
+			_p.tic = max(RAM_TIMER_FLOOR, _p.t);
 			autom_piece(_p, _i);
 		}
 	}
@@ -63,7 +63,7 @@ function autom_tick() {
 	var _buy_due = false;
 	if (_u.buy) {
 		_u.tic -= _dt * _th;
-		if (_u.tic <= 0) { _u.tic = max(RAM_TIMER_MIN, _u.t); _buy_due = true; }
+		if (_u.tic <= 0) { _u.tic = max(RAM_TIMER_FLOOR, _u.t); _buy_due = true; }
 	} else _u.tic = 0;
 
 	// ---- the tile table's upgrades, each on its own clock ----

@@ -28,6 +28,16 @@
 /// autorebirth has ONE master switch that costs (its rails are free
 /// conditions), and the overview totals it all and holds presets.
 ///
+/// ⚖️ OVERCLOCK (his design, 2026-09-12 - read ram_oc). The [overclock]
+/// chip in the RAM band opens three red notches past the end of every
+/// "more is better" track - the speeds, the autotapper, every autobuy
+/// timer - at x1.2 / x1.5 / x2 for x1.6 / x2.2 / x3 the price. While it
+/// is open the normal range keeps RAM_OC_NF of the track and the
+/// notches take the rest; off, the track is all normal again and
+/// ram_oc_clamp drops anything that sat on a notch. THE TIMER TRACKS
+/// RUN RIGHT = FASTEST (his call), so every track in the panel reads
+/// "right = more automation" and the notches are always at the right.
+///
 /// DRAW-ONLY PLUS REGION HITS, all off the geometry declared here. The
 /// sliders are drawn tracks with a drag handled in the Step rather than
 /// the settings screen's bound widget instances: those exist to keep a
@@ -92,6 +102,7 @@ drag_tab   = 0;
 drag_which = 0;    // 0 the wide track, 1 the timer track, 2 the cap track
 drag_lo    = 0;
 drag_hi    = 100;
+drag_rw    = -1;   // the row struct at press time (the stops-tracks read it)
 
 // the hover, for the meter (the Draw finds it; the band reads it)
 hov     = -1;
@@ -146,10 +157,94 @@ __slide = function(_r, _lo, _hi) {
 	return round(lerp(_lo, _hi, clamp((mouse_x - _r.x) / max(1, _r.w), 0, 1)));
 };
 
+// ---- THE OVERCLOCKABLE TRACKS (read ram_oc) ----
+// a track's normal range keeps this share of its width while the
+// notches are open, and all of it otherwise
+__nf = function(_rw) {
+	return (g.autom.oc && variable_struct_exists(_rw, "ock")) ? RAM_OC_NF : 1;
+};
+/// the STOPS of a snapping track: { v, f, k } - the value, where on the
+/// track (0..1) it sits, and the notch it is (-1 for a normal stop).
+/// The normal stops spread over the first __nf of the track, the
+/// notches over the rest. Draw and Step both read this, so a notch is
+/// drawn exactly where it is grabbed
+__stops = function(_rw) {
+	var _o = [];
+	var _n = 0;
+	for (var _v = _rw.lo; _v <= _rw.hi; _v += _rw.snap) _n++;
+	var _nf = __nf(_rw);
+	var _k = 0;
+	for (var _v = _rw.lo; _v <= _rw.hi; _v += _rw.snap) {
+		array_push(_o, { v : _v, f : ((_n > 1) ? (_k / (_n - 1)) : 0) * _nf, k : -1 });
+		_k++;
+	}
+	if (_nf < 1)
+		for (var _q = 0; _q < RAM_OC_N; _q++)
+			array_push(_o, { v : ram_oc_value(_rw.ock, _q), f : _nf + (1 - _nf) * (_q + 1) / RAM_OC_N, k : _q });
+	return _o;
+};
+/// where a value sits on a stops-track (the nearest stop's f)
+__stop_f = function(_rw, _v) {
+	var _st = __stops(_rw);
+	var _bf = 0, _bd = 999999999;
+	for (var _i = 0; _i < array_length(_st); _i++) {
+		var _d = abs(_st[_i].v - _v);
+		if (_d < _bd) { _bd = _d; _bf = _st[_i].f; }
+	}
+	return _bf;
+};
+/// the stop nearest the pointer on a stops-track
+__stop_pick = function(_rw, _r) {
+	var _f = clamp((mouse_x - _r.x) / max(1, _r.w), 0, 1);
+	var _st = __stops(_rw);
+	var _bv = _rw.lo, _bd = 999999999;
+	for (var _i = 0; _i < array_length(_st); _i++) {
+		var _d = abs(_st[_i].f - _f);
+		if (_d < _bd) { _bd = _d; _bv = _st[_i].v; }
+	}
+	return _bv;
+};
+/// THE TIMER TRACK: right = fastest. Whole seconds RAM_TIMER_MAX..MIN
+/// across the normal range, then the notches (1/1.2, 1/1.5, 1/2 s)
+__tm_f = function(_rw, _t) {
+	var _nf = __nf(_rw);
+	if (_t >= RAM_TIMER_MIN)
+		return clamp((RAM_TIMER_MAX - _t) / max(1, RAM_TIMER_MAX - RAM_TIMER_MIN), 0, 1) * _nf;
+	return _nf + (1 - _nf) * (ram_oc_k("timer", _t) + 1) / RAM_OC_N;
+};
+__tm_pick = function(_rw, _r) {
+	var _f  = clamp((mouse_x - _r.x) / max(1, _r.w), 0, 1);
+	var _nf = __nf(_rw);
+	if (_nf >= 1 || _f <= _nf)
+		return clamp(round(lerp(RAM_TIMER_MAX, RAM_TIMER_MIN, _f / _nf)), RAM_TIMER_MIN, RAM_TIMER_MAX);
+	// past the normal end: the nearest of {the end, the notches}
+	var _bv = RAM_TIMER_MIN, _bd = abs(_f - _nf);
+	for (var _q = 0; _q < RAM_OC_N; _q++) {
+		var _sf = _nf + (1 - _nf) * (_q + 1) / RAM_OC_N;
+		if (abs(_f - _sf) < _bd) { _bd = abs(_f - _sf); _bv = ram_oc_value("timer", _q); }
+	}
+	return _bv;
+};
+/// a timer's readout: whole seconds, or an overclocked fraction
+__tm_str = function(_t) {
+	return (_t >= RAM_TIMER_MIN) ? (string(_t) + "s") : (string_format(_t, 1, 2) + "s");
+};
+/// the value a press or drag lands on the row's track (which: 0 the
+/// wide track, 1 the timer, 2 the cap)
+__pick = function(_rw, _r, _which) {
+	if (_which == 1) return __tm_pick(_rw, _r);
+	if (_which == 0 && variable_struct_exists(_rw, "snap")) return __stop_pick(_rw, _r);
+	return __slide(_r, _rw.lo, _rw.hi);
+};
+// the [overclock] chip in the RAM band, left of the verdict
+__oc_rect = function() {
+	return { x : room_width - 8 - 96 - 60, y : band_y + 1, w : 56, h : band_h - 2 };
+};
+
 // ---- the RAM meter's geometry: one stick per unit, sized to fit ----
 stk_x0 = 62; stk_w = 4; stk_gap = 1;
 __stick_seat = function(_n) {
-	var _room = room_width - stk_x0 - 96;   // the throttle readout keeps the right
+	var _room = room_width - stk_x0 - 160;  // the verdict and the [overclock] chip keep the right
 	stk_w = clamp(floor(_room / max(1, _n)) - 1, 2, 5);
 };
 __stick_r = function(_k) {
@@ -227,7 +322,8 @@ __page_rows = function() {
 	if (tab == AT_OVER) {
 		var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
 		array_push(_o, { kind : 6, name : "ram",
-			val : string(_u) + " of " + string(_c) + " sticks in use",
+			val : string(_u) + " of " + string(_c) + " sticks in use"
+			    + (_a.oc ? (ram_oc_any() ? "  -  overclocked" : "  -  overclock open") : ""),
 			right : (_th < 1) ? ("over budget - everything runs at x" + string_format(_th, 1, 2))
 			                  : (string(_c - _u) + " free"),
 			on : true, st : -1, col : c_gold, ram : 0,
@@ -299,18 +395,19 @@ __page_rows = function() {
 		// THE AUTOTAPPER (his ask, 2026-09-11) heads the page: the
 		// tapper is the money room's first machine
 		array_push(_o, __section("tap process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 2, hi : 10, snap : 2, name : "auto tap",
+		array_push(_o, { kind : 2, lo : 2, hi : 10, snap : 2, name : "auto tap", ock : "tap",
 			on : _a.tap.on, val : _a.tap.rate, sfx : " taps/s", st : -1,
 			col : c_gold, ram : ram_cost("tap", _a.tap.rate),
 			help : "taps the money room for you, that many a second (x your tps "
-			     + "bonuses) - a stick per 2 taps/s. its taps are not counted as yours" });
+			     + "bonuses) - a stick per 2 taps/s; the red notches overclock it. "
+			     + "its taps are not counted as yours" });
 		array_push(_o, __section("dial process automation", tcol[AT_DIALS]));
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling", ock : "speed",
 			on : _a.run.on, val : _a.run.spd, sfx : "% speed", st : -1,
 			col : c_sgreen, ram : ram_cost("speed", _a.run.spd),
-			help : "the dials running on their own - slower is cheaper. off "
-			     + "FREEZES them where they are; hold the pointer on one to "
-			     + "crank it by hand" });
+			help : "the dials running on their own - slower is cheaper, the red "
+			     + "notches overclock them. off FREEZES them where they are; hold "
+			     + "the pointer on one to crank it by hand" });
 		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
 		// THE RESERVE heads the autobuys, because it is the counterweight
 		// to everything under it: autobuy spends profit, and this is the
@@ -342,7 +439,7 @@ __page_rows = function() {
 		for (var _i = 0; _i < _n; _i++) {
 			var _p = _a.dial[_i];
 			array_push(_o, {
-				kind : 5, lo : 1, hi : 100,
+				kind : 5, lo : 1, hi : 100, ock : "timer",
 				name : "dial " + dial_config(_i).name,
 				sub  : __dial_readout(g.dial[_i]),
 				top  : (_i == _best),
@@ -353,7 +450,7 @@ __page_rows = function() {
 				st   : _p.st,
 				col  : dial_color(_i), ram : ram_cost("timer", _p.t),
 				help : "cap % of spendable profit per buy - timer: secs between "
-				     + "tries, faster costs ram",
+				     + "tries, right is faster and costs more ram",
 			});
 		}
 	}
@@ -395,11 +492,11 @@ __page_rows = function() {
 		array_push(_o, { kind : 0, name : "auto roll",
 			on : _u.roll, val : 0, sfx : "", st : -1, col : c_sblue, ram : 1,
 			help : "fills every empty slot, once a second" });
-		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy",
+		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy", ock : "timer",
 			on : _u.buy, val : _u.pct, t : _u.t, sfx : "%", st : -1,
 			col : c_sgreen, ram : ram_cost("timer", _u.t),
 			help : "buys a tier while its price fits that share of credits - "
-			     + "timer: secs between tries" });
+			     + "timer: secs between tries, right is faster" });
 		array_push(_o, { kind : 2, lo : 1, hi : 100, name : "auto sell",
 			on : _u.sell, val : _u.keep, sfx : "% quick-set", st : -1,
 			col : c_lavender, ram : 1,
@@ -422,27 +519,27 @@ __page_rows = function() {
 	// ---- THE TILE TABLE ----
 	if (tab == AT_TILES) {
 		array_push(_o, __section("tile process automation", tcol[AT_TILES]));
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "fabricator",
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "fabricator", ock : "speed",
 			on : _a.fab.on, val : _a.fab.spd, sfx : "% speed", st : -1,
 			col : c_seagreen, ram : ram_cost("speed", _a.fab.spd),
-			help : "the table making tiles on its own - slower is cheaper, "
-			     + "off makes nothing" });
-		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "auto merge",
+			help : "the table making tiles on its own - slower is cheaper, the "
+			     + "red notches overclock it, off makes nothing" });
+		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "auto merge", ock : "speed",
 			on : (variable_global_exists("tiles") && g.tiles.automerge),
 			val : _a.am_speed, sfx : "% speed", st : -1, col : c_seagreen,
 			ram : ram_cost("speed", _a.am_speed),
 			help : "the table merging its lowest equal pair on its own clock - "
-			     + "the speed scales that clock" });
+			     + "the speed scales that clock, the red notches overclock it" });
 		array_push(_o, __section("autobuy", tcol[AT_TILES]));
 		var _tc = tile_upg_config();
 		for (var _i = 0; _i < array_length(_tc); _i++) {
 			var _e = _tc[_i];
 			var _p = _a.tiles[$ _e.id];
 			if (_p == undefined) continue;
-			array_push(_o, { kind : 5, lo : 1, hi : 100,
+			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer",
 				name : _e.name, on : _p.on, val : _p.pct, t : _p.t, sfx : "%",
 				st : _p.st, col : c_seagreen, id : _e.id, ram : ram_cost("timer", _p.t),
-				help : "cap % of the shards per buy - timer: secs between tries" });
+				help : "cap % of the shards per buy - timer: secs between tries, right is faster" });
 		}
 	}
 	return _o;
@@ -527,11 +624,11 @@ __quickset = function() {
 __set_slider = function(_t, _i, _v, _which = 0) {
 	var _a = g.autom;
 	if (_t == AT_DIALS) {
-		if (_i == 1)      _a.tap.rate = clamp(round(_v / 2) * 2, 2, 10);
-		else if (_i == 3) _a.run.spd  = clamp(round(_v / 20) * 20, 20, 100);
+		if (_i == 1)      _a.tap.rate = ram_snap("tap", _v);
+		else if (_i == 3) _a.run.spd  = ram_snap("speed", _v);
 		else if (_i == 5) _a.lock_pct = clamp(_v, 0, 90);
 		else if (_i >= 6) {
-			if (_which == 1) _a.dial[_i - 6].t   = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX);
+			if (_which == 1) _a.dial[_i - 6].t   = ram_snap("timer", _v);
 			else             _a.dial[_i - 6].pct = _v;
 		}
 		return;
@@ -549,22 +646,30 @@ __set_slider = function(_t, _i, _v, _which = 0) {
 	if (_t == AT_UPG) {
 		var _u = _a.upg;
 		switch (_i) {
-			case 2: if (_which == 1) _u.t = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX); else _u.pct = _v; break;
+			case 2: if (_which == 1) _u.t = ram_snap("timer", _v); else _u.pct = _v; break;
 			case 3: _u.keep = _v; __quickset(); break;
 		}
 		return;
 	}
 	if (_t == AT_TILES) {
-		if (_i == 1) { _a.fab.spd  = clamp(round(_v / 20) * 20, 20, 100); return; }
-		if (_i == 2) { _a.am_speed = clamp(round(_v / 20) * 20, 20, 100); return; }
+		if (_i == 1) { _a.fab.spd  = ram_snap("speed", _v); return; }
+		if (_i == 2) { _a.am_speed = ram_snap("speed", _v); return; }
 		var _tc = tile_upg_config();
 		var _k = _i - 4;
 		if (_k < 0 || _k >= array_length(_tc)) return;
 		var _p = _a.tiles[$ _tc[_k].id];
 		if (_p == undefined) return;
-		if (_which == 1) _p.t = clamp(_v, RAM_TIMER_MIN, RAM_TIMER_MAX);
+		if (_which == 1) _p.t = ram_snap("timer", _v);
 		else             _p.pct = _v;
 	}
+};
+
+// the [overclock] chip: open or close the notches
+__oc_flip = function() {
+	g.autom.oc = !g.autom.oc;
+	if (!g.autom.oc) ram_oc_clamp();
+	save_mark_dirty();
+	play_sound_ext(g.autom.oc ? snd_matclick2 : snd_matclick, 1.1, 1.3, .5, 1);
 };
 
 // ---- the overview's actions ----
@@ -576,6 +681,7 @@ __defaults = function() {
 	_a.run = { on : true, spd : 100 };
 	_a.fab = { on : true, spd : 100 };
 	_a.am_speed = 100;
+	_a.oc = false;
 	if (variable_global_exists("tiles")) g.tiles.automerge = false;
 	for (var _i = 0; _i < array_length(_a.dial); _i++) {
 		var _d = _a.dial[_i];

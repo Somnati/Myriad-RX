@@ -319,7 +319,7 @@ function handle_save(){
 			var _op = string_split(_kv[1], ":");
 			_tp.on  = (array_length(_op) > 0) && (_op[0] == "1");
 			_tp.pct = (array_length(_op) > 1 && _op[1] != "") ? clamp(real(_op[1]), 1, 100) : 50;
-			_tp.t   = (array_length(_op) > 2 && _op[2] != "") ? clamp(real(_op[2]), RAM_TIMER_MIN, RAM_TIMER_MAX) : 30;
+			_tp.t   = (array_length(_op) > 2 && _op[2] != "") ? ram_snap("timer", real(_op[2])) : 30;
 		}
 	}
 
@@ -334,7 +334,7 @@ function handle_save(){
 		var _p6 = string_split(_atm, ",");
 		for (var _k = 0; _k < _an; _k++) {
 			var _d6 = (_k < array_length(_p6)) ? _p6[_k] : "";
-			g.autom.dial[_k].t = (_d6 == "") ? 30 : clamp(real(_d6), RAM_TIMER_MIN, RAM_TIMER_MAX);
+			g.autom.dial[_k].t = (_d6 == "") ? 30 : ram_snap("timer", real(_d6));
 		}
 	}
 	g.autom.upg.t     = handle("upg_t",     g.autom.upg.t);
@@ -347,12 +347,16 @@ function handle_save(){
 	g.autom.am_speed  = handle("am_speed",  g.autom.am_speed);
 	for (var _k = 0; _k < 3; _k++)
 		g.autom.presets[_k] = handle("preset" + string(_k), g.autom.presets[_k]);
+	g.autom.oc        = handle("oc",        g.autom.oc);   // the overclock toggle (ram_oc)
 	if (action == sv_load) {
-		g.autom.upg.t    = clamp(g.autom.upg.t, RAM_TIMER_MIN, RAM_TIMER_MAX);
-		g.autom.tap.rate = clamp(round(g.autom.tap.rate / 2) * 2, 2, 10);
-		g.autom.run.spd  = clamp(round(g.autom.run.spd / 20) * 20, 20, 100);
-		g.autom.fab.spd  = clamp(round(g.autom.fab.spd / 20) * 20, 20, 100);
-		g.autom.am_speed = clamp(round(g.autom.am_speed / 20) * 20, 20, 100);
+		// every overclockable value snaps to its ladder (normal stops or
+		// a notch), then the notches close if the toggle is off
+		g.autom.upg.t    = ram_snap("timer", g.autom.upg.t);
+		g.autom.tap.rate = ram_snap("tap",   g.autom.tap.rate);
+		g.autom.run.spd  = ram_snap("speed", g.autom.run.spd);
+		g.autom.fab.spd  = ram_snap("speed", g.autom.fab.spd);
+		g.autom.am_speed = ram_snap("speed", g.autom.am_speed);
+		if (!g.autom.oc) ram_oc_clamp();
 		for (var _k = 0; _k < 3; _k++)
 			if (!is_string(g.autom.presets[_k])) g.autom.presets[_k] = "";
 	}

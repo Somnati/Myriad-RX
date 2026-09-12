@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ram_snap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ram_snap",
+  "parent":{
+    "name":"automation",
+    "path":"folders/game/automation.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -9,7 +9,7 @@ if (drag_row >= 0) {
 	else {
 		var _tr = (drag_which == 1) ? __tm_r(drag_row)
 		        : ((drag_which == 2) ? __cap_r(drag_row) : __trk_r(drag_row));
-		__set_slider(drag_tab, drag_row, __slide(_tr, drag_lo, drag_hi), (drag_which == 1) ? 1 : 0);
+		__set_slider(drag_tab, drag_row, __pick(drag_rw, _tr, drag_which), (drag_which == 1) ? 1 : 0);
 		exit;
 	}
 }
@@ -30,6 +30,15 @@ if (_wh != 0 && mouse_x >= cont_x) {
 }
 
 if (!mouse_check_button_pressed(mb_left)) exit;
+
+// ---- the [overclock] chip in the RAM band ----
+{
+	var _oc = __oc_rect();
+	if (point_in_rectangle(mouse_x, mouse_y, _oc.x, _oc.y, _oc.x + _oc.w, _oc.y + _oc.h)) {
+		__oc_flip();
+		exit;
+	}
+}
 
 // ---- the rail ----
 for (var _t = 0; _t < NTAB; _t++) {
@@ -101,9 +110,9 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		var _tk = __trk_r(_i);
 		if (point_in_rectangle(mouse_x, mouse_y, _tk.x - 3, _tk.y - 5,
 			_tk.x + _tk.w + 3, _tk.y + _tk.h + 5)) {
-			drag_row = _i; drag_tab = tab; drag_which = 0;
+			drag_row = _i; drag_tab = tab; drag_which = 0; drag_rw = _rw;
 			drag_lo  = _rw.lo; drag_hi = _rw.hi;
-			__set_slider(tab, _i, __slide(_tk, _rw.lo, _rw.hi));
+			__set_slider(tab, _i, __pick(_rw, _tk, 0));
 			exit;
 		}
 	}
@@ -111,17 +120,17 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		var _ck = __cap_r(_i);
 		if (point_in_rectangle(mouse_x, mouse_y, _ck.x - 3, _ck.y - 5,
 			_ck.x + _ck.w + 3, _ck.y + _ck.h + 5)) {
-			drag_row = _i; drag_tab = tab; drag_which = 2;
+			drag_row = _i; drag_tab = tab; drag_which = 2; drag_rw = _rw;
 			drag_lo  = _rw.lo; drag_hi = _rw.hi;
-			__set_slider(tab, _i, __slide(_ck, _rw.lo, _rw.hi), 0);
+			__set_slider(tab, _i, __pick(_rw, _ck, 2), 0);
 			exit;
 		}
 		var _tm = __tm_r(_i);
 		if (point_in_rectangle(mouse_x, mouse_y, _tm.x - 3, _tm.y - 5,
 			_tm.x + _tm.w + 3, _tm.y + _tm.h + 5)) {
-			drag_row = _i; drag_tab = tab; drag_which = 1;
+			drag_row = _i; drag_tab = tab; drag_which = 1; drag_rw = _rw;
 			drag_lo  = RAM_TIMER_MIN; drag_hi = RAM_TIMER_MAX;
-			__set_slider(tab, _i, __slide(_tm, RAM_TIMER_MIN, RAM_TIMER_MAX), 1);
+			__set_slider(tab, _i, __pick(_rw, _tm, 1), 1);
 			exit;
 		}
 	}
