@@ -110,6 +110,17 @@ __rr_grad = function(_x, _y, _w, _h, _c1, _c2, _a) {
 row_x  = 8;
 row_w  = land ? 292 : (room_width - 16);
 
+/// @func __inner(x, y, w, h, [col])
+/// @desc THE OUTLINE METHOD (his ask, 2026-09-12): over a gradient
+///       capsule, a black one a pixel inside it on the LEFT, TOP and
+///       BOTTOM - not the right, where the gradient is black anyway -
+///       so what is left of the gradient is a rim, brightest at the
+///       left, fading along the edges, and the middle where the words
+///       sit is black. The inspector and every row wear it.
+__inner = function(_x, _y, _w, _h, _col = c_black) {
+	draw_capsule(_x + 1, _y + 1, _w - 1, _h - 2, _col, _col, 1, capsule_bevel(_h - 2));
+};
+
 mode = 0;      // 0 = buy, 1 = sell
 sel  = -1;     // the slot under the pointer, for the hover wash
 
@@ -180,7 +191,12 @@ hold_spd  = 1;    // DE's hp_spd: the repeat ramp, 1..7
 hold_lock = false;  // set when a hold completes something that must not
                     // repeat (DE's `hp = -1`), cleared on release
 
-__row_y = function(_i) { return list_y + 5 + _i * row_sp; };
+// THE PURSE RIDES THE STRIP'S BOTTOM LINE (his ask, 2026-09-12: "the
+// top pixel of the credit banner rests over the bottom grey line of the
+// title panel"), so the table starts under it - 12px lower than the
+// strip's own edge
+purse_y = list_y;   // obj_display_credits draws from y - 1 (the Step pins it here)
+__row_y = function(_i) { return list_y + 16 + _i * row_sp; };
 
 // the inspector shares the table's top edge and runs to the bottom
 // margin - the two columns are one rectangle cut in two. Portrait: it
@@ -225,8 +241,11 @@ __free_slot = function() {
 // the mode switch: ONE segmented pill in the title strip after the
 // name - [buy|sell], the live half filled. Two halves of one shape
 // rather than two buttons, because it is one choice
+// ...seated over the price column (his ask, 2026-09-12: "so it sits
+// above the slots' buy button") - the choice sits over the thing it
+// changes. The column is 52 wide at row_x + row_w - 54; the pill is 60
 __mode_rect = function(_m) {
-	return { x : (land ? 68 : 62) + _m * 30, y : bby + 2, w : 30, h : 12 };
+	return { x : row_x + row_w - 58 + _m * 30, y : bby + 2, w : 30, h : 12 };
 };
 
 // the [modifiers] button: the strip's right end in landscape, a wide
@@ -285,6 +304,27 @@ __next_str = function(_i) {
 // THE OVERHAUL SEATS THEM INSIDE THE ROW, on its second line under the
 // name, in the slot's rarity colour - the row is 18 tall now and has a
 // second line for exactly this, so nothing spills into the gap
+//
+// THE BUBBLES ARE DE'S (his ask, 2026-09-12 - the 3px dots were "very
+// faint"): spr_achieve_bubble's frame, stamped - a 4x4 round dot with
+// a black ring, on a 5px pitch so the ring of one touches the next, lit
+// in the rarity colour for the tiers bought and sunk toward black for
+// the rest. They sit on the row's second line under the name.
+__bubble = function(_x, _y, _col, _a) {
+	// the ring
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 1, _y - 1, 2, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 1, _y + 4, 2, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x,     _y,     1, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y,     1, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x,     _y + 3, 1, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y + 3, 1, 1, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y + 1, 1, 2, 0, c_black, .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 4, _y + 1, 1, 2, 0, c_black, .9);
+	// the dot
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 1, _y,     2, 1, 0, _col, _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x,     _y + 1, 4, 2, 0, _col, _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + 1, _y + 3, 2, 1, 0, _col, _a);
+};
 __dots = function(_i, _ry) {
 	var _s = g.upg.slot[_i];
 	if (!is_struct(_s)) return;
@@ -293,14 +333,30 @@ __dots = function(_i, _ry) {
 	if (_s.tier >= _cap) return;
 
 	var _rc = __rar_col(_s.rar);
-	var _dx = row_x + 8;
+	var _dx = row_x + 11;
 	var _dy = _ry + 12;
 	for (var _d = 0; _d < _cap; _d++) {
 		var _on = (_s.tier > _d);
-		draw_sprite_ext(spr_pixel_1x1, 0, _dx, _dy, 3, 3, 0,
-			_on ? _rc : merge_colour(_rc, c_black, .7), _on ? .95 : .8);
-		_dx += 4;
+		__bubble(_dx, _dy, _on ? merge_colour(_rc, c_white, .2) : merge_colour(_rc, c_black, .7), _on ? 1 : .9);
+		_dx += 5;
 	}
+};
+
+// THE BEVELLED BUTTON (his ask, 2026-09-12): draw_ui_button's chrome
+// - black face, a one-pixel frame in the colour, the centred label,
+// primary at full strength and secondary a step dimmer, disabled grey
+// - on the capsule shape: the frame is a coloured capsule with a black
+// one a pixel inside it, the same outline the inspector wears
+__btn_draw = function(_x, _y, _w, _h, _label, _col, _enabled = true, _primary = true) {
+	draw_capsule(_x, _y, _w, _h, _col, _col, !_enabled ? .25 : (_primary ? .85 : .45));
+	draw_capsule(_x + 1, _y + 1, _w - 2, _h - 2, c_black, c_black, _primary ? .92 : .8, capsule_bevel(_h - 2));
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_top);
+	draw_set_color(!_enabled ? c_gray : merge_colour(_col, c_white, _primary ? .4 : .25));
+	draw_set_alpha(_primary ? .95 : .85);
+	draw_text(_x + (_w div 2) + 1, _y + (_h - 7) div 2, _label);
+	draw_set_halign(fa_left);
+	draw_set_alpha(1);
 };
 
 upgrade_init();

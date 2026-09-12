@@ -3,7 +3,10 @@ oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 // the modifiers list eases too
-mod_a = move_to(mod_a, mod_open ? 1 : 0, .12);
+// (move_to's third argument is a DIVISOR - .12 sent it past 8 and the
+// sheet flickered, his "broken visually")
+mod_a = clamp(move_to(mod_a, mod_open ? 1 : 0, 4), 0, 1);
+if (abs(mod_a - (mod_open ? 1 : 0)) < .01) mod_a = mod_open ? 1 : 0;
 
 // THE CREDIT PANEL IS PINNED HERE (his call, DE's obj_display_credits).
 // Every price on this screen is in credits, so the balance has to be
@@ -13,9 +16,10 @@ mod_a = move_to(mod_a, mod_open ? 1 : 0, .12);
 // to remember to. It sits in the BOTTOM-LEFT CORNER under the totals
 // band (the overhaul) rather than at its default y 46, where it would
 // land on top of the second row.
+// ...on the strip's bottom line, above the table (his ask, 2026-09-12)
 if (instance_exists(obj_display_credits) && !closing) {
 	obj_display_credits.pin  = true;
-	obj_display_credits.desy = land ? (room_height - 16) : (room_height - 36);
+	obj_display_credits.desy = purse_y;
 }
 
 msg_hp = max(0, msg_hp - delta);

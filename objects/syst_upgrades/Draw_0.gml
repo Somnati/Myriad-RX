@@ -69,25 +69,23 @@ draw_set_halign(fa_left);
 
 // [modifiers]: the totals as a list (DE's "view modifiers")
 var _md = __mod_rect();
-draw_ui_button(_md.x, _md.y, _md.w, _md.h, "modifiers", c_lavender, true, mod_open);
+__btn_draw(_md.x, _md.y, _md.w, _md.h, "modifiers", c_lavender, true, mod_open);
 
-// the strip's message seat, before the [modifiers] button: what just
-// happened (fading), else the not-live warning while it applies. One
-// seat, so the strip never grows a second line
-var _seat_r = land ? (_md.x - 8) : (room_width - 8);
-draw_set_halign(fa_right);
+// the strip's message seat, after the title (the mode pill took the
+// right): what just happened (fading), else the not-live warning while
+// it applies. One seat, so the strip never grows a second line
+draw_set_halign(fa_left);
 if (msg_hp > 0 && msg != "") {
 	draw_set_color(msg_col);
 	draw_set_alpha(.9 * min(1, msg_hp / 40));
-	draw_text(_seat_r, bby + 5, msg);
+	draw_text(64, bby + 5, msg);
 } else if (!UPG_LIVE && land) {
 	// ⚖️ AND SAY SO WHILE IT IS OFF. A screen that quotes bonuses the
 	// game is not applying, without saying so, is a screen that lies.
 	draw_set_color(c_horange);
-	draw_set_alpha(.6);
-	draw_text(_seat_r, bby + 5, "preview - not live yet");
+	draw_set_alpha(.5);
+	draw_text(64, bby + 5, "preview - not live yet");
 }
-draw_set_halign(fa_left);
 
 // ==================== THE SLOT TABLE ====================
 var _fs  = __free_slot();
@@ -110,8 +108,9 @@ for (var _i = 0; _i < _n; _i++) {
 			// under the pointer
 			var _rcol = _ra ? c_sblue : c_hred;
 			__rr_grad(row_x, _ry, row_w, row_h,
-				merge_colour(_rcol, c_black, _ra ? (_hov ? .5 : .62) : .8),
+				merge_colour(_rcol, c_black, _ra ? (_hov ? .3 : .45) : .7),
 				merge_colour(_rcol, c_black, .94), 1);
+			__inner(row_x, _ry, row_w, row_h);
 			draw_set_color(_ra ? merge_colour(_rcol, c_white, .55) : c_gray);
 			draw_set_alpha(.95);
 			draw_text(row_x + 10, _ry + 5, "+ roll a slot");
@@ -123,7 +122,8 @@ for (var _i = 0; _i < _n; _i++) {
 		} else {
 			// an empty capsule: the deck's near-black, a whisper of grey
 			__rr_grad(row_x, _ry, row_w, row_h,
-				merge_colour(_dim, c_black, .82), merge_colour(_dim, c_black, .95), 1);
+				merge_colour(_dim, c_black, .7), merge_colour(_dim, c_black, .95), 1);
+			__inner(row_x, _ry, row_w, row_h);
 			draw_set_color(_dim);
 			draw_set_alpha(.35);
 			draw_text(row_x + 10, _ry + 5, "empty");
@@ -142,9 +142,14 @@ for (var _i = 0; _i < _n; _i++) {
 	// ---- THE CAPSULE (obj_ability_slot's): the rarity colour at the
 	// left fading to near-black at the right, brighter once owned - an
 	// offer sits dimmer, the deck's "not yet on" ----
-	var _cl = merge_colour(_rcl, c_black, _own ? .45 : .72);
+	// ...AS AN OUTLINE (his ask, 2026-09-12: the inspector's method on
+	// the rows): the gradient capsule, then a black capsule a pixel
+	// inside it on the left, top and bottom - the rim carries the
+	// rarity, the words sit on black
+	var _cl = merge_colour(_rcl, c_black, _own ? .15 : .5);
 	var _cr = merge_colour(_rcl, c_black, .94);
 	__rr_grad(row_x, _ry, row_w, row_h, _cl, _cr, 1);
+	__inner(row_x, _ry, row_w, row_h);
 	// ---- THE HOLD BAR (DE's): a wash sweeping the WHOLE ROW - what is
 	// being spent, or consumed, is the slot. GREEN AND LINEAR to buy,
 	// RED AND SQUARED to sell (the squared one crawls at the start, so a
@@ -171,13 +176,9 @@ for (var _i = 0; _i < _n; _i++) {
 		draw_set_color(c_gold);
 		draw_set_alpha(.7);
 		draw_text(row_x + 10, _ry + 11, "complete");
-	} else if (!_own) {
-		draw_set_color(_dim);
-		draw_set_alpha(.6);
-		draw_text(row_x + 10 + ((_cap > 1) ? (_cap * 4 + 3) : 0), _ry + 11, "offer");
 	}
 	// how much - the effect right-aligned before the button; an offer
-	// quotes what a tier is worth, dimmer
+	// quotes what a tier is worth, dimmer (no "a tier" - noise, his call)
 	draw_set_halign(fa_right);
 	if (_e == -1) {
 		draw_set_color(_dim);
@@ -195,7 +196,7 @@ for (var _i = 0; _i < _n; _i++) {
 	} else {
 		draw_set_color(_dim);
 		draw_set_alpha(.75);
-		draw_text(_eff_r, _ry + 5, __eff_str(_i) + " a tier");
+		draw_text(_eff_r, _ry + 5, __eff_str(_i));
 	}
 	draw_set_halign(fa_left);
 
@@ -204,13 +205,13 @@ for (var _i = 0; _i < _n; _i++) {
 	if (mode == 0) {
 		var _cost   = upgrade_cost(_i);
 		var _afford = (_cost > 0) && (g.credits >= arb(_cost));
-		draw_ui_button(_b.x, _b.y, _b.w, _b.h,
+		__btn_draw(_b.x, _b.y, _b.w, _b.h,
 			(_cost < 0) ? "max" : string(_cost),
 			_afford ? c_sgreen : c_hred, _cost > 0, _afford);
 	} else {
 		// every slot quotes a price, an untouched offer included (it
 		// cost a stake to be here) - see upgrade_sell_value
-		draw_ui_button(_b.x, _b.y, _b.w, _b.h,
+		__btn_draw(_b.x, _b.y, _b.w, _b.h,
 			string(upgrade_sell_value(_i)), c_lavender, true, true);
 	}
 }
@@ -232,7 +233,7 @@ var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
 var _rim = _has_pick ? __rar_col(g.upg.slot[pick].rar) : _ink;
 __rr_grad(desc_x, desc_y, desc_w, desc_h,
 	merge_colour(_rim, c_black, _has_pick ? .2 : .6), merge_colour(_rim, c_black, .96), 1);
-draw_capsule(desc_x + 1, desc_y + 1, desc_w - 1, desc_h - 2, _dc, _dc, 1, capsule_bevel(desc_h - 2));
+__inner(desc_x, desc_y, desc_w, desc_h, _dc);
 
 var _px = desc_x + 10;
 var _pr = desc_x + desc_w - 8;
@@ -260,13 +261,15 @@ if (!_has_pick) {
 	draw_set_color(_pc);
 	draw_set_alpha(.9);
 	draw_text(_px, desc_y + 18, __rar_name(_ps.rar));
-	draw_set_halign(fa_right);
-	draw_set_color(_dim);
-	draw_set_alpha(.8);
-	draw_text(_pr, desc_y + 18, (_ps.tier > 0)
-		? ("tier " + string(_ps.tier) + " / " + string(_pcap))
-		: ("offer  " + string(_pcap) + ((_pcap == 1) ? " tier" : " tiers")));
-	draw_set_halign(fa_left);
+	// (an offer says nothing here - "offer N tiers" was noise, his call;
+	// the bubbles on its row already count the tiers)
+	if (_ps.tier > 0) {
+		draw_set_halign(fa_right);
+		draw_set_color(_dim);
+		draw_set_alpha(.8);
+		draw_text(_pr, desc_y + 18, "tier " + string(_ps.tier) + " / " + string(_pcap));
+		draw_set_halign(fa_left);
+	}
 	// a rule in the rarity's colour under the head, then the words -
 	// unless the panel is the portrait stub, which has room for the
 	// head and the ledger's first line only
