@@ -42,13 +42,23 @@ def get_sat(c):
 def merge(a, b, t):
     return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
 
-# main_macros' rarity ladder, in the order vis_tier_color walks it
-RARITY = {1: (255,255,255), 2: (0x7F,0xFF,0x00), 3: (65,122,255),
-          4: (160,32,255),  5: (255,220,130),    6: (255,128,0),
-          7: (255,131,121), 8: (0xb9,0xf2,0xff)}
+# vis_tier_color, term for term (2026-09-12: the table here had drifted
+# from the script - uncommon/legendary/elite/divine were the old rarity
+# macros, and there was no rung past 8; the script hands 9+ a golden-
+# angle hue). The invariant is palette-agnostic, but the printed
+# disagreements should name the colours the game paints.
+_PAL = {2: (60,255,69), 3: (65,122,255), 4: (160,32,255), 5: (255,167,10),
+        6: (253,14,53), 7: (248,131,121), 8: (185,242,255)}
+
+def vis_tier_color(t):
+    if t <= 1: return (255,255,255)
+    if t in _PAL: return _PAL[t]
+    h = ((t - 9) * 137.508 + 30) % 360
+    odd = (t % 2) == 1
+    return hsv_to_rgb(int(round(h / 360 * 255)), 235 if odd else 200, 255 if odd else 215)
 
 def tier(oom):                     # obj_bignum5's callback, sat doubled
-    c = RARITY[max(min((oom // 2) + 1, 8), 1)]
+    c = vis_tier_color(max((oom // 2) + 1, 0))
     return hsv_to_rgb(get_hue(c), min(get_sat(c) * 2, 255), max(c))
 
 # ---- the renderer's field colours ------------------------------------

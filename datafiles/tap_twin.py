@@ -30,8 +30,23 @@ INVARIANTS
 Run:  python datafiles/tap_twin.py
 """
 import math
+import os
+import re
 
-TAP_FX_TIC    = 5      # main_macros
+# read from main_macros, so a retune there is a retune here (2026-09-12)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_mac = open(os.path.join(ROOT, "scripts", "main_macros", "main_macros.gml"), encoding="utf-8").read()
+
+
+def macro(name):
+    m = re.search(r"^#macro\s+" + name + r"\s+([-\d.]+)", _mac, re.M)
+    if not m:
+        raise SystemExit("main_macros has no #macro " + name)
+    return float(m.group(1))
+
+
+TAP_FX_TIC    = macro("TAP_FX_TIC")      # one ceremony every this many frames
+TAP_HOLD_BASE = macro("TAP_HOLD_BASE")   # tap_rate's base, DE's cc = 6
 
 FPS_CASES  = [30, 60, 90, 144, 240]
 RATE_CASES = [0.5, 1, 8, 59, 60, 61, 250, 1000, 12345]
@@ -146,13 +161,13 @@ def check():
     print("   %6s  %9s  %s" % ("rate", "interval", "taps from a press of..."))
     print("   %6s  %9s  %5s %5s %5s %5s" % ("", "", "80ms", "120ms", "150ms", "200ms"))
     ok6 = True
-    for rate in (6, 7, 8, 12):
+    for rate in sorted({TAP_HOLD_BASE, 6, 7, 8, 12}):
         row = [press_of(ms, rate) for ms in (80, 120, 150, 200)]
         print("   %6d  %7.0fms  %5d %5d %5d %5d" % (rate, 1000.0 / rate, *row))
     # DE's own default separates cleanly; that is the property to keep
-    if press_of(150, 6) != 1: ok6 = False
-    print("   at DE's rate of 6 a 150ms tap is %d tap - the interval (167ms)"
-          % press_of(150, 6))
+    if press_of(150, TAP_HOLD_BASE) != 1: ok6 = False
+    print("   at the shipped rate of %g a 150ms tap is %d tap - the interval (%.0fms)"
+          % (TAP_HOLD_BASE, press_of(150, TAP_HOLD_BASE), 1000.0 / TAP_HOLD_BASE))
     print("   outlasts the tap. At 8 it is %d, which is what DE also does"
           % press_of(150, 8))
     print("   once you have bought a faster thumb.")

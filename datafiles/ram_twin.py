@@ -92,10 +92,13 @@ def cap(rebirths=0):
 
 
 def used(run=100, fab=100, merge=None, autobuys=(), roll=False, sell=False,
-         buy_t=None, tile_buys=(), rebirth=False):
+         buy_t=None, tile_buys=(), rebirth=False, tap=None):
     """ram_used. run/fab/merge: a speed % or None for off; autobuys /
-    tile_buys: timers in seconds; buy_t: the upgrade table's buy timer."""
+    tile_buys: timers in seconds (the strategy modes bill dial_all's timer
+    x the strategy's dial count instead - same price per dial); buy_t: the
+    upgrade table's buy timer; tap: the autotapper's taps/s or None."""
     u = 0
+    if tap   is not None: u += cost_tap(tap)
     if run   is not None: u += cost_speed(run)
     if fab   is not None: u += cost_speed(fab)
     if merge is not None: u += cost_speed(merge)
@@ -119,7 +122,7 @@ u0 = used()
 print(f"  base capacity {cap():.0f} sticks; the defaults (cycling 100%, fabricator 100%) use {u0}")
 say(u0 <= cap(), "the defaults fit inside the base budget", f"{cap() - u0:.0f} sticks free")
 free = cap() - u0
-print(f"  what {free:.0f} free sticks buy: {free:.0f} autobuys at 30s, or "
+print(f"  what {free:.0f} free sticks buy: {free:.0f} autobuys at {RAM_TIMER_MAX:.0f}s, or "
       f"{free // 4:.0f} at 1s + {free % 4:.0f} slow, or the autorebirth ({RAM_REBIRTH:.0f}) + {free - RAM_REBIRTH:.0f} slow")
 say(free >= 4, "a first-hour player can run the profit-boost autobuy fast OR several slow ones")
 
@@ -170,9 +173,11 @@ say(cap(20) - u0 >= 13, "twenty rebirths in, every dial can autobuy at once (slo
 
 # ---------------------------------------------------------------- 5. the full-table player
 print("\n== 5. the everything-on player ==")
+_ucfg = open(os.path.join(ROOT, "scripts", "tile_upg_config", "tile_upg_config.gml"), encoding="utf-8").read()
+N_TILE_ROWS = len(re.findall(r'^\s*id\s*:\s*"\w+"', _ucfg, re.M))   # one autobuy row per shard upgrade
 u_all = used(merge=100, autobuys=[RAM_TIMER_MAX] * 13, roll=True, sell=True, buy_t=RAM_TIMER_MAX,
-             tile_buys=[RAM_TIMER_MAX] * 7, rebirth=True)
-print(f"  all three machines at 100%, thirteen dials + the table + seven tile rows at 30s,"
+             tile_buys=[RAM_TIMER_MAX] * N_TILE_ROWS, rebirth=True, tap=10)
+print(f"  all three machines at 100%, the autotapper at 10/s, thirteen dials + the table + {N_TILE_ROWS} tile rows at {RAM_TIMER_MAX:.0f}s,"
       f" roll, sell, the autorebirth: {u_all} sticks")
 need = math.ceil((u_all - RAM_BASE) / RAM_REB)
 print(f"  that fits the budget after {need} rebirths; before that it runs at"

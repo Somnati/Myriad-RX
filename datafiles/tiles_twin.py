@@ -24,6 +24,7 @@ Run:  python datafiles/tiles_twin.py
 import math
 import os
 import random as _rnd
+import re
 
 # a tuning sweep can override the roster's shape from the environment
 # (TW_CURVE, TW_BASE = a multiplier on every base); the shipped values
@@ -32,38 +33,104 @@ _ENV_CURVE = float(os.environ.get("TW_CURVE", "0") or 0)
 _ENV_BASE  = float(os.environ.get("TW_BASE", "1") or 1)
 
 # ---------------------------------------------------------------- knobs
-SLOTS_BASE   = 12      # TILE_SLOTS_BASE - the slots row grows it (2026-09-10)
-SLOT_STEP    = 1
-SLOTS_MAX    = 32
-FAB_T_BASE   = 10.0    # seconds per fabricated tile
-AM_MULT      = 1.5     # auto-merge interval = fab_t x this
+# ⚖️ READ FROM THE GAME, NOT RETYPED (the consistency pass, 2026-09-12).
+# This twin used to carry every number by hand, and the hand drifted:
+# it modelled a 400 rarity cutoff the game had declared and never
+# wired, and no luck baseline at all. Now the macros come from
+# main_macros.gml, the shard roster from tile_upg_config.gml, the flux
+# ladder from tile_flux_config.gml and the merge clock from tiles_init -
+# change the game, rerun, read the verdict. (battery_twin's pattern.)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# the rarity ladder (rarity_odds, tile knobs)
-R_SCALE, R_GROW, R_CUT = .3, .03, 400   # TILE_RARITY_CUT - his 400
-RARITY_BASE  = 100     # TILE_RARITY_BASE - DE's mod_rarity_rate opener
 
-# SECONDS HERE, FRAMES IN THE GAME. main_macros stores TILE_FAB_STEP as
-# 6 and TILE_FAB_MIN as 30 because tiles_tick counts delta (frames at
-# 60hz); this twin has always worked in seconds, so they are /60. Getting
-# it wrong once already cost a run: FAB_MIN of 30 read as 30 SECONDS and
-# floored the fabricator above its own base, so the upgrade did nothing
-# and the twin cheerfully reported it bought ten times.
-# ⚖️ THE FABRICATOR IS A BUDGET (his spec): 10s base, 5s removable by
-# UPGRADES, 3s reserved for abilities that do not exist yet, 2s floor.
-# FAB_CAP is what makes the reservation real - a floor alone would let
-# upgrades take every second there is and leave the abilities worthless.
-FAB_STEP     = 0.1     # TILE_FAB_STEP (6 frames) - his increment
-FAB_CAP      = 5.0     # TILE_FAB_CAP  (300 frames) - upgrades' share
-FAB_MIN      = 2.0     # TILE_FAB_MIN  (120 frames) - the floor for all
-PROFIT_STEP  = .25     # TILE_PROFIT_STEP - the board's share of the dial
-                       # multiplier is (1+STEP)^lv - 1: COMPOUNDING, zero
-                       # at level 0 (his call: the upgrade IS the chain)
-RARITY_STEP  = 50      # TILE_RARITY_STEP - percentage points a level
-DIAL_DIV     = 100     # TILE_DIAL_DIV - board output that DOUBLES dials
-RB_GATE = 8                # the divisor's decade - below it flux floors to 0
-FLUX_DIV, FLUX_STEP, FLUX_POW = 1e8, .01, 1.0   # +1% a flux LINEAR (his call); 1e8 is the brake
-BANK_BASE    = 0       # TILE_BANK_BASE - his call, nothing until bought
-BANK_STEP    = 1       # TILE_BANK_STEP
+def _src(*p):
+    return open(os.path.join(ROOT, *p), encoding="utf-8").read()
+
+
+_mac  = _src("scripts", "main_macros", "main_macros.gml")
+_ucfg = _src("scripts", "tile_upg_config", "tile_upg_config.gml")
+_fcfg = _src("scripts", "tile_flux_config", "tile_flux_config.gml")
+_init = _src("scripts", "tiles_init", "tiles_init.gml")
+_roll = _src("scripts", "tile_roll_tier", "tile_roll_tier.gml")
+_blob = _src("scripts", "tile_dial_boost", "tile_dial_boost.gml")
+
+
+def macro(name):
+    m = re.search(r"^#macro\s+" + name + r"\s+([-\d.]+)", _mac, re.M)
+    if not m:
+        raise SystemExit("main_macros has no #macro " + name)
+    return float(m.group(1))
+
+
+def gml_int(expr):
+    """a GML integer expression over TILE_* macros (`a div b`), evaluated"""
+    e = re.sub(r"\bTILE_\w+", lambda m: str(macro(m.group(0))), expr)
+    return int(eval(e.replace(" div ", " // ")))
+
+
+SLOTS_BASE   = int(macro("TILE_SLOTS_BASE"))
+SLOT_STEP    = int(macro("TILE_SLOT_STEP"))
+SLOTS_MAX    = int(macro("TILE_SLOTS_MAX"))
+# SECONDS HERE, FRAMES IN THE GAME: tiles_tick counts delta (frames at
+# 60hz), this twin has always worked in seconds. Getting it wrong once
+# already cost a run: FAB_MIN read as 30 SECONDS floored the fabricator
+# above its own base, so the upgrade did nothing and the twin cheerfully
+# reported it bought ten times. The /60 lives here and nowhere else.
+FAB_T_BASE   = macro("TILE_FAB_T")    / 60.0   # seconds per fabricated tile
+FAB_STEP     = macro("TILE_FAB_STEP") / 60.0   # -0.1s a level
+FAB_CAP      = macro("TILE_FAB_CAP")  / 60.0   # the most upgrades may remove
+FAB_MIN      = macro("TILE_FAB_MIN")  / 60.0   # the floor for everything
+_m = re.search(r"am_mult\s*:\s*([\d.]+)", _init)
+AM_MULT      = float(_m.group(1)) if _m else 1.5   # auto-merge interval = fab_t x this
+
+# the rarity ladder: the roll's own call, scale/growth/cutoff read off it
+_m = re.search(r"calculate_rarity\(luck_rate\(tile_rarity_rate\(\)\),\s*([\d.]+),\s*([\d.]+),\s*(\w+)\)", _roll)
+if not _m:
+    raise SystemExit("tile_roll_tier no longer rolls calculate_rarity(luck_rate(tile_rarity_rate()), ...) - update the twin")
+R_SCALE, R_GROW = float(_m.group(1)), float(_m.group(2))
+if _m.group(3) != "TILE_RARITY_CUT":
+    raise SystemExit("tile_roll_tier's cutoff is %s, not TILE_RARITY_CUT - the game and its macro disagree" % _m.group(3))
+R_CUT        = macro("TILE_RARITY_CUT")      # rate that lifts the spawn floor a full tier
+RARITY_BASE  = macro("TILE_RARITY_BASE")     # DE's mod_rarity_rate opener
+RARITY_STEP  = macro("TILE_RARITY_STEP")     # percentage points a level (a multiplier)
+PROFIT_STEP  = macro("TILE_PROFIT_STEP")     # the board's share of the dial multiplier
+                                             # is (1+STEP)^lv - 1: compounding, zero at 0
+DIAL_DIV     = macro("TILE_DIAL_DIV")        # board output that DOUBLES dials
+DIAL_SHIFT   = macro("TILE_DIAL_SHIFT")      # tile_dial_boost divides by 10^this...
+if abs(DIAL_DIV - 10 ** DIAL_SHIFT) > 1e-9:  # ...so DIV must be that power, or
+    raise SystemExit("TILE_DIAL_DIV is not 10^TILE_DIAL_SHIFT - tile_dial_boost's 1 + gps x f / DIV reading breaks")
+RB_GATE      = macro("TILE_RB_GATE")         # the divisor's decade - below it flux floors to 0
+FLUX_DIV     = macro("TILE_FLUX_DIV")        # flux paid = earned / this
+FLUX_STEP    = macro("TILE_FLUX_STEP")       # output x (1 + STEP x flux^POW)
+FLUX_POW     = macro("TILE_FLUX_POW")        # 1 = linear (his call)
+FLUX_RAR     = macro("TILE_FLUX_RAR")        # the flux ladder's rarity floor, rate a level
+BANK_BASE    = macro("TILE_BANK_BASE")       # his call, nothing until bought
+BANK_STEP    = macro("TILE_BANK_STEP")
+CHANCE_BASE  = macro("TILE_CHANCE_BASE")     # the two chance rows: 1% + 1%/level to 50%
+CHANCE_STEP  = macro("TILE_CHANCE_STEP")
+CHANCE_CAP   = macro("TILE_CHANCE_CAP")
+FAB_TOP      = macro("TILE_FAB_TOP")         # log10 of the last level's cost
+
+# ⚖️ LUCK (luck_mod / luck_rate, DE's one number that leans every roll).
+# The fabricator rolls calculate_rarity(luck_rate(rate)) and luck_rate
+# is NOT identity at zero luck: DE's non-hardmode +.2 ships as a flat
+# term, so a fresh save's luck_mod is 1.2 and every rate reads
+# rate x 1.2 + 20. A twin that skipped it understated the spread by that
+# much. LUCK_PTS is luck_points() - upgrade stat + gift claims + charms -
+# zero on a fresh save, which is what this twin plays.
+LUCK_PTS = 0
+
+
+def luck_mod(l=None):
+    if l is None: l = LUCK_PTS
+    d = (.01 / (1 + .03 * (l - 1))) * l + (.01 / (200 * (1 + l / 10000.0))) * l
+    return 1 + d + .2 + .0005 * l
+
+
+def luck_rate(rate):
+    m = luck_mod()
+    return rate * m + (m - 1) * 100
+
 
 # COSTS ARE IN DECADES: cost = base x 10^(e x level). tile_upg prices in
 # log space and the roster carries the log, so `e` is the exponent.
@@ -71,24 +138,26 @@ BANK_STEP    = 1       # TILE_BANK_STEP
 # unevenly, so early levels are cheap and the last lands on the ceiling.
 # max is where the price REACHES the ceiling, which mostly sets how fine
 # the early rungs are. See tile_upg - "curve" 1 would be a straight line.
-CURVE = _ENV_CURVE if _ENV_CURVE > 0 else 1.25   # TILE_UPG_CURVE (2026-09-12: 1.25, see main_macros)
-UPG = {
-    # ⚖️ THE SPLIT (his design, 2026-09-12): the dial profit boost is NOT
-    # a shard row any more - it is the first rung of the FLUX LADDER
-    # (FUPG below), bought with flux, permanent through a reset. The
-    # shard roster is the board's ENGINE and a reset wipes it whole.
-    "bank":   {"base": 75000, "curve": CURVE, "top": 150, "max": 30},
-    "rarity": {"base": 15000, "curve": CURVE, "top": 308, "max": 60},
-    "fab":    {"base": 30000, "curve": CURVE, "top": 308, "max": 50},
-    # the two chance rows (2026-09-10): 1% + 1%/level to 50% (tile_chance_rate)
-    "dup":    {"base": 150000, "curve": CURVE, "top": 308, "max": 49},
-    "tierup": {"base": 150000, "curve": CURVE, "top": 308, "max": 49},
-    # the board itself (2026-09-10): the first four hand-priced (`pre`),
-    # then the shared curve from the last of them to e308 at the cap
-    "slots":  {"base": 30000, "pre": [3e4, 3e5, 3e6, 3e7], "curve": CURVE, "top": 308,
-               "max": (SLOTS_MAX - SLOTS_BASE) // SLOT_STEP},
-}
-CHANCE_BASE, CHANCE_STEP, CHANCE_CAP = 1, 1, 50
+CURVE = _ENV_CURVE if _ENV_CURVE > 0 else macro("TILE_UPG_CURVE")
+
+# THE SHARD ROSTER, read off tile_upg_config: id / base / [pre] / top / max.
+# ⚖️ THE SPLIT (his design, 2026-09-12): the dial profit boost is NOT a
+# shard row any more - it is the first rung of the FLUX LADDER (FUPG
+# below), bought with flux, permanent through a reset. The shard roster
+# is the board's ENGINE and a reset wipes it whole.
+UPG = {}
+for _m in re.finditer(
+        r'id\s*:\s*"(\w+)",\s*name\s*:\s*"[^"]*",\s*base\s*:\s*(\d+),\s*'
+        r'(?:pre\s*:\s*\[([^\]]*)\],\s*)?curve\s*:\s*TILE_UPG_CURVE,\s*'
+        r'top\s*:\s*(TILE_FAB_TOP|\d+),\s*max\s*:\s*([^,]+),', _ucfg):
+    _id, _base, _pre, _top, _max = _m.groups()
+    _row = {"base": float(_base), "curve": CURVE,
+            "top": macro(_top) if _top.startswith("TILE_") else float(_top),
+            "max": gml_int(_max)}
+    if _pre: _row["pre"] = [float(x) for x in _pre.split(",")]
+    UPG[_id] = _row
+if set(UPG) != {"fab", "rarity", "bank", "slots", "dup", "tierup"}:
+    raise SystemExit("tile_upg_config's roster changed (%s) - update the twin" % sorted(UPG))
 for _k in UPG:
     UPG[_k]["base"] *= _ENV_BASE
     if "pre" in UPG[_k]: UPG[_k]["pre"] = [x * _ENV_BASE for x in UPG[_k]["pre"]]
@@ -96,12 +165,12 @@ for _k in UPG:
 # THE FLUX LADDER (tile_flux_config): cost = base x curve^lv in flux,
 # permanent. profit is the export (the dial boost, (1+STEP)^lv - 1 of
 # the board's output); slots and the rarity floor ride the board
-FUPG = {
-    "profit": {"base": 1, "curve": 1.6, "max": 50},
-    "slots":  {"base": 8, "curve": 2.0, "max": 4},
-    "rarity": {"base": 4, "curve": 1.8, "max": 10},
-}
-FLUX_RAR = 50          # TILE_FLUX_RAR - the floor's rate a level
+FUPG = {}
+for _m in re.finditer(r'id\s*:\s*"(\w+)",\s*name\s*:\s*"[^"]*",\s*base\s*:\s*([\d.]+),\s*curve\s*:\s*([\d.]+),\s*max\s*:\s*(\d+),', _fcfg):
+    FUPG[_m.group(1)] = {"base": float(_m.group(2)), "curve": float(_m.group(3)), "max": int(_m.group(4))}
+if set(FUPG) != {"profit", "slots", "rarity"}:
+    raise SystemExit("tile_flux_config's ladder changed (%s) - update the twin" % sorted(FUPG))
+
 
 def fupg_cost(kind, lv):
     u = FUPG[kind]
@@ -166,15 +235,42 @@ def rarity_odds(rate, n=14):
     return out
 
 
+def calc_rarity(rate, rng, scale=None, growth=None, cut=None):
+    """calculate_rarity, term for term - the ROLL, as distinct from
+    rarity_odds above (the statistics bar's picture of it). The two
+    differ in one place: the roll always walks 14 bands from the shift
+    (its _used_rarities is unset), the bar caps the ladder at 14 tiers.
+    Returns (shift, rung); tile_roll_tier is 1 + shift + rung."""
+    if scale is None: scale = R_SCALE
+    if growth is None: growth = R_GROW
+    if cut is None: cut = R_CUT
+    cut = max(1, cut)
+    base_r = int(rate // cut)                     # _base_rarity, the side channel
+    f = (rate / cut) % 1.0
+    base = 100
+    f = f ** 1.65
+    f = (((base + 100) / (100 + base * f)) - 1) * 100   # lerp(100, base + 100, f)
+    f = ((base - f) / base) % 1.0
+    total = 14
+    mn = [0.0]
+    mx = [base * (1 - f)]                          # lerp(base, 0, f)
+    for r in range(1, total):
+        mn.append(mx[r - 1])
+        a = base * (scale + growth * min(r, 5)) ** r
+        b = base * (scale + growth * min(r - 1, 5)) ** (r - 1)
+        mx.append(mn[r] + (a + (b - a) * f))     # lerp(a, b, f)
+    p = rng.random() * mx[-1]
+    sel = 0
+    for r in range(total):
+        if mn[r] <= p <= mx[r]:
+            sel = r
+    return base_r, sel
+
+
 def roll_tier(rate, rng):
-    o = rarity_odds(rate)
-    p = rng.random()
-    acc = 0.0
-    for i, x in enumerate(o):
-        acc += x
-        if p < acc:
-            return i + 1
-    return len(o)
+    """tile_roll_tier: the rate through luck, then calculate_rarity"""
+    base_r, sel = calc_rarity(luck_rate(rate), rng)
+    return 1 + base_r + sel
 
 
 def upg_cost(kind, lv):
@@ -227,6 +323,7 @@ class Table:
         self.made = 0
         self.merges = 0
         self.log = []          # (t, kind, new level, cost)
+        self.searching = 0.0   # tiles_tick's deadlock clock, in seconds
 
     # derived, never stored - the same law the GML follows
     def slots(self):    return SLOTS_BASE + SLOT_STEP * self.lv["slots"] + self.flv["slots"]
@@ -240,7 +337,7 @@ class Table:
         # tile_chance_rate: the shared law of the two chance rows
         return min(CHANCE_CAP, CHANCE_BASE + CHANCE_STEP * self.lv[k])
     def rb_boost(self):
-        # tile_rebirth_boost: flux held, braked by a power under 1
+        # tile_rebirth_boost: flux HELD, +STEP each (POW 1 = linear, his call)
         return 1 + FLUX_STEP * self.flux ** FLUX_POW
 
     def rarity(self):
@@ -270,7 +367,9 @@ class Table:
         return 1 + self.gps() * f / DIAL_DIV
 
     def rb_calc(self):
-        # tile_rebirth_calc: flux = earned / DIV, off lifetime EARNED
+        # tile_rebirth_calc: flux = earned / DIV, off THIS RUN's earned
+        # (tiles_wipe zeroes it with the board - "the measure resets
+        # with the thing it measured"); a fresh Table starts it at 0
         if self.earned < 10 ** RB_GATE:
             return 0
         return math.floor(self.earned / FLUX_DIV)
@@ -311,31 +410,45 @@ class Table:
             if not self._merge():
                 self.am = period             # no pair, waiting
                 break
-        # the deadlock failsafe: a full board with no pair tiers its
-        # lowest tile up, so play never stalls
-        if self.free() == 0 and not self._has_pair():
-            self.tier[self.tier.index(min(self.tier))] += 1
+        # the deadlock failsafe: a full board with no pair for FIVE
+        # SECONDS (tiles_tick: searching >= 60 * 5) tiers its lowest tile
+        # up, so play never stalls
+        if self.free() == 0 and self._pair() is None:
+            self.searching += dt
+            if self.searching >= 5.0:
+                self.searching = 0.0
+                self.tier[self.tier.index(min(self.tier))] += 1
+        else:
+            self.searching = 0.0
         # ---- shards ----
         var_add = self.gps() * dt
         self.shards += var_add
         self.earned += var_add
 
-    def _has_pair(self):
-        return len(self.tier) != len(set(self.tier))
+    def _pair(self):
+        # tiles_tick's candidate: the FIRST slot that has a later equal,
+        # and the first such later slot. (Not "the first repeat" - on
+        # [3, 5, 5, 3] the game merges the threes, a repeat-scan the fives.)
+        n = len(self.tier)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if self.tier[j] == self.tier[i]:
+                    return i, j
+        return None
 
     def _merge(self):
-        seen = {}
-        for i, t in enumerate(self.tier):
-            if t in seen:
-                # +1, or +2 on a tier-up roll (TILE_BONUS_TIER is parked)
-                self.tier[seen[t]] += 1
-                if self.rng.random() * 100 < self.chance("tierup"):
-                    self.tier[seen[t]] += 1
-                self.tier.pop(i)
-                self.merges += 1
-                return True
-            seen[t] = i
-        return False
+        pr = self._pair()
+        if pr is None:
+            return False
+        i, j = pr
+        # tiles_merge(ib, ia): the later folds into the earlier; +1, or
+        # +2 on a tier-up roll (TILE_BONUS_TIER is parked)
+        self.tier[i] += 1
+        if self.rng.random() * 100 < self.chance("tierup"):
+            self.tier[i] += 1
+        self.tier.pop(j)
+        self.merges += 1
+        return True
 
     def try_fbuy(self, kind):
         """one rung of the flux ladder, off the pile (tile_fupg)"""
@@ -418,13 +531,14 @@ say(tile_gps(10) / tile_gps(9) > 2,
 
 # --- 2. THE SPREAD ----------------------------------------------------
 print()
-print("2. THE FABRICATOR'S SPREAD  (rate 100 base, x the rarity upgrade)")
-print("      one floor shift costs %d of rate" % R_CUT)
+print("2. THE FABRICATOR'S SPREAD  (rate %.0f base, x the rarity upgrade, through luck)" % RARITY_BASE)
+print("      one floor shift costs %.0f of rate; luck_mod at %d luck is %.2f, so a rate"
+      " reads x%.2f + %.0f" % (R_CUT, LUCK_PTS, luck_mod(), luck_mod(), (luck_mod() - 1) * 100))
 for lv in (0, 1, 3, 6, 12):
     rate = RARITY_BASE * (1 + RARITY_STEP * lv / 100.0)
-    o = rarity_odds(rate, 10)
+    o = rarity_odds(luck_rate(rate), 10)
     live = " ".join("t%d %.0f%%" % (i + 1, p * 100) for i, p in enumerate(o) if p > .01)
-    print("      lv%-3d rate %5.0f:  %s" % (lv, rate, live))
+    print("      lv%-3d rate %5.0f (%5.0f):  %s" % (lv, rate, luck_rate(rate), live))
 
 # --- 3. THE PURCHASE TIMELINE ----------------------------------------
 print()
@@ -452,7 +566,9 @@ gaps = [tb.log[i][0] - tb.log[i - 1][0] for i in range(1, len(tb.log))]
 if gaps:
     print("      gap between purchases: median %s, longest %s"
           % (hms(sorted(gaps)[len(gaps) // 2]), hms(max(gaps))))
-print("      levels at 24h: " + ", ".join("%s %d" % (k, tb.lv[k]) for k in UPG) + "  (the ladder: none - no reset yet)")
+print("      levels at 24h: " + ", ".join("%s %d" % (k, tb.lv[k]) for k in UPG))
+print("      the ladder:    " + ", ".join("%s %d" % (k, tb.flv[k]) for k in FUPG)
+      + "  (%s flux held - the day run HOLDS, section 8b spends)" % eng(tb.flux))
 print("      board at 24h:  top tier %d, %s shards/s, %s banked"
       % (max(tb.tier) if tb.tier else 0, eng(tb.gps()), eng(tb.shards)))
 
@@ -508,23 +624,35 @@ print("7. DO THE SHARD UPGRADES MATTER?  (buy everything vs buy nothing)")
 print("      measured on BOARD OUTPUT - the engine is what shards buy now;")
 print("      the dial boost is the flux ladder's (section 8b)")
 print()
-print("      %-6s %11s %11s %8s" % ("hours", "gps none", "gps all", "worth"))
-worth = 1.0
-for h in (1, 6, 24):
-    x = run(h, buy=False)
-    y = run(h, buy=True)
-    worth = y.gps() / max(x.gps(), 1e-9)
-    print("      %-6d %11s %11s %7.2fx" % (h, eng(x.gps()), eng(y.gps()), worth))
+# ⚖️ A MERGE BOARD IS A DICE GAME: its output is one lucky tier away
+# from doubling, so ONE seed says nothing - this section once reported
+# 2.57x off a single seed and 0.55x at one hour off another, and both
+# were rolls, not laws. The measure is the ratio of MEAN output over
+# many seeds; the spread is printed so the noise is visible.
+SEEDS7 = (7, 11, 23, 41, 59)
+print("      %-6s %11s %11s %8s   (mean of %d seeds)" % ("hours", "gps none", "gps all", "worth", len(SEEDS7)))
+for h in (1, 6):
+    x = sum(run(h, buy=False, seed=sd).gps() for sd in SEEDS7) / len(SEEDS7)
+    y = sum(run(h, buy=True,  seed=sd).gps() for sd in SEEDS7) / len(SEEDS7)
+    print("      %-6d %11s %11s %7.2fx" % (h, eng(x), eng(y), y / max(x, 1e-9)))
+_xs, _ys = [], []
+for sd in range(1, 21):
+    _xs.append(run(24, buy=False, seed=sd).gps())
+    _ys.append(run(24, buy=True,  seed=sd).gps())
+worth = sum(_ys) / max(sum(_xs), 1e-9)
+_r = sorted(y / max(x, 1e-9) for x, y in zip(_xs, _ys))
+print("      %-6d %11s %11s %7.2fx   (20 seeds; a single board lands %.2fx-%.2fx, median %.2fx)"
+      % (24, eng(sum(_xs) / 20), eng(sum(_ys) / 20), worth, _r[0], _r[-1], _r[10]))
 say(worth >= 2,
-    "a day of shard upgrades is worth at least 2x on board output",
-    "%.2fx" % worth)
+    "a day of shard upgrades is worth at least 2x on board output (20-seed mean)",
+    "%.2fx - HIS CALL which lever, see the todo: TILE_RARITY_STEP / TILE_CHANCE_STEP / TILE_FAB_STEP" % worth)
 
 print()
 print("      what the 24h levels are actually worth:")
 print("        fab    lv%d -> fabricator %.2fs (from %.1fs; -%.1fs is the cap)"
       % (tb.lv["fab"], tb.fab_t(), FAB_T_BASE, FAB_CAP))
-print("        rarity lv%d -> rate %.0f (from %d; %d is one floor shift)"
-      % (tb.lv["rarity"], tb.rarity(), RARITY_BASE, R_CUT))
+print("        rarity lv%d -> rate %.0f, %.0f through luck (from %.0f; %.0f is one floor shift)"
+      % (tb.lv["rarity"], tb.rarity(), luck_rate(tb.rarity()), RARITY_BASE, R_CUT))
 print("        bank   lv%d -> hopper %d tiles" % (tb.lv["bank"], tb.bank_max()))
 
 # --- 7b. THE FABRICATOR AGAINST THE CEILING -------------------------
@@ -549,7 +677,7 @@ say(FAB_T_BASE - FAB_CAP - 3.0 >= FAB_MIN - 1e-9,
 
 # --- 8. THE TABLE'S OWN REBIRTH --------------------------------------
 print()
-print("8. THE TABLE'S REBIRTH  (flux = earned / %s, off lifetime EARNED)" % eng(FLUX_DIV))
+print("8. THE TABLE'S REBIRTH  (flux = earned / %s, off the RUN's earned)" % eng(FLUX_DIV))
 print("      %-8s %9s %10s %10s" % ("played", "earned", "flux paid", "output x"))
 for h in (0.25, 1, 6, 24):
     z = run(h)

@@ -15,21 +15,39 @@ Run:  python datafiles/timebank_twin.py
 """
 
 import math
+import os
+import re
 
 # ---------------------------------------------------------------- knobs
-# setgame's Create, verbatim
-TB_RATE       = 5     # minutes banked per hour away, at rate_lv 0
-TB_RATE_STEP  = 2     # per rate purchase
-TB_RATE_CAP   = 45    # the tuned ceiling
-TB_HARD_CAP   = 55    # the LAW inside timebank_rate, above the knob
-TB_CAP        = 30    # bank capacity in MINUTES, at cap_lv 0
-TB_CAP_STEP   = 30    # +30 minutes a level (his call, 2026-09-10) - LINEAR
+# READ from setgame's Create and the panel (2026-09-12), so a retune
+# there is a retune here
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_setgame = open(os.path.join(ROOT, "objects", "setgame", "Create_0.gml"), encoding="utf-8").read()
+_panel   = open(os.path.join(ROOT, "objects", "syst_timebank_panel", "Create_0.gml"), encoding="utf-8").read()
+_ratefn  = open(os.path.join(ROOT, "scripts", "timebank_rate", "timebank_rate.gml"), encoding="utf-8").read()
+
+
+def knob(name):
+    m = re.search(r"^\s*g\." + name + r"\s*=\s*([\d.]+)", _setgame, re.M)
+    if not m:
+        raise SystemExit("setgame has no g." + name)
+    return float(m.group(1))
+
+
+TB_RATE       = knob("tb_rate")        # minutes banked per hour away, at rate_lv 0
+TB_RATE_STEP  = knob("tb_rate_step")   # per rate purchase
+TB_RATE_CAP   = knob("tb_rate_cap")    # the tuned ceiling
+_m = re.search(r"min\(_mph,\s*g\.tb_rate_cap,\s*(\d+)\)", _ratefn)
+TB_HARD_CAP   = float(_m.group(1)) if _m else 55   # the LAW inside timebank_rate, above the knob
+TB_CAP        = knob("tb_cap")         # bank capacity in MINUTES, at cap_lv 0
+TB_CAP_STEP   = knob("tb_cap_step")    # minutes of capacity a level - LINEAR (his call)
 # two fee ladders, each off its own level, in minutes (his report: the
 # fees were both 80% of the cap and read as shared)
-TB_CAP_COST, TB_CAP_COST_STEP   = 20, 15
-TB_RATE_COST, TB_RATE_COST_STEP = 15, 10
+TB_CAP_COST, TB_CAP_COST_STEP   = knob("tb_cap_cost"), knob("tb_cap_cost_step")
+TB_RATE_COST, TB_RATE_COST_STEP = knob("tb_rate_cost"), knob("tb_rate_cost_step")
 
-SPEEDS = [1, 2, 4, 10, 50]
+_m = re.search(r"spds\s*=\s*\[([^\]]*)\]", _panel)
+SPEEDS = [int(x) for x in _m.group(1).split(",")] if _m else [1, 2, 4, 10, 50]
 
 ok = True
 

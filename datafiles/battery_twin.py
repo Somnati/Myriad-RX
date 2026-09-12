@@ -190,7 +190,7 @@ def optimise(charge, away_s, r_run, r_fab, r_merge):
     rates = (r_run, r_fab, r_merge)
     smax = max(1.0, max(100.0 / max(5, r) for r in rates))
     target = charge / away_s
-    def d(sc): return draw(*[min(100.0, r * sc) for r in rates])
+    def d(sc): return draw(*[min(100.0, r * sc) for r in rates])   # the search's own clamp
     if d(smax) <= target: return smax
     lo, hi = 0.0, smax
     for _ in range(60):
@@ -205,7 +205,7 @@ opt_ok = True
 for away_h in (0.17, 1, 3, 8, 24, 168):
     for r in (100, 30):
         s_ = optimise(BAT_CAP0, away_h * 3600, r, r, r)
-        ro = min(100.0, r * s_)
+        ro = min(100.0, max(5.0, r * s_))     # battery_optimise's result clamp(., 5, 100)
         _, _, o0 = absence(BAT_CAP0, away_h * 3600, r, r, r)
         _, _, o1 = absence(BAT_CAP0, away_h * 3600, ro, ro, ro)
         ceil_ = math.sqrt(BAT_CAP0 * away_h * 3600)

@@ -15,9 +15,18 @@ statement of what those shipped formulas actually do.
 Run:  python dial_twin.py
 """
 import math
+import os
+import re
 
 
 N_DIALS = 13
+
+# ⚖️ THE MILESTONE TABLE AND THE SYPHON ARE READ FROM THE GAME (the
+# consistency pass, 2026-09-12): setgame's Create and create_clicker,
+# so a retune there is a retune here.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_setgame = open(os.path.join(ROOT, "objects", "setgame", "Create_0.gml"), encoding="utf-8").read()
+_clicker = open(os.path.join(ROOT, "scripts", "create_clicker", "create_clicker.gml"), encoding="utf-8").read()
 
 
 # ---------------------------------------------------------------- laws
@@ -44,35 +53,59 @@ def lvdiv(tier):
 
 
 def gps(tier, level):
-    """dial_gps: exponential (.0255 decades/level) + additive early lane."""
+    """dial_gps: exponential (.0255 decades/level) + additive early lane.
+    arb(1) packs as 0.1, and the GML adds the slope to THAT before
+    unpacking - hence the 0.1 in the exponent (DE's law, kept)."""
     if level <= 0:
         return 0.0
     lv = level + lvdiv(tier)
     gth = (1.7 / 100) * 1.5
-    val = 10 ** (0.1 + gth * (lv - 1))
+    gth *= 1 + 999 * tier / 1e6          # DE's far-tier ramp - dial_cost has it too,
+    val = 10 ** (0.1 + gth * (lv - 1))   # and this twin used to skip it here (x2 at dial m)
     if val < 1e10 and lv > 1:      # the packed-exponent < 10 test
         val += lv - 1
     return val
 
 
+_m = re.search(r"g\.milestone_cost_mult\s*=\s*([\d.]+)", _setgame)
+MILESTONE_COST_MULT = float(_m.group(1)) if _m else 10   # setgame: g.milestone_cost_mult
+MILESTONES = [(int(a), k, float(c)) for a, k, c in
+              re.findall(r'\{\s*level\s*:\s*(\d+),\s*kind\s*:\s*"(\w+)",\s*mult\s*:\s*([\d.]+)', _setgame)]
+if not MILESTONES:
+    raise SystemExit("setgame's g.milestones table not found - update the twin")
+_m = re.search(r"g\.tapsyphon\s*=\s*([\d.]+)", _clicker)
+TAPSYPHON = float(_m.group(1)) if _m else .01              # create_clicker: the syphon's share
+
+
+def milestones(level):
+    """milestone_get: the speed and profit multipliers a level has earned"""
+    sp = pr = 1.0
+    for lv, kind, mult in MILESTONES:
+        if level >= lv:
+            if kind == "speed":  sp *= mult
+            if kind == "profit": pr *= mult
+    return sp, pr
+
+
 def gpc(tier, level):
-    """update_dial: per-cycle payout = base x cycle-seconds x level ramp."""
+    """update_dial: per-cycle payout = base x cycle-seconds x level ramp,
+    then the PROFIT milestones (x2 at 50 and 75). Upgrade bonuses and the
+    rebirth boost multiply here too - both 1 on the fresh save this plays."""
     if level <= 0:
         return 0.0
     md = min(max(level / 50, 0.1), 1)
-    import math
-    return math.ceil(gps(tier, level) * max(1, cycle_seconds(tier) * md))
+    v = math.ceil(gps(tier, level) * max(1, cycle_seconds(tier) * md))
+    _sp, pr = milestones(level)
+    return v * pr
 
 
 def per_second(tier, level):
-    """update_dial: gpc spread over the (autoeff-stretched) cycle."""
+    """update_dial: gpc spread over the (autoeff-stretched) cycle, the
+    SPEED milestones dividing the cycle (x2 at 25 and 100)."""
     if level <= 0:
         return 0.0
-    return gpc(tier, level) / (cycle_seconds(tier) * 1.3)
-
-
-MILESTONE_COST_MULT = 10          # setgame: g.milestone_cost_mult
-MILESTONES = [(25, "speed", 2), (50, "profit", 2), (75, "profit", 2), (100, "speed", 2)]
+    sp, _pr = milestones(level)
+    return gpc(tier, level) / (cycle_seconds(tier) * 1.3 / max(1, sp))
 
 def cost(tier, frm, to, raw=False):
     """dial_cost: geometric series solved by subtraction (.05 dec/level).
@@ -100,10 +133,12 @@ def cost(tier, frm, to, raw=False):
     return c
 
 def tap(all_level, all_gps):
-    """update_click: 1 + every dial level, plus 1% of the fleet's rate."""
+    """update_click: 1 + every dial level, plus the syphon's share of the
+    fleet's rate (rebirth units and the tap upgrades add on a fresh save's
+    zero here)."""
     v = 1 + all_level
     if all_gps >= 100:                     # DE's guard (packed exp > 2)
-        v += all_gps * 0.01
+        v += all_gps * TAPSYPHON
     return v
 
 
@@ -183,7 +218,7 @@ def checks():
 
     # 4. the syphon must matter late without dominating early
     for rate in (10, 1e3, 1e9):
-        share = (rate * 0.01) / tap(50, rate) if rate >= 100 else 0
+        share = (rate * TAPSYPHON) / tap(50, rate) if rate >= 100 else 0
         print(f"  syphon share of a tap at {rate:>7.0g}/s: {share:6.1%}")
 
     # 5. the sim must not stall

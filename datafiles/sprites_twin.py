@@ -36,8 +36,10 @@ def macro(name):
     return float(m.group(1))
 
 
-SPRITE_TAP_T = macro("SPRITE_TAP_T")
-SPRITE_ATTN  = macro("SPRITE_ATTN")
+SPRITE_TAP_T    = macro("SPRITE_TAP_T")
+SPRITE_ATTN     = macro("SPRITE_ATTN")
+SPRITE_RAR_PACE = macro("SPRITE_RAR_PACE")   # pace x (1 + this x rarity rung)
+_step = open(os.path.join(ROOT, "objects", "obj_blob", "Step_0.gml"), encoding="utf-8").read()
 
 PERS = [(m.group(1), float(m.group(2)), float(m.group(3)))
         for m in re.finditer(r'name\s*:\s*"(\w+)",\s*work\s*:\s*([\d.]+),\s*pace\s*:\s*([\d.]+)', _per)]
@@ -97,6 +99,21 @@ def live_fraction(work, pace, frames=60 * 3600 * 20, seed=1):
     return in_work / t
 
 
+# ⚖️ THE CADENCE, not just the fraction (2026-09-12). sprite_rate is
+# work x pace x (1 + RAR_PACE x rar) / TAP_T; the live loop taps every
+# TAP_T x 60 frames at `delta x pace x ...`. The Monte Carlo below checks
+# the WORK fraction; this checks the pace term is the same product in
+# both places by reading the live loop's line. It was not - the rarity
+# factor was in sprite_rate and missing from obj_blob, so an ultimate
+# tapped x1.84 faster off screen than on it. Exactly the drift this
+# file exists to catch, and it could not see it.
+_m = re.search(r"^\s*tap_t\s*-=\s*(.+?);", _step, re.M)
+_cad = _m.group(1) if _m else ""
+print("\n== 0. the live cadence is sprite_rate's pace term ==")
+print("  obj_blob: tap_t -= " + _cad)
+say(bool(_m) and "_p.pace" in _cad and "SPRITE_RAR_PACE" in _cad and "rar" in _cad,
+    "the live loop's cadence carries personality pace AND the rarity pace, as sprite_rate does")
+
 print("\n== 1. watching it vs not: the live loop's time in WORK against the personality ==")
 print(f"  durations read from obj_blob: work {DUR_WORK}, idle {DUR_IDLE}, slot {DUR_SLOT}")
 worst = 0
@@ -124,9 +141,12 @@ say(offline_work(600) > 600 * .9, "ten minutes away is nearly full work", f"{off
 say(offline_work(8 * 3600) < 8 * 3600 * .5, "a night away is well under half", f"{offline_work(8 * 3600) / 3600:.1f}h")
 say(offline_work(7 * 86400) < offline_work(86400) * 3, "a week is less than three days' worth - it keeps diminishing")
 # the sprites are FREE: per sprite per day, at the strongest personality
+# (a common; rarity multiplies the pace by 1 + RAR_PACE x rung, so an
+# ultimate at rung 7 is x{:.2f} of this)
 best = max(PERS, key=lambda p: p[1] * p[2])
 rate = best[1] * best[2] / SPRITE_TAP_T
-print(f"  the strongest ({best[0]}): {rate:.3f} taps/s live = {rate * 3600:.0f} an hour; "
+print("  rarity: x%.2f an ultimate (rung 7) against a common" % (1 + SPRITE_RAR_PACE * 7))
+print(f"  the strongest ({best[0]}, common): {rate:.3f} taps/s live = {rate * 3600:.0f} an hour; "
       f"a night away yields {rate * offline_work(8 * 3600):.0f} taps")
 
 print("\n" + ("ALL INVARIANTS HOLD" if ok else "SOMETHING FAILED - tune here, then port"))

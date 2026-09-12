@@ -50,8 +50,13 @@ else {
 		}
 		if (st_t <= 0) __next_state();
 	} else if (st == 2) {
-		// working: a tap on its cadence, a hop with each
-		tap_t -= delta * _p.pace;
+		// working: a tap on its cadence, a hop with each. The cadence is
+		// sprite_rate's pace TERM FOR TERM - personality pace x the rarity
+		// pace - or the room's sprite and the headless one disagree, and
+		// watching it changes what it earns (the sprites twin's one law;
+		// 2026-09-12: the rarity factor was missing here, an ultimate
+		// tapped x1.84 slower on screen than off it)
+		tap_t -= delta * _p.pace * (1 + SPRITE_RAR_PACE * (s[$ "rar"] ?? 0));
 		if (tap_t <= 0) {
 			tap_t = SPRITE_TAP_T * 60;
 			sq = .8; hop = 3;
