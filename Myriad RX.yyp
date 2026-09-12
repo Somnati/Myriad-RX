@@ -293,6 +293,7 @@
     {"id":{"name":"do_throwable","path":"scripts/do_throwable/do_throwable.yy",},},
     {"id":{"name":"draw_arc","path":"scripts/draw_arc/draw_arc.yy",},},
     {"id":{"name":"draw_blur_region","path":"scripts/draw_blur_region/draw_blur_region.yy",},},
+    {"id":{"name":"draw_capsule","path":"scripts/draw_capsule/draw_capsule.yy",},},
     {"id":{"name":"draw_help_chip","path":"scripts/draw_help_chip/draw_help_chip.yy",},},
     {"id":{"name":"draw_pixel_region","path":"scripts/draw_pixel_region/draw_pixel_region.yy",},},
     {"id":{"name":"draw_px_line","path":"scripts/draw_px_line/draw_px_line.yy",},},

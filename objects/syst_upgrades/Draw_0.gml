@@ -7,9 +7,11 @@
 ///
 /// A ROW SAYS FOUR THINGS: what (the name), how much (the effect, right
 /// of it), how deep (the tier dots under the name, lit for the tiers
-/// bought), and the price (the one button the mode decides). The
-/// rarity is the 3px band at the row's left edge and nothing else on
-/// the row - the inspector names it for the row you tap.
+/// bought), and the price (the one button the mode decides). THE ROW
+/// IS A DECK CAPSULE (his ask, 2026-09-12): bevelled ends off the
+/// endcap silhouette, the rarity colour at the left edge fading to
+/// near-black at the right, the name in that colour - obj_ability_slot's
+/// recipe at this row height. The inspector names the rarity in words.
 
 draw_set_font(fnt);
 draw_set_alpha(1);
@@ -22,8 +24,6 @@ var _n   = upgrade_slots();
 var _ub  = upgrade_bonus();   // the TRUTH, not the gated reader - this
                               // screen shows what the slots would do
                               // even while UPG_LIVE keeps them idle
-var _plate = merge_colour(c_hsv(168, 160, 5), c_hsv(169, 186, 5), .2);
-var _sn    = array_length(ROUND);
 
 // ==================== THE TITLE STRIP ====================
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, list_y - bby, 0,
@@ -96,11 +96,13 @@ for (var _i = 0; _i < _n; _i++) {
 	// quiet plate that says so and nothing more ----
 	if (!_has) {
 		if (_i == _fs) {
+			// the roll row: a blue capsule (red when short), brighter
+			// under the pointer
 			var _rcol = _ra ? c_sblue : c_hred;
-			__rr(row_x, _ry, row_w, row_h, _plate, 1);
-			if (_hov && _ra) __rr(row_x, _ry, row_w, row_h, c_white, .05);
-			draw_px_rect(row_x, _ry, row_w, row_h, _rcol, _ra ? (_hov ? .8 : .45) : .3);
-			draw_set_color(_ra ? merge_colour(_rcol, c_white, .45) : c_gray);
+			__rr_grad(row_x, _ry, row_w, row_h,
+				merge_colour(_rcol, c_black, _ra ? (_hov ? .5 : .62) : .8),
+				merge_colour(_rcol, c_black, .94), 1);
+			draw_set_color(_ra ? merge_colour(_rcol, c_white, .55) : c_gray);
 			draw_set_alpha(.95);
 			draw_text(row_x + 8, _ry + 5, "+ roll a slot");
 			draw_set_halign(fa_right);
@@ -109,7 +111,9 @@ for (var _i = 0; _i < _n; _i++) {
 			draw_text(row_x + row_w - 8, _ry + 5, (_rc > 0) ? (string(_rc) + " cr") : "free");
 			draw_set_halign(fa_left);
 		} else {
-			__rr(row_x, _ry, row_w, row_h, _plate, .55);
+			// an empty capsule: the deck's near-black, a whisper of grey
+			__rr_grad(row_x, _ry, row_w, row_h,
+				merge_colour(_dim, c_black, .82), merge_colour(_dim, c_black, .95), 1);
 			draw_set_color(_dim);
 			draw_set_alpha(.35);
 			draw_text(row_x + 8, _ry + 5, "empty");
@@ -125,13 +129,12 @@ for (var _i = 0; _i < _n; _i++) {
 	var _own  = (_s.tier > 0);
 	var _done = (_s.tier >= _cap);
 
-	// the plate, its seams, the hold wash UNDER the text (it used to
-	// sweep over the words), the picked / hovered washes
-	__rr(row_x, _ry, row_w, row_h, _plate, 1);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x + _sn, _ry,
-		row_w - _sn * 2, 1, 0, _plate, c_black, c_black, _plate, .52);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, row_x + _sn,
-		_ry + row_h - 1, row_w - _sn * 2, 1, 0, c_black, _plate, _plate, c_black, .52);
+	// ---- THE CAPSULE (obj_ability_slot's): the rarity colour at the
+	// left fading to near-black at the right, brighter once owned - an
+	// offer sits dimmer, the deck's "not yet on" ----
+	var _cl = merge_colour(_rcl, c_black, _own ? .45 : .72);
+	var _cr = merge_colour(_rcl, c_black, .94);
+	__rr_grad(row_x, _ry, row_w, row_h, _cl, _cr, 1);
 	// ---- THE HOLD BAR (DE's): a wash sweeping the WHOLE ROW - what is
 	// being spent, or consumed, is the slot. GREEN AND LINEAR to buy,
 	// RED AND SQUARED to sell (the squared one crawls at the start, so a
@@ -142,17 +145,15 @@ for (var _i = 0; _i < _n; _i++) {
 		var _hc = merge_colour((mode == 0) ? c_sgreen : c_hred, c_black, .3);
 		__rr(row_x, _ry, row_w * _hf, row_h, _hc, .55);
 	}
-	if (pick == _i) __rr(row_x, _ry, row_w, row_h, c_white, .06);
-	else if (_hov) __rr(row_x, _ry, row_w, row_h, c_white, .03);
+	// picked: the deck's soft white echo over the whole capsule;
+	// hovered: a whisper of it
+	if (pick == _i) __rr(row_x, _ry, row_w, row_h, c_white, .14);
+	else if (_hov) __rr(row_x, _ry, row_w, row_h, c_white, .05);
 
-	// the rarity band: 3px, inset from the rounded corners, lit white
-	// on the picked row so the inspector has a visible owner
-	draw_sprite_ext(spr_pixel_1x1, 0, row_x, _ry + _sn, 3, row_h - _sn * 2, 0,
-		(pick == _i) ? c_white : _rcl, .9);
-
-	// what
-	draw_set_color(_own ? c_white : _ink);
-	draw_set_alpha(_own ? .95 : .75);
+	// what - in the rarity colour, lit toward white once owned (the
+	// deck's "on" name)
+	draw_set_color(_own ? merge_colour(_rcl, c_white, .5) : _rcl);
+	draw_set_alpha(_own ? .95 : .8);
 	draw_text(row_x + 8, _ry + 3, _name);
 	// how deep
 	__dots(_i, _ry);
@@ -240,8 +241,7 @@ draw_set_halign(fa_left);
 // every time.
 draw_set_alpha(1);
 var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .3);
-draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, desc_w, desc_h, 0, _dc, 1);
-draw_px_rect(desc_x, desc_y, desc_w, desc_h, _ink, .14);
+__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
 
 // && short-circuits, so an out-of-range pick never indexes the array -
 // which it can be for a frame after the slot count changes
@@ -265,8 +265,9 @@ if (!_has_pick) {
 	var _pc   = __rar_col(_ps.rar);
 	var _pcap = upgrade_cap(pick);
 
-	// the band the row wears, continued up the inspector's left edge
-	draw_sprite_ext(spr_pixel_1x1, 0, desc_x, desc_y, 3, desc_h, 0, _pc, .6);
+	// the picked capsule's colour, washed up the inspector's left edge
+	// the way it washes across its row
+	__rr_grad(desc_x, desc_y, desc_w, desc_h, merge_colour(_pc, c_black, .78), _dc, 1);
 
 	// ---- the top: what it IS ----
 	draw_set_color(c_white);

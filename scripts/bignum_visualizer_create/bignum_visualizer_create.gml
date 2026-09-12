@@ -57,13 +57,28 @@ function bignum_visualizer_create() {
         // Zoomed in, the camera follows the assembling square at the
         // level nearest it, and that square is placed by the LOW digits
         // - which churn every frame while profit lands. So past
-        // freeze_oom of manual zoom-in the display value is a SNAPSHOT:
-        // every digit below the leading one is held, and the focus
-        // (the auto zoom) is held with it, so nothing on screen moves
-        // until you zoom back out. The leading digit stays live: when
-        // it (or the magnitude) changes the picture has changed anyway,
-        // so the snapshot is retaken. The counter in the header keeps
-        // counting - the blocks are the thing being inspected.
+        // freeze_oom of manual zoom-in the display value is a SNAPSHOT,
+        // and the focus (the auto zoom) is held with it, so nothing on
+        // screen moves until you zoom back out. The counter in the
+        // header keeps counting - the blocks are the thing being
+        // inspected.
+        // ⚖️ THE WHOLE VALUE, LEADING DIGIT INCLUDED (his report,
+        // 2026-09-12: "the freezing visualizer on zoom is broke"). The
+        // first cut kept the leading digit live and retook the snapshot
+        // whenever it moved - which was rare when the pile grew slowly
+        // against itself, and is constant now: the autobuy eats a share
+        // of the pile every timer and the table pays it back, so the
+        // leading digit flips every few seconds and every flip re-laid
+        // the whole nest under the camera. A lead change is never
+        // quiet anyway - the content field's count is that digit, so
+        // the partial square below it moves a slot and everything nested
+        // in it moves too. The snapshot is retaken ONLY when the
+        // magnitude GROWS past the snapshot's (an order of magnitude
+        // crossed upward - the picture needs a new field then, and that
+        // is rare) or the freeze is released. A spend that drops the
+        // pile under the snapshot's magnitude does not retake either:
+        // the pile bobbing across a power of ten under the autobuy
+        // would otherwise re-lay the nest on every bob.
         //   zin  0 at the auto zoom .. 1 at the freeze (manual_bias /
         //        -freeze_oom, clamped). Only the freeze reads it now;
         //        the follow ease stays follow_smooth throughout, so a
@@ -72,8 +87,7 @@ function bignum_visualizer_create() {
         freeze_oom:  1,      // wheel OOMs in (two clicks) to freeze
         live_val:    0,      // what the host fed this frame
         frozen:      false,
-        frozen_lead: "",     // the snapshot's leading digit
-        frozen_mag:  0,      // ...and magnitude
+        frozen_mag:  0,      // the snapshot's magnitude
         frozen_focus: 0,
         zin:         0,
         cam_x:       0,   // follow point in pixels, DERIVED each frame
@@ -125,14 +139,14 @@ function bignum_visualizer_create() {
             // ---- the freeze (see the fields) ----
             zin = clamp(-lod.manual_bias / max(freeze_oom, .01), 0, 1);
             if (zin >= 1) {
-                var _lead = string_char_at(bignum_vis_mantissa_string(live_val), 1);
                 var _lmag = bignum_vis_magnitude(live_val);
-                if (!frozen || _lead != frozen_lead || _lmag != frozen_mag) {
-                    // take (or retake) the snapshot: the leading digit
-                    // or the magnitude moved, or the freeze just began
+                if (!frozen || _lmag > frozen_mag) {
+                    // take (or retake) the snapshot: the freeze just
+                    // began, or the magnitude grew past it (see the
+                    // fields - the leading digit does NOT retake it,
+                    // and neither does a drop)
                     display_win.set_value(live_val);
                     frozen       = true;
-                    frozen_lead  = _lead;
                     frozen_mag   = _lmag;
                     frozen_focus = _lmag;
                     focus_mag    = _lmag;

@@ -39,23 +39,35 @@ flash = 0;
 flash_col = c_white;
 slot_flash = -1;
 
-// ---- layout (480x270, mobile-shaped: one screen, no scroll) ----
+// ---- layout (one screen, no scroll - and BOTH orientations: the
+// panel opens over the money room, which is 480x270 or 144x296) ----
+// ⚖️ THE OVERHAUL (his ask, 2026-09-12: "more polished, cleaner and
+// easier on the eyes"). Three things, stacked, on one centre line: the
+// fortnight BOARD (7 x 2 day cards - bevelled capsules in their
+// rarity colour, the day number and a rarity mark, nothing else), the
+// TODAY card (day, rarity, reward, and the collect button INSIDE it -
+// the card is the action; collected, it carries the countdown
+// instead), and one FOOTER line (the level, its progress, the output
+// bonus). The strip carries the title alone.
+land = (room_width > 300);
 // fortnight grid: 7 x 2 day cards
-card_w = 64; card_h = 25;
-gap_x = 2;   gap_y = 3;
+card_w = land ? 58 : 18; card_h = land ? 26 : 18;
+gap_x  = land ? 4 : 2;   gap_y = land ? 4 : 2;
 cal_x = (room_width - (7 * card_w + 6 * gap_x)) div 2;
 cal_y = bby + 22;
 
-// the today spotlight + its collect button
-spot_w = 150; spot_h = 84;
+// the today card, with its collect button inside
+spot_w = land ? 210 : 128; spot_h = land ? 96 : 100;
 spot_x = (room_width - spot_w) div 2;
 spot_y = cal_y + 2 * card_h + gap_y + 12;
-btn_w = 96; btn_h = 18;
+btn_w = land ? 110 : 96; btn_h = 16;
 btn_x = (room_width - btn_w) div 2;
-btn_y = spot_y + spot_h + 6;
+btn_y = spot_y + spot_h - btn_h - 8;
 
-// footer band: level line + countdown
-foot_y = btn_y + btn_h + 8;
+// the footer line: the level bar and its two labels
+foot_y = spot_y + spot_h + (land ? 12 : 10);
+bar_w  = land ? 200 : 76;
+bar_x  = (room_width - bar_w) div 2;
 
 /// @func __part(i)
 /// @desc Seat part i for the open animation: a slide up into place and

@@ -47,10 +47,15 @@ row_sp = 21;
 // hand-authored inset table, which is the same way the puck's disc and
 // the settings "?" button are built: house rule, hard pixels only.
 //
-// One entry per row in from the edge, mirrored top and bottom. [2, 1]
-// is a 3px corner - enough to read as rounded at this size without the
-// row starting to look like a lozenge.
-ROUND = [2, 1];
+// One entry per row in from the edge, mirrored top and bottom.
+// ⚖️ THE DECK'S BEVEL (his ask, 2026-09-12: "the style of slots the
+// abilities use where they have bevelled sides"). spr_dial_endcaps is
+// [3, 1, 1] - the cap's top row sits three in, the next two one in,
+// then full - and this table is that silhouette, so an 18-tall row
+// ends the way an 11-tall deck capsule does. The fill is the deck's
+// too: the rarity colour at the left edge fading to near-black at the
+// right (see the Draw).
+ROUND = [3, 1, 1];
 
 /// @func __rr(x, y, w, h, col, alpha)
 /// @desc A rounded-corner filled rect. Three bands rather than one draw
