@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"capsule_bevel",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"capsule_bevel",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -190,8 +190,10 @@ if (mouse_check_button_pressed(mb_left)) {
 
 	// (no back button - the burger is the X, his call 2026-09-10)
 
-	// the round ? button: flip every hint whisper at once
-	if (point_distance(mouse_x, mouse_y, room_width - 74, bby + 7) <= 8) {
+	// [hints]: flip every "?" whisper at once (a chip beside [favs] -
+	// the round button it replaced "felt out of place", his report
+	// 2026-09-12)
+	if (point_in_rectangle(mouse_x, mouse_y, room_width - 106, bby + 1, room_width - 66, bby + 14)) {
 		g.settings_hints = !g.settings_hints;
 		if (!g.settings_hints) help_txt = ""; // fold an open explainer too
 		play_sound_ext(snd_softclick, g.settings_hints ? 1.1 : .9,
@@ -256,7 +258,7 @@ if (mouse_check_button_pressed(mb_left)) {
 				var _tx = content_x + 2 + _hr.ind * 8 + round(fav_t * 8);
 				var _qx = _tx + string_width(_hr.name) + 5;
 				if (g.settings_hints
-				&&  _hr.help != "" && mouse_x >= _qx - 2 && mouse_x <= _qx + 11) {
+				&&  _hr.help != "" && mouse_x >= _qx - 3 && mouse_x <= _qx + 9) {
 					help_txt = _hr.help;
 					help_x = mouse_x;
 					help_y = mouse_y;

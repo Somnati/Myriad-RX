@@ -1,22 +1,30 @@
-/// THE UPGRADES SCREEN, the overhaul (his ask, 2026-09-11: "clean,
-/// easy on the eyes and polished with a well laid out minimal look").
-/// Two columns on one grid: the SLOT TABLE left, the INSPECTOR right,
-/// the bonus totals in a band under the table, the purse pinned in the
-/// bottom-left corner by the Step. Everything is spr_pixel_1x1 stamps
-/// and the house font; no gradients but the rows' edge seams.
+/// THE UPGRADES PANEL, the overhaul (his ask, 2026-09-11: "clean, easy
+/// on the eyes and polished with a well laid out minimal look"; an
+/// OVERLAY since 2026-09-12). Two columns on one grid: the SLOT TABLE
+/// left, the INSPECTOR right (under it in portrait), the purse pinned
+/// in the corner by the Step, the totals behind the [modifiers] button
+/// as a list over everything. Everything is spr_pixel_1x1 stamps and
+/// the house font, and all of it rides the open ease (one part - the
+/// panel is dense enough that dealing rows in one by one read as a
+/// stutter on the automation panel).
 ///
 /// A ROW SAYS FOUR THINGS: what (the name), how much (the effect, right
 /// of it), how deep (the tier dots under the name, lit for the tiers
 /// bought), and the price (the one button the mode decides). THE ROW
-/// IS A DECK CAPSULE (his ask, 2026-09-12): bevelled ends off the
-/// endcap silhouette, the rarity colour at the left edge fading to
-/// near-black at the right, the name in that colour - obj_ability_slot's
-/// recipe at this row height. The inspector names the rarity in words.
+/// IS A DECK CAPSULE (his ask): a ROUND end off capsule_bevel, the
+/// rarity colour at the left edge fading to near-black at the right,
+/// the name in that colour - obj_ability_slot's recipe at this height.
 
 draw_set_font(fnt);
 draw_set_alpha(1);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
+
+var _ea = ui_anim_in(oa, 1);
+if (_ea < .001) exit;
+var _eo = (1 - _ea) * UI_IN_DEAL;
+if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
+ui_fade_set(_ea);
 
 var _dim = rgb(120, 130, 150);
 var _ink = sett_ink;
@@ -59,23 +67,25 @@ draw_set_halign(fa_left);
 // panel is a real object that knows how to draw a balance, glide it
 // and flash on a drop; the Step pins it into the bottom-left corner.
 
-var _bk = __back_rect();
-draw_ui_back(_bk.x1, _bk.y1, _bk.x2 - _bk.x1, _bk.y2 - _bk.y1);
+// [modifiers]: the totals as a list (DE's "view modifiers")
+var _md = __mod_rect();
+draw_ui_button(_md.x, _md.y, _md.w, _md.h, "modifiers", c_lavender, true, mod_open);
 
-// the strip's message seat, right of centre before the back button:
-// what just happened (fading), else the not-live warning while it
-// applies. One seat, so the strip never grows a second line
+// the strip's message seat, before the [modifiers] button: what just
+// happened (fading), else the not-live warning while it applies. One
+// seat, so the strip never grows a second line
+var _seat_r = land ? (_md.x - 8) : (room_width - 8);
 draw_set_halign(fa_right);
 if (msg_hp > 0 && msg != "") {
 	draw_set_color(msg_col);
 	draw_set_alpha(.9 * min(1, msg_hp / 40));
-	draw_text(_bk.x1 - 8, bby + 5, msg);
-} else if (!UPG_LIVE) {
+	draw_text(_seat_r, bby + 5, msg);
+} else if (!UPG_LIVE && land) {
 	// ⚖️ AND SAY SO WHILE IT IS OFF. A screen that quotes bonuses the
 	// game is not applying, without saying so, is a screen that lies.
 	draw_set_color(c_horange);
 	draw_set_alpha(.6);
-	draw_text(_bk.x1 - 8, bby + 5, "preview - not live yet");
+	draw_text(_seat_r, bby + 5, "preview - not live yet");
 }
 draw_set_halign(fa_left);
 
@@ -104,11 +114,11 @@ for (var _i = 0; _i < _n; _i++) {
 				merge_colour(_rcol, c_black, .94), 1);
 			draw_set_color(_ra ? merge_colour(_rcol, c_white, .55) : c_gray);
 			draw_set_alpha(.95);
-			draw_text(row_x + 8, _ry + 5, "+ roll a slot");
+			draw_text(row_x + 10, _ry + 5, "+ roll a slot");
 			draw_set_halign(fa_right);
 			draw_set_color(_ra ? c_white : c_gray);
 			draw_set_alpha(.8);
-			draw_text(row_x + row_w - 8, _ry + 5, (_rc > 0) ? (string(_rc) + " cr") : "free");
+			draw_text(row_x + row_w - 10, _ry + 5, (_rc > 0) ? (string(_rc) + " cr") : "free");
 			draw_set_halign(fa_left);
 		} else {
 			// an empty capsule: the deck's near-black, a whisper of grey
@@ -116,7 +126,7 @@ for (var _i = 0; _i < _n; _i++) {
 				merge_colour(_dim, c_black, .82), merge_colour(_dim, c_black, .95), 1);
 			draw_set_color(_dim);
 			draw_set_alpha(.35);
-			draw_text(row_x + 8, _ry + 5, "empty");
+			draw_text(row_x + 10, _ry + 5, "empty");
 		}
 		continue;
 	}
@@ -154,17 +164,17 @@ for (var _i = 0; _i < _n; _i++) {
 	// deck's "on" name)
 	draw_set_color(_own ? merge_colour(_rcl, c_white, .5) : _rcl);
 	draw_set_alpha(_own ? .95 : .8);
-	draw_text(row_x + 8, _ry + 3, _name);
+	draw_text(row_x + 10, _ry + 3, _name);
 	// how deep
 	__dots(_i, _ry);
 	if (_done) {
 		draw_set_color(c_gold);
 		draw_set_alpha(.7);
-		draw_text(row_x + 8, _ry + 11, "complete");
+		draw_text(row_x + 10, _ry + 11, "complete");
 	} else if (!_own) {
 		draw_set_color(_dim);
 		draw_set_alpha(.6);
-		draw_text(row_x + 8 + ((_cap > 1) ? (_cap * 4 + 3) : 0), _ry + 11, "offer");
+		draw_text(row_x + 10 + ((_cap > 1) ? (_cap * 4 + 3) : 0), _ry + 11, "offer");
 	}
 	// how much - the effect right-aligned before the button; an offer
 	// quotes what a tier is worth, dimmer
@@ -205,48 +215,26 @@ for (var _i = 0; _i < _n; _i++) {
 	}
 }
 
-// ==================== THE TOTALS BAND ====================
-// What all of it adds up to - the thing a player actually wants from
-// a list of purchases. A hairline, then six totals in two lines of
-// three, label dim and value in the stat's colour
-draw_sprite_ext(spr_pixel_1x1, 0, row_x, tot_y, row_w, 1, 0, _ink, .18);
-var _tot = [
-	{ l : "tap",     v : "+" + string_format(_ub.tap_profit,  1, 0) + "%", c : c_gold },
-	{ l : "dials",   v : "+" + string_format(_ub.dial_profit, 1, 0) + "%", c : c_sgreen },
-	{ l : "speed",   v : "+" + string_format(_ub.dial_speed,  1, 0) + "%", c : c_sblue },
-	{ l : "crit",    v : "+" + string_format(_ub.crit_rate,   1, 0) + "%", c : c_horange },
-	{ l : "cost",    v : "-" + string_format(_ub.dial_cost,   1, 0) + "%", c : c_steelblue },
-	{ l : "credits", v : "+" + string_format(_ub.credit_rate, 1, 0) + "%", c : c_lavender },
-];
-var _tw = row_w div 3;
-for (var _k = 0; _k < 6; _k++) {
-	var _tx = row_x + (_k mod 3) * _tw;
-	var _ty = tot_y + 6 + (_k div 3) * 11;
-	var _zero = (string_copy(_tot[_k].v, 2, 99) == "0%");
-	draw_set_halign(fa_left);
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(_tx + 4, _ty, _tot[_k].l);
-	draw_set_halign(fa_right);
-	draw_set_color(_zero ? _dim : merge_colour(_tot[_k].c, c_white, .3));
-	draw_set_alpha(_zero ? .4 : .9);
-	draw_text(_tx + _tw - 8, _ty, _tot[_k].v);
-}
-draw_set_halign(fa_left);
-
 // ==================== THE INSPECTOR ====================
-// The right column, top to bottom. The TOP says what the thing is, in
-// words; the BOTTOM is a ledger of three banded lines about the bonus
-// - darkest last, where the total lives. One is read once, the other
-// every time.
+// The TOP says what the thing is, in words; the BOTTOM is a ledger of
+// banded lines about the bonus - darkest last, where the total lives.
+// THE PLATE IS AN OUTLINE (his ask, 2026-09-12): the rarity gradient
+// capsule, then a black capsule one pixel inside it on the left, top
+// and bottom - so the gradient shows as a rim that is brightest at the
+// left and fades out along the edges, and the middle where the words
+// sit stays black. The right edge needs no rim: the gradient is black
+// there anyway.
 draw_set_alpha(1);
 var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .3);
-__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
-
 // && short-circuits, so an out-of-range pick never indexes the array -
 // which it can be for a frame after the slot count changes
 var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
-var _px = desc_x + 8;
+var _rim = _has_pick ? __rar_col(g.upg.slot[pick].rar) : _ink;
+__rr_grad(desc_x, desc_y, desc_w, desc_h,
+	merge_colour(_rim, c_black, _has_pick ? .2 : .6), merge_colour(_rim, c_black, .96), 1);
+draw_capsule(desc_x + 1, desc_y + 1, desc_w - 1, desc_h - 2, _dc, _dc, 1, capsule_bevel(desc_h - 2));
+
+var _px = desc_x + 10;
 var _pr = desc_x + desc_w - 8;
 
 if (!_has_pick) {
@@ -265,17 +253,13 @@ if (!_has_pick) {
 	var _pc   = __rar_col(_ps.rar);
 	var _pcap = upgrade_cap(pick);
 
-	// the picked capsule's colour, washed up the inspector's left edge
-	// the way it washes across its row
-	__rr_grad(desc_x, desc_y, desc_w, desc_h, merge_colour(_pc, c_black, .78), _dc, 1);
-
 	// ---- the top: what it IS ----
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
-	draw_text(_px + 2, desc_y + 7, (_pe == -1) ? _ps.id : _pe.name);
+	draw_text(_px, desc_y + 7, (_pe == -1) ? _ps.id : _pe.name);
 	draw_set_color(_pc);
 	draw_set_alpha(.9);
-	draw_text(_px + 2, desc_y + 18, __rar_name(_ps.rar));
+	draw_text(_px, desc_y + 18, __rar_name(_ps.rar));
 	draw_set_halign(fa_right);
 	draw_set_color(_dim);
 	draw_set_alpha(.8);
@@ -283,17 +267,22 @@ if (!_has_pick) {
 		? ("tier " + string(_ps.tier) + " / " + string(_pcap))
 		: ("offer  " + string(_pcap) + ((_pcap == 1) ? " tier" : " tiers")));
 	draw_set_halign(fa_left);
-	// a rule in the rarity's colour under the head
-	draw_sprite_ext(spr_pixel_1x1, 0, _px + 2, desc_y + 30, desc_w - 18, 1, 0, _pc, .35);
-	// the words
-	draw_set_color(_ink);
-	draw_set_alpha(.75);
-	draw_text_ext(_px + 2, desc_y + 37,
-		(_pe == -1) ? "no longer in the roster" : _pe.help, 9, desc_w - 18);
+	// a rule in the rarity's colour under the head, then the words -
+	// unless the panel is the portrait stub, which has room for the
+	// head and the ledger's first line only
+	var _compact = (desc_h < 110);
+	if (!_compact) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _px, desc_y + 30, desc_w - 18, 1, 0, _pc, .35);
+		draw_set_color(_ink);
+		draw_set_alpha(.75);
+		draw_text_ext(_px, desc_y + 37,
+			(_pe == -1) ? "no longer in the roster" : _pe.help, 9, desc_w - 18);
+	}
 
 	// ---- the bottom: the ledger ----
-	// what the NEXT tier buys, what THIS slot gives, what you HOLD
-	// across everything. Reading down is reading outward.
+	// what the NEXT tier buys, what THIS slot gives (once it gives
+	// anything - "+0% until bought" said nothing, his call), what you
+	// HOLD across everything. Reading down is reading outward.
 	var _rows_txt = [];
 	if (_pe != -1 && _pe.stat != "") {
 		var _sfx  = (_ps.id == "crit_multi") ? "x" : "%";
@@ -302,12 +291,9 @@ if (!_has_pick) {
 		array_push(_rows_txt,
 			{ k : (_ps.tier + 1 >= _pcap) ? "final tier" : "next tier",
 			  v : (_nxt == "") ? "complete" : _nxt, c : c_sgreen });
-		array_push(_rows_txt,
-			{ k : "this slot",
-			  v : (_ps.tier > 0)
-			      ? ("+" + string_format(_mine, 1, 2) + _sfx)
-			      : ("+0" + _sfx + " until bought"),
-			  c : (_ps.tier > 0) ? c_white : _dim });
+		if (_ps.tier > 0)
+			array_push(_rows_txt,
+				{ k : "this slot", v : "+" + string_format(_mine, 1, 2) + _sfx, c : c_white });
 		array_push(_rows_txt,
 			{ k : "total",
 			  v : "+" + string_format(_ub[$ _pe.stat], 1, 2) + _sfx,
@@ -321,24 +307,27 @@ if (!_has_pick) {
 			{ k : "slots", v : string(upgrade_slots()) + " / "
 			  + string(UPG_SLOT_MAX), c : c_white });
 	}
+	if (_compact) _rows_txt = [_rows_txt[0]];
 	// the mode's verb over the ledger, so what the button does is
 	// written where you read about the thing
 	var _lh = 12;
-	var _ly = desc_y + desc_h - 5 - array_length(_rows_txt) * _lh;
-	draw_set_color(_dim);
-	draw_set_alpha(.5);
-	draw_text(_px + 2, _ly - 11, (mode == 0)
-		? ((upgrade_cost(pick) < 0) ? "at its last tier" : "hold the price to buy")
-		: "hold the price to sell");
+	var _ly = desc_y + desc_h - 6 - array_length(_rows_txt) * _lh;
+	if (!_compact) {
+		draw_set_color(_dim);
+		draw_set_alpha(.5);
+		draw_text(_px, _ly - 11, (mode == 0)
+			? ((upgrade_cost(pick) < 0) ? "at its last tier" : "hold the price to buy")
+			: "hold the price to sell");
+	}
 	for (var _q = 0; _q < array_length(_rows_txt); _q++) {
 		var _ln = _rows_txt[_q];
 		// light to dark down the stack, so the eye lands on the total
-		draw_sprite_ext(spr_pixel_1x1, 0, desc_x + 4, _ly, desc_w - 8, _lh - 1,
+		draw_sprite_ext(spr_pixel_1x1, 0, desc_x + 6, _ly, desc_w - 12, _lh - 1,
 			0, c_black, .14 + .16 * _q);
 		draw_set_halign(fa_left);
 		draw_set_color(_dim);
 		draw_set_alpha(.65);
-		draw_text(_px + 2, _ly + 3, _ln.k);
+		draw_text(_px, _ly + 3, _ln.k);
 		draw_set_halign(fa_right);
 		draw_set_color(_ln.c);
 		draw_set_alpha(.95);
@@ -348,5 +337,106 @@ if (!_has_pick) {
 	draw_set_halign(fa_left);
 }
 
+// ==================== THE MODIFIERS LIST ====================
+// DE's "view modifiers" (obj_upgrades_stats), rebuilt: a dark sheet
+// over the panel from the strip down, then one line per total in
+// sections - a section is a band in its colour, a line is label left /
+// value right, the zero ones dim. It eases in on mod_a; a tap anywhere
+// folds it (the Step).
+if (mod_a > .001) {
+	ui_fade_set(_ea * mod_a);
+	var _ty = list_y;
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, _ty, room_width, room_height - _ty, 0, c_black, .82);
+	var _lx = land ? (room_width div 2 - 150) : 8;
+	var _lw = land ? 300 : (room_width - 16);
+	var _lr = _lx + _lw;
+	var _yy = _ty + 8;
+	var _lh2 = 11;
+	var _pri = merge_colour(c_white, merge_colour(c_black, c_sblue, .15), .5);   // DE's c_primary
+	// the head: what the sheet is, and the tally
+	draw_set_halign(fa_left);
+	draw_set_color(c_lavender);
+	draw_set_alpha(.95);
+	draw_text(_lx + 3, _yy, "modifiers");
+	draw_set_halign(fa_right);
+	draw_set_color(_dim);
+	draw_set_alpha(.7);
+	draw_text(_lr - 3, _yy, "tap anywhere to close");
+	_yy += _lh2 + 3;
+	draw_sprite_ext(spr_pixel_1x1, 0, _lx, _yy - 4, _lw, _lh2, 0, c_black, .25);
+	draw_set_halign(fa_left);
+	draw_set_color(_pri);
+	draw_set_alpha(.9);
+	draw_text(_lx + 3, _yy - 2, "upgrades bought");
+	draw_set_halign(fa_right);
+	draw_set_color(c_white);
+	draw_text(_lr - 3, _yy - 2, string(g.upg.total));
+	_yy += _lh2;
+	draw_sprite_ext(spr_pixel_1x1, 0, _lx, _yy - 4, _lw, _lh2, 0, c_black, .25);
+	draw_set_halign(fa_left);
+	draw_set_color(_pri);
+	draw_text(_lx + 3, _yy - 2, "slots rolled");
+	draw_set_halign(fa_right);
+	draw_set_color(c_white);
+	draw_text(_lr - 3, _yy - 2, string(g.upg.rolls));
+	_yy += _lh2;
+
+	// the sections: one per stat family, every stat in it (zeros dim,
+	// so the sheet also says what CAN be raised)
+	var _secs = [
+		{ n : "tapper", c : c_gold, rows : [
+			{ k : "tap profit",      v : _ub.tap_profit,  s : "%" },
+			{ k : "tap speed",       v : _ub.tap_rate,    s : "%" },
+			{ k : "critical chance", v : _ub.crit_rate,   s : "%" },
+			{ k : "critical payout", v : _ub.crit_multi,  s : "x" } ] },
+		{ n : "dials", c : c_sgreen, rows : [
+			{ k : "dial profit",     v : _ub.dial_profit, s : "%" },
+			{ k : "dial speed",      v : _ub.dial_speed,  s : "%" },
+			{ k : "dial discount",   v : _ub.dial_cost,   s : "%", neg : true } ] },
+		{ n : "credits", c : c_lavender, rows : [
+			{ k : "credit refill",   v : _ub.credit_rate, s : "%" },
+			{ k : "credit luck",     v : _ub.credit_luck, s : "%" } ] },
+		{ n : "rebirth", c : c_hred, rows : [
+			{ k : "rebirth units",   v : _ub.rebirth_units, s : "%" } ] },
+	];
+	for (var _si = 0; _si < array_length(_secs); _si++) {
+		var _sc = _secs[_si];
+		var _c1 = merge_colour(_sc.c, c_black, .65);
+		draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _lx, _yy - 4, _lw, _lh2, 0,
+			_c1, c_black, c_black, _c1, .7);
+		draw_set_halign(fa_left);
+		draw_set_color(_sc.c);
+		draw_set_alpha(.95);
+		draw_text(_lx + 3, _yy - 2, "// " + _sc.n);
+		_yy += _lh2;
+		for (var _ri = 0; _ri < array_length(_sc.rows); _ri++) {
+			var _rw = _sc.rows[_ri];
+			var _zero = (_rw.v <= 0);
+			if (_ri & 1) draw_sprite_ext(spr_pixel_1x1, 0, _lx, _yy - 4, _lw, _lh2, 0, c_black, .25);
+			draw_set_halign(fa_left);
+			draw_set_color(_zero ? _dim : _pri);
+			draw_set_alpha(_zero ? .5 : .9);
+			draw_text(_lx + 3, _yy - 2, "   " + _rw.k);
+			draw_set_halign(fa_right);
+			draw_set_color(_zero ? _dim : c_white);
+			draw_set_alpha(_zero ? .5 : .95);
+			draw_text(_lr - 3, _yy - 2,
+				((_rw[$ "neg"] ?? false) ? "-" : "+") + string_format(_rw.v, 1, 2) + _rw.s);
+			_yy += _lh2;
+		}
+	}
+	// ⚖️ AND SAY SO WHILE IT IS OFF (the strip's warning, repeated where
+	// the numbers are read)
+	if (!UPG_LIVE) {
+		draw_set_halign(fa_center);
+		draw_set_color(c_horange);
+		draw_set_alpha(.7);
+		draw_text(room_width div 2, _yy + 2, "preview - none of this is applied to the game yet");
+	}
+	draw_set_halign(fa_left);
+}
+
+ui_fade_set(1);   // never leave the shader on for the next drawer
+if (_eo != 0) matrix_set(matrix_world, matrix_build_identity());
 draw_set_alpha(1);
 draw_set_color(c_white);

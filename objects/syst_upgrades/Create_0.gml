@@ -35,10 +35,19 @@
 /// fade), and the three-line footer (two tidy lines of six totals).
 /// A row says four things: what, how much, how deep, and the price.
 
-bby    = obj_ui_header.bar_h;   // flush under the bar, not its shadow
+// AN OVERLAY, NOT A ROOM (his ask, 2026-09-12): spawned over whatever
+// room you stand in by upgrades_open, on the contract every panel
+// shares - oa / closing, ui_overlay lists it, ui_blur_tick softens the
+// room behind, the burger's X and escape close it. No back button.
+depth   = -510;   // over the room and its drawers, under the menu (-520) and the header (-1000)
+oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
+closing = false;  // armed by upgrades_close; the Step destroys at zero
+
+bby    = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar
 list_y = bby + 16;
 row_h  = 18;    // name on the top line, the tier dots under it
 row_sp = 21;
+land   = (room_width > 300);   // the money room is both orientations
 // ⚖️ ROUNDED CORNERS (his ask: like the ability deck slots). The deck
 // caps its bars with spr_dial_endcaps, a 3x11 sprite built for one
 // exact capsule height - these rows are 16 tall, and scaling that
@@ -55,7 +64,7 @@ row_sp = 21;
 // ends the way an 11-tall deck capsule does. The fill is the deck's
 // too: the rarity colour at the left edge fading to near-black at the
 // right (see the Draw).
-ROUND = [3, 1, 1];
+ROUND = capsule_bevel(row_h);   // [6, 4, 3, 2, 1, 1] at 18 - the round end
 
 /// @func __rr(x, y, w, h, col, alpha)
 /// @desc A rounded-corner filled rect. Three bands rather than one draw
@@ -96,9 +105,10 @@ __rr_grad = function(_x, _y, _w, _h, _c1, _c2, _a) {
 };
 
 // THE TWO COLUMNS. The table takes the left 292, the inspector the
-// rest, an 8px gutter between and around - one grid, every edge on it
+// rest, an 8px gutter between and around - one grid, every edge on it.
+// Portrait stacks them: the table full width, the inspector under it
 row_x  = 8;
-row_w  = 292;
+row_w  = land ? 292 : (room_width - 16);
 
 mode = 0;      // 0 = buy, 1 = sell
 sel  = -1;     // the slot under the pointer, for the hover wash
@@ -127,10 +137,16 @@ sel  = -1;     // the slot under the pointer, for the hover wash
 pick    = -1;
 // THE INSPECTOR IS THE RIGHT COLUMN, top to bottom (the overhaul): it
 // used to sit under the table and cover the eighth slot (his report)
-desc_x  = row_x + row_w + 8;
-desc_w  = room_width - desc_x - 8;
+desc_x  = land ? (row_x + row_w + 8) : row_x;
+desc_w  = land ? (room_width - desc_x - 8) : row_w;
 desc_y  = 0;   // seated below, once __row_y exists
 desc_h  = 0;
+// THE MODIFIERS LIST (DE's "view modifiers", his ask 2026-09-12): the
+// totals used to sit in a band under the table; now a button opens
+// them as a list over the panel, so the roster can grow without the
+// screen running out of room. mod_a eases it in and out
+mod_open = false;
+mod_a    = 0;
 
 // THE RARITY GRADIENT. A rung's colour bleeds in from the left edge,
 // and BOTH how far it reaches and how strong it is scale with the rung
@@ -167,13 +183,10 @@ hold_lock = false;  // set when a hold completes something that must not
 __row_y = function(_i) { return list_y + 5 + _i * row_sp; };
 
 // the inspector shares the table's top edge and runs to the bottom
-// margin - the two columns are one rectangle cut in two
-desc_y = __row_y(0);
-desc_h = room_height - 8 - desc_y;
-
-// THE TOTALS BAND under the table: a hairline, then two lines of three
-// totals each. It ends above the purse, which is pinned in the corner
-tot_y = __row_y(UPG_SLOT_MAX) + 3;
+// margin - the two columns are one rectangle cut in two. Portrait: it
+// sits under the table, above the [modifiers] button
+desc_y = land ? __row_y(0) : (__row_y(UPG_SLOT_MAX) + 4);
+desc_h = (land ? (room_height - 8) : (room_height - 30)) - desc_y;
 
 // the row's one button, right-aligned so every row's action sits in the
 // same column no matter how long its name is. An EMPTY row has none any
@@ -213,11 +226,14 @@ __free_slot = function() {
 // name - [buy|sell], the live half filled. Two halves of one shape
 // rather than two buttons, because it is one choice
 __mode_rect = function(_m) {
-	return { x : 68 + _m * 30, y : bby + 2, w : 30, h : 12 };
+	return { x : (land ? 68 : 62) + _m * 30, y : bby + 2, w : 30, h : 12 };
 };
 
-__back_rect = function() {
-	return { x1 : room_width - 62, y1 : bby + 6, x2 : room_width - 6, y2 : bby + 22 };
+// the [modifiers] button: the strip's right end in landscape, a wide
+// button under the inspector in portrait (the strip is full there)
+__mod_rect = function() {
+	if (land) return { x : room_width - 8 - 62, y : bby + 2, w : 62, h : 12 };
+	return { x : row_x, y : room_height - 22, w : row_w, h : 14 };
 };
 
 // the rarity's name and colour, both from upgrade_rarity_info - which

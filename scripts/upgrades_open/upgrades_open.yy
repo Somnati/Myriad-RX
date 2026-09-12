@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"draw_help_chip",
+  "%Name":"upgrades_open",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"draw_help_chip",
+  "name":"upgrades_open",
   "parent":{
-    "name":"ui",
-    "path":"folders/engine/ui.yy",
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

@@ -1,3 +1,10 @@
+// ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
+if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
+if (closing && oa <= 0) { instance_destroy(); exit; }
+// the modifiers list eases too
+mod_a = move_to(mod_a, mod_open ? 1 : 0, .12);
+
 // THE CREDIT PANEL IS PINNED HERE (his call, DE's obj_display_credits).
 // Every price on this screen is in credits, so the balance has to be
 // visible the whole time rather than for three seconds after a drop.
@@ -6,9 +13,9 @@
 // to remember to. It sits in the BOTTOM-LEFT CORNER under the totals
 // band (the overhaul) rather than at its default y 46, where it would
 // land on top of the second row.
-if (instance_exists(obj_display_credits)) {
+if (instance_exists(obj_display_credits) && !closing) {
 	obj_display_credits.pin  = true;
-	obj_display_credits.desy = room_height - 16;
+	obj_display_credits.desy = land ? (room_height - 16) : (room_height - 36);
 }
 
 msg_hp = max(0, msg_hp - delta);
@@ -17,8 +24,24 @@ msg_hp = max(0, msg_hp - delta);
 // pointer. Every action here is a credit transaction, so none of it may
 // fire under a menu or a dialogue.
 sel = -1;
-if (!input_free() || g.click_owner != noone) {
+// only once the panel has fully arrived, and only while nothing sits
+// over it (a pillbox, a popup, the menu) - the overlay's own rung
+if (oa < .999 || closing || !input_free(ui_layer_overlay)
+|| (variable_global_exists("click_owner") && g.click_owner != noone)) {
 	hold_hp = 0; hold_i = -1; hold_spd = 1; exit;
+}
+if (keyboard_check_pressed(vk_escape)) {
+	if (mod_open) mod_open = false; else upgrades_close();
+	exit;
+}
+// THE MODIFIERS LIST owns the pointer while it is up: any tap folds it
+if (mod_open || mod_a > .01) {
+	hold_hp = 0; hold_i = -1;
+	if (mouse_check_button_pressed(mb_left)) {
+		mod_open = false;
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+	}
+	exit;
 }
 
 var _mx = mouse_x, _my = mouse_y;
@@ -94,10 +117,11 @@ if (hold_i == -1) {
 
 if (!mouse_check_button_pressed(mb_left)) exit;
 
-var _bk = __back_rect();
-if (point_in_rectangle(_mx, _my, _bk.x1, _bk.y1, _bk.x2, _bk.y2)) {
-	play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-	back_room();
+// ---- [modifiers]: the totals, as a list over the panel ----
+var _md = __mod_rect();
+if (point_in_rectangle(_mx, _my, _md.x, _md.y, _md.x + _md.w, _md.y + _md.h)) {
+	mod_open = true;
+	play_sound_ext(snd_softclick, 1, 1.1, .45, 1);
 	exit;
 }
 

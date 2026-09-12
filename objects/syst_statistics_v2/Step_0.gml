@@ -184,6 +184,15 @@ if (mouse_check_button_pressed(mb_left)) {
 		play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
 	}
 
+	// [hints]: show or hide the "?" marks
+	if (point_in_rectangle(mouse_x, mouse_y, room_width - 210,
+		_bby + 6, room_width - 170, _bby + 22)) {
+		g.stats_hints = !g.stats_hints;
+		if (!g.stats_hints) help_txt = "";
+		play_sound_ext(snd_softclick, g.stats_hints ? 1.1 : .9,
+			g.stats_hints ? 1.2 : 1, .4, 1);
+	}
+
 	// (no back button - the burger is the X, his call 2026-09-10)
 
 	// the rail: a press here only ARMS - the tab lands on release

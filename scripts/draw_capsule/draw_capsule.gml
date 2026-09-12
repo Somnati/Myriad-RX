@@ -16,9 +16,9 @@
 /// @param c_right   the colour at the right edge
 /// @param [alpha]   1
 /// @param [bevel]   the inset table, one entry per row in from the top
-///                  and bottom edges ([3, 1, 1] - the deck's)
+///                  and bottom edges (capsule_bevel(h) - a round end)
 function draw_capsule(_x, _y, _w, _h, _c1, _c2, _a = 1, _bev = undefined) {
-	if (_bev == undefined) _bev = [3, 1, 1];
+	if (_bev == undefined) _bev = capsule_bevel(_h);
 	var _n = array_length(_bev);
 	if (_h < _n * 2 + 1) _n = max(0, (_h - 1) div 2);
 	for (var _k = 0; _k < _n; _k++) {

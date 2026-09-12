@@ -11,7 +11,7 @@ function assign_banner() {
 	// a suppressed-but-queued banner would simply appear on the next
 	// screen, announcing something that happened somewhere else.
 	// The screen says these things itself now, on its own status line.
-	if (in_room(rm_upgrades)) exit;
+	if (instance_exists(syst_upgrades)) exit;   // the upgrade panel has its own status seat
 
 	if instance_exists(syst_banner){
 	o_sb = syst_banner;

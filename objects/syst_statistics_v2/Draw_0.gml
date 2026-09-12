@@ -127,13 +127,12 @@ for (var _r = _lo; _r < _hi; _r++) {
 		draw_set_color(_row.c1);
 		draw_set_alpha(.9);
 		draw_text(_tx, _ry + 4, _row.name);
-		if (_row.kind == 0 && _row.help != "") {
-			// the "?" chip marks tappable explainers (draw_help_chip);
-			// the whole row opens one here, so it lights with the row
-			var _qx = _tx + string_width(_row.name) + 5;
-			var _hot = (mouse_y >= list_y && mouse_x >= content_x
-				&& point_in_rectangle(mouse_x, mouse_y, content_x, _ry, val_x, _ry + row_h - 1));
-			draw_help_chip(_qx, _ry + 3, _row.c1, _hot);
+		if (_row.kind == 0 && _row.help != "" && g.stats_hints) {
+			// a whisper of a "?" marks tappable explainers - only while
+			// the strip's [hints] chip has them showing (his call,
+			// 2026-09-12: the marks off by default, the plain glyph kept)
+			draw_set_alpha(.3);
+			draw_text(_tx + string_width(_row.name) + 5, _ry + 4, "?");
 		}
 	}
 	if (_row.kind == 0 && _row.val != "") {

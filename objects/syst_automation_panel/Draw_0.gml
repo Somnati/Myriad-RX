@@ -82,7 +82,11 @@ draw_set_halign(fa_left);
 		var _used = (_k < _u);
 		var _over = (_k >= _c);
 		var _col  = _over ? c_hred : (_hot ? merge_colour(c_seagreen, c_horange, .55) : c_seagreen);
-		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, _col, .85);
+		// the used run ramps, subtly, from a shade darker at the left to
+		// full at its leading edge (his ask, 2026-09-12) - the fill reads
+		// as filling rather than as a flat bar of sticks
+		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0,
+			merge_colour(merge_colour(_col, c_black, .38), _col, _k / max(1, _u - 1)), .85);
 		else       draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _over ? c_hred : c_seagreen, .25);
 		if (_h0 >= 0 && _k >= _h0 && _k < _h0 + hov_ram) {
 			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);

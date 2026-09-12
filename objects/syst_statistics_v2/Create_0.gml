@@ -93,6 +93,10 @@ fav_show = variable_global_exists("stats_fav_show") ? g.stats_fav_show : false;
 // the values mode: 0 total / 1 session (the strip's pill flips it;
 // stats_v2_content reads it for every row)
 if (!variable_global_exists("stats_mode")) g.stats_mode = 0;
+// the "?" marks on the rows that carry an explainer: off by default
+// (his ask, 2026-09-12), the strip's [hints] chip shows them.
+// session-remembered, like settings' - deliberately not saved
+if (!variable_global_exists("stats_hints")) g.stats_hints = false;
 // the gutter SLIDES: names sit close to the left with it off, and step
 // right as the star comes out from behind the rail. fav_t is the eased
 // 0..1 the draw reads for both.
@@ -476,6 +480,17 @@ __draw_strip = function() {
 	draw_set_color(_sess ? c_gold : c_white);
 	draw_set_alpha(.9);
 	draw_text(_mx + 28, _bby + 10, _sess ? "session" : "total");
+
+	// [hints]: the "?" marks on the rows with an explainer (settings'
+	// twin - the same chip, the same chrome, the same seat in the strip)
+	var _hx = _mx - 4 - 40;
+	draw_set_alpha(1);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx, _bby + 6, 40, 16, 0, c_black, .8);
+	draw_px_rect(_hx, _bby + 6, 40, 16, g.stats_hints ? c_gold : rgb(170, 190, 230),
+		g.stats_hints ? .9 : .5);
+	draw_set_color(g.stats_hints ? c_gold : c_white);
+	draw_set_alpha(.9);
+	draw_text(_hx + 20, _bby + 10, "hints");
 
 
 	// the tap-for-info explainer, floated near the tap, clamped in-room

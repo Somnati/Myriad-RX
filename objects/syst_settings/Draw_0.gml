@@ -76,10 +76,8 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 	// a whisper of a "?" marks rows with an explainer - only while the
 	// strip's round ? button has hints switched on (ui stays clean)
 	if (_row.help != "" && g.settings_hints) {
-		var _qx = _tx + string_width(_row.name) + 5;
-		var _hot = (mouse_y >= list_y
-			&& point_in_rectangle(mouse_x, mouse_y, _qx - 2, _ry, _qx + 11, _ry + row_h - 1));
-		draw_help_chip(_qx, _ry + 3, _row.col, _hot);
+		draw_set_alpha(.3);
+		draw_text(_tx + string_width(_row.name) + 5, _ry + 4, "?");
 	}
 
 	if (_row.kind == sett_kind_info && _row.val != "") {

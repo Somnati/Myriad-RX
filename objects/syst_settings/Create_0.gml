@@ -343,36 +343,18 @@ __draw_strip = function() {
 		draw_text(6 + string_width("settings") + 8, bby + 4, "saved");
 	}
 
-	// the round ? button: master switch for every hint whisper in the
-	// list (gold while they're showing). drawn PER-PIXEL (midpoint
-	// circle r=6 as spr_pixel_1x1 spans, 2026-07-12): draw_circle's
-	// smooth vector ring was the one non-chunky shape on the screen
-	// (his report) - house rule, hard pixels only
-	var _hx = room_width - 74;
-	var _hy = bby + 7;
-	var _cf = g.settings_hints ? merge_colour(c_gold, c_black, .6) : c_black;
-	var _cr = g.settings_hints ? c_gold : rgb(170, 190, 230);
-	var _ar = g.settings_hints ? .9 : .5;
-	var _hw = [6, 6, 6, 5, 4, 3, 2]; // half-width per |dy| (midpoint r=6)
+	// [hints]: the master switch for every "?" whisper in the list - a
+	// chip in the strip's row of chips, beside [favs] (the round button
+	// it replaced "felt out of place" - his report, 2026-09-12)
+	var _hx = room_width - 106;
 	draw_set_alpha(1);
-	for (var _dy = -6; _dy <= 6; _dy++) {
-		var _w2 = _hw[abs(_dy)];
-		// fill span, then the ring: the row's outermost pixels (the
-		// cap rows at |dy| 6 wear their whole span as ring)
-		draw_sprite_ext(spr_pixel_1x1, 0, _hx - _w2, _hy + _dy,
-			_w2 * 2 + 1, 1, 0, _cf, 1);
-		if (abs(_dy) == 6)
-			draw_sprite_ext(spr_pixel_1x1, 0, _hx - _w2, _hy + _dy,
-				_w2 * 2 + 1, 1, 0, _cr, _ar);
-		else {
-			draw_sprite_ext(spr_pixel_1x1, 0, _hx - _w2, _hy + _dy, 1, 1, 0, _cr, _ar);
-			draw_sprite_ext(spr_pixel_1x1, 0, _hx + _w2, _hy + _dy, 1, 1, 0, _cr, _ar);
-		}
-	}
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx, bby + 1, 40, 13, 0, c_black, .8);
+	draw_px_rect(_hx, bby + 1, 40, 13, g.settings_hints ? c_gold : rgb(170, 190, 230),
+		g.settings_hints ? .9 : .5);
 	draw_set_halign(fa_center);
-	draw_set_color(g.settings_hints ? c_gold : sett_ink);
-	draw_set_alpha(g.settings_hints ? .95 : .6);
-	draw_text(_hx + 1, _hy - 3, "?");
+	draw_set_color(g.settings_hints ? c_gold : c_white);
+	draw_set_alpha(.9);
+	draw_text(_hx + 20, bby + 4, "hints");
 
 	// [favs]: the star gutter's switch (statistics' twin - pinning is
 	// rare, so the pips can be put away without unpinning anything)
