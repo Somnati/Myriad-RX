@@ -26,5 +26,6 @@ function upgrade_bonus_live() {
 		credit_rate   : 0,
 		credit_luck   : 0,
 		rebirth_units : 0,
+		luck          : 0,
 	};
 }

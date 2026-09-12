@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"luck_rate",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"luck_rate",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -58,7 +58,7 @@ if (tps_i != floor(tps_sm)) {
 // pays the true one in tap_fire, and a readout that disagrees with the
 // bank by 2.4x is worse than no readout.
 var _ub  = upgrade_bonus_live();
-var _rt  = clamp((g.click_crit + _ub.crit_rate) / 100, 0, 1);
+var _rt  = clamp((g.click_crit + _ub.crit_rate) * luck_mod() / 100, 0, 1);
 var _mn  = (g.click_critx_min + g.click_critx_max) * .5 + _ub.crit_multi;
 var _gps = do_scale(do_multi(g.click_gps, arb(max(tps_i, 1))),
 	1 + _rt * max(0, _mn - 1));

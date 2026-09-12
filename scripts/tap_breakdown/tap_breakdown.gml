@@ -90,7 +90,7 @@ function tap_breakdown() {
 	_out.ok = (abs(_out.derived - _out.live_lg) < .12) || (_out.live_lg <= 0);
 
 	// ---- crits, as the expectation they add (obj_clicker's readout law) ----
-	var _rt = clamp((g.click_crit + _ub.crit_rate) / 100, 0, 1);
+	var _rt = clamp((g.click_crit + _ub.crit_rate) * luck_mod() / 100, 0, 1);
 	var _mn = (g.click_critx_min + g.click_critx_max) * .5 + _ub.crit_multi;
 	_out.crit_x = 1 + _rt * max(0, _mn - 1);
 

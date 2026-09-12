@@ -57,7 +57,7 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (_stat) overcharge_tap(_n);
 
 	var _ub   = upgrade_bonus_live();
-	var _rate = g.click_crit + _ub.crit_rate;
+	var _rate = (g.click_crit + _ub.crit_rate) * luck_mod();   // luck leans the crit (DE)
 	var _pay  = do_multi(g.click_gps, arb(_n));
 	var _crit = false;
 	var _cx   = 1;
@@ -94,7 +94,7 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	var _show = _fx && in_room(rm_clicker);
 
 	if (variable_global_exists("credit_tap_chance"))
-	if (roll_perc(g.credit_tap_chance * _n * (1 + _ub.credit_luck / 100)))
+	if (roll_perc(g.credit_tap_chance * _n * (1 + _ub.credit_luck / 100) * luck_mod()))
 		credit_drop(_x, _y, -1, _show ? 8 : 0);
 
 	// THE SOUND plays in every room - it is the feedback that the tap

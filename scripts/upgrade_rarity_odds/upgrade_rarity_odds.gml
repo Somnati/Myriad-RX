@@ -15,6 +15,7 @@
 /// percentage exists to survive.
 function upgrade_rarity_odds() {
 	var _rate = variable_global_exists("upgrade_rarity") ? g.upgrade_rarity : 0;
+	_rate = luck_rate(_rate);   // DE's roll_upgrade: rate x luck + (luck - 1) x 100
 	return rarity_odds(_rate, UPG_RARITY_SCALE, UPG_RARITY_GROW,
 		UPG_RARITY_CUT, UPG_RARITY_N);
 }

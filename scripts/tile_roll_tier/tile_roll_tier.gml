@@ -11,6 +11,6 @@
 function tile_roll_tier() {
 	// the whole modifier chain lives in ONE place now (DE's order: flat
 	// adders, then the upgrade as a multiply) - see tile_rarity_rate
-	var _r = calculate_rarity(tile_rarity_rate(), .3, .03, 800);
+	var _r = calculate_rarity(luck_rate(tile_rarity_rate()), .3, .03, 800);   // luck leans the tier (DE's gear/chest shape)
 	return 1 + _base_rarity + _r;
 }

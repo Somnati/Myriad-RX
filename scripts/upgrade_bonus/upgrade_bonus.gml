@@ -26,6 +26,7 @@ function upgrade_bonus() {
 		credit_rate   : 0,
 		credit_luck   : 0,
 		rebirth_units : 0,
+		luck          : 0,   // flat points into luck_points (DE's luck)
 	};
 
 	// ---- THE SLOTS ----

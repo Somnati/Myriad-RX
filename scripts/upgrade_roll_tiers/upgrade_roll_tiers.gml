@@ -35,10 +35,11 @@ function upgrade_roll_tiers(_rar) {
 	// has today - expect to retune all four once the credit curve
 	// settles.
 	var _cr = (g.credits >= arb(1)) ? unarb(g.credits) : 0;
-	if (_cr >  1000 && roll_perc(20)) _t += 1;
-	if (_cr >  4000 && roll_perc(20)) _t += 1;
-	if (_cr > 10000 && roll_perc(20)) _t += 1;
-	if (_cr > 30000 && roll_perc(20)) _t += 1;
+	var _lm = luck_mod();   // the bonus rolls lean with luck (DE's chain-buy did)
+	if (_cr >  1000 && roll_perc(20 * _lm)) _t += 1;
+	if (_cr >  4000 && roll_perc(20 * _lm)) _t += 1;
+	if (_cr > 10000 && roll_perc(20 * _lm)) _t += 1;
+	if (_cr > 30000 && roll_perc(20 * _lm)) _t += 1;
 
 	return max(1, _t);
 }

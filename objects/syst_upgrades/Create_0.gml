@@ -316,7 +316,7 @@ __rar_col  = function(_r) { return upgrade_rarity_info(_r).col;  };
 // a slot's effect, as the one string the row has room for
 __eff_str = function(_i) {
 	var _s = g.upg.slot[_i];
-	var _sfx = (_s.id == "crit_multi") ? "x" : "%";
+	var _sfx = (_s.id == "crit_multi") ? "x" : ((_s.id == "luck") ? " luck" : "%");
 	if (_s.tier > 0)
 		return "+" + string_format(
 			upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i)), 1, 2) + _sfx;
@@ -335,7 +335,7 @@ __next_str = function(_i) {
 	var _d = upgrade_tier_value(_s.val, _s.tier + 1, _c)
 	       - upgrade_tier_value(_s.val, _s.tier, _c);
 	return "+" + string_format(_d, 1, 2)
-		+ ((_s.id == "crit_multi") ? "x" : "%")
+		+ ((_s.id == "crit_multi") ? "x" : ((_s.id == "luck") ? " luck" : "%"))
 		+ ((_s.tier + 1 >= _c) ? " to finish" : " next");
 };
 

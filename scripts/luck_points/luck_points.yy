@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"luck_points",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"luck_points",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

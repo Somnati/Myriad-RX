@@ -90,6 +90,17 @@ function upgrade_config() {
 			avail : function() { return variable_global_exists("credit_tap_chance"); },
 		},
 		{
+			// LUCK (DE's, his ask 2026-09-12): flat points, not a percent -
+			// luck_mod turns the points into the multiplier every chance
+			// in the game takes. DE's roster gave 1 a tier at rare up to
+			// 5 at ultimate for 25 credits; here the band is the points
+			// and the rarity multiplier does the climbing
+			id : "luck", name : "luck", stat : "luck",
+			band : [1, 2], cap : 10, cost : 25, col : c_seagreen,
+			help : "every roll in the game leans your way",
+			avail : function() { return true; },
+		},
+		{
 			id : "rebirth_units", name : "rebirth units", stat : "rebirth_units",
 			band : [3, 7], cap : 8, cost : 14, col : c_hred,
 			help : "rebirth awards more units",

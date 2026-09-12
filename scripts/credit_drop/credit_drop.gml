@@ -21,7 +21,7 @@ function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 		_n = clamp(round(random_range(1, g.credit_pool)), 1, g.credit_maxpull);
 		g.credit_pool -= _n;
 		g.credit_cool = random_range(g.credit_cool_min, g.credit_cool_max);
-		if (roll_perc(10)) g.credit_cool *= .5;
+		if (roll_perc(10 * luck_mod())) g.credit_cool *= .5;   // the lucky short cooldown leans with luck
 	}
 	if (_n < 1) return 0;
 	_n = floor(_n);

@@ -121,7 +121,12 @@ function stats_v2_content() {
 			? string_format(100 * _cr / _tp, 1, 2) + "%"
 			: "-", -1, c_gray);
 		if (variable_global_exists("click_crit"))
-			stats_v2_line("crit chance", string(g.click_crit) + "%", -1, c_gray);
+			stats_v2_line("crit chance", string_format(g.click_crit * luck_mod(), 1, 1) + "%", -1, c_gray,
+				"the base chance with your luck on it - every roll in the game takes luck_mod");
+		stats_v2_line("luck", string(luck_points()) + "  (x" + string_format(luck_mod(), 1, 2) + ")", -1, c_seagreen,
+			"DE's luck: flat points from the luck upgrade and every daily gift collected, "
+			+ "turned into one multiplier every chance takes - crits, credit drops, the "
+			+ "upgrade table's rarity, tile and sprite tiers");
 		if (variable_global_exists("click_critx_min"))
 			stats_v2_line("crit payout", "x" + string_format(g.click_critx_min, 1, 1)
 				+ " - x" + string_format(g.click_critx_max, 1, 1), -1, c_gray);

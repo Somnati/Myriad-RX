@@ -297,7 +297,7 @@ if (!_has_pick) {
 	// HOLD across everything. Reading down is reading outward.
 	var _rows_txt = [];
 	if (_pe != -1 && _pe.stat != "") {
-		var _sfx  = (_ps.id == "crit_multi") ? "x" : "%";
+		var _sfx  = (_ps.id == "crit_multi") ? "x" : ((_ps.id == "luck") ? " luck" : "%");
 		var _mine = upgrade_tier_value(_ps.val, _ps.tier, _pcap);
 		var _nxt  = __next_str(pick);
 		array_push(_rows_txt,
@@ -415,6 +415,10 @@ if (mod_a > .001) {
 			{ k : "credit luck",     v : _ub.credit_luck, s : "%" } ] },
 		{ n : "rebirth", c : c_hred, rows : [
 			{ k : "rebirth units",   v : _ub.rebirth_units, s : "%" } ] },
+		{ n : "luck", c : c_seagreen, rows : [
+			{ k : "luck from upgrades", v : _ub.luck,          s : " pts", raw : true },
+			{ k : "luck in all",        v : luck_points(),     s : " pts", raw : true },
+			{ k : "every roll",         v : luck_mod(),        s : "",     raw : true, x : true } ] },
 	];
 	for (var _si = 0; _si < array_length(_secs); _si++) {
 		var _sc = _secs[_si];
@@ -437,8 +441,13 @@ if (mod_a > .001) {
 			draw_set_halign(fa_right);
 			draw_set_color(_zero ? _dim : c_white);
 			draw_set_alpha(_zero ? .5 : .95);
-			draw_text(_lr - 3, _yy - 2,
-				((_rw[$ "neg"] ?? false) ? "-" : "+") + string_format(_rw.v, 1, 2) + _rw.s);
+			if (_rw[$ "x"] ?? false)
+				draw_text(_lr - 3, _yy - 2, "x" + string_format(_rw.v, 1, 2));
+			else if (_rw[$ "raw"] ?? false)
+				draw_text(_lr - 3, _yy - 2, string_format(_rw.v, 1, 0) + _rw.s);
+			else
+				draw_text(_lr - 3, _yy - 2,
+					((_rw[$ "neg"] ?? false) ? "-" : "+") + string_format(_rw.v, 1, 2) + _rw.s);
 			_yy += _lh2;
 		}
 	}
