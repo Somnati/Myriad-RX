@@ -15,7 +15,7 @@ if (in_room(rm_clicker)) {
 	if (!variable_instance_exists(id, "over_px2") || !instance_exists(over_px2)) {
 		over_px2 = create_obj(0, 0, obj_draw_proxy);
 		over_px2.owner = id;
-		over_px2.depth = -540;
+		over_px2.depth = -513;   // (with the crew: under the menu's blur and drawer)
 		over_px2.fn    = function() { with (obj_blob) if (tile_room) __draw_over(); };
 	}
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {

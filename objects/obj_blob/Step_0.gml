@@ -4,13 +4,13 @@ if (!in_room(rm_clicker)) { instance_destroy(); exit; }
 // the bubble go with it - __draw_over checks visible)
 // THE TILE CREW (sprite_room): a fab or merge sprite lives in the tile
 // panel - its body shows only while the panel is up, over the board
-// (-530: above the board at -510, under the panel's drawer at -560),
+// (-512: above the board at -510, under the menu's blur at -515),
 // and its taps charge the fabricator there. Hidden, sprites_tick
 // works it headless
 tile_room = (sprite_room(s[$ "job"] ?? "tap") == "tiles");
 var _panel = instance_exists(syst_tiles) && syst_tiles.oa > .5 && !syst_tiles.closing;
 visible = !(s[$ "trip"] ?? false) && (!tile_room || _panel);
-depth = tile_room ? -530 : -60;
+depth = tile_room ? -512 : -60;   // over the board (-510), UNDER the menu's second blur (-515) and the drawer (-520) - his report: they stayed sharp
 if (!visible) exit;
 
 var _pl = sprite_personalities();

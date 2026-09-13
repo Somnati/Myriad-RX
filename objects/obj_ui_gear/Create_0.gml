@@ -114,8 +114,8 @@ __seats = function() {
 /// @func __disc(x, y, col, fill, a, h)
 /// @desc THE GROUND: spr_dock_disc - the gear's own disc, its cog filled in
 ///       (his idea, 2026-09-13: the same background sprite the gear had) -
-///       then a wash of the door's colour inside the rim, then the fill
-///       rising from the bottom (the core's and the battery's liquid).
+///       then the fill rising from the bottom (the core's and the
+///       battery's liquid) in the door's colour.
 ///       The disc is 18 px on a 21 px sprite with the gear's origin at
 ///       (10,10), so its centre is (x-.5, y-.5): every glyph in this file
 ///       is seated on THAT point, which is what centres them
@@ -129,9 +129,9 @@ __disc = function(_x, _y, _col, _fill, _a, _h) {
 		var _hw = sqrt(sqr(_r) - sqr(_dy));
 		var _x0 = round(_cx - _hw), _x1 = round(_cx + _hw);
 		if (_x1 <= _x0) continue;
-		// the wash, and the liquid where the fill has risen to
-		draw_sprite_ext(spr_pixel_1x1, 0, _x0, _py, _x1 - _x0, 1, 0, _col, .22 * _a);
-		if (_dy > _r - 2 * _r * clamp(_fill, 0, 1))
+		// the liquid, where the fill has risen to (no wash under it - his
+		// report, 2026-09-13: it read as a second, paler disc on the gear's)
+		if (_fill > 0 && _dy > _r - 2 * _r * clamp(_fill, 0, 1))
 			draw_sprite_ext(spr_pixel_1x1, 0, _x0, _py, _x1 - _x0, 1, 0, _col, .6 * _a);
 	}
 };
@@ -187,8 +187,8 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// also what keeps the hover glow centred on it
 			__disc(_x, _y, _tone, 0, _a, _h);
 			// three bars, 4 wide with 2 between = 16 wide from x-8: centred on
-			// x-.5 exactly; the tallest spans y-5..y+5 about the disc's row
-			var _hs = [5, 8, 11];
+			// x-.5 exactly (paper-rendered against the disc, 2026-09-13)
+			var _hs = [6, 9, 12];   // the tallest spans rows 4..15 of the sprite: centre 9.5, the disc's
 			for (var _k = 0; _k < 3; _k++) {
 				var _bh = _hs[_k] + _h;
 				draw_sprite_ext(spr_pixel_1x1, 0, _x - 8 + _k * 6, _y + 6 - _bh, 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
