@@ -1,6 +1,6 @@
 """timebank_twin.py - the time bank's balance, simulated.
 
-The house pattern (forge_twin, ngu_twin, mandel_twin): model the shipped
+The house pattern (forge_twin, ngu_twin, dial_twin): model the shipped
 maths in Python, state the invariants out loud, and make the script
 print HOLDS or FAILS. Tune here, port the numbers back - never the
 other way round.
