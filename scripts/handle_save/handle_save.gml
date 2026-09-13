@@ -163,6 +163,10 @@ function handle_save(){
 		for (var _k = 0; _k < g.tiles.slots; _k++)
 			_tt += ((_k > 0) ? "," : "") + string(g.tiles.tier[_k]);
 		_tt = handle("board", _tt);
+		var _tsk = "";
+		for (var _k = 0; _k < g.tiles.slots; _k++)
+			_tsk += ((_k > 0) ? "," : "") + string((_k < array_length(g.tiles.skin)) ? g.tiles.skin[_k] : 0);
+		_tsk = handle("skins", _tsk);   // each tile's material, parallel to the board (2026-09-13)
 		g.tiles.fab     = handle("fab",     g.tiles.fab);
 		// ⚖️ THE AUTOMERGE SWITCH WAS NEVER SAVED (his report,
 		// 2026-09-11: "I want the automerger to work offline"). It
@@ -203,6 +207,13 @@ function handle_save(){
 				var _d5 = (_k < array_length(_tp)) ? string_digits(_tp[_k]) : "";
 				g.tiles.tier[_k] = (_d5 == "") ? 0 : max(0, floor(real(_d5)));
 			}
+			// the surfaces: absent (a save from before them) or short reads
+			// as unrolled, and tiles_skin_heal rolls those below
+			var _sp = (_tsk != "") ? string_split(_tsk, ",") : [];
+			for (var _k = 0; _k < g.tiles.slots; _k++) {
+				var _d7 = (_k < array_length(_sp)) ? string_digits(_sp[_k]) : "";
+				g.tiles.skin[_k] = (_d7 == "") ? -1 : floor(real(_d7));
+			}
 			// a save from a WIDER board (sixteen slots before the slots
 			// row, 2026-09-10): the tiles past the edge take free slots
 			// inside it rather than vanishing; only a full board drops
@@ -212,8 +223,9 @@ function handle_save(){
 				var _v6 = (_d6 == "") ? 0 : max(0, floor(real(_d6)));
 				if (_v6 == 0) continue;
 				for (var _j = 0; _j < g.tiles.slots; _j++)
-					if (g.tiles.tier[_j] == 0) { g.tiles.tier[_j] = _v6; break; }
+					if (g.tiles.tier[_j] == 0) { g.tiles.tier[_j] = _v6; g.tiles.skin[_j] = -1; break; }
 			}
+			tiles_skin_heal();   // after the tiers are in, not before (tiles_sync's own heal ran on an empty board)
 			g.tiles.fab     = clamp(g.tiles.fab, 0, g.tiles.fab_t);
 			g.tiles.stored  = clamp(floor(g.tiles.stored), 0, g.tiles.stored_max);
 			g.tiles.highest = max(1, floor(g.tiles.highest));

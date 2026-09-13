@@ -12,6 +12,9 @@ function tiles_sort() {
 			var _tmp = _t.tier[_i];
 			_t.tier[_i] = _t.tier[_best];
 			_t.tier[_best] = _tmp;
+			var _tms = _t.skin[_i];   // the surfaces ride along
+			_t.skin[_i] = _t.skin[_best];
+			_t.skin[_best] = _tms;
 		}
 	}
 	_t.dirty = true;

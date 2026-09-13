@@ -476,6 +476,9 @@ if (grab_i != -1) {
 			var _tmp = _t.tier[_dst];
 			_t.tier[_dst] = _t.tier[grab_i];
 			_t.tier[grab_i] = _tmp;
+			var _tms = _t.skin[_dst];
+			_t.skin[_dst] = _t.skin[grab_i];
+			_t.skin[grab_i] = _tms;
 			_t.dirty = true;
 			save_mark_dirty(); // save-on-mutation law
 			_res = 1; // reads as a move

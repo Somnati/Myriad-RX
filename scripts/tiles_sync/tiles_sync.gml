@@ -27,7 +27,7 @@ function tiles_sync() {
 		var _old = array_length(_t.tier);
 		_t.slots = _slots;
 		if (_slots > _old)
-			for (var _i = _old; _i < _slots; _i++) _t.tier[_i] = 0;
+			for (var _i = _old; _i < _slots; _i++) { _t.tier[_i] = 0; _t.skin[_i] = 0; }
 		else {
 			// SHRINKING: the base fell (16 -> 12 when the slots row
 			// landed, 2026-09-10) or a reset dropped the levels. Tiles
@@ -37,12 +37,14 @@ function tiles_sync() {
 			for (var _i = _slots; _i < _old; _i++) {
 				if (_t.tier[_i] == 0) continue;
 				for (var _j = 0; _j < _slots; _j++)
-					if (_t.tier[_j] == 0) { _t.tier[_j] = _t.tier[_i]; _t.tier[_i] = 0; break; }
+					if (_t.tier[_j] == 0) { _t.tier[_j] = _t.tier[_i]; _t.tier[_i] = 0; _t.skin[_j] = _t.skin[_i]; _t.skin[_i] = 0; break; }
 			}
 			array_resize(_t.tier, _slots);
+			array_resize(_t.skin, _slots);
 		}
 		_t.dirty = true;
 	}
+	tiles_skin_heal();   // the surfaces made whole against the board (a save from before them rolls here)
 
 	// FABRICATION SPEED: a flat -0.1s a level (his spec), floored so the
 	// fabricator can never reach zero and spin. Subtractive rather than

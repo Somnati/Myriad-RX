@@ -141,7 +141,7 @@ for (var _i = 0; _i < _t.slots; _i++) {
 		}
 		// the resident tile (a held one leaves a dim echo in its slot)
 		tile_shape_draw(_tier, _x, _y, tw, th,
-			merge_colour(col[_i], c_black, .7), _held ? .25 : 1);
+			merge_colour(col[_i], c_black, .7), _held ? .25 : 1, _t.skin[_i], _i);
 		if (!_held && val_str[_i] != "") {
 			// ⚖️ CENTRED BY ARITHMETIC, NOT BY valign. fnt_large is a
 			// SPRITE font, and the house note is explicit that those
@@ -198,7 +198,7 @@ if (_t.automerge && _t.am_ia != -1 && _t.am_ib != -1
 		var _ib = _t.am_ib;
 		tile_shape_draw(_t.tier[_ib], _fx + 1, _fy + 2, tw, th, c_black, .3);
 		tile_shape_draw(_t.tier[_ib], _fx, _fy, tw, th,
-			merge_colour(col[_ib], c_black, .6), 1);
+			merge_colour(col[_ib], c_black, .6), 1, _t.skin[_ib], _ib);
 		if (val_str[_ib] != "") {
 			draw_set_color(txtcol[_ib]);
 			draw_set_alpha(1);
@@ -212,7 +212,7 @@ if (_t.automerge && _t.am_ia != -1 && _t.am_ib != -1
 if (ret_i != -1 && ret_i < _t.slots && _t.tier[ret_i] != 0) {
 	tile_shape_draw(_t.tier[ret_i], ret_x + 2, ret_y + 4, tw, th, c_black, .4);
 	tile_shape_draw(_t.tier[ret_i], ret_x, ret_y, tw, th,
-		merge_colour(col[ret_i], c_black, .6), 1);
+		merge_colour(col[ret_i], c_black, .6), 1, _t.skin[ret_i], ret_i);
 	if (val_str[ret_i] != "") {
 		draw_set_color(txtcol[ret_i]);
 		draw_set_alpha(1);
@@ -225,7 +225,7 @@ if (ret_i != -1 && ret_i < _t.slots && _t.tier[ret_i] != 0) {
 if (grab_i != -1) {
 	tile_shape_draw(_t.tier[grab_i], gx + 2, gy + 4 + z, tw, th, c_black, .4);
 	tile_shape_draw(_t.tier[grab_i], gx, gy, tw, th,
-		merge_colour(col[grab_i], c_black, .6), 1);
+		merge_colour(col[grab_i], c_black, .6), 1, _t.skin[grab_i], grab_i);
 	draw_set_color(txtcol[grab_i]);
 	draw_set_alpha(1);
 	// the same arithmetic as the board's, so a held tile's number sits

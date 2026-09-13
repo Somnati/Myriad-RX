@@ -77,6 +77,7 @@ function tiles_tick(_tmult = 1) {
 			// tier rolls through the house rarity system at the moment
 			// the tile materializes (g.tile_rarity -> calculate_rarity)
 			_t.tier[_os] = tile_roll_tier();
+			_t.skin[_os] = tile_skin_roll(_t.tier[_os]);   // and its surface
 			if (_t.tier[_os] > _t.highest) _t.highest = _t.tier[_os];
 			_t.stored--;
 			_t.dirty = true;

@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_tile_mat",
+  "name":"sh_tile_mat",
+  "parent":{
+    "name":"rooms",
+    "path":"folders/engine/rooms.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

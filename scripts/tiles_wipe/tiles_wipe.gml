@@ -37,7 +37,7 @@ function tiles_wipe(_fresh = false) {
 		_t.rb_total = 0;
 	}
 
-	for (var _i = 0; _i < _t.slots; _i++) _t.tier[_i] = 0;
+	for (var _i = 0; _i < _t.slots; _i++) { _t.tier[_i] = 0; _t.skin[_i] = 0; }
 	_t.stored  = 0;
 	_t.fab     = 0;
 	_t.am_tic  = 0;

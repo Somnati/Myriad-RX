@@ -25,6 +25,7 @@ function tiles_init(_force = false) {
 		slots : _n,
 		cols  : 4,
 		tier  : array_create(_n, 0),
+		skin  : array_create(_n, 0),   // each tile's material (tile_mat_config kind), parallel to tier
 
 		// fabricator: fills over time, banks tiles while the board is
 		// full, drains into the first free slot (Myriad base: 10s).

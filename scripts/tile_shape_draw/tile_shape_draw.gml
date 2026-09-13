@@ -6,6 +6,11 @@
 /// @param h
 /// @param col
 /// @param alpha
+/// @param [skin]  the tile's material (tile_mat_config kind; 0 flat): the
+///               body goes through sh_tile_mat (tile_mat_draw), the
+///               accretion draws over it. Echoes, glows and shadows pass
+///               nothing and stay flat
+/// @param [seed] per-tile phase for the material
 ///
 /// ONE TILE, DRESSED FOR ITS TIER. Two schemes, one macro:
 ///
@@ -37,7 +42,7 @@
 ///
 /// (A 2D material pass and a raymarched solid were both tried the same
 /// day as the shapes and both reverted - a smudge, and too much.)
-function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
+function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a, _skin = 0, _seed = 0) {
 	if (_a <= .003) return;
 
 	// ================= ACCRETION + SIZE =================
@@ -48,7 +53,12 @@ function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a) {
 		var _g = min(_d, TILE_GROW);
 		var _gx = _x - (_g div 2), _gy = _y - (_g div 2);
 		var _gw = _w + _g,         _gh = _h + _g;
-		draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, _col, _a);
+		// THE BODY: flat, or the tile's material (the colour law keeps its
+		// mean exactly this colour - see sh_tile_mat)
+		if (TILE_MATERIAL && _skin > 0 && _tier > 0)
+			tile_mat_draw(_skin, _gx, _gy, _gw, _gh, _col, _a, _seed);
+		else
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _gw, _gh, 0, _col, _a);
 		if (_d <= 0) return;   // t1 and sockets: the plain slab
 
 		var _lt = merge_colour(_col, c_white, .28);   // the raised bits

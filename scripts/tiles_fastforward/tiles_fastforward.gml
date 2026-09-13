@@ -160,6 +160,10 @@ function tiles_fastforward(_sec, _wall_us = -1) {
 		_t.tier[_s2++] = _ft;
 	}
 	while (_s2 < _t.slots) _t.tier[_s2++] = 0;
+	// the board was rebuilt from a histogram - no tile kept its identity,
+	// so every surface rolls again (the board rearranged while you were away)
+	for (var _k = 0; _k < _t.slots; _k++) _t.skin[_k] = -1;
+	tiles_skin_heal();
 	var _bank = min(_pool, _t.stored_max - _t.stored);
 	_t.stored += _bank;
 	_pool -= _bank;

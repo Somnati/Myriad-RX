@@ -12,6 +12,8 @@ function tiles_merge(_a, _b) {
 	if (_t.tier[_b] == 0) {
 		_t.tier[_b] = _t.tier[_a];
 		_t.tier[_a] = 0;
+		_t.skin[_b] = _t.skin[_a];   // the surface travels with the tile
+		_t.skin[_a] = 0;
 		_t.dirty = true;
 		save_mark_dirty(); // save-on-mutation law (board layout persists)
 		return 1;
@@ -49,6 +51,9 @@ function tiles_merge(_a, _b) {
 		_r = 3;
 	}
 	_t.tier[_a] = 0;
+	// a merge makes a NEW tile: it rolls its surface from the bigger pool
+	_t.skin[_b] = tile_skin_roll(_t.tier[_b]);
+	_t.skin[_a] = 0;
 
 	_t.merges++;
 	if (_t.tier[_b] > _t.highest) _t.highest = _t.tier[_b];

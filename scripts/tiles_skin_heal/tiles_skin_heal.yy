@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tiles_skin_heal",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tiles_skin_heal",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
