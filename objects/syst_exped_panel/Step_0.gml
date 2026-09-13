@@ -4,6 +4,15 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 
 var _e = g.exped;
+// the trip page's world is built a few rows a frame (planet_gen_step),
+// so it arrives in half a second without a hitch
+if (view == "trip") {
+	var _tv = __trip();
+	if (!is_undefined(_tv)) {
+		var _pn = planet_get(_tv.dest.seed, exped_planet_hint(_tv.dest));
+		if (_pn.row < _pn.th) planet_gen_step(_pn);
+	}
+}
 // a trip that got home while its page was open: the page turns to the haul
 if (view == "trip" && is_undefined(__trip())) {
 	view = (__haul_i() >= 0) ? "haul" : "hub";

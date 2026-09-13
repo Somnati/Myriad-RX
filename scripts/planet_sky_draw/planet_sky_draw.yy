@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"planet_sky_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"planet_sky_draw",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

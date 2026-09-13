@@ -143,23 +143,29 @@ if (view == "trip") {
 	var _d  = _tr.dest;
 	var _b  = exped_biomes()[_d.biome];
 	var _n  = array_length(_tr.sids);
-	// the world's card
-	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .8);
-	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
+	// THE WORLD: the full planet (planet_get / planet_draw - the tech
+	// demo's raycast sphere with the mountains) over its own stars; the
+	// lite portrait holds the spot while the world is still being built
+	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .95);
 	ui_fade_set(1);
-	__portrait(_d, big_x + big_w * .5, big_y + (land ? 44 : 30), land ? 30 : 20);
+	planet_sky_draw(_d.seed, big_x + 2, big_y + 2, big_w - 4, land ? 100 : 60);
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _pcx = big_x + big_w * .5, _pcy = big_y + (land ? 48 : 30), _ppr = land ? 34 : 20;
+	if (_pn.row >= _pn.th) planet_draw(_pn, _pcx, _pcy, _ppr);
+	else __portrait(_d, _pcx, _pcy, _ppr);
+	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
 	ui_fade_set(_ea);
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
-	draw_text(big_x + big_w * .5, big_y + (land ? 80 : 54), _d.name);
+	draw_text(big_x + big_w * .5, big_y + (land ? 88 : 54), _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
 	draw_set_alpha(.8);
-	draw_text(big_x + big_w * .5, big_y + (land ? 91 : 64), _b.name + " world  -  tier " + string(_d.tier));
+	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), _b.name + " world  -  tier " + string(_d.tier));
 	draw_set_halign(fa_left);
 	// the crew's hp, one bar each
 	for (var _k = 0; _k < _n; _k++) {
-		var _hy = big_y + (land ? 106 : 76) + _k * 11;
+		var _hy = big_y + (land ? 112 : 76) + _k * 11;
 		if (_hy + 8 > big_y + big_h) break;
 		__dot(big_x + 12, _hy + 3, 3, _tr.cols[_k], (_tr.hp[_k] > 0) ? .95 : .3);
 		draw_set_color((_tr.hp[_k] > 0) ? _ink : _dim);

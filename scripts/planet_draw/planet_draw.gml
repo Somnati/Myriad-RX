@@ -1,0 +1,73 @@
+/// @description planet_draw(pn, cx, cy, pr, [spin_deg]) - the world, one
+/// quad through sh_planet: the terrain texture on a raycast sphere,
+/// clouds in two shells, the atmosphere, a ring on some, the city
+/// lights by night, and THE MOUNTAINS - the shader marches the height
+/// texture so the peaks stand out of the silhouette as it turns (his
+/// wish from the tech demo). The sun is fixed to the upper left.
+/// Bakes the textures if they are missing. pr = the radius in px.
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined) {
+	if (!planet_bake(_pn)) return false;
+	var _cfg = planet_config();
+	if (is_undefined(_spin)) _spin = (current_time / 1000) * 60 * _pn.spin;   // deg per step x 60 = per second
+	static _u = undefined;
+	if (is_undefined(_u)) _u = {
+		rot   : shader_get_uniform(sh_planet, "u_rot"),
+		crot  : shader_get_uniform(sh_planet, "u_crot"),
+		light : shader_get_uniform(sh_planet, "u_light"),
+		atmo  : shader_get_uniform(sh_planet, "u_atmo"),
+		tsize : shader_get_uniform(sh_planet, "u_tsize"),
+		pad   : shader_get_uniform(sh_planet, "u_pad"),
+		time  : shader_get_uniform(sh_planet, "u_time"),
+		cells : shader_get_uniform(sh_planet, "u_cells"),
+		ring  : shader_get_uniform(sh_planet, "u_ring"),
+		raxis : shader_get_uniform(sh_planet, "u_raxis"),
+		rcol  : shader_get_uniform(sh_planet, "u_ringcol"),
+		city  : shader_get_uniform(sh_planet, "u_city"),
+		cityn : shader_get_uniform(sh_planet, "u_cityn"),
+		relief : shader_get_uniform(sh_planet, "u_relief"),
+		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
+		height : shader_get_sampler_index(sh_planet, "u_height"),
+	};
+	// the camera looks down -z at the world; the world turns about its
+	// tilted axis; the shader wants texture-from-view rows
+	var _cam = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+	var _w  = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	var _wc = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin * 1.16 + 31));
+	var _m  = mat3_mul(mat3_transpose(_w), _cam);
+	var _mc = mat3_mul(mat3_transpose(_wc), _cam);
+	var _lv = [-.55, -.5, .67];
+	var _ll = sqrt(_lv[0] * _lv[0] + _lv[1] * _lv[1] + _lv[2] * _lv[2]);
+	_lv = [_lv[0] / _ll, _lv[1] / _ll, _lv[2] / _ll];
+	var _ax = mat3_apply(mat3_rot(0, 0, 1, _pn.tilt), 0, 1, 0);
+	var _pad = _pn.ring ? 2.35 : _cfg.pad;
+	var _q = _pr * _pad;
+	shader_set(sh_planet);
+	shader_set_uniform_f_array(_u.rot, _m);
+	shader_set_uniform_f_array(_u.crot, _mc);
+	shader_set_uniform_f(_u.light, _lv[0], _lv[1], _lv[2]);
+	shader_set_uniform_f(_u.atmo, colour_get_red(_pn.atmo) / 255, colour_get_green(_pn.atmo) / 255, colour_get_blue(_pn.atmo) / 255);
+	shader_set_uniform_f(_u.tsize, _pn.tw, _pn.th);
+	shader_set_uniform_f(_u.pad, _pad);
+	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
+	shader_set_uniform_f(_u.cells, (_cfg.px_size > 0) ? (2 * _q) / _cfg.px_size : 0);
+	shader_set_uniform_f(_u.ring, _pn.ring ? .85 : 0);
+	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
+	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
+	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief);
+	var _cty = array_create(24, 0);
+	var _ctn = 0;
+	if (!is_undefined(_pn.civ)) {
+		var _cts = _pn.civ.cities;
+		_ctn = min(array_length(_cts), 6);
+		for (var _i = 0; _i < _ctn; _i++) {
+			_cty[_i * 4] = _cts[_i].x; _cty[_i * 4 + 1] = _cts[_i].y; _cty[_i * 4 + 2] = _cts[_i].z; _cty[_i * 4 + 3] = _cts[_i].r;
+		}
+	}
+	shader_set_uniform_f_array(_u.city, _cty);
+	shader_set_uniform_f(_u.cityn, _ctn);
+	texture_set_stage(_u.cloud, surface_get_texture(_pn.csurf));
+	texture_set_stage(_u.height, surface_get_texture(_pn.hsurf));
+	draw_surface_ext(_pn.tsurf, _cx - _q, _cy - _q, (2 * _q) / _pn.tw, (2 * _q) / _pn.th, 0, c_white, 1);
+	shader_reset();
+	return true;
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"planet_gen_step",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"planet_gen_step",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

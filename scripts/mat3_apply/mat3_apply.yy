@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"mat3_apply",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mat3_apply",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

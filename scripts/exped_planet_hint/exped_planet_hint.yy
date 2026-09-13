@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"exped_planet_hint",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"exped_planet_hint",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

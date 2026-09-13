@@ -45,7 +45,7 @@ list_w  = land ? (room_width - list_x - 10) : (room_width - 8);
 row_h   = land ? 36 : 30;
 
 // ---- the trip view ----
-big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 140 : 96;
+big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 150 : 96;
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
 log_y = land ? big_y : (big_y + big_h + 6);
 fight_s = 64;        // the combat window's side
