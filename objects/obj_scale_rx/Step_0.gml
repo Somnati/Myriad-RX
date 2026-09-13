@@ -74,4 +74,4 @@ if (_ovl != noone && !_rb) open = false;
 if (instance_exists(obj_ui_menu2) && obj_ui_menu2.open) open = false;
 seat = room_height - 15 - ((SCALE_COMPARE && instance_exists(obj_scale_de)) ? 30 : 0);
 by = trickle(by, open ? seat : room_height + 20, 7);
-depth = _rb ? syst_rebirth.depth - 1 : 40;
+depth = _rb ? syst_rebirth.depth - 1 : 10;   // over the visualizer's fx layers (see the Create)

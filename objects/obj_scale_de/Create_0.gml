@@ -46,7 +46,12 @@ perc = 0;
 deci = 0;
 desy = room_height + 20;
 y = room_height + 20;   // DE's room placed it below the floor; it rises in
-depth = 40;             // DE's 80 was under its tap surface; RX's is 50, so 40 sits over it
+// DE's 80 sat under its tap surface. RX's tap room runs FX LAYERS over the
+// visualizer (glow 20 / subtle_blur 30 / vignette 40) and an fx layer
+// warps everything deeper than itself - his report: "visually skewed by
+// the effects" - so the ruler sits at 10, over all three and still under
+// the tap handler (0) and the dial column (-20)
+depth = 10;
 
 // DE's milestone law: bb + ii x lv - 1e16, 1e26, 1e36... (rebirth_calc's)
 bb = 16;

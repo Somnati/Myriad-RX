@@ -36,9 +36,12 @@
 ///     safety net. On the grant the window opens forty orders wide
 ///     and zooms in (DE's three-hundred-order opening, shortened).
 ///
-/// Depth 40: over the tap surface (50), under the dial column (-20);
-/// over the rebirth overlay while that is open (DE's placement).
-depth = 40;
+/// Depth 10: over the tap surface (50) AND the visualizer's fx layers
+/// (glow 20 / subtle_blur 30 / vignette 40 - an fx layer warps everything
+/// deeper than itself; his report: "visually skewed by the effects"),
+/// under the tap handler (0) and the dial column (-20); over the rebirth
+/// overlay while that is open (DE's placement).
+depth = 10;
 
 bb = 16;    // the milestone law (rebirth_calc's): 1e16, then every 10 orders
 ii = 10;

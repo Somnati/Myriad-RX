@@ -76,5 +76,5 @@ if (!seen && unfold_has("scale")) {
 	}
 }
 // depth
-depth = 40;
+depth = 10;   // over the visualizer's fx layers (see the Create)
 if (_rb) depth = syst_rebirth.depth - 1;
