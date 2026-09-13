@@ -1,5 +1,11 @@
-// the fades (DE's trickles)
-alpha  = trickle(alpha,  open ? 1 : 0, 4);
+// THE OPEN EASE ON THE HOUSE CONTRACT (his report, 2026-09-13: the rebirth
+// came in differently from the upgrades and the tiles). It was DE's
+// trickle 4 - a quarter of the gap a frame, in about ten frames, and the
+// same speed out - against every other panel's move_to at UI_IN_SPD (8,
+// ~35 frames) in and UI_OUT_SPD (3) out, and no rise. Same numbers now,
+// and the Draw lifts the sheet into its seat on ui_anim_in like the rest
+alpha = move_to(alpha, open ? 1 : 0, open ? UI_IN_SPD : UI_OUT_SPD);
+if (abs(alpha - (open ? 1 : 0)) < .004) alpha = open ? 1 : 0;
 balpha = trickle(balpha, open ? 1 : 0, 6);
 scale  = trickle(scale,  open ? 1 : 0, 5);
 ts     = trickle(ts, 1, 6);

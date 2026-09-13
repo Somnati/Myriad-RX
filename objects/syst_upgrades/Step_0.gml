@@ -17,9 +17,19 @@ if (abs(mod_a - (mod_open ? 1 : 0)) < .01) mod_a = mod_open ? 1 : 0;
 // band (the overhaul) rather than at its default y 46, where it would
 // land on top of the second row.
 // ...on the strip's bottom line, above the table (his ask, 2026-09-12)
+// ⚖️ AFTER THE PANEL HAS ARRIVED (his report, 2026-09-13: the upgrades'
+// entrance felt off). The purse used to be pinned from the first frame:
+// it slid in from the left edge on its own trickle and glided its y
+// from 46 down to the strip - a second animation on a different clock
+// laid over the panel's fade. It is seated at the strip BEFORE it is
+// visible now, and asked for only once the panel has settled, so it
+// slides in once, level, as its own small arrival
 if (instance_exists(obj_display_credits) && !closing) {
-	obj_display_credits.pin  = true;
-	obj_display_credits.desy = purse_y;
+	if (obj_display_credits.move <= 0) obj_display_credits.y = purse_y;   // seated while unseen
+	if (oa >= .999) {
+		obj_display_credits.pin  = true;
+		obj_display_credits.desy = purse_y;
+	}
 }
 
 msg_hp = max(0, msg_hp - delta);

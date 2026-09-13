@@ -3,6 +3,11 @@
 /// Draw-only - every number comes from calc (Step).
 if (!visible) exit;
 if (alpha <= 0) exit;
+// the house arrival: the sheet rises UI_IN_DEAL into its seat on the
+// eased alpha (the tiles' and the upgrades' recipe)
+var _ea = ui_anim_in(alpha, 1);
+var _eo = (1 - _ea) * UI_IN_DEAL;
+if (_eo != 0) matrix_set(matrix_world, matrix_build(0, _eo, 0, 0, 0, 0, 1, 1, 1));
 
 var _hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;   // flush under the bar, not its shadow
 var _cx = room_width * .5;
@@ -120,3 +125,4 @@ draw_text(_cx, room_height - 12, "tap outside to close");
 draw_set_halign(fa_left);
 draw_set_alpha(1);
 draw_set_color(c_white);
+if (_eo != 0) matrix_set(matrix_world, matrix_build_identity());
