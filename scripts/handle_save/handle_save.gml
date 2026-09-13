@@ -519,6 +519,30 @@ function handle_save(){
 		exped_board_roll();
 	}
 
+	section = "unfold";
+	unfold_init();
+	var _us = handle("unf_seen",   string_join_ext("|", variable_struct_get_names(g.unf.seen)));
+	var _ud = handle("unf_done",   string_join_ext("|", variable_struct_get_names(g.unf.done)));
+	var _uo = handle("unf_opened", string_join_ext("|", variable_struct_get_names(g.unf.opened)));
+	var _uf = handle("unf_fresh",  string_join_ext("|", g.unf.fresh));
+	var _uv = handle("unf_v", 1);   // the key that says "this save knows the unfold"
+	if (action == sv_load) {
+		g.unf.seen = {}; g.unf.done = {}; g.unf.opened = {}; g.unf.fresh = [];
+		var _sl = (_us != "") ? string_split(_us, "|") : [];
+		for (var _i = 0; _i < array_length(_sl); _i++) g.unf.seen[$ _sl[_i]] = true;
+		var _dl = (_ud != "") ? string_split(_ud, "|") : [];
+		for (var _i = 0; _i < array_length(_dl); _i++) g.unf.done[$ _dl[_i]] = true;
+		var _ol = (_uo != "") ? string_split(_uo, "|") : [];
+		for (var _i = 0; _i < array_length(_ol); _i++) g.unf.opened[$ _ol[_i]] = true;
+		g.unf.fresh = (_uf != "") ? string_split(_uf, "|") : [];
+		// a save from before the unfold: a dial owned and no unfold key
+		// means a player who has been here - reveal everything, re-teach
+		// nobody. (handle() reads the default, 1, when the key is absent;
+		// the write above stores 1 too, so the tell is the seen list
+		// being empty against a real run)
+		if (_us == "" && variable_global_exists("dial") && g.dial[0].level > 0) unfold_reveal_all();
+	}
+
 	section = "ccore";
 	ccore_init();
 	g.ccore.lv        = handle("cc_lv",    g.ccore.lv);

@@ -1,3 +1,4 @@
+if (!unfold_has("timebank")) exit;   // (the unfold: not yet arrived)
 if (!__live()) exit;
 
 var _tb = g.timebank;

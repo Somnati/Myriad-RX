@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"unfold_has",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"unfold_has",
+  "parent":{
+    "name":"unfold",
+    "path":"folders/game/unfold.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

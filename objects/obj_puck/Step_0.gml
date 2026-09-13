@@ -12,6 +12,7 @@
 /// launching with last frame's aim.
 
 // the material rides the settings pick live (the dice's arrangement)
+if (!unfold_has("dials")) exit;   // (the unfold: not yet arrived)
 if (variable_global_exists("puck_mat") && g.puck_mat != mat_id) __mat_apply();
 
 // ---- sparks: age, then compact ----

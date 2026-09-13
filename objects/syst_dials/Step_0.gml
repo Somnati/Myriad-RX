@@ -4,6 +4,7 @@
 // sp is the eased animation toward stage and NOTHING else writes it
 // (the live drag that used to is gone - see the swipe block below), so
 // the drawer can never be left sitting between stages.
+if (!unfold_has("dials")) { stage = 0; face = room_width; exit; }   // the drawer arrives with the first dial (the unfold)
 {
 	if (sp_to != stage) {
 		sp_from = sp; sp_to = stage; sp_t = 0;

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"unfold_overlay_key",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"unfold_overlay_key",
+  "parent":{
+    "name":"unfold",
+    "path":"folders/game/unfold.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

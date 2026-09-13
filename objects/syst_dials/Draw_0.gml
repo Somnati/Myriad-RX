@@ -7,6 +7,7 @@
 /// letter and the moving fill. The body is that hue at hsv(130,65)
 /// gradient-blended into black; the track is darker still at
 /// hsv(200,30). Dark furniture, one living element per row.
+if (!unfold_has("dials")) exit;   // the drawer arrives with the first dial (the unfold)
 
 if (!variable_global_exists("dial")) exit;
 draw_set_font(fnt);

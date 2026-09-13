@@ -2,6 +2,7 @@
 /// colour, the shine (frame 5) in the profit colour, the icon (frame 0)
 /// white - plus the pooled amount beside it, so the pile is legible
 /// before it is tapped.
+if (!unfold_has("battery")) exit;   // (the unfold: not yet arrived)
 if (x <= x1 + .5) exit;   // fully parked: nothing to draw
 
 var _pc = g.profit_color;

@@ -1,4 +1,5 @@
 
+if (!unfold_has("dials")) exit;   // (the unfold: not yet arrived)
 stic -= delta;
 lean -= delta;
 

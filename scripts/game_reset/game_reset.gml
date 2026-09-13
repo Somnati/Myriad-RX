@@ -58,6 +58,7 @@ function game_reset(_diff = 1) {
 	// run opens on black and unfolds on the first tap (syst_unfold)
 	g.persona = [-1, -1, -1];
 	g.unfold  = 0;
+	unfold_init(true);   // and nothing has arrived yet (the unfold)
 
 	// pinned statistics live on the save: fresh run, fresh pins
 	g.stats_fav = {};
