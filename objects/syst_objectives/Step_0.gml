@@ -3,7 +3,7 @@ var _ob = g.obj;
 
 // ---- a completion: celebrate the objective the card is showing ----
 if (_ob.just != "") {
-	if (_ob.just == okey || okey == "") { okey = _ob.just; cel = 2; }
+	if (_ob.just == okey || okey == "") { okey = _ob.just; cel = 2; open_t = 0; }
 	_ob.just = "";
 }
 // (the celebration runs only while the card is up - a completion inside
@@ -32,6 +32,7 @@ if (cel <= 0 && !_gap && _k != okey) {
 	okey = _k;
 	slide = 0;                 // it arrives from the left, whether the card was up or not
 	se = []; sf = []; sr = []; st = [];
+	open_t = 0; pin = false;   // a new objective opens the card
 }
 slide = min(1, slide + delta / 16);
 
@@ -53,8 +54,8 @@ if (!is_undefined(_o)) {
 		var _d = objective_step_done(_o, _i);
 		// first sight of a step: seated as it is, no sound, no flash
 		if (_i >= array_length(se)) { se[_i] = _d ? 1 : 0; sf[_i] = 0; sr[_i] = 0; st[_i] = _d; continue; }
-		if (_d && !st[_i]) { sf[_i] = 1; play_sound_ext(snd_obj_step, 1, 1, .55, 1); }
-		if (!_d && st[_i]) sr[_i] = 1;
+		if (_d && !st[_i]) { sf[_i] = 1; open_t = 0; play_sound_ext(snd_obj_step, 1, 1, .55, 1); }
+		if (!_d && st[_i]) { sr[_i] = 1; open_t = 0; }
 		st[_i] = _d;
 		se[_i] = _d ? min(1, se[_i] + delta / 8) : max(0, se[_i] - delta / 8);
 		// the flashes fade only while the card can be seen
@@ -62,11 +63,29 @@ if (!is_undefined(_o)) {
 	}
 }
 
-// ---- a tap on the card: the detailed list ----
+// ---- THE COLLAPSE: open for a while, then only the boxes ----
+// the pointer on it (its rect NOW, folded or not)
+var _r = __rect();
+hov = (a > .5 && okey != "" && _live && input_free(ui_layer_overlay)
+	&& point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h));
+peek = move_to(peek, (hov && op < .5) ? 1 : 0, 5);
+// the open clock runs only while the card is seen and not held open
+if (a > .5 && !pin && !hov && cel <= 0) open_t += delta / 60;
+var _open = pin || cel > 0 || (open_t < OBJ_CARD_HOLD);
+op = move_to(op, _open ? 1 : 0, 6);
+
+// ---- a click: pin it open, or fold it ----
 if (a < .9 || okey == "") exit;
 if (!input_free(ui_layer_overlay)) exit;
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 if (!mouse_check_button_pressed(mb_left)) exit;
 if (!__consumes(mouse_x, mouse_y)) exit;
-play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
-objectives_open();
+if (op < .5) {
+	// folded: open, and stay open until clicked again
+	pin = true; open_t = 0;
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+} else {
+	// open (pinned or on the clock): fold it now
+	pin = false; open_t = OBJ_CARD_HOLD;
+	play_sound_ext(snd_softclick, .9, 1, .4, 1);
+}

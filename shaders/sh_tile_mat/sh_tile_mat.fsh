@@ -36,6 +36,7 @@
 //           speeds under the mask, the field paying the stars back
 //
 varying vec2 v_pos;
+varying vec2 v_uv;
 
 uniform vec4  u_quad;   // the body rect x, y, w, h in room px
 uniform float u_kind;
@@ -121,6 +122,11 @@ void main()
         d = (s > 0.5) ? 1.0 : -0.064;
     }
 
-    vec3 col = u_col * (1.0 + u_amp * d);
-    gl_FragColor = vec4(col, u_alpha);
+    // THE SPRITE IS THE MASK: the quad is spr_tile's rounded slab (or a
+    // stretched white pixel for the plain rectangle) - its alpha is the
+    // outline, its white the body. Nearest-sampled, so every fragment of
+    // a cell reads the one texel under it
+    vec4 tex = texture2D(gm_BaseTexture, v_uv);
+    vec3 col = tex.rgb * u_col * (1.0 + u_amp * d);
+    gl_FragColor = vec4(col, tex.a * u_alpha);
 }

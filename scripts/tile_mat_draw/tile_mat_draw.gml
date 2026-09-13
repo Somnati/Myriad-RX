@@ -11,7 +11,9 @@
 /// @param col
 /// @param alpha
 /// @param [seed] per-tile phase (a liquid's own drift, the floor's grain)
-function tile_mat_draw(_kind, _x, _y, _w, _h, _col, _a, _seed = 0) {
+/// @param [sprite] true = spr_tile frame 2 (DE's rounded slab) is the quad:
+///                the shader samples it, so its alpha is the outline
+function tile_mat_draw(_kind, _x, _y, _w, _h, _col, _a, _seed = 0, _sprite = false) {
 	static u_quad  = shader_get_uniform(sh_tile_mat, "u_quad");
 	static u_kind  = shader_get_uniform(sh_tile_mat, "u_kind");
 	static u_col   = shader_get_uniform(sh_tile_mat, "u_col");
@@ -34,6 +36,11 @@ function tile_mat_draw(_kind, _x, _y, _w, _h, _col, _a, _seed = 0) {
 	shader_set_uniform_f(u_view, room_width * .5, room_height * .5);
 	shader_set_uniform_f(u_par, TILE_MAT_PAR / max(1, room_width * .5));
 	shader_set_uniform_f(u_seed, _seed);
-	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_white, 1);
+	// the shader multiplies by the sampled texel: a stretched white pixel
+	// is the plain rectangle, the slab sprite is DE's outline
+	if (_sprite)
+		draw_sprite_ext(spr_tile, 2, _x, _y, _w / sprite_get_width(spr_tile), _h / sprite_get_height(spr_tile), 0, c_white, 1);
+	else
+		draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_white, 1);
 	shader_reset();
 }

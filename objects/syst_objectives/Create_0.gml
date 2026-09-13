@@ -33,6 +33,22 @@ sr    = [];     // per-step flash on a FALL-OFF (red), 1 -> 0
 st    = [];     // per-step truth last frame (a tick that happens vs one already there)
 heard = "";     // the objective the announcement sound has played for
 
+// ---- THE COLLAPSE (his ask, 2026-09-13: "collapses after it's been open
+// for a bit to only show the checkmarks. hovering over it should push it
+// out slightly and clicking it should expand it until i click it again")
+//   op      the open ease, 0 collapsed (the boxes in a row) .. 1 the card
+//   open_t  seconds the card has been open this time; past OBJ_CARD_HOLD
+//           it folds. Anything that changes the card - a new objective,
+//           a tick, a fall-off, the celebration - re-opens it
+//   pin     clicked open: it stays until clicked again
+//   hov     the pointer is on it; peek eases toward 1 and pushes the
+//           folded strip out a few px
+op     = 1;
+open_t = 0;
+pin    = false;
+hov    = false;
+peek   = 0;
+
 // ---- the seat: top left, under the per-tap readout and the credit
 // chip (both live at y 28..56); as wide as the room allows ----
 __cw = function() { return (room_width > 300) ? 172 : (room_width - 6); };
@@ -54,15 +70,30 @@ __lines = function(_o) {
 	return _out;
 };
 
-/// @func __rect()
-/// @desc the card's rectangle (the region law: the Step's hit and the
-///       Draw share it; obj_clicker asks __consumes off it)
-__rect = function() {
+/// @func __rect_full()
+/// @desc the card, open
+__rect_full = function() {
 	var _o = objective_by_key(okey);
 	var _ls = __lines(_o);
 	var _h = 16;
 	for (var _i = 0; _i < array_length(_ls); _i++) _h += _ls[_i].h;
 	return { x : __cx(), y : __cy(), w : __cw(), h : _h + 3 };
+};
+/// @func __rect_mini()
+/// @desc the strip: the boxes in a row behind the rule, nothing else
+__rect_mini = function() {
+	var _o = objective_by_key(okey);
+	var _n = is_undefined(_o) ? 0 : array_length(_o.steps);
+	return { x : __cx(), y : __cy(), w : 10 + _n * 9 + 2, h : 12 };
+};
+/// @func __rect()
+/// @desc the card's rectangle NOW, between the two on the open ease (the
+///       region law: the Step's hit and the Draw share it; obj_clicker
+///       asks __consumes off it). The hover peek pushes it out
+__rect = function() {
+	var _f = __rect_full(), _m = __rect_mini();
+	var _e = op * op * (3 - 2 * op);
+	return { x : _f.x + peek * 5, y : _f.y, w : lerp(_m.w, _f.w, _e), h : lerp(_m.h, _f.h, _e) };
 };
 
 /// @func __consumes(mx, my)

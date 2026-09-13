@@ -45,6 +45,20 @@
 function tile_shape_draw(_tier, _x, _y, _w, _h, _col, _a, _skin = 0, _seed = 0) {
 	if (_a <= .003) return;
 
+	// ================= DE'S SLAB (TILE_SPRITE) =================
+	// spr_tile frame 2 is spr_inventory_panel2's - the same three frames,
+	// the same guids - DE's obj_tile drew every tile, socket, echo and
+	// shadow with it, tinted. The material paints INSIDE its outline: the
+	// shader samples the sprite (its alpha is the mask, its white the
+	// body) - tile_mat_draw with the sprite flag
+	if (TILE_SPRITE) {
+		if (TILE_MATERIAL && _skin > 0 && _tier > 0)
+			tile_mat_draw(_skin, _x, _y, _w, _h, _col, _a, _seed, true);
+		else
+			draw_sprite_ext(spr_tile, 2, _x, _y, _w / sprite_get_width(spr_tile), _h / sprite_get_height(spr_tile), 0, _col, _a);
+		return;
+	}
+
 	// ================= ACCRETION + SIZE =================
 	if (!TILE_SHAPES || _tier <= 0) {
 		var _d = max(0, _tier - 1);

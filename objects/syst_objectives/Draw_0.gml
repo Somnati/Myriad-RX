@@ -3,6 +3,8 @@
 /// ticked (his call; the text dims with it), hollow gold while waiting,
 /// RED for a moment when a step falls off (his ask: flash red, fade
 /// back). The celebration turns the rule and the name green and says so.
+/// FOLDED (op -> 0) the plate shrinks to a strip and the boxes slide
+/// into a row on it - the words go, the checks stay (his ask).
 if (a <= 0 || okey == "") exit;
 var _o = objective_by_key(okey);
 if (is_undefined(_o)) exit;
@@ -11,7 +13,9 @@ var _r  = __rect();
 var _sl = 1 - power(1 - slide, 3);
 var _ox = -(1 - _sl) * 18;                 // the arrival, from the left
 var _al = a * (.4 + .6 * _sl);
-var _x  = _r.x + _ox, _y = _r.y, _w = _r.w;
+var _x  = _r.x + _ox, _y = _r.y, _w = _r.w, _h = _r.h;
+var _oe = op * op * (3 - 2 * op);          // the open ease (the rect uses the same)
+var _ta = _al * clamp((op - .35) / .5, 0, 1);   // the words: gone before the plate is small
 var _dim  = rgb(120, 130, 150);
 var _done = (cel > 0);
 var _ac   = _done ? c_sgreen : c_gold;     // the accent: gold, green while it celebrates
@@ -22,26 +26,28 @@ draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 
 // ---- the plate ----
-draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _r.h, 0, c_black, .82 * _al);
+draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_black, .82 * _al);
 draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, 1, 0, c_white, .07 * _al);
-draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, _r.h, 0, _ac, (.85 + .15 * _cb) * _al);
-if (_done) draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _r.h, 0, c_sgreen, .08 * _cb * _al);
+draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, _h, 0, _ac, (.85 + .15 * _cb) * _al);
+if (_done) draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_sgreen, .08 * _cb * _al);
 
 // ---- the name (the "objective" label only where the width allows) ----
-var _lx = _x + 8;
-if (room_width > 300) {
-	draw_set_color(_dim);
-	draw_set_alpha(.55 * _al);
-	draw_text(_lx, _y + 3, "objective");
-	_lx += string_width("objective") + 6;
+if (_ta > .01) {
+	var _lx = _x + 8;
+	if (room_width > 300) {
+		draw_set_color(_dim);
+		draw_set_alpha(.55 * _ta);
+		draw_text(_lx, _y + 3, "objective");
+		_lx += string_width("objective") + 6;
+	}
+	draw_set_color(_ac);
+	draw_set_alpha(.95 * _ta);
+	var _nm = _o.name;
+	if (_done) _nm += (room_width > 300) ? "  -  complete" : " - done";
+	draw_text(_lx, _y + 3, _nm);
 }
-draw_set_color(_ac);
-draw_set_alpha(.95 * _al);
-var _nm = _o.name;
-if (_done) _nm += (room_width > 300) ? "  -  complete" : " - done";
-draw_text(_lx, _y + 3, _nm);
 
-// ---- the steps ----
+// ---- the steps: each box seats between its row (open) and the strip (folded) ----
 var _ls = __lines(_o);
 var _ry = _y + 15;
 for (var _i = 0; _i < array_length(_ls); _i++) {
@@ -49,7 +55,8 @@ for (var _i = 0; _i < array_length(_ls); _i++) {
 	var _e  = (_i < array_length(se)) ? se[_i] : (_l.done ? 1 : 0);
 	var _f  = (_i < array_length(sf)) ? sf[_i] : 0;
 	var _rd = (_i < array_length(sr)) ? sr[_i] : 0;
-	var _bx = _x + 8, _by = _ry + 1;
+	var _bx = floor(lerp(_x + 8 + _i * 9, _x + 8, _oe));
+	var _by = floor(lerp(_y + 3, _ry + 1, _oe));
 	// the box: hollow gold, filling green as it ticks; red while a fall-off flashes
 	var _bc = merge_colour(merge_colour(c_gold, c_sgreen, _e), c_hred, _rd);
 	draw_px_rect(_bx, _by, 6, 6, _bc, (.55 + .45 * max(_e, _rd)) * _al);
@@ -64,9 +71,11 @@ for (var _i = 0; _i < array_length(_ls); _i++) {
 	if (_f > 0)  draw_px_rect(_bx - 2, _by - 2, 10, 10, c_sgreen, _f * .8 * _al);
 	if (_rd > 0) draw_px_rect(_bx - 2, _by - 2, 10, 10, c_hred, _rd * .8 * _al);
 	// the text: white while waiting, dim once ticked, red for the fall-off
-	draw_set_color(merge_colour(merge_colour(c_white, _dim, _e), c_hred, _rd));
-	draw_set_alpha((.92 - .35 * _e + .3 * _rd) * _al);
-	draw_text_ext(_x + 18, _ry, _l.txt, 9, _w - 24);
+	if (_ta > .01) {
+		draw_set_color(merge_colour(merge_colour(c_white, _dim, _e), c_hred, _rd));
+		draw_set_alpha((.92 - .35 * _e + .3 * _rd) * _ta);
+		draw_text_ext(_x + 18, _ry, _l.txt, 9, __cw() - 24);   // (the open width: the wrap must not change as the plate shrinks)
+	}
 	_ry += _l.h;
 }
 

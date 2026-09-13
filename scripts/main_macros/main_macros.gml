@@ -130,6 +130,7 @@ function main_macros() {
 #macro scrl_autom 13        // the automation panel's page, row mode (fractional rows - smooth)
 #macro scrl_objectives 14   // the objectives panel's cards, pixel mode
 #macro OBJ_GAP 5            // seconds between objective batches (his ask, 2026-09-13: room to breathe)
+#macro OBJ_CARD_HOLD 8      // seconds the objective card stays open before folding to its boxes (his ask, 2026-09-13)
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 
@@ -519,6 +520,12 @@ function main_macros() {
 // and grows a px a tier to TILE_GROW) - 2026-09-10's trial, his call
 // to judge; true = the six-shape cycle it replaced
 #macro TILE_SHAPES       false
+// DE's OWN SPRITE (2026-09-13, his call: "the current tile look is all very
+// square and tight with the noisy engravings... cut back to a simpler
+// sprite and see if the shaders complement them"): spr_tile frame 2 - the
+// rounded slab DE drew every tile with - tinted, no accretion, no growth,
+// the material inside its outline. false = the accretion scheme
+#macro TILE_SPRITE       true
 // THE MATERIALS (2026-09-13, his ask: shader surfaces, a pool per tier -
 // tile_mat_config / tile_skin_roll / sh_tile_mat). false = every tile flat
 #macro TILE_MATERIAL     true
