@@ -62,8 +62,15 @@ look_x = 0; look_y = 0;   // the pupils, eased toward the pointer
 /// the band under its bars, and never ON the board (__wander_to)
 tile_room = false;   // set each step from the job
 __bounds = function() {
-	if (tile_room && instance_exists(syst_tiles))
-		return { x1 : 16, x2 : room_width - 16, y1 : syst_tiles.board_top + 6, y2 : room_height - 26 };
+	if (tile_room && instance_exists(syst_tiles)) {
+		// THE UPGRADES DRAWER PUSHES THEM (his ask, 2026-09-13: "crawling all
+		// over my upgrades"): the patch's right edge is the drawer's face
+		// while it is out - the face eases, so the clamp below walks a body
+		// ahead of it rather than teleporting it
+		var _x2 = room_width - 16;
+		if (syst_tiles.dr_open > .001) _x2 = min(_x2, syst_tiles.__dr_face() - 12);
+		return { x1 : 16, x2 : max(20, _x2), y1 : syst_tiles.board_top + 6, y2 : room_height - 26 };
+	}
 	return { x1 : 20, x2 : room_width - 20, y1 : 40, y2 : room_height - 24 };
 };
 /// a wander target inside the bounds - and, in the tile panel, not on

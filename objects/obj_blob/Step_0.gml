@@ -105,6 +105,7 @@ else {
 var _b = __bounds();
 x = clamp(x, _b.x1, _b.x2);
 y = clamp(y, _b.y1, _b.y2);
+if (tx > _b.x2 || tx < _b.x1) __wander_to();   // a target the patch no longer holds (the drawer came out over it)
 // OFF THE TABLE (his ask): a body that finds itself on the board - it
 // arrived there from the money room's seat, or the board grew under it
 // - is walked straight off to the nearest edge, and its wander target
