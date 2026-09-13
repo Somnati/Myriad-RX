@@ -2,11 +2,13 @@
 /// acts in initiative order (ties go to the crew). A member hits the
 /// foe; the foe hits one of the crew at random; a hit can be countered.
 /// Luck (luck_mod) leans the crew's rolls. Over when the foe falls
-/// (won) or the whole crew is down (routed).
+/// (won) or the whole crew is down (routed). The foe's damage and its
+/// extra swings are REALS paid by a weighted coin (exped_fight_new).
 function exped_fight_turn(_f) {
 	if (_f.over) return;
 	_f.turn += 1;
 	var _lm = luck_mod();
+	var _coin = function(_x) { return floor(_x) + ((random(1) < frac(_x)) ? 1 : 0); };
 	// the order: the crew and the foe by initiative
 	var _order = [];
 	for (var _k = 0; _k < array_length(_f.party); _k++) array_push(_order, { side : "a", i : _k, init : _f.party[_k].init });
@@ -32,21 +34,25 @@ function exped_fight_turn(_f) {
 			} else array_push(_f.log, _m.name + " misses");
 		} else {
 			if (_f.b.hp <= 0) continue;
-			var _up = [];
-			for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp > 0) array_push(_up, _k);
-			if (array_length(_up) == 0) break;
-			var _ti = _up[irandom(array_length(_up) - 1)];
-			var _t = _f.party[_ti];
-			if (roll_perc(_f.b.hit)) {
-				_t.hp = max(0, _t.hp - _f.b.dmg);
-				array_push(_f.log, _f.b.name + " hits " + _t.name + " for " + string(_f.b.dmg));
-				_f.last = { side : "a", i : _ti, dmg : _f.b.dmg, at : current_time };
-				if (_t.hp > 0 && roll_perc(15 * _lm)) {
-					_f.b.hp = max(0, _f.b.hp - 1);
-					array_push(_f.log, _t.name + " counters for 1");
-					_f.last = { side : "b", i : -1, dmg : 1, at : current_time };
-				}
-			} else array_push(_f.log, _f.b.name + " misses " + _t.name);
+			var _swings = 1 + _coin(_f.b[$ "swings"] ?? 0);
+			repeat (_swings) {
+				var _up = [];
+				for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp > 0) array_push(_up, _k);
+				if (array_length(_up) == 0) break;
+				var _ti = _up[irandom(array_length(_up) - 1)];
+				var _t = _f.party[_ti];
+				if (roll_perc(_f.b.hit)) {
+					var _fd = max(1, _coin(_f.b.dmg));
+					_t.hp = max(0, _t.hp - _fd);
+					array_push(_f.log, _f.b.name + " hits " + _t.name + " for " + string(_fd));
+					_f.last = { side : "a", i : _ti, dmg : _fd, at : current_time };
+					if (_t.hp > 0 && roll_perc(15 * _lm)) {
+						_f.b.hp = max(0, _f.b.hp - 1);
+						array_push(_f.log, _t.name + " counters for 1");
+						_f.last = { side : "b", i : -1, dmg : 1, at : current_time };
+					}
+				} else array_push(_f.log, _f.b.name + " misses " + _t.name);
+			}
 		}
 		var _alive = 0;
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp > 0) _alive++;

@@ -259,7 +259,7 @@ if (view == "trip") {
 		draw_text(_tx, _fy + 2, _f.b.name + "  " + string(_f.b.hp) + "/" + string(_f.b.hpmax));
 		draw_set_color(_dim);
 		draw_set_alpha(.7);
-		draw_text(_tx, _fy + 12, "turn " + string(_f.turn) + "  -  hit " + string(round(_f.b.hit)) + "%  dmg " + string(_f.b.dmg));
+		draw_text(_tx, _fy + 12, "turn " + string(_f.turn) + "  -  hit " + string(round(_f.b.hit)) + "%  dmg " + string_format(_f.b.dmg, 1, 1));
 		var _fl = array_length(_f.log);
 		draw_set_color(c_white);
 		draw_set_alpha(.9);

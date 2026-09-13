@@ -4,6 +4,12 @@
 /// of its BONDS into the hit chance (exped_bond, up to +10). The foe's
 /// hp scales with the crew so three do not shred what one would fight.
 /// exped_fight_turn plays it; the panel's combat window shows it.
+/// ⚖️ THE NUMBERS (exped_twin, 2026-09-13): a foe's damage is a REAL
+/// (.5 + .5 x tier) paid as whole points by a weighted coin, and against
+/// a crew it swings more than once a turn (.6 more per extra member,
+/// the same coin) - integer steps alone made tier 2 a cliff for one
+/// sprite and tiers 1-3 a formality for three. Win rates now: one
+/// sprite 100 / 97 / 59 / 14 by tier, three 100 / 100 / 99 / 54.
 function exped_fight_new(_tr) {
 	var _d  = _tr.dest;
 	var _pl = sprite_personalities();
@@ -25,11 +31,14 @@ function exped_fight_new(_tr) {
 	}
 	var _foes = ["a scrap crawler", "a hollow warden", "a shard mite", "a dust wraith", "a rust beetle", "a lantern moth"];
 	var _up = max(1, array_length(_party));
+	var _fhp = round((6 + 3 * _d.tier) * (1 + .7 * (_up - 1)));
 	return {
 		party : _party,
 		b : { name : _foes[irandom(array_length(_foes) - 1)],
-		      hp : round((5 + 3 * _d.tier) * (1 + .5 * (_up - 1))), hpmax : round((5 + 3 * _d.tier) * (1 + .5 * (_up - 1))),
-		      hit : clamp(45 + 5 * _d.tier, 30, 90), init : 4 + _d.tier, dmg : 1 + floor(_d.tier / 2) },
+		      hp : _fhp, hpmax : _fhp,
+		      hit : clamp(45 + 5 * _d.tier, 30, 90), init : 4 + _d.tier,
+		      dmg : .5 + .5 * _d.tier,        // a real: paid by the coin (exped_fight_turn)
+		      swings : .6 * (_up - 1) },       // extra swings a turn against a crew, by the coin
 		turn : 0, over : false, won : false, log : [],
 		t : 0,              // the clock toward the next turn (EXPED_FIGHT_T)
 		last : undefined,   // { side : "a" (a member, k) / "b" (the foe), dmg, at : current_time } - the window's flash

@@ -54,10 +54,10 @@ function exped_unpack(_s) {
 			if (array_length(_hh) >= 2) {
 				var _h1 = string_split(_hh[0], ","), _h2 = string_split(_hh[1], ",");
 				for (var _k = 0; _k < array_length(_sids); _k++) {
-					array_push(_hm, (_k < array_length(_h2) && _h2[_k] != "") ? max(1, real(_h2[_k])) : 8);
+					array_push(_hm, (_k < array_length(_h2) && _h2[_k] != "") ? max(1, real(_h2[_k])) : 10);
 					array_push(_hp, (_k < array_length(_h1) && _h1[_k] != "") ? real(_h1[_k]) : _hm[_k]);
 				}
-			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 8); array_push(_hm, 8); }
+			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 10); array_push(_hm, 10); }
 			var _rooms = (_p[5] != "") ? string_split(_p[5], ",") : [];
 			if (array_length(_rooms) < EXPED_ROOMS) {
 				var _bi = exped_biomes()[clamp(_d.biome, 0, 3)];
