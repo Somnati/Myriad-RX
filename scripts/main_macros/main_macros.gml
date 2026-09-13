@@ -532,7 +532,6 @@ function main_macros() {
 #macro TILE_MAT_AMP      .35  // the modulation depth: body x (1 +- this). The body is
                               // drawn at 30% of the rung colour, so .35 never clamps
 #macro TILE_MAT_PAR      4    // the hole's floor shifts at most this many px at the room's edge
-#macro TILE_MAT_GROW     .5   // a growing material's weight x (1 + this x tiers above its floor)
 #macro TILE_GROW         3   // px of growth over the first tiers (each way: w and h)
 #macro TILE_BONUS_TIER   false
 

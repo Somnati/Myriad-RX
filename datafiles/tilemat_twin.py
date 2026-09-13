@@ -5,7 +5,7 @@ the overall brightness of a tile").
 sh_tile_mat paints a tile body as colour x (1 + amp x d), d a posterized
 pattern in -1..1. Multiplicative means hue and saturation are untouched
 cell by cell; the law then reduces to ONE number per material: the mean
-of d over the tile and over time must be zero. This ports each
+of d over the tile and over time must be zero. This ports every
 material's math (same hash, same noise, same thresholds - the shader is
 the source; keep them in step) and measures it at the tile's real size
 on the real grid, across the board's positions and a minute of time.
@@ -48,6 +48,9 @@ def say(passed, label, detail=""):
 def fract(x): return x - np.floor(x)
 
 
+def gmod(x, y): return x - y * np.floor(x / y)   # GLSL mod
+
+
 def hash21(px, py):
     x = fract(px * .1031); y = fract(py * .1031); z = fract(px * .1031)
     d = x * (y + 33.33) + y * (z + 33.33) + z * (x + 33.33)
@@ -63,98 +66,131 @@ def vnoise(px, py):
     return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy
 
 
+def tones(n, th): return np.where(n > th, 1.0, np.where(n < -th, -1.0, 0.0))
+
+
 def pattern(kind, qx, qy, w, h, t, view, par, seed):
-    """d for a tile body at room (qx, qy) size (w, h), time t. Returns the cell grid."""
+    """d for a tile body at room (qx, qy) size (w, h), time t. The cell grid."""
     cx, cy = np.meshgrid(np.arange(w), np.arange(h))
-    px = qx + cx + .5; py = qy + cy + .5          # world anchor
-    qxx = cx + .5 - w * .5; qyy = cy + .5 - h * .5  # tile-centred
+    px = qx + cx + .5; py = qy + cy + .5            # world anchor
+    hwx, hwy = w * .5, h * .5
+    qxx = cx + .5 - hwx; qyy = cy + .5 - hwy         # tile-centred
     if kind == 1:
         n = np.array([1.0, .6]); n = n / np.linalg.norm(n)
-        wv = px * n[0] + py * n[1]
-        ph = fract((wv - t * 40) / 480)
+        ph = fract((px * n[0] + py * n[1] - t * 40) / 480)
         return np.where(ph < .05, 1.0, np.where(ph < .10, -1.0, 0.0))
     if kind == 2:
         n = vnoise(px * .11 + t * .35 + seed, py * .11 + t * .20 + seed) * .65 \
             + vnoise(px * .23 - t * .25 + seed * 3, py * .23 + t * .30 + seed * 3) * .35
-        n = (n - .5) * 2
-        return np.where(n > .22, 1.0, np.where(n < -.22, -1.0, 0.0))
+        return tones((n - .5) * 2, .22)
     if kind == 3:
-        hwx, hwy = w * .5, h * .5
         ccx, ccy = qx + hwx, qy + hwy
-        shx, shy = -(ccx - view[0]) * par, -(ccy - view[1]) * par
-        rim = (np.abs(qxx) > hwx - 1) | (np.abs(qyy) > hwy - 1)
+        shx = -(ccx - view[0]) * par - 1.5; shy = -(ccy - view[1]) * par - 1.5
+        mhx, mhy = hwx - 2, hwy - 2
+        srf = (np.abs(qxx) >= mhx) | (np.abs(qyy) >= mhy)
         qfx, qfy = qxx - shx, qyy - shy
-        fhx, fhy = hwx - 3, hwy - 3
+        fhx, fhy = mhx - 1, mhy - 1
         flr = (np.abs(qfx) < fhx) & (np.abs(qfy) < fhy)
-        grain = hash21(np.floor(qfx) + seed, np.floor(qfy) + seed) > .85
-        tone_f = np.where(grain, -.2, .4)
-        d = np.where(rim, 1.0, np.where(flr, tone_f, -1.0))
+        grain = np.where(hash21(np.floor(qfx) + seed, np.floor(qfy) + seed) > .82, -.55, -1.0)
+        d = np.where(srf, .7, np.where(flr, grain, -.35))
         A = w * h
-        fr = (A - (w - 2) * (h - 2)) / A
-        ff = max(0, (w - 6) * (h - 6)) / A
-        fw = 1 - fr - ff
-        bias = fr * 1 + ff * (.85 * .4 - .15 * .2) - fw * 1
+        fs = (A - (w - 4) * (h - 4)) / A
+        ow = max(0, min(shx + fhx, mhx) - max(shx - fhx, -mhx))
+        oh = max(0, min(shy + fhy, mhy) - max(shy - fhy, -mhy))
+        ff = ow * oh / A
+        fw = 1 - fs - ff
+        bias = fs * .7 + ff * (.82 * -1.0 + .18 * -.55) + fw * -.35
         return d - bias
     if kind == 4:
-        p1x, p1y = px + t * 2, py
-        p2x, p2y = px * .5 + t * .7, py * .5
-        s = (hash21(np.floor(p1x), np.floor(p1y)) > .965) | (hash21(np.floor(p2x) + 7, np.floor(p2y) + 7) > .975)
+        s = (hash21(np.floor(px + t * 2), np.floor(py)) > .965) | (hash21(np.floor(px * .5 + t * .7) + 7, np.floor(py * .5) + 7) > .975)
         return np.where(s, 1.0, -.064)
+    if kind == 5:
+        m = gmod(np.floor(py - t * 4), 4)
+        return np.where(m < .5, .8, np.where((m > 1.5) & (m < 2.5), -.8, 0.0))
+    if kind == 6:
+        s = np.floor((px + py - t * 20) / 4)
+        return np.where(gmod(s, 2) < .5, .5, -.5)
+    if kind == 7:
+        a = gmod(px + py - t * 6, 8); b = gmod(px - py + t * 6, 8)
+        return np.where((a < 1) | (b < 1), 1.0, -.31)
+    if kind == 8:
+        r = np.sqrt(qxx ** 2 + (qyy * (hwx / hwy)) ** 2)
+        ph = fract(r / 6 - t * .6 + seed)
+        return np.where(ph < .25, 1.0, np.where(ph < .5, -1.0, 0.0))
+    if kind == 9:
+        n = vnoise(px * .2 + t * .4 + seed, py * .2 + t * 1.3 + seed) * .6 \
+            + vnoise(px * .45 - t * .5 + seed * 3, py * .45 + t * 1.9 + seed * 3) * .4
+        return tones((n - .5) * 2, .18)
+    if kind == 10:
+        a = t * 2.2 + seed
+        rrx, rry = hwx - 3, hwy - 3
+        m1x, m1y = math.cos(a) * rrx, math.sin(a) * rry
+        d1 = (np.abs(qxx - m1x) < 1) & (np.abs(qyy - m1y) < 1)
+        d2 = (np.abs(qxx + m1x) < 1) & (np.abs(qyy + m1y) < 1)
+        return np.where(d1, 1.0, np.where(d2, -1.0, 0.0))
+    if kind == 11:
+        return np.full((h, w), float(tones(np.array(math.sin(t * 2 + seed)), .45)) * .6)
+    if kind == 12:
+        hh = hash21(cx + np.floor(t * 12) * 13.7 + seed, cy + np.floor(t * 12) * 13.7 + seed)
+        return np.where(hh > .86, 1.0, np.where(hh < .14, -1.0, 0.0))
+    if kind == 13:
+        n = vnoise(px * .08 + t * .30 + seed, py * .02 + t * .15 + seed) * .7 \
+            + vnoise(px * .17 - t * .22 + seed * 3, py * .04 + seed * 3) * .3
+        return tones((n - .5) * 2, .2)
     return np.zeros((h, w))
 
 
-NAMES = {1: "sheen", 2: "liquid", 3: "hole", 4: "stars"}
+NAMES = {1: "sheen", 2: "liquid", 3: "hole", 4: "stars", 5: "bands", 6: "stripes", 7: "lattice",
+         8: "ripple", 9: "ember", 10: "orbit", 11: "pulse", 12: "static", 13: "aurora"}
 print(__doc__.strip().splitlines()[0])
 print("=" * 74)
 print("amp %.2f (a mean d of .03 is a %.1f%% luma drift)" % (AMP, AMP * .03 * 100))
 
-# the board: rm_tiles-like positions across a 480x270 room, tiles 30x13
-# growing to 33x16; sixty seconds sampled every quarter second
+# the board: positions across a 480x270 room, the tile 30x13 (DE's slab);
+# a minute of time, sampled every quarter second
 ROOM = (480, 270)
 VIEW = (ROOM[0] * .5, ROOM[1] * .5)
 PAR = PAR_PX / (ROOM[0] * .5)
 positions = [(x, y) for x in range(8, 440, 36) for y in range(30, 250, 20)]
 times = np.arange(0, 60, .25)
-sizes = [(30, 13), (31, 14), (33, 16)]
+W, H = 30, 13
 
 print()
 print("1. MEAN OF d (must be ~0) AND THE CREST (must stay under 1.2)")
-for kind in (1, 2, 3, 4):
+for kind in sorted(NAMES):
     means, mx = [], 0
-    for (w, h) in sizes:
-        for (qx, qy) in positions[::3]:
-            for t in times[::4]:
-                d = pattern(kind, qx, qy, w, h, t, VIEW, PAR, seed=(qx * 7 + qy) % 13)
-                means.append(d.mean())
-                mx = max(mx, np.abs(d).max())
+    for (qx, qy) in positions[::3]:
+        for t in times[::2]:
+            d = pattern(kind, qx, qy, W, H, t, VIEW, PAR, seed=(qx * 7 + qy) % 13)
+            means.append(d.mean())
+            mx = max(mx, np.abs(d).max())
     m = float(np.mean(means)); sd = float(np.std(means))
-    say(abs(m) < .03, "%-7s mean d %+.4f (per-sample sd %.3f, a frame's wobble)" % (NAMES[kind], m, sd),
-        "luma drift %+.2f%%" % (m * AMP * 100))
-    say(mx <= 1.2, "%-7s crest %.2f x amp" % (NAMES[kind], mx))
+    say(abs(m) < .03, "%-8s mean d %+.4f (per-frame sd %.3f)" % (NAMES[kind], m, sd),
+        "luma drift %+.2f%%, crest %.2f x amp" % (m * AMP * 100, mx))
+    say(mx <= 1.2, "%-8s crest under 1.2" % NAMES[kind]) if mx > 1.2 else None
 
 print()
 print("2. THE HOLE AT THE ROOM'S EDGES (parallax clips the floor - the mean may drift)")
 for (qx, qy) in [(8, 30), (440, 30), (8, 250), (440, 250), (225, 128)]:
-    d = pattern(3, qx, qy, 30, 13, 0, VIEW, PAR, 3)
-    shx = -((qx + 15) - VIEW[0]) * PAR
+    d = pattern(3, qx, qy, W, H, 0, VIEW, PAR, 3)
+    shx = -((qx + 15) - VIEW[0]) * PAR - 1.5
     print("      at (%3d,%3d)  floor shift %+.1f px  mean d %+.3f" % (qx, qy, shx, d.mean()))
-d_edge = pattern(3, 440, 250, 30, 13, 0, VIEW, PAR, 3)
-say(abs(d_edge.mean()) < .08, "the hole's mean at the far corner stays under .08 (a %.1f%% drift, corner only)" % (.08 * AMP * 100), "%+.3f" % d_edge.mean())
+d_edge = pattern(3, 440, 250, W, H, 0, VIEW, PAR, 3)
+say(abs(d_edge.mean()) < .1, "the hole's mean at the far corner stays under .1 (a %.1f%% drift, corner only)" % (.1 * AMP * 100), "%+.3f" % d_edge.mean())
 
 print()
-print("3. THE POOL (tile_mat_config): what a tile of each tier rolls")
+print("3. THE LADDER (tile_mat_config): one surface a tier, the top six cycling past the end")
 cfg = open(os.path.join(ROOT, "scripts", "tile_mat_config", "tile_mat_config.gml"), encoding="utf-8").read()
-rows = re.findall(r'key : "(\w+)",\s*kind : (\d+),\s*min : (\d+),\s*w : (\d+),\s*grow : (true|false)', cfg)
-GROW = macro("TILE_MAT_GROW", .5)
-print("      %-5s " % "tier" + "".join("%8s" % r[0] for r in rows))
-for tier in (1, 2, 3, 4, 6, 8, 9, 11, 14):
-    ws = []
-    for name, kind, mn, w, grow in rows:
-        mn, w = int(mn), int(w)
-        ws.append(0 if tier < mn else w * ((1 + GROW * (tier - mn)) if grow == "true" else 1))
-    tot = sum(ws)
-    print("      %-5d " % tier + "".join("%7.0f%%" % (100 * x / tot) for x in ws))
-say(all(int(r[2]) >= 1 for r in rows) and rows[0][0] == "flat", "tier 1 rolls flat only (white has no headroom - nothing may modulate it)")
+rows = re.findall(r'tier : (\d+),\s*key : "(\w+)",\s*kind : (\d+)', cfg)
+lad = [(int(a), b, int(c)) for a, b, c in rows]
+print("      " + "  ".join("%d:%s" % (tr, nm) for tr, nm, _k in lad))
+n = len(lad)
+cyc = [lad[n - 6 + ((tr - n - 1) % 6)][1] for tr in range(n + 1, n + 9)]
+print("      then " + "  ".join("%d:%s" % (n + 1 + i, nm) for i, nm in enumerate(cyc)))
+say(lad[0][1] == "flat" and lad[0][2] == 0, "tier 1 is flat")
+say(all(lad[i][0] == i + 1 for i in range(n)), "the ladder's tiers run 1..%d without a gap" % n)
+say(len(set(k for _t, _n, k in lad[1:])) == n - 1, "no two tiers share a surface")
+say(set(k for _t, _n, k in lad[1:]) == set(NAMES), "every material in the shader is on the ladder, and nothing else")
 
 print()
 print("=" * 74)

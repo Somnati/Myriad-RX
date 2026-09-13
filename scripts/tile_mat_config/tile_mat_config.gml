@@ -1,21 +1,27 @@
-/// @description tile_mat_config() -> THE MATERIAL POOL (his model,
-/// 2026-09-13: "each tier pulls from an active set of shaders it
-/// qualifies for and more exotic shaders become available at higher
-/// tiers"). One row a material: its shader kind (sh_tile_mat's u_kind;
-/// 0 = flat, no shader), the tier it opens at, its weight in the roll,
-/// and whether that weight GROWS with the tiles' distance above the
-/// floor (an exotic stays rare where it opens and becomes common far
-/// above it; flat never grows, so it is outvoted as the pool widens).
-/// A tile rolls once, when it is made (tile_skin_roll), and keeps its
-/// surface for life; a merge makes a new tile, which rolls again from
-/// the bigger pool - the merge moment's little reveal. Edit here.
+/// @description tile_mat_config() -> THE MATERIAL LADDER (his call,
+/// 2026-09-13: "the shaders should be tied to the tier"). One row a
+/// tier, in order: the tier's shader kind (sh_tile_mat's u_kind; 0 =
+/// flat, no shader) and its name. Every tile of a tier wears the same
+/// surface; the surfaces climb in strangeness with the tiers. Past the
+/// last row the ladder CYCLES its top six, so a board that outgrows it
+/// keeps changing rather than freezing on one look. Edit here; the
+/// twin (tilemat_twin.py) prints the ladder as it reads it.
 function tile_mat_config() {
 	static _c = [
-		{ key : "flat",   kind : 0, min : 1, w : 4, grow : false },
-		{ key : "sheen",  kind : 1, min : 2, w : 3, grow : true  },
-		{ key : "liquid", kind : 2, min : 4, w : 3, grow : true  },
-		{ key : "hole",   kind : 3, min : 6, w : 2, grow : true  },
-		{ key : "stars",  kind : 4, min : 9, w : 1, grow : true  },
+		{ tier : 1,  key : "flat",    kind : 0  },
+		{ tier : 2,  key : "sheen",   kind : 1  },
+		{ tier : 3,  key : "bands",   kind : 5  },
+		{ tier : 4,  key : "stripes", kind : 6  },
+		{ tier : 5,  key : "lattice", kind : 7  },
+		{ tier : 6,  key : "liquid",  kind : 2  },
+		{ tier : 7,  key : "ripple",  kind : 8  },
+		{ tier : 8,  key : "pulse",   kind : 11 },
+		{ tier : 9,  key : "hole",    kind : 3  },
+		{ tier : 10, key : "ember",   kind : 9  },
+		{ tier : 11, key : "orbit",   kind : 10 },
+		{ tier : 12, key : "aurora",  kind : 13 },
+		{ tier : 13, key : "static",  kind : 12 },
+		{ tier : 14, key : "stars",   kind : 4  },
 	];
 	return _c;
 }
