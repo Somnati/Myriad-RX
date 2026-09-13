@@ -380,6 +380,11 @@ __tab_set = function(_k) {
 // edge, so everything downstream reads the same way - only the sums
 // changed: closed leaves dr_tab poking in from the room's right edge,
 // open puts the face dr_w in from it.
+/// the drawer's handle while it is shut (the Step's tap and the draw
+/// share it): a plate at the right edge, tall enough for the word
+__dr_tab_r = function() {
+	return { x : room_width - 15, y : strip_y + strip_h + 24, w : 15, h : 66 };
+};
 __dr_face = function() {
 	return lerp(room_width - dr_tab, room_width - dr_w, dr_open);
 };
@@ -825,18 +830,39 @@ __draw_drawer = function() {
 	// pixel from where the tab's line lands - which is the second, shorter
 	// aqua line (his report). One handle, one edge, never both.
 	if (dr_open < .999) {
-		// the tab hangs off the room's RIGHT edge now, and its accent is
-		// the INNER side - which is where the open drawer's own hairline
-		// lands, so the two are still one edge rather than two
-		var _tabx = room_width - dr_tab;
+		// ⚖️ A HANDLE, NOT A LINE (his report, 2026-09-13: "a weird
+		// line/rectangle clipping offscreen"): a plate hugging the right
+		// edge with its outer corners cut, an aqua hairline down its inner
+		// side, a chevron at the top and the word "upgrades" read upward.
+		// It slides out with the drawer (the drawer's own edge takes over)
+		// and its hairline breathes while a buy is affordable
+		var _tr = __dr_tab_r();
 		var _any = false;
 		for (var _k = 0; _k < array_length(uq); _k++) if (uq[_k].ok) _any = true;
 		var _ta = 1 - dr_open;
-		draw_sprite_ext(spr_pixel_1x1, 0, _tabx, strip_y + strip_h + 24,
-			dr_tab, 60, 0, c_black, .8 * _ta);
-		draw_sprite_ext(spr_pixel_1x1, 0, _tabx, strip_y + strip_h + 24,
-			2, 60, 0, c_aqua,
-			(_any ? (.55 + .35 * dsin(current_time * .25)) : .35) * _ta);
+		var _hx = _tr.x + dr_open * _tr.w;   // slides off as the drawer comes
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx + 1, _tr.y, _tr.w - 1, _tr.h, 0, c_black, .88 * _ta);
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx, _tr.y + 2, 1, _tr.h - 4, 0, c_black, .88 * _ta);
+		var _ac = c_aqua;
+		var _aa = (_any ? (.6 + .35 * dsin(current_time * .25)) : .45) * _ta;
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx, _tr.y + 2, 1, _tr.h - 4, 0, _ac, _aa);
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx + 1, _tr.y, _tr.w - 1, 1, 0, _ac, _aa * .6);
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx + 1, _tr.y + _tr.h - 1, _tr.w - 1, 1, 0, _ac, _aa * .6);
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx + 1, _tr.y + 1, 1, 1, 0, _ac, _aa * .6);
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx + 1, _tr.y + _tr.h - 2, 1, 1, 0, _ac, _aa * .6);
+		draw_set_font(fnt);
+		draw_set_halign(fa_center);
+		draw_set_valign(fa_top);
+		draw_set_color(_ac);
+		draw_set_alpha(.9 * _ta);
+		draw_text(_hx + _tr.w * .5 + 1, _tr.y + 5, "<");
+		draw_set_halign(fa_left);
+		draw_set_color(merge_colour(_ac, c_white, .3));
+		draw_set_alpha(.8 * _ta);
+		// read upward: the text runs from the plate's foot toward its head
+		draw_text_transformed(_hx + (_tr.w - 7) * .5, _tr.y + _tr.h - 6, "upgrades", 1, 1, 90);
+		draw_set_valign(fa_top);
+		draw_set_alpha(1);
 	}
 
 	// THE CURRENCY, LAST OF ALL. It is the one readout that has to be

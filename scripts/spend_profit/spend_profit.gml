@@ -10,6 +10,18 @@ function spend_profit(_cost) {
 	if (!(_cost >= arb(1))) return true;   // free is always affordable
 	if (!(profit_spendable() >= _cost)) return false;
 	g.profit = do_subtract(g.profit, _cost);
+	// ⚖️ THE HOLD-BACK GIVES WAY FIRST (his report, 2026-09-13: an autobuy
+	// "shoots my profit all the way down to 0 no matter how much i have
+	// till the profit bits are consumed"). The header withholds what is
+	// still riding motes (g.profit_flight) - money already banked, still
+	// on its way to the counter. A spend that leaves less in the pile than
+	// was in the air made pile - flight negative, which the arb reads as
+	// 0, and the counter sat at nothing until every mote landed. The
+	// spend is taken from the airborne money first: the counter then
+	// never shows less than what is left, and climbs to it as the motes
+	// arrive, instead of dropping through the floor and climbing back
+	if (variable_global_exists("profit_flight") && g.profit_flight >= arb(1))
+		g.profit_flight = (g.profit_flight > _cost) ? do_subtract(g.profit_flight, _cost) : 0;
 	save_mark_dirty();
 	return true;
 }

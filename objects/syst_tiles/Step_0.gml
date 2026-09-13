@@ -141,8 +141,8 @@ if (__in() && (!variable_global_exists("click_owner") || g.click_owner == noone)
 	// swipe at all
 	if (mouse_check_button_pressed(mb_left))
 	if (dr_want == 0)
-	if (point_in_rectangle(mouse_x, mouse_y, room_width - dr_tab - 2,
-		strip_y + strip_h + 24, room_width, strip_y + strip_h + 84)) {
+	if (point_in_rectangle(mouse_x, mouse_y, __dr_tab_r().x - 1,
+		__dr_tab_r().y, room_width, __dr_tab_r().y + __dr_tab_r().h)) {
 		dr_want = 1;
 		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 	}

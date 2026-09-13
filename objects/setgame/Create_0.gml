@@ -64,6 +64,12 @@
 	// stamps its rolls into the savefile, and the save menu syncs the
 	// stored ones back, so saved identities stick across boots
 	randomize();
+	// EVERY TEXTURE PAGE UP FRONT (his report, 2026-09-13: an occasional
+	// one-frame flicker in fullscreen). A page GM loads on its first use
+	// is the documented one-frame stall; the two groups are small, so
+	// they come in at boot and stay
+	texture_prefetch("Default");
+	texture_prefetch("glows");
 	g.profile  = 0;
 	// TWO CLOCKS (2026-09-06, his ask - DE tracks both and the port kept
 	// only half). They never overlap, so their SUM is the whole life of

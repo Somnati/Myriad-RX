@@ -103,7 +103,7 @@ __btn_w = function() {
 	draw_set_font(fnt);
 	var _m = 0;
 	for (var _i = 0; _i < array_length(btns); _i++)
-		_m = max(_m, string_width(btns[_i].name));
+		_m = max(_m, string_width(btns[_i].name) + ((btns[_i][$ "key"] ?? "") != "" ? string_width(" new") + 4 : 0));
 	// ⚖️ THE CLOCK IS PART OF THE MEASURE. The panel derives from this
 	// number, and the foot band has to hold "00d 00h 00m 00s +00h" - so
 	// if only the labels were measured, a short roster would shrink the

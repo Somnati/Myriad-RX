@@ -133,6 +133,19 @@ for (var _i = 0; _i < array_length(_it); _i++) {
 	draw_set_color(_tc);
 	draw_set_alpha(_here ? 1 : .92);
 	draw_text(_o.x1 + 9, _o.y1 + ((_h - 7) div 2), _o.name);
+	// "NEW" - DE's ability-slot pulse, term for term (obj_ability_slot:
+	// gold, the outline font, alpha a triangle wave between .2 and 1 over
+	// two seconds, each row a fifteenth of a cycle behind the last) - on
+	// a line whose feature has unfolded and not been visited (unfold_fresh)
+	if ((_b[$ "key"] ?? "") != "" && unfold_fresh(_b.key)) {
+		var _ph = frac(current_time / 2000 + _i / 15);
+		var _na = lerp(.2, 1, 1 - abs(_ph * 2 - 1));
+		draw_set_font(fnt_outline);
+		draw_set_color(c_gold);
+		draw_set_alpha(_na);
+		draw_text(_o.x1 + 9 + string_width(_o.name) + 5, _o.y1 + ((_h - 7) div 2), "new");
+		draw_set_font(fnt);
+	}
 }
 
 // ---- pinned header band ----

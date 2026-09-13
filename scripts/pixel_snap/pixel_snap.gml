@@ -70,6 +70,7 @@ function pixel_snap(_cell = 3, _soft = 0) {
 		if (surface_exists(g.pix_snap) && g.pix_snap != g.pix_raw)
 			surface_free(g.pix_snap);
 		if (surface_exists(g.pix_raw)) surface_free(g.pix_raw);
+		show("[surface] pixel_snap rebuilt " + _key + " at " + string(current_time));   // (the flicker hunt, 2026-09-13)
 		g.pix_raw  = surface_create(_w, _h);
 		g.pix_snap = (_soft > 0)
 			? surface_create(_w * _soft, _h * _soft) : g.pix_raw;

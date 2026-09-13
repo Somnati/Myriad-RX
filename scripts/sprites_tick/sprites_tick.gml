@@ -27,8 +27,8 @@ function sprites_tick() {
 		if (_n < 1) continue;
 		_s.acc -= _n;
 		if (_job == "tap") tap_fire(_n, 0, 0, false, true, false);
-		else if (_job == "fab") tiles_fab_charge(_n * SPRITE_FAB_TAP * (1 + (_s[$ "rar"] ?? 0)));
-		else tiles_merge_charge(_n * SPRITE_FAB_TAP * (1 + (_s[$ "rar"] ?? 0)));
+		else if (_job == "fab") tiles_fab_charge(_n * sprite_fab_frac(_s));
+		else tiles_merge_charge(_n * sprite_fab_frac(_s));
 		_s.taps += _n;
 	}
 }

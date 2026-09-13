@@ -40,7 +40,9 @@ look_x = lerp(look_x, clamp((mouse_x - x) / 40, -1, 1), .15 * delta);
 look_y = lerp(look_y, clamp((mouse_y - (y - r)) / 40, -1, 1), .15 * delta);
 
 // ---- the poke, before the state: a press on it is its own ----
-if (input_free() && (!variable_global_exists("click_owner") || g.click_owner == noone))
+// (the tile crew lives under the panel's overlay rung - his report: not
+// clickable there - so it asks at that rung; the room's crew at the floor)
+if (input_free(tile_room ? ui_layer_overlay : 0) && (!variable_global_exists("click_owner") || g.click_owner == noone))
 if (mouse_check_button_pressed(mb_left) && __hit(mouse_x, mouse_y)) __poke();
 
 // ---- the loop ----
@@ -78,10 +80,17 @@ else {
 			// CHARGES its bar by its bonus (his ask, 2026-09-13 - DE's merge
 			// charge): SPRITE_FAB_TAP x (1 + rarity) of a full bar
 			else if (_job == "fab" || _job == "merge") {
-				var _fr = SPRITE_FAB_TAP * (1 + (s[$ "rar"] ?? 0));
+				var _fr = sprite_fab_frac(s);
 				if (_job == "fab") tiles_fab_charge(_fr); else tiles_merge_charge(_fr);
 				sprite_voice(s, "tap");
-				spark_burst(x, y - r, 2, s.col);
+				// the tap's own particles (his ask): the effect at the sprite, and
+				// motes flying to the bar it charged - the fill's leading edge
+				if (instance_exists(syst_tiles)) {
+					var _bx = room_width * clamp(g.tiles.fab / max(1, g.tiles.fab_t), 0, 1);
+					var _by = syst_tiles.bar_y + ((_job == "fab") ? 1 : 4);
+					bezier_bits(x, y - r, 3, s.col, _bx, _by, 0, 0, -1, 1, "tile", -545);
+					tapfx_fire(x, y - r, false, 1);
+				}
 				s.taps += 1;
 			}
 			// (the dials' and the autotapper's staff hop for show - their work is a rate)
@@ -96,5 +105,21 @@ else {
 var _b = __bounds();
 x = clamp(x, _b.x1, _b.x2);
 y = clamp(y, _b.y1, _b.y2);
+// OFF THE TABLE (his ask): a body that finds itself on the board - it
+// arrived there from the money room's seat, or the board grew under it
+// - is walked straight off to the nearest edge, and its wander target
+// re-rolled off it too
+if (tile_room && instance_exists(syst_tiles)) {
+	var _rows = ceil(g.tiles.slots / g.tiles.cols);
+	var _kx1 = syst_tiles.bx - 10, _ky1 = syst_tiles.by - 10;
+	var _kx2 = syst_tiles.bx + g.tiles.cols * syst_tiles.pw + 6, _ky2 = syst_tiles.by + _rows * syst_tiles.ph + 6;
+	if (point_in_rectangle(x, y, _kx1, _ky1, _kx2, _ky2)) {
+		var _dl = x - _kx1, _dr = _kx2 - x, _dt = y - _ky1, _db = _ky2 - y;
+		var _m = min(_dl, _dr, _dt, _db);
+		var _spd = 1.2 * delta;
+		if (_m == _dl) x -= _spd; else if (_m == _dr) x += _spd; else if (_m == _dt) y -= _spd; else y += _spd;
+		if (point_in_rectangle(tx, ty, _kx1, _ky1, _kx2, _ky2)) __wander_to();
+	}
+}
 s.fx = x / room_width;
 s.fy = y / room_height;

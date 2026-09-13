@@ -10,6 +10,25 @@
 /// Only what an absence or the clock earns lives here.
 function unfold_config() {
 	static _c = [
+		// THE SAFETY NET (his report, 2026-09-13: "the credit core disappeared"
+		// - a chain stalled on an earlier objective never reached it). Every
+		// feature the objectives grant ALSO arrives by the game's own
+		// numbers, whichever comes first (unfold_grant is idempotent): the
+		// chain teaches, it does not gate
+		{ key : "dials", banner : "something on the right",
+		  need : function() { return variable_global_exists("dial") && (g.profit >= arb(100) || g.dial[0].level > 0); } },
+		{ key : "statistics", banner : "",
+		  need : function() { return unfold_has("dials"); } },
+		{ key : "upgrades", banner : "a credit - the menu has a use for it",
+		  need : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(1); } },
+		{ key : "automation", banner : "new: automation",
+		  need : function() { return variable_global_exists("dial") && g.dial_total > 2 && g.dial[2].level > 0; } },
+		{ key : "tiles", banner : "new: tiles",
+		  need : function() { return variable_global_exists("dial") && ((g.dial_total > 3 && g.dial[3].level > 0) || g.profit >= arb(100000)); } },
+		{ key : "abilities", banner : "new: abilities",
+		  need : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(10); } },
+		{ key : "ccore", banner : "new: the credit core",
+		  need : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(15); } },
 		// the battery and the offline log, after the first real absence -
 		// once there are dials for it to have run
 		{ key : "battery", banner : "the battery ran while you were away",

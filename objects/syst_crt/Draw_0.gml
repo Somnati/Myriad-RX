@@ -12,6 +12,7 @@ if (_aw < 2 || _ah < 2) exit;
 if (!surface_exists(scratch) || surface_get_width(scratch) != _aw
 || surface_get_height(scratch) != _ah) {
 	if (surface_exists(scratch)) surface_free(scratch);
+	show("[surface] crt scratch rebuilt at " + string(current_time));   // (the flicker hunt, 2026-09-13)
 	scratch = surface_create(_aw, _ah);
 }
 if (!surface_exists(scratch)) exit;

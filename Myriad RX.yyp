@@ -548,6 +548,7 @@
     {"id":{"name":"show","path":"scripts/show/show.yy",},},
     {"id":{"name":"spark_burst","path":"scripts/spark_burst/spark_burst.yy",},},
     {"id":{"name":"spend_profit","path":"scripts/spend_profit/spend_profit.yy",},},
+    {"id":{"name":"sprite_fab_frac","path":"scripts/sprite_fab_frac/sprite_fab_frac.yy",},},
     {"id":{"name":"sprite_looks","path":"scripts/sprite_looks/sprite_looks.yy",},},
     {"id":{"name":"sprite_lore","path":"scripts/sprite_lore/sprite_lore.yy",},},
     {"id":{"name":"sprite_personalities","path":"scripts/sprite_personalities/sprite_personalities.yy",},},
