@@ -20,3 +20,4 @@ Desktop.ini
 
 # a GitHub Desktop clone that landed inside the project (2026-09-11) - not part of it
 /Myriad RX/
+__pycache__/

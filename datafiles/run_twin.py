@@ -128,7 +128,11 @@ opened = sum(1 for u in rx["unlocked"] if u is not None)
 # bare curve's own bars are modest: the opening must move, and RX must
 # not be slower than DE's bare ladder
 say(rx["unlocked"][2] is not None and rx["unlocked"][2] < 2 * 3600, "dial c inside two hours on the bare curve", hms(rx["unlocked"][2] or 0))
-say(rx["unlocked"][3] is not None and rx["unlocked"][3] < 48 * 3600, "dial d inside two days on the bare curve", hms(rx["unlocked"][3] or 0))
+# (three days, not two, since 2026-09-13: the opening prices are ROUND
+# now - DE's level-0 law, b 1000 / c 100k / d 100m - and on the bare
+# curve d slid from 1d16h to 2d19h. With the game's multipliers it is
+# hours; the bar only guards against a wall)
+say(rx["unlocked"][3] is not None and rx["unlocked"][3] < 72 * 3600, "dial d inside three days on the bare curve", hms(rx["unlocked"][3] or 0))
 say(opened >= sum(1 for u in de["unlocked"] if u is not None), "RX's bare curve opens at least as many dials as DE's did", "%d vs %d" % (opened, sum(1 for u in de["unlocked"] if u is not None)))
 
 # --- 2. THE RUNGS ---------------------------------------------------

@@ -124,8 +124,16 @@ def cost(tier, frm, to, raw=False):
     pa = 10 ** pp if frm <= 0 else 10 ** pp + 10 ** a
     pb = 10 ** pp + 10 ** b
     c = max(1, math.ceil(pb) - math.ceil(pa))
-    if frm <= 0 and tier == 0:
-        c = 100
+    if frm <= 0:
+        # THE OPENING PRICE IS ROUND (DE's level-0 rule, ported 2026-09-13):
+        # dial a 100; every other dial the next power of ten above its
+        # computed first level. A bulk from zero = that + the series from 1
+        if tier == 0:
+            opn = 100
+        else:
+            raw1 = max(1, math.ceil(10 ** pp + 10 ** (base + gth * (1 + lvd))) - math.ceil(pa))
+            opn = 10 ** (math.floor(math.log10(raw1) + 1e-9) + 1)
+        return opn + (cost(tier, 1, to, raw) if to > 1 else 0)
     if not raw and MILESTONE_COST_MULT > 1:
         for lv, _kind, _mult in MILESTONES:
             if frm < lv <= to:

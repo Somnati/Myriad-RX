@@ -8,7 +8,12 @@
 /// PRICE CLIMBS FASTER THAN OUTPUT (.05 vs dial_gps' .0255 per level)
 /// BY DESIGN: levelling one dial always decays, and the way forward is
 /// the next dial up the tier ladder. Never "fix" this asymmetry.
-/// Dial a's very first level is the fixed opening price of 100.
+/// THE OPENING PRICE IS ROUND (DE's get_cost_v3 at level 0: ceil(arb)+.1,
+/// which in DE's packing is the NEXT POWER OF TEN above the computed
+/// first level - his memory, 2026-09-13: "dials in DE all had rounded
+/// costs"): dial a is the fixed 100, b opens at 1000, c at 100k, d at
+/// 100m, e at 1t... A bulk quote from zero is that round opening plus
+/// the ordinary series from level 1, so singles still telescope.
 /// THE MILESTONE PREMIUM (his spec, 2026-09-02 - DE never managed it,
 /// its milestone levels sold at vanilla price): every rung inside the
 /// range adds (g.milestone_cost_mult - 1) x that level's own price,
@@ -50,9 +55,24 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 
 	var _cost = (_cb > _ca) ? do_subtract(_cb, _ca) : arb(1);
 
-	// the opening price: dial a's first level is always 100 (DE's own
-	// special case - the bootstrap the first taps are paying toward)
-	if (_from <= 0 && _tier == 0) _cost = arb(100);
+	// ---- THE OPENING PRICE (from zero): round, DE's law ----
+	if (_from <= 0) {
+		var _open = arb(100);   // dial a: the bootstrap the first taps pay toward
+		if (_tier > 0) {
+			// the computed first level alone, then the next power of ten
+			var _b1   = _base + _gth * (1 + _lvdiv);
+			var _raw1 = do_subtract(do_ceil(do_add(_pt, log_to_arb(_b1))), _ca);
+			_open = log_to_arb(floor(arb_log10(_raw1) + 1e-9) + 1);
+		}
+		if (!_raw) {
+			var _ub0 = upgrade_bonus_live();
+			if (_ub0.dial_cost > 0) _open = do_scale(_open, 1 - _ub0.dial_cost / 100);
+		}
+		_open = do_ceil(_open);
+		if (_to <= 1) return _open;
+		var _rest = dial_cost(_tier, 1, _to, _raw);   // levels 2.._to: the ordinary series (premium + discount inside)
+		return (_rest >= arb(1)) ? do_add(_open, _rest) : _open;
+	}
 
 	// the milestone premium, rung by rung inside (from, to]
 	if (!_raw && variable_global_exists("milestones") && g.milestone_cost_mult > 1) {
