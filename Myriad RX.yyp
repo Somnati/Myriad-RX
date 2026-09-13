@@ -713,6 +713,7 @@
     {"id":{"name":"spr_button","path":"sprites/spr_button/spr_button.yy",},},
     {"id":{"name":"spr_buylv","path":"sprites/spr_buylv/spr_buylv.yy",},},
     {"id":{"name":"spr_card_hitbox","path":"sprites/spr_card_hitbox/spr_card_hitbox.yy",},},
+    {"id":{"name":"spr_check","path":"sprites/spr_check/spr_check.yy",},},
     {"id":{"name":"spr_coin_gold","path":"sprites/spr_coin_gold/spr_coin_gold.yy",},},
     {"id":{"name":"spr_coin_silver","path":"sprites/spr_coin_silver/spr_coin_silver.yy",},},
     {"id":{"name":"spr_coin","path":"sprites/spr_coin/spr_coin.yy",},},
