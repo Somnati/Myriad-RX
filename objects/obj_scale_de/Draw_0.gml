@@ -32,7 +32,8 @@ repeat (segments) {
 			draw_set_halign(fa_center);
 			ts = lerp(.6, 1.1, x_ / sprite_width);   // DE: rm_standard's taper
 			ys = lerp(2, -2, x_ / sprite_width);
-			draw_text_transformed(x + x_, y - 9 + ys, crunch_arb(xx + .1), ts, ts, 0);
+			// the exponent alone (his call: DE read "e20", never "1.00 xx")
+			draw_text_transformed(x + x_, y - 9 + ys, "e" + string(xx), ts, ts, 0);
 		}
 	}
 	xx += segment_scale;
@@ -64,7 +65,7 @@ if (instance_exists(syst_rebirth) && syst_rebirth.open) {
 	draw_text(5, y + sprite_height + 4, "U X" + string(lv));
 	draw_set_color(cnext);
 	draw_set_halign(fa_right);
-	draw_text(room_width - 4, y + sprite_height + 4, "X10 at " + crunch_arb(maxxp + .1));
+	draw_text(room_width - 4, y + sprite_height + 4, "X10 at e" + string(maxxp));
 }
 // the comparison tag (goes with the loser)
 if (SCALE_COMPARE) {

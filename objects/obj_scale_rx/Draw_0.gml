@@ -40,7 +40,7 @@ for (var xx = floor(lo); xx <= ceil(hi); xx++) {
 		draw_set_alpha(_a);
 		if (_ms) { draw_set_font(fnt_outline); draw_set_color(cnext); }
 		else     { draw_set_font(fnt);         draw_set_color(c_white); }
-		draw_text(_ix, by - 9 + _ys, crunch_arb(xx + .1));
+		draw_text(_ix, by - 9 + _ys, "e" + string(xx));   // the exponent alone (his call)
 	}
 }
 draw_set_alpha(1);
