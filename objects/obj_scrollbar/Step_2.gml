@@ -25,3 +25,7 @@ kill;
 if i = scrl_faq
 	if not instance_exists(syst_faq)
 kill;
+
+if i = scrl_offlog
+	if not instance_exists(syst_offlog)
+kill;

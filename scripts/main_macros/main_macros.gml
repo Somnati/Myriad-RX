@@ -126,6 +126,7 @@ function main_macros() {
 #macro scrl_menu2 9   // the hamburger drawer. PIXEL mode (slot_height 1)
 #macro scrl_stats_rail 10   // statistics' TAB RAIL, pixel mode (his ask: the house bar, left of the tabs)
 #macro scrl_faq 11          // the faq's cards, pixel mode
+#macro scrl_offlog 12       // the offline log's runs, pixel mode
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 
@@ -318,6 +319,9 @@ function main_macros() {
 #macro SPRITE_STAFF   .05  // a sprite on a machine adds this x (1 + rarity rung) to its rate - sprite_staff
 #macro SPRITE_RAR_PACE  .12 // pace x (1 + this x rarity): an ultimate is
                             // x1.84 an equal common
+
+// ---- THE OFFLINE LOG (his ask, 2026-09-12: Techdemo II's, grown up) ----
+#macro OFFLOG_KEEP      8  // replays the session's log remembers (newest first)
 
 // ---- THE BATTERY (the OFFLINE budget, his design 2026-09-11) ----
 // Read battery_init. Charge is seconds of absence the machines can run;

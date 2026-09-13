@@ -20,5 +20,6 @@ function ui_overlay_close() {
 	if (instance_exists(syst_tiles))            { tiles_close();      return; }
 	if (instance_exists(syst_ccore_panel))      { ccore_close();      return; }
 	if (instance_exists(syst_exped_panel))      { exped_close();      return; }
+	if (instance_exists(syst_offlog))           { offlog_close();     return; }
 	if (instance_exists(syst_rebirth) && syst_rebirth.open) { syst_rebirth.open = false; return; }
 }

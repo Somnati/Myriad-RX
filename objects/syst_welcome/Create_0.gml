@@ -10,6 +10,7 @@
 depth = -510;
 oa      = 0;
 closing = false;
+to_log  = false;   // the [log] chip: close, then open the offline log (one overlay at a time)
 
 hh = instance_exists(obj_ui_header) ? obj_ui_header.bar_h : 16;
 
@@ -49,3 +50,6 @@ cw = min(room_width - 16, 220);
 ch = 30 + array_length(rows) * row_p + 26;
 cx = (room_width - cw) * .5;
 cy = max(hh + 8, (room_height - ch) * .5);
+// [log]: the chip in the card's top-right corner - the whole story of
+// this absence (and the last few) lives in the offline log
+__log_r = function() { return { x : cx + cw - 34, y : cy + 3, w : 30, h : 12 }; };

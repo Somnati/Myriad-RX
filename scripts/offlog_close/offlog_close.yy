@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"offlog_close",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"offlog_close",
+  "parent":{
+    "name":"offline",
+    "path":"folders/game/offline.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

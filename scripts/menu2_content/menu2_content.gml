@@ -37,5 +37,6 @@ function menu2_content() {
 	menu2_button("saves",        rm_saves,         c_pink);
 	menu2_button("mandelbrot",   rm_mandel,        c_lavender);
 	menu2_button("faq",          function() { faq_open(); }, c_gold);
+	menu2_button("offline log",  function() { offlog_open(); }, c_sgreen);   // every absence's story (2026-09-12)
 	menu2_button("expeditions",  function() { exped_open(); }, c_steelblue);   // the mock (2026-09-12)
 }

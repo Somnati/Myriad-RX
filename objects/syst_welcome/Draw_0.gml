@@ -15,6 +15,14 @@ draw_set_halign(fa_center);
 draw_set_color(c_gold);
 draw_set_alpha(.95);
 draw_text(cx + cw * .5, cy + 6, "welcome back");
+// the [log] chip, top-right (settings' chip language)
+var _lr = __log_r();
+draw_set_alpha(1);
+draw_sprite_ext(spr_pixel_1x1, 0, _lr.x, _lr.y, _lr.w, _lr.h, 0, c_black, .8);
+draw_px_rect(_lr.x, _lr.y, _lr.w, _lr.h, c_sgreen, .6);
+draw_set_color(c_sgreen);
+draw_set_alpha(.9);
+draw_text(_lr.x + _lr.w * .5, _lr.y + 3, "log");
 draw_sprite_ext(spr_pixel_1x1, 0, cx + 8, cy + 18, cw - 16, 1, 0, sett_ink, .25);
 // the rows
 for (var _i = 0; _i < array_length(rows); _i++) {
