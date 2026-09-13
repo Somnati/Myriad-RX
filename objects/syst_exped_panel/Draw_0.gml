@@ -207,13 +207,29 @@ if (view == "trip") {
 		if (!_done) draw_px_rect(_px - 2, _sy + 9, 4, 4, _kc, .5);
 	}
 
-	// THE COMBAT WINDOW, while a fight is on: a square at the column's
-	// foot - the foe top right, the crew bottom left, hp bars, a flash
-	// on whoever was just hit, the last line of the fight beside it
-	var _fighting = !is_undefined(_tr.fight);
-	var _fy = room_height - 8 - fight_s - (land ? 0 : 0);
+	// THE COMBAT WINDOW, while a fight is on - or while a fight that
+	// ended off screen REPLAYS from its film (rp): a square at the
+	// column's foot - the foe top right, the crew bottom left, hp bars,
+	// a flash on whoever was just hit, the line beside it
+	var _fighting = !is_undefined(_tr.fight) || !is_undefined(rp);
+	var _fy = room_height - 8 - fight_s;
 	if (_fighting) {
 		var _f = _tr.fight;
+		if (is_undefined(_f)) {
+			// the film's frame as a fight: hp from the event, the flash on
+			// its target, the party's shape from the record
+			var _fr = rp.r.ev[rp.i];
+			var _pp = [];
+			for (var _q = 0; _q < array_length(rp.r.party); _q++) {
+				var _pm = rp.r.party[_q];
+				array_push(_pp, { name : _pm.name, col : _pm.col, hpmax : _pm.hpmax,
+				                  hp : (_q < array_length(_fr.php)) ? _fr.php[_q] : _pm.hp });
+			}
+			_f = { party : _pp, b : { name : rp.r.foe.name, hp : _fr.fhp, hpmax : rp.r.foe.hpmax, hit : 0, dmg : 0 },
+			       turn : rp.i + 1, over : (rp.i >= array_length(rp.r.ev) - 1), won : rp.r.won,
+			       log : [ _fr.txt ], last : (_fr.dmg > 0) ? { side : _fr.side, i : _fr.i, dmg : _fr.dmg, at : current_time - rp.t * 1000 } : undefined,
+			       replay : true };
+		}
 		var _fx = _sx;
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx, _fy, fight_s, fight_s, 0, c_black, .85);
 		draw_px_rect(_fx, _fy, fight_s, fight_s, c_hred, .5 + .3 * _br);
@@ -259,13 +275,22 @@ if (view == "trip") {
 		draw_text(_tx, _fy + 2, _f.b.name + "  " + string(_f.b.hp) + "/" + string(_f.b.hpmax));
 		draw_set_color(_dim);
 		draw_set_alpha(.7);
-		draw_text(_tx, _fy + 12, "turn " + string(_f.turn) + "  -  hit " + string(round(_f.b.hit)) + "%  dmg " + string_format(_f.b.dmg, 1, 1));
+		if (_f[$ "replay"] ?? false)
+			draw_text(_tx, _fy + 12, "replay  -  room " + string(rp.r.room + 1) + "  -  tap to skip");
+		else
+			draw_text(_tx, _fy + 12, "turn " + string(_f.turn) + "  -  hit " + string(round(_f.b.hit)) + "%  dmg " + string_format(_f.b.dmg, 1, 1));
 		var _fl = array_length(_f.log);
 		draw_set_color(c_white);
 		draw_set_alpha(.9);
 		draw_text_ext(_tx, _fy + 24, (_fl > 0) ? _f.log[_fl - 1] : "...", 9, _sw - fight_s - 8);
-		var _st = __step_r();
-		draw_ui_button(_st.x, _st.y, _st.w, _st.h, _f.over ? "done" : "step turn", c_hred, !_f.over, !_f.over);
+		if (!(_f[$ "replay"] ?? false)) {
+			var _st = __step_r();
+			draw_ui_button(_st.x, _st.y, _st.w, _st.h, _f.over ? "done" : "step turn", c_hred, !_f.over, !_f.over);
+		} else if (_f.over) {
+			draw_set_color(_f.won ? c_sgreen : c_hred);
+			draw_set_alpha(.9);
+			draw_text(_tx, _fy + fight_s - 12, _f.won ? "won" : "routed");
+		}
 	}
 
 	// THE DIARY: truth lines plain, the "~ " lines (exped_say) as the

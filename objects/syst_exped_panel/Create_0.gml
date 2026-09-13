@@ -27,6 +27,8 @@ dim  = rgb(120, 130, 150);
 
 view    = "hub";     // hub / trip / haul
 view_id = -1;        // the trip's or haul's id
+rp      = undefined; // the combat window's REPLAY of a fight that ended off screen: { i, t, r : the film }
+seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sel_dest = -1;       // the world picked
 sel_crew = [];       // sprite ids picked for the party, in order
 swap_pick = false;   // the recruit moment's roster list is up

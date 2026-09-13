@@ -40,6 +40,7 @@ function exped_fight_new(_tr) {
 		      dmg : .5 + .5 * _d.tier,        // a real: paid by the coin (exped_fight_turn)
 		      swings : .6 * (_up - 1) },       // extra swings a turn against a crew, by the coin
 		turn : 0, over : false, won : false, log : [],
+		ev : [],            // every swing: { side, i, dmg, thp, fhp, txt } - the replay's film (80 kept)
 		t : 0,              // the clock toward the next turn (EXPED_FIGHT_T)
 		last : undefined,   // { side : "a" (a member, k) / "b" (the foe), dmg, at : current_time } - the window's flash
 	};

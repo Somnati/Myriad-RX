@@ -13,6 +13,32 @@ if (view == "trip") {
 		if (_pn.row < _pn.th) planet_gen_step(_pn);
 	}
 }
+// THE REPLAY: a trip page with an unseen film (and no live fight)
+// plays it in the combat window, a swing every half second; the last
+// frame holds a moment, then it is seen. A tap on the window skips it
+if (view == "trip") {
+	var _tvr = __trip();
+	if (!is_undefined(_tvr)) {
+		var _rr = _tvr[$ "replay"];
+		// a fight watched LIVE on this page is not replayed after
+		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr.room_i);
+		if (!is_undefined(_rr) && !_rr.seen && seen_live == string(_tvr.id) + ":" + string(_rr.room)) _rr.seen = true;
+		if (is_undefined(rp) && !is_undefined(_rr) && !_rr.seen && is_undefined(_tvr.fight) && array_length(_rr.ev) > 0)
+			rp = { i : 0, t : 0, r : _rr, id : _tvr.id };
+		if (!is_undefined(rp)) {
+			if (rp.id != _tvr.id || !is_undefined(_tvr.fight)) rp = undefined;
+			else {
+				rp.t += delta / 60;
+				var _step = (rp.i < array_length(rp.r.ev) - 1) ? .5 : 1.6;
+				if (rp.t >= _step) {
+					rp.t = 0;
+					if (rp.i < array_length(rp.r.ev) - 1) rp.i += 1;
+					else { rp.r.seen = true; rp = undefined; }
+				}
+			}
+		}
+	} else rp = undefined;
+} else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
 if (view == "trip" && is_undefined(__trip())) {
 	view = (__haul_i() >= 0) ? "haul" : "hub";
@@ -95,6 +121,15 @@ if (view == "haul") {
 // ======================= THE TRIP: a fight can be stepped by hand =======================
 if (view == "trip") {
 	var _tr = __trip();
+	// a tap on the replay's window skips the rest of it
+	if (!is_undefined(rp)) {
+		var _fy0 = room_height - 8 - fight_s;
+		if (point_in_rectangle(mouse_x, mouse_y, log_x, _fy0, log_x + log_w, _fy0 + fight_s)) {
+			rp.r.seen = true; rp = undefined;
+			play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+			exit;
+		}
+	}
 	if (!is_undefined(_tr) && !is_undefined(_tr.fight) && !_tr.fight.over) {
 		var _sr = __step_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) {

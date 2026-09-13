@@ -15,6 +15,11 @@ function exped_tick_one(_tr, _dt) {
 		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else _tr.routed = true;
 		array_push(_tr.log, _f.won ? "the way is clear" : (exped_crew_txt(_tr.names) + ((array_length(_tr.names) > 1) ? " limp home" : " limps home")));
 		exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
+		// THE FILM stays on the trip for the panel's replay - a fight that
+		// ended while you were elsewhere (or away) plays back when you
+		// open the page; the panel marks it seen. Not saved.
+		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foe : { name : _f.b.name, hpmax : _f.b.hpmax },
+		               won : _f.won, seen : false, room : _tr.room_i };
 		_tr.fight = undefined;
 		return false;
 	}
