@@ -95,34 +95,35 @@ __seats = function() {
 		if (_i > 0 && _title) break;                       // the title: the gear alone
 		if (_ic.key != "" && !unfold_has(_ic.key)) continue;
 		array_push(_out, { i : _i,
-			x : _land ? (_s.x - _n * DOCK_STEP) : _s.x,
-			y : _land ? _s.y : (_s.y - _n * DOCK_STEP) });
+			x : floor(_land ? (_s.x - _n * DOCK_STEP) : _s.x),
+			y : floor(_land ? _s.y : (_s.y - _n * DOCK_STEP)) });
 		_n += 1;
 	}
 	return _out;
 };
 
-/// @func __disc(x, y, r, col, fill, a, h)
-/// @desc a panel's disc, small: a dark interior, the colour's rim, the
-///       fill rising from the bottom (the core's and the battery's liquid)
-__disc = function(_x, _y, _r, _col, _fill, _a, _h) {
-	var _rr = _r + _h;   // a little bigger under the pointer, the gear's rule
-	_x = floor(_x); _y = floor(_y);   // the centre PIXEL - every glyph seats on it
-	for (var _dy = -_rr; _dy <= _rr; _dy++) {
-		var _hw = sqrt(max(0, sqr(_rr) - sqr(_dy)));
-		var _row = floor(_y + _dy);
-		var _lit = (_dy > _rr - 2 * _rr * clamp(_fill, 0, 1));   // below the fill line
-		draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - _hw), _row, max(1, round(_hw * 2)), 1, 0,
-			_lit ? merge_colour(_col, c_black, .3) : merge_colour(c_black, _col, .12), .95 * _a);
-	}
-	// the rim: a ring one px thick, the icon's own colour
-	for (var _dy = -_rr; _dy <= _rr; _dy++) {
-		var _hw = sqrt(max(0, sqr(_rr) - sqr(_dy)));
-		var _hw2 = sqrt(max(0, sqr(_rr - 1) - sqr(_dy)));
-		var _row = floor(_y + _dy);
-		var _w = max(1, round(_hw - _hw2));
-		draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - _hw), _row, _w, 1, 0, _col, .9 * _a);
-		draw_sprite_ext(spr_pixel_1x1, 0, floor(_x + _hw2), _row, _w, 1, 0, _col, .9 * _a);
+/// @func __disc(x, y, col, fill, a, h)
+/// @desc THE GROUND: spr_dock_disc - the gear's own disc, its cog filled in
+///       (his idea, 2026-09-13: the same background sprite the gear had) -
+///       then a wash of the door's colour inside the rim, then the fill
+///       rising from the bottom (the core's and the battery's liquid).
+///       The disc is 18 px on a 21 px sprite with the gear's origin at
+///       (10,10), so its centre is (x-.5, y-.5): every glyph in this file
+///       is seated on THAT point, which is what centres them
+__disc = function(_x, _y, _col, _fill, _a, _h) {
+	var _sc = 1 + .15 * _h;
+	draw_sprite_ext(spr_dock_disc, 0, _x, _y, _sc, _sc, 0, c_white, _a);
+	var _cx = _x - .5, _cy = _y - .5, _r = 8 + _h;
+	for (var _py = _y - 9; _py <= _y + 8; _py++) {
+		var _dy = (_py + .5) - _cy;
+		if (abs(_dy) >= _r) continue;
+		var _hw = sqrt(sqr(_r) - sqr(_dy));
+		var _x0 = round(_cx - _hw), _x1 = round(_cx + _hw);
+		if (_x1 <= _x0) continue;
+		// the wash, and the liquid where the fill has risen to
+		draw_sprite_ext(spr_pixel_1x1, 0, _x0, _py, _x1 - _x0, 1, 0, _col, .22 * _a);
+		if (_dy > _r - 2 * _r * clamp(_fill, 0, 1))
+			draw_sprite_ext(spr_pixel_1x1, 0, _x0, _py, _x1 - _x0, 1, 0, _col, .6 * _a);
 	}
 };
 
@@ -134,7 +135,7 @@ __label = function(_x, _y, _txt, _a) {
 	draw_set_valign(fa_top);
 	draw_set_color(c_white);
 	draw_set_alpha(.95 * _a);
-	draw_text(floor(_x) + 1, floor(_y) - 3, _txt);
+	draw_text(_x - .5, _y - 4, _txt);   // centred on the disc's centre point (x-.5); rows 6..12 of the sprite
 	draw_set_font(fnt);
 	draw_set_halign(fa_left);
 	draw_set_alpha(1);
@@ -143,6 +144,7 @@ __label = function(_x, _y, _txt, _a) {
 /// @func __glyph(i, x, y, a, h, hot)
 /// @desc one icon's face
 __glyph = function(_i, _x, _y, _a, _h, _hot) {
+	_x = floor(_x); _y = floor(_y);   // the seat is a pixel; the disc's centre is half a px up-left of it
 	var _tone = _hot ? c_white : rgb(190, 200, 225);   // the burger's two tones
 	switch (icons[_i].key) {
 		case "": {
@@ -158,14 +160,14 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			var _v = ccore_values();
 			var _live = (g.ccore.st == 1 || g.ccore.st == 2);
 			var _f = _live ? clamp(g.ccore.xp / max(1, _v.cap), 0, 1) : 0;
-			__disc(_x, _y, 10, _hot ? merge_colour(c_lavender, c_white, .3) : c_lavender, _f, _a, _h);
+			__disc(_x, _y, _hot ? merge_colour(c_lavender, c_white, .3) : c_lavender, _f, _a, _h);
 			__label(_x, _y, _live ? string(floor(g.ccore.xp)) : "-", _a);
 			break;
 		}
 		case "battery": {
 			// the cell: green, its fill the charge, the percentage inside
 			var _f = clamp(g.battery.charge / max(1, battery_cap()), 0, 1);
-			__disc(_x, _y, 10, _hot ? merge_colour(c_sgreen, c_white, .3) : c_sgreen, _f, _a, _h);
+			__disc(_x, _y, _hot ? merge_colour(c_sgreen, c_white, .3) : c_sgreen, _f, _a, _h);
 			var _pc = floor(_f * 100);
 			__label(_x, _y, (_pc >= 100) ? "100" : (string(_pc) + "%"), _a);   // ("100%" is a glyph too wide for the disc)
 			break;
@@ -174,11 +176,13 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// three bars rising (DE's icon) on a disc of the gear's tone - the
 			// same round ground as the core and the battery (his ask), which is
 			// also what keeps the hover glow centred on it
-			__disc(_x, _y, 10, _tone, 0, _a, _h);
+			__disc(_x, _y, _tone, 0, _a, _h);
+			// three bars, 4 wide with 2 between = 16 wide from x-8: centred on
+			// x-.5 exactly; the tallest spans y-5..y+5 about the disc's row
 			var _hs = [5, 8, 11];
 			for (var _k = 0; _k < 3; _k++) {
 				var _bh = _hs[_k] + _h;
-				draw_sprite_ext(spr_pixel_1x1, 0, floor(_x) - 7 + _k * 5, floor(_y) + 6 - _bh, 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
+				draw_sprite_ext(spr_pixel_1x1, 0, _x - 8 + _k * 6, _y + 6 - _bh, 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
 			}
 			break;
 		}
@@ -193,15 +197,17 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// is eleven wide with its origin at five, so its middle column lands
 			// on the disc's - the glow, the disc and the box share one centre
 			// (his report: the hover glow sat off the box)
-			__disc(_x, _y, 10, _wait ? _gc : _tone, 0, _a, _h);
+			__disc(_x, _y, _wait ? _gc : _tone, 0, _a, _h);
+			// the box is 11 wide with its origin at 5: drawn at (x-1, y-1) its
+			// columns are 4..14 of the sprite about the disc's centre (9.5)
 			var _sc = 1 + .15 * _h;
-			draw_sprite_ext(spr_gift_icon, 0, floor(_x), floor(_y), _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
+			draw_sprite_ext(spr_gift_icon, 0, _x - 1, _y - 1, _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
 			break;
 		}
 	}
 	// "NEW" - a gold dot at the icon's shoulder while its feature is fresh
 	if (icons[_i].key != "" && unfold_fresh(icons[_i].key)) {
 		var _ph = frac(current_time / 2000);
-		draw_sprite_ext(spr_pixel_1x1, 0, floor(_x + 7), floor(_y - 10), 3, 3, 0, c_gold, lerp(.3, 1, 1 - abs(_ph * 2 - 1)) * _a);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + 6, _y - 10, 3, 3, 0, c_gold, lerp(.3, 1, 1 - abs(_ph * 2 - 1)) * _a);
 	}
 };

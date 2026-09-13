@@ -778,6 +778,7 @@
     {"id":{"name":"spr_display_minimize","path":"sprites/spr_display_minimize/spr_display_minimize.yy",},},
     {"id":{"name":"spr_display_quit","path":"sprites/spr_display_quit/spr_display_quit.yy",},},
     {"id":{"name":"spr_display_units","path":"sprites/spr_display_units/spr_display_units.yy",},},
+    {"id":{"name":"spr_dock_disc","path":"sprites/spr_dock_disc/spr_dock_disc.yy",},},
     {"id":{"name":"spr_font_large_outline","path":"sprites/spr_font_large_outline/spr_font_large_outline.yy",},},
     {"id":{"name":"spr_font_large","path":"sprites/spr_font_large/spr_font_large.yy",},},
     {"id":{"name":"spr_font_larger","path":"sprites/spr_font_larger/spr_font_larger.yy",},},
