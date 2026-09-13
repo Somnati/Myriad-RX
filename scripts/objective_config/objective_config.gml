@@ -115,6 +115,16 @@ function objective_config() {
 			{ txt : "rebirth",
 			  done : function() { return variable_global_exists("rebirth") && g.rebirth.total > 0; } },
 		  ] },
+		// THE MILESTONE SCALE (2026-09-13): DE's ruler under the tap room -
+		// the chain teaches it rather than a floating notification. The first
+		// step is DE's own reveal point (eight orders short of 1e16)
+		{ key : "scale", name : "the milestone scale",
+		  steps : [
+			{ txt : "hold a hundred million profit", unlocks : ["scale"], banner : "new: the milestone scale",
+			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= arb(100000000) || g.rebirth.hi_ms > 0); } },
+			{ txt : "reach the first milestone - ten quadrillion profit",
+			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= log_to_arb(16) || g.rebirth.hi_ms > 0); } },
+		  ] },
 	];
 	return _c;
 }

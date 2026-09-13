@@ -30,6 +30,8 @@ function rebirth_do() {
 	g.rebirth.prev_units  = _r.units;
 	g.rebirth.prev_secs   = _r.run_s;
 	g.rebirth.prev_profit = (g.profit >= arb(1)) ? g.profit : 0;
+	if (g.rebirth.prev_profit > 0 && !(g.rebirth.best_profit >= g.rebirth.prev_profit))
+		g.rebirth.best_profit = g.rebirth.prev_profit;   // the record (the scale's dim pennant)
 	g.rebirth.units = (g.rebirth.units >= arb(1))
 		? do_add(g.rebirth.units, _r.units) : _r.units;
 	g.rebirth.total += 1;

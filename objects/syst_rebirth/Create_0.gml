@@ -38,6 +38,14 @@ closing = false;
 // (this object is placed only there). It has no banner to go back to
 // being, so once it has closed and faded it destroys itself.
 guest = !in_room(rm_clicker);
+
+// THE MILESTONE SCALES (2026-09-13): the ruler under the tap room - DE's
+// and the rebuilt one, both while he compares (SCALE_COMPARE); they live
+// with this object because it is the one thing placed only in rm_clicker
+if (!guest) {
+	if (SCALE_COMPARE && !instance_exists(obj_scale_de)) create_obj(0, 0, obj_scale_de);
+	if (!instance_exists(obj_scale_rx)) create_obj(0, 0, obj_scale_rx);
+}
 image_speed = 0;
 visible = false; // closed: draws nothing, families skip it
 

@@ -44,6 +44,12 @@ function unfold_config() {
 		// regardless (unfold_grant is idempotent: whichever comes first)
 		{ key : "rebirth", banner : "new: rebirth",
 		  need : function() { return variable_global_exists("rebirth") && (g.rebirth.total > 0 || rebirth_calc().gfrac >= 5 / 6); } },
+		// THE MILESTONE SCALE'S SAFETY NET (2026-09-13): the objective batch
+		// after rebirth grants it; a pile within eight orders of the first
+		// milestone (DE's uf_rebirthmilestone test: 1e8 toward 1e16) gets
+		// it regardless, as does any pile past a milestone
+		{ key : "scale", banner : "new: the milestone scale",
+		  need : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= arb(100000000) || g.rebirth.hi_ms > 0); } },
 		// the daily gift, a quarter hour in
 		{ key : "gift", banner : "a gift is waiting",
 		  need : function() { return variable_global_exists("time_played_active") && g.time_played_active >= 900; } },

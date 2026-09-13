@@ -20,5 +20,11 @@ function rebirth_init(_force = false) {
 		prev_units  : 0,
 		prev_secs   : 0,
 		prev_profit : 0,
+		// THE MILESTONE SCALE (2026-09-13): the highest rebirth milestone
+		// ever chimed (DE's g.highest_rebmil - the chime is once per rung,
+		// across runs) and the best pile ever held at a rebirth (the dim
+		// pennant; DE had only the run before)
+		hi_ms       : 0,
+		best_profit : 0,
 	};
 }

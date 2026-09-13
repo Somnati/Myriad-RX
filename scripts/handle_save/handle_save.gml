@@ -95,9 +95,16 @@ function handle_save(){
 	g.rebirth.prev_units  = handle("prev_units",  g.rebirth.prev_units);
 	g.rebirth.prev_secs   = handle("prev_secs",   g.rebirth.prev_secs);
 	g.rebirth.prev_profit = handle("prev_profit", g.rebirth.prev_profit);
+	g.rebirth.hi_ms       = handle("hi_ms",       g.rebirth.hi_ms);
+	g.rebirth.best_profit = handle("best_profit", g.rebirth.best_profit);
 	if (action == sv_load) {
 		g.rebirth.total = max(0, floor(g.rebirth.total));
 		if (!(g.rebirth.units >= arb(1))) g.rebirth.units = 0;
+		g.rebirth.hi_ms = max(0, floor(g.rebirth.hi_ms));
+		if (!(g.rebirth.best_profit >= arb(1))) g.rebirth.best_profit = 0;
+		// the best-run pennant heals from the run before (a pre-key save)
+		if (g.rebirth.prev_profit >= arb(1) && !(g.rebirth.best_profit >= g.rebirth.prev_profit))
+			g.rebirth.best_profit = g.rebirth.prev_profit;
 		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
 	}
 

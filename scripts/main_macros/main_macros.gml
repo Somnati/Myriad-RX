@@ -529,6 +529,11 @@ function main_macros() {
 // rounded slab DE drew every tile with - tinted, no accretion, no growth,
 // the material inside its outline. false = the accretion scheme
 #macro TILE_SPRITE       true
+// THE MILESTONE SCALES (2026-09-13, his ask: "build 2 so i can see mine
+// exactly as it is in game from DE and your version of it"): true draws
+// DE's obj_scale_de at its seat with the rebuilt obj_scale_rx above it,
+// each tagged; false leaves only the rebuilt one, at the floor
+#macro SCALE_COMPARE     true
 // THE MATERIALS (2026-09-13, his ask: shader surfaces, a pool per tier -
 // tile_mat_config / tile_skin_roll / sh_tile_mat). false = every tile flat
 #macro TILE_MATERIAL     true
