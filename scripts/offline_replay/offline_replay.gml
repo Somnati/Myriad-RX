@@ -41,6 +41,9 @@ function offline_replay(_secs, _src = "boot return") {
 	// running, so the two never overlap.
 	g.time_played_offline += _secs;
 	save_mark_dirty();
+	// A LONG ABSENCE leaves a scratch ticket on the desk (2026-09-13) - a
+	// real one, not the bench's simulated hours
+	if (_secs >= ticket_config().away_secs && string_copy(_src, 1, 3) != "sim") ticket_grant("away");
 
 	// THE TIME BANK, on top (the hybrid - see timebank_init). The
 	// absence is about to be replayed as production exactly as it always

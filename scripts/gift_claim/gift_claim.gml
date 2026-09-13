@@ -26,6 +26,8 @@ function gift_claim(_x, _y) {
 		credit_drop(_x, _y, _rw.amount, 8 + _rw.rar.mult);
 	}
 
+	// a scratch ticket rides every daily gift (2026-09-13)
+	ticket_grant("gift");
 	g.gift.last_day = gift_day();
 	g.gift.claims++;
 	g.gift.pos++;

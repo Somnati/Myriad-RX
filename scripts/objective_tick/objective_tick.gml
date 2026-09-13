@@ -52,5 +52,6 @@ function objective_tick() {
 		}
 	}
 	assign_banner("objective complete - " + _o.name, c_sgreen, c_black);
+	ticket_grant("objective");   // every batch leaves a scratch ticket on the desk (2026-09-13)
 	save_mark_dirty();
 }

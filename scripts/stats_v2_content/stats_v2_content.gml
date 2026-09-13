@@ -551,6 +551,18 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- scratch tickets (2026-09-13) ----
+	if (variable_global_exists("tickets") && unfold_has("tickets"))
+	if (stats_v2_folder("scratch tickets", c_gold)) {
+		var _tk = g.tickets;
+		stats_v2_line("on the desk", string(array_length(_tk.pile)));
+		stats_v2_line("scratched", string(_tk.scratched));
+		stats_v2_line("winners", string(_tk.won)
+			+ ((_tk.scratched > 0) ? " (" + string(round(100 * _tk.won / _tk.scratched)) + "%)" : ""));
+		if (_tk.best >= 0) stats_v2_line("best win", _tk.best_txt, -1, ticket_config().rars[_tk.best].col);
+	}
+	stats_v2_folder_end();
+
 	// ---- rebirth ----
 	if (variable_global_exists("rebirth"))
 	if (stats_v2_folder("rebirth", c_hred)) {

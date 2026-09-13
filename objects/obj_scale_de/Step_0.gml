@@ -36,6 +36,7 @@ __colors();
 tic -= delta;
 if (lv > g.rebirth.hi_ms) {
 	g.rebirth.hi_ms = lv;
+	ticket_grant("milestone");   // a milestone's ticket - never a common (2026-09-13)
 	if (tic <= 0) {
 		play_sound_ext(snd_milestone, .8, 1.2, .5, 2);
 		assign_banner("rebirth milestone achieved", cprev, c_black);

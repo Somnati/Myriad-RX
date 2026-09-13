@@ -45,6 +45,7 @@ guest = !in_room(rm_clicker);
 if (!guest) {
 	if (SCALE_COMPARE && !instance_exists(obj_scale_de)) create_obj(0, 0, obj_scale_de);
 	if (!instance_exists(obj_scale_rx)) create_obj(0, 0, obj_scale_rx);
+	if (!instance_exists(obj_tickets))  create_obj(0, 0, obj_tickets);   // the scratch tickets' pile
 }
 image_speed = 0;
 visible = false; // closed: draws nothing, families skip it

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ticket_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ticket_config",
+  "parent":{
+    "name":"tickets",
+    "path":"folders/game/tickets.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -652,6 +652,41 @@ function handle_save(){
 		g.gift.pos    = clamp(floor(g.gift.pos), 0, g.gift_cfg.days - 1);
 	}
 
+	// ---- scratch tickets (2026-09-13): the pile as "seed:rar:src|...",
+	// the lifetime counts. A ticket mid-scratch saves unscratched (the
+	// foil is session state) ----
+	section = "tickets";
+	ticket_init();
+	var _tp = "";
+	if (action == sv_save) {
+		for (var _i = 0; _i < array_length(g.tickets.pile); _i++) {
+			var _tk = g.tickets.pile[_i];
+			_tp += ((_i > 0) ? "|" : "") + string(_tk.seed) + ":" + string(_tk.rar) + ":" + _tk.src;
+		}
+	}
+	_tp = handle("pile", _tp);
+	g.tickets.scratched = handle("scratched", g.tickets.scratched);
+	g.tickets.won       = handle("won",       g.tickets.won);
+	g.tickets.best      = handle("best",      g.tickets.best);
+	g.tickets.best_txt  = handle("best_txt",  g.tickets.best_txt);
+	g.tickets.seq       = handle("seq",       g.tickets.seq);
+	if (action == sv_load) {
+		g.tickets.pile = [];
+		if (string(_tp) != "") {
+			var _tl = string_split(string(_tp), "|");
+			for (var _i = 0; _i < array_length(_tl); _i++) {
+				var _f = string_split(_tl[_i], ":");
+				if (array_length(_f) < 3) continue;
+				array_push(g.tickets.pile, { seed : floor(real(_f[0])), rar : clamp(floor(real(_f[1])), 0, 4),
+					src : _f[2], cells : undefined, cleared : 0 });
+			}
+		}
+		g.tickets.scratched = max(0, floor(g.tickets.scratched));
+		g.tickets.won       = clamp(floor(g.tickets.won), 0, g.tickets.scratched);
+		g.tickets.best      = clamp(floor(g.tickets.best), -1, 4);
+		g.tickets.seq       = max(0, floor(g.tickets.seq));
+	}
+
 	section = "upgrades";
 	upgrade_init();
 	g.upg.bought = handle("slots_bought", g.upg.bought);

@@ -31,6 +31,7 @@ function game_reset(_diff = 1) {
 	if (variable_global_exists("away"))  away_init(true);
 	autom_init(true);    // preferences: a new game forgets them, a
 	                     // rebirth does not
+	ticket_init(true);  // the scratch tickets: a new game clears the desk
 	gift_init(true);     // the login calendar starts over with a new game
 	battery_init(true);
 	ccore_init(true);
