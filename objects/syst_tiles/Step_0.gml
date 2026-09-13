@@ -1,4 +1,9 @@
 // ---- THE OPEN/CLOSE EASE (the overlay contract) ----
+// THE TILE TOWER rides the header menu up the left edge (his ask,
+// 2026-09-13; obj_tile_tower): made when the drawer comes out here,
+// landscape only; it leaves on its own when either goes
+if (room_width > 300 && instance_exists(syst_menu2) && !instance_exists(obj_tile_tower) && !closing)
+	create_obj(0, 0, obj_tile_tower);
 oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }   // the proxies die with their owner
