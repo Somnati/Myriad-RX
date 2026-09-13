@@ -129,6 +129,7 @@ function main_macros() {
 #macro scrl_offlog 12       // the offline log's runs, pixel mode
 #macro scrl_autom 13        // the automation panel's page, row mode (fractional rows - smooth)
 #macro scrl_objectives 14   // the objectives panel's cards, pixel mode
+#macro OBJ_GAP 5            // seconds between objective batches (his ask, 2026-09-13: room to breathe)
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 

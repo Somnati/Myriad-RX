@@ -54,9 +54,9 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 			}
 			case "step": {
 				var _bx = cx + 12, _by = _y + 1;
-				draw_px_rect(_bx, _by, 6, 6, c_gold, _r.done ? 1 : .55);
+				draw_px_rect(_bx, _by, 6, 6, _r.done ? c_sgreen : c_gold, _r.done ? 1 : .55);
 				if (_r.done) {
-					draw_sprite_ext(spr_pixel_1x1, 0, _bx + 1, _by + 1, 4, 4, 0, c_gold, .95);
+					draw_sprite_ext(spr_pixel_1x1, 0, _bx + 1, _by + 1, 4, 4, 0, c_sgreen, .95);
 					draw_sprite_ext(spr_pixel_1x1, 0, _bx + 1, _by + 3, 1, 1, 0, c_black, .9);
 					draw_sprite_ext(spr_pixel_1x1, 0, _bx + 2, _by + 4, 1, 1, 0, c_black, .9);
 					draw_sprite_ext(spr_pixel_1x1, 0, _bx + 3, _by + 3, 1, 1, 0, c_black, .9);

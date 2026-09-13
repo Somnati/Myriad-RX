@@ -724,6 +724,8 @@
     {"id":{"name":"snd_matclick","path":"sounds/snd_matclick/snd_matclick.yy",},},
     {"id":{"name":"snd_matclick2","path":"sounds/snd_matclick2/snd_matclick2.yy",},},
     {"id":{"name":"snd_merge","path":"sounds/snd_merge/snd_merge.yy",},},
+    {"id":{"name":"snd_obj_new","path":"sounds/snd_obj_new/snd_obj_new.yy",},},
+    {"id":{"name":"snd_obj_step","path":"sounds/snd_obj_step/snd_obj_step.yy",},},
     {"id":{"name":"snd_orb","path":"sounds/snd_orb/snd_orb.yy",},},
     {"id":{"name":"snd_pickupmod","path":"sounds/snd_pickupmod/snd_pickupmod.yy",},},
     {"id":{"name":"snd_pop","path":"sounds/snd_pop/snd_pop.yy",},},

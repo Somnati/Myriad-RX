@@ -5,9 +5,12 @@
 /// only in the money room, only once the veil has lifted, only while
 /// the chain has an objective left. The card is the CURRENT objective
 /// (objective_cur): its name, and its steps each behind a checkbox -
-/// ticked ones filled and dimmed, the rest waiting. A step ticking
-/// flashes its box; the last tick holds the card a moment in green
-/// ("complete") before the next objective slides in from the left.
+/// ticked ones filled green and dimmed, the rest waiting. Steps are
+/// LIVE: a tick flashes its box (his "future sound"); a step that
+/// stops holding empties again with a red flash (his ask). The last
+/// tick holds the card a moment in green ("complete"), the card goes
+/// away for THE BREATH (OBJ_GAP seconds, objective_tick), and the next
+/// objective slides in from the left with its notification sound.
 /// A tap on the card opens the panel (syst_objectives_panel) - the
 /// detailed list. Draw-only over g.obj; objective_tick is the runner.
 ///
@@ -25,7 +28,10 @@ slide = 1;      // the arrival, 0 -> 1 (from the left)
 okey   = "";     // the objective the card shows (held through the celebration)
 cel   = 0;      // seconds of celebration left after a completion
 se    = [];     // per-step ease toward ticked, 0..1
-sf    = [];     // per-step flash on the tick, 1 -> 0
+sf    = [];     // per-step flash on the tick (green), 1 -> 0
+sr    = [];     // per-step flash on a FALL-OFF (red), 1 -> 0
+st    = [];     // per-step truth last frame (a tick that happens vs one already there)
+heard = "";     // the objective the announcement sound has played for
 
 // ---- the seat: top left, under the per-tap readout and the credit
 // chip (both live at y 28..56); as wide as the room allows ----
