@@ -33,3 +33,7 @@ kill;
 if i = scrl_autom
 	if not instance_exists(syst_automation_panel)
 kill;
+
+if i = scrl_objectives
+	if not instance_exists(syst_objectives_panel)
+kill;

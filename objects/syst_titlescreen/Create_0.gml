@@ -28,6 +28,13 @@
 
 save_file = save_slot_path(0);
 has_save = file_exists(save_file);
+// ANY profile with a run (his ask, 2026-09-13: a fresh install skips the
+// profile picker - new game goes straight to the difficulty list)
+__any_save = function() {
+	for (var _p = 0; _p < 4; _p++) if (file_exists(save_slot_path(0, _p))) return true;
+	return false;
+};
+any_save = __any_save();
 
 // WHAT CONTINUE IS CONTINUING (2026-09-07, his ask). Boot already
 // loaded slot 0 behind rm_gameload, so this is only a peek for the
@@ -39,7 +46,10 @@ cont = save_slot_info(save_file);
 // ---- layout ----
 lm     = 30;      // the left margin everything hangs off
 rule_x = lm - 11; // the accent rule / hover bar column
-items  = ["continue", "new game", "load", "quit"];
+// CONTINUE ONLY WHEN THERE IS SOMETHING TO CONTINUE (his ask, 2026-09-13:
+// hidden, not greyed) - the list is rebuilt when a save appears or goes
+__items = function() { return has_save ? ["continue", "new game", "load", "quit"] : ["new game", "load", "quit"]; };
+items  = __items();
 row_y0 = 142;
 row_p  = 21;      // row pitch
 row_h  = 13;      // hit height

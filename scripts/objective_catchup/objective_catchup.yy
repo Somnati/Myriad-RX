@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"upgrade_any_owned",
+  "%Name":"objective_catchup",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"upgrade_any_owned",
+  "name":"objective_catchup",
   "parent":{
     "name":"unfold",
     "path":"folders/game/unfold.yy",

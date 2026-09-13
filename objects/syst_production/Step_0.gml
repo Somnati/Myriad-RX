@@ -19,7 +19,8 @@ prod_dials(_secs);
 credit_tick(_secs);   // the dropper's pool + cooldown, same clock
 ccore_tick(_secs);    // the credit core's well, same clock
 exped_tick(_secs);    // an expedition under way, same clock (its debug speed multiplies it)
-unfold_tick();        // what arrives next (once a second; the unfold)
+unfold_tick();        // what the clock and the absences unfold (once a second)
+objective_tick();     // the objective chain: steps, unlocks, rewards (every frame, cheap)
 
 // AUTOMATION runs on the REAL clock, not the accelerated one: a pulse a
 // second is a pacing decision, and speeding it up would only spend the

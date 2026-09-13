@@ -3,7 +3,7 @@
 /// camera's fake perspective). the shader is unchanged - it raycasts
 /// straight down, so the up face is the face you read.
 
-if (!unfold_has("dials")) exit;   // (the unfold: not yet arrived)
+if (!unfold_has("dice")) exit;   // (the unfold: not yet arrived)
 var _hh = max(0, pz - r); // height above resting
 var _gw = sprite_get_width(spr_vis_glow_soft);
 var _gh = sprite_get_height(spr_vis_glow_soft);

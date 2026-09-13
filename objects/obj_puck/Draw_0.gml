@@ -10,7 +10,7 @@
 /// spans were. A smooth 3D render dropped into a pixel game is the thing
 /// that would not have matched anything around it.
 
-if (!unfold_has("dials")) exit;   // (the unfold: not yet arrived)
+if (!unfold_has("puck")) exit;   // (the unfold: not yet arrived)
 var _cx = __cx();
 var _cy = __cy();
 // ⚖️ NOTHING HERE SNAPS TO A PIXEL (his ask, 2026-09-09: "no pixel

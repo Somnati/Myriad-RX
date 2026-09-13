@@ -20,6 +20,7 @@ function menu2_content() {
 
 	menu2_section("game");
 	menu2_button("clicker",      rm_clicker,       c_horange);
+	menu2_button("objectives",   function() { objectives_open(); }, c_gold);   // the chain, in full (his spec, 2026-09-13)
 	if (unfold_has("rebirth"))    menu2_button("rebirth" + _nw("rebirth"),      function() { rebirth_open(); }, c_hred); // myriad
 	if (unfold_has("upgrades"))   menu2_button("upgrades" + _nw("upgrades"),     function() { upgrades_open(); }, c_lavender); // myriad (an overlay, 2026-09-12)
 	if (unfold_has("tiles"))      menu2_button("tiles" + _nw("tiles"),        function() { tiles_open(); },     c_aqua);        // myriad (an overlay, 2026-09-12)

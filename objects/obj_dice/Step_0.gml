@@ -1,5 +1,6 @@
 
-if (!unfold_has("dials")) exit;   // (the unfold: not yet arrived)
+visible = unfold_has("dice");   // (the unfold: the first credit's reward; invisible = no draw, no scoop)
+if (!visible) exit;
 stic -= delta;
 lean -= delta;
 

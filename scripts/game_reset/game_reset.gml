@@ -59,6 +59,7 @@ function game_reset(_diff = 1) {
 	g.persona = [-1, -1, -1];
 	g.unfold  = 0;
 	unfold_init(true);   // and nothing has arrived yet (the unfold)
+	objective_init(true); // the chain starts at its first objective
 
 	// pinned statistics live on the save: fresh run, fresh pins
 	g.stats_fav = {};

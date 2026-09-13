@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"nudge_config",
+  "%Name":"objective_cur",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"nudge_config",
+  "name":"objective_cur",
   "parent":{
     "name":"unfold",
     "path":"folders/game/unfold.yy",

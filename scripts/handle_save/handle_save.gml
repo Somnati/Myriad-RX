@@ -543,6 +543,30 @@ function handle_save(){
 		if (_us == "" && variable_global_exists("dial") && g.dial[0].level > 0) unfold_reveal_all();
 	}
 
+	// ---- the objectives (his spec, 2026-09-13): where the chain stands ----
+	section = "objectives";
+	objective_init();
+	var _oi = handle("obj_i",     g.obj.i);
+	var _od = handle("obj_done",  string_join_ext("|", variable_struct_get_names(g.obj.done)));
+	var _of = handle("obj_flags", string_join_ext("|", variable_struct_get_names(g.obj.flags)));
+	var _oa = handle("obj_act",   string_join_ext("|", variable_struct_get_names(g.obj.act)));
+	if (action == sv_load) {
+		var _was_all = (_us == "" && variable_global_exists("dial") && g.dial[0].level > 0);   // reveal_all ran above
+		g.obj.i = max(0, floor(_oi)); g.obj.done = {}; g.obj.flags = {}; g.obj.act = {}; g.obj.just = "";
+		var _l1 = (_od != "") ? string_split(_od, "|") : [];
+		for (var _i = 0; _i < array_length(_l1); _i++) g.obj.done[$ _l1[_i]] = true;
+		var _l2 = (_of != "") ? string_split(_of, "|") : [];
+		for (var _i = 0; _i < array_length(_l2); _i++) g.obj.flags[$ _l2[_i]] = true;
+		var _l3 = (_oa != "") ? string_split(_oa, "|") : [];
+		for (var _i = 0; _i < array_length(_l3); _i++) g.obj.act[$ _l3[_i]] = true;
+		// a save that has played but never had objectives (no objective
+		// ever ACTIVATED - the first activates on the first tick after the
+		// veil - and a dial owned): catch up to where it stands - or, for
+		// a save from before the unfold itself, the whole chain is done
+		if (_oa == "" && _od == "" && variable_global_exists("dial") && g.dial[0].level > 0)
+			objective_catchup(_was_all);
+	}
+
 	section = "ccore";
 	ccore_init();
 	g.ccore.lv        = handle("cc_lv",    g.ccore.lv);

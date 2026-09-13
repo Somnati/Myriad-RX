@@ -89,6 +89,16 @@ if instance_exists(syst_offlog) {
 	depth = syst_offlog.depth - 1;
 }
 
+if i = scrl_objectives
+if instance_exists(syst_objectives_panel) {
+	// PIXEL MODE: the cards' stacked height against the band
+	mn = room_height - syst_objectives_panel.list_y - 4;
+	mx = syst_objectives_panel.__content_h();
+	input = syst_objectives_panel.scroll;
+	slot_height = 1;
+	depth = syst_objectives_panel.depth - 1;
+}
+
 if i = scrl_autom
 if instance_exists(syst_automation_panel) {
 	// ROW MODE, fractional: the page's rows against the rows that fit
@@ -169,6 +179,7 @@ if i = scrl_menu2 if instance_exists(syst_menu2) syst_menu2.scr = clamp_min(inpu
 if i = scrl_stats_rail if instance_exists(syst_statistics_v2) syst_statistics_v2.rail_scroll = clamp_min(input, 0);
 if i = scrl_faq if instance_exists(syst_faq) syst_faq.scroll = clamp_min(input, 0);
 if i = scrl_offlog if instance_exists(syst_offlog) syst_offlog.scroll = clamp_min(input, 0);
+if i = scrl_objectives if instance_exists(syst_objectives_panel) syst_objectives_panel.scroll = clamp_min(input, 0);
 if i = scrl_autom if instance_exists(syst_automation_panel) syst_automation_panel.scroll[syst_automation_panel.tab] = clamp_min(input, 0);
 //if in_room(rm_modules) global.module_page = clamp_min(input,0);
 /*

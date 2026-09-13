@@ -66,7 +66,9 @@ if (instance_exists(syst_dials))
 // edge while your cursor is halfway up the room, and every one of those
 // frames is a press landing on empty tap surface. Holding it is the
 // gesture; nothing inside it is also a tap.
-if (_ok && instance_exists(obj_puck) && obj_puck.held) _ok = false;
+if (_ok && instance_exists(obj_puck) && unfold_has("puck") && obj_puck.held) _ok = false;
+// the objective card's press is the card's (syst_objectives)
+if (_ok && instance_exists(syst_objectives) && syst_objectives.__consumes(mouse_x, mouse_y)) _ok = false;
 // the [fx] chip's press is the chip's (syst_tapfx)
 if (_ok && instance_exists(syst_tapfx) && syst_tapfx.__consumes(mouse_x, mouse_y)) _ok = false;
 // A SPRITE'S press is the sprite's (obj_blob): a poke, never a tap
@@ -84,7 +86,7 @@ if (_ok && instance_exists(obj_blob)) {
 // this asks the same question its own grab asks, off the same
 // mousex/mousey pair, so a press can never be both a scoop and a tap.
 // g.dice_scoop covers the rest of the drag, not just the first frame.
-if (_ok && instance_exists(obj_dice)) {
+if (_ok && instance_exists(obj_dice) && unfold_has("dice")) {   // (a die that has not unfolded is not on the table)
 	if (g.dice_scoop) _ok = false;
 	else {
 		var _die = instance_nearest(mousex, mousey, obj_dice);

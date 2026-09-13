@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"unfold_overlay_key",
+  "%Name":"objectives_close",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"unfold_overlay_key",
+  "name":"objectives_close",
   "parent":{
     "name":"unfold",
     "path":"folders/game/unfold.yy",

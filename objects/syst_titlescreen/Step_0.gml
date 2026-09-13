@@ -1,6 +1,8 @@
 
 tt += delta;
+var _had = has_save;
 has_save = file_exists(save_file); // load room can create/erase saves
+if (has_save != _had) { items = __items(); hov = array_create(array_length(items), 0); any_save = __any_save(); }
 
 // hover ease per row. One number drives the brighten, the slide and the
 // accent bar (see the Draw), so they cannot disagree about how hovered a
@@ -64,6 +66,9 @@ if (mouse_check_button_pressed(mb_left)) {
 			// in-memory reset is game_reset() (the old restart-free
 			// path leaked cores/batteries/machines/dims/tiles)
 			play_sound_ext(snd_matclick2, 1.1, 1.3, .6, 1);
+			// a fresh install has no profile to pick: straight to the
+			// difficulty list on the active (empty) profile
+			if (!any_save) { g.ng_prof = g.profile; goto_room(rm_newgame); break; }
 			g.saves_mode = "newgame";
 			goto_room(rm_saves);
 		}

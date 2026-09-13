@@ -38,6 +38,14 @@ function newgame_start(_prof, _diff, _persona) {
 	}
 	g.game_started = true;
 	g.room_hist = [];
-	play_sound_ext(snd_matclick2, 1.2, 1.3, .5, 1);
-	goto_room(rm_clicker);
+	// A RAW room_goto, NOT goto_room (his report, 2026-09-13: "the startup
+	// after the question still has a hiccup"): rm_newgame is already
+	// black and the money room opens veiled, so the slice wipe had
+	// nothing to cover - its slate accent lines were the one thing that
+	// showed, six hairlines flying across the dark. The house rule
+	// allows the raw call behind a black fade, and this is one. The
+	// click that used to play here is gone too: a click in the dark
+	// most of a second after the answer read as a stray. room_variant
+	// keeps the orientation seam goto_room would have applied.
+	room_goto(room_variant(rm_clicker));
 }

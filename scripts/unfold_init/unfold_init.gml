@@ -3,11 +3,13 @@
 /// The veil (syst_unfold, g.unfold) is the first fold: a black screen
 /// that says tap. Everything after it ARRIVES - the dial drawer, the
 /// menu's lines, the toys, the chip, the pile - each when the game
-/// says so (unfold_config), each with a banner and a nudge (syst_nudge).
+/// says so - the OBJECTIVES (objective_config) for the mechanics, the
+/// time-gated rows (unfold_config) for what an absence or the clock
+/// earns - each with a banner (unfold_grant).
 ///   seen    key -> true once a feature has unfolded (unfold_has)
-///   done    key -> true once a nudge's job is done (never again)
-///   opened  key -> true once a panel has been opened and closed (its
-///           first-open line shows until then)
+///   done / opened   the nudge era's (2026-09-13, gone the same day -
+///           the objectives replaced them); kept in the struct and the
+///           save so nothing reads a missing field
 ///   fresh   keys that unfolded and whose menu line has not been
 ///           visited yet (the burger's ring)
 /// Saved in section "unfold". A save from before the unfold (dial a

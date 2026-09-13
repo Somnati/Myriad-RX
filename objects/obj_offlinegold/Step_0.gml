@@ -2,7 +2,8 @@
 // out only while there is a pool to collect and nothing covers the
 // room. DE's list of things that push it back off screen, in RX's
 // names: an overlay, the rebirth screen, the menu, the dial drawer.
-if (!unfold_has("battery")) exit;   // (the unfold: not yet arrived)
+visible = unfold_has("battery");   // (the unfold: invisible = no draw, and syst_input never hands it a press)
+if (!visible) exit;
 var _has = (g.offline_pool >= arb(1));
 desx = x1;
 if (_has)

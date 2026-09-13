@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"unfold_first_line",
+  "%Name":"unfold_grant",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"unfold_first_line",
+  "name":"unfold_grant",
   "parent":{
     "name":"unfold",
     "path":"folders/game/unfold.yy",

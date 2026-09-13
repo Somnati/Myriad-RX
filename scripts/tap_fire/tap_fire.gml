@@ -61,7 +61,9 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	var _pay  = do_multi(g.click_gps, arb(_n));
 	var _crit = false;
 	var _cx   = 1;
-	if (_rate > 0 && roll_perc(_rate)) {
+	// ...once they have unfolded (his list, 2026-09-13: not on by default -
+	// the "level up your dial" objective's reward)
+	if (_rate > 0 && unfold_has("crit") && roll_perc(_rate)) {
 		_crit = true;
 		_cx   = random_range(g.click_critx_min, g.click_critx_max) + _ub.crit_multi;
 		_pay  = do_scale(_pay, _cx);

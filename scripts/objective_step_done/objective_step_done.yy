@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"objective_step_done",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"objective_step_done",
+  "parent":{
+    "name":"unfold",
+    "path":"folders/game/unfold.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

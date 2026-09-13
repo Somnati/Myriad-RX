@@ -128,6 +128,7 @@ function main_macros() {
 #macro scrl_faq 11          // the faq's cards, pixel mode
 #macro scrl_offlog 12       // the offline log's runs, pixel mode
 #macro scrl_autom 13        // the automation panel's page, row mode (fractional rows - smooth)
+#macro scrl_objectives 14   // the objectives panel's cards, pixel mode
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 

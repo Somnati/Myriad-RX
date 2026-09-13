@@ -1,0 +1,68 @@
+/// syst_objectives - THE OBJECTIVE CARD (his spec, 2026-09-13: "a list
+/// of objectives you have to complete 1 by 1 with some sort of text
+/// based popup active in the clicker room... docked somewhere in the
+/// top left"). Persistent, spawned by syst_handle_save's Create; draws
+/// only in the money room, only once the veil has lifted, only while
+/// the chain has an objective left. The card is the CURRENT objective
+/// (objective_cur): its name, and its steps each behind a checkbox -
+/// ticked ones filled and dimmed, the rest waiting. A step ticking
+/// flashes its box; the last tick holds the card a moment in green
+/// ("complete") before the next objective slides in from the left.
+/// A tap on the card opens the panel (syst_objectives_panel) - the
+/// detailed list. Draw-only over g.obj; objective_tick is the runner.
+///
+/// Depth -1100: over the drawer (-20) and the toys, under the veil
+/// (-1500) and the overlays' furniture. Hidden while an overlay or the
+/// menu is up (the panel IS the detailed version; a card under it
+/// would be the same words twice).
+
+if (instance_number(syst_objectives) > 1) { kill; exit; }
+depth = -1100;
+persistent = true;
+
+a     = 0;      // presence, eased
+slide = 1;      // the arrival, 0 -> 1 (from the left)
+okey   = "";     // the objective the card shows (held through the celebration)
+cel   = 0;      // seconds of celebration left after a completion
+se    = [];     // per-step ease toward ticked, 0..1
+sf    = [];     // per-step flash on the tick, 1 -> 0
+
+// ---- the seat: top left, under the per-tap readout and the credit
+// chip (both live at y 28..56); as wide as the room allows ----
+__cw = function() { return (room_width > 300) ? 172 : (room_width - 6); };
+__cx = function() { return 3; };
+__cy = function() { return 62 + (variable_global_exists("profit") ? ui_wordline_h() : 0); };
+
+/// @func __lines(o)
+/// @desc the card's rows for an objective: [{ txt, h, done, i }] - each
+///       step's text wrapped to the card, its height from the wrap
+__lines = function(_o) {
+	var _out = [];
+	if (is_undefined(_o)) return _out;
+	draw_set_font(fnt);
+	var _tw = __cw() - 24;
+	for (var _i = 0; _i < array_length(_o.steps); _i++) {
+		var _t = _o.steps[_i].txt;
+		array_push(_out, { txt : _t, h : string_height_ext(_t, 9, _tw) + 3, done : objective_step_done(_o, _i), i : _i });
+	}
+	return _out;
+};
+
+/// @func __rect()
+/// @desc the card's rectangle (the region law: the Step's hit and the
+///       Draw share it; obj_clicker asks __consumes off it)
+__rect = function() {
+	var _o = objective_by_key(okey);
+	var _ls = __lines(_o);
+	var _h = 16;
+	for (var _i = 0; _i < array_length(_ls); _i++) _h += _ls[_i].h;
+	return { x : __cx(), y : __cy(), w : __cw(), h : _h + 3 };
+};
+
+/// @func __consumes(mx, my)
+/// @desc a press on the card is the card's, never a paid tap
+__consumes = function(_mx, _my) {
+	if (a < .5 || okey == "") return false;
+	var _r = __rect();
+	return point_in_rectangle(_mx, _my, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h);
+};
