@@ -44,6 +44,7 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 		name : _names[_k], planet : _tr.dest.name,
 		foe : _ctx[$ "foe"] ?? "something", item : _ctx[$ "item"] ?? "something",
 		partner : (_pk >= 0) ? _names[_pk] : "the other one",
+		retired : (array_length(_e.retired) > 0) ? _e.retired[irandom(array_length(_e.retired) - 1)] : "someone",
 	};
 	// the memory gates
 	var _need_ok = function(_k, _c) {
@@ -55,6 +56,7 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 			case "routed_before": return _m.routs >= 1;
 			case "streak3":       return _m.streak >= 3;
 			case "wins3":         return _m.wins >= 3;
+			case "retired":       return array_length(g.exped.retired) > 0;
 		}
 		return false;
 	};
@@ -109,6 +111,7 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 	_txt = string_replace_all(_txt, "{foe}", _c.foe);
 	_txt = string_replace_all(_txt, "{item}", _c.item);
 	_txt = string_replace_all(_txt, "{partner}", _c.partner);
+	_txt = string_replace_all(_txt, "{retired}", _c.retired);
 	array_push(_tr.log, "~ " + _txt);
 	return _txt;
 }

@@ -23,7 +23,8 @@
 ///           than a list of jokes: a line in room 2 that room 4 answers
 ///   need    a MEMORY gate (exped_say): "first" (the sprite's first trip),
 ///           "third" (third or later), "revisit" (this planet again),
-///           "routed_before", "streak3" (three trips unrouted), "wins3"
+///           "routed_before", "streak3" (three trips unrouted), "wins3",
+///           "retired" (someone has been swapped out - {retired} names them)
 ///   w       weight (default 1) - the specific beats the generic
 ///
 /// ⚖️ ORIGINAL LINES, in a register he liked from elsewhere. Add, cut,
@@ -64,6 +65,10 @@ function exped_lines() {
 		{ b : "travel", t : "the view is stars. it has been stars for hours. {name} has requested different stars.", pers : "grumpy" },
 		{ b : "travel", t : "{name} spotted {planet} first. there was no one else to spot it. still counts.", pers : "smug" },
 		{ b : "travel", t : "{name} has been talking to the snacks. the snacks are good listeners and getting fewer.", pers : "cheerful" },
+		{ b : "travel", t : "{name} thought about {retired} today. {retired} would have hated this. {name} is hating it for both of them.", need : "retired", w : 2 },
+		{ b : "rest", t : "a quiet room. {name} found a mark on the wall that looked like {retired}'s handwriting. it was a crack. {name} sat with it a while anyway.", need : "retired", w : 2 },
+		{ b : "land", t : "{retired} always said {name} would end up somewhere like {planet}. {retired} meant it as a warning.", need : "retired", w : 2 },
+		{ b : "home", t : "home. someone had used {retired}'s old spot. {name} has moved them, gently, and said nothing.", need : "retired", w : 2 },
 		{ b : "land", t : "landed. the ground is here, as advertised." },
 		{ b : "land", t : "{name} stepped out, breathed in, and coughed for a bit. the air is real, then." },
 		{ b : "land", t : "first footprint on {planet}. {name} went back and made it deeper so it would last." },
