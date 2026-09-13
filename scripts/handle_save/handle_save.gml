@@ -487,10 +487,26 @@ function handle_save(){
 		_xm += ((_i > 0) ? "|" : "") + _xk[_i] + "=" + string(g.exped.mats[$ _xk[_i]]);
 	_xm = handle("ex_mats", _xm);
 	var _xt = handle("ex_trip", exped_pack());
+	// the bonds (exped_bond): "lo:hi=n|..." - forty-five pairs at most
+	var _xb = "";
+	var _bk = variable_struct_get_names(g.bonds);
+	for (var _i = 0; _i < array_length(_bk); _i++)
+		_xb += ((_i > 0) ? "|" : "") + _bk[_i] + "=" + string(g.bonds[$ _bk[_i]]);
+	_xb = handle("ex_bonds", _xb);
+	var _xr = handle("ex_retired", string_join_ext("|", g.exped.retired));
 	if (action == sv_load) {
 		g.exped.depth  = clamp(floor(g.exped.depth), 1, 8);
 		g.exped.charms = max(0, floor(g.exped.charms));
 		g.exped.seq    = max(0, floor(g.exped.seq));
+		g.bonds = {};
+		if (_xb != "") {
+			var _bl = string_split(_xb, "|");
+			for (var _i = 0; _i < array_length(_bl); _i++) {
+				var _kv = string_split(_bl[_i], "=");
+				if (array_length(_kv) == 2) g.bonds[$ _kv[0]] = clamp(real(_kv[1]), 0, 100);
+			}
+		}
+		g.exped.retired = (_xr != "") ? string_split(_xr, "|") : [];
 		g.exped.mats = {};
 		if (_xm != "") {
 			var _xl = string_split(_xm, "|");

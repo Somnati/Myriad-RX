@@ -209,18 +209,17 @@ __rows = function() {
 
 		// ---- the expedition ----
 		var _x = _e[$ "exped"];
-		if (!is_undefined(_x) && (_x.before.on || _x.after.on)) {
-			_push(_out, "sec", RH_SEC, { txt : "expedition", col : c_steelblue });
-			var _a = _x.after;
-			if (_a.home) _push(_out, "row", RH_ROW, { l : _a.name, v : _a.routed ? "limped home - a haul waits" : "home - a haul waits", col : _a.routed ? c_horange : c_steelblue });
-			else if (_a.on) _push(_out, "row", RH_ROW, { l : _a.name, v : (_a.stage == 0) ? "still travelling" : ((_a.stage == 1) ? ("still out, room " + string(_a.room + 1)) : "heading home"), col : c_steelblue });
-			var _nl = min(array_length(_a.lines), _dbg ? 99 : 3);
-			for (var _k = 0; _k < _nl; _k++) _push(_out, "sub", RH_SUB, { l : "", v : _a.lines[_k], col : sett_ink });
-			if (_dbg) {
-				var _bf = _x.before;
-				_push(_out, "sub", RH_SUB, { l : "stage / room / hp before", v : string(_bf.stage) + " / " + string(_bf.room) + " / " + string(_bf.hp), col : dim });
-				_push(_out, "sub", RH_SUB, { l : "stage / room / hp after", v : string(_a.stage) + " / " + string(_a.room) + " / " + string(_a.hp), col : dim });
+		if (!is_undefined(_x) && is_struct(_x.after) && variable_struct_exists(_x.after, "trips") && array_length(_x.after.trips) > 0) {
+			_push(_out, "sec", RH_SEC, { txt : (array_length(_x.after.trips) == 1) ? "expedition" : "expeditions", col : c_steelblue });
+			for (var _ti = 0; _ti < array_length(_x.after.trips); _ti++) {
+				var _a = _x.after.trips[_ti];
+				var _v = _a.home ? (_a.routed ? "limped home from " + _a.planet : "home from " + _a.planet + " - a haul waits")
+				       : ((_a.stage == 0) ? ("travelling to " + _a.planet) : ((_a.stage == 1) ? (_a.planet + ", room " + string(_a.room + 1)) : ("heading home from " + _a.planet)));
+				_push(_out, "row", RH_ROW, { l : _a.name, v : _v, col : (_a.home && _a.routed) ? c_horange : c_steelblue });
+				var _nl = min(array_length(_a.lines), _dbg ? 99 : 2);
+				for (var _k = 0; _k < _nl; _k++) _push(_out, "sub", RH_SUB, { l : "", v : _a.lines[_k], col : sett_ink });
 			}
+			if (_dbg) _push(_out, "sub", RH_SUB, { l : "out before > after / home", v : string(_x.before.n) + " > " + string(_x.after.n) + " / " + string(_x.after.homes), col : dim });
 		}
 
 		// ---- the away mode, and the replay's own facts ----

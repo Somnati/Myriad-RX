@@ -1,19 +1,22 @@
 /// @description exped_init([force]) - THE EXPEDITION STATE (the mock,
-/// his go 2026-09-12: "1 room with all this in a simple concept so I
-/// can test how it feels"). The loop lives here and in exped_* -
-/// syst_exped_panel is only its view - so the bench IS the spine.
+/// his go 2026-09-12; parties + many trips at once, 2026-09-13). The
+/// loop lives here and in exped_* - syst_exped_panel is only its view.
 ///   board   the three destinations on offer (exped_board_roll)
-///   trip    the trip under way, or undefined (exped_start / exped_tick)
-///   haul    a returned trip's card waiting to be collected, or undefined
+///   trips   every trip under way (exped_start / exped_tick), each its own
+///   hauls   returned trips waiting to be collected (exped_collect)
 ///   depth   the farthest tier the board may offer (chart fragments raise it)
 ///   charms  luck points found (luck_points reads it)
 ///   mats    the faked material families, name -> count
-///   seq     trips started - the board's seed
+///   seq     trips started - ids and the board's seed
 ///   spd     the debug clock: x1 / x10 / x100
-///   log     the last trip's lines, for the panel
+///   recent  the diary's said-this-session ring (exped_say; not saved)
+///   retired names of sprites swapped out for a recruit (exped_retire) -
+///           the diary brings them up; names only, twelve at most
+/// g.bonds (exped_bond) lives beside it: one number per pair of sprites.
 function exped_init(_force = false) {
+	if (_force || !variable_global_exists("bonds")) g.bonds = {};
 	if (!_force && variable_global_exists("exped")) return;
-	g.exped = { board : [], trip : undefined, haul : undefined,
-	            depth : 1, charms : 0, mats : {}, seq : 0, spd : 1, log : [] };
+	g.exped = { board : [], trips : [], hauls : [], depth : 1, charms : 0, mats : {}, seq : 0, spd : 1,
+	            recent : [], retired : [] };
 	exped_board_roll();
 }

@@ -21,21 +21,29 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 	var _e = g.exped;
 	if (!variable_struct_exists(_e, "recent")) _e.recent = [];
 	if (!variable_struct_exists(_tr, "threads")) _tr.threads = [];
-	// the sprite, its voice, its memory
+	// THE SPEAKER: one of the crew, at random, so every voice gets a
+	// turn - its personality, its memory, its hp; {partner} is another
+	// of them, and the bond between the two gates the party lines
+	var _sids = _tr[$ "sids"] ?? [_tr.sid];
+	var _names = _tr[$ "names"] ?? [_tr.sname];
+	var _n = array_length(_sids);
+	var _k = irandom(_n - 1);
+	var _pk = (_n > 1) ? ((_k + 1 + irandom(_n - 2)) mod _n) : -1;
 	var _sp = undefined;
-	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _tr.sid) _sp = g.sprites[_i];
+	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _sids[_k]) _sp = g.sprites[_i];
 	var _pl = sprite_personalities();
 	var _pers = (_sp != undefined) ? _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name : "";
 	var _mem = { trips : 0, wins : 0, routs : 0, last : "", streak : 0 };
 	if (_sp != undefined && is_struct(_sp[$ "mem"])) _mem = _sp.mem;
+	var _hpf = is_array(_tr.hp) ? (_tr.hp[_k] / max(1, _tr.hpmax[_k])) : (_tr.hp / max(1, _tr.hpmax));
 	var _bi = exped_biomes()[_tr.dest.biome];
 	var _c = {
 		beat : _beat, pers : _pers, biome : _bi.name,
-		party : max(1, array_length(_tr[$ "sids"] ?? [_tr.sid])), bond : _ctx[$ "bond"] ?? 0,
-		hp : _tr.hp / max(1, _tr.hpmax), routed : _tr.routed, mem : _mem,
-		name : _tr.sname, planet : _tr.dest.name,
+		party : _n, bond : (_pk >= 0) ? exped_bond_tier(exped_bond(_sids[_k], _sids[_pk])) : 0,
+		hp : _hpf, routed : _tr.routed, mem : _mem,
+		name : _names[_k], planet : _tr.dest.name,
 		foe : _ctx[$ "foe"] ?? "something", item : _ctx[$ "item"] ?? "something",
-		partner : _ctx[$ "partner"] ?? "the other one",
+		partner : (_pk >= 0) ? _names[_pk] : "the other one",
 	};
 	// the memory gates
 	var _need_ok = function(_k, _c) {

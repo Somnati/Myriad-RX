@@ -176,21 +176,39 @@ function offline_replay(_secs, _src = "boot return") {
 	credits_init(); ccore_init(); exped_init();
 	var _cp0 = g.credit_pool;
 	var _cc0 = { st : g.ccore.st, xp : g.ccore.xp };
-	var _ex0 = { on : !is_undefined(g.exped.trip), stage : -1, room : -1, hp : 0, logn : 0 };
-	if (_ex0.on) { var _tr0 = g.exped.trip; _ex0.stage = _tr0.stage; _ex0.room = _tr0.room_i; _ex0.hp = _tr0.hp; _ex0.logn = array_length(_tr0.log); }
+	// every trip out: its id -> how long its diary was (the new lines are the log's)
+	var _ex0 = { n : array_length(g.exped.trips), logn : {} };
+	for (var _ti = 0; _ti < array_length(g.exped.trips); _ti++) {
+		var _tr0 = g.exped.trips[_ti];
+		_ex0.logn[$ string(_tr0.id)] = array_length(_tr0.log);
+	}
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 	ccore_tick(_secs);    // ...and the credit core's well fills (to its cap) on the same clock
 	exped_tick(_secs);    // ...and an expedition walks its rooms (the fights resolve as they come)
 	_L.credits = { pool0 : _cp0, pool1 : g.credit_pool, cap : g.credit_cap,
 	               lv : g.ccore.lv, st0 : _cc0.st, st1 : g.ccore.st, xp0 : _cc0.xp, xp1 : g.ccore.xp,
 	               ccap : (g.ccore.lv > 0) ? ccore_values().cap : 0 };
-	var _ex1 = { on : !is_undefined(g.exped.trip), stage : -1, room : -1, hp : 0, lines : [], home : false, routed : false, name : "" };
-	if (_ex0.on || _ex1.on) {
-		var _haul = g.exped[$ "haul"];
-		var _src_log = _ex1.on ? g.exped.trip.log : (is_undefined(_haul) ? [] : _haul.log);
-		for (var _li = _ex0.logn; _li < array_length(_src_log); _li++) array_push(_ex1.lines, _src_log[_li]);
-		if (_ex1.on) { var _tr1 = g.exped.trip; _ex1.stage = _tr1.stage; _ex1.room = _tr1.room_i; _ex1.hp = _tr1.hp; _ex1.name = _tr1.sname; }
-		else if (_ex0.on && !is_undefined(_haul)) { _ex1.home = true; _ex1.routed = _haul.routed; _ex1.name = _haul.sname; }
+	var _ex1 = { n : array_length(g.exped.trips), homes : 0, routed : 0, trips : [] };
+	// still out: where each got to and what its diary added
+	for (var _ti = 0; _ti < array_length(g.exped.trips); _ti++) {
+		var _tr1 = g.exped.trips[_ti];
+		var _from = _ex0.logn[$ string(_tr1.id)] ?? array_length(_tr1.log);
+		var _lines = [];
+		for (var _li = _from; _li < array_length(_tr1.log); _li++) array_push(_lines, _tr1.log[_li]);
+		array_push(_ex1.trips, { name : exped_crew_txt(_tr1.names), planet : _tr1.dest.name, stage : _tr1.stage, room : _tr1.room_i,
+		                         home : false, routed : _tr1.routed, lines : _lines });
+	}
+	// home during the absence: a haul whose trip was out when it began
+	for (var _hi = 0; _hi < array_length(g.exped.hauls); _hi++) {
+		var _h1 = g.exped.hauls[_hi];
+		var _from = _ex0.logn[$ string(_h1.id)];
+		if (is_undefined(_from)) continue;
+		var _lines = [];
+		for (var _li = _from; _li < array_length(_h1.log); _li++) array_push(_lines, _h1.log[_li]);
+		_ex1.homes += 1;
+		if (_h1.routed) _ex1.routed += 1;
+		array_push(_ex1.trips, { name : exped_crew_txt(_h1.names), planet : _h1.dest.name, stage : 2, room : EXPED_ROOMS,
+		                         home : true, routed : _h1.routed, lines : _lines });
 	}
 	_L.exped = { before : _ex0, after : _ex1 };
 

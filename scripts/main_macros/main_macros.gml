@@ -366,6 +366,11 @@ function main_macros() {
 #macro EXPED_DIST0   90      // seconds a tier-1 world is away (x2 a tier - the mock's scale)
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
 #macro EXPED_FIGHT_T   1     // seconds a fight turn takes on the clock
+#macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)
+#macro EXPED_BOND_TRIP 6     // bond a pair gains for a trip together (exped_bond)...
+#macro EXPED_BOND_WIN  2     // ...and per fight won together...
+#macro EXPED_BOND_ROUT 3     // ...and loses for a rout
+#macro SPRITE_CAP     10     // the roster's size (his call): an eleventh found sprite is a swap-or-let-go moment, never an inventory
 
 // ---- THE TITLE SCREEN ----
 // The bottom-lit teal gradient over the field (syst_titlescreen's

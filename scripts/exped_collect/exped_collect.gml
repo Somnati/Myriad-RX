@@ -1,23 +1,46 @@
-/// @description exped_collect(x, y) - the haul card is taken: every
-/// find lands where it belongs. Credits fly to the purse (credit_drop),
-/// a sprite spawns asleep, an offer rolls into a free slot, a charm is
-/// a luck point, a chart raises the board's depth, materials pile up
-/// by family. The crew comes home (a routed one naps).
-/// @param x   where the motes leave from
-/// @param y
-function exped_collect(_x, _y) {
+/// @description exped_collect(haul index, x, y, [choice]) -> "ok", or
+/// "recruit" when the haul carries a found sprite and the roster is full
+/// (SPRITE_CAP) - THE RECRUIT MOMENT (his call: never an inventory):
+/// the panel asks, and calls again with choice "swap:<sid>" (that sprite
+/// retires, exped_retire, and the new one takes its place) or "letgo"
+/// (the new one leaves a charm and goes). Everything else in the haul
+/// pays out as always; the crew comes off the trip (a routed crew naps).
+function exped_collect(_hi, _x, _y, _choice = "") {
 	exped_init();
 	var _e = g.exped;
-	if (is_undefined(_e.haul)) return;
-	var _h = _e.haul;
+	if (_hi < 0 || _hi >= array_length(_e.hauls)) return "none";
+	var _h = _e.hauls[_hi];
+	var _found = 0;
+	for (var _i = 0; _i < array_length(_h.finds); _i++) if (_h.finds[_i].kind == "sprite") _found++;
+	if (_found > 0 && array_length(g.sprites) + _found > SPRITE_CAP && _choice == "") return "recruit";
+	// the crew comes home first (a swap may retire one of them)
+	for (var _i = 0; _i < array_length(g.sprites); _i++) {
+		var _sp = g.sprites[_i];
+		if (!array_contains(_h.sids, _sp.id)) continue;
+		_sp.trip = false;
+		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP; }
+	}
+	var _swapped = false;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
 		switch (_l.kind) {
 			case "credits": credit_drop(_x, _y, _l.n, 6); break;
 			case "sprite": {
-				var _sp = sprite_spawn("tap");
-				_sp.asleep = true;
-				_sp.found  = _h.dest.name;
+				if (array_length(g.sprites) >= SPRITE_CAP) {
+					if (string_pos("swap:", _choice) == 1 && !_swapped) {
+						var _gone = exped_retire(real(string_delete(_choice, 1, 5)));
+						_swapped = true;
+						if (_gone != "") array_push(_h.log, "~ " + _gone + " has gone to live somewhere quieter. the others waved. one of them cried, and will not say which.");
+					}
+				}
+				if (array_length(g.sprites) < SPRITE_CAP) {
+					var _sp = sprite_spawn("tap");
+					_sp.asleep = true;
+					_sp.found  = _h.dest.name;
+				} else {
+					_e.charms += 1;
+					array_push(_h.log, "~ the new one left a charm and went back into the dark. politely.");
+				}
 				break;
 			}
 			case "offer": {
@@ -35,14 +58,8 @@ function exped_collect(_x, _y) {
 			}
 		}
 	}
-	// the crew is home
-	for (var _i = 0; _i < array_length(g.sprites); _i++) {
-		var _sp = g.sprites[_i];
-		if (_sp.id != _h.sid) continue;
-		_sp.trip = false;
-		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP; }
-	}
-	_e.haul = undefined;
+	array_delete(_e.hauls, _hi, 1);
 	exped_board_roll();
 	save_mark_dirty();
+	return "ok";
 }

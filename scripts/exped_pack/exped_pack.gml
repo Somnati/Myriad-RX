@@ -1,33 +1,50 @@
-/// @description exped_pack() -> the trip / haul as one string for the save
-/// The trip: dest (seed:biome:tier:dist:rate:name) / crew / clock /
-/// stage / rooms / hp / cleared / routed / the finds. A fight in
-/// progress is NOT packed - the room replays from its start on load,
-/// which is honest (the fight is seeded by nothing). The haul packs
-/// the same way with a flag.
+/// @description exped_pack() -> every trip and haul as one string for
+/// the save: records joined by "#", fields by "|":
+///   T/H | dest seed:biome:tier:dist:rate:name | sids~names~cols (","
+///   inside each) | t:stage:room_i:cleared:routed:wins:said_travel:id |
+///   hp,..~hpmax,.. | rooms | finds | threads
+/// A fight in progress replays its room on load (room_i steps back one).
+/// exped_unpack reads it; the logs are not kept (a line says so).
 function exped_pack() {
 	exped_init();
 	var _e = g.exped;
-	var _o = "";
-	var _src = !is_undefined(_e.trip) ? _e.trip : (!is_undefined(_e.haul) ? _e.haul : undefined);
-	if (is_undefined(_src)) return "";
-	var _d = _src.dest;
-	_o += (is_undefined(_e.trip) ? "H" : "T");
-	_o += "|" + string(_d.seed) + ":" + string(_d.biome) + ":" + string(_d.tier) + ":" + string(_d.dist) + ":" + string(_d.rate) + ":" + _d.name;
-	_o += "|" + string(_src.sid) + ":" + _src.sname;
-	if (!is_undefined(_e.trip)) {
-		var _tr = _e.trip;
-		var _ri = _tr.room_i - (is_undefined(_tr.fight) ? 0 : 1);   // an open fight replays its room
-		_o += "|" + string(_tr.t) + ":" + string(_tr.stage) + ":" + string(_ri) + ":" + string(_tr.hp) + ":" + string(_tr.hpmax) + ":" + string(_tr.cleared) + ":" + (_tr.routed ? "1" : "0");
-		_o += "|" + string_join_ext(",", _tr.rooms);
-	} else {
-		_o += "|0:2:0:0:0:" + string(_src.cleared) + ":" + (_src.routed ? "1" : "0");
-		_o += "|";
+	var _out = "";
+	var _all = [];
+	for (var _i = 0; _i < array_length(_e.trips); _i++) array_push(_all, { r : _e.trips[_i], t : true });
+	for (var _i = 0; _i < array_length(_e.hauls); _i++) array_push(_all, { r : _e.hauls[_i], t : false });
+	for (var _a = 0; _a < array_length(_all); _a++) {
+		var _r = _all[_a].r, _is = _all[_a].t;
+		var _d = _r.dest;
+		var _o = _is ? "T" : "H";
+		_o += "|" + string(_d.seed) + ":" + string(_d.biome) + ":" + string(_d.tier) + ":" + string(_d.dist) + ":" + string(_d.rate) + ":" + _d.name;
+		var _si = "", _sn = "", _sc = "";
+		for (var _k = 0; _k < array_length(_r.sids); _k++) {
+			_si += ((_k > 0) ? "," : "") + string(_r.sids[_k]);
+			_sn += ((_k > 0) ? "," : "") + _r.names[_k];
+			_sc += ((_k > 0) ? "," : "") + string(_r.cols[_k]);
+		}
+		_o += "|" + _si + "~" + _sn + "~" + _sc;
+		if (_is) {
+			var _ri = _r.room_i - (is_undefined(_r.fight) ? 0 : 1);
+			_o += "|" + string(_r.t) + ":" + string(_r.stage) + ":" + string(_ri) + ":" + string(_r.cleared) + ":" + (_r.routed ? "1" : "0")
+			    + ":" + string(_r[$ "wins"] ?? 0) + ":" + ((_r[$ "said_travel"] ?? false) ? "1" : "0") + ":" + string(_r.id);
+			var _hp = "", _hm = "";
+			for (var _k = 0; _k < array_length(_r.hp); _k++) { _hp += ((_k > 0) ? "," : "") + string(_r.hp[_k]); _hm += ((_k > 0) ? "," : "") + string(_r.hpmax[_k]); }
+			_o += "|" + _hp + "~" + _hm;
+			_o += "|" + string_join_ext(",", _r.rooms);
+		} else {
+			_o += "|0:2:0:" + string(_r.cleared) + ":" + (_r.routed ? "1" : "0") + ":" + string(_r[$ "wins"] ?? 0) + ":1:" + string(_r.id);
+			_o += "|~";
+			_o += "|";
+		}
+		var _f = "";
+		for (var _i = 0; _i < array_length(_r.finds); _i++) {
+			var _l = _r.finds[_i];
+			_f += ((_i > 0) ? "," : "") + _l.kind + ":" + string(_l.rar) + ":" + string(_l[$ "n"] ?? 0) + ":" + (_l[$ "fam"] ?? "") + ":" + string(_l[$ "tier"] ?? 0);
+		}
+		_o += "|" + _f;
+		_o += "|" + (_is ? string_join_ext(",", _r[$ "threads"] ?? []) : "");
+		_out += ((_a > 0) ? "#" : "") + _o;
 	}
-	var _f = "";
-	for (var _i = 0; _i < array_length(_src.finds); _i++) {
-		var _l = _src.finds[_i];
-		_f += ((_i > 0) ? "," : "") + _l.kind + ":" + string(_l.rar) + ":" + string(_l[$ "n"] ?? 0) + ":" + (_l[$ "fam"] ?? "") + ":" + string(_l[$ "tier"] ?? 0);
-	}
-	_o += "|" + _f;
-	return _o;
+	return _out;
 }
