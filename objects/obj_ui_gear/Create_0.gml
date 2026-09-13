@@ -62,21 +62,25 @@ __seat = function() {
 	// THE TITLE SCREEN has no menu to hang off, so the gear takes the
 	// bottom right corner outright (and the dock is the gear alone)
 	if (!instance_exists(obj_ui_menu2))
-		return { x : room_width - 15, y : room_height - 15, a : 1 };
+		return { x : room_width - 15, y : room_height - 15, a : 1, e : 1 };
 	// IN GAME it belongs to the drawer, not to the header: it appears
 	// when the menu opens and rides the panel's left edge in, which is
 	// what makes it read as part of the menu rather than as a second
 	// permanent button competing with the burger.
-	if (!instance_exists(syst_menu2)) return { x : 0, y : 0, a : 0 };
+	if (!instance_exists(syst_menu2)) return { x : 0, y : 0, a : 0, e : 0 };
 	var _m = syst_menu2;
+	// ⚖️ THEY RISE FROM THE BOTTOM (his ask, 2026-09-13), not in from the
+	// right with the drawer: x is the row's FINAL seat beside the open
+	// drawer's edge, and the Draw lifts each icon from under the room's
+	// bottom edge on the drawer's own ease (e), the gear first
 	return {
-		x : _m.panel_x - 16,
-		// THE BOTTOM of the drawer (his call, 2026-09-08): level with
-		// the pinned time-played band rather than the header - and a few px
-		// up from its middle, so a disc (r10, +1 hovered) clears the edge
-		// (his report, 2026-09-13: their bottoms fell off screen)
+		x : room_width - _m.pw - 16,
+		// THE BOTTOM of the drawer (his call, 2026-09-08): level with the
+		// pinned time-played band - a few px up from its middle, so a disc
+		// (r10, +1 hovered) clears the edge (his report: their bottoms fell off)
 		y : room_height - 14,
-		a : clamp((room_width - _m.panel_x) / _m.pw, 0, 1),
+		a : clamp(_m.am, 0, 1),
+		e : _m.__ease(clamp(_m.am, 0, 1)),
 	};
 };
 
@@ -94,9 +98,14 @@ __seats = function() {
 		var _ic = icons[_i];
 		if (_i > 0 && _title) break;                       // the title: the gear alone
 		if (_ic.key != "" && !unfold_has(_ic.key)) continue;
+		// THE RISE: each icon a beat behind the last, from 40 px under its
+		// seat (the room's bottom edge) up to it on the drawer's ease
+		var _t = clamp((_s.e - _n * .08) / .68, 0, 1);
+		var _lift = (1 - _t * _t * (3 - 2 * _t)) * 40;
 		array_push(_out, { i : _i,
 			x : floor(_land ? (_s.x - _n * DOCK_STEP) : _s.x),
-			y : floor(_land ? _s.y : (_s.y - _n * DOCK_STEP)) });
+			y : floor((_land ? _s.y : (_s.y - _n * DOCK_STEP)) + _lift),
+			t : _t });
 		_n += 1;
 	}
 	return _out;

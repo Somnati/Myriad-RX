@@ -13,7 +13,7 @@ if (array_length(_seats) == 0) { hot_i = -1; for (var _i = 0; _i < array_length(
 hot_i = -1;
 for (var _k = 0; _k < array_length(_seats); _k++) {
 	var _s = _seats[_k];
-	if (point_in_rectangle(mousex, mousey, _s.x - 11, _s.y - 11, _s.x + 11, _s.y + 11)) hot_i = _s.i;
+	if (_s.t >= .999 && point_in_rectangle(mousex, mousey, _s.x - 11, _s.y - 11, _s.x + 11, _s.y + 11)) hot_i = _s.i;
 }
 for (var _i = 0; _i < array_length(icons); _i++)
 	icons[_i].spin = move_to(icons[_i].spin, (hot_i == _i) ? 1 : 0, 3);

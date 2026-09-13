@@ -1,10 +1,9 @@
 /// @description the dock
 var _seats = __seats();
 if (array_length(_seats) == 0) exit;
-var _a = __seat().a;
-
 for (var _k = 0; _k < array_length(_seats); _k++) {
 	var _s = _seats[_k];
+	var _a = _s.t;   // its own rise
 	var _ic = icons[_s.i];
 	var _hot = (hot_i == _s.i);
 	var _rp = (rip_i == _s.i) ? rip : 0;

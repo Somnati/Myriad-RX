@@ -7,14 +7,31 @@ if (!variable_global_exists("game_started") || !g.game_started) exit;
 // tones, the hover halo it always had ----
 if (ba > .01) {
 	var _c = hot ? c_white : rgb(190, 200, 225);
-	var _hl = 6; // bar half-length
+	var _hl = 5; // bar half-length: eleven cells
 	if (hot || rip > 0) {
 		var _gw = sprite_get_width(spr_vis_glow_soft);
 		draw_sprite_ext(spr_vis_glow_soft, 0, bx, by, 26 / _gw, 26 / _gw, 0,
 			c_white, (.1 + .12 * (hot ? 1 : 0) + .15 * rip) * ba);
 	}
-	draw_px_line(bx - dcos(45) * _hl, by + dsin(45) * _hl, bx + dcos(45) * _hl, by - dsin(45) * _hl, _c, ba);
-	draw_px_line(bx - dcos(-45) * _hl, by + dsin(-45) * _hl, bx + dcos(-45) * _hl, by - dsin(-45) * _hl, _c, ba);
+	// ⚖️ PIXEL-PERFECT (his report: the crossing was not centred): the two
+	// bars are STAMPS along their lines, eleven cells each, about the
+	// centre pixel (bx, by) - no rotated quad, so at 45 degrees they are
+	// exact diagonals, symmetric top to bottom. THE FOLD (his ask): they
+	// begin flat - one horizontal bar - and open to the X as they arrive
+	// (the angle rides ba with the alpha), folding back flat on the way
+	// out. Cells are deduplicated along each bar, or a shallow angle
+	// would stamp one cell twice and brighten it mid-fade
+	var _ang = 45 * (ba * ba * (3 - 2 * ba));
+	for (var _b = 0; _b < 2; _b++) {
+		var _a2 = (_b == 0) ? _ang : -_ang;
+		var _lx = -999, _ly = -999;
+		for (var _k = -_hl; _k <= _hl; _k++) {
+			var _px = bx + round(_k * dcos(_a2)), _py = by - round(_k * dsin(_a2));
+			if (_px == _lx && _py == _ly) continue;
+			draw_sprite_ext(spr_pixel_1x1, 0, _px, _py, 1, 1, 0, _c, ba);
+			_lx = _px; _ly = _py;
+		}
+	}
 	// press ripple: an expanding dotted ring
 	if (rip > 0) {
 		var _rr = (1 - rip) * 11 + 3;
