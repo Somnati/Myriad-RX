@@ -59,7 +59,7 @@ clear_t = OBJ_CARD_DELAY;
 // chip (both live at y 28..56); as wide as the room allows ----
 __cw = function() { return (room_width > 300) ? 172 : (room_width - 6); };
 __cx = function() { return 3; };
-__cy = function() { return 62 + (variable_global_exists("profit") ? ui_wordline_h() : 0); };
+__cy = function() { return 66 + (variable_global_exists("profit") ? ui_wordline_h() : 0); };   // (66: under the credit chip's strip, 45..57, with room - his report of a clip)
 
 /// @func __lines(o)
 /// @desc the card's rows for an objective: [{ txt, h, done, i }] - each

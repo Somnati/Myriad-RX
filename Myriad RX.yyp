@@ -784,6 +784,7 @@
     {"id":{"name":"spr_font_outline","path":"sprites/spr_font_outline/spr_font_outline.yy",},},
     {"id":{"name":"spr_font","path":"sprites/spr_font/spr_font.yy",},},
     {"id":{"name":"spr_gear","path":"sprites/spr_gear/spr_gear.yy",},},
+    {"id":{"name":"spr_gift_icon","path":"sprites/spr_gift_icon/spr_gift_icon.yy",},},
     {"id":{"name":"spr_glow_sw","path":"sprites/spr_glow_sw/spr_glow_sw.yy",},},
     {"id":{"name":"spr_hud_toggle_ps","path":"sprites/spr_hud_toggle_ps/spr_hud_toggle_ps.yy",},},
     {"id":{"name":"spr_line_10","path":"sprites/spr_line_10/spr_line_10.yy",},},

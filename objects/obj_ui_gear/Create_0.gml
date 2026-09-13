@@ -31,17 +31,29 @@ tic  = 0;   // press debounce, obj_ui_menu2's
 rip  = 0;   // press ripple, 1 -> 0 (the icon pressed)
 rip_i = -1;
 hot_i = -1; // the icon under the pointer
-DOCK_STEP = 24;   // px between icons
+DOCK_STEP = 26;   // px between icons
 
-// THE ROSTER: key (the unfold key that gates it; "" = always), open (the
-// door), spin (its hover ease). Order = distance from the gear
+// THE ROSTER: key (the unfold key that gates it; "" = the gear, always)
+// and spin (its hover ease). Order = distance from the gear. The doors
+// themselves are __open's switch - a function literal inside a struct
+// literal binds to the STRUCT, and create_obj reads the caller's depth
+// (his crash report, 2026-09-13: "struct.depth not set")
 icons = [
-	{ key : "", open : function() { settings_open(); }, spin : 0 },
-	{ key : "ccore", open : function() { ccore_open(); }, spin : 0 },
-	{ key : "battery", open : function() { battery_open(); }, spin : 0 },
-	{ key : "statistics", open : function() { statistics_open(); }, spin : 0 },
-	{ key : "gift", open : function() { gift_open(); }, spin : 0 },
+	{ key : "", spin : 0 },
+	{ key : "ccore", spin : 0 },
+	{ key : "battery", spin : 0 },
+	{ key : "statistics", spin : 0 },
+	{ key : "gift", spin : 0 },
 ];
+__open = function(_i) {
+	switch (icons[_i].key) {
+		case "":           settings_open();   break;
+		case "ccore":      ccore_open();      break;
+		case "battery":    battery_open();    break;
+		case "statistics": statistics_open(); break;
+		case "gift":       gift_open();       break;
+	}
+};
 
 /// where the gear sits this frame, and how visible the dock is.
 /// `a` 0 means it is not there at all - Step and Draw both leave on it,
@@ -111,6 +123,19 @@ __disc = function(_x, _y, _r, _col, _fill, _a, _h) {
 	}
 };
 
+/// @func __label(x, y, txt, a)
+/// @desc the small font, centred in a disc
+__label = function(_x, _y, _txt, _a) {
+	draw_set_font(fnt);
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_top);
+	draw_set_color(c_white);
+	draw_set_alpha(.95 * _a);
+	draw_text(floor(_x) + 1, floor(_y) - 3, _txt);
+	draw_set_halign(fa_left);
+	draw_set_alpha(1);
+};
+
 /// @func __glyph(i, x, y, a, h, hot)
 /// @desc one icon's face
 __glyph = function(_i, _x, _y, _a, _h, _hot) {
@@ -125,16 +150,20 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			break;
 		}
 		case "ccore": {
-			// the well: lavender, its fill the credits in it
+			// the well: lavender, its fill the credits in it, the count inside
 			var _v = ccore_values();
-			var _f = (g.ccore.st == 1 || g.ccore.st == 2) ? clamp(g.ccore.xp / max(1, _v.cap), 0, 1) : 0;
-			__disc(_x, _y, 8, _hot ? merge_colour(c_lavender, c_white, .3) : c_lavender, _f, _a, _h);
+			var _live = (g.ccore.st == 1 || g.ccore.st == 2);
+			var _f = _live ? clamp(g.ccore.xp / max(1, _v.cap), 0, 1) : 0;
+			__disc(_x, _y, 10, _hot ? merge_colour(c_lavender, c_white, .3) : c_lavender, _f, _a, _h);
+			__label(_x, _y, _live ? string(floor(g.ccore.xp)) : "-", _a);
 			break;
 		}
 		case "battery": {
-			// the cell: green, its fill the charge
+			// the cell: green, its fill the charge, the percentage inside
 			var _f = clamp(g.battery.charge / max(1, battery_cap()), 0, 1);
-			__disc(_x, _y, 8, _hot ? merge_colour(c_sgreen, c_white, .3) : c_sgreen, _f, _a, _h);
+			__disc(_x, _y, 10, _hot ? merge_colour(c_sgreen, c_white, .3) : c_sgreen, _f, _a, _h);
+			var _pc = floor(_f * 100);
+			__label(_x, _y, (_pc >= 100) ? "100" : (string(_pc) + "%"), _a);   // ("100%" is a glyph too wide for the disc)
 			break;
 		}
 		case "statistics": {
@@ -147,15 +176,14 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			break;
 		}
 		case "gift": {
-			// a box with a ribbon; it breathes while one is waiting
-			var _br = gift_can_claim() ? (.75 + .25 * abs(dsin(current_time * .3))) : 1;
-			var _pc = _hot ? merge_colour(c_pink, c_white, .3) : c_pink;
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - 7), floor(_y - 4), 14, 11, 0, merge_colour(c_black, _pc, .25), .9 * _a * _br);
-			draw_px_rect(floor(_x - 7), floor(_y - 4), 14, 11, _pc, .8 * _a * _br);
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - 1), floor(_y - 4), 2, 11, 0, _pc, .9 * _a * _br);   // the ribbon
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - 7), floor(_y), 14, 2, 0, _pc, .9 * _a * _br);
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - 5), floor(_y - 7), 3, 3, 0, _pc, .9 * _a * _br);    // the bow
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_x + 2), floor(_y - 7), 3, 3, 0, _pc, .9 * _a * _br);
+			// DE's own box (spr_popbutton_dailygift's face, imported as
+			// spr_gift_icon), in the gear's tone, pink and breathing while one
+			// is waiting
+			var _wait = gift_can_claim();
+			var _br = _wait ? (.7 + .3 * abs(dsin(current_time * .3))) : 1;
+			var _gc = _wait ? (_hot ? merge_colour(c_pink, c_white, .3) : c_pink) : _tone;
+			var _sc = 1 + .15 * _h;
+			draw_sprite_ext(spr_gift_icon, 0, _x, _y, _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
 			break;
 		}
 	}

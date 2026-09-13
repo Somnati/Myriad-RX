@@ -1,6 +1,11 @@
 if (!instance_exists(obj_puck)) { alpha = 0; exit; }
 var _o = obj_puck;
-y = 50 + ui_wordline_h();   // under the per-tap figure, which steps down under the word line
+// RIGHT OF THE PER-TAP COLUMN AND UP (his ask, 2026-09-13: "over to the
+// right a bit away from the side... up a bit where its bottom text
+// doesn't clip with the objective box"): its three rows now run
+// 30..51 beside the per-tap figure; the objective card begins at 66
+x = 66;
+y = 30 + ui_wordline_h();
 
 // DE's pop: the number's target size kicks up a step on every new bounce
 // and the shown size springs after it

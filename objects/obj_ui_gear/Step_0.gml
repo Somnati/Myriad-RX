@@ -34,5 +34,5 @@ if (hot_i >= 0 && tic <= 0) {
 	// matters: the drawer would otherwise sit under the overlay, still
 	// open, waiting for you when you close it
 	if (instance_exists(obj_ui_menu2)) obj_ui_menu2.open = false;
-	icons[hot_i].open();
+	__open(hot_i);
 }
