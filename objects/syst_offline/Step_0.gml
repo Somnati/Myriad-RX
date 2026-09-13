@@ -27,6 +27,9 @@ if (_r.shown) exit;
 if (!in_room(rm_clicker)) exit;
 if (!variable_global_exists("game_started") || !g.game_started) exit;
 if (ui_overlay() != noone) exit;   // wait for whatever is up to go
+// ...and for the veil: a run that has not had its first tap yet gets
+// no card under the black (it would sit there unseen, eating the tap)
+if (variable_global_exists("unfold") && g.unfold == 0) exit;
 _r.shown = true;
 if (_r.secs < REPORT_MIN) exit;
 create_obj(0, 0, syst_welcome);

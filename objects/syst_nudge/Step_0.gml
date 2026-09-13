@@ -22,7 +22,8 @@ if (unfold_has("tap") && !instance_exists(syst_menu2) && !instance_exists(syst_u
 			var _c = unfold_config();
 			var _nm = _u.fresh[array_length(_u.fresh) - 1];
 			for (var _k = 0; _k < array_length(_c); _k++) if (_c[_k].key == _nm) _nm = _c[_k].name;
-			_ptxt = "new: " + _nm + "  -  in the menu";
+			var _more = array_length(_u.fresh) - 1;
+			_ptxt = "new: " + _nm + ((_more > 0) ? (" +" + string(_more)) : "") + "  -  in the menu";
 		}
 		break;
 	}

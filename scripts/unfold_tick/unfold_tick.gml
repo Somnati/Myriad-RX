@@ -29,7 +29,7 @@ function unfold_tick() {
 		_u.seen[$ _r.key] = true;
 		if (variable_struct_exists(_r, "on") && !is_undefined(_r.on)) _r.on();
 		if (_r.banner != "") assign_banner(_r.banner, c_gold, c_black);
-		if (!array_contains(_u.fresh, _r.key)) array_push(_u.fresh, _r.key);
+		if ((_r[$ "menu"] ?? true) && !array_contains(_u.fresh, _r.key)) array_push(_u.fresh, _r.key);
 		save_mark_dirty();
 		break;   // one arrival a second - they should not pile up
 	}

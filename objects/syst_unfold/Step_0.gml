@@ -1,4 +1,5 @@
 pt += 2.2 * delta;
+wt += delta / 60;
 
 if (armed) {
 	// the first tap, anywhere. Raw press, not the arbitrated kind: the

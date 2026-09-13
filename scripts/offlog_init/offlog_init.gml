@@ -9,7 +9,10 @@
 /// offline_replay files one entry per replay through offlog_record,
 /// newest first, the last OFFLOG_KEEP kept. syst_offlog is the view.
 ///   g.offlog = { runs : [entry...], debug : the [debug] chip's state }
-function offlog_init() {
-	if (variable_global_exists("offlog")) return;
+/// force = true empties it: a new game or a profile switch (his report,
+/// 2026-09-13: a new game showed the other profile's offline log) - the
+/// entries belonged to the run that was loaded, not to this one.
+function offlog_init(_force = false) {
+	if (!_force && variable_global_exists("offlog")) return;
 	g.offlog = { runs : [], debug : false };
 }

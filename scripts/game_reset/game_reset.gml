@@ -63,6 +63,15 @@ function game_reset(_diff = 1) {
 	// pinned statistics live on the save: fresh run, fresh pins
 	g.stats_fav = {};
 
+	// THE ABSENCE THAT IS NOT OURS (his report, 2026-09-13: a new game
+	// showed the other profile's offline log): boot loads the active
+	// profile and replays its absence, queueing a welcome card the money
+	// room has not shown yet. A new game on another profile then walked
+	// in under it. The pending report and the session's log both belong
+	// to the run that was loaded - drop them with it
+	if (variable_global_exists("offline_report")) g.offline_report.shown = true;
+	offlog_init(true);
+
 	// stats "session" deltas re-baseline at zero
 	stats_session_base();
 	g.save_dirty = false;

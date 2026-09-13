@@ -5,6 +5,14 @@ if (leaving >= 0) {
 	t = max(0, t - .09 * delta);
 	if (t <= 0) {
 		if (leaving == 99) {
+			// THE BEAT (his report, 2026-09-13: "after i answer the last
+			// question it kinda feels off beat"): the answer fades, and the
+			// black HOLDS - most of a second of nothing - before the trigger
+			// pulls. The questions were a walk; the run does not start on
+			// the same footstep. (The veil's word fades in on its own clock
+			// after that - syst_unfold - so the whole hand-off is dark.)
+			hold += delta / 60;
+			if (hold < .8) exit;
 			leaving = -1;
 			newgame_start(prof, diff, g.persona);
 			exit;

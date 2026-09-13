@@ -19,6 +19,7 @@ diff = 1;
 stage = 0;       // 0 difficulty, 1..3 questions
 t     = 0;       // the stage's fade-in, 0..1
 leaving = -1;    // >= 0: fading out toward that stage (or 99 = start)
+hold  = 0;       // seconds held at black after the last answer (the beat)
 hov   = -1;      // hovered row
 
 // ---- the difficulty list (his five, colour coded) ----

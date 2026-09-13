@@ -29,6 +29,18 @@
 // CONFIGURATION, everything tweakable lives here
 // ------------------------------------------------------------
 
+// ⚖️ DRAWN IN THE ROOM, NOT ON THE GUI LAYER (his report, 2026-09-13:
+// "the mouse draws behind the opening dialogue box"). The box used to
+// paint in Draw GUI, which composites AFTER the application surface -
+// so it landed on top of everything the game draws, obj_cursor's
+// arrow included (the pointer lives at -20000 on the app surface, the
+// one canvas whose mapping is reliable in every room). The box is a
+// Draw event now at -19000: over the header (-1000), the veil (-1500)
+// and every overlay, under the pointer alone. GUI space was already
+// room space (syst_display sets the gui size to the room), so every
+// coordinate below reads the same; only the canvas changed.
+depth = -19000;
+
 // ---- box geometry (GUI space, 480x270) ----
 box_w      = 400;
 box_h      = 70;

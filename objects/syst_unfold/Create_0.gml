@@ -26,3 +26,7 @@ depth = -1500;
 veil  = 1;       // the black, 1 opaque .. 0 gone
 armed = (variable_global_exists("unfold") && g.unfold == 0);
 pt    = 0;       // the word's breath
+wt    = 0;       // seconds since the veil went up: the word waits half
+                 // a second and fades in over the next (it used to be
+                 // simply there the frame the room arrived - a pop, off
+                 // the beat of the questions' fade)

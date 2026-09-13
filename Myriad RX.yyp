@@ -647,6 +647,7 @@
     {"id":{"name":"unarb","path":"scripts/unarb/unarb.yy",},},
     {"id":{"name":"unfold_config","path":"scripts/unfold_config/unfold_config.yy",},},
     {"id":{"name":"unfold_first_line","path":"scripts/unfold_first_line/unfold_first_line.yy",},},
+    {"id":{"name":"unfold_fresh","path":"scripts/unfold_fresh/unfold_fresh.yy",},},
     {"id":{"name":"unfold_has","path":"scripts/unfold_has/unfold_has.yy",},},
     {"id":{"name":"unfold_init","path":"scripts/unfold_init/unfold_init.yy",},},
     {"id":{"name":"unfold_overlay_key","path":"scripts/unfold_overlay_key/unfold_overlay_key.yy",},},

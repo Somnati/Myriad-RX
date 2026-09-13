@@ -6,19 +6,29 @@
 /// priority order - the first live one shows (syst_nudge).
 function nudge_config() {
 	static _n = [
-		// the first dial: the drawer's edge, once a hundred is near
-		{ key : "dial", txt : "something is waiting on the right - pull it open",
-		  need : function() { return unfold_has("dials") && variable_global_exists("dial") && g.dial[0].level == 0 && g.profit >= arb(60); },
+		// the first dial: the docked strip, once a hundred is near. THE
+		// DRAWER OPENS BY SWIPE ONLY (syst_dials, his call) - the line
+		// says so, or a new player taps the dots and gets nothing
+		{ key : "dial", txt : "the dials are docked on the right - drag the edge open, or press d",
+		  need : function() { return unfold_has("dials") && variable_global_exists("dial") && g.dial[0].level == 0 && g.profit >= arb(60) && instance_exists(syst_dials) && syst_dials.stage == 0; },
 		  done : function() { return variable_global_exists("dial") && g.dial[0].level > 0; },
 		  rect : function() {
 			if (!instance_exists(syst_dials)) return undefined;
-			if (syst_dials.stage > 0) return undefined;
 			return { x : syst_dials.face, y : 16, w : room_width - syst_dials.face, h : room_height - 16 };
 		  } },
-		// bought: it runs by itself
-		{ key : "dial_runs", txt : "it pays by itself every few seconds - the bar is its cycle",
-		  need : function() { return variable_global_exists("dial") && g.dial[0].level > 0 && g.dial[0].level < 3; },
-		  done : function() { return variable_global_exists("dial") && g.dial[0].level >= 3; },
+		// open, unbought: dial a's plate (a tap on it buys - DE's rule)
+		{ key : "dial_buy", txt : "dial a - it pays on its own. a hundred profit buys it: tap the plate",
+		  need : function() { return unfold_has("dials") && variable_global_exists("dial") && g.dial[0].level == 0 && instance_exists(syst_dials) && syst_dials.stage > 0; },
+		  done : function() { return variable_global_exists("dial") && g.dial[0].level > 0; },
+		  rect : function() {
+			if (!instance_exists(syst_dials) || syst_dials.sp < .5) return undefined;
+			var _s = syst_dials;
+			return { x : _s.face, y : _s.row_y1, w : lerp(_s.row_w, _s.row_w2, clamp(_s.sp - 1, 0, 1)), h : _s.row_h };
+		  } },
+		// bought: it runs by itself - and the buy column is one pull further
+		{ key : "dial_runs", txt : "it pays by itself now - the bar is its cycle. pull the drawer further for levels",
+		  need : function() { return variable_global_exists("dial") && g.dial[0].level > 0 && g.dial[0].level < 2 && g.dial[1].level == 0; },
+		  done : function() { return variable_global_exists("dial") && (g.dial[0].level >= 2 || g.dial[1].level > 0); },
 		  rect : function() { return undefined; } },
 		// a fresh menu line: the burger, until the menu is opened
 		{ key : "menu_fresh", txt : "",   // the line is built live (syst_nudge)
@@ -26,13 +36,15 @@ function nudge_config() {
 		  done : function() { return false; },   // never done - it clears itself when the menu opens
 		  rect : function() { return { x : room_width - 26, y : 12, w : 24, h : 20 }; } },
 		// the first roll, on the table
-		{ key : "roll", txt : "a roll is an upgrade of a random kind and rarity - keep it, or sell it back",
+		// (the panel's first line already says what a roll is - this says where)
+		{ key : "roll", txt : "spend the credit here",
 		  need : function() { return instance_exists(syst_upgrades) && variable_global_exists("upg") && g.credits >= arb(upgrade_roll_cost()) && !upgrade_any_owned(); },
 		  done : function() { return variable_global_exists("upg") && upgrade_any_owned(); },
 		  rect : function() { if (!instance_exists(syst_upgrades)) return undefined; return syst_upgrades.__roll_rect(); } },
-		// the pile, after an absence
+		// the pile, after an absence - once the battery has unfolded (the
+		// pile draws with it; a ring around an invisible pile is a riddle)
 		{ key : "pile", txt : "your absence paid into the pile - tap it",
-		  need : function() { return variable_global_exists("offline_pool") && g.offline_pool >= arb(1) && instance_exists(obj_offlinegold); },
+		  need : function() { return unfold_has("battery") && variable_global_exists("offline_pool") && g.offline_pool >= arb(1) && instance_exists(obj_offlinegold); },
 		  done : function() { return variable_global_exists("offline_pool") && !(g.offline_pool >= arb(1)); },
 		  rect : function() {
 			if (!instance_exists(obj_offlinegold)) return undefined;

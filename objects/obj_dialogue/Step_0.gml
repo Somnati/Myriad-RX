@@ -131,8 +131,8 @@ switch (state) {
         var _confirm_kb = keyboard_check_pressed(key_confirm) && (advance_lock <= 0);
 
         // ---- mouse: hover highlights, click-on-row selects ----
-        var _mx = device_mouse_x_to_gui(0);
-        var _my = device_mouse_y_to_gui(0);
+        var _mx = mouse_x;   // room space (the box draws in the room now)
+        var _my = mouse_y;
         var _moved = (_mx != mouse_last_x || _my != mouse_last_y);
         mouse_last_x = _mx;
         mouse_last_y = _my;

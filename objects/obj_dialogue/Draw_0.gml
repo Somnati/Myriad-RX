@@ -1,5 +1,5 @@
 /// ============================================================
-/// STEP 2 :: obj_dialogue DRAW GUI EVENT  (full replacement)
+/// STEP 2 :: obj_dialogue DRAW EVENT  (was Draw GUI - see the Create's depth note)
 /// ============================================================
 
 if (!dialogue_active) exit;
@@ -12,8 +12,8 @@ draw_set_color(c_white);
 // position follows the live GUI size, so resolution changes,
 // fullscreen toggles, and your display system's snapping
 // can never strand the box
-box_x = (display_get_gui_width()  - box_w) * 0.5;
-box_y =  display_get_gui_height() - box_h - box_margin;
+box_x = (room_width  - box_w) * 0.5;
+box_y =  room_height - box_h - box_margin;
 if (passive) { box_x = passive_x; box_y = passive_y; } // barks sit
 	// where their spawner parked them (bean boss: the center column)
 

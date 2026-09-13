@@ -3,7 +3,8 @@
 /// so the room does not surface with a label still floating on it).
 draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, veil);
 
-var _wa = veil * veil * (armed ? (.55 + .35 * abs(dsin(pt))) : 1);
+var _wa = veil * veil * (armed ? (.55 + .35 * abs(dsin(pt))) : 1)
+	* clamp((wt - .5) / .9, 0, 1);   // the arrival
 if (_wa > .003) {
 	draw_set_font(fnt_large);
 	draw_set_halign(fa_center);

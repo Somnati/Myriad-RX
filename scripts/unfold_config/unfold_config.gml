@@ -4,11 +4,13 @@
 /// when it does. The first fold, "tap", is the veil (syst_unfold).
 /// Rows are checked in order every second (unfold_tick); a row whose
 /// need is met is seen for good. Edit here to move a feature earlier
-/// or later - the gates are the game's own numbers.
+/// or later - the gates are the game's own numbers. menu : false marks
+/// a feature with no menu line (the drawer, the sprites) - it never
+/// rings the burger.
 function unfold_config() {
 	static _c = [
 		// the dial drawer, once the first dial is within reach
-		{ key : "dials", name : "dials", banner : "something on the right",
+		{ key : "dials", name : "dials", banner : "something on the right", menu : false,
 		  need : function() { return variable_global_exists("dial") && (g.profit >= arb(60) || g.dial[0].level > 0); } },
 		// statistics, with the dials
 		{ key : "statistics", name : "statistics", banner : "",
@@ -31,19 +33,21 @@ function unfold_config() {
 		// rebirth, within a decade of the gate (or ever done)
 		{ key : "rebirth", name : "rebirth", banner : "new: rebirth",
 		  need : function() { return variable_global_exists("rebirth") && (g.rebirth.total > 0 || rebirth_calc().gfrac >= 5 / 6); } },
-		// the battery and the offline log, after the first real absence
+		// the battery and the offline log, after the first real absence -
+		// once there are dials for it to have run (a player who quit at
+		// the veil and came back a day later has nothing it powered)
 		{ key : "battery", name : "battery", banner : "the battery ran while you were away",
-		  need : function() { return variable_global_exists("time_played_offline") && g.time_played_offline >= 60; } },
+		  need : function() { return unfold_has("dials") && variable_global_exists("time_played_offline") && g.time_played_offline >= 60; } },
 		{ key : "offlog", name : "offline log", banner : "",
 		  need : function() { return unfold_has("battery"); } },
 		// the time bank, after a longer one
 		{ key : "timebank", name : "time bank", banner : "new: the time bank",
-		  need : function() { return variable_global_exists("time_played_offline") && g.time_played_offline >= 600; } },
+		  need : function() { return unfold_has("battery") && variable_global_exists("time_played_offline") && g.time_played_offline >= 600; } },
 		// the daily gift, a quarter hour in
 		{ key : "gift", name : "daily gift", banner : "a gift is waiting",
 		  need : function() { return variable_global_exists("time_played_active") && g.time_played_active >= 900; } },
 		// the first sprite wanders in - and with it, expeditions
-		{ key : "sprite", name : "sprites", banner : "someone wandered in",
+		{ key : "sprite", name : "sprites", banner : "someone wandered in", menu : false,
 		  need : function() { return unfold_has("tiles") && variable_global_exists("dial") && g.profit >= arb(1000000); },
 		  on : function() {
 			if (!variable_global_exists("sprites")) sprites_init();
