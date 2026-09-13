@@ -58,7 +58,10 @@ void main()
 
     vec2 uv = (v_pos - u_quad.xy) / u_quad.zw;
     vec2 cell = (floor(uv * u_cells) + 0.5) / u_cells;
-    vec2 p = cell * 2.0 - 1.0;
+    // the disc is 1/1.2 of the quad, so the atmosphere (to r 1.118)
+    // fits INSIDE it - mapped edge to edge, the halo was cut off flat
+    // at the quad's four sides (his report, 2026-09-12)
+    vec2 p = (cell * 2.0 - 1.0) * 1.2;
     float r2 = dot(p, p);
 
     vec3 col = vec3(0.0);

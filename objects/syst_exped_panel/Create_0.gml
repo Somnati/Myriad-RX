@@ -51,7 +51,7 @@ u_light = shader_get_uniform(sh_planet_lite, "u_light");
 /// turning slowly, seeded by the destination
 __portrait = function(_d, _cx, _cy, _r) {
 	var _b = exped_biomes()[_d.biome];
-	var _qs = _r * 2 + 4;
+	var _qs = ceil(_r * 2 * 1.2) + 2;   // the quad holds the disc AND its halo (the shader maps the disc to 1/1.2 of it)
 	var _qx = _cx - _qs * .5, _qy = _cy - _qs * .5;
 	shader_set(sh_planet_lite);
 	shader_set_uniform_f(u_quad, _qx, _qy, _qs, _qs);
