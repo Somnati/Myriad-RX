@@ -27,48 +27,9 @@ function tiles_tick(_tmult = 1) {
 	var _rf = autom_rate("fab");
 	var _rm = autom_rate("merge");
 	_t.fab += delta * _tmult * _thr * _rf;
-	if (_t.fab >= _t.fab_t) {
-		// ⚖️ THE HOPPER IS OVERFLOW, NOT A CONVEYOR. This used to gate
-		// purely on hopper room, which was invisible while the hopper
-		// held ten by default and a hard stall the moment it held zero:
-		// every tile passed THROUGH the reserve on its way to the board,
-		// so a reserve of nothing meant a fabricator that never
-		// produced. A tile is finished if there is anywhere for it to
-		// go, and the board is the first of those places - the drain
-		// below moves it there in this same tick, so the common case
-		// still spends no time banked at all.
-		var _room = (_t.stored < _t.stored_max);
-		if (!_room)
-			for (var _i = 0; _i < _t.slots; _i++)
-				if (_t.tier[_i] == 0) { _room = true; break; }
-		if (!_room) {
-			_t.fab = _t.fab_t; // board full AND hopper full: waiting
-		} else {
-			_t.fab -= _t.fab_t;
-			_t.stored++;
-			_t.made++;   // lifetime, for the statistics
-			// away ledger (round 2): the tile room's own welcome-back
-			// window counts live fabrication too
-			if (variable_global_exists("away")) g.away.tiles.fab++;
-			// ⚖️ DUPLICATION (his upgrade, 2026-09-10): a finished tile
-			// comes out as two, at tile_chance_rate("dup") percent. The
-			// second one needs somewhere to go - the hopper's room plus
-			// the board's free slots, less the one the first will take
-			// - and a table with no room simply does not get it. A
-			// duplicate that overfilled the hopper would sit there
-			// reading "6/5", which is a number the screen cannot mean.
-			var _free = 0;
-			for (var _i = 0; _i < _t.slots; _i++) if (_t.tier[_i] == 0) _free++;
-			if (_t.stored < _t.stored_max + _free)
-			if (random(100) < tile_chance_rate("dup")) {
-				_t.stored++;
-				_t.made++;
-				if (variable_global_exists("away")) g.away.tiles.fab++;
-				if (array_length(_t.ev) < 12) array_push(_t.ev, { k : "dup", i : -1, b : false });
-			}
-			_t.dirty = true;
-		}
-	}
+	// a full bar finishes a tile - or clamps and waits with nowhere to put
+	// it (tiles_fab_finish, the one site; a sprite's charge uses it too)
+	if (_t.fab >= _t.fab_t) tiles_fab_finish();
 	if (_t.stored > 0) {
 		var _os = -1;
 		for (var _i = 0; _i < _t.slots; _i++)

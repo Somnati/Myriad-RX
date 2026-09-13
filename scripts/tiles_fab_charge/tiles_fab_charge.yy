@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"tiles_fab_charge",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"tiles_fab_charge",
+  "parent":{
+    "name":"tiles",
+    "path":"folders/game/tiles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

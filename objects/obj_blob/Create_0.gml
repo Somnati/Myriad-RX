@@ -54,9 +54,34 @@ card_a    = 0;     // ...eased, so it fades rather than pops
 tap_t = 0;         // frames to the next tap while working
 look_x = 0; look_y = 0;   // the pupils, eased toward the pointer
 
-/// the lower third of the room: where it lives
+/// WHERE IT LIVES (his ask, 2026-09-13: "if they wander around then
+/// shouldn't they be all over the place... not near the edge... or
+/// behind the header"): the money room's whole floor, twenty px in
+/// from the sides, under the header's band, above the bottom edge. The
+/// tile crew (sprite_room "tiles") lives in the tile panel instead:
+/// the band under its bars, and never ON the board (__wander_to)
+tile_room = false;   // set each step from the job
 __bounds = function() {
-	return { x1 : 14, x2 : room_width - 14, y1 : room_height * .60, y2 : room_height - 28 };
+	if (tile_room && instance_exists(syst_tiles))
+		return { x1 : 16, x2 : room_width - 16, y1 : syst_tiles.board_top + 6, y2 : room_height - 26 };
+	return { x1 : 20, x2 : room_width - 20, y1 : 40, y2 : room_height - 24 };
+};
+/// a wander target inside the bounds - and, in the tile panel, not on
+/// the board (a sprite standing on a tile is a sprite in the way)
+__wander_to = function() {
+	var _b = __bounds();
+	for (var _try = 0; _try < 12; _try++) {
+		var _x = random_range(_b.x1, _b.x2), _y = random_range(_b.y1, _b.y2);
+		if (tile_room && instance_exists(syst_tiles)) {
+			var _rows = ceil(g.tiles.slots / g.tiles.cols);
+			var _bx = syst_tiles.bx - 8, _by = syst_tiles.by - 8;
+			var _bw = g.tiles.cols * syst_tiles.pw + 12, _bh = _rows * syst_tiles.ph + 12;
+			if (point_in_rectangle(_x, _y, _bx, _by, _bx + _bw, _by + _bh)) continue;
+		}
+		tx = _x; ty = _y;
+		return;
+	}
+	tx = random_range(_b.x1, _b.x2); ty = random_range(_b.y1, _b.y2);
 };
 
 /// pick the next state, weighted so working averages the personality.
@@ -76,9 +101,7 @@ __next_state = function() {
 	else if (random(1) < .5) st = 0;
 	else {
 		st = 1;
-		var _b = __bounds();
-		tx = random_range(_b.x1, _b.x2);
-		ty = random_range(_b.y1, _b.y2);
+		__wander_to();
 	}
 };
 

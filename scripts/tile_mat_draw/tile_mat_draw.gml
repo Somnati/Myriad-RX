@@ -24,11 +24,19 @@ function tile_mat_draw(_kind, _x, _y, _w, _h, _col, _a, _seed = 0, _sprite = fal
 	static u_par   = shader_get_uniform(sh_tile_mat, "u_par");
 	static u_seed  = shader_get_uniform(sh_tile_mat, "u_seed");
 
+	// ⚖️ INSIDE A PANEL'S FADE (his report, 2026-09-13: "the tiles room fade
+	// out effect doesn't have an alpha"): the board dissolves through
+	// sh_ui_fade, set once in front of every draw - and this used to
+	// shader_reset() on its way out, dropping the fade for everything drawn
+	// after the first material tile. The fade's value folds into this
+	// draw's alpha, and the fade shader is put back afterwards
+	var _prev = shader_current();
+	var _fade = (_prev == sh_ui_fade && variable_global_exists("ui_fade_a")) ? g.ui_fade_a : 1;
 	shader_set(sh_tile_mat);
 	shader_set_uniform_f(u_quad, _x, _y, _w, _h);
 	shader_set_uniform_f(u_kind, _kind);
 	shader_set_uniform_f(u_col, colour_get_red(_col) / 255, colour_get_green(_col) / 255, colour_get_blue(_col) / 255);
-	shader_set_uniform_f(u_alpha, _a);
+	shader_set_uniform_f(u_alpha, _a * _fade);
 	shader_set_uniform_f(u_time, (current_time mod 3600000) / 1000);
 	shader_set_uniform_f(u_amp, TILE_MAT_AMP);
 	// THE EYE for the hole's parallax: the room's centre. The floor may
@@ -42,5 +50,6 @@ function tile_mat_draw(_kind, _x, _y, _w, _h, _col, _a, _seed = 0, _sprite = fal
 		draw_sprite_ext(spr_tile, 2, _x, _y, _w / sprite_get_width(spr_tile), _h / sprite_get_height(spr_tile), 0, c_white, 1);
 	else
 		draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_white, 1);
-	shader_reset();
+	if (_prev == sh_ui_fade) { shader_set(sh_ui_fade); shader_set_uniform_f(g.ui_fade_u, _fade); }
+	else shader_reset();
 }

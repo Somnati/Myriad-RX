@@ -26,10 +26,14 @@ function autom_rate(_kind) {
 		}
 		return 1;
 	}
+	// ONLINE a fab or merge sprite charges its bar with every tap it makes
+	// (tiles_fab_charge / tiles_merge_charge - his ask, 2026-09-13), so its
+	// staff term is not added here as well; offline (above) the taps are
+	// not simulated and the staff term stands in for them
 	switch (_kind) {
 		case "run":   return _a.run.on ? (_a.run.spd / 100) * ram_throttle() * (1 + sprite_staff("run")) : 0;
-		case "fab":   return _a.fab.on ? (_a.fab.spd / 100) * ram_throttle() * (1 + sprite_staff("fab")) : 0;
-		case "merge": return (_a.am_speed / 100) * ram_throttle() * (1 + sprite_staff("merge"));
+		case "fab":   return _a.fab.on ? (_a.fab.spd / 100) * ram_throttle() : 0;
+		case "merge": return (_a.am_speed / 100) * ram_throttle();
 	}
 	return 1;
 }

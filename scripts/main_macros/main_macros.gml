@@ -320,7 +320,8 @@ function main_macros() {
 #macro SPRITE_NAP     3600  // away longer than this and they are found asleep
 #macro SPRITE_SPECK_RAR   4 // rarity from which a sprite wears the orbiting
                             // specks (legendary and up)
-#macro SPRITE_STAFF   .05  // a sprite on a machine adds this x (1 + rarity rung) to its rate - sprite_staff
+#macro SPRITE_STAFF   .05  // a sprite on a machine adds this x (1 + rarity rung) to its rate - sprite_staff (OFFLINE; online its taps charge)
+#macro SPRITE_FAB_TAP .05  // a fab/merge sprite's tap charges its bar by this x (1 + rarity rung) of a full bar (tiles_fab_charge - DE's merge charge)
 #macro SPRITE_RAR_PACE  .12 // pace x (1 + this x rarity): an ultimate is
                             // x1.84 an equal common
 

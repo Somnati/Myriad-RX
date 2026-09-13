@@ -19,6 +19,9 @@
 /// mid-fade. Always pair a fade with a ui_fade_set(1): a shader left
 /// set belongs to the rest of the frame, not to the caller.
 function ui_fade_set(_a) {
+	// the live value, for a draw that must set its own shader mid-fade
+	// (tile_mat_draw folds it into its alpha and puts the fade back)
+	g.ui_fade_a = (_a >= .999) ? 1 : max(0, _a);
 	if (_a >= .999) {
 		if (shader_current() == sh_ui_fade) shader_reset();
 		return;

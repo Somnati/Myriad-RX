@@ -86,7 +86,12 @@ if (_fp < bar_slow) { bar_slow = _fp; bar_fast -= 1; }
 // trickle's fourth argument is a SNAP TOLERANCE, not a flag - DE passes
 // `false` here, which is 0, meaning "never snap early". Written as 0 so
 // nobody reads it as a boolean and helpfully turns it on.
-bar_fast = trickle(bar_fast, _fp, 1,  0);
+// DE's adj: 1 = the fast tone is the fill; a charge lifts it to 30 and
+// it decays back, so the bar grows to a charged fill over a moment
+bar_adj  = trickle(bar_adj, 1, 30, 0);
+bar_glow = max(0, bar_glow - .06 * delta);
+am_glow  = max(0, am_glow - .06 * delta);
+bar_fast = trickle(bar_fast, _fp, bar_adj, 0);
 bar_slow = trickle(bar_slow, _fp, 12, 0);
 
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y, room_width, 3, 0, c_black, .8);
@@ -94,6 +99,9 @@ draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y,
 	room_width * clamp(bar_slow, 0, 1), 3, 0, c_white, .9);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y,
 	room_width * clamp(bar_fast, 0, 1), 3, 0, c_seagreen, 1);
+// the charge's flash: the filled part lights white for a moment
+if (bar_glow > 0)
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, bar_y, room_width * clamp(bar_fast, 0, 1), 3, 0, c_white, bar_glow * .7);
 
 if (_t.automerge) {
 	// the merger cools from steelblue toward red as the pool starves

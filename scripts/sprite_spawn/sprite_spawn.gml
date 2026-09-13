@@ -41,8 +41,8 @@ function sprite_spawn(_job = "tap") {
 		pers   : irandom(array_length(_pl) - 1),
 		job    : _job,
 		taps   : 0,
-		fx     : random_range(.15, .85),
-		fy     : random_range(.62, .86),
+		fx     : random_range(.12, .88),   // anywhere in the room (his ask, 2026-09-13) -
+		fy     : random_range(.20, .88),   // off the edges, under the header
 		away   : 0,
 		asleep : false,
 		// the diary's memory (exped_say's `need` gates): trips out, fights

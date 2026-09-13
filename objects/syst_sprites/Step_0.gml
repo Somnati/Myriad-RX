@@ -9,7 +9,14 @@ if (in_room(rm_clicker)) {
 		over_px = create_obj(0, 0, obj_draw_proxy);
 		over_px.owner = id;
 		over_px.depth = -70;
-		over_px.fn    = function() { with (obj_blob) __draw_over(); };
+		over_px.fn    = function() { with (obj_blob) if (!tile_room) __draw_over(); };
+	}
+	// ...and one over the tile panel for the crew that lives in it
+	if (!variable_instance_exists(id, "over_px2") || !instance_exists(over_px2)) {
+		over_px2 = create_obj(0, 0, obj_draw_proxy);
+		over_px2.owner = id;
+		over_px2.depth = -540;
+		over_px2.fn    = function() { with (obj_blob) if (tile_room) __draw_over(); };
 	}
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _s = g.sprites[_i];

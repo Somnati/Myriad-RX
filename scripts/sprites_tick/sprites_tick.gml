@@ -13,14 +13,22 @@ function sprites_tick() {
 		var _h = _s[$ "hurt"] ?? 0;
 		if (_h > 0) { _s.hurt = _h - _dt; if (_s.hurt <= 0) { _s.hurt = 0; _s.asleep = false; } }
 		if (_s[$ "trip"] ?? false) continue;   // away on an expedition: not here to tap
-		if ((_s[$ "job"] ?? "tap") != "tap") continue;   // on a machine (sprite_staff): not the room's tapper
+		var _job = _s[$ "job"] ?? "tap";
+		// the dials' and the autotapper's staff are a rate (sprite_staff) -
+		// nothing to tap here; the room's tapper and the tile crew tap
+		if (_job != "tap" && _job != "fab" && _job != "merge") continue;
 		if (_s.asleep) continue;
-		if (variable_struct_exists(_s, "view") && instance_exists(_s.view)) continue;
+		// a body that is SHOWING taps through itself (you see it hop); a
+		// body hidden with its room - the tile crew with the panel closed -
+		// is as good as none, and works here
+		if (variable_struct_exists(_s, "view") && instance_exists(_s.view) && _s.view.visible) continue;
 		_s.acc += sprite_rate(_s) * _dt;
 		var _n = floor(_s.acc);
 		if (_n < 1) continue;
 		_s.acc -= _n;
-		tap_fire(_n, 0, 0, false, true, false);
+		if (_job == "tap") tap_fire(_n, 0, 0, false, true, false);
+		else if (_job == "fab") tiles_fab_charge(_n * SPRITE_FAB_TAP * (1 + (_s[$ "rar"] ?? 0)));
+		else tiles_merge_charge(_n * SPRITE_FAB_TAP * (1 + (_s[$ "rar"] ?? 0)));
 		_s.taps += _n;
 	}
 }

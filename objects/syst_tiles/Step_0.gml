@@ -53,6 +53,9 @@ while (array_length(_t.ev) > 0) {
 	// the spawn sound again, a shade higher - two of the same cue, for
 	// two of the same tile. No slot to glow: it is in the hopper.
 	if (_e.k == "dup") play_sound_ext(snd_apply, 1.15, 1.3, .3, 1);
+	// a sprite's charge: the meter grows to it (bar_adj) and flashes
+	if (_e.k == "charge")  { bar_adj = 30; bar_glow = 1; }
+	if (_e.k == "mcharge") { am_glow = 1; }
 }
 
 arm_rb = max(0, arm_rb - delta);   // the rebirth confirm's window

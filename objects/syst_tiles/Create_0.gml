@@ -74,6 +74,14 @@ bar_h   = 3;                             // DE's module meter is 3px
 // lags and is what you actually notice when a tile lands.
 bar_fast = 0;
 bar_slow = 0;
+// DE's merge charge on the meter (syst_rm_modules' adj): a charge sets
+// bar_adj to 30 and it decays to 1, so the fast tone GROWS to the new
+// fill over half a second instead of jumping - and the same divisor
+// carries a fill that wrapped past the top out the right end and back
+// in from the left. bar_glow is the flash on the bar itself
+bar_adj  = 1;
+bar_glow = 0;
+am_glow  = 0;
 
 // the board's band: everything under the bars, above the bottom edge
 board_top = bar_y + bar_h * 2 + 6;

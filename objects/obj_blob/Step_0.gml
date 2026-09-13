@@ -2,7 +2,15 @@ if (s == undefined) { instance_destroy(); exit; }
 if (!in_room(rm_clicker)) { instance_destroy(); exit; }
 // away on an expedition: the body is not in the room (the card and
 // the bubble go with it - __draw_over checks visible)
-visible = !(s[$ "trip"] ?? false);
+// THE TILE CREW (sprite_room): a fab or merge sprite lives in the tile
+// panel - its body shows only while the panel is up, over the board
+// (-530: above the board at -510, under the panel's drawer at -560),
+// and its taps charge the fabricator there. Hidden, sprites_tick
+// works it headless
+tile_room = (sprite_room(s[$ "job"] ?? "tap") == "tiles");
+var _panel = instance_exists(syst_tiles) && syst_tiles.oa > .5 && !syst_tiles.closing;
+visible = !(s[$ "trip"] ?? false) && (!tile_room || _panel);
+depth = tile_room ? -530 : -60;
 if (!visible) exit;
 
 var _pl = sprite_personalities();
@@ -60,13 +68,23 @@ else {
 		if (tap_t <= 0) {
 			tap_t = SPRITE_TAP_T * 60;
 			sq = .8; hop = 3;
-			// a sprite on a machine (sprite_staff) works there, not here:
-			// it hops as if working but the tap is the machine's
-			if ((s[$ "job"] ?? "tap") == "tap") {
+			var _job = s[$ "job"] ?? "tap";
+			if (_job == "tap") {
 				tap_fire(1, x, y - r, true, true, false);
 				sprite_voice(s, "tap");
 				s.taps += 1;
 			}
+			// the tile crew: the hop and the squeak are the same, and the tap
+			// CHARGES its bar by its bonus (his ask, 2026-09-13 - DE's merge
+			// charge): SPRITE_FAB_TAP x (1 + rarity) of a full bar
+			else if (_job == "fab" || _job == "merge") {
+				var _fr = SPRITE_FAB_TAP * (1 + (s[$ "rar"] ?? 0));
+				if (_job == "fab") tiles_fab_charge(_fr); else tiles_merge_charge(_fr);
+				sprite_voice(s, "tap");
+				spark_burst(x, y - r, 2, s.col);
+				s.taps += 1;
+			}
+			// (the dials' and the autotapper's staff hop for show - their work is a rate)
 		}
 		if (st_t <= 0) __next_state();
 	} else {
