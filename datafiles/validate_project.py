@@ -354,6 +354,39 @@ for p, s in srcs.items():
 check("no scientific number literals (1e9 is a GML parse error)",
       not sci, "; ".join(sci[:3]))
 
+# --- 8a2. AN ACCESSOR ON A PARENTHESISED EXPRESSION. GML will not parse
+# `(a ?? {})[$ "k"]` - an accessor hangs off a NAME or a CALL
+# (`exped_biomes()[i]` is fine and shipped), never off a bare
+# parenthesised group, so the struct has to take a `var` first. The IDE
+# says "got '[$' expected ')'" plus "malformed assignment statement"
+# against the line, which reads like a bracket typo. (2026-09-12:
+# tiles_sync and tile_rarity_rate, the flux ladder's `fupg` reads.)
+def _group_accessor(src):
+    """-> the 1-based line of the first `)[` whose `)` closes a group
+    that is not a call, or 0."""
+    for m in re.finditer(r"\)\s*\[", src):
+        depth, j = 0, m.start()
+        while j >= 0:                       # walk back to the matching `(`
+            if src[j] == ")": depth += 1
+            elif src[j] == "(":
+                depth -= 1
+                if depth == 0: break
+            j -= 1
+        if j < 0: continue
+        k = j - 1
+        while k >= 0 and src[k] in " \t": k -= 1
+        if k >= 0 and (src[k].isalnum() or src[k] == "_"):
+            continue                        # name( ... )[ - a call, allowed
+        return src.count("\n", 0, m.start()) + 1
+    return 0
+
+acc = []
+for p, s2 in srcs.items():
+    ln = _group_accessor(s2)
+    if ln: acc.append(f"{p}:{ln}")
+check("no accessor chained onto a parenthesised expression ((x ?? {})[$ k] is a GML parse error)",
+      not acc, "; ".join(acc[:3]))
+
 # --- 8b. CHAINED TERNARIES. GML will not parse `a ? b : c ? d : e` -
 # a ternary's ELSE branch cannot itself be a bare ternary, it has to be
 # parenthesised. The IDE reports "got '?' expected ',' or ')'" against

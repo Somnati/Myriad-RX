@@ -18,8 +18,11 @@ function tiles_sync() {
 	var _t = g.tiles;
 	if (!is_struct(_t[$ "upg"])) return;
 
+	// + the flux ladder's permanent ones (GML will not chain [$ ] onto a
+	// parenthesised expression, so the struct takes a name first)
+	var _fu = _t[$ "fupg"] ?? {};
 	var _slots = TILE_SLOTS_BASE + TILE_SLOT_STEP * (_t.upg[$ "slots"] ?? 0)
-	           + ((_t[$ "fupg"] ?? {})[$ "slots"] ?? 0);   // + the flux ladder's permanent ones
+	           + (_fu[$ "slots"] ?? 0);
 	if (_slots != _t.slots) {
 		var _old = array_length(_t.tier);
 		_t.slots = _slots;
