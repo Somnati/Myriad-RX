@@ -13,11 +13,14 @@ function exped_room(_tr) {
 			array_push(_tr.finds, _l);
 			array_push(_tr.log, "room " + string(_tr.room_i + 1) + ": found " + _l.txt);
 			_tr.cleared += 1;
+			exped_say(_tr, "find", { item : _l.txt }, .8);
 			break;
 		case "rest":
 			_tr.hp = min(_tr.hpmax, _tr.hp + 3);
 			array_push(_tr.log, "room " + string(_tr.room_i + 1) + ": a quiet room - rested");
 			_tr.cleared += 1;
+			exped_say(_tr, "rest", undefined, .85);
+			exped_say(_tr, "sky", undefined, .2);
 			break;
 		case "trap":
 			var _dmg = 1 + irandom(_tr.dest.tier);
@@ -25,10 +28,12 @@ function exped_room(_tr) {
 			array_push(_tr.log, "room " + string(_tr.room_i + 1) + ": a trap - " + string(_dmg) + " hp");
 			if (_tr.hp <= 0) { _tr.routed = true; array_push(_tr.log, _tr.sname + " limps home"); }
 			else _tr.cleared += 1;
+			exped_say(_tr, "trap", undefined, .85);
 			break;
 		case "fight":
 			_tr.fight = exped_fight_new(_tr);
 			array_push(_tr.log, "room " + string(_tr.room_i + 1) + ": " + _tr.fight.b.name + " blocks the way");
+			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .85);
 			break;
 	}
 }

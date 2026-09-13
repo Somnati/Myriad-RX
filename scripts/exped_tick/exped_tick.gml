@@ -19,20 +19,28 @@ function exped_tick(_secs) {
 		while (_f.t >= EXPED_FIGHT_T && !_f.over) { _f.t -= EXPED_FIGHT_T; exped_fight_turn(_f); }
 		if (!_f.over) return;
 		_tr.hp = _f.a.hp;
-		if (_f.won) _tr.cleared += 1; else _tr.routed = true;
+		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else _tr.routed = true;
 		array_push(_tr.log, _f.won ? "the way is clear" : (_tr.sname + " limps home"));
+		exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
 		_tr.fight = undefined;
 		return;
 	}
 	_tr.t += _dt;
 	var _travel = _tr.dur * EXPED_TRAVEL;
 	var _delve  = _tr.dur * (1 - EXPED_TRAVEL - EXPED_RETURN);
+	// the diary's one line on the crossing, past the halfway mark
+	if (_tr.stage == 0 && !(_tr[$ "said_travel"] ?? false) && _tr.t >= _travel * .5) {
+		_tr.said_travel = true;
+		exped_say(_tr, "travel");
+		exped_say(_tr, "sky", undefined, .3);
+	}
 	if (_tr.stage == 0 && _tr.t >= _travel) {
 		_tr.stage = 1;
 		array_push(_tr.log, "landed on " + _tr.dest.name);
+		exped_say(_tr, "land");
 	}
 	if (_tr.stage == 1) {
-		if (_tr.routed) { _tr.stage = 2; _tr.rout_t = _tr.t; return; }
+		if (_tr.routed) { _tr.stage = 2; _tr.rout_t = _tr.t; exped_say(_tr, "return", undefined, .8); return; }
 		var _due = floor((_tr.t - _travel) / (_delve / EXPED_ROOMS)) - 1;   // rooms the clock owes
 		if (_tr.room_i < min(_due, EXPED_ROOMS - 1)) {
 			exped_room(_tr);
@@ -41,6 +49,7 @@ function exped_tick(_secs) {
 		if (_tr.t >= _travel + _delve) {
 			_tr.stage = 2;
 			array_push(_tr.log, "heading home");
+			exped_say(_tr, "return", undefined, .8);
 		}
 	}
 	if (_tr.stage == 2 && _tr.t >= (_tr.routed ? (_tr.rout_t + _tr.dur * EXPED_RETURN) : _tr.dur)) {
@@ -52,6 +61,18 @@ function exped_tick(_secs) {
 		            routed : _tr.routed, cleared : _tr.cleared, log : _tr.log };
 		_e.trip = undefined;
 		array_push(_tr.log, _tr.routed ? "home, limping" : "home");
+		// the diary's last word - a payoff for anything still open, or a
+		// home line - and the sprite's MEMORY moves on (the `need` gates)
+		exped_say(_tr, "home");
+		for (var _si = 0; _si < array_length(g.sprites); _si++) {
+			var _sp = g.sprites[_si];
+			if (_sp.id != _tr.sid) continue;
+			if (!is_struct(_sp[$ "mem"])) _sp.mem = { trips : 0, wins : 0, routs : 0, last : "", streak : 0 };
+			_sp.mem.trips  += 1;
+			_sp.mem.wins   += _tr[$ "wins"] ?? 0;
+			_sp.mem.last    = _tr.dest.name;
+			if (_tr.routed) { _sp.mem.routs += 1; _sp.mem.streak = 0; } else _sp.mem.streak += 1;
+		}
 		exped_board_roll();
 		save_mark_dirty();
 	}

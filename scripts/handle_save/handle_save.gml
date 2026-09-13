@@ -446,6 +446,9 @@ function handle_save(){
 		      + "/" + string_format(_sp.fy, 1, 3) + "/" + string(_sp.away) + "/" + (_sp.asleep ? "1" : "0")
 		      + "/" + string(_sp[$ "eyes"] ?? 0) + "/" + string(_sp[$ "mat"] ?? 0) + "/" + string(_sp[$ "col2"] ?? _sp.col)
 		      + "/" + string(_sp[$ "rar"] ?? 0);
+		// the diary's memory (five fields; the planet name carries no "/" or "|")
+		var _mm = is_struct(_sp[$ "mem"]) ? _sp.mem : { trips : 0, wins : 0, routs : 0, last : "", streak : 0 };
+		_sps += "/" + string(_mm.trips) + "/" + string(_mm.wins) + "/" + string(_mm.routs) + "/" + _mm.last + "/" + string(_mm.streak);
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -465,6 +468,9 @@ function handle_save(){
 					mat  : (array_length(_f) > 10) ? real(_f[10]) : 0,
 					col2 : (array_length(_f) > 11) ? real(_f[11]) : real(_f[1]),
 					rar  : (array_length(_f) > 12) ? real(_f[12]) : 0,
+					mem  : (array_length(_f) > 17)
+						? { trips : real(_f[13]), wins : real(_f[14]), routs : real(_f[15]), last : _f[16], streak : real(_f[17]) }
+						: { trips : 0, wins : 0, routs : 0, last : "", streak : 0 },
 				});
 			}
 		}

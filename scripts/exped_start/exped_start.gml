@@ -29,8 +29,10 @@ function exped_start(_di, _sp) {
 		fight : undefined, routed : false, rout_t : 0,
 		finds : [],                                  // the haul, as it is gathered
 		log : [ "left for " + _d.name ],
+		threads : [], said_travel : false, wins : 0,  // the diary's setups, its one travel line, fights won
 	};
 	_e.log = _e.trip.log;
+	exped_say(_e.trip, "depart");
 	save_mark_dirty();
 	return true;
 }

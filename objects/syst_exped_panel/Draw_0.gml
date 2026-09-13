@@ -135,14 +135,37 @@ if (!is_undefined(_e.trip)) {
 		if (!_done) draw_px_rect(_px - 2, _sy + 9, 4, 4, _kc, .5);
 	}
 
-	// the log
+	// THE DIARY: truth lines plain, the "~ " lines (exped_say) as the
+	// sprite's own voice - dimmer, indented, wrapped to the column.
+	// Newest at the bottom; as many whole entries as fit above it
 	var _ly = _sy + 34;
+	var _ly_end = is_undefined(_tr.fight) ? (room_height - 26) : (_sy + 126);
 	var _n = array_length(_tr.log);
-	var _from = max(0, _n - 9);
+	var _hs = array_create(_n, 0);
+	var _room = _ly_end - _ly;
+	var _from = _n;
+	for (var _i = _n - 1; _i >= 0; _i--) {
+		var _isv = (string_copy(_tr.log[_i], 1, 2) == "~ ");
+		var _h = string_height_ext(_isv ? string_delete(_tr.log[_i], 1, 2) : _tr.log[_i], 9, _sw - (_isv ? 8 : 0)) + 2;
+		if (_h > _room) break;
+		_room -= _h;
+		_hs[_i] = _h;
+		_from = _i;
+	}
+	var _yy = _ly;
 	for (var _i = _from; _i < _n; _i++) {
-		draw_set_color((_i == _n - 1) ? c_white : _ink);
-		draw_set_alpha((_i == _n - 1) ? .95 : .6);
-		draw_text(_sx, _ly + (_i - _from) * 10, _tr.log[_i]);
+		var _isv = (string_copy(_tr.log[_i], 1, 2) == "~ ");
+		var _last = (_i == _n - 1);
+		if (_isv) {
+			draw_set_color(_last ? merge_colour(_ink, c_white, .5) : merge_colour(_ink, _b.col2, .35));
+			draw_set_alpha(_last ? .9 : .55);
+			draw_text_ext(_sx + 8, _yy, string_delete(_tr.log[_i], 1, 2), 9, _sw - 8);
+		} else {
+			draw_set_color(_last ? c_white : _ink);
+			draw_set_alpha(_last ? .95 : .7);
+			draw_text_ext(_sx, _yy, _tr.log[_i], 9, _sw);
+		}
+		_yy += _hs[_i];
 	}
 
 	// the fight
