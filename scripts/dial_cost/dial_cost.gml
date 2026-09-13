@@ -62,7 +62,7 @@ function dial_cost(_tier, _from, _to, _raw = false) {
 			// the computed first level alone, then the next power of ten
 			var _b1   = _base + _gth * (1 + _lvdiv);
 			var _raw1 = do_subtract(do_ceil(do_add(_pt, log_to_arb(_b1))), _ca);
-			_open = log_to_arb(floor(arb_log10(_raw1) + 1e-9) + 1);
+			_open = log_to_arb(floor(arb_log10(_raw1) + .000000001) + 1);
 		}
 		if (!_raw) {
 			var _ub0 = upgrade_bonus_live();

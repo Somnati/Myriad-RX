@@ -14,7 +14,7 @@ function do_ceil(argument0) {
 	// (1000 read 1001, 700 read 701). Nothing the arb can represent lives
 	// within 1e-4 of a whole unit at any scale this branch handles (the
 	// mantissa's own resolution at exp 10 is ~1e-5), so the nudge is safe
-	_acoe = ceil(_acoe - 1e-4);
+	_acoe = ceil(_acoe - .0001);
 	_acoe = _acoe/power(10,_aexp+1);
 
 	//overflow_correction

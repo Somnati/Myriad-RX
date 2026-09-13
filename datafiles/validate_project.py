@@ -718,6 +718,22 @@ for _k, _names in _segs:
             break
 check("the .yyp resource list is in GM's own order", not _bad, "; ".join(_bad[:3]))
 
+# ---- every registered .yy carries its resourceType + resourceVersion ----
+# (2026-09-13: two hand-written object .yy files lacked both - the template
+# was copied from a grep that had filtered those lines out - and GM refused
+# the whole project: "Field resourceType: expected". The IDE never writes
+# one without them; nor may we.)
+_bad = []
+for _e in _yyp.get("resources", []):
+    _p = os.path.join(ROOT, _e["id"]["path"])
+    if not os.path.exists(_p):
+        _bad.append(_e["id"]["path"] + " (missing)")
+        continue
+    _t = open(_p, encoding="utf-8", errors="replace").read()
+    if '"resourceType":' not in _t or '"resourceVersion":' not in _t:
+        _bad.append(_e["id"]["path"])
+check("every registered .yy has resourceType + resourceVersion", not _bad, "; ".join(_bad[:3]))
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")
