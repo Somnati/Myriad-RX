@@ -218,10 +218,19 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 		play_sound_ext(snd_softclick, .9, 1, .4, 1);
 		exit;
 	}
+	// the tabs: shards / flux
+	for (var _tk = 0; _tk < 2; _tk++) {
+		var _tr2 = __tab_r(_tk);
+		if (point_in_rectangle(_tpx, _tpy, _tr2.x, _tr2.y, _tr2.x + _tr2.w, _tr2.y + _tr2.h)) {
+			__tab_set(_tk);
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 	// the buy-amount button - it sits above the rows and a tap on it
-	// must never also land on one
+	// must never also land on one (the shard tab's alone)
 	var _bb2 = __bb_r();
-	if (point_in_rectangle(_tpx, _tpy, _bb2.x, _bb2.y,
+	if (upg_tab == 0 && point_in_rectangle(_tpx, _tpy, _bb2.x, _bb2.y,
 		_bb2.x + _bb2.w, _bb2.y + _bb2.h)) {
 		__bb_cycle();
 		qtic = 0;   // requote at the new amount at once

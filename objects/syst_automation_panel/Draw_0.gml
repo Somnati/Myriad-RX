@@ -20,6 +20,7 @@ ui_fade_set(_ea);
 // (drawn before the rows are) and the RAM band reads the hovered row's
 // cost, so both are found up here.
 var _rows = __page_rows();
+rows_n = array_length(_rows);   // the scrollbar's lane reads it
 var _hov  = -1;
 if (input_free(ui_layer_overlay))   // the panel's own rung (it holds the room at 100)
 for (var _i = 0; _i < array_length(_rows); _i++) {
@@ -33,121 +34,6 @@ var _help = (_hov >= 0 && variable_struct_exists(_rows[_hov], "help"))
 hov     = _hov;
 hov_ram = (_hov >= 0) ? _rows[_hov].ram : 0;
 hov_on  = (_hov >= 0) ? _rows[_hov].on  : false;
-
-// ---- the title strip: the title, and the hovered row's help ----
-draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, 16, 0, c_hsv(169, 186, 5), 1);
-draw_set_color(rgb(195, 205, 235));
-draw_set_alpha(.85);
-draw_text(6, bby + 5, "automation");
-draw_set_halign(fa_right);
-if (_help != "" && tab == AT_DIALS) {
-	// the dials page fills the room to the bottom edge, so its help
-	// rides the strip; every other page has a footer for it
-	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
-	draw_set_alpha(.8);
-	draw_text(room_width - 8, bby + 5, _help);
-} else if (tab == AT_DIALS) {
-	draw_set_color(_dim);
-	draw_set_alpha(.6);
-	draw_text(room_width - 8, bby + 5, (g.autom.lock_pct > 0)
-		? ("reserve is holding " + ((profit_reserved() >= arb(1))
-			? crunch_arb(profit_reserved()) : "0") + " out of spending")
-		: "the % is a CAP: the most one buy may cost, out of spendable profit");
-}
-draw_set_halign(fa_left);
-
-// ---- THE RAM BAND, on every tab (his ask) ----
-// one stick per unit: lit for what is used, an outline for what is
-// free, RED past the cap (the over-budget sticks). The hovered row's
-// cost pulses red on the meter - over its own sticks if it is on (the
-// last ones of the used run), after the used run if it is off (what
-// switching it on would take, and whether that crosses the cap).
-{
-	var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
-	var _n = max(_c, _u);
-	var _hot = ram_oc_any();   // something runs on a notch: the band leans orange
-	__stick_seat(_n);
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_black, .45);
-	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y + band_h - 1, room_width, 1, 0, sett_ink, .25);
-	draw_set_color(_hot ? c_horange : c_gold);
-	draw_set_alpha(.85);
-	draw_text(6, band_y + 2, "ram " + string(_u) + "/" + string(_c));
-
-	var _pulse = .35 + .65 * (.5 + .5 * sin(current_time / 170));
-	// which sticks the hover paints: [h0, h0 + hov_ram)
-	var _h0 = -1;
-	if (hov_ram > 0) _h0 = hov_on ? max(0, _u - hov_ram) : _u;
-	// THE STICKS WEAR THE SECTION THAT EATS THEM (his list, 2026-09-12):
-	// the used run is coloured in runs - dials, tiles, upgrades, rebirth
-	// - in the rail's colours, so the meter says WHICH twelve, not how
-	// many. (The overclock's orange lean sits on top while it is hot)
-	var _runs = [ { n : __ram_page(AT_DIALS), c : tcol[AT_DIALS] },
-	              { n : __ram_page(AT_TILES), c : tcol[AT_TILES] },
-	              { n : __ram_page(AT_UPG),   c : tcol[AT_UPG] },
-	              { n : __ram_page(AT_REB),   c : tcol[AT_REB] } ];
-	for (var _k = 0; _k < _n; _k++) {
-		var _sr = __stick_r(_k);
-		var _used = (_k < _u);
-		var _over = (_k >= _c);
-		var _col  = c_seagreen;
-		if (_used) {
-			var _acc = 0;
-			for (var _q = 0; _q < array_length(_runs); _q++) {
-				if (_k < _acc + _runs[_q].n) { _col = _runs[_q].c; break; }
-				_acc += _runs[_q].n;
-			}
-		}
-		if (_over) _col = c_hred;
-		else if (_hot) _col = merge_colour(_col, c_horange, .5);
-		// the used run ramps, subtly, from a shade darker at the left to
-		// full at its leading edge (his ask, 2026-09-12) - the fill reads
-		// as filling rather than as a flat bar of sticks
-		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0,
-			merge_colour(merge_colour(_col, c_black, .38), _col, _k / max(1, _u - 1)), .85);
-		else       draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _over ? c_hred : c_seagreen, .25);
-		if (_h0 >= 0 && _k >= _h0 && _k < _h0 + hov_ram) {
-			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
-			draw_px_rect(_sr.x - 1, _sr.y - 1, _sr.w + 2, _sr.h + 2, c_hred, .6 * _pulse);
-		}
-	}
-	// a hover that would run past every drawn stick: the extra sticks,
-	// outlined red past the meter's end
-	if (_h0 >= 0 && _h0 + hov_ram > _n) {
-		for (var _k = _n; _k < _h0 + hov_ram; _k++) {
-			var _sr = __stick_r(_k);
-			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
-		}
-	}
-	// THE [overclock] CHIP (read ram_oc): orange while the notches are
-	// open, breathing while something runs on one
-	{
-		var _oc = __oc_rect();
-		var _on = g.autom.oc;
-		var _hv = point_in_rectangle(mouse_x, mouse_y, _oc.x, _oc.y, _oc.x + _oc.w, _oc.y + _oc.h);
-		draw_set_alpha(1);
-		draw_sprite_ext(spr_pixel_1x1, 0, _oc.x, _oc.y, _oc.w, _oc.h, 0,
-			_on ? merge_colour(c_horange, c_black, _hot ? (.45 + .15 * _pulse) : .6) : c_black, _on ? .95 : .5);
-		draw_px_rect(_oc.x, _oc.y, _oc.w, _oc.h, c_horange, _on ? .9 : (_hv ? .6 : .3));
-		draw_set_halign(fa_center);
-		draw_set_color(_on ? c_white : merge_colour(c_horange, c_white, _hv ? .6 : .25));
-		draw_set_alpha(_on ? .95 : .7);
-		draw_text(_oc.x + _oc.w / 2 + 1, _oc.y + 2, "overclock");
-	}
-	// the verdict, right
-	draw_set_halign(fa_right);
-	if (_th < 1) {
-		draw_set_color(c_hred);
-		draw_set_alpha(.9);
-		draw_text(room_width - 8, band_y + 2, "over budget  x" + string_format(_th, 1, 2));
-	} else {
-		draw_set_color(_dim);
-		draw_set_alpha(.6);
-		draw_text(room_width - 8, band_y + 2, string(_c - _u) + " free");
-	}
-	draw_set_halign(fa_left);
-}
-
-// (no back button - the burger is the X)
 
 // ---- the rail ----
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,
@@ -222,11 +108,19 @@ for (var _i = 0; _i < _nrows; _i++) {
 		continue;
 	}
 
-	// an action row: a note, then its buttons from the right
+	// an action row: a note, then its buttons from the right - or, a
+	// row that folds its actions out (a mode): the chevron at the end
 	if (_rw.kind == 7) {
 		draw_set_color(_dim);
 		draw_set_alpha(.7);
 		draw_text(cont_x + 72, _ry + 2, _rw.val);
+		if (variable_struct_exists(_rw, "chev")) {
+			draw_set_halign(fa_right);
+			draw_set_color(merge_colour(_rw.col, c_white, .3));
+			draw_set_alpha(.8);
+			draw_text(cont_x + cont_w - 6, _ry + 2, _rw.chev);
+			draw_set_halign(fa_left);
+		}
 		var _nb = array_length(_rw.btns);
 		for (var _b = 0; _b < _nb; _b++) {
 			var _br = __btn_r(_i, _b, _nb);
@@ -383,6 +277,123 @@ for (var _i = 0; _i < _nrows; _i++) {
 	}
 }
 
+// ---- the title strip and the RAM band, OVER the page: a row the
+// bar has slid half under them is covered, not drawn across them ----
+// ---- the title strip: the title, and the hovered row's help ----
+draw_sprite_ext(spr_pixel_1x1, 0, 0, bby, room_width, 16, 0, c_hsv(169, 186, 5), 1);
+draw_set_color(rgb(195, 205, 235));
+draw_set_alpha(.85);
+draw_text(6, bby + 5, "automation");
+draw_set_halign(fa_right);
+if (_help != "" && tab == AT_DIALS) {
+	// the dials page fills the room to the bottom edge, so its help
+	// rides the strip; every other page has a footer for it
+	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
+	draw_set_alpha(.8);
+	draw_text(room_width - 8, bby + 5, _help);
+} else if (tab == AT_DIALS) {
+	draw_set_color(_dim);
+	draw_set_alpha(.6);
+	draw_text(room_width - 8, bby + 5, (g.autom.lock_pct > 0)
+		? ("reserve is holding " + ((profit_reserved() >= arb(1))
+			? crunch_arb(profit_reserved()) : "0") + " out of spending")
+		: "the % is a CAP: the most one buy may cost, out of spendable profit");
+}
+draw_set_halign(fa_left);
+
+// ---- THE RAM BAND, on every tab (his ask) ----
+// one stick per unit: lit for what is used, an outline for what is
+// free, RED past the cap (the over-budget sticks). The hovered row's
+// cost pulses red on the meter - over its own sticks if it is on (the
+// last ones of the used run), after the used run if it is off (what
+// switching it on would take, and whether that crosses the cap).
+{
+	var _u = ram_used(), _c = ram_cap(), _th = ram_throttle();
+	var _n = max(_c, _u);
+	var _hot = ram_oc_any();   // something runs on a notch: the band leans orange
+	__stick_seat(_n);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_black, .45);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y + band_h - 1, room_width, 1, 0, sett_ink, .25);
+	draw_set_color(_hot ? c_horange : c_gold);
+	draw_set_alpha(.85);
+	draw_text(6, band_y + 2, "ram " + string(_u) + "/" + string(_c));
+
+	var _pulse = .35 + .65 * (.5 + .5 * sin(current_time / 170));
+	// which sticks the hover paints: [h0, h0 + hov_ram)
+	var _h0 = -1;
+	if (hov_ram > 0) _h0 = hov_on ? max(0, _u - hov_ram) : _u;
+	// THE STICKS WEAR THE SECTION THAT EATS THEM (his list, 2026-09-12):
+	// the used run is coloured in runs - dials, tiles, upgrades, rebirth
+	// - in the rail's colours, so the meter says WHICH twelve, not how
+	// many. (The overclock's orange lean sits on top while it is hot)
+	var _runs = [ { n : __ram_page(AT_DIALS), c : tcol[AT_DIALS] },
+	              { n : __ram_page(AT_TILES), c : tcol[AT_TILES] },
+	              { n : __ram_page(AT_UPG),   c : tcol[AT_UPG] },
+	              { n : __ram_page(AT_REB),   c : tcol[AT_REB] } ];
+	for (var _k = 0; _k < _n; _k++) {
+		var _sr = __stick_r(_k);
+		var _used = (_k < _u);
+		var _over = (_k >= _c);
+		var _col  = c_seagreen;
+		if (_used) {
+			var _acc = 0;
+			for (var _q = 0; _q < array_length(_runs); _q++) {
+				if (_k < _acc + _runs[_q].n) { _col = _runs[_q].c; break; }
+				_acc += _runs[_q].n;
+			}
+		}
+		if (_over) _col = c_hred;
+		else if (_hot) _col = merge_colour(_col, c_horange, .5);
+		// the used run ramps, subtly, from a shade darker at the left to
+		// full at its leading edge (his ask, 2026-09-12) - the fill reads
+		// as filling rather than as a flat bar of sticks
+		if (_used) draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0,
+			merge_colour(merge_colour(_col, c_black, .38), _col, _k / max(1, _u - 1)), .85);
+		else       draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _over ? c_hred : c_seagreen, .25);
+		if (_h0 >= 0 && _k >= _h0 && _k < _h0 + hov_ram) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
+			draw_px_rect(_sr.x - 1, _sr.y - 1, _sr.w + 2, _sr.h + 2, c_hred, .6 * _pulse);
+		}
+	}
+	// a hover that would run past every drawn stick: the extra sticks,
+	// outlined red past the meter's end
+	if (_h0 >= 0 && _h0 + hov_ram > _n) {
+		for (var _k = _n; _k < _h0 + hov_ram; _k++) {
+			var _sr = __stick_r(_k);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_hred, .9 * _pulse);
+		}
+	}
+	// THE [overclock] CHIP (read ram_oc): orange while the notches are
+	// open, breathing while something runs on one
+	{
+		var _oc = __oc_rect();
+		var _on = g.autom.oc;
+		var _hv = point_in_rectangle(mouse_x, mouse_y, _oc.x, _oc.y, _oc.x + _oc.w, _oc.y + _oc.h);
+		draw_set_alpha(1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _oc.x, _oc.y, _oc.w, _oc.h, 0,
+			_on ? merge_colour(c_horange, c_black, _hot ? (.45 + .15 * _pulse) : .6) : c_black, _on ? .95 : .5);
+		draw_px_rect(_oc.x, _oc.y, _oc.w, _oc.h, c_horange, _on ? .9 : (_hv ? .6 : .3));
+		draw_set_halign(fa_center);
+		draw_set_color(_on ? c_white : merge_colour(c_horange, c_white, _hv ? .6 : .25));
+		draw_set_alpha(_on ? .95 : .7);
+		draw_text(_oc.x + _oc.w / 2 + 1, _oc.y + 2, "overclock");
+	}
+	// the verdict, right
+	draw_set_halign(fa_right);
+	if (_th < 1) {
+		draw_set_color(c_hred);
+		draw_set_alpha(.9);
+		draw_text(room_width - 8, band_y + 2, "over budget  x" + string_format(_th, 1, 2));
+	} else {
+		draw_set_color(_dim);
+		draw_set_alpha(.6);
+		draw_text(room_width - 8, band_y + 2, string(_c - _u) + " free");
+	}
+	draw_set_halign(fa_left);
+}
+
+// (no back button - the burger is the X)
+
 // ---- the footer, on the pages that have room for one ----
 // The hover line wins the slot when there is one: what the pointer is
 // on beats a standing note, because the standing note is the thing you
@@ -394,8 +405,8 @@ draw_set_alpha(.55);
 if (_nrows > __rows_fit()) {
 	// the scroll hint takes the second line; the notes keep the first
 	draw_set_halign(fa_right);
-	draw_text(room_width - 8, _fy + 10, "wheel: "
-		+ string(scroll[tab] + 1) + "-" + string(min(_nrows, scroll[tab] + __rows_fit()))
+	draw_text(room_width - 8, _fy + 10, "rows "
+		+ string(floor(scroll[tab]) + 1) + "-" + string(min(_nrows, floor(scroll[tab]) + __rows_fit()))
 		+ " of " + string(_nrows));
 	draw_set_halign(fa_left);
 }

@@ -2,6 +2,7 @@
 oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
+if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
 
 // ---- the live drag, first: it owns the pointer until released ----
 if (drag_row >= 0) {
@@ -21,13 +22,10 @@ if (!input_free(ui_layer_overlay)) exit;
 if (keyboard_check_pressed(vk_escape)) { automation_close(); exit; }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 
-// ---- the wheel scrolls a page taller than the room ----
-var _wh = (mouse_wheel_down() ? 1 : 0) - (mouse_wheel_up() ? 1 : 0);
-if (_wh != 0 && mouse_x >= cont_x) {
-	var _n = array_length(__page_rows());
-	var _mx = max(0, _n - __rows_fit());
-	scroll[tab] = clamp(scroll[tab] + _wh, 0, _mx);
-}
+// (the wheel and the touch drag are the house bar's now - scrl_autom
+// in obj_scrollbar writes scroll[tab])
+rows_n = array_length(__page_rows());
+scroll[tab] = clamp(scroll[tab], 0, max(0, rows_n - __rows_fit()));
 
 if (!mouse_check_button_pressed(mb_left)) exit;
 
@@ -45,7 +43,12 @@ for (var _t = 0; _t < NTAB; _t++) {
 	var _r = __tab_rect(_t);
 	if (!point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h))
 		continue;
-	if (tab != _t) { tab = _t; play_sound_ext(snd_softclick, 1, 1.1, .45, 0); }
+	if (tab != _t) {
+		tab = _t;
+		// the bar re-seats on this tab's own scroll
+		if (instance_exists(sb)) { sb.ty = scroll[tab] * row_p; sb.ty_speed = 0; sb.ty_speed_actual = 0; }
+		play_sound_ext(snd_softclick, 1, 1.1, .45, 0);
+	}
 	exit;
 }
 
@@ -53,7 +56,7 @@ for (var _t = 0; _t < NTAB; _t++) {
 var _rows = __page_rows();
 for (var _i = 0; _i < array_length(_rows); _i++) {
 	var _rw = _rows[_i];
-	if (!__row_vis(_i)) continue;
+	if (!__row_hit(_i)) continue;
 	if (_rw.kind == 8) {
 		// a band's button, if it has one
 		if (_rw.btn != "") {
@@ -82,9 +85,15 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		continue;
 	}
 
-	// an action row: its buttons, from the right
+	// an action row: its buttons, from the right - or the whole row,
+	// when it is one that folds its actions out
 	if (_rw.kind == 7) {
 		var _nb = array_length(_rw.btns);
+		if (_nb == 0 && variable_struct_exists(_rw, "chev")) {
+			var _ry7 = __row_y(_i);
+			if (point_in_rectangle(mouse_x, mouse_y, cont_x, _ry7, cont_x + cont_w, _ry7 + row_h)) { __action(_rw, -1); exit; }
+			continue;
+		}
 		for (var _b = 0; _b < _nb; _b++) {
 			var _br = __btn_r(_i, _b, _nb);
 			if (!point_in_rectangle(mouse_x, mouse_y, _br.x, _br.y, _br.x + _br.w, _br.y + _br.h)) continue;

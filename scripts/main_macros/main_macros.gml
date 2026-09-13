@@ -127,6 +127,7 @@ function main_macros() {
 #macro scrl_stats_rail 10   // statistics' TAB RAIL, pixel mode (his ask: the house bar, left of the tabs)
 #macro scrl_faq 11          // the faq's cards, pixel mode
 #macro scrl_offlog 12       // the offline log's runs, pixel mode
+#macro scrl_autom 13        // the automation panel's page, row mode (fractional rows - smooth)
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 

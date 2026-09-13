@@ -72,6 +72,21 @@ NTAB  = 5;
 // room rolls on the wheel; __row_y subtracts it, and rows off either
 // end are skipped by the Draw and the Step alike
 scroll = array_create(NTAB, 0);
+rows_n = 0;   // this frame's row count (the scrollbar's lane reads it)
+
+// THE HOUSE SCROLLBAR (his ask, 2026-09-13: "the scrollbar system in
+// the automation needs to be our house smooth one"). Row mode against
+// the page's row count; it owns the wheel (fenced to the content) and
+// the touch drag and writes scroll[tab] as FRACTIONAL rows, so the page
+// glides. A tab switch re-seats the bar on that tab's own scroll.
+sb = create_obj(room_width - sprite_get_width(spr_scrollbar) - 1, list_y, obj_scrollbar);
+sb.i = scrl_autom;
+sb.depth = depth - 1;
+sb.ui_layer = ui_layer_popup;
+sb.in_menu = true;
+sb.wheel_x1 = cont_x; sb.wheel_x2 = room_width;
+sb.image_yscale = (room_height - 30 - list_y) / sprite_get_height(spr_scrollbar);
+sb.col = c_sblue;
 
 // THE RARITY CHIPS on the upgrades page: eight of them across one row,
 // seated off the content band so they fit whatever the ladder grows to.
@@ -103,6 +118,7 @@ drag_which = 0;    // 0 the wide track, 1 the timer track, 2 the cap track
 drag_lo    = 0;
 drag_hi    = 100;
 drag_rw    = -1;   // the row struct at press time (the stops-tracks read it)
+mode_open  = -1;   // the mode whose actions are folded out (one at a time)
 
 // the hover, for the meter (the Draw finds it; the band reads it)
 hov     = -1;
@@ -137,10 +153,17 @@ __seat();
 __chip_seat();
 
 __row_y  = function(_i) { return top_y + (_i - scroll[tab]) * row_p; };
-/// is row _i on the page (not scrolled off either end)?
+/// is row _i on the page? With the bar's fractional scroll a row can
+/// sit half under the band above (the strip and band draw OVER the
+/// page, so that reads right) - but never past the footer line
 __row_vis = function(_i) {
 	var _k = _i - scroll[tab];
-	return (_k >= 0 && _k < __rows_fit());
+	return (_k > -1 && _k < __rows_fit());
+};
+/// ...and may it be TAPPED? Only once it is wholly clear of the band
+__row_hit = function(_i) {
+	var _k = _i - scroll[tab];
+	return (_k >= -.05 && _k < __rows_fit());
 };
 __tog_r  = function(_i) { return { x : tog_x, y : __row_y(_i) + 1, w : tog_w, h : 10 }; };
 __trk_r  = function(_i) { return { x : trk_x, y : __row_y(_i) + 4, w : trk_w, h : 5 }; };
@@ -425,14 +448,25 @@ __page_rows = function() {
 			btns : ["load"], act : "defaults",
 			on : true, st : -1, col : c_white, ram : 0,
 			help : "the shipped setup: the two machines on, no autobuys, no rebirth" });
+		// ⚖️ ONE ROW A MODE (his ask, 2026-09-13: "consolidate the buttons
+		// to a drop-down thing that pulls them all out below the
+		// preset"): the row is the name and its state, with a chevron;
+		// tap it and its actions fold out on the row beneath
 		for (var _k = 0; _k < array_length(_a.presets); _k++) {
 			var _pm = _a.presets[_k];
+			var _open = (mode_open == _k);
 			array_push(_o, { kind : 7, name : _pm.name,
-				val : _pm.offline ? "the away mode - applied while you are gone" : "",
-				btns : ["load", "save", _pm.offline ? "away *" : "away", "x"], act : "mode", k : _k,
+				val : _pm.offline ? "the away mode  -  used while you are gone" : "",
+				btns : [], act : "mode_open", k : _k, chev : _open ? "^" : "v",
 				on : true, st : -1, col : _pm.offline ? c_gold : c_white, ram : 0,
-				help : "load restores it, save overwrites it with the setup now, away "
-				     + "marks it the mode used while you are offline, x deletes it" });
+				help : "tap for its actions - load, save over it, mark it the away mode, delete" });
+			if (_open)
+				array_push(_o, { kind : 7, name : "",
+					val : "",
+					btns : ["load", "save", _pm.offline ? "away *" : "away", "delete"], act : "mode", k : _k,
+					on : true, st : -1, col : _pm.offline ? c_gold : c_white, ram : 0,
+					help : "load restores it, save overwrites it with the setup now, away "
+					     + "marks it the mode used while you are offline, delete removes it" });
 		}
 		if (array_length(_a.presets) < 8)
 			array_push(_o, { kind : 7, name : "new mode",
@@ -797,6 +831,11 @@ __action = function(_rw, _b) {
 		play_sound_ext(snd_softclick, 1, 1.1, .45, 1);
 		return;
 	}
+	if (_rw.act == "mode_open") {
+		mode_open = (mode_open == _rw.k) ? -1 : _rw.k;
+		play_sound_ext(snd_softclick, (mode_open >= 0) ? 1.05 : .95, (mode_open >= 0) ? 1.15 : 1.05, .4, 1);
+		return;
+	}
 	if (_rw.act == "mode_new") {
 		var _nn = array_length(g.autom.presets) + 1;
 		array_push(g.autom.presets, { name : "mode " + string(_nn), pack : autom_pack(), offline : false });
@@ -832,6 +871,7 @@ __action = function(_rw, _b) {
 			}
 			case 3:   // delete
 				array_delete(g.autom.presets, _k, 1);
+				mode_open = -1;
 				save_mark_dirty();
 				play_sound_ext(snd_matclick, .8, .9, .5, 1);
 				break;

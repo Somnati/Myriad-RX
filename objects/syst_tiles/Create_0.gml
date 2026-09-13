@@ -329,20 +329,38 @@ upg_h = 22;   // ⚖️ CONDENSED (his ask, 2026-09-10): the name + level line,
               // and seven at 22 + 2 (168px) still clear the rebirth
               // box at 241 from a top of 68.
 upg_g = 2;    // the gap between rows
-upg_n = array_length(tile_upg_config()) + array_length(tile_flux_config());   // the shard rows, then the flux rows
-/// THE DRAWER'S ROWS: the shard roster (the engine, wiped by a reset)
-/// then the flux ladder (the export, permanent) - one list, each row
-/// carrying its currency so the layout, the quotes, the draw and the
-/// hit test walk the same array
+/// THE DRAWER'S ROWS - ONE TAB AT A TIME (his ask, 2026-09-13: nine rows
+/// in one list "condensed and overlapping"). upg_tab 0 = the shard
+/// roster (the engine, wiped by a reset), 1 = the flux ladder (the
+/// export, permanent). Each row carries its currency so the layout,
+/// the quotes, the draw and the hit test walk the same array
+upg_tab = 0;
 __rows = function() {
 	var _o = [];
-	var _uc = tile_upg_config();
-	for (var _k = 0; _k < array_length(_uc); _k++) array_push(_o, { cfg : _uc[_k], cur : "shards" });
-	var _fc = tile_flux_config();
-	for (var _k = 0; _k < array_length(_fc); _k++) array_push(_o, { cfg : _fc[_k], cur : "flux" });
+	if (upg_tab == 0) {
+		var _uc = tile_upg_config();
+		for (var _k = 0; _k < array_length(_uc); _k++) array_push(_o, { cfg : _uc[_k], cur : "shards" });
+	} else {
+		var _fc = tile_flux_config();
+		for (var _k = 0; _k < array_length(_fc); _k++) array_push(_o, { cfg : _fc[_k], cur : "flux" });
+	}
 	return _o;
 };
-UPG_DIV_H = 12;   // the divider above the flux rows
+upg_n = array_length(__rows());
+UPG_DIV_H = 12;   // the currency line above the rows (what this tab spends)
+// the two tab chips in the drawer's header, after the close chip
+__tab_r = function(_k) {
+	return { x : __dr_face() + 5 + 11 + 5 + _k * 42, y : upg_y - 14, w : 40, h : 11 };
+};
+/// a tab switch: the rows change under every per-row array, so they
+/// start over (the quotes requote at once)
+__tab_set = function(_k) {
+	if (upg_tab == _k) return;
+	upg_tab = _k;
+	uq = []; ufold = []; uflash = []; upop = []; urow_y = []; urow_h = [];
+	upg_n = array_length(__rows());
+	qtic = 0;
+};
 // ⚖️ THE FACE, AND IT WAS WRONG AT BOTH ENDS. -dr_w + (dr_w+tab)*open
 // put the CLOSED drawer's right edge at 0 - so the tab was off screen -
 // and the OPEN one's left edge at +9, leaving a strip of room showing
@@ -428,14 +446,15 @@ __upg_layout = function() {
 	// cheapest row you cannot yet afford stays open however far off it
 	// is, so a fresh table (no shards, everything a hundred times away)
 	// still shows one full row to save toward rather than seven whispers
+	var _rows = __rows();
+	_n = array_length(_rows);
 	var _wants = array_create(_n, 0);
 	var _next = -1, _fnext = -1;
-	var _ns = array_length(tile_upg_config());   // the first flux row's index
 	for (var _k = 0; _k < _n; _k++) {
 		if (_k >= array_length(uq)) continue;
 		var _q = uq[_k];
 		if (_q.max) continue;
-		if (_k < _ns) {
+		if (_rows[_k].cur == "shards") {
 			if (!(_q.cost >= arb(1))) continue;
 			var _sh = g.tiles.shards;
 			var _gap = (_sh >= arb(1)) ? (arb_log10(_q.cost) - arb_log10(_sh)) : arb_log10(_q.cost);
@@ -459,7 +478,7 @@ __upg_layout = function() {
 		uflash[_k] = max(0, uflash[_k] - delta);
 		upop[_k]  = trickle(upop[_k], 1, 5, 0);
 		var _h = round(lerp(UPG_H_FULL, UPG_H_FOLD, ufold[_k]));
-		if (_k == _ns) _y += UPG_DIV_H;   // the divider above the flux ladder
+		if (_k == 0) _y += UPG_DIV_H;   // the currency line above the rows
 		urow_y[_k] = _y;
 		urow_h[_k] = _h;
 		_y += _h + upg_g;
@@ -600,23 +619,37 @@ __draw_drawer = function() {
 		draw_set_alpha(.8 * dr_open);
 		draw_text(_cx.x + _cx.w * .5 + 1, _cx.y + 2, ">");
 		draw_set_halign(fa_left);
-		draw_set_alpha(.6 * dr_open);
-		draw_text(_cx.x + _cx.w + 5, upg_y - 10, "tile upgrades");   // down 1px (his ask)
+		// THE TWO TABS, after the close chip: shards (the engine) and flux
+		// (the export) - the drawer shows one ladder at a time
+		for (var _tk = 0; _tk < 2; _tk++) {
+			var _tr = __tab_r(_tk);
+			var _tc = (_tk == 0) ? c_aqua : c_hred;
+			var _ton = (upg_tab == _tk);
+			draw_sprite_ext(spr_pixel_1x1, 0, _tr.x, _tr.y, _tr.w, _tr.h, 0,
+				_ton ? merge_colour(_tc, c_black, .6) : c_black, (_ton ? .95 : .6) * dr_open);
+			draw_px_rect(_tr.x, _tr.y, _tr.w, _tr.h, _tc, (_ton ? .9 : .3) * dr_open);
+			draw_set_halign(fa_center);
+			draw_set_color(_ton ? c_white : merge_colour(_tc, c_white, .3));
+			draw_set_alpha((_ton ? .95 : .6) * dr_open);
+			draw_text(_tr.x + _tr.w * .5 + 1, _tr.y + 2, (_tk == 0) ? "shards" : "flux");
+		}
+		draw_set_halign(fa_left);
 
 		// the buy-amount button, right of the title - THE DIAL ROOM'S
 		// LOOK (his ask): DE's obj_ui_buylv face tinted by the mode
 		// (frame 0, or 1 pressed) with the mode glyph on top, not the
 		// bare glyph this drew before
-		var _bb = __bb_r();
-		var _bbc = __bb_color();
-		draw_sprite_ext(spr_buylv, bb_down ? 1 : 0, _bb.x, _bb.y, 1, 1, 0,
-			_bbc, .95 * dr_open);
-		draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y + (bb_down ? 1 : 0),
-			1, 1, 0, merge_colour(_bbc, c_white, .5), .95 * dr_open);
+		if (upg_tab == 0) {   // (a flux rung is one level a buy - no amount to pick)
+			var _bb = __bb_r();
+			var _bbc = __bb_color();
+			draw_sprite_ext(spr_buylv, bb_down ? 1 : 0, _bb.x, _bb.y, 1, 1, 0,
+				_bbc, .95 * dr_open);
+			draw_sprite_ext(spr_buylv, __bb_frame(), _bb.x, _bb.y + (bb_down ? 1 : 0),
+				1, 1, 0, merge_colour(_bbc, c_white, .5), .95 * dr_open);
+		}
 
 		__upg_layout();
 		var _rows = __rows();
-		var _nsh  = array_length(tile_upg_config());
 		var _dimc = rgb(110, 120, 140);
 		for (var _k = 0; _k < array_length(_rows); _k++) {
 			var _ur = __upg_r(_k);
@@ -628,20 +661,23 @@ __draw_drawer = function() {
 			var _rc = _isf ? merge_colour(c_hred, c_white, .25) : __upg_col(_uc.id);
 			var _ucap = _uc[$ "max"] ?? -1;
 
-			// THE DIVIDER above the flux ladder: what it is, and the flux
-			// in hand with the boost it pays while held
-			if (_k == _nsh) {
+			// THE CURRENCY LINE above the tab's rows: what this ladder is,
+			// and what you hold to spend on it
+			if (_k == 0) {
 				var _dvy = _ur.y - UPG_DIV_H;
-				var _fl2 = g.tiles[$ "flux"] ?? 0;
-				draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _dvy + 5, _ur.w, 1, 0, c_hred, .35 * _ua);
+				var _lc = _isf ? c_hred : c_aqua;
+				draw_sprite_ext(spr_pixel_1x1, 0, _ur.x, _dvy + 5, _ur.w, 1, 0, _lc, .35 * _ua);
 				draw_set_halign(fa_left);
-				draw_set_color(c_hred);
+				draw_set_color(_lc);
 				draw_set_alpha(.85 * _ua);
-				draw_text(_ur.x + 2, _dvy - 1, "flux  -  permanent");
+				draw_text(_ur.x + 2, _dvy - 1, _isf ? "flux  -  permanent" : "shards  -  the engine, a reset wipes it");
 				draw_set_halign(fa_right);
-				draw_set_color(merge_colour(c_hred, c_white, .4));
-				draw_text(_ur.x + _ur.w - 2, _dvy - 1, crunch_arb(arb(max(0, floor(_fl2)))) + " held  x"
-					+ string_format(tile_rebirth_boost(), 1, 2));
+				draw_set_color(merge_colour(_lc, c_white, .4));
+				if (_isf) {
+					var _fl2 = g.tiles[$ "flux"] ?? 0;
+					draw_text(_ur.x + _ur.w - 2, _dvy - 1, crunch_arb(arb(max(0, floor(_fl2)))) + " held  x"
+						+ string_format(tile_rebirth_boost(), 1, 2));
+				}
 				draw_set_halign(fa_left);
 			}
 
@@ -771,8 +807,8 @@ __draw_drawer = function() {
 		if (!TILES_LIVE) {
 			draw_set_color(c_horange);
 			draw_set_alpha(.7 * dr_open);
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + upg_g) + 6, "preview - the board");
-			draw_text(_fx + 6, upg_y + upg_n * (upg_h + upg_g) + 15, "is not saved yet");
+			draw_text(_fx + 6, upg_y + UPG_DIV_H + upg_n * (upg_h + upg_g) + 6, "preview - the board");
+			draw_text(_fx + 6, upg_y + UPG_DIV_H + upg_n * (upg_h + upg_g) + 15, "is not saved yet");
 		}
 	}
 

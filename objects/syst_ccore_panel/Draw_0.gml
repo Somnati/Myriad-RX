@@ -151,6 +151,15 @@ if (__part(3) > 0) {
 		draw_set_alpha(.85);
 		draw_text(disc_cx, read_y, "filling - full in " + crunch_time_long(_left * 60));
 	}
+	// the well's lifetime, under the state line (his ask: the core's
+	// stats - drawn credits and collects, saved with it)
+	if (_on && (_c[$ "pulls"] ?? 0) > 0) {
+		draw_set_halign(fa_center);
+		draw_set_color(_dim);
+		draw_set_alpha(.65);
+		draw_text(disc_cx, btn_y + btn_h + 4, string(_c[$ "made"] ?? 0) + " drawn over " + string(_c.pulls)
+			+ ((_c.pulls == 1) ? " collect" : " collects"));
+	}
 	draw_set_halign(fa_left);
 	var _cb  = __col_r();
 	var _can = (_c.st == 1 || _c.st == 2) && floor(_c.xp) >= 1;

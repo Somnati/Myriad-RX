@@ -13,6 +13,8 @@ function ccore_collect(_x, _y) {
 	if (_n < 1) return 0;
 	var _v = ccore_values();
 	credit_drop(_x, _y, _n, clamp(_n, 4, 14));
+	_c.made  = (_c[$ "made"] ?? 0) + _n;    // the well's lifetime (his ask: its stats, saved)
+	_c.pulls = (_c[$ "pulls"] ?? 0) + 1;
 	_c.cool_from = lerp(50, 100, clamp(_c.xp / max(1, _v.cap), 0, 1));
 	_c.xp = _c.cool_from;
 	_c.st = 3;

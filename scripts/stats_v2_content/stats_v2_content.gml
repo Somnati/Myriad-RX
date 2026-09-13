@@ -459,6 +459,14 @@ function stats_v2_content() {
 	if (stats_v2_folder("credits", c_lavender)) {
 		stats_v2_line("credits", (g.credits >= arb(1)) ? crunch_arb(g.credits) : "0", -1, c_lavender);
 		stats_v2_line("lifetime", (g.total_credits >= arb(1)) ? crunch_arb(g.total_credits) : "0");
+		// the credit core's own ledger (ccore_init: made / pulls, saved)
+		if (variable_global_exists("ccore") && g.ccore.lv > 0) {
+			var _ccv = ccore_values();
+			stats_v2_line("credit core", "level " + string(g.ccore.lv) + "  -  " + string(_ccv.cap) + " cap, "
+				+ string_format(_ccv.gain * 60, 1, 2) + "/min", -1, c_lavender);
+			stats_v2_line("drawn from the core", string(g.ccore[$ "made"] ?? 0) + " credits over "
+				+ string(g.ccore[$ "pulls"] ?? 0) + ((g.ccore[$ "pulls"] ?? 0) == 1 ? " collect" : " collects"), -1, c_lavender);
+		}
 		stats_v2_line("pool", string_format(g.credit_pool, 1, 2) + " / " + string(g.credit_cap));
 		stats_v2_line("cooldown", (g.credit_cool > 0) ? string_format(g.credit_cool, 1, 1) + "s" : "ready");
 		stats_v2_line("chance per tap", string(g.credit_tap_chance) + "%");

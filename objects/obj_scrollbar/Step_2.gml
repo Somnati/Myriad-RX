@@ -29,3 +29,7 @@ kill;
 if i = scrl_offlog
 	if not instance_exists(syst_offlog)
 kill;
+
+if i = scrl_autom
+	if not instance_exists(syst_automation_panel)
+kill;

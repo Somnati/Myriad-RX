@@ -8,9 +8,11 @@
 ///          countdown (cooling)
 ///   st     0 locked, 1 producing, 2 full, 3 cooling
 ///   cool_from  where the cooldown started (its bar reads xp / this)
+///   made   credits ever drawn from the well (lifetime; the panel and
+///          statistics show it) - and pulls, how many collects
 /// SURVIVES REBIRTH (credits are the presence layer, with the upgrades
 /// and the battery); game_reset wipes it with force.
 function ccore_init(_force = false) {
 	if (!_force && variable_global_exists("ccore")) return;
-	g.ccore = { lv : 0, split : 50, xp : 0, st : 0, cool_from : 100 };
+	g.ccore = { lv : 0, split : 50, xp : 0, st : 0, cool_from : 100, made : 0, pulls : 0 };
 }

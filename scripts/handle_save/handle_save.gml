@@ -526,7 +526,11 @@ function handle_save(){
 	g.ccore.xp        = handle("cc_xp",    g.ccore.xp);
 	g.ccore.st        = handle("cc_st",    g.ccore.st);
 	g.ccore.cool_from = handle("cc_cool",  g.ccore.cool_from);
+	g.ccore.made      = handle("cc_made",  g.ccore[$ "made"] ?? 0);    // the well's lifetime
+	g.ccore.pulls     = handle("cc_pulls", g.ccore[$ "pulls"] ?? 0);
 	if (action == sv_load) {
+		g.ccore.made  = max(0, floor(g.ccore.made));
+		g.ccore.pulls = max(0, floor(g.ccore.pulls));
 		g.ccore.lv    = max(0, floor(g.ccore.lv));
 		g.ccore.split = clamp(round(g.ccore.split / 5) * 5, 0, 100);
 		g.ccore.st    = clamp(floor(g.ccore.st), 0, 3);
