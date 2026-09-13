@@ -69,6 +69,11 @@ def vnoise(px, py):
 def tones(n, th): return np.where(n > th, 1.0, np.where(n < -th, -1.0, 0.0))
 
 
+def sd_rr(px, py, bx, by, r):
+    dx = np.abs(px) - (bx - r); dy = np.abs(py) - (by - r)
+    return np.sqrt(np.maximum(dx, 0) ** 2 + np.maximum(dy, 0) ** 2) - r + np.minimum(np.maximum(dx, dy), 0)
+
+
 def pattern(kind, qx, qy, w, h, t, view, par, seed):
     """d for a tile body at room (qx, qy) size (w, h), time t. The cell grid."""
     cx, cy = np.meshgrid(np.arange(w), np.arange(h))
@@ -86,21 +91,25 @@ def pattern(kind, qx, qy, w, h, t, view, par, seed):
     if kind == 3:
         ccx, ccy = qx + hwx, qy + hwy
         shx = -(ccx - view[0]) * par - 1.5; shy = -(ccy - view[1]) * par - 1.5
+        so = sd_rr(qxx, qyy, hwx, hwy, 4.0)
+        sm = so + 2.0
+        sf = sd_rr(qxx - shx, qyy - shy, hwx - 3, hwy - 3, 1.0)
+        lamp = np.clip(.5 - (qxx / hwx + qyy / hwy) * .5, 0, 1)
+        lip = .3 + .6 * lamp
+        grain = np.where(hash21(np.floor(qxx - shx) + seed, np.floor(qyy - shy) + seed) > .82, -.55, -1.0)
+        wd = np.clip(-sm / 4.0, 0, 1)
+        wall = .25 + (-.85 - .25) * wd
+        d = np.where(sm >= 0, lip, np.where(sf < 0, grain, wall))
         mhx, mhy = hwx - 2, hwy - 2
-        srf = (np.abs(qxx) >= mhx) | (np.abs(qyy) >= mhy)
-        qfx, qfy = qxx - shx, qyy - shy
-        fhx, fhy = mhx - 1, mhy - 1
-        flr = (np.abs(qfx) < fhx) & (np.abs(qfy) < fhy)
-        grain = np.where(hash21(np.floor(qfx) + seed, np.floor(qfy) + seed) > .82, -.55, -1.0)
-        d = np.where(srf, .7, np.where(flr, grain, -.35))
-        A = w * h
-        fs = (A - (w - 4) * (h - 4)) / A
+        fhx, fhy = hwx - 3, hwy - 3
+        Ao = 4 * hwx * hwy - (4 - 3.14159) * 16
+        Am = 4 * mhx * mhy - (4 - 3.14159) * 4
         ow = max(0, min(shx + fhx, mhx) - max(shx - fhx, -mhx))
         oh = max(0, min(shy + fhy, mhy) - max(shy - fhy, -mhy))
-        ff = ow * oh / A
-        fw = 1 - fs - ff
-        bias = fs * .7 + ff * (.82 * -1.0 + .18 * -.55) + fw * -.35
-        return d - bias
+        Af = max(0, ow * oh - (4 - 3.14159))
+        Aw = max(0, Am - Af)
+        d = d - ((Ao - Am) * .6 + Aw * -.1 + Af * -.92) / Ao
+        return np.where(so < 0, d, np.nan)   # the sprite masks the corners: they are not cells
     if kind == 4:
         s = (hash21(np.floor(px + t * 2), np.floor(py)) > .965) | (hash21(np.floor(px * .5 + t * .7) + 7, np.floor(py * .5) + 7) > .975)
         return np.where(s, 1.0, -.064)
@@ -137,11 +146,33 @@ def pattern(kind, qx, qy, w, h, t, view, par, seed):
         n = vnoise(px * .08 + t * .30 + seed, py * .02 + t * .15 + seed) * .7 \
             + vnoise(px * .17 - t * .22 + seed * 3, py * .04 + seed * 3) * .3
         return tones((n - .5) * 2, .2)
+    if kind == 14:
+        gx = np.floor((px - t * 3) / 2); gy = np.floor((py - t * 3) / 2)
+        return np.where(gmod(gx + gy, 2) < .5, .45, -.45)
+    if kind == 15:
+        ang = np.arctan2(qyy * (hwx / hwy), qxx)
+        r = np.sqrt(qxx ** 2 + (qyy * (hwx / hwy)) ** 2)
+        return tones(np.sin(ang * 3 + r * .7 - t * 3), .5)
+    if kind == 16:
+        colh = hash21(np.floor(px), np.full_like(px, 3.0))
+        ph = fract(py / 28 + t * (1.2 + colh * .8) + colh * 7)
+        return np.where(ph < .12, 1.0, np.where(ph < .24, -1.0, 0.0))
+    if kind == 17:
+        ry = gmod(np.floor(py - t * 3), 6); cxx = gmod(np.floor(px + t * 2), 8)
+        a = np.where(ry < .5, 1.0, np.where((ry > 2.5) & (ry < 3.5), -1.0, 0.0))
+        b = np.where(cxx < .5, 1.0, np.where((cxx > 3.5) & (cxx < 4.5), -1.0, 0.0))
+        return np.clip(a + b, -1, 1) * .7
+    if kind == 18:
+        n = vnoise(px * .07 + t * .05 + seed, py * .07 - t * .03 + seed)
+        return tones(np.sin(px * .35 + py * .2 + n * 9 + t * .4), .55)
+    if kind == 19:
+        return tones(np.sin(px * .7 + np.sin(py * .45 + t * 2.5) * 2 + t * 1.5), .4)
     return np.zeros((h, w))
 
 
 NAMES = {1: "sheen", 2: "liquid", 3: "hole", 4: "stars", 5: "bands", 6: "stripes", 7: "lattice",
-         8: "ripple", 9: "ember", 10: "orbit", 11: "pulse", 12: "static", 13: "aurora"}
+         8: "ripple", 9: "ember", 10: "orbit", 11: "pulse", 12: "static", 13: "aurora",
+         14: "checker", 15: "spiral", 16: "rain", 17: "plaid", 18: "marble", 19: "shimmer"}
 print(__doc__.strip().splitlines()[0])
 print("=" * 74)
 print("amp %.2f (a mean d of .03 is a %.1f%% luma drift)" % (AMP, AMP * .03 * 100))
@@ -162,8 +193,8 @@ for kind in sorted(NAMES):
     for (qx, qy) in positions[::3]:
         for t in times[::2]:
             d = pattern(kind, qx, qy, W, H, t, VIEW, PAR, seed=(qx * 7 + qy) % 13)
-            means.append(d.mean())
-            mx = max(mx, np.abs(d).max())
+            means.append(float(np.nanmean(d)))
+            mx = max(mx, float(np.nanmax(np.abs(d))))
     m = float(np.mean(means)); sd = float(np.std(means))
     say(abs(m) < .03, "%-8s mean d %+.4f (per-frame sd %.3f)" % (NAMES[kind], m, sd),
         "luma drift %+.2f%%, crest %.2f x amp" % (m * AMP * 100, mx))
@@ -174,9 +205,9 @@ print("2. THE HOLE AT THE ROOM'S EDGES (parallax clips the floor - the mean may 
 for (qx, qy) in [(8, 30), (440, 30), (8, 250), (440, 250), (225, 128)]:
     d = pattern(3, qx, qy, W, H, 0, VIEW, PAR, 3)
     shx = -((qx + 15) - VIEW[0]) * PAR - 1.5
-    print("      at (%3d,%3d)  floor shift %+.1f px  mean d %+.3f" % (qx, qy, shx, d.mean()))
+    print("      at (%3d,%3d)  floor shift %+.1f px  mean d %+.3f" % (qx, qy, shx, np.nanmean(d)))
 d_edge = pattern(3, 440, 250, W, H, 0, VIEW, PAR, 3)
-say(abs(d_edge.mean()) < .1, "the hole's mean at the far corner stays under .1 (a %.1f%% drift, corner only)" % (.1 * AMP * 100), "%+.3f" % d_edge.mean())
+say(abs(np.nanmean(d_edge)) < .1, "the hole's mean at the far corner stays under .1 (a %.1f%% drift, corner only)" % (.1 * AMP * 100), "%+.3f" % np.nanmean(d_edge))
 
 print()
 print("3. THE LADDER (tile_mat_config): one surface a tier, the top six cycling past the end")
