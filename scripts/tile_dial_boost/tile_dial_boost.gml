@@ -66,19 +66,13 @@ function tile_dial_boost(_lv = undefined) {
 	var _t = g.tiles;
 	if (_lv == undefined) _lv = _t.fupg[$ "profit"] ?? 0;   // the flux ladder's, permanent (2026-09-12)
 	if (_lv <= 0) return arb(1);              // unbought: the board is not wired in
-	if (!(_t.gps >= arb(1))) return arb(1);   // an empty board boosts nothing
-
-	// the board's share, compounding per level - see the header. A
-	// share under 1 (level 1 is .25) is exactly what do_scale exists
-	// for; a contribution that would fall under one whole unit is noise
-	// and clamps to arb(1), which the divisor then makes a rounding
-	// error rather than a boost.
-	var _f = power(1 + TILE_PROFIT_STEP, _lv) - 1;
-	var _c = do_scale(_t.gps, _f);
-
-	// + the divisor, then shift the packed exponent down by its digit
-	// count. TILE_DIAL_DIV is 100 and TILE_DIAL_SHIFT is its 2 - one
-	// number said twice, and the macro says so, because getting the pair
-	// out of step would silently rescale every dial in the game.
-	return do_add(_c, arb(TILE_DIAL_DIV)) - TILE_DIAL_SHIFT;
+	// ⚖️ PURE COMPOUNDING (his rebalance ask, 2026-09-13). The boost used to
+	// be the board's SHARD OUTPUT x the ladder's share / 100 - and the
+	// board's output grows exponentially with tiers and with flux held,
+	// so at rung 13 on a mature board it was x82,707 on every dial (the
+	// twin, 8b), and past that unbounded. The rung is the multiplier now:
+	// (1 + TILE_PROFIT_STEP)^lv, x1.25 a rung, x87 at rung 20, x70,000 at
+	// the ladder's top - the board earns the FLUX that buys the rungs, and
+	// that is its whole road into the dials
+	return log_to_arb(_lv * log10(1 + TILE_PROFIT_STEP));
 }

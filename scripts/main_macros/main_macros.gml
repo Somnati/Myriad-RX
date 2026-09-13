@@ -604,7 +604,7 @@ function main_macros() {
 // eight hours. 1.25 with every base x3 buys eleven in the first hour
 // and the plateau lands where the reset is on offer (tiles_twin
 // sections 3-5, checked across seeds)
-#macro TILE_FLUX_POW      1   // linear - his call
+#macro TILE_FLUX_POW      .5  // sqrt (2026-09-13, his rebalance ask: linear ran away - 7000 flux held was x73 on the board, and the board feeds the next reset's flux)
 
 #macro TILE_DIAL_DIV    100
 #macro TILE_DIAL_SHIFT    2
@@ -656,7 +656,7 @@ function main_macros() {
 // base x3 (tile_upg_config) buys eleven in hour one and its plateau
 // lands where the flux reset is on offer. datafiles/tiles_twin.py
 // reads the same numbers; it must print HOLD before these move again.
-#macro TILE_UPG_CURVE  1.25  // every upgrade's price curve (his call):
+#macro TILE_UPG_CURVE  2     // every upgrade's price curve (his call):
                              // 1 = a straight line, higher = a slower
                              // start and a steeper finish
 #macro TILE_PROFIT_CURVE 1.25 // ...except profit's, which must NOT

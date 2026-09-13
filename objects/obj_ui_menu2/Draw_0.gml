@@ -39,3 +39,19 @@ if (rip > 0) {
 			1, 1, 0, c_white, rip * .5);
 	}
 }
+
+// ---- THE X CHIP: a panel's way out, beside the burger (2026-09-13) ----
+// a small plate with a drawn x, in the burger's tones; it eases in with
+// the panel and lights under the pointer like the burger does
+if (xa > .01) {
+	var _xr = __x_r();
+	var _xc = hot_x ? c_white : rgb(190, 200, 225);
+	var _xo = (1 - xa) * 6;   // it slides in from the burger's side
+	var _x0 = _xr.x + _xo;
+	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _xr.y, _xr.w, _xr.h, 0, c_black, .75 * xa);
+	draw_px_rect(_x0, _xr.y, _xr.w, _xr.h, _xc, (hot_x ? .7 : .35) * xa);
+	var _cx = _x0 + _xr.w * .5, _cy = _xr.y + _xr.h * .5;
+	draw_px_line(_cx - 3, _cy - 3, _cx + 3, _cy + 3, _xc, xa);
+	draw_px_line(_cx - 3, _cy + 3, _cx + 3, _cy - 3, _xc, xa);
+	if (xrip > 0) draw_px_rect(_x0 - 2, _xr.y - 2, _xr.w + 4, _xr.h + 4, c_white, xrip * .5 * xa);
+}

@@ -26,17 +26,11 @@ function menu2_content() {
 	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_rarity_epic, "abilities"); // techdemo (an overlay, 2026-09-12)
 	if (unfold_has("automation")) menu2_button("automation",   function() { automation_open(); }, c_sblue, "automation");
 	if (unfold_has("timebank"))   menu2_button("time bank",    function() { timebank_open(); }, c_gold, "timebank");
-	if (unfold_has("battery"))    menu2_button("battery",      function() { battery_open(); },  c_sgreen, "battery");   // the offline budget + the crank
-	if (unfold_has("ccore"))      menu2_button("credit core",  function() { ccore_open(); },    c_lavender, "ccore"); // DE's credit farm, the well of credits
 	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_steelblue, "expeditions");   // a game line, not a misc one (2026-09-13)
-	// the line says when a gift is waiting - the menu rebuilds on every
-	// open, so the label is live (Techdemo II's calendar, ported)
-	if (unfold_has("gift"))
-		menu2_button(gift_can_claim() ? "daily gift  -  ready" : "daily gift",
-			function() { gift_open(); }, c_pink, "gift");
+	// (the battery, the credit core, statistics and the daily gift are DOCK
+	// icons now - obj_ui_gear, beside the settings gear, 2026-09-13)
 	// an OVERLAY now, so it is a method destination: syst_menu2 folds the
 	// drawer and runs the closure instead of changing room
-	if (unfold_has("statistics")) menu2_button("statistics",   function() { statistics_open(); }, c_sgreen, "statistics");
 	menu2_button("titlescreen",  rm_titlescreen,   c_gray);
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 

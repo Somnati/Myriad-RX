@@ -5,7 +5,8 @@
 /// flag survives the room hop and syst_rebirth's Create consumes it.
 function rebirth_open() {
 	if (!variable_global_exists("game_started") || !g.game_started) return;
-	if (ui_overlay() != noone) return;   // one panel at a time
+	if (instance_exists(syst_rebirth) && syst_rebirth.open) return;   // already up
+	if (ui_overlay() != noone) ui_overlay_close();   // one panel at a time: the one up folds (2026-09-13 - the menu opens over panels now)
 	g.rebirth_open_pending = true;
 	// ⚖️ IN PLACE, WHATEVER THE ROOM (his ask, 2026-09-10: from the tiles
 	// it used to hop to the money room first). The money room carries

@@ -1,30 +1,21 @@
-/// @description the cog
+/// @description the dock
+var _seats = __seats();
+if (array_length(_seats) == 0) exit;
+var _a = __seat().a;
 
-if (ui_overlay() != noone) exit;
-
-var _s = __seat();
-if (_s.a <= .01) exit;
-
-// hover halo, the burger's exactly - the two are one control surface
-// and should light the same way
-if (hot || rip > 0) {
-	var _gw = sprite_get_width(spr_vis_glow_soft);
-	draw_sprite_ext(spr_vis_glow_soft, 0, _s.x, _s.y, 26 / _gw, 26 / _gw, 0,
-		c_white, (.1 + .12 * spin + .15 * rip) * _s.a);
+for (var _k = 0; _k < array_length(_seats); _k++) {
+	var _s = _seats[_k];
+	var _ic = icons[_s.i];
+	var _hot = (hot_i == _s.i);
+	var _rp = (rip_i == _s.i) ? rip : 0;
+	// hover halo, the burger's exactly - the dock and the burger are one
+	// control surface and should light the same way
+	if (_hot || _rp > 0) {
+		var _gw = sprite_get_width(spr_vis_glow_soft);
+		draw_sprite_ext(spr_vis_glow_soft, 0, _s.x, _s.y, 26 / _gw, 26 / _gw, 0,
+			c_white, (.1 + .12 * _ic.spin + .15 * _rp) * _a);
+	}
+	__glyph(_s.i, _s.x, _s.y, _a, _ic.spin, _hot);
 }
-
-// DE's cog is frame 0; frame 1 is its inverse (the cog cut out of a
-// disc), which is the wrong read for a flat icon.
-// The origin was moved to the sprite's MIDDLE on import, so this draws
-// at the seat directly and the rotation happens about the cog's centre.
-// Doing it the other way - top-left origin, half-width subtracted -
-// still rotates about the origin, so the icon swung around its own
-// corner instead of turning on the spot.
-// a quarter turn and a little bigger, both off the one hover ease.
-// 90 degrees because a cog has fourfold symmetry - it lands looking
-// like itself, so the turn reads as a movement rather than as a tilt.
-var _sc = 1 + .15 * spin;
-draw_sprite_ext(spr_gear, 0, _s.x, _s.y, _sc, _sc,
-	spin * 90,                                   // there, and back
-	hot ? c_white : rgb(190, 200, 225),          // the burger's two tones
-	(.85 + .15 * spin) * _s.a);
+draw_set_alpha(1);
+draw_set_color(c_white);

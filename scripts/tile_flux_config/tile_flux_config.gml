@@ -27,23 +27,23 @@ function tile_flux_config() {
 			// the export itself. Level 1 wires the table into the dials
 			// (nothing at 0 - tile_dial_boost); each level after
 			// compounds the board's share by TILE_PROFIT_STEP
-			id : "profit", name : "dial profit boost", base : 1, curve : 1.6, max : 50,
+			id : "profit", name : "dial profit boost", base : 2, curve : 1.8, max : 50,   // (2026-09-13: was 1 x1.6 - a day's flux bought twenty rungs)
 			fmt : function(_lv) {
 				var _b = tile_dial_boost(_lv);
 				var _lg = arb_log10(_b);
 				return "x" + ((_lg < 3) ? string_format(power(10, _lg), 1, 2) : crunch_arb(_b));
 			},
 			help : "wires the tile table into dial profit - permanent, a reset never "
-			     + "touches it. each level compounds +" + string(round(TILE_PROFIT_STEP * 100))
-			     + "% of the board's output into a multiplier on every dial",
+			     + "touches it. every dial pays x" + string_format(1 + TILE_PROFIT_STEP, 1, 2)
+			     + " more a level, compounding",
 		},
 		{
-			id : "slots", name : "permanent slots", base : 8, curve : 2, max : 4,
+			id : "slots", name : "permanent slots", base : 20, curve : 2.5, max : 4,
 			fmt : function(_lv) { return "+" + string(_lv) + " slot" + ((_lv == 1) ? "" : "s"); },
 			help : "a slot the table keeps through every reset, on top of the base board",
 		},
 		{
-			id : "rarity", name : "rarity floor", base : 4, curve : 1.8, max : 10,
+			id : "rarity", name : "rarity floor", base : 6, curve : 2, max : 10,
 			fmt : function(_lv) { return "+" + string(TILE_FLUX_RAR * _lv) + " rate"; },
 			help : "+" + string(TILE_FLUX_RAR) + " fabricator rarity rate a level, permanent - "
 			     + "added before the shard row multiplies it",

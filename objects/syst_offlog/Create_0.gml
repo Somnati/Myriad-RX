@@ -50,7 +50,9 @@ sb.image_yscale = (room_height - list_y) / sprite_get_height(spr_scrollbar);
 sb.col = c_sgreen;
 
 // the strip's chips (the region law: Step's hits and Draw share these)
-__dbg_r = function() { return { x : room_width - 48, y : hh + 1, w : 42, h : 13 }; };
+// (left of the x chip and the burger - it used to sit under the burger, so a
+// press on it closed the log; his report, 2026-09-13)
+__dbg_r = function() { return { x : room_width - 96, y : hh + 1, w : 42, h : 13 }; };
 // the sim row (debug only): four chips under the strip, applied for real
 sims = [[300, "5m"], [3600, "1h"], [28800, "8h"], [86400, "24h"]];
 __sim_r = function(_i) {

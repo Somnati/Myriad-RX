@@ -363,8 +363,9 @@ class Table:
         # an unbought upgrade is an unwired board, and f compounds per
         # level. THIS is where the upgrade's value lands; measuring it
         # on gps (as this twin used to) reports it as worth nothing.
-        f = (1 + PROFIT_STEP) ** self.flv["profit"] - 1   # the flux ladder's level
-        return 1 + self.gps() * f / DIAL_DIV
+        # PURE COMPOUNDING (2026-09-13): the rung is the multiplier, the
+        # board's output is not in it any more (it was, and ran away)
+        return (1 + PROFIT_STEP) ** self.flv["profit"]
 
     def rb_calc(self):
         # tile_rebirth_calc: flux = earned / DIV, off THIS RUN's earned
@@ -580,8 +581,10 @@ say(first is not None and first <= 300,
     "the first upgrade lands inside 5 minutes",
     "at %s" % (hms(first) if first else "never"))
 n1h = len([1 for (t, _, _, _) in tb.log if t <= 3600])
-say(3 <= n1h <= 14,
-    "the first hour buys 3-14 (seeds land 11-14 on this shape)",
+# (3-14 under curve 1.25; 2026-09-13 he called that ladder too expensive -
+# curve 2 buys ~30 in the first hour and the day still decelerates, section 6)
+say(3 <= n1h <= 36,
+    "the first hour buys 3-36 (curve 2: ~30 - brisk early, the day still slows)",
     "%d - neither a slot machine nor a wall" % n1h)
 if gaps:
     say(max(gaps) <= 6 * 3600,

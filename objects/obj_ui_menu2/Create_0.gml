@@ -15,3 +15,9 @@ hot = false;
 
 bx = room_width - 15; // icon center, dropped below the display buttons
 by = 22;
+// THE X CHIP (2026-09-13): a panel's way out, beside the burger, while
+// one is up - the burger itself opens the menu over the panel now
+xa    = 0;      // its presence, eased
+xrip  = 0;
+hot_x = false;
+__x_r = function() { return { x : room_width - 46, y : 15, w : 16, h : 14 }; };
