@@ -72,8 +72,10 @@ __seat = function() {
 	return {
 		x : _m.panel_x - 16,
 		// THE BOTTOM of the drawer (his call, 2026-09-08): level with
-		// the pinned time-played band rather than the header
-		y : room_height - _m.foot_h * .5,
+		// the pinned time-played band rather than the header - and a few px
+		// up from its middle, so a disc (r10, +1 hovered) clears the edge
+		// (his report, 2026-09-13: their bottoms fell off screen)
+		y : room_height - 14,
 		a : clamp((room_width - _m.panel_x) / _m.pw, 0, 1),
 	};
 };
@@ -105,6 +107,7 @@ __seats = function() {
 ///       fill rising from the bottom (the core's and the battery's liquid)
 __disc = function(_x, _y, _r, _col, _fill, _a, _h) {
 	var _rr = _r + _h;   // a little bigger under the pointer, the gear's rule
+	_x = floor(_x); _y = floor(_y);   // the centre PIXEL - every glyph seats on it
 	for (var _dy = -_rr; _dy <= _rr; _dy++) {
 		var _hw = sqrt(max(0, sqr(_rr) - sqr(_dy)));
 		var _row = floor(_y + _dy);
@@ -126,12 +129,13 @@ __disc = function(_x, _y, _r, _col, _fill, _a, _h) {
 /// @func __label(x, y, txt, a)
 /// @desc the small font, centred in a disc
 __label = function(_x, _y, _txt, _a) {
-	draw_set_font(fnt);
+	draw_set_font(fnt_outline);   // (his call: the outline keeps it readable over the fill)
 	draw_set_halign(fa_center);
 	draw_set_valign(fa_top);
 	draw_set_color(c_white);
 	draw_set_alpha(.95 * _a);
 	draw_text(floor(_x) + 1, floor(_y) - 3, _txt);
+	draw_set_font(fnt);
 	draw_set_halign(fa_left);
 	draw_set_alpha(1);
 };
@@ -167,11 +171,14 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			break;
 		}
 		case "statistics": {
-			// three bars rising (DE's icon, in the gear's tone)
-			var _hs = [6, 10, 14];
+			// three bars rising (DE's icon) on a disc of the gear's tone - the
+			// same round ground as the core and the battery (his ask), which is
+			// also what keeps the hover glow centred on it
+			__disc(_x, _y, 10, _tone, 0, _a, _h);
+			var _hs = [5, 8, 11];
 			for (var _k = 0; _k < 3; _k++) {
-				var _bh = _hs[_k] + 2 * _h;
-				draw_sprite_ext(spr_pixel_1x1, 0, floor(_x - 8 + _k * 6), floor(_y + 8 - _bh), 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
+				var _bh = _hs[_k] + _h;
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_x) - 7 + _k * 5, floor(_y) + 6 - _bh, 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
 			}
 			break;
 		}
@@ -182,8 +189,13 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			var _wait = gift_can_claim();
 			var _br = _wait ? (.7 + .3 * abs(dsin(current_time * .3))) : 1;
 			var _gc = _wait ? (_hot ? merge_colour(c_pink, c_white, .3) : c_pink) : _tone;
+			// on a disc, and drawn from the disc's centre PIXEL (floor): the box
+			// is eleven wide with its origin at five, so its middle column lands
+			// on the disc's - the glow, the disc and the box share one centre
+			// (his report: the hover glow sat off the box)
+			__disc(_x, _y, 10, _wait ? _gc : _tone, 0, _a, _h);
 			var _sc = 1 + .15 * _h;
-			draw_sprite_ext(spr_gift_icon, 0, _x, _y, _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
+			draw_sprite_ext(spr_gift_icon, 0, floor(_x), floor(_y), _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
 			break;
 		}
 	}
