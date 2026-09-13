@@ -30,7 +30,7 @@ function unfold_config() {
 		  need : function() { return variable_global_exists("credits") && g.total_credits >= arb(15); } },
 		// rebirth, within a decade of the gate (or ever done)
 		{ key : "rebirth", name : "rebirth", banner : "new: rebirth",
-		  need : function() { return variable_global_exists("rebirth") && (g.rebirth.total > 0 || rebirth_calc().have >= 5); } },
+		  need : function() { return variable_global_exists("rebirth") && (g.rebirth.total > 0 || rebirth_calc().gfrac >= 5 / 6); } },
 		// the battery and the offline log, after the first real absence
 		{ key : "battery", name : "battery", banner : "the battery ran while you were away",
 		  need : function() { return variable_global_exists("time_played_offline") && g.time_played_offline >= 60; } },
