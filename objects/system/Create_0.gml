@@ -9,6 +9,7 @@ show_debug_message("WATCH COUNT = " + string(array_length(g.__dbgpro_watch)));
 
 g.font = font_add_sprite(spr_font,ord(" "),true,1);
 g.font_large = font_add_sprite(spr_font_large,ord(" "),true,1); // Myriad's tile font
+g.font_larger = font_add_sprite(spr_font_larger,ord(" "),true,2); // fnt_large's glyphs at 2x, as a font of its own (his ask, 2026-09-13) - sep doubled with the pixels
 g.font_outline = font_add_sprite(spr_font_outline,ord(" "),true,-1); // Myriad DE port, sep -1 (outline overlaps)
 g.font_large_outline = font_add_sprite(spr_font_large_outline,ord(" "),true,-1);
 draw_set_font(g.font);

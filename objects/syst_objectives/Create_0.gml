@@ -48,6 +48,12 @@ open_t = 0;
 pin    = false;
 hov    = false;
 peek   = 0;
+// THE ARRIVAL WAITS FOR A CLEAR ROOM (his report, 2026-09-13: the ding
+// played under the offline log on load; "wait about 5 seconds after i
+// close the log"): the card - and its notification - come OBJ_CARD_DELAY
+// seconds after the last thing over the room went away. Anything that
+// hides the card resets the clock
+clear_t = OBJ_CARD_DELAY;
 
 // ---- the seat: top left, under the per-tap readout and the credit
 // chip (both live at y 28..56); as wide as the room allows ----

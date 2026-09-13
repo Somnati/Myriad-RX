@@ -27,19 +27,21 @@ draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 draw_sprite_ext(spr_pixel_1x1, 0, rule_x, 44, 2, 46, 0, c_gold, .55);
 
-// fnt_large at 2x (his call - sprite fonts take INTEGER scales, so 2 is
-// the only size above 1 that is not a smear). Drawn HERE, over the glow
-// pass, at full strength: its halo comes from the faint twin under the
-// pass (__draw_name), so the type stays crisp and the glow stays soft.
-draw_set_font(fnt_large);
+// fnt_larger (2026-09-13, his ask: a third font) - fnt_large's glyphs at
+// 2x as a font of their own, which is exactly what the transformed 2x
+// draw here used to produce, now with an honest string_width and no
+// scaling. Drawn HERE, over the glow pass, at full strength: its halo
+// comes from the faint twin under the pass (__draw_name), so the type
+// stays crisp and the glow stays soft.
+draw_set_font(fnt_larger);
 draw_set_color(merge_colour(c_gold, c_white, .55));
 draw_set_alpha(1);
 // ONE literal, measured once (his ask: capitalise the first letter).
 var _nm = "Myriad";
-draw_text_transformed(lm, 46, _nm, 2, 2, 0);
-var _nw = string_width(_nm) * 2;
+draw_text(lm, 46, _nm);
+var _nw = string_width(_nm);
 draw_set_color(c_gold);
-draw_text_transformed(lm + _nw + 8, 46, "rx", 2, 2, 0);
+draw_text(lm + _nw + 8, 46, "rx");
 
 draw_set_font(fnt);
 // a hairline under the name, fading out to the right - it stops the

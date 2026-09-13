@@ -20,9 +20,12 @@ var _live = variable_global_exists("game_started") && g.game_started
 	&& in_room(rm_clicker) && unfold_has("tap") && !instance_exists(syst_unfold)
 	&& (_land || !instance_exists(syst_menu2)) && ui_overlay() == noone
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
+// the clear-room clock: runs only while nothing covers the card; anything
+// that does puts it back to OBJ_CARD_DELAY
+if (_live) clear_t = max(0, clear_t - delta / 60); else clear_t = OBJ_CARD_DELAY;
 var _cur  = objective_cur();
 var _gap  = (_ob.gap > 0);   // THE BREATH: after the celebration the card goes away until it ends
-var _want = _live && ((cel > 0) || (!_gap && !is_undefined(_cur)));
+var _want = _live && clear_t <= 0 && ((cel > 0) || (!_gap && !is_undefined(_cur)));
 a = move_to(a, _want ? 1 : 0, 6);
 if (a < .004) a = 0;
 

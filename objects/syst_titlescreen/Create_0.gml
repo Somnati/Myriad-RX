@@ -266,14 +266,14 @@ NAME_UNDER = .22;
 __draw_name = function() {
 	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
-	draw_set_font(fnt_large);
+	draw_set_font(fnt_larger);   // (fnt_large x2 as a font of its own, 2026-09-13)
 	draw_set_color(merge_colour(c_gold, c_white, .55));
 	draw_set_alpha(NAME_UNDER);
 	var _nm = "Myriad";
-	draw_text_transformed(lm, 46, _nm, 2, 2, 0);
-	var _nw = string_width(_nm) * 2;
+	draw_text(lm, 46, _nm);
+	var _nw = string_width(_nm);
 	draw_set_color(c_gold);
-	draw_text_transformed(lm + _nw + 8, 46, "rx", 2, 2, 0);
+	draw_text(lm + _nw + 8, 46, "rx");
 	draw_set_alpha(1);
 	draw_set_font(fnt);
 };

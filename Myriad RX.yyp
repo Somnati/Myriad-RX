@@ -780,6 +780,7 @@
     {"id":{"name":"spr_display_units","path":"sprites/spr_display_units/spr_display_units.yy",},},
     {"id":{"name":"spr_font_large_outline","path":"sprites/spr_font_large_outline/spr_font_large_outline.yy",},},
     {"id":{"name":"spr_font_large","path":"sprites/spr_font_large/spr_font_large.yy",},},
+    {"id":{"name":"spr_font_larger","path":"sprites/spr_font_larger/spr_font_larger.yy",},},
     {"id":{"name":"spr_font_outline","path":"sprites/spr_font_outline/spr_font_outline.yy",},},
     {"id":{"name":"spr_font","path":"sprites/spr_font/spr_font.yy",},},
     {"id":{"name":"spr_gear","path":"sprites/spr_gear/spr_gear.yy",},},

@@ -19,6 +19,7 @@ function main_macros() {
 #macro shdiv sprite_height/2
 #macro fnt g.font
 #macro fnt_large g.font_large
+#macro fnt_larger g.font_larger   // fnt_large x2 - the title's size, as a real font (string_width is honest, no transformed draws)
 // outline variants (Myriad DE port 2026-07-10; aliases 2026-07-14)
 #macro fnt_outline g.font_outline
 #macro fnt_large_outline g.font_large_outline
@@ -131,6 +132,7 @@ function main_macros() {
 #macro scrl_objectives 14   // the objectives panel's cards, pixel mode
 #macro OBJ_GAP 5            // seconds between objective batches (his ask, 2026-09-13: room to breathe)
 #macro OBJ_CARD_HOLD 8      // seconds the objective card stays open before folding to its boxes (his ask, 2026-09-13)
+#macro OBJ_CARD_DELAY 5     // seconds the room must be clear (no panel, no log, no veil) before the card - and its ding - arrive (his ask, 2026-09-13)
                       // like the old stats lanes - the menu scrolls a
                       // content HEIGHT, not a row index.
 
