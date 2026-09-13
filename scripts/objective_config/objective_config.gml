@@ -53,7 +53,7 @@ function objective_config() {
 		  steps : [
 			{ txt : "earn a credit (a running dial drops them on taps)", unlocks : ["upgrades"], banner : "a credit - the menu has a use for it",
 			  done : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(1); } },
-			{ txt : "open the menu",
+			{ txt : "open the menu - tap the header",
 			  done : function() { return instance_exists(syst_menu2); } },
 			{ txt : "open upgrades",
 			  done : function() { return instance_exists(syst_upgrades); } },
