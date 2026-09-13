@@ -26,6 +26,20 @@ function ui_blur_tick() {
 		fx_set_parameter(_nf, "g_intensity", 0);
 		layer_set_fx(_l, _nf);
 	}
+	// ⚖️ THE SECOND BLUR (his report, 2026-09-13: the menu over the tiles
+	// did not soften them). The first layer sits at -500 and blurs the
+	// ROOM under an overlay (-510) or the drawer (-520); with the drawer
+	// open OVER an overlay the overlay itself is above the layer and
+	// stays sharp. This one sits at -515 - over the overlays, under the
+	// drawer - and runs on the drawer's fold only while an overlay is up
+	if (!layer_exists("menu_blur2")) {
+		var _l2  = layer_create(-515, "menu_blur2");
+		var _nf2 = fx_create("_effect_gaussian_blur");
+		fx_set_parameter(_nf2, "g_numPasses", 4);
+		fx_set_parameter(_nf2, "g_numDownsamples", 1);
+		fx_set_parameter(_nf2, "g_intensity", 0);
+		layer_set_fx(_l2, _nf2);
+	}
 	var _fx = layer_get_fx("menu_blur");
 	if (_fx == -1) return;
 
@@ -57,4 +71,15 @@ function ui_blur_tick() {
 	var _on = (variable_global_exists("blur") ? g.blur : true) && (g.ui_blur_a > .002);
 	layer_set_visible("menu_blur", _on);
 	fx_set_parameter(_fx, "g_intensity", _on ? g.ui_blur_a : 0);
+	// the second: the drawer's fold, only with an overlay under it
+	var _t2 = (instance_exists(syst_menu2) && _ov != noone) ? syst_menu2.am : 0;
+	if (!variable_global_exists("ui_blur_b")) g.ui_blur_b = 0;
+	g.ui_blur_b = move_to(g.ui_blur_b, _t2, 3);
+	if (abs(g.ui_blur_b - _t2) < .01) g.ui_blur_b = _t2;
+	var _fx2 = layer_get_fx("menu_blur2");
+	if (_fx2 != -1) {
+		var _on2 = (variable_global_exists("blur") ? g.blur : true) && (g.ui_blur_b > .002);
+		layer_set_visible("menu_blur2", _on2);
+		fx_set_parameter(_fx2, "g_intensity", _on2 ? g.ui_blur_b : 0);
+	}
 }

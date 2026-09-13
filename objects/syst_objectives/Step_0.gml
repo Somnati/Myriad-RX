@@ -16,9 +16,13 @@ if (cel > 0 && a > .5) cel = max(0, cel - delta / 60);
 // seeing tick); portrait's drawer is the whole room, so there it hides.
 // The open dial drawer is the whole width in portrait too
 var _land = (room_width > 300);
+// ...and in the TILES (his ask, 2026-09-13: objectives may teach the
+// table) - landscape only, where the board sits under the card's foot
+var _ov = ui_overlay();
+var _ov_ok = (_ov == noone) || (_land && _ov.object_index == syst_tiles);
 var _live = variable_global_exists("game_started") && g.game_started
 	&& in_room(rm_clicker) && unfold_has("tap") && !instance_exists(syst_unfold)
-	&& (_land || !instance_exists(syst_menu2)) && ui_overlay() == noone
+	&& (_land || !instance_exists(syst_menu2)) && _ov_ok
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
 // the clear-room clock: runs only while nothing covers the card; anything
 // that does puts it back to OBJ_CARD_DELAY
@@ -74,7 +78,12 @@ hov = (a > .5 && okey != "" && _live && input_free(ui_layer_overlay)
 peek = move_to(peek, (hov && op < .5) ? 1 : 0, 5);
 // the open clock runs only while the card is seen and not held open
 if (a > .5 && !pin && !hov && cel <= 0) open_t += delta / 60;
-var _open = pin || cel > 0 || (open_t < OBJ_CARD_HOLD);
+// ...and OPEN while the menu is out (his ask: expand with the header,
+// fold when it closes)
+var _menu = instance_exists(obj_ui_menu2) && obj_ui_menu2.open;
+if (menu_was && !_menu && !pin) open_t = OBJ_CARD_HOLD;   // the menu closing folds it (unless pinned by hand)
+menu_was = _menu;
+var _open = pin || cel > 0 || (open_t < OBJ_CARD_HOLD) || _menu;
 op = move_to(op, _open ? 1 : 0, 6);
 
 // ---- a click: pin it open, or fold it ----

@@ -54,6 +54,7 @@ peek   = 0;
 // seconds after the last thing over the room went away. Anything that
 // hides the card resets the clock
 clear_t = OBJ_CARD_DELAY;
+menu_was = false;   // the drawer last frame: its closing folds the card
 
 // ---- the seat: top left, under the per-tap readout and the credit
 // chip (both live at y 28..56); as wide as the room allows ----
