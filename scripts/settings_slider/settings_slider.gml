@@ -11,7 +11,10 @@
 ///        2026-09-14: the four faders in four colours
 /// [rel]  a function run when the knob is RELEASED - what a fader
 ///        auditions with, so a drag is not a sound a frame (his report)
-function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap = 1, _help = "", _col = -1, _rel = undefined) {
+/// [live] true = a VISUALISER setting: while this knob is held in a room
+///        with the visualiser, the whole screen fades to the knob (the
+///        peek - syst_settings' Step) so the change is seen as it is made
+function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap = 1, _help = "", _col = -1, _rel = undefined, _live = false) {
 
 	var _k = "s_" + _label;
 	var _inst = pool[$ _k];
@@ -39,6 +42,7 @@ function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap =
 	_inst.bind_get = _get;
 	_inst.bind_set = _set;
 	_inst.bind_rel = _rel;
+	_inst.live = _live;
 	if (_col != -1 && _inst.cbase != _col) _inst.recolour(_col);
 
 	array_push(rows, {

@@ -155,7 +155,10 @@ for (var _i = 0; _i < _n; _i++) {
 	// full outline, all four sides, the words still on black inside it
 	if (pick == _i || _hov) {
 		__rr(row_x, _ry, row_w, row_h, c_aqua, (pick == _i) ? .95 : .4);
-		draw_capsule(row_x + 1, _ry + 1, row_w - 2, row_h - 2, c_black, c_black, 1, capsule_bevel(row_h - 2));
+		// ...and the plate again INSIDE the rim, gradient and all (his
+		// report, 2026-09-14: the black fill here wiped the rarity's reach
+		// off a highlighted slot - DE keeps it)
+		__plate(row_x + 1, _ry + 1, row_w - 2, row_h - 2, _s.rar, merge_colour(_rcl, c_black, _own ? .15 : .5));
 	}
 	// ---- THE HOLD BAR (DE's): a wash sweeping the WHOLE ROW - what is
 	// being spent, or consumed, is the slot. GREEN AND LINEAR to buy,

@@ -52,7 +52,9 @@ function ui_blur_tick() {
 	// under one that was already leaving - both ends visible, because
 	// the panel is translucent and the room reads straight through it.
 	var _ov = ui_overlay();
-	if (_ov != noone) _t = max(_t, _ov.oa);
+	// (oa_blur, where a panel has one: settings' peek lifts the blur off
+	// the visualiser while a knob is held - 2026-09-14)
+	if (_ov != noone) _t = max(_t, variable_instance_exists(_ov, "oa_blur") ? _ov.oa_blur : _ov.oa);
 
 	// THE BACKING (obj_menu2_bck) goes with the blur: the plate and the
 	// menu's edge gradients under the layer, for the menu and for every

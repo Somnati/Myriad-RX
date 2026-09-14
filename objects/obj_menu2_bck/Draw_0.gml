@@ -15,7 +15,7 @@
 var _a = 0;
 if (instance_exists(syst_menu2)) _a = syst_menu2.am;
 var _ov = ui_overlay();
-if (_ov != noone) _a = max(_a, _ov.oa);
+if (_ov != noone) _a = max(_a, variable_instance_exists(_ov, "oa_blur") ? _ov.oa_blur : _ov.oa);
 if (_a <= .002) { kill; exit; }
 draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, UI_GROUND_A * _a);
 

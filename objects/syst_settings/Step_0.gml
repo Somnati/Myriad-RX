@@ -10,6 +10,15 @@ draw_set_font(fnt); // the "?" zone + pillbox widths measure text
 oa = move_to(oa, closing ? 0 : 1, closing ? UI_OUT_SPD : UI_IN_SPD);
 if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 
+// ---- THE PEEK: a held visualiser knob, the visualiser in the room ----
+var _pk = noone;
+if (instance_exists(obj_bignum5) && !closing)
+	with (obj_set_slider) if (live && grabbed) _pk = id;
+if (_pk != noone) peek_inst = _pk;
+peek = move_to(peek, (_pk != noone) ? 1 : 0, 5);
+if (peek < .01 && _pk == noone) { peek = 0; peek_inst = noone; }
+oa_blur = oa * (1 - peek);
+
 // an open dropdown goes NOW, not in the CleanUp: obj_pillbox draws at
 // full alpha and knows nothing about the fade, so leaving it up would
 // park a solid box over a panel that is visibly gone
@@ -131,7 +140,7 @@ for (var _r = _first; _r < min(mx, _first + visible_rows + 1); _r++) {
 	// event, so the shader never reaches it - image_alpha is the lane
 	// that does. Toggles and radios have no Draw at all and honour it
 	// for free; obj_set_slider paints by hand and multiplies it in.
-	_row.inst.image_alpha = ui_anim_in(oa, _r - floor(g.settings_page));
+	_row.inst.image_alpha = ui_anim_in(oa, _r - floor(g.settings_page)) * ((_row.inst == peek_inst) ? 1 : (1 - peek));
 	switch (_row.kind) {
 		case sett_kind_toggle: _row.inst.x = val_x - 18; _row.inst.y = _ry + 3; break;
 		case sett_kind_radio:  _row.inst.x = val_x - 10; _row.inst.y = _ry + 3; break;

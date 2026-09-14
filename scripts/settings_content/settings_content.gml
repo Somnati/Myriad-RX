@@ -211,9 +211,10 @@ function settings_content() {
 		function() {
 			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
 			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
+			set_pill("nebula",    { val : "nebula",    col : c_gold, enabled : (g.title_bg == "nebula") });
 		},
 		function(_v) { g.title_bg = _v; },
-		"what drifts behind the title: a starfield, or the money room's blocks.");
+		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or soft coloured clouds.");
 
 	settings_toggle("pointer shading",
 		function() { return g.cursor_ray; },
@@ -278,7 +279,8 @@ function settings_content() {
 		"%", 5,
 		"the field's own colour on the dice, the puck and the sprites: each "
 		+ "takes the blurred screen around it, along its surface - a die "
-		+ "beside a gold block goes gold on that side. 0 turns the pass off.");
+		+ "beside a gold block goes gold on that side. 0 turns the pass off.",
+		-1, undefined, true);
 
 	settings_slider("visualiser grid", 0, 100,
 		function() { return g.vis_grid_alpha; },
@@ -290,7 +292,7 @@ function settings_content() {
 		},
 		"%", 5,
 		"how strongly the lattice behind the number is drawn. 0 leaves "
-		+ "just the blocks.");
+		+ "just the blocks.", -1, undefined, true);
 
 	// THE GLOW over the block field - the room's "glow" effect layer.
 	// GameMaker's own default for it is .15, so 15 here is what it
@@ -309,7 +311,7 @@ function settings_content() {
 		},
 		"%", 1,
 		"how far the block field bleeds light into the dark around it. "
-		+ "0 turns the pass off entirely.");
+		+ "0 turns the pass off entirely.", -1, undefined, true);
 
 	// the dice on the tap table. The roster is dice_mat_config - adding
 	// a finish is one row there and this pill grows on its own. Stays

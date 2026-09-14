@@ -17,6 +17,7 @@ in_menu = false; // true = the slider LIVES on the menu layer (the
 bind_get = undefined; // fn -> real : read the setting
 bind_set = undefined; // fn(v)      : write the setting
 bind_rel = undefined; // fn()       : the knob was released (a fader's audition)
+live = false;         // a visualiser knob: the settings screen peeks while it is held
 __was_grabbed = false;
 if (!variable_instance_exists(id, "ui_layer")) ui_layer = 0;   // its rung (syst_input reads it; the gate below too)
 __last = undefined;

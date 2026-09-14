@@ -213,7 +213,8 @@ __draw_field = function() {
 	// as a rectangle, and they overlap - depth comes from occlusion and
 	// speed, which is what the parallax starfield was reaching for and what
 	// a flat grid can never have.
-	var _stars = (variable_global_exists("title_bg") && g.title_bg == "starfield");
+	var _bg = variable_global_exists("title_bg") ? g.title_bg : "starfield";
+	var _stars = (_bg == "starfield"), _neb = (_bg == "nebula");
 	if (_stars) {
 		// THE FLIGHT: z shrinks a little every frame (delta-scaled); the
 		// screen point is the box point over z from the room's centre, so
@@ -237,9 +238,26 @@ __draw_field = function() {
 			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _sz, _sz, 0, _s.col, _br * _tw);
 		}
 	}
+	// NEBULA (his ask, 2026-09-14: a third style, in case): the same
+	// drift, but each block is a SOFT CLOUD three times its size in its
+	// tier's colour - the field as weather, no square in sight, no fog
 	var _n = _stars ? 0 : array_length(blk_h);
 	for (var _i = 0; _i < _n; _i++) {
 		var _b = blk_h[_i];
+		if (_neb) {
+			var _sp2 = _b.spd * .6;
+			var _m2  = _b.size * 3 + 60;
+			var _nx = ((_b.x0 * (room_width + _m2) + tt * _sp2 * 1.7) mod (room_width + _m2)) - _m2 * .5;
+			var _ny = ((_b.y0 * (room_height + _m2) - tt * _sp2) mod (room_height + _m2));
+			if (_ny < 0) _ny += room_height + _m2;
+			_ny -= _m2 * .5;
+			var _na = .5 + .5 * dsin(tt * _b.br + _b.ph);
+			var _gw = sprite_get_width(spr_vis_glow_soft);
+			var _gs = (_b.size * 3) / _gw;
+			draw_sprite_ext(spr_vis_glow_soft, 0, _nx + _b.size * 1.5, _ny + _b.size * 1.5, _gs, _gs, 0,
+				vis_tier_color(_b.tier), (.05 + .07 * _na) * _b.dim);
+			continue;
+		}
 
 		// travel up-right forever, wrapping on a margin wider than the
 		// block so nothing ever pops in at an edge
@@ -274,8 +292,11 @@ __draw_field = function() {
 	// ---- the motes ----
 	// The profit bits, at rest. A handful of slow sparks rising through the
 	// blocks - the one moving thing small enough to read as detail rather
-	// than as another shape competing with the menu.
-	for (var _i = 0; _i < array_length(mote); _i++) {
+	// than as another shape competing with the menu. NOT over the
+	// starfield (his call, 2026-09-14: "they look weird when you got some
+	// coming at you") - a field of stars flying at the camera has its own
+	// motion, and sparks drifting the other way argue with it
+	for (var _i = 0; _i < (_stars ? 0 : array_length(mote)); _i++) {
 		var _mt = mote[_i];
 		var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
 		var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));
@@ -339,6 +360,11 @@ __draw_grad = function() {
 	shader_reset();
 	gpu_set_blendmode(bm_normal);
 };
+/// does this backdrop wear the fog? only the blocks (his call, 2026-09-14:
+/// "i dont think the starfield type should have the foggy glow thing")
+__fogged = function() {
+	return TITLE_GRAD && (!variable_global_exists("title_bg") || g.title_bg == "blocks");
+};
 // (behind TITLE_GRAD - off, the field is black plus the blocks, his
 // "less fog" look; the proxy simply is not made)
 grad_px = noone;
@@ -346,7 +372,7 @@ if (TITLE_GRAD) {
 	grad_px = create_obj(0, 0, obj_draw_proxy);
 	grad_px.owner = id;
 	grad_px.depth = 40;
-	grad_px.fn    = __draw_grad;
+	grad_px.fn    = function() { if (__fogged()) __draw_grad(); };
 }
 
 // THE BUTTONS' GLASS (his ask, 2026-09-13: "the title screen buttons... the

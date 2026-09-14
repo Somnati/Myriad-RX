@@ -31,7 +31,8 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 	// the row's own opacity, on the same stagger as its rise. ONE call
 	// in front of the row instead of a multiply on each of the eleven
 	// alphas below - see ui_fade_set for why that is not laziness
-	ui_fade_set(ui_anim_in(oa, _r - floor(g.settings_page)));
+	// (...times the peek: only the held knob's row stays)
+	ui_fade_set(ui_anim_in(oa, _r - floor(g.settings_page)) * ((peek_inst != noone && _row.inst == peek_inst) ? 1 : (1 - peek)));
 
 	// zebra block (the statistics_v2 look, gradient edge seams)
 	var _c  = (_r & 1) ? c_hsv(168, 158, 18) : c_hsv(168, 160, 4);
@@ -118,7 +119,7 @@ var _rp = ui_anim_in(oa, 1);
 var _ro = -(1 - _rp) * (rail_w + UI_IN_SLIDE);
 if (_ro != 0)
 	matrix_set(matrix_world, matrix_build(_ro, 0, 0, 0, 0, 0, 1, 1, 1));
-ui_fade_set(_rp);   // it fades as it slides, like everything else here
+ui_fade_set(_rp * (1 - peek));   // it fades as it slides, like everything else here - and out under the peek
 
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, rail_w, room_height - list_y, 0,

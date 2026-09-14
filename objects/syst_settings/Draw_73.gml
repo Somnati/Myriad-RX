@@ -5,6 +5,7 @@
 /// the menu is up instead (the confirm clock pauses with them).
 
 if (variable_global_exists("input_block") && g.input_block >= ui_layer_menu) exit;
+if (peek > .01) exit;   // (the peek: nothing floats over a live look at the visualiser)
 
 draw_set_font(fnt);
 

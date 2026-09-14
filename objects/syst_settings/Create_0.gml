@@ -48,6 +48,12 @@ if (!variable_global_exists("settings_fav"))      g.settings_fav      = {};
 if (!variable_global_exists("settings_fav_show")) g.settings_fav_show = false;
 fav_show = g.settings_fav_show;
 fav_t    = fav_show ? 1 : 0;   // the gutter's ease: the pips slide out from under the rail
+// THE PEEK (his ask, 2026-09-14): while a visualiser knob is held in a
+// room with the visualiser, everything but that knob fades out so the
+// change is seen live - rows, rail, strip, plate and blur alike. peek
+// eases 0..1; peek_inst is the knob. oa_blur is what ui_blur_tick and
+// the backing read instead of oa while it is on
+peek = 0; peek_inst = noone; oa_blur = 0;
 // the "?" hint whispers, hidden by default (ui stays clean); the
 // round ? button in the strip flips them all on/off at once.
 // session-remembered, deliberately not saved to settings.ini
@@ -318,7 +324,7 @@ __draw_strip = function() {
 	var _so = -(1 - _sp) * UI_IN_SLIDE;
 	if (_so != 0)
 		matrix_set(matrix_world, matrix_build(0, _so, 0, 0, 0, 0, 1, 1, 1));
-	ui_fade_set(_sp);
+	ui_fade_set(_sp * (1 - peek));   // (the strip goes with the peek too)
 
 	draw_set_font(fnt);
 	draw_set_alpha(1);
