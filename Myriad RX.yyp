@@ -651,6 +651,7 @@
     {"id":{"name":"timebank_rate","path":"scripts/timebank_rate/timebank_rate.yy",},},
     {"id":{"name":"timebank_spend","path":"scripts/timebank_spend/timebank_spend.yy",},},
     {"id":{"name":"timebank_upg","path":"scripts/timebank_upg/timebank_upg.yy",},},
+    {"id":{"name":"title_header","path":"scripts/title_header/title_header.yy",},},
     {"id":{"name":"toggle","path":"scripts/toggle/toggle.yy",},},
     {"id":{"name":"tour_arb","path":"scripts/tour_arb/tour_arb.yy",},},
     {"id":{"name":"tour_automation","path":"scripts/tour_automation/tour_automation.yy",},},

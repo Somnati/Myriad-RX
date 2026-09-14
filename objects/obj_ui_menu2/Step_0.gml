@@ -1,8 +1,14 @@
+// no header, no menu (a title-mode header slides away and goes; this goes with it)
+if (!instance_exists(obj_ui_header)) { instance_destroy(); exit; }
 // the menu doesn't exist until a run has started (his rule: no header
-// menu before continue/new game) - the title screen stays clean
-if (!variable_global_exists("game_started") || !g.game_started) exit;
-
+// menu before continue/new game) - the title screen stays clean. BEFORE
+// A RUN the corner X still works while a panel is up (his report,
+// 2026-09-13: settings on the title could not be closed); the bar tap
+// and the hint stay off
+var _pre = !(variable_global_exists("game_started") && g.game_started) || in_room(rm_titlescreen);
 tic -= delta;
+// the header slides on the title: the X rides it
+var _oy = obj_ui_header.y;
 // ⚖️ DE'S PATH (his call, 2026-09-13, after the tiles could not reach the
 // menu): THE HEADER IS THE MENU BUTTON. A tap anywhere on the bar opens
 // the drawer - over a panel too - and a tap on it with the drawer out
@@ -15,7 +21,7 @@ var _ovl = (ui_overlay() != noone);
 var _any = open || _ovl;                        // something to close
 ba = move_to(ba, _any ? 1 : 0, 4);              // the X is present only while something is up
 rip = max(0, rip - .06 * delta);
-hot = _any && point_in_rectangle(mousex, mousey, room_width - 26, 12, room_width - 2, 32);
+hot = _any && point_in_rectangle(mousex, mousey, room_width - 26, 12 + _oy, room_width - 2, 32 + _oy);
 // the bar: everything of it left of the corner (the window buttons and
 // the X own the corner - and they are clickables, so the owner check
 // below already keeps a press on them off the bar)
@@ -31,8 +37,8 @@ if (_free && mouse_check_button_pressed(mb_left) && hot && tic <= 0) {
 	else if (_ovl) ui_overlay_close();
 	play_sound_ext(snd_matclick2, .7, .8, .5, 1);
 }
-// ---- the bar: the menu, open or shut ----
-else if (_free && mouse_check_button_pressed(mb_left) && hot_bar && tic <= 0) {
+// ---- the bar: the menu, open or shut (never before a run) ----
+else if (!_pre && _free && mouse_check_button_pressed(mb_left) && hot_bar && tic <= 0) {
 	tic = 8;
 	open = !open;
 	if (open) {
@@ -55,7 +61,7 @@ if (open && keyboard_check_pressed(vk_escape)) {
 // term: .6 x (1 - exponent / 100)); full while the drawer is out, when
 // it reads "tap here to close it" ----
 var _want = 0;
-if (unfold_has("tap") && variable_global_exists("total_profit") && g.total_profit >= arb(95) && !_ovl) {
+if (!_pre && unfold_has("tap") && variable_global_exists("total_profit") && g.total_profit >= arb(95) && !_ovl) {
 	var _lg = (g.total_profit >= arb(1)) ? arb_log10(g.total_profit) : 0;
 	_want = open ? 1 : max(0, .6 * (1 - _lg / 100));
 }

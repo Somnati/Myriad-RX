@@ -2,6 +2,20 @@
 tt += delta;
 var _had = has_save;
 has_save = file_exists(save_file); // load room can create/erase saves
+
+// THE HEADER PULLS DOWN WHILE A PANEL IS UP (his ask, 2026-09-13): made
+// the moment settings opens (the gear makes it first - title_header - so
+// the panel seats under the bar's height), it slides in from above, and
+// slides back up and goes when the panel has closed. Its X is the way
+// out of settings here
+var _ovl = ui_overlay();
+if (_ovl != noone && !instance_exists(obj_ui_header)) title_header();
+if (instance_exists(obj_ui_header)) {
+	var _h = obj_ui_header;
+	var _hid = -(_h.bar_h + 3);
+	_h.y = move_to(_h.y, (_ovl != noone) ? 0 : _hid, 5);
+	if (_ovl == noone && _h.y <= _hid + .5) instance_destroy(_h);
+}
 if (has_save != _had) { items = __items(); hov = array_create(array_length(items), 0); any_save = __any_save(); }
 
 // hover ease per row. One number drives the brighten, the slide and the

@@ -22,6 +22,12 @@ img = 0;
 
 // menu v2 (the morphing trigger + drawer/grid panel). the old system
 // still works: swap this back to obj_ui_menu to return to it
+// TITLE MODE (his report, 2026-09-13: settings on the title could not be
+// closed - the X lives on the header, and the title has none). Before a
+// run starts the header is made only while a panel is up (title_header),
+// pulls down from above and draws the BAR ALONE: no counter, no
+// wordline - the X in its corner is the whole point of it
+title_mode = in_room(rm_titlescreen);   // (game_started stays true after a run - the room is the test)
 create_obj(x,y,obj_ui_menu2);
 
 // the settings gear, left of the burger (his ask, 2026-09-08). It is a
@@ -29,7 +35,7 @@ create_obj(x,y,obj_ui_menu2);
 // reach mid-anything, and making it the only thing you can get to
 // without opening a list is what that is worth. Its own line came out
 // of menu2_content the same day.
-create_obj(x,y,obj_ui_gear);
+if (!instance_exists(obj_ui_gear)) create_obj(x,y,obj_ui_gear);   // (the title places its own)
 
 // ---- the profit counter (top-left, every room with a header) ----
 // the SHOWN number glides to the real one, move_to-style, but in LOG

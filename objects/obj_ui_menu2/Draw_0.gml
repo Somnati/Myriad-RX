@@ -1,7 +1,7 @@
 /// the corner X (while there is something to close) and the bar's hint
 
-// invisible until a run starts (matches the Step gate)
-if (!variable_global_exists("game_started") || !g.game_started) exit;
+if (!instance_exists(obj_ui_header)) exit;
+var _oy = obj_ui_header.y;   // the title-mode header's slide: the X rides it
 
 // ---- the X, in the burger's corner: two bars crossed, the burger's two
 // tones, the hover halo it always had ----
@@ -10,7 +10,7 @@ if (ba > .01) {
 	var _hl = 5; // bar half-length: eleven cells
 	if (hot || rip > 0) {
 		var _gw = sprite_get_width(spr_vis_glow_soft);
-		draw_sprite_ext(spr_vis_glow_soft, 0, bx, by, 26 / _gw, 26 / _gw, 0,
+		draw_sprite_ext(spr_vis_glow_soft, 0, bx, by + _oy, 26 / _gw, 26 / _gw, 0,
 			c_white, (.1 + .12 * (hot ? 1 : 0) + .15 * rip) * ba);
 	}
 	// ⚖️ PIXEL-PERFECT (his report: the crossing was not centred): the two
@@ -26,7 +26,7 @@ if (ba > .01) {
 		var _a2 = (_b == 0) ? _ang : -_ang;
 		var _lx = -999, _ly = -999;
 		for (var _k = -_hl; _k <= _hl; _k++) {
-			var _px = bx + round(_k * dcos(_a2)), _py = by - round(_k * dsin(_a2));
+			var _px = bx + round(_k * dcos(_a2)), _py = by + _oy - round(_k * dsin(_a2));
 			if (_px == _lx && _py == _ly) continue;
 			draw_sprite_ext(spr_pixel_1x1, 0, _px, _py, 1, 1, 0, _c, ba);
 			_lx = _px; _ly = _py;
@@ -37,7 +37,7 @@ if (ba > .01) {
 		var _rr = (1 - rip) * 11 + 3;
 		for (var _k = 0; _k < 12; _k++) {
 			var _ra = _k * 30;
-			draw_sprite_ext(spr_pixel_1x1, 0, bx + dcos(_ra) * _rr, by - dsin(_ra) * _rr,
+			draw_sprite_ext(spr_pixel_1x1, 0, bx + dcos(_ra) * _rr, by + _oy - dsin(_ra) * _rr,
 				1, 1, 0, c_white, rip * .5 * ba);
 		}
 	}

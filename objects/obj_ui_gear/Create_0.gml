@@ -38,6 +38,7 @@ DOCK_STEP = 26;   // px between icons
 // themselves are __open's switch - a function literal inside a struct
 // literal binds to the STRUCT, and create_obj reads the caller's depth
 // (his crash report, 2026-09-13: "struct.depth not set")
+drop = 0;   // the title's gear: 0 seated, 1 pulled down off the screen (a panel is up)
 icons = [
 	{ key : "",           spin : 0, name : "settings" },
 	{ key : "ccore",      spin : 0, name : "credit core" },
@@ -47,7 +48,10 @@ icons = [
 ];
 __open = function(_i) {
 	switch (icons[_i].key) {
-		case "":           settings_open();   break;
+		case "":
+			if (in_room(rm_titlescreen)) title_header();   // the title: its header first, so the panel seats under it and its X can close it
+			settings_open();
+			break;
 		case "ccore":      ccore_open();      break;
 		case "battery":    battery_open();    break;
 		case "statistics": statistics_open(); break;
@@ -61,8 +65,10 @@ __open = function(_i) {
 __seat = function() {
 	// THE TITLE SCREEN has no menu to hang off, so the gear takes the
 	// bottom right corner outright (and the dock is the gear alone)
-	if (!instance_exists(obj_ui_menu2))
-		return { x : room_width - 15, y : room_height - 15, a : 1, e : 1 };
+	// ...and pulls DOWN OFF THE SCREEN while a panel is up there (his ask,
+	// 2026-09-13), back up when it closes - `drop` eases in the Step
+	if (!instance_exists(obj_ui_menu2) || in_room(rm_titlescreen))
+		return { x : room_width - 15, y : room_height - 15 + 34 * drop, a : 1, e : 1 };
 	// IN GAME it belongs to the drawer, not to the header: it appears
 	// when the menu opens and rides the panel's left edge in, which is
 	// what makes it read as part of the menu rather than as a second

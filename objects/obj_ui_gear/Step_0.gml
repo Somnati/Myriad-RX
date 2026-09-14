@@ -2,6 +2,7 @@
 
 tic -= delta;
 rip = max(0, rip - .06 * delta);
+drop = move_to(drop, (ui_overlay() != noone) ? 1 : 0, 6);   // (the title's seat reads it)
 
 var _seats = __seats();
 if (array_length(_seats) == 0) { hot_i = -1; for (var _i = 0; _i < array_length(icons); _i++) icons[_i].spin = 0; exit; }

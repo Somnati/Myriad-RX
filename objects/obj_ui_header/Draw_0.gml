@@ -4,6 +4,8 @@
 draw_sprite_ext(sprite_index,img+1,0,y,room_width,1,0,c_black,1);
 draw_sprite_ext(sprite_index,img,0,y,room_width,1,0,col,1);
 
+if (title_mode) exit;   // the bar alone (see the Create)
+
 // ---- profit, top left: gliding arb counter + gain pops ----
 if (variable_global_exists("profit")) {
 
