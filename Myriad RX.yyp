@@ -567,6 +567,7 @@
     {"id":{"name":"settings_close","path":"scripts/settings_close/settings_close.yy",},},
     {"id":{"name":"settings_content","path":"scripts/settings_content/settings_content.yy",},},
     {"id":{"name":"settings_defaults","path":"scripts/settings_defaults/settings_defaults.yy",},},
+    {"id":{"name":"settings_group","path":"scripts/settings_group/settings_group.yy",},},
     {"id":{"name":"settings_info","path":"scripts/settings_info/settings_info.yy",},},
     {"id":{"name":"settings_open","path":"scripts/settings_open/settings_open.yy",},},
     {"id":{"name":"settings_pill","path":"scripts/settings_pill/settings_pill.yy",},},

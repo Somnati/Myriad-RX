@@ -264,7 +264,7 @@ __rebuild = function() {
 		var _r = rows[_i];
 		if (_r.kind == sett_kind_section) _si++;
 		_r.sec   = (_si >= 0) ? sections[_si].name : "";
-		_r.group = false;
+		_r.group = (_r[$ "group"] ?? false);   // (settings_group's headings keep theirs)
 	}
 	for (var _s = 0; _s < array_length(sections); _s++) {
 		var _from = sections[_s].row + 1;

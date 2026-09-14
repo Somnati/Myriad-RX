@@ -183,90 +183,10 @@ function settings_content() {
 	// here, where a player looking to make it prettier or cheaper can
 	// find it all in one place.
 	settings_section("visuals", c_salmon);
+	// (organised 2026-09-14, his ask: the money room's look here, the
+	// interface on its own tab - see settings_group)
 
-	settings_toggle("menu blur",
-		function() { return g.blur; },
-		function(_v) { g.blur = _v; },
-		"blurs the room behind menus, and carries the shading at its "
-		+ "edges - the blur is what keeps that gradient smooth, so the "
-		+ "two go together. off saves a little gpu.");
-
-	// THE HEADER MENU'S PANEL (his ask, 2026-09-13): the teal plate under the
-	// blur (default), plain black, or the dial drawer's pixelated glass
-	settings_pill("menu style", "menustyle",
-		g.menu_style,
-		function() {
-			set_pill("default", { val : "default", col : c_gold, enabled : (g.menu_style == "default") });
-			set_pill("black",   { val : "black",   col : c_gold, enabled : (g.menu_style == "black") });
-			set_pill("glass",   { val : "glass",   col : c_gold, enabled : (g.menu_style == "glass") });
-		},
-		function(_v) { g.menu_style = _v; },
-		"the header menu's panel: the teal plate under the blur, plain black, "
-		+ "or the dial drawer's pixelated glass.");
-
-	// THE TITLE'S BACKDROP (his lean, 2026-09-13): the drifting blocks, or a
-	// parallax starfield
-	settings_pill("title backdrop", "titlebg",
-		g.title_bg,
-		function() {
-			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
-			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
-			set_pill("nebula",    { val : "nebula",    col : c_gold, enabled : (g.title_bg == "nebula") });
-		},
-		function(_v) { g.title_bg = _v; },
-		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or soft coloured clouds.");
-
-	settings_toggle("pointer shading",
-		function() { return g.cursor_ray; },
-		function(_v) { g.cursor_ray = _v; },
-		"the arrow lit as a solid, the way the dice and the puck are - "
-		+ "same light, same finish. off keeps the raycast (the squash "
-		+ "still re-pixelates) but paints it flat white and ink.");
-
-	settings_toggle("motion blur",
-		function() { return g.motion_blur; },
-		function(_v) { g.motion_blur = _v; },
-		"the real thing, per object: the pointer, the puck and the "
-		+ "money motes are drawn at several instants across each "
-		+ "frame's travel, so a flick, a throw or a flying mote streaks "
-		+ "the way a camera would see it. off falls back to the puck's "
-		+ "old trail.");
-
-	// room transition style (round 7's showcase slice wipe vs the
-	// classic circle; goto_room latches the pick per flight)
-	settings_pill("transition", "transkind",
-		(g.trans_kind == 1) ? "slice" : "circle",
-		function() {
-			set_pill("slice",  { val : 1,
-				col : (g.trans_kind == 1) ? c_gold : sett_ink,
-				enabled : (g.trans_kind == 1) });
-			set_pill("circle", { val : 0,
-				col : (g.trans_kind == 0) ? c_gold : sett_ink,
-				enabled : (g.trans_kind == 0) });
-		},
-		function(_v) { g.trans_kind = _v; },
-		"how room changes look: slice = staggered slats snapping across, "
-		+ "circle = the classic closing wipe.");
-
-	// THE PROFIT COLOUR - DE's four (profit_color_config), the one global
-	// every profit-denominated thing reads: the counter, the motes, the
-	// dial payouts, rates, prices, the offline pile. Picking here changes
-	// nothing but g.profit_color, which is the whole design.
-	var _pcl = profit_color_config();
-	var _pcn = "custom";
-	for (var _pk = 0; _pk < array_length(_pcl); _pk++)
-		if (_pcl[_pk].col == g.profit_color) _pcn = _pcl[_pk].name;
-	settings_pill("profit colour", "profitcol", _pcn,
-		function() {
-			var _l = profit_color_config();
-			for (var _j = 0; _j < array_length(_l); _j++)
-				set_pill(_l[_j].name, { val : _l[_j].col, col : _l[_j].col,
-				                        enabled : (_l[_j].col == g.profit_color) });
-		},
-		function(_v) { g.profit_color = _v; },
-		"what colour your money is - the counter, the motes, every "
-		+ "payout and price. DE's four.",
-		g.profit_color);
+	settings_group("the field", c_salmon);
 
 	// THE VISUALISER GRID. The renderer multiplies every grid piece -
 	// the border, the inner rules and the outer frame - by one master
@@ -313,55 +233,27 @@ function settings_content() {
 		"how far the block field bleeds light into the dark around it. "
 		+ "0 turns the pass off entirely.", -1, undefined, true);
 
-	// the dice on the tap table. The roster is dice_mat_config - adding
-	// a finish is one row there and this pill grows on its own. Stays
-	// open, like the sound pills: picking a material is browsing, and
-	// the dice repaint live on the frame you choose.
-	settings_pill("dice material", "dicemat",
-		dice_mat_name(),
+	// THE PROFIT COLOUR - DE's four (profit_color_config), the one global
+	// every profit-denominated thing reads: the counter, the motes, the
+	// dial payouts, rates, prices, the offline pile. Picking here changes
+	// nothing but g.profit_color, which is the whole design.
+	var _pcl = profit_color_config();
+	var _pcn = "custom";
+	for (var _pk = 0; _pk < array_length(_pcl); _pk++)
+		if (_pcl[_pk].col == g.profit_color) _pcn = _pcl[_pk].name;
+	settings_pill("profit colour", "profitcol", _pcn,
 		function() {
-			var _l = dice_mat_config();
+			var _l = profit_color_config();
 			for (var _j = 0; _j < array_length(_l); _j++)
-				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : c_gold, enabled : (_l[_j].id == g.dice_mat) });
+				set_pill(_l[_j].name, { val : _l[_j].col, col : _l[_j].col,
+				                        enabled : (_l[_j].col == g.profit_color) });
 		},
-		function(_v) { g.dice_mat = _v; },
-		"what the dice on the tap table are made of. random rolls a "
-		+ "different hue and finish for every die, which is the default.",
-		-1, true);
+		function(_v) { g.profit_color = _v; },
+		"what colour your money is - the counter, the motes, every "
+		+ "payout and price. DE's four.",
+		g.profit_color);
 
-	// THE COIN's finish, off the same roster (2026-09-14): gold by default
-	settings_pill("coin material", "coinmat",
-		coin_mat_name(),
-		function() {
-			var _l = dice_mat_config();
-			for (var _j = 0; _j < array_length(_l); _j++)
-				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : c_gold, enabled : (_l[_j].id == g.coin_mat) });
-		},
-		function(_v) { g.coin_mat = _v; },
-		"what the coin is struck from. the same finishes as the dice; "
-		+ "a coin is always at least mostly metal.",
-		-1, true);
-
-	// the puck, off the dice's roster (his ask, 2026-09-10). "random" is
-	// the classic black rubber here - a puck should not roll a body
-	// colour - and the pill says so
-	var _pm = "black rubber";
-	var _pml = dice_mat_config();
-	for (var _pj = 0; _pj < array_length(_pml); _pj++)
-		if (_pml[_pj].id == g.puck_mat && _pml[_pj].id != "random") _pm = _pml[_pj].name;
-	settings_pill("puck material", "puckmat", _pm,
-		function() {
-			var _l = dice_mat_config();
-			for (var _j = 0; _j < array_length(_l); _j++)
-				set_pill((_l[_j].id == "random") ? "black rubber" : _l[_j].name,
-					{ val : _l[_j].id, col : c_gold, enabled : (_l[_j].id == g.puck_mat) });
-		},
-		function(_v) { g.puck_mat = _v; },
-		"what the puck on the tap table is made of. black rubber is the "
-		+ "classic; the rest are the dice's finishes.",
-		-1, true);
+	settings_group("the motes", c_salmon);
 
 	// THE MOTES, ONE PILL A LANE (his ask, 2026-09-10). The roster is
 	// bit_config; the lane keys are bit_look's. Four literal blocks for
@@ -422,7 +314,6 @@ function settings_content() {
 		+ "mote a second per tile, all from one spot. plain by "
 		+ "default: that many halos in one place stop being motes.");
 
-
 	// ---- the motes' flight (DE's part_grav / alt profit color) ----
 	var _man = ["swoop", "bow", "straight"];
 	settings_pill("mote path", "motearc", _man[clamp(g.mote_arc, 0, 2)],
@@ -441,17 +332,148 @@ function settings_content() {
 		"DE's alt profit colour: every profit mote rolls its own hue "
 		+ "instead of wearing the profit colour.");
 
+	settings_group("the toys", c_salmon);
+
+	// the dice on the tap table. The roster is dice_mat_config - adding
+	// a finish is one row there and this pill grows on its own. Stays
+	// open, like the sound pills: picking a material is browsing, and
+	// the dice repaint live on the frame you choose.
+	settings_pill("dice material", "dicemat",
+		dice_mat_name(),
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == g.dice_mat) });
+		},
+		function(_v) { g.dice_mat = _v; },
+		"what the dice on the tap table are made of. random rolls a "
+		+ "different hue and finish for every die, which is the default.",
+		-1, true);
+
+	// THE COIN's finish, off the same roster (2026-09-14): gold by default
+	settings_pill("coin material", "coinmat",
+		coin_mat_name(),
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == g.coin_mat) });
+		},
+		function(_v) { g.coin_mat = _v; },
+		"what the coin is struck from. the same finishes as the dice; "
+		+ "a coin is always at least mostly metal.",
+		-1, true);
+
+	// the puck, off the dice's roster (his ask, 2026-09-10). "random" is
+	// the classic black rubber here - a puck should not roll a body
+	// colour - and the pill says so
+	var _pm = "black rubber";
+	var _pml = dice_mat_config();
+	for (var _pj = 0; _pj < array_length(_pml); _pj++)
+		if (_pml[_pj].id == g.puck_mat && _pml[_pj].id != "random") _pm = _pml[_pj].name;
+	settings_pill("puck material", "puckmat", _pm,
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill((_l[_j].id == "random") ? "black rubber" : _l[_j].name,
+					{ val : _l[_j].id, col : c_gold, enabled : (_l[_j].id == g.puck_mat) });
+		},
+		function(_v) { g.puck_mat = _v; },
+		"what the puck on the tap table is made of. black rubber is the "
+		+ "classic; the rest are the dice's finishes.",
+		-1, true);
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_action("reset visuals to defaults",
 		function() { settings_defaults("visuals"); dirty_tic = 45; },
-		"puts every option on THIS tab back to its default - blur, pointer, motion blur, transition, colours, the visualiser's grid and glow, the finishes. "
-		+ "the other tabs are not touched.", c_hred);
+		"puts the money room's look back to its defaults - the field, the motes, the finishes. "
+		+ "(the interface tab shares the same reset)", c_hred);
+
+	// ============================ interface =========================
+	settings_section("interface", rgb(150, 170, 255));
+
+	settings_group("the menu", rgb(150, 170, 255));
+
+	settings_toggle("menu blur",
+		function() { return g.blur; },
+		function(_v) { g.blur = _v; },
+		"blurs the room behind menus, and carries the shading at its "
+		+ "edges - the blur is what keeps that gradient smooth, so the "
+		+ "two go together. off saves a little gpu.");
+
+	// THE HEADER MENU'S PANEL (his ask, 2026-09-13): the teal plate under the
+	// blur (default), plain black, or the dial drawer's pixelated glass
+	settings_pill("menu style", "menustyle",
+		g.menu_style,
+		function() {
+			set_pill("default", { val : "default", col : c_gold, enabled : (g.menu_style == "default") });
+			set_pill("black",   { val : "black",   col : c_gold, enabled : (g.menu_style == "black") });
+			set_pill("glass",   { val : "glass",   col : c_gold, enabled : (g.menu_style == "glass") });
+		},
+		function(_v) { g.menu_style = _v; },
+		"the header menu's panel: the teal plate under the blur, plain black, "
+		+ "or the dial drawer's pixelated glass.");
+
+	settings_group("the screen", rgb(150, 170, 255));
+
+	// room transition style (round 7's showcase slice wipe vs the
+	// classic circle; goto_room latches the pick per flight)
+	settings_pill("transition", "transkind",
+		(g.trans_kind == 1) ? "slice" : "circle",
+		function() {
+			set_pill("slice",  { val : 1,
+				col : (g.trans_kind == 1) ? c_gold : sett_ink,
+				enabled : (g.trans_kind == 1) });
+			set_pill("circle", { val : 0,
+				col : (g.trans_kind == 0) ? c_gold : sett_ink,
+				enabled : (g.trans_kind == 0) });
+		},
+		function(_v) { g.trans_kind = _v; },
+		"how room changes look: slice = staggered slats snapping across, "
+		+ "circle = the classic closing wipe.");
+
+	settings_toggle("pointer shading",
+		function() { return g.cursor_ray; },
+		function(_v) { g.cursor_ray = _v; },
+		"the arrow lit as a solid, the way the dice and the puck are - "
+		+ "same light, same finish. off keeps the raycast (the squash "
+		+ "still re-pixelates) but paints it flat white and ink.");
+
+	settings_toggle("motion blur",
+		function() { return g.motion_blur; },
+		function(_v) { g.motion_blur = _v; },
+		"the real thing, per object: the pointer, the puck and the "
+		+ "money motes are drawn at several instants across each "
+		+ "frame's travel, so a flick, a throw or a flying mote streaks "
+		+ "the way a camera would see it. off falls back to the puck's "
+		+ "old trail.");
+
+	settings_group("the title", rgb(150, 170, 255));
+
+	// THE TITLE'S BACKDROP (his lean, 2026-09-13): the drifting blocks, or a
+	// parallax starfield
+	settings_pill("title backdrop", "titlebg",
+		g.title_bg,
+		function() {
+			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
+			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
+			set_pill("nebula",    { val : "nebula",    col : c_gold, enabled : (g.title_bg == "nebula") });
+		},
+		function(_v) { g.title_bg = _v; },
+		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or soft coloured clouds.");
+
+	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_action("reset interface to defaults",
+		function() { settings_defaults("visuals"); dirty_tic = 45; },
+		"puts the menu, the screen and the title back to their defaults. "
+		+ "(the visuals tab shares the same reset)", c_hred);
 
 	// ============================== crt =============================
 	// THE TUBE (his ask, 2026-09-10): syst_crt + sh_crt. Its own tab:
 	// where it runs, which seat, and the five knobs. Nothing here dims
 	// a pixel except the vignette (read the shader's header).
+
 	settings_section("crt", c_sblue);
 
 	var _cm = ["off", "title screen", "everywhere"];
@@ -585,6 +607,9 @@ function settings_content() {
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);
+	// (grouped 2026-09-14, his question "paired up or separate?": the MIX
+	// on top, then each fader beside the sound it turns)
+	settings_group("the mix", c_gold);
 
 	settings_toggle("mute all",
 		function() { return g.mute; },
@@ -624,6 +649,7 @@ function settings_content() {
 	// _pills. The helper would have crashed the moment a pillbox opened.
 	// Literal kinds in a declarative content script are the cheaper
 	// mistake, and this file is a list of literal rows already.
+	settings_group("the tap", c_gold);
 	settings_pill("tap sound", "sfxtap",
 		sfx_config("tap")[sfx_index("tap")].name,
 		function() {
@@ -651,36 +677,6 @@ function settings_content() {
 		function(_v) { g.vol_tap = _v; },
 		"%", 1, "taps and criticals, as a share of the effects volume.", c_hred,
 		function() { sfx_play("tap"); });
-
-
-	settings_pill("dial sound", "sfxdial",
-		sfx_config("dial")[sfx_index("dial")].name,
-		function() {
-			var _l = sfx_config("dial");
-			var _sel = sfx_index("dial");
-			for (var _j = 0; _j < array_length(_l); _j++) {
-				var _on = (_j == _sel);
-				// ONE palette for every pill: `enabled` decides lit or
-				// unlit, which is what lets a staying box relight by
-				// flipping that one flag (syst_settings' pick handler).
-				// Baking the colour per state instead would have meant
-				// rebuilding the list on every audition.
-				set_pill(_l[_j].name, { val : _l[_j].id,
-					col : c_gold, enabled : _on });
-			}
-		},
-		function(_v) { g.sfx_pick.dial = _v; sfx_play("dial"); },
-		"what a finished dial cycle sounds like. OFF by default on "
-		+ "purpose: a late fleet finishes several cycles a second, and a "
-		+ "sound on every one of them stops being feedback. rate limited "
-		+ "whichever you pick.",
-		-1, true);
-
-	settings_slider("dial volume", 0, 100,
-		function() { return g.vol_dial; },
-		function(_v) { g.vol_dial = _v; },
-		"%", 1, "finished dial cycles, as a share of the effects volume.", c_sblue,
-		function() { sfx_play("dial"); });
 
 
 	settings_pill("critical sound", "sfxcrit",
@@ -719,6 +715,37 @@ function settings_content() {
 		"what a credit drop sounds like. it rides the tap fader - a "
 		+ "credit drop is something your tap did.",
 		-1, true);
+
+	settings_group("the dials", c_gold);
+	settings_pill("dial sound", "sfxdial",
+		sfx_config("dial")[sfx_index("dial")].name,
+		function() {
+			var _l = sfx_config("dial");
+			var _sel = sfx_index("dial");
+			for (var _j = 0; _j < array_length(_l); _j++) {
+				var _on = (_j == _sel);
+				// ONE palette for every pill: `enabled` decides lit or
+				// unlit, which is what lets a staying box relight by
+				// flipping that one flag (syst_settings' pick handler).
+				// Baking the colour per state instead would have meant
+				// rebuilding the list on every audition.
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : _on });
+			}
+		},
+		function(_v) { g.sfx_pick.dial = _v; sfx_play("dial"); },
+		"what a finished dial cycle sounds like. OFF by default on "
+		+ "purpose: a late fleet finishes several cycles a second, and a "
+		+ "sound on every one of them stops being feedback. rate limited "
+		+ "whichever you pick.",
+		-1, true);
+
+	settings_slider("dial volume", 0, 100,
+		function() { return g.vol_dial; },
+		function(_v) { g.vol_dial = _v; },
+		"%", 1, "finished dial cycles, as a share of the effects volume.", c_sblue,
+		function() { sfx_play("dial"); });
+
 
 	// music lands later - when it does, this is the whole hookup:
 	// settings_slider("music volume", 0, 100,
