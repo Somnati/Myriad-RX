@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.7504167,
+  "duration":0.5000000,
   "exportDir":"",
   "name":"snd_obj_new",
   "parent":{
@@ -20,7 +20,7 @@
   "preload":true,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
-  "sampleRate":48000,
+  "sampleRate":96000,
   "soundFile":"snd_obj_new.wav",
   "volume":1.0,
 }

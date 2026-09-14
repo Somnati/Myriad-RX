@@ -765,6 +765,7 @@
     {"id":{"name":"snd_matclick2","path":"sounds/snd_matclick2/snd_matclick2.yy",},},
     {"id":{"name":"snd_merge","path":"sounds/snd_merge/snd_merge.yy",},},
     {"id":{"name":"snd_milestone","path":"sounds/snd_milestone/snd_milestone.yy",},},
+    {"id":{"name":"snd_obj_done","path":"sounds/snd_obj_done/snd_obj_done.yy",},},
     {"id":{"name":"snd_obj_new","path":"sounds/snd_obj_new/snd_obj_new.yy",},},
     {"id":{"name":"snd_obj_step","path":"sounds/snd_obj_step/snd_obj_step.yy",},},
     {"id":{"name":"snd_orb","path":"sounds/snd_orb/snd_orb.yy",},},

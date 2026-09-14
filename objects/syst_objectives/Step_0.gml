@@ -3,7 +3,10 @@ var _ob = g.obj;
 
 // ---- a completion: celebrate the objective the card is showing ----
 if (_ob.just != "") {
-	if (_ob.just == okey || okey == "") { okey = _ob.just; cel = 2; open_t = 0; }
+	if (_ob.just == okey || okey == "") {
+		okey = _ob.just; cel = 2; open_t = 0;
+		play_sound_ext(snd_obj_done, 1, 1, .6, 1);   // the whole objective complete (his sound: Success4, 2026-09-13)
+	}
 	_ob.just = "";
 }
 // (the celebration runs only while the card is up - a completion inside

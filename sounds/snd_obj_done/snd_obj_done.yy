@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"snd_obj_step",
+  "%Name":"snd_obj_done",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,9 +10,9 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":15.9692083,
+  "duration":0.6617460,
   "exportDir":"",
-  "name":"snd_obj_step",
+  "name":"snd_obj_done",
   "parent":{
     "name":"sounds",
     "path":"folders/sounds.yy",
@@ -20,7 +20,7 @@
   "preload":true,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
-  "sampleRate":96000,
-  "soundFile":"snd_obj_step.wav",
+  "sampleRate":44100,
+  "soundFile":"snd_obj_done.wav",
   "volume":1.0,
 }
