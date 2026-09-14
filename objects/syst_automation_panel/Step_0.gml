@@ -69,6 +69,22 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 		continue;
 	}
 
+	// the dial chip strip: the master row's filter, thirteen targets
+	if (_rw.kind == 9) {
+		var _cy9 = __row_y(_i);
+		if (mouse_y < _cy9 || mouse_y >= _cy9 + row_h) continue;
+		var _dn9 = variable_global_exists("dial") ? min(g.dial_total, array_length(g.autom.dial)) : 0;
+		for (var _k = 0; _k < _dn9; _k++) {
+			var _ch = __dchip_r(_k, _cy9, _dn9);
+			if (!point_in_rectangle(mouse_x, mouse_y, _ch.x, _ch.y, _ch.x + _ch.w, _ch.y + _ch.h)) continue;
+			__flip_dial(_k);
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			save_mark_dirty();
+			exit;
+		}
+		continue;
+	}
+
 	// the rarity chip strip: eight targets in one row
 	if (_rw.kind == 3) {
 		var _cy = __row_y(_i);

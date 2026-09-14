@@ -1,10 +1,11 @@
-/// @description autom_strategy(s, n) - one pulse of the shared autobuy
+/// @description autom_strategy(s, n) - one pulse of THE MASTER ROW
 /// The cap share of the spendable pile is the pulse's budget; the
-/// dials are walked in the strategy's order and each buys MAX out of
-/// what is left (buy_resolve's wallet), so the first in line takes the
-/// lion's share and the remainder trickles down the list. Round-robin
-/// moves its cursor one dial a pulse, so every dial gets a turn at the
-/// front. The dials that bought wear the verdict; the row does too.
+/// dials in the FILTER (g.autom.dial[i].on, owned ones only) are walked
+/// in the target's order and each buys MAX out of what is left
+/// (buy_resolve's wallet), so the first in line takes the lion's share
+/// and the remainder trickles down the list. Round-robin moves its
+/// cursor one dial a pulse, so every dial gets a turn at the front.
+/// The dials that bought wear the verdict (their chips); the row does too.
 /// @param s   g.autom.dial_all
 /// @param n   how many dials
 function autom_strategy(_s, _n) {
@@ -17,6 +18,7 @@ function autom_strategy(_s, _n) {
 	for (var _k = 0; _k < array_length(_order); _k++) {
 		var _i = _order[_k];
 		if (!(_budget >= arb(1))) break;
+		if (!g.autom.dial[_i].on || g.dial[_i].level <= 0) continue;   // the filter; a dial you do not own is yours to buy
 		var _q = dial_buy_ext(_i, "max", false, _budget);
 		if (!_q.ok || !(_budget >= _q.cost)) continue;
 		var _r = dial_buy_ext(_i, "max", true, _budget);

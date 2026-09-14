@@ -8,12 +8,10 @@ function autom_pack() {
 	autom_init();
 	var _a = g.autom;
 	var _o = "";
-	// the dials: on:pct:t per dial
+	// the dials: the FILTER, one flag per dial (the master row rides "st=")
 	var _d = "";
-	for (var _i = 0; _i < array_length(_a.dial); _i++) {
-		var _p = _a.dial[_i];
-		_d += ((_i > 0) ? "," : "") + (_p.on ? "1" : "0") + ":" + string(_p.pct) + ":" + string(_p.t);
-	}
+	for (var _i = 0; _i < array_length(_a.dial); _i++)
+		_d += ((_i > 0) ? "," : "") + (_a.dial[_i].on ? "1" : "0");
 	_o += "d=" + _d;
 	var _r = _a.reb;
 	_o += "/r=" + (_r.on ? "1" : "0")

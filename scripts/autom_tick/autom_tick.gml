@@ -4,11 +4,12 @@
 /// automation screen is open.
 ///
 /// EVERY AUTOBUY ON ITS OWN CLOCK (his ask, 2026-09-11: "a timer slider
-/// for each autobuy"): a row attempts once per its t seconds, and the
-/// adaptive step size is what scales throughput (Myriad's cadence). A
-/// faster clock costs RAM (ram_cost "timer") and over the budget every
-/// clock runs at ram_throttle - the countdown counts throttled seconds.
-/// The autorebirth rails and the table's roll/sell keep the one-second
+/// for each autobuy"): a row attempts once per its t seconds and buys
+/// MAX within its cap. A faster clock costs RAM (ram_cost "timer") and
+/// over the budget every clock runs at ram_throttle - the countdown
+/// counts throttled seconds. The dials share ONE row (the master,
+/// 2026-09-14 - autom_strategy walks the filter in the target's order);
+/// the autorebirth rails and the table's roll/sell keep the one-second
 /// base pulse.
 ///
 /// AUTOREBIRTH FIRES THROUGH rebirth_calc AND rebirth_do, the same two
@@ -37,28 +38,16 @@ function autom_tick() {
 	}
 	if (variable_global_exists("dial")) {
 		var _dn = min(g.dial_total, array_length(_a.dial));
-		if (_a.strat == 0) {
-			// MANUAL: each dial on its own clock, its own cap
-			for (var _i = 0; _i < _dn; _i++) {
-				var _p = _a.dial[_i];
-				if (!_p.on) { _p.st = 0; _p.tic = 0; continue; }
-				_p.tic -= _dt * _th;
-				if (_p.tic > 0) continue;
-				_p.tic = max(RAM_TIMER_FLOOR, _p.t);
-				if (!_d_rail) { _p.st = 1; continue; }
-				autom_piece(_p, _i);
-			}
-		} else {
-			// A STRATEGY: one clock, one cap, the dials in its order
-			var _s = _a.dial_all;
-			if (!_s.on) { _s.st = 0; _s.tic = 0; for (var _i = 0; _i < _dn; _i++) _a.dial[_i].st = 0; }
-			else {
-				_s.tic -= _dt * _th;
-				if (_s.tic <= 0) {
-					_s.tic = max(RAM_TIMER_FLOOR, _s.t);
-					if (!_d_rail) _s.st = 1;
-					else autom_strategy(_s, _dn);
-				}
+		// THE MASTER ROW: one clock, one cap, the filter's dials in the
+		// target's order (autom_strategy)
+		var _s = _a.dial_all;
+		if (!_s.on) { _s.st = 0; _s.tic = 0; for (var _i = 0; _i < _dn; _i++) _a.dial[_i].st = 0; }
+		else {
+			_s.tic -= _dt * _th;
+			if (_s.tic <= 0) {
+				_s.tic = max(RAM_TIMER_FLOOR, _s.t);
+				if (!_d_rail) _s.st = 1;
+				else autom_strategy(_s, _dn);
 			}
 		}
 	}
@@ -131,10 +120,7 @@ function autom_tick() {
 		assign_banner("auto rebirth  units +"
 			+ crunch_arb(g.rebirth.prev_units), c_hred, c_black);
 		autom_log("auto rebirth  +" + crunch_arb(g.rebirth.prev_units) + " units", c_hred, "reb");
-		// a fresh run gets fresh ramps: the old q was a guess about a
-		// wallet that no longer exists
-		for (var _k = 0; _k < array_length(_a.dial); _k++) {
-			_a.dial[_k].q = 1; _a.dial[_k].h = 0; _a.dial[_k].st = 0;
-		}
+		// a fresh run: the chips' verdicts clear
+		for (var _k = 0; _k < array_length(_a.dial); _k++) _a.dial[_k].st = 0;
 	}
 }

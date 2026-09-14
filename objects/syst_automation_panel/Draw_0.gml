@@ -139,6 +139,29 @@ for (var _i = 0; _i < _nrows; _i++) {
 		continue;
 	}
 
+	// THE DIAL CHIPS - the master row's filter: lit = in, dim = benched,
+	// a faint one is a dial not owned yet; a green rim = it bought on
+	// the last pulse (the row's verdict, per dial)
+	if (_rw.kind == 9) {
+		var _dn9 = variable_global_exists("dial") ? min(g.dial_total, array_length(g.autom.dial)) : 0;
+		for (var _k = 0; _k < _dn9; _k++) {
+			var _ch  = __dchip_r(_k, _ry, _dn9);
+			var _dc  = dial_color(_k);
+			var _own = (g.dial[_k].level > 0);
+			var _lit = g.autom.dial[_k].on && _own;
+			var _bt  = _lit && (g.autom.dial[_k].st == 2);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ch.x, _ch.y, _ch.w, _ch.h, 0,
+				_lit ? merge_colour(_dc, c_black, .55) : c_black, _lit ? .95 : (_own ? .6 : .3));
+			draw_px_rect(_ch.x, _ch.y, _ch.w, _ch.h, _bt ? c_sgreen : _dc, _lit ? .9 : (_own ? .25 : .1));
+			draw_set_halign(fa_center);
+			draw_set_color(_lit ? c_white : _dim);
+			draw_set_alpha(_lit ? .95 : (_own ? .5 : .25));
+			draw_text(_ch.x + _ch.w / 2 + 1, _ch.y + 1, dial_config(_k).name);
+			draw_set_halign(fa_left);
+		}
+		continue;
+	}
+
 	// the rarity chips, in place of everything else on their row
 	if (_rw.kind == 3) {
 		for (var _k = 0; _k < UPG_RARITY_N; _k++) {
@@ -243,16 +266,19 @@ for (var _i = 0; _i < _nrows; _i++) {
 		var _tc = _tok ? c_horange
 		        : merge_colour(c_seagreen, c_hred, clamp((ram_cost("timer", _rw.t) - 1) / 3, 0, 1));
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w, _tm.h, 0, c_black, .7 * _sa);
-		if (_tnf < 1) {
+		if (_tnf < 1)
 			draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tnf, _tm.y, _tm.w * (1 - _tnf), _tm.h, 0,
 				merge_colour(c_horange, c_black, .6), .8 * _sa);
-			for (var _q = 0; _q < RAM_OC_N; _q++) {
-				var _sx = _tm.x + _tm.w * (_tnf + (1 - _tnf) * (_q + 1) / RAM_OC_N);
-				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tm.y - 1, 1, _tm.h + 2, 0, c_horange, .7 * _sa);
-			}
-		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x, _tm.y, _tm.w * _tf, _tm.h, 0, _tc, .8 * _sa);
 		draw_px_rect(_tm.x, _tm.y, _tm.w, _tm.h, _tc, .35 * _sa);
+		// THE STOPS (2026-09-14): a white tick per price, the notches
+		// orange - the timer is a ladder now (RAM_TIMER_STOPS)
+		var _tst = __tm_stops(_rw);
+		for (var _q = 0; _q < array_length(_tst); _q++) {
+			var _sx = _tm.x + _tm.w * _tst[_q].f;
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _tm.y - 1, 1, _tm.h + 2, 0,
+				(_tst[_q].k >= 0) ? c_horange : c_white, ((_tst[_q].k >= 0) ? .7 : .35) * _sa);
+		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tf - 1, _tm.y - 2, 3, _tm.h + 4, 0, c_white, .8 * _sa);
 		draw_set_color(_rw.on ? (_tok ? c_horange : c_white) : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);

@@ -475,9 +475,8 @@ function stats_v2_content() {
 	// ---- automation ----
 	if (variable_global_exists("autom"))
 	if (stats_v2_folder("automation", c_feat_automation)) {
-		var _ax = 0;
-		for (var _k = 0; _k < array_length(g.autom.dial); _k++)
-			if (g.autom.dial[_k].on) _ax++;
+		// the master row (2026-09-14): what it watches - the filter's owned dials
+		var _ax = g.autom.dial_all.on ? autom_strat_n() : 0;
 		stats_v2_line("dials automated",
 			string(_ax) + " / " + string(array_length(g.autom.dial)), -1,
 			(_ax > 0) ? c_sblue : c_gray);

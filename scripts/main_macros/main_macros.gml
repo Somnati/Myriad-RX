@@ -428,14 +428,20 @@ function main_macros() {
                             // grows with rebirths, and whatever else
                             // earns it later
 #macro RAM_REBIRTH      4  // sticks the autorebirth costs, switched on
-// THE TIMER RANGE (his call, 2026-09-12): 5s to 60s, 30s the default.
-// With buy-max under every pulse (autom_piece / autom_tiles /
+// THE TIMER RANGE (his call, 2026-09-12; THE LADDER, 2026-09-14): FOUR
+// STOPS, ONE PER PRICE - 30s (1 stick), 20s (2), 10s (3), 5s (4) - the
+// speed sliders' law ("segment the slider so it snaps to ram points"):
+// two settings at one price is a track lying about what it costs, so
+// every timer track (the dial master, the tile rows, the upgrade buy)
+// snaps to RAM_TIMER_STOPS through ram_snap. 30s the default. With
+// buy-max under every pulse (autom_strategy / autom_tiles /
 // autom_upgrades - the timer is pace, the cap is size) a second-long
 // pulse was continuous spending with extra steps; five reads as a
 // beat. The overclock notches cut UNDER the floor - 5 / 1.2, / 1.5,
 // / 2 = 4.2, 3.3, 2.5s - at the ladder's RAM prices (ram_oc)
 #macro RAM_TIMER_MIN    5  // the fastest an autobuy may pulse, seconds
-#macro RAM_TIMER_MAX   60
+#macro RAM_TIMER_MAX   30  // the slowest: the 1-stick stop (60 cost the same and bought less)
+#macro RAM_TIMER_STOPS [RAM_TIMER_MAX, RAM_TIMER_MIN * 4, RAM_TIMER_MIN * 2, RAM_TIMER_MIN]  // slow -> fast: ram_cost's tiers, one stop each
 // ---- OVERCLOCK (his design, 2026-09-12 - read ram_oc) ----
 // One toggle in the RAM band opens THREE RED NOTCHES past the end of
 // every "more is better" track - the speeds, the autotapper, every

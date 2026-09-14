@@ -15,13 +15,14 @@ function autom_unpack(_s) {
 		var _k = _kv[0], _v = _kv[1];
 		switch (_k) {
 		case "d": {
+			// the filter. a mode packed before the master row carried
+			// on:pct:t per dial - the flag is still the first field, the
+			// rest is read as nothing
 			var _l = string_split(_v, ",");
 			for (var _j = 0; _j < min(array_length(_l), array_length(_a.dial)); _j++) {
 				var _q = string_split(_l[_j], ":");
 				var _p = _a.dial[_j];
 				_p.on  = (array_length(_q) > 0) && (_q[0] == "1");
-				if (array_length(_q) > 1 && _q[1] != "") _p.pct = clamp(real(_q[1]), 1, 100);
-				if (array_length(_q) > 2 && _q[2] != "") _p.t   = ram_snap("timer", real(_q[2]));
 				if (!_p.on) _p.st = 0;
 			}
 			break;
@@ -106,7 +107,7 @@ function autom_unpack(_s) {
 		case "oc": _a.oc = (_v == "1"); break;
 		case "st": {
 			var _q = string_split(_v, ":");
-			if (array_length(_q) > 0) _a.strat = clamp(real(_q[0]), 0, 3);
+			if (array_length(_q) > 0) { var _sv = real(_q[0]); _a.strat = (_sv < 1) ? 3 : clamp(_sv, 1, 4); }   // (0, "a row per dial", retired: reads as robin)
 			if (array_length(_q) > 1) _a.dial_all.on  = (_q[1] == "1");
 			if (array_length(_q) > 2 && _q[2] != "") _a.dial_all.pct = clamp(real(_q[2]), 1, 100);
 			if (array_length(_q) > 3 && _q[3] != "") _a.dial_all.t   = ram_snap("timer", real(_q[3]));

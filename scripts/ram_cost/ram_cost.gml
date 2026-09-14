@@ -2,8 +2,9 @@
 /// sticks, THE one price list (the panel's hover preview, the overview
 /// and ram_used all read it; a price that lived in two places would
 /// disagree the day one moved).
-/// @param kind   "timer"   v = seconds between attempts: 1s is 4 sticks,
-///                         2s 3, 3-5s 2, slower 1 - speed is what costs
+/// @param kind   "timer"   v = seconds between attempts: 5s is 4 sticks,
+///                         10s 3, 20s 2, 30s 1 - speed is what costs; the
+///                         tracks snap to exactly these (RAM_TIMER_STOPS)
 ///               "speed"   v = a rate in % (the dials' cycling, the
 ///                         fabricator, the automerger): 1 stick per
 ///                         20%, so 5% is 1 and 100% is 5. The panel's

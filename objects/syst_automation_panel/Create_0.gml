@@ -22,11 +22,16 @@
 /// in a band under the title on EVERY tab; hovering a row shows what
 /// it costs as red sticks pulsing on the meter. Over budget nothing
 /// stops - every clock slows by cap/used, and the band says so. Each
-/// autobuy has its own timer (1s..30s, 30s the default; faster costs
-/// more), the three machines - the dials' cycling, the fabricator, the
+/// autobuy has its own timer (four stops, 30/20/10/5 s for 1/2/3/4
+/// sticks, 30s the default), the three machines - the dials' cycling, the fabricator, the
 /// automerger - have speed sliders (5..100%, a stick per 20%), the
 /// autorebirth has ONE master switch that costs (its rails are free
 /// conditions), and the overview totals it all and holds presets.
+/// THE DIALS' AUTOBUY IS ONE MASTER ROW (his call, 2026-09-14): switch,
+/// cap, timer; a TARGET pill (strongest / cheapest / lowest / robin)
+/// for the order the cap share is spread in; and a FILTER strip of
+/// dial chips under it - the per-dial rows are gone. Every timer track
+/// snaps to RAM's four price stops (RAM_TIMER_STOPS).
 ///
 /// ⚖️ OVERCLOCK (his design, 2026-09-12 - read ram_oc). The [overclock]
 /// chip in the RAM band opens three red notches past the end of every
@@ -101,6 +106,27 @@ __chip_r = function(_k, _ry) {
 	// their air, and row_h - 4 clipped them (his report)
 	return { x : chip_x0 + _k * (chip_w + chip_gap), y : _ry + 1,
 	         w : chip_w, h : row_h - 2 };
+};
+// THE DIAL CHIPS (the master row's filter, 2026-09-14): thirteen across
+// the same band, one letter each in the dial's own colour
+__dchip_r = function(_k, _ry, _n) {
+	var _w = floor((cont_x + cont_w - chip_x0 - (_n - 1) * chip_gap) / max(1, _n));
+	return { x : chip_x0 + _k * (_w + chip_gap), y : _ry + 1, w : _w, h : row_h - 2 };
+};
+/// the target pill: its buttons in display order and the strat each is
+/// (autom_order's numbering is the save's, so the pill maps, never renumbers)
+__strat_map  = [1, 2, 4, 3];
+__strat_sel  = function() {
+	for (var _k = 0; _k < array_length(__strat_map); _k++) if (__strat_map[_k] == g.autom.strat) return _k;
+	return 3;
+};
+__strat_desc = function() {
+	switch (g.autom.strat) {
+		case 1: return "the best dial first, leftovers down the list";
+		case 2: return "the cheapest level first, leftovers down the list";
+		case 4: return "the lowest level first - the back of the ladder";
+	}
+	return "every dial gets a turn at the front";
 };
 
 row_h = 12;
@@ -227,24 +253,41 @@ __stop_pick = function(_rw, _r) {
 	}
 	return _bv;
 };
-/// THE TIMER TRACK: right = fastest. Whole seconds RAM_TIMER_MAX..MIN
-/// across the normal range, then the notches (1/1.2, 1/1.5, 1/2 s)
-__tm_f = function(_rw, _t) {
+/// THE TIMER TRACK: right = fastest. A LADDER (his call, 2026-09-14:
+/// "make sure the master timer snaps based off ram"): the four price
+/// stops (RAM_TIMER_STOPS, slow to fast - 30/20/10/5 s for 1/2/3/4
+/// sticks) spread over the normal range, then the notches (1/1.2,
+/// 1/1.5, 1/2 s). One stop per price: the track cannot show two
+/// settings that cost the same. Draw and Step both read __tm_stops, so
+/// a stop is drawn exactly where it is grabbed (__stops' law)
+__tm_stops = function(_rw) {
+	var _o  = [];
+	var _st = RAM_TIMER_STOPS;
+	var _n  = array_length(_st);
 	var _nf = __nf(_rw);
-	if (_t >= RAM_TIMER_MIN)
-		return clamp((RAM_TIMER_MAX - _t) / max(1, RAM_TIMER_MAX - RAM_TIMER_MIN), 0, 1) * _nf;
-	return _nf + (1 - _nf) * (ram_oc_k("timer", _t) + 1) / RAM_OC_N;
+	for (var _k = 0; _k < _n; _k++)
+		array_push(_o, { v : _st[_k], f : ((_n > 1) ? (_k / (_n - 1)) : 0) * _nf, k : -1 });
+	if (_nf < 1)
+		for (var _q = 0; _q < RAM_OC_N; _q++)
+			array_push(_o, { v : ram_oc_value("timer", _q), f : _nf + (1 - _nf) * (_q + 1) / RAM_OC_N, k : _q });
+	return _o;
+};
+__tm_f = function(_rw, _t) {
+	var _st = __tm_stops(_rw);
+	var _bf = 0, _bd = 999999;
+	for (var _i = 0; _i < array_length(_st); _i++) {
+		var _d = abs(_st[_i].v - _t);
+		if (_d < _bd) { _bd = _d; _bf = _st[_i].f; }
+	}
+	return _bf;
 };
 __tm_pick = function(_rw, _r) {
 	var _f  = clamp((mouse_x - _r.x) / max(1, _r.w), 0, 1);
-	var _nf = __nf(_rw);
-	if (_nf >= 1 || _f <= _nf)
-		return clamp(round(lerp(RAM_TIMER_MAX, RAM_TIMER_MIN, _f / _nf)), RAM_TIMER_MIN, RAM_TIMER_MAX);
-	// past the normal end: the nearest of {the end, the notches}
-	var _bv = RAM_TIMER_MIN, _bd = abs(_f - _nf);
-	for (var _q = 0; _q < RAM_OC_N; _q++) {
-		var _sf = _nf + (1 - _nf) * (_q + 1) / RAM_OC_N;
-		if (abs(_f - _sf) < _bd) { _bd = abs(_f - _sf); _bv = ram_oc_value("timer", _q); }
+	var _st = __tm_stops(_rw);
+	var _bv = RAM_TIMER_MAX, _bd = 999999;
+	for (var _i = 0; _i < array_length(_st); _i++) {
+		var _d = abs(_st[_i].f - _f);
+		if (_d < _bd) { _bd = _d; _bv = _st[_i].v; }
 	}
 	return _bv;
 };
@@ -291,8 +334,7 @@ __ram_page = function(_t) {
 	if (_t == AT_DIALS) {
 		if (_a.tap.on) _u += ram_cost("tap", _a.tap.rate);
 		if (_a.run.on) _u += ram_cost("speed", _a.run.spd);
-		for (var _i = 0; _i < array_length(_a.dial); _i++)
-			if (_a.dial[_i].on) _u += ram_cost("timer", _a.dial[_i].t);
+		if (_a.dial_all.on) _u += ram_cost("timer", _a.dial_all.t) * max(1, autom_strat_n());
 	}
 	if (_t == AT_REB)  if (_a.reb.on) _u += ram_cost("rebirth");
 	if (_t == AT_UPG) {
@@ -345,6 +387,7 @@ __view_label = function() {
 //        4 = keep/sell flag         5 = toggle + cap + TIMER (autobuy)
 //        6 = an info line (val, and `right` at the row's end)
 //        7 = action buttons (btns[], act)   8 = a section band
+//        9 = the dial chip strip (the master row's filter)
 // every row carries `ram`: what it costs on (or would cost, off) - the
 // meter's hover preview reads it, so the price shown is the price paid
 // ==================================================================
@@ -388,8 +431,7 @@ __page_rows = function() {
 			help : "what automation spent this session, by section - and how many times it acted" });
 
 		array_push(_o, __section("running", c_gold));
-		var _dn = 0;
-		for (var _i = 0; _i < array_length(_a.dial); _i++) if (_a.dial[_i].on) _dn++;
+		var _dn = _a.dial_all.on ? autom_strat_n() : 0;
 		var _bst = "";
 		if (variable_global_exists("dial")) {
 			var _bi = -1;
@@ -400,7 +442,7 @@ __page_rows = function() {
 		array_push(_o, { kind : 6, name : "dials",
 			val : (_a.tap.on ? ("autotap " + string(_a.tap.rate) + "/s  -  ") : "")
 			    + (_a.run.on ? ("cycling " + string(_a.run.spd) + "%") : "cycling off (manual)")
-			    + "  -  " + string(_dn) + " autobuy" + ((_dn == 1) ? "" : "s") + _bst,
+			    + "  -  " + (_a.dial_all.on ? ("autobuy " + ["", "strongest", "cheapest", "robin", "lowest"][_a.strat] + " over " + string(_dn) + " dial" + ((_dn == 1) ? "" : "s")) : "autobuy off") + _bst,
 			right : string(__ram_page(AT_DIALS)) + " ram",
 			on : true, st : -1, col : tcol[AT_DIALS], ram : 0, help : "" });
 		var _r = _a.reb;
@@ -505,14 +547,26 @@ __page_rows = function() {
 			     + "notches overclock them. off FREEZES them where they are; hold "
 			     + "the pointer on one to crank it by hand" });
 		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
-		// THE STRATEGY (his list): manual keeps a row per dial; the other
-		// three share one row and walk the dials in their order
-		array_push(_o, { kind : 7, name : "strategy", tag : "strat",
-			val : ["a row per dial", "the best dial first, leftovers down the list",
-			       "the cheapest level first, leftovers down the list", "every dial gets a turn at the front"][_a.strat],
-			btns : ["manual", "strongest", "cheapest", "robin"], act : "strat", sel : _a.strat,
+		// THE MASTER ROW (his call, 2026-09-14: "keep the filter but have a
+		// master toggle"): one switch, one cap, one timer for every dial.
+		// Under it the TARGET pill - the order the cap share is spread in
+		// - and the FILTER strip: which dials it may touch at all
+		var _sa = _a.dial_all;
+		var _wn = autom_strat_n();
+		array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer", tag : "dial_all",
+			name : "dial autobuy", on : _sa.on, val : _sa.pct, t : _sa.t, tic : _sa.tic, sfx : "%",
+			st : _sa.st, col : tcol[AT_DIALS], ram : ram_cost("timer", _sa.t) * max(1, _wn),
+			help : "cap % of spendable profit per pulse, spread down the target's order - "
+			     + "timer: secs between pulses, one stop per price; a stick-run per dial in the filter" });
+		array_push(_o, { kind : 7, name : "target", tag : "strat",
+			val : __strat_desc(),
+			btns : ["strongest", "cheapest", "lowest", "robin"], act : "strat", sel : __strat_sel(),
 			on : true, st : -1, col : tcol[AT_DIALS], ram : 0,
-			help : "how the autobuy spreads the cap share over the dials" });
+			help : "the order the cap share is spread in - first in line takes the most" });
+		array_push(_o, { kind : 9, name : "filter", on : true, val : 0, sfx : "", st : -1,
+			col : tcol[AT_DIALS], ram : 0,
+			help : "chips lit are in the autobuy - tap one to bench that dial (its stick-run "
+			     + "goes with it); a dim chip is a dial you do not own yet" });
 		// THE RESERVE heads the autobuys, because it is the counterweight
 		// to everything under it: autobuy spends profit, and this is the
 		// share autobuy may not touch.
@@ -537,53 +591,25 @@ __page_rows = function() {
 			help : "armed, the dial autobuys wait until the pile has passed this power of ten" });
 		if (!variable_global_exists("dial")) return _o;
 		var _n = min(g.dial_total, array_length(_a.dial));
-		if (_a.strat != 0) {
-			// ONE ROW for every dial, then the order it will walk them in
-			var _sa = _a.dial_all;
-			array_push(_o, { kind : 5, lo : 1, hi : 100, ock : "timer", tag : "dial_all",
-				name : "all dials", on : _sa.on, val : _sa.pct, t : _sa.t, tic : _sa.tic, sfx : "%",
-				st : _sa.st, col : tcol[AT_DIALS], ram : ram_cost("timer", _sa.t) * max(1, autom_strat_n()),
-				help : "cap % of spendable profit per pulse, spread down the order - "
-				     + "timer: secs between pulses; a stick-run per dial it watches" });
-			var _ord = autom_order(_n);
-			for (var _k = 0; _k < array_length(_ord); _k++) {
-				var _i = _ord[_k];
-				var _dd = g.dial[_i];
-				var _why = (_a.strat == 2)
-					? ("next lv " + crunch_arb(dial_cost(_i, _dd.level, _dd.level + 1)))
-					: __dial_readout(_dd);
-				array_push(_o, { kind : 6, name : string(_k + 1) + ".", val : "dial " + dial_config(_i).name
-					+ ((_a.dial[_i].st == 2) ? "  -  bought" : ""), right : _why,
-					on : true, st : -1, col : dial_color(_i), ram : 0, help : "" });
-			}
-			return _o;
+		// THE WALK, as it stands: the filter's dials in the target's order,
+		// with the figure the target sorts by (level for lowest, the next
+		// level's price for cheapest, the drawer's readout otherwise)
+		var _ord = autom_order(_n);
+		var _pos = 0;
+		for (var _k = 0; _k < array_length(_ord); _k++) {
+			var _i = _ord[_k];
+			if (!_a.dial[_i].on || g.dial[_i].level <= 0) continue;
+			var _dd = g.dial[_i];
+			var _why = (_a.strat == 2) ? ("next lv " + crunch_arb(dial_cost(_i, _dd.level, _dd.level + 1)))
+			         : ((_a.strat == 4) ? ("lv " + string(_dd.level)) : __dial_readout(_dd));
+			_pos++;
+			array_push(_o, { kind : 6, name : string(_pos) + ".", val : "dial " + dial_config(_i).name
+				+ ((_a.dial[_i].st == 2) ? "  -  bought" : ""), right : _why,
+				on : true, st : -1, col : dial_color(_i), ram : 0, help : "" });
 		}
-		// WHICH DIALS ARE THE STRONGEST (his ask, 2026-09-11): each row
-		// carries the dial's own p/s, and the best of them is marked -
-		// the number you need to decide where the autobuy goes
-		var _best = -1;
-		for (var _i = 0; _i < _n; _i++) {
-			var _gp = g.dial[_i].gps;
-			if (_gp >= arb(1) && (_best == -1 || _gp > g.dial[_best].gps)) _best = _i;
-		}
-		for (var _i = 0; _i < _n; _i++) {
-			var _p = _a.dial[_i];
-			array_push(_o, {
-				kind : 5, lo : 1, hi : 100, ock : "timer", tag : "dial", k : _i,
-				name : "dial " + dial_config(_i).name,
-				sub  : __dial_readout(g.dial[_i]),
-				top  : (_i == _best),
-				on   : _p.on,
-				val  : _p.pct,
-				t    : _p.t,
-				tic  : _p.tic,
-				sfx  : "%",
-				st   : _p.st,
-				col  : dial_color(_i), ram : ram_cost("timer", _p.t),
-				help : "cap % of spendable profit per buy - timer: secs between "
-				     + "tries, right is faster and costs more ram",
-			});
-		}
+		if (_pos == 0)
+			array_push(_o, { kind : 6, name : "", val : _sa.on ? "nothing to buy for - every owned dial is benched" : "",
+				right : "", on : true, st : -1, col : _dim_c, ram : 0, help : "" });
 	}
 
 	if (tab == AT_REB) {
@@ -699,12 +725,6 @@ __flip_row = function(_rw) {
 		case "run":  _a.run.on = !_a.run.on; return;
 		case "fab":  _a.fab.on = !_a.fab.on; return;
 		case "merge": if (variable_global_exists("tiles")) g.tiles.automerge = !g.tiles.automerge; return;
-		case "dial": {
-			var _d = _a.dial[_rw.k];
-			_d.on = !_d.on;
-			if (!_d.on) _d.st = 0;
-			return;
-		}
 		case "dial_all": _a.dial_all.on = !_a.dial_all.on; if (!_a.dial_all.on) _a.dial_all.st = 0; return;
 		case "rail_d": _a.rails.d_on = !_a.rails.d_on; return;
 		case "rail_t": _a.rails.t_on = !_a.rails.t_on; return;
@@ -734,6 +754,13 @@ __flip_chip = function(_k) {
 	if (_k < 0 || _k >= array_length(_r)) return;
 	_r[_k] = !_r[_k];
 };
+// one dial chip: in or out of the master row's filter
+__flip_dial = function(_k) {
+	var _d = g.autom.dial;
+	if (_k < 0 || _k >= array_length(_d)) return;
+	_d[_k].on = !_d[_k].on;
+	if (!_d[_k].on) _d[_k].st = 0;
+};
 
 // THE QUICK-SET. Dragging the auto-sell slider writes the rarity flags
 // from upgrade_keep_rarity, which reads the LIVE odds - so the
@@ -756,11 +783,6 @@ __set_row = function(_rw, _v, _which = 0) {
 		case "reserve": _a.lock_pct = clamp(_v, 0, 90); return;
 		case "rail_d":  _a.rails.d_oom = clamp(_v, 1, 60); return;
 		case "rail_t":  _a.rails.t_oom = clamp(_v, 1, 30); return;
-		case "dial": {
-			var _d = _a.dial[_rw.k];
-			if (_which == 1) _d.t = ram_snap("timer", _v); else _d.pct = _v;
-			return;
-		}
 		case "dial_all":
 			if (_which == 1) _a.dial_all.t = ram_snap("timer", _v); else _a.dial_all.pct = _v;
 			return;
@@ -789,13 +811,13 @@ __defaults = function() {
 	_a.fab = { on : true, spd : 100 };
 	_a.am_speed = 100;
 	_a.oc = false;
-	_a.strat = 0;
+	_a.strat = 3;
 	_a.dial_all = { on : false, pct : 50, t : 30, tic : 0, st : 0, cur : 0 };
 	_a.rails = { d_on : false, d_oom : 6, t_on : false, t_oom : 3 };
 	if (variable_global_exists("tiles")) g.tiles.automerge = false;
-	for (var _i = 0; _i < array_length(_a.dial); _i++) {
+	for (var _i = 0; _i < array_length(_a.dial); _i++) {   // the filter: everything in
 		var _d = _a.dial[_i];
-		_d.on = false; _d.pct = 50; _d.t = 30; _d.st = 0;
+		_d.on = true; _d.st = 0;
 	}
 	var _r = _a.reb;
 	_r.on = false;
@@ -813,8 +835,8 @@ __defaults = function() {
 /// an action row's button was tapped: the row and which button
 __action = function(_rw, _b) {
 	if (_rw.act == "strat") {
-		// the strategy pill: manual / strongest / cheapest / robin
-		g.autom.strat = _b;
+		// the target pill: strongest / cheapest / lowest / robin
+		g.autom.strat = __strat_map[clamp(_b, 0, array_length(__strat_map) - 1)];
 		g.autom.dial_all.cur = 0;
 		save_mark_dirty();
 		play_sound_ext(snd_softclick, 1, 1.1, .45, 1);

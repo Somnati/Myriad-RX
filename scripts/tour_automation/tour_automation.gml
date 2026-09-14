@@ -11,7 +11,10 @@
 //   autom_init          g.autom. Saved preferences and session pacing,
 //                       and the split between them is deliberate.
 //   autom_tick          ONE pulse a second. The runner.
-//   autom_piece         one dial's autobuy pulse (Myriad's ramp law).
+//   autom_strategy      THE MASTER ROW's pulse (2026-09-14): the filter's
+//                       dials in the target's order (autom_order), each
+//                       buying max out of the cap share, leftovers down.
+//   autom_piece         RETIRED with the per-dial rows (kept for reference).
 //   autom_upgrades      the upgrade table: sell, roll, buy, in that
 //                       order.
 //   upgrade_autosell_wants THE SELL RULE. Two explicit filters, rarity

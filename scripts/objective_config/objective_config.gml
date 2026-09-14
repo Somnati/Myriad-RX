@@ -73,8 +73,7 @@ function objective_config() {
 			{ txt : "switch on an autobuy",
 			  done : function() {
 				if (!variable_global_exists("autom")) return false;
-				if (g.autom.dial_all.on) return true;
-				for (var _i = 0; _i < array_length(g.autom.dial); _i++) if (g.autom.dial[_i].on) return true;
+				if (g.autom.dial_all.on) return true;   // (the per-dial flags are the FILTER now, in by default - not a switch)
 				return g.autom.tap.on;
 			  } },
 		  ],

@@ -1,3 +1,6 @@
+/// ⚠ RETIRED 2026-09-14 - the per-dial rows are gone (one master row,
+/// autom_strategy). Nothing calls this; it stays as the ramp law's
+/// reference for the day a per-dial mode returns.
 /// @description autom_piece(p, i);
 /// @param p   the dial's automation struct
 /// @param i   the dial index

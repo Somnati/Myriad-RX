@@ -11,19 +11,26 @@
 ///     is a guess about the current wallet, and the wallet is not the
 ///     same after a reload.
 ///
-///   dial[i] { on, pct, t, q, h, st, tic }
-///     on   the toggle
-///     t    seconds between attempts (RAM_TIMER_MIN..MAX): its clock,
-///          and what it costs - ram_cost("timer", t). tic is the
-///          countdown, session-only
-///     pct  spend threshold as a % of CURRENT profit. His semantics
-///          from the techdemo, and the right ones: the dial buys only
-///          while the bill is at most pct% of the wallet AT THAT
-///          MOMENT. No reserved slices, no ledgers to keep in step -
-///          the rule is re-read every pulse from the live balance.
-///     q/h  the adaptive step ramp (autom_piece)
-///     st   the last verdict, for the room's pills: 0 off, 1 waiting,
-///          2 bought
+///   dial[i] { on, st }   THE FILTER (his call, 2026-09-14: "keep the
+///     filter but have a master toggle"). on = the master row may
+///     touch this dial; st = the last pulse's verdict for its chip
+///     (2 = it bought). The per-dial cap / timer / ramp rows are gone -
+///     ONE master row (dial_all) buys for every dial in the filter.
+///
+///   dial_all { on, pct, t, tic, st, cur }  THE MASTER ROW
+///     on   the one switch: off, nothing buys whatever the filter says
+///     t    seconds between pulses, on the RAM ladder (RAM_TIMER_STOPS:
+///          30 / 20 / 10 / 5 s = 1 / 2 / 3 / 4 sticks, x the dials it
+///          watches - autom_strat_n). tic is the countdown, session-only
+///     pct  the cap: a pulse may spend this % of the SPENDABLE profit
+///          AT THAT MOMENT, spread down the target's order (his
+///          semantics from the techdemo: re-read every pulse from the
+///          live balance, no reserved slices, no ledgers)
+///     cur  round-robin's cursor (autom_order)
+///     st   the row's verdict: 0 off, 1 waiting, 2 bought
+///   strat  THE TARGET (autom_order): 1 strongest first, 2 cheapest
+///          level first, 3 round-robin, 4 lowest level first. (0 was
+///          "a row per dial" - retired 2026-09-14; a load maps it to 3)
 ///
 ///   reb  the autorebirth: ONE MASTER SWITCH (on - what costs the RAM
 ///        and what the panel's meter shows) over the trigger rails,
@@ -106,12 +113,13 @@ function autom_init(_force = false) {
 		// autobuy would otherwise eat the pile rebirth is calculated
 		// from. See give_profit and profit_spendable.
 		lock_pct : 0,
-		// THE STRATEGY (his list, 2026-09-12: "priority instead of
-		// thirteen identical rows"): 0 manual (a row per dial), 1
-		// strongest first, 2 cheapest first, 3 round-robin - the three
-		// strategies share ONE row (dial_all) and walk the dials in their
-		// order with the cap share, the leftovers trickling down
-		strat    : 0,
+		// THE TARGET (his list, 2026-09-12: "priority instead of thirteen
+		// identical rows"; the master row 2026-09-14): 1 strongest first,
+		// 2 cheapest first, 3 round-robin, 4 lowest first - ONE row
+		// (dial_all) walks the dials in the target's order with the cap
+		// share, the leftovers trickling down. Robin by default: every
+		// dial gets a turn, nothing snowballs until you say so
+		strat    : 3,
 		dial_all : { on : false, pct : 50, t : 30, tic : 0, st : 0, cur : 0 },
 		// THE RAILS (his list: the rebirth's armed conditions, for the
 		// autobuys too): a floor under which an autobuy holds its fire
@@ -144,8 +152,10 @@ function autom_init(_force = false) {
 		ledger : [],
 		stat   : autom_stat_new(),
 	};
-	repeat (_dn) array_push(g.autom.dial,
-		{ on : false, pct : 50, t : 30, q : 1, h : 0, st : 0, tic : 0 });
+	// the filter: every dial IN by default - the master switch is the
+	// one you throw, and a filter that starts empty is a switch that
+	// does nothing until you find the chips
+	repeat (_dn) array_push(g.autom.dial, { on : true, st : 0 });
 	var _tc = tile_upg_config();
 	for (var _i = 0; _i < array_length(_tc); _i++)
 		g.autom.tiles[$ _tc[_i].id] = { on : false, pct : 50, t : 30, st : 0, tic : 0 };

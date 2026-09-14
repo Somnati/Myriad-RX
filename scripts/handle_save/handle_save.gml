@@ -281,23 +281,18 @@ function handle_save(){
 	section = "automation";
 	autom_init();
 	var _an = array_length(g.autom.dial);
-	// one string for the toggles, one for the percentages: thirteen
-	// dials is thirteen keys twice over otherwise
-	var _aon = "", _apc = "";
-	for (var _k = 0; _k < _an; _k++) {
+	// THE FILTER: one string of flags (thirteen dials is thirteen keys
+	// otherwise). autom_v says what shape the save has: 2 = the master
+	// row (2026-09-14); absent = a row per dial, migrated below
+	var _aon = "";
+	for (var _k = 0; _k < _an; _k++)
 		_aon += ((_k > 0) ? "," : "") + (g.autom.dial[_k].on ? "1" : "0");
-		_apc += ((_k > 0) ? "," : "") + string(g.autom.dial[_k].pct);
-	}
-	_aon = handle("dial_on",  _aon);
-	_apc = handle("dial_pct", _apc);
+	_aon = handle("dial_on", _aon);
+	var _av = handle("autom_v", (action == sv_save) ? 2 : 0);   // absent on load = the old shape
 	if (action == sv_load) {
 		var _p1 = string_split(_aon, ",");
-		var _p2 = string_split(_apc, ",");
-		for (var _k = 0; _k < _an; _k++) {
-			g.autom.dial[_k].on = (_k < array_length(_p1)) && (_p1[_k] == "1");
-			var _d2 = (_k < array_length(_p2)) ? string_digits(_p2[_k]) : "";
-			g.autom.dial[_k].pct = (_d2 == "") ? 50 : clamp(real(_d2), 1, 100);
-		}
+		for (var _k = 0; _k < _an; _k++)
+			g.autom.dial[_k].on = (_k < array_length(_p1)) ? (_p1[_k] == "1") : true;
 	}
 	g.autom.reb.on    = handle("reb_on",    g.autom.reb.on);
 	g.autom.reb.t_on  = handle("reb_t_on",  g.autom.reb.t_on);
@@ -371,20 +366,8 @@ function handle_save(){
 		}
 	}
 
-	// THE DIAL TIMERS (one string, like the toggles), the upgrade buy
-	// clock, and RAM: the capacity level, the two default automations
-	// with their speeds, the merger's speed, the three presets
-	var _atm = "";
-	for (var _k = 0; _k < _an; _k++)
-		_atm += ((_k > 0) ? "," : "") + string(g.autom.dial[_k].t);
-	_atm = handle("dial_auto_t", _atm);
-	if (action == sv_load) {
-		var _p6 = string_split(_atm, ",");
-		for (var _k = 0; _k < _an; _k++) {
-			var _d6 = (_k < array_length(_p6)) ? _p6[_k] : "";
-			g.autom.dial[_k].t = (_d6 == "") ? 30 : ram_snap("timer", real(_d6));
-		}
-	}
+	// the upgrade buy clock, and RAM: the two default automations with
+	// their speeds, the merger's speed, the modes
 	g.autom.upg.t     = handle("upg_t",     g.autom.upg.t);
 	g.autom.tap.on    = handle("tap_on",    g.autom.tap.on);
 	g.autom.tap.rate  = handle("tap_rate",  g.autom.tap.rate);
@@ -432,9 +415,37 @@ function handle_save(){
 		g.autom.run.spd  = ram_snap("speed", g.autom.run.spd);
 		g.autom.fab.spd  = ram_snap("speed", g.autom.fab.spd);
 		g.autom.am_speed = ram_snap("speed", g.autom.am_speed);
-		g.autom.strat        = clamp(floor(g.autom.strat), 0, 3);
+		g.autom.strat        = clamp(floor(g.autom.strat), 0, 4);
 		g.autom.dial_all.pct = clamp(g.autom.dial_all.pct, 1, 100);
 		g.autom.dial_all.t   = ram_snap("timer", g.autom.dial_all.t);
+		// A SAVE FROM BEFORE THE MASTER ROW (autom_v absent): its per-dial
+		// rows become the filter as they are, and NOBODY'S AUTOMATION
+		// STOPS ON THE UPDATE - "a row per dial" with any row on becomes
+		// the master on, robin, at the highest cap and the fastest timer
+		// those rows had (read straight off the old keys; nothing writes
+		// them any more). A save already on a strategy had a live master
+		// row and flags the old code never read: every dial goes in
+		if (floor(_av) < 2) {
+			if (g.autom.strat == 0) {
+				var _old_on = false, _old_pct = 0, _old_t = RAM_TIMER_MAX;
+				var _op2 = string_split(ini_read_string(section, "dial_pct", ""), ",");
+				var _ot2 = string_split(ini_read_string(section, "dial_auto_t", ""), ",");
+				for (var _k = 0; _k < _an; _k++) {
+					if (!g.autom.dial[_k].on) continue;
+					_old_on = true;
+					var _pk = (_k < array_length(_op2)) ? string_digits(_op2[_k]) : "";
+					if (_pk != "") _old_pct = max(_old_pct, real(_pk));
+					var _tk = (_k < array_length(_ot2)) ? string_digits(_ot2[_k]) : "";
+					if (_tk != "") _old_t = min(_old_t, real(_ot2[_k]));
+				}
+				if (_old_on) {
+					g.autom.dial_all.on  = true;
+					g.autom.dial_all.pct = clamp((_old_pct > 0) ? _old_pct : 50, 1, 100);
+					g.autom.dial_all.t   = ram_snap("timer", _old_t);
+				} else for (var _k = 0; _k < _an; _k++) g.autom.dial[_k].on = true;
+			} else for (var _k = 0; _k < _an; _k++) g.autom.dial[_k].on = true;
+		}
+		if (g.autom.strat == 0) g.autom.strat = 3;
 		g.autom.rails.d_oom  = clamp(g.autom.rails.d_oom, 1, 60);
 		g.autom.rails.t_oom  = clamp(g.autom.rails.t_oom, 1, 30);
 		if (!g.autom.oc) ram_oc_clamp();
