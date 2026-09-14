@@ -298,7 +298,7 @@ __draw_grad = function() {
 	shader_set(sh_fog_dither);
 	shader_set_uniform_f(dith_u_time, (current_time mod 100000) / 1000);
 	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, room_width,
-		room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), 1);
+		room_height, 0, c_black, c_black, c_hsv(169, 190, 18), c_hsv(169, 190, 18), TITLE_GRAD_A);
 	shader_reset();
 	gpu_set_blendmode(bm_normal);
 };

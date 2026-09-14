@@ -407,9 +407,11 @@ function main_macros() {
 
 // ---- THE TITLE SCREEN ----
 // The bottom-lit teal gradient over the field (syst_titlescreen's
-// __draw_grad). OFF to see the title bare - "more black and less fog"
-// (his ask, 2026-09-12); flip it back on if the fog wins
-#macro TITLE_GRAD false
+// __draw_grad). Off for a day to see the title bare ("more black and less
+// fog", 2026-09-12); BACK at three quarters (his call, 2026-09-13: "bring
+// back the title screen's bloom... slightly more transparent")
+#macro TITLE_GRAD   true
+#macro TITLE_GRAD_A .72   // its strength (1 = the original)
 
 // ---- RAM (the automation budget, his design 2026-09-11) ----
 // Every automation costs sticks; the budget is ram_cap, the bill is

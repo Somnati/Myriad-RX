@@ -54,8 +54,16 @@ for (var _k = 0; _k < 8; _k++) {
 // widths are the CONSTANT panel width (pw), never room_width-panel_x:
 // the drawer is a rigid unit that slides off the room edge, it does
 // not shrink against it (close-anim fix 2026-07-12)
-draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0,
-	c_hsv(169, 186, 7), .97);
+// ...THE GLASS (his ask, 2026-09-13): this frame's pixelated shot of what is
+// under the panel, then the plate's teal at a dim the words still read
+// through (the dial drawer dims .45; the rows here carry text, so .62)
+if (snap_ok) {
+	draw_pixel_region(panel_x, 0, pw, room_height, 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0, c_hsv(169, 186, 7), .62);
+} else {
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0,
+		c_hsv(169, 186, 7), .97);
+}
 // one hairline of light on the panel's own edge - the shadow gives the
 // depth, this gives the edge somewhere to stop
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, 1, room_height, 0, _slate, .28);
