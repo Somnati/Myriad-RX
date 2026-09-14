@@ -130,18 +130,35 @@ __seats = function() {
 __disc = function(_x, _y, _col, _fill, _a, _h) {
 	var _sc = 1 + .15 * _h;
 	draw_sprite_ext(spr_dock_disc, 0, _x, _y, _sc, _sc, 0, c_white, _a);
-	var _cx = _x - .5, _cy = _y - .5, _r = 8 + _h;
-	for (var _py = _y - 9; _py <= _y + 8; _py++) {
+	// THE CENTRE IS THE MIDDLE OF PIXEL (x, y) - (x + .5, y + .5) in
+	// continuous coordinates - since the disc went odd (19 px, his shot
+	// 2026-09-14: the fill and the text sat up-left). A pixel is in the
+	// fill when its own centre is within the radius; the radius is one
+	// pixel inside the disc's 9.5, a rim
+	var _cx = _x + .5, _cy = _y + .5, _r = 8.5 + _h;
+	for (var _py = _y - 9; _py <= _y + 9; _py++) {
 		var _dy = (_py + .5) - _cy;
 		if (abs(_dy) >= _r) continue;
 		var _hw = sqrt(sqr(_r) - sqr(_dy));
-		var _x0 = round(_cx - _hw), _x1 = round(_cx + _hw);
+		var _x0 = ceil(_cx - _hw - .5), _x1 = floor(_cx + _hw - .5) + 1;   // pixels whose centres fall inside
 		if (_x1 <= _x0) continue;
 		// the liquid, where the fill has risen to (no wash under it - his
 		// report, 2026-09-13: it read as a second, paler disc on the gear's)
 		if (_fill > 0 && _dy > _r - 2 * _r * clamp(_fill, 0, 1))
 			draw_sprite_ext(spr_pixel_1x1, 0, _x0, _py, _x1 - _x0, 1, 0, _col, .6 * _a);
 	}
+};
+
+/// @func __ink(ch) -> [left, right] - the columns a glyph of the outline
+///       font inks inside its 7-px cell (measured off spr_font_outline;
+///       digits, the percent and the dash are all a label ever holds)
+__ink = function(_ch) {
+	switch (_ch) {
+		case "1": return [1, 4];
+		case "6": return [1, 6];
+		case "8": case "9": case "%": return [0, 5];
+	}
+	return [1, 5];   // 0 2 3 4 5 7 and the dash
 };
 
 /// @func __label(x, y, txt, a)
@@ -152,11 +169,19 @@ __label = function(_x, _y, _txt, _a) {
 	draw_set_valign(fa_top);
 	draw_set_color(c_white);
 	draw_set_alpha(.95 * _a);
-	// ON THE GRID: centred on the disc's centre point (x-.5) and then
-	// ROUNDED to a whole column - a sprite font at a half pixel lands on
-	// whichever side the sampler picks, never both (his report: uncentred)
-	var _w = string_width(_txt);
-	draw_text(round(_x - .5 - _w * .5), _y - 4, _txt);
+	// BY THE INK, NOT THE BOX (his shot, 2026-09-14: "98%" and "19" sat
+	// left): the outline font's glyphs sit in the left of their 7-px cells
+	// (a '1' inks columns 1..4, an '8' 0..5), so a box centred on the disc put the ink
+	// a pixel left of it. The ink's extent is summed from a per-glyph
+	// table (cells advance 6: 7 wide, sep -1) and THAT is centred on the
+	// disc's pixel centre; rows 0..6 of the cell centre on y + .5 at y - 3
+	var _n = string_length(_txt), _il = 0, _ir = 0;
+	for (var _k = 1; _k <= _n; _k++) {
+		var _e = __ink(string_char_at(_txt, _k));
+		if (_k == 1) _il = _e[0];
+		_ir = (_k - 1) * 6 + _e[1];
+	}
+	draw_text(round(_x + .5 - (_il + _ir + 1) * .5), _y - 3, _txt);
 	draw_set_font(fnt);
 	draw_set_alpha(1);
 };
@@ -203,10 +228,12 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// columns x-7..x+5 have their middle column at x-1, whose centre is
 			// x-.5. The old 16 (4/2/4/2/4) was even and sat half a pixel right.
 			// Rows: the tallest spans y-6..y+5, middle row y-1 -> centre y-.5
+			// (13 columns x-6..x+6: the middle bar's middle column IS the
+			// disc's centre pixel now that the disc is odd - 2026-09-14)
 			var _hs = [6, 9, 12];
 			for (var _k = 0; _k < 3; _k++) {
 				var _bh = _hs[_k] + _h;
-				draw_sprite_ext(spr_pixel_1x1, 0, _x - 7 + _k * 5, _y + 6 - _bh, 3, _bh, 0, _tone, (.85 + .15 * _h) * _a);
+				draw_sprite_ext(spr_pixel_1x1, 0, _x - 6 + _k * 5, _y + 7 - _bh, 3, _bh, 0, _tone, (.85 + .15 * _h) * _a);
 			}
 			break;
 		}
@@ -224,8 +251,10 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			__disc(_x, _y, _wait ? _gc : _tone, 0, _a, _h);
 			// the box is 11 wide with its origin at 5: drawn at (x-1, y-1) its
 			// columns are 4..14 of the sprite about the disc's centre (9.5)
+			// (at (x, y): origin 5 of 11 puts the box's middle column on the
+			// disc's centre pixel - 2026-09-14, the disc odd)
 			var _sc = 1 + .15 * _h;
-			draw_sprite_ext(spr_gift_icon, 0, _x - 1, _y - 1, _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
+			draw_sprite_ext(spr_gift_icon, 0, _x, _y, _sc, _sc, 0, _gc, (.85 + .15 * _h) * _a * _br);
 			break;
 		}
 	}

@@ -11,7 +11,7 @@ for (var _k = 0; _k < array_length(_seats); _k++) {
 	// control surface and should light the same way
 	if (_hot || _rp > 0) {
 		var _gw = sprite_get_width(spr_vis_glow_soft);
-		draw_sprite_ext(spr_vis_glow_soft, 0, _s.x - .5, _s.y - .5, 26 / _gw, 26 / _gw, 0,   // (the disc's centre point)
+		draw_sprite_ext(spr_vis_glow_soft, 0, _s.x + .5, _s.y + .5, 26 / _gw, 26 / _gw, 0,   // (the disc's centre: the middle of pixel (x, y))
 			c_white, (.1 + .12 * _ic.spin + .15 * _rp) * _a);
 	}
 	__glyph(_s.i, _s.x, _s.y, _a, _ic.spin, _hot);
