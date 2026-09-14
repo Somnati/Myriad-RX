@@ -711,33 +711,6 @@ function handle_save(){
 		g.tickets.seq       = max(0, floor(g.tickets.seq));
 	}
 
-	// ---- the cheat shop (2026-09-13): the rows' percentages, as a list;
-	// a load that no longer fits the cap (a tuned-down macro) lowers the
-	// tallest rows until it does ----
-	section = "cheat";
-	cheat_init();
-	var _cv = "";
-	if (action == sv_save) {
-		for (var _i = 0; _i < array_length(g.cheat.v); _i++) _cv += ((_i > 0) ? "," : "") + string(g.cheat.v[_i]);
-	}
-	_cv = handle("v", _cv);
-	if (action == sv_load) {
-		var _cn = array_length(cheat_config().rows);
-		g.cheat.v = array_create(_cn, 100);
-		if (string(_cv) != "") {
-			var _cp = string_split(string(_cv), ",");
-			for (var _i = 0; _i < min(_cn, array_length(_cp)); _i++)
-				g.cheat.v[_i] = clamp(round(real(_cp[_i]) / CHEAT_STEP) * CHEAT_STEP, CHEAT_ROW_MIN, CHEAT_ROW_MAX);
-		}
-		var _guard = 0;
-		while (cheat_free() < 0 && _guard++ < 400) {
-			var _top = 0;
-			for (var _i = 1; _i < _cn; _i++) if (g.cheat.v[_i] > g.cheat.v[_top]) _top = _i;
-			if (g.cheat.v[_top] <= CHEAT_ROW_MIN) break;
-			g.cheat.v[_top] -= CHEAT_STEP;
-		}
-	}
-
 	// ---- the coin's tally (2026-09-13) ----
 	section = "coin";
 	coin_init();
@@ -771,6 +744,37 @@ function handle_save(){
 		}
 		g.abi_seed = floor(g.abi_seed) & $7fffffff;
 		fetch_new_ability();   // the counts, the pool, the titles, the failsafes
+	}
+
+	// ---- the cheat shop (2026-09-13): the rows' percentages, as a list;
+	// a load that no longer fits the cap (a tuned-down macro) lowers the
+	// tallest rows until it does ----
+	// AFTER THE ABILITIES (bug hunt, 2026-09-14): the row ceiling and the
+	// points pool read the deck (Cheat Ceiling / Cheat Points), so a row
+	// saved at 170 loaded before the deck was clamped to 120 by a deck
+	// that was still reset. The deck loads first now
+	section = "cheat";
+	cheat_init();
+	var _cv = "";
+	if (action == sv_save) {
+		for (var _i = 0; _i < array_length(g.cheat.v); _i++) _cv += ((_i > 0) ? "," : "") + string(g.cheat.v[_i]);
+	}
+	_cv = handle("v", _cv);
+	if (action == sv_load) {
+		var _cn = array_length(cheat_config().rows);
+		g.cheat.v = array_create(_cn, 100);
+		if (string(_cv) != "") {
+			var _cp = string_split(string(_cv), ",");
+			for (var _i = 0; _i < min(_cn, array_length(_cp)); _i++)
+				g.cheat.v[_i] = clamp(round(real(_cp[_i]) / CHEAT_STEP) * CHEAT_STEP, CHEAT_ROW_MIN, CHEAT_ROW_MAX);
+		}
+		var _guard = 0;
+		while (cheat_free() < 0 && _guard++ < 400) {
+			var _top = 0;
+			for (var _i = 1; _i < _cn; _i++) if (g.cheat.v[_i] > g.cheat.v[_top]) _top = _i;
+			if (g.cheat.v[_top] <= CHEAT_ROW_MIN) break;
+			g.cheat.v[_top] -= CHEAT_STEP;
+		}
 	}
 
 	section = "upgrades";

@@ -54,7 +54,7 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 	// row is pinned, a dim socket otherwise - it slides out from behind
 	// the rail (which paints after the rows) and the names walk right
 	// to meet it. Group titles on the favorites tab carry none
-	if (fav_t > .01 && !_row.group && _row.sec != "favorites") {
+	if (fav_t > .01 && !_row.group && _row.sec != "favorites" && _row.name != "") {   // (a blank spacer row wears no pip)
 		var _px = lerp(rail_w - 6, rail_w + 3, fav_t);
 		var _pinned = (g.settings_fav[$ __fav_key(_row)] ?? false);
 		draw_sprite_ext(spr_pixel_1x1, 0, _px, _ry + 5, 4, 4, 0,

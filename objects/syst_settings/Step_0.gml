@@ -267,7 +267,7 @@ if (mouse_check_button_pressed(mb_left)) {
 			if (help_txt != "") {
 				help_txt = ""; // an open explainer eats the next tap
 			}
-			else if (fav_show && !_hr.group && _hr.sec != "favorites"
+			else if (fav_show && !_hr.group && _hr.sec != "favorites" && _hr.name != ""
 			&& mouse_x <= content_x + 8) {
 				// THE STAR GUTTER: pin/unpin the row on the favorites tab
 				// (only while the gutter is out - otherwise a tap here is

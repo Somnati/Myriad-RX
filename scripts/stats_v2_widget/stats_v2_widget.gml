@@ -24,7 +24,7 @@ function stats_v2_widget(_name, _inst, _span = 2) {
 		// widgets listen through that rather than bailing on it.
 		// Set HERE because this is the one funnel every widget passes
 		// through - stats_v2_content creates them, this registers them.
-		_inst.ui_layer = ui_layer_popup;
+		_inst.ui_layer = ui_layer_overlay;   // (the overlay's own rung, like settings' widgets - 2026-09-14)
 		if (variable_instance_exists(_inst, "in_menu")) _inst.in_menu = true;
 	}
 
