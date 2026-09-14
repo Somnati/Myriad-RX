@@ -29,13 +29,8 @@ function autom_tick() {
 	var _th = ram_throttle();   // one read a step; every clock below rides it
 
 	// ---- autobuy: the dials ----
-	// THE RAIL first (his list): under the profit floor every dial
-	// autobuy holds its fire - the clocks keep running, nothing buys
-	var _d_rail = true;
-	if (_a.rails.d_on) {
-		var _plg = (g.profit >= arb(1)) ? arb_log10(g.profit) : 0;
-		_d_rail = (_plg >= _a.rails.d_oom);
-	}
+	// (the "only past 10^" rail sat here - retired 2026-09-14: the reserve
+	// is the one hold-back)
 	if (variable_global_exists("dial")) {
 		var _dn = min(g.dial_total, array_length(_a.dial));
 		// THE MASTER ROW: one clock, one cap, the filter's dials in the
@@ -46,8 +41,7 @@ function autom_tick() {
 			_s.tic -= _dt * _th;
 			if (_s.tic <= 0) {
 				_s.tic = max(RAM_TIMER_FLOOR, _s.t);
-				if (!_d_rail) _s.st = 1;
-				else autom_strategy(_s, _dn);
+				autom_strategy(_s, _dn);
 			}
 		}
 	}

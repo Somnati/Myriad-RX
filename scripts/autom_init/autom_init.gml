@@ -121,9 +121,6 @@ function autom_init(_force = false) {
 		// dial gets a turn, nothing snowballs until you say so
 		strat    : 3,
 		dial_all : { on : false, pct : 50, t : 30, tic : 0, st : 0, cur : 0 },
-		// THE RAILS (his list: the rebirth's armed conditions, for the
-		// autobuys too): a floor under which an autobuy holds its fire
-		rails    : { d_on : false, d_oom : 6, t_on : false, t_oom : 3 },
 		tiles : {},
 		tap      : { on : false, rate : 2, acc : 0 },
 		run      : { on : true, spd : 100 },

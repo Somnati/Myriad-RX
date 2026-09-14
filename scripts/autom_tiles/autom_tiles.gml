@@ -20,12 +20,7 @@ function autom_tiles(_dt) {
 	if (!variable_global_exists("tiles")) return;
 	var _t   = g.autom.tiles;
 	var _cfg = tile_upg_config();
-	// THE RAIL: under the shard floor every tile autobuy holds its fire
-	var _rail = true;
-	if (g.autom.rails.t_on) {
-		var _slg = (g.tiles.shards >= arb(1)) ? arb_log10(g.tiles.shards) : 0;
-		_rail = (_slg >= g.autom.rails.t_oom);
-	}
+	// (the shard-floor rail sat here - retired 2026-09-14 with the dials')
 	for (var _i = 0; _i < array_length(_cfg); _i++) {
 		var _id = _cfg[_i].id;
 		var _p  = _t[$ _id];
@@ -34,7 +29,6 @@ function autom_tiles(_dt) {
 		_p.tic -= _dt;
 		if (_p.tic > 0) continue;
 		_p.tic = max(RAM_TIMER_FLOOR, _p.t);
-		if (!_rail) { _p.st = 1; continue; }
 		// the cap, off the live bank: a share of nothing buys nothing
 		if (!(g.tiles.shards >= arb(1))) { _p.st = 1; continue; }
 		// ⚖️ BUY MAX WITHIN THE CAP (his call, 2026-09-12): tile_upg_bulk's

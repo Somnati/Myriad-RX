@@ -403,10 +403,6 @@ function handle_save(){
 	g.autom.dial_all.on  = handle("da_on",     g.autom.dial_all.on);  // ...and its one row
 	g.autom.dial_all.pct = handle("da_pct",    g.autom.dial_all.pct);
 	g.autom.dial_all.t   = handle("da_t",      g.autom.dial_all.t);
-	g.autom.rails.d_on   = handle("rail_d_on", g.autom.rails.d_on);   // the autobuy rails
-	g.autom.rails.d_oom  = handle("rail_d_oom", g.autom.rails.d_oom);
-	g.autom.rails.t_on   = handle("rail_t_on", g.autom.rails.t_on);
-	g.autom.rails.t_oom  = handle("rail_t_oom", g.autom.rails.t_oom);
 	if (action == sv_load) {
 		// every overclockable value snaps to its ladder (normal stops or
 		// a notch), then the notches close if the toggle is off
@@ -446,8 +442,6 @@ function handle_save(){
 			} else for (var _k = 0; _k < _an; _k++) g.autom.dial[_k].on = true;
 		}
 		if (g.autom.strat == 0) g.autom.strat = 3;
-		g.autom.rails.d_oom  = clamp(g.autom.rails.d_oom, 1, 60);
-		g.autom.rails.t_oom  = clamp(g.autom.rails.t_oom, 1, 30);
 		if (!g.autom.oc) ram_oc_clamp();
 	}
 

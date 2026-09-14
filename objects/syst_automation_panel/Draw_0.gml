@@ -247,17 +247,20 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_set_halign(fa_left);
 	}
 	if (_rw.kind == 5) {   // the cap track, then the timer track
-		var _ck = __cap_r(_i);
-		var _f  = clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
-		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w, _ck.h, 0, c_black, .7 * _sa);
-		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w * _f, _ck.h, 0, _rw.col, .8 * _sa);
-		draw_px_rect(_ck.x, _ck.y, _ck.w, _ck.h, _rw.col, .35 * _sa);
-		draw_sprite_ext(spr_pixel_1x1, 0, _ck.x + _ck.w * _f - 1, _ck.y - 2, 3, _ck.h + 4, 0, c_white, .8 * _sa);
-		draw_set_color(_rw.on ? c_white : _dim);
-		draw_set_alpha(_rw.on ? .9 : .5);
-		draw_text(_ck.x + _ck.w + 4, _ry + 2, string(_rw.val) + _rw.sfx);
+		var _nocap = (_rw[$ "nocap"] ?? false);
+		if (!_nocap) {
+			var _ck = __cap_r(_i);
+			var _f  = clamp((_rw.val - _rw.lo) / max(1, _rw.hi - _rw.lo), 0, 1);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w, _ck.h, 0, c_black, .7 * _sa);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ck.x, _ck.y, _ck.w * _f, _ck.h, 0, _rw.col, .8 * _sa);
+			draw_px_rect(_ck.x, _ck.y, _ck.w, _ck.h, _rw.col, .35 * _sa);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ck.x + _ck.w * _f - 1, _ck.y - 2, 3, _ck.h + 4, 0, c_white, .8 * _sa);
+			draw_set_color(_rw.on ? c_white : _dim);
+			draw_set_alpha(_rw.on ? .9 : .5);
+			draw_text(_ck.x + _ck.w + 4, _ry + 2, string(_rw.val) + _rw.sfx);
+		}
 
-		var _tm  = __tm_r(_i);
+		var _tm  = __tm_r2(_i, _rw);
 		var _tnf = __nf(_rw);
 		var _tf  = __tm_f(_rw, _rw.t);   // right = fastest (his call)
 		var _tok = (ram_oc_k("timer", _rw.t) >= 0);
@@ -282,7 +285,7 @@ for (var _i = 0; _i < _nrows; _i++) {
 		draw_sprite_ext(spr_pixel_1x1, 0, _tm.x + _tm.w * _tf - 1, _tm.y - 2, 3, _tm.h + 4, 0, c_white, .8 * _sa);
 		draw_set_color(_rw.on ? (_tok ? c_horange : c_white) : _dim);
 		draw_set_alpha(_rw.on ? .9 : .5);
-		draw_text(_tm.x + _tm.w + 4, _ry + 2, __tm_str(_rw.t));
+		draw_text(_tm.x + _tm.w + 4, _ry + 2, _nocap ? ("every " + __tm_str(_rw.t)) : __tm_str(_rw.t));
 		// THE COUNTDOWN (his list: predict, do not only report): a thin
 		// line under the track drains toward the next pulse
 		if (_rw.on && variable_struct_exists(_rw, "tic") && _rw.t > 0) {
@@ -338,6 +341,11 @@ draw_set_halign(fa_left);
 	var _n = max(_c, _u);
 	var _hot = ram_oc_any();   // something runs on a notch: the band leans orange
 	__stick_seat(_n);
+	// OPAQUE (his report, 2026-09-14: the first section's label showed
+	// through it, half-scrolled - a .45 black over a blurred room hides
+	// nothing). The strip's own ink under the tint, so a row the bar
+	// slides up goes UNDER the band the way the page promises
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_hsv(169, 186, 5), 1);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y, room_width, band_h, 0, c_black, .45);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, band_y + band_h - 1, room_width, 1, 0, sett_ink, .25);
 	draw_set_color(_hot ? c_horange : c_gold);

@@ -1,6 +1,6 @@
 /// @description autom_strat_n() -> the dials the master row watches:
-/// in the filter (g.autom.dial[i].on) AND owned (a level) - what its
-/// RAM bill multiplies (a stick-run per dial) and what the panel counts
+/// in the filter (g.autom.dial[i].on) AND owned (a level) - what the
+/// panel and the statistics count (the RAM bill is the timer's alone)
 function autom_strat_n() {
 	if (!variable_global_exists("dial")) return 0;
 	autom_init();

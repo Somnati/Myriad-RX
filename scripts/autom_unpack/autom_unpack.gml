@@ -113,14 +113,7 @@ function autom_unpack(_s) {
 			if (array_length(_q) > 3 && _q[3] != "") _a.dial_all.t   = ram_snap("timer", real(_q[3]));
 			break;
 		}
-		case "rl": {
-			var _q = string_split(_v, ":");
-			if (array_length(_q) > 0) _a.rails.d_on  = (_q[0] == "1");
-			if (array_length(_q) > 1 && _q[1] != "") _a.rails.d_oom = clamp(real(_q[1]), 1, 60);
-			if (array_length(_q) > 2) _a.rails.t_on  = (_q[2] == "1");
-			if (array_length(_q) > 3 && _q[3] != "") _a.rails.t_oom = clamp(real(_q[3]), 1, 30);
-			break;
-		}
+		case "rl": break;   // (the rails, retired 2026-09-14 - an old mode's field, ignored)
 		}
 	}
 	// a preset packed before the overclock existed, or with it off,

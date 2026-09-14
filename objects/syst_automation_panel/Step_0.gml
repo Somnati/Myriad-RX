@@ -8,7 +8,7 @@ if (instance_exists(sb)) sb.enabled = (oa >= .999 && !closing);
 if (drag_row >= 0) {
 	if (!mouse_check_button(mb_left)) { drag_row = -1; save_mark_dirty(); }
 	else {
-		var _tr = (drag_which == 1) ? __tm_r(drag_row)
+		var _tr = (drag_which == 1) ? __tm_r2(drag_row, drag_rw)
 		        : ((drag_which == 2) ? __cap_r(drag_row) : __trk_r(drag_row));
 		__set_row(drag_rw, __pick(drag_rw, _tr, drag_which), (drag_which == 1) ? 1 : 0);
 		exit;
@@ -143,14 +143,14 @@ for (var _i = 0; _i < array_length(_rows); _i++) {
 	}
 	if (_rw.kind == 5) {   // the cap track and the timer track
 		var _ck = __cap_r(_i);
-		if (point_in_rectangle(mouse_x, mouse_y, _ck.x - 3, _ck.y - 5,
+		if (!(_rw[$ "nocap"] ?? false) && point_in_rectangle(mouse_x, mouse_y, _ck.x - 3, _ck.y - 5,
 			_ck.x + _ck.w + 3, _ck.y + _ck.h + 5)) {
 			drag_row = _i; drag_tab = tab; drag_which = 2; drag_rw = _rw;
 			drag_lo  = _rw.lo; drag_hi = _rw.hi;
 			__set_row(_rw, __pick(_rw, _ck, 2), 0);
 			exit;
 		}
-		var _tm = __tm_r(_i);
+		var _tm = __tm_r2(_i, _rw);
 		if (point_in_rectangle(mouse_x, mouse_y, _tm.x - 3, _tm.y - 5,
 			_tm.x + _tm.w + 3, _tm.y + _tm.h + 5)) {
 			drag_row = _i; drag_tab = tab; drag_which = 1; drag_rw = _rw;

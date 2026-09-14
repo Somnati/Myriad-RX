@@ -14,10 +14,11 @@ function ram_used() {
 	// the automerger: the TABLE's switch, this page's speed
 	if (variable_global_exists("tiles") && g.tiles.automerge)
 		_u += ram_cost("speed", _a.am_speed);
-	// the dial autobuy: THE MASTER ROW's one clock prices a stick-run
-	// per dial it watches (in the filter, owned) - the same attention,
-	// one hand on it; benching a dial takes its run off the bill
-	if (_a.dial_all.on) _u += ram_cost("timer", _a.dial_all.t) * max(1, autom_strat_n());
+	// the dial autobuy: THE MASTER ROW is one clock and prices as one -
+	// its timer, like the upgrade buy's (his report, 2026-09-14: a
+	// stick-run per dial made it "expensive" - six dials at 10s was 18
+	// sticks of an 18-stick budget). The filter is preference, not price
+	if (_a.dial_all.on) _u += ram_cost("timer", _a.dial_all.t);
 	// the upgrade table
 	var _g = _a.upg;
 	if (_g.roll) _u += ram_cost("flag");
