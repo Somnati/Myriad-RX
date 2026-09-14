@@ -248,6 +248,32 @@ _des_w = des_w; _des_h = des_h;
 if g.fullscreen = true {
 	_des_w = display_get_width();
 	_des_h = display_get_height();
+
+	// THE REFRESH SNAP (his report, 2026-09-14: "when the game refreshes or
+	// something it snaps to portrait aspect ratio"). A borderless
+	// fullscreen window is a plain window sized to the display; a display
+	// refresh (a mode change, a monitor waking, a DPI event) can hand it
+	// back at its DEFAULT size - the boot room's 144x296 - while
+	// window_get_fullscreen() still says true. Nothing here corrected
+	// that: the size block below trusts a fullscreen window, and the
+	// re-enter block waits for a window that is NOT fullscreen. So: a
+	// fullscreen window the wrong size for a third of a second is
+	// re-asserted outright - dropped, sized to the display, put back
+	if (!variable_instance_exists(id, "fs_snap_t")) fs_snap_t = 0;
+	if (window_get_fullscreen()
+	&& (window_get_width() != display_get_width() || window_get_height() != display_get_height())) {
+		fs_snap_t += 1;
+		if (fs_snap_t > 20) {
+			show("fullscreen re-asserted > the window had snapped to " + string(window_get_width()) + "x" + string(window_get_height()));
+			fs_snap_t = 0;
+			window_set_fullscreen(false);
+			w = display_get_width(); h = display_get_height();
+			window_set_size(w, h);
+			window_set_position(0, 0);
+			window_set_fullscreen(true);
+			display_reset(0, abs(g.vsync));
+		}
+	} else fs_snap_t = 0;
 	
 
 	window_set_position(
