@@ -47,10 +47,14 @@ function LODController() constructor {
                               // Overall zoom feel is renderer.base_unit,
                               // startup framing is vis.set_start_scale
     fade_width      = 0.15;   // crossfade half-width at handoffs, in OOMs
-    depth_below     = 2;      // how many OOMs UNDER the camera a field stays
+    depth_below     = 4;      // how many OOMs UNDER the camera a field stays
                               // fully visible before it fades out (his ask,
                               // 2026-09-13: the white squares vanished a band
-                              // down; 1 was the old reach)
+                              // down; 1 was the old reach, 2 read as no
+                              // change - 4 keeps TWO fields under the camera
+                              // whole. Safe since the renderer's COVERED rule:
+                              // a field inside a completed square paints
+                              // nothing but its lattice)
     digits_per_band = 2;      // OOMs per field
     wm_min          = -1.5;   // camera floor. Do not hand-tune this:
                               // use vis.set_start_scale(px) instead, which

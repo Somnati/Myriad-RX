@@ -317,6 +317,21 @@ function BignumVisRenderer() constructor {
         // high: content draws 100x small and disagrees with the camera.
         var _d       = _win.get_digits(_offset - 2, 7);
         var _raw3    = _d[0] * 100 + _d[1] * 10 + _d[2];
+        // ⚖️ COVERED IS CLAMPED (his screenshot, 2026-09-14: green units drawn
+        // INSIDE a completed blue square - "double draw a layer"). A field's
+        // 100 squares are slot 0 of the field above, and that slot is a
+        // COMPLETED square whenever any digit sits at magnitude offset+4 or
+        // higher - a digit at offset+4 is the field above's first full
+        // square; a digit higher still means the field above is itself a
+        // subdivision of a completed square. The three-digit count (raw3)
+        // only sees offset+4..offset+2: for a value like 1.0000021e(o+7) it
+        // reads 000 - "empty" - then paints 21 units of the digits under it
+        // over a square that is solid, in the unit tier's colour. Two
+        // fields down that was culled by the layer window; with fields
+        // kept two orders under the camera (depth_below) it drew. So the
+        // test is the value's magnitude, which sees every digit above
+        var _covered = !_as_child && (_win.magnitude() >= _offset + 4);
+        if (_covered) _raw3 = 100;
         var _full    = _as_child
             ? (_d[1] * 10 + _d[2])
             : min(_raw3, 100);
