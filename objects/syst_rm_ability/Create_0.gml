@@ -253,16 +253,14 @@ __draft_spawn = function() {
 		_c.draw_back_content  = method(_c, __deck_card_back);
 		_c.rot_y = 180;               // face down: the reveal is a flip
 		_c.flip_delay = 14 + _i * 10; // staggered left to right
-		// DEBUG: random premium finishes to exercise the fx pass.
-		// fx is a bitmask, so sometimes two finishes STACK (a
-		// rainbow-glitter is a real pull)
-		var _fx = 0;
-		if (random(1) < .7) {
-			var _flags = [1, 2, 4, 8, 16, 32];
-			_fx = _flags[irandom(5)];
-			if (random(1) < .3) _fx |= _flags[irandom(5)];
-		}
-		_c.fx = _fx;
+		// THE FINISH IS THE RARITY (bug hunt, 2026-09-14: this was the fx
+		// pass's DEBUG scaffold - seven cards in ten drew a random premium
+		// finish, a common as often as a legendary). obj_card's bits:
+		// 1 foil, 2 rainbow, 4 glitter, 8 pearlescent, 16 chromatic, 32 void.
+		// common plain / uncommon foil / rare pearlescent / legendary rainbow
+		// glitter / epic chromatic glitter - a pull reads its rung at a glance
+		static _fx_by_rar = [0, 1, 8, 2 | 4, 16 | 4];
+		_c.fx = _fx_by_rar[clamp(_ci.rarity, 0, 4)];
 		_c.invalidate_front();
 		_c.invalidate_back();
 		array_push(draft_ids, _c);
