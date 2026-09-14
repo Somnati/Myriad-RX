@@ -25,6 +25,7 @@ function give_profit(_amt) {
 		return;
 	}
 	g.profit       = do_add(g.profit, _amt);
+	rebirth_feed(_amt);   // the fed profit takes it, x the unit growth row NOW (2026-09-13)
 
 	// THE RESERVE'S WATERMARK. Nothing is taken here - the reserve is
 	// still fully DERIVED, which is what lets the slider let go again -

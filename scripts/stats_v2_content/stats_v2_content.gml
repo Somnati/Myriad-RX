@@ -568,6 +568,8 @@ function stats_v2_content() {
 	if (stats_v2_folder("rebirth", c_hred)) {
 		stats_v2_line("units", (g.rebirth.units >= arb(1)) ? crunch_arb(g.rebirth.units) : "0");
 		stats_v2_line("total rebirths", string(g.rebirth.total));
+		stats_v2_line("fed profit", (g.rebirth.fed >= arb(1)) ? crunch_arb(g.rebirth.fed) : "0", -1, -1,
+			"what a rebirth counts: the pile as fed through the cheat shop's unit growth row, earn by earn");
 		stats_v2_line("unit boost", "x" + crunch_arb(rebirth_boost()));
 		var _c = rebirth_calc();
 		stats_v2_line("next rebirth", _c.can ? "+" + crunch_arb(_c.units) + " units"

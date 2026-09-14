@@ -9,7 +9,9 @@
 function spend_profit(_cost) {
 	if (!(_cost >= arb(1))) return true;   // free is always affordable
 	if (!(profit_spendable() >= _cost)) return false;
+	var _before = g.profit;
 	g.profit = do_subtract(g.profit, _cost);
+	rebirth_spent(_before, g.profit);   // the fed profit follows in proportion (2026-09-13)
 	// ⚖️ THE HOLD-BACK GIVES WAY FIRST (his report, 2026-09-13: an autobuy
 	// "shoots my profit all the way down to 0 no matter how much i have
 	// till the profit bits are consumed"). The header withholds what is

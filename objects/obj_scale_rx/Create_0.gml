@@ -55,7 +55,7 @@ seat = room_height - 15; // where it sits (DE's seat; above DE's while both are 
 BH = sprite_get_height(spr_scale_bar);
 SW = sprite_get_width(spr_scale_bar);
 
-track  = (variable_global_exists("profit") && g.profit >= arb(1)) ? g.profit : 0;
+track  = rebirth_fed();
 income = 0;     // the true log10 of the pile, continuous (floor + digits)
 lv = 0; prevxp = 0; maxxp = bb;
 cprev = c_white; cnext = c_white;

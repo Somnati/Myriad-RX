@@ -26,5 +26,9 @@ function rebirth_init(_force = false) {
 		// pennant; DE had only the run before)
 		hi_ms       : 0,
 		best_profit : 0,
+		// THE FED PROFIT (2026-09-13, his design): what a rebirth counts -
+		// the pile as fed through the unit growth row, earn by earn
+		// (rebirth_fed / rebirth_feed / rebirth_spent). Run-scoped.
+		fed         : 0,
 	};
 }

@@ -3,7 +3,7 @@ rebirth_init();
 t += delta / 60;
 
 // ---- the pile, as a continuous magnitude (DE's deci) ----
-var _v = (variable_global_exists("profit") && g.profit >= arb(1)) ? g.profit : 0;
+var _v = rebirth_fed();   // what a rebirth counts (the fed profit; the pile at 100% growth)
 track = trickle(track, _v, 7);
 income = floor(track) + clamp_min((((frac(track) * 10) - 1) / 9), 0);
 

@@ -4,7 +4,7 @@ rebirth_init();
 
 // set income (DE: the displayed gold, or the cycle income by its networth
 // setting; RX: the profit pile)
-var _v = (variable_global_exists("profit") && g.profit >= arb(1)) ? g.profit : 0;
+var _v = rebirth_fed();   // what a rebirth counts (the fed profit; the pile at 100% growth)
 income_track = trickle(income_track, _v, 7);
 deci = clamp_min((((frac(income_track) * 10) - 1) / 9), 0);
 income = floor(income_track) + deci;

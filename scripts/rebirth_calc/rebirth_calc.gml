@@ -43,17 +43,22 @@ function rebirth_calc() {
 	if (_run < 600) _out.cool = 600 - _run;
 
 	// the hard gate
+	// THE SOURCE IS THE FED PROFIT (2026-09-13, his design): the pile as
+	// fed through the cheat shop's unit growth row earn by earn - equal to
+	// the pile at 100%, and never something the last second can change.
+	// See rebirth_fed.
+	var _p = rebirth_fed();
 	var _gate = arb(1000000);
-	if (!(g.profit >= _gate)) {
-		_out.lack  = (g.profit >= arb(1)) ? do_subtract(_gate, g.profit) : _gate;
-		_out.gfrac = (g.profit >= arb(1)) ? clamp(arb_log10(g.profit) / 6, 0, 1) : 0;
+	if (!(_p >= _gate)) {
+		_out.lack  = (_p >= arb(1)) ? do_subtract(_gate, _p) : _gate;
+		_out.gfrac = (_p >= arb(1)) ? clamp(arb_log10(_p) / 6, 0, 1) : 0;
 		return _out;
 	}
 
 	// the origin (packed arithmetic: floor = exponent, frac x 10 = digits)
-	var _start = g.profit - 7;
+	var _start = _p - 7;
 	_out.start = _start;
-	var _deci  = max(0, ((frac(g.profit) * 10) - 1) / 9);
+	var _deci  = max(0, ((frac(_p) * 10) - 1) / 9);
 
 	var _units = 0;
 	if (_start < 0) {
@@ -75,7 +80,7 @@ function rebirth_calc() {
 	}
 
 	// the milestone: +1 per decade of orders past 1e16
-	var _ms = ceil(max(0, (g.profit - 16) / 10));
+	var _ms = ceil(max(0, (_p - 16) / 10));
 	if (_ms > 0) _units = do_add(_units, arb(_ms));
 
 	// the timeclamp
@@ -94,10 +99,8 @@ function rebirth_calc() {
 	var _ub = upgrade_bonus_live();
 	if (_ub.rebirth_units > 0 && _units >= arb(1))
 		_units = do_floor(do_scale(_units, 1 + _ub.rebirth_units / 100));
-	// THE CHEAT SHOP's rebirth units row (2026-09-13), last of all - the same
-	// argument as the upgrades: never before the clamp
-	var _cu = cheat_rate("units");
-	if (_cu != 1 && _units >= arb(1)) _units = do_floor(do_scale(_units, _cu));
+	// (the cheat shop's unit growth row is NOT a seat here - it was paid
+	// into the fed profit as the run was earned; see rebirth_fed)
 
 	_out.units = _units;
 	_out.can   = (_units >= arb(1));

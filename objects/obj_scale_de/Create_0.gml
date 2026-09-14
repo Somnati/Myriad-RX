@@ -30,7 +30,7 @@ x = room_width / 2;
 x -= swdiv;
 x_ = 0;
 income = 0;
-income_track = (variable_global_exists("profit") && g.profit >= arb(1)) ? g.profit : 0;
+income_track = rebirth_fed();
 scale_max_os_des = 5;
 scale_min_os_des = 1;
 lv = 0;
