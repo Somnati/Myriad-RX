@@ -30,7 +30,7 @@ draw_set_valign(fa_top);
 // folded, the plain plate. The two cross on the open ease ----
 var _gl = (snap_ok ? _oe : 0);
 if (_gl > .01) draw_pixel_region(_x, _y, _w, _h, _al * _gl);
-draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_black, (.82 - .37 * _gl) * _al);
+draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_black, (.82 - .14 * _gl) * _al);   // (.68 over the glass - darker, his call 2026-09-13)
 draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, 1, 0, c_white, .07 * _al);
 draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, _h, 0, _ac, (.85 + .15 * _cb) * _al);
 if (_done) draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_sgreen, .08 * _cb * _al);

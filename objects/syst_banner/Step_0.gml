@@ -50,7 +50,13 @@ l++}//END REP
 clear = false;
 
 desy = ystart;
-
+// UNDER THE OBJECTIVE CARD (his ask, 2026-09-13): the stack hangs from the
+// top left, where the card lives - while the card is up the stack starts
+// under it and rides its fold, so nothing lands on the checklist
+if (instance_exists(syst_objectives) && syst_objectives.a > .05 && syst_objectives.okey != "") {
+	var _cr = syst_objectives.__rect();
+	desy = max(desy, _cr.y + _cr.h + 3);
+}
 y = move_to(y,desy,4);        
 
 //if keyboard_check_pressed(vk_space) assign_banner("item acquired");

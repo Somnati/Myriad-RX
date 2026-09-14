@@ -2,6 +2,7 @@
 x1 = -room_width/2; x = x1;
 des_x = 0;
 y = 29+8;
+ystart = y;   // the stack's resting top (the Step eases y to it; it was never declared - 2026-09-13)
 
 
 lines = 20;
