@@ -56,6 +56,7 @@ depth = 10;
 // DE's milestone law: bb + ii x lv - 1e16, 1e26, 1e36... (rebirth_calc's)
 bb = 16;
 ii = 10;
+ms_seen = 0;   // the rungs this instance has chimed for
 
 // the unlock, as this instance saw it (DE flipped uf_rebirthmilestone
 // itself; RX's unfold row grants "scale", and this watches for the flip)
@@ -66,6 +67,7 @@ if (variable_global_exists("rebirth")) {
 	rebirth_init();
 	var _lv0 = ceil(clamp_min((income_track - bb) / ii, 0));
 	if (g.rebirth.hi_ms < _lv0) g.rebirth.hi_ms = _lv0;
+	ms_seen = _lv0;
 }
 
 /// update_scale_milestone(), DE's: the fill's two colours by the milestone

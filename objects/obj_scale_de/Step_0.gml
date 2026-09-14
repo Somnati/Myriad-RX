@@ -34,16 +34,14 @@ maxxp = bb + (ii * lv);
 __colors();
 // highest
 tic -= delta;
-if (lv > g.rebirth.hi_ms) {
-	g.rebirth.hi_ms = lv;
-	ticket_grant("milestone");   // a milestone's ticket - never a common (2026-09-13)
+if (lv > ms_seen) {   // (the ledger is rebirth_milestone_tick's; this is DE's ceremony)
+	ms_seen = lv;
 	if (tic <= 0) {
 		play_sound_ext(snd_milestone, .8, 1.2, .5, 2);
 		assign_banner("rebirth milestone achieved", cprev, c_black);
 		assign_banner("reach a profit of " + crunch_arb(maxxp + .1), c_white, c_black);
 	}
 	tic = tic_;
-	save_mark_dirty();
 }
 
 /// position

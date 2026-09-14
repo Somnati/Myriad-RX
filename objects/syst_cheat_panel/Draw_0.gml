@@ -57,7 +57,7 @@ for (var _i = 0; _i < N; _i++) {
 	draw_set_font((_val != 100) ? fnt_outline : fnt);
 	draw_set_color((_val > 100) ? c_gold : ((_val < 100) ? rgb(150, 160, 185) : c_white));
 	draw_set_alpha(1);
-	draw_text(val_x, _ry + 2, string(_val) + "%");
+	draw_text(val_x, _ry + val_dy, string(_val) + "%");
 	draw_set_font(fnt);
 	draw_set_halign(fa_left);
 	// the bar: the fill to the row max, the 100 mark

@@ -49,7 +49,7 @@ function unfold_config() {
 		// milestone (DE's uf_rebirthmilestone test: 1e8 toward 1e16) gets
 		// it regardless, as does any pile past a milestone
 		{ key : "scale", banner : "new: the milestone scale",
-		  need : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= arb(100000000) || g.rebirth.hi_ms > 0); } },
+		  need : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (rebirth_fed() >= arb(100000000) || g.rebirth.hi_ms > 0); } },
 		// THE CHEAT SHOP (2026-09-13): rebirth_do grants it; the net for a save
 		// that rebirthed before it existed
 		{ key : "cheat", banner : "new: the cheat shop",

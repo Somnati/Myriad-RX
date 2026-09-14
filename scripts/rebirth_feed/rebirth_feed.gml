@@ -21,4 +21,5 @@ function rebirth_feed(_amt) {
 	} else _g = do_scale(_amt, _rate);
 	if (!(_g >= arb(1))) return;
 	g.rebirth.fed = (g.rebirth.fed >= arb(1)) ? do_add(g.rebirth.fed, _g) : _g;
+	rebirth_milestone_tick();   // the ledger advances wherever you are
 }

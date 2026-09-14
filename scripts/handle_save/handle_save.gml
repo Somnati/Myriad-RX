@@ -105,6 +105,13 @@ function handle_save(){
 		if (!(g.rebirth.best_profit >= arb(1))) g.rebirth.best_profit = 0;
 		// a save from before the fed profit: the pile is what it would have fed
 		if (!(g.rebirth.fed >= arb(1))) g.rebirth.fed = (g.profit >= arb(1)) ? g.profit : 0;
+		// ...and the milestone ledger heals from it silently (a pre-key save's
+		// rungs are not news, and must not hand out a milestone ticket on the
+		// first feed - rebirth_milestone_tick)
+		if (g.rebirth.fed >= arb(1)) {
+			var _flg = floor(g.rebirth.fed) + max(0, ((frac(g.rebirth.fed) * 10) - 1) / 9);
+			g.rebirth.hi_ms = max(g.rebirth.hi_ms, ceil(max(0, (_flg - 16) / 10)));
+		}
 		// the best-run pennant heals from the run before (a pre-key save)
 		if (g.rebirth.prev_profit >= arb(1) && !(g.rebirth.best_profit >= g.rebirth.prev_profit))
 			g.rebirth.best_profit = g.rebirth.prev_profit;

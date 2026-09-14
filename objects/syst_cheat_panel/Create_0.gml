@@ -37,8 +37,9 @@ bx_minus = x1 - bw_btn * 2 - 4;
 bx_plus  = x1 - bw_btn;
 // the bar: landscape beside the name, portrait on the second line
 bar_x0 = land ? x0 + 132 : x0;
-bar_x1 = land ? bx_minus - 8 : x1;
-val_x  = land ? x0 + 122 : bx_minus - 6;   // the percent, right-aligned here
+bar_x1 = land ? bx_minus - 8 : x1 - 30;   // (portrait: the percent sits right of the bar on its own line)
+val_x  = land ? x0 + 122 : x1;            // the percent, right-aligned here
+val_dy = land ? 2 : 12;                   // ...on line one, or line two in portrait (the long names ran into it - 2026-09-14)
 foot_y = row_y0 + N * row_h + 8;
 
 hot_row = -1;    // the row under the pointer

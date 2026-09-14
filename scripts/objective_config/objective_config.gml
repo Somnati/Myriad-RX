@@ -122,9 +122,9 @@ function objective_config() {
 		{ key : "scale", name : "the milestone scale",
 		  steps : [
 			{ txt : "hold a hundred million profit", unlocks : ["scale"], banner : "new: the milestone scale",
-			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= arb(100000000) || g.rebirth.hi_ms > 0); } },
+			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (rebirth_fed() >= arb(100000000) || g.rebirth.hi_ms > 0); } },
 			{ txt : "reach the first milestone - ten quadrillion profit",
-			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= log_to_arb(16) || g.rebirth.hi_ms > 0); } },
+			  done : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (rebirth_fed() >= log_to_arb(16) || g.rebirth.hi_ms > 0); } },
 		  ] },
 	];
 	return _c;

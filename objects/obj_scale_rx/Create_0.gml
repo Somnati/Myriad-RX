@@ -45,6 +45,7 @@ depth = 10;
 
 bb = 16;    // the milestone law (rebirth_calc's): 1e16, then every 10 orders
 ii = 10;
+ms_seen = 0;   // the rungs this instance has chimed for
 
 // geometry: the bar spans the room, clear of the docked dial column
 var _dock = instance_exists(syst_dials) ? syst_dials.dock_w : 12;
@@ -79,6 +80,7 @@ if (variable_global_exists("rebirth")) {
 	rebirth_init();
 	var _lv0 = ceil(clamp_min((track - bb) / ii, 0));
 	if (g.rebirth.hi_ms < _lv0) g.rebirth.hi_ms = _lv0;   // a pre-key save: not news
+	ms_seen = _lv0;   // the rungs already passed are not news to this instance either
 }
 
 /// the fill's two colours by the milestone index (DE's law, through the

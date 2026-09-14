@@ -18,9 +18,10 @@ function ticket_roll(_t) {
 	var _cnt = array_create(_ns, 0);
 	var _list = [];
 	if (_win) { repeat (3) array_push(_list, _sym); _cnt[_sym] = 99; }
-	while (array_length(_list) < 9) {
+	var _guard = 0;
+	while (array_length(_list) < 9 && _guard++ < 400) {   // (five symbols x two always fill nine; the guard is for a shrunk roster)
 		var _k = irandom(_ns - 1);
-		if (_cnt[_k] >= 2) continue;
+		if (_cnt[_k] >= 2) { if (_guard > 300) _cnt[_k] = 0; continue; }
 		_cnt[_k] += 1;
 		array_push(_list, _k);
 	}

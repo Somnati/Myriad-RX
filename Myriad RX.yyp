@@ -523,6 +523,7 @@
     {"id":{"name":"rebirth_fed","path":"scripts/rebirth_fed/rebirth_fed.yy",},},
     {"id":{"name":"rebirth_feed","path":"scripts/rebirth_feed/rebirth_feed.yy",},},
     {"id":{"name":"rebirth_init","path":"scripts/rebirth_init/rebirth_init.yy",},},
+    {"id":{"name":"rebirth_milestone_tick","path":"scripts/rebirth_milestone_tick/rebirth_milestone_tick.yy",},},
     {"id":{"name":"rebirth_open","path":"scripts/rebirth_open/rebirth_open.yy",},},
     {"id":{"name":"rebirth_spent","path":"scripts/rebirth_spent/rebirth_spent.yy",},},
     {"id":{"name":"return_ability","path":"scripts/return_ability/return_ability.yy",},},
