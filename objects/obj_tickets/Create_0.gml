@@ -44,7 +44,13 @@ peel  = -1;             // the self-peel, 0..1 (-1 = not yet)
 done  = false;          // revealed; waiting to leave
 done_t = 0;
 prize = undefined;      // what it paid (undefined = a loser)
-snd_t = 0;
+snd_t = 0;              // frames of grace before the scratch loop lets go
+// THE SCRATCH LOOP's handle (2026-09-14: his "Writing (6)", cut to its
+// two steadiest strokes and looped - snd_scratch is a LOOP now, fixed
+// pitch). Mirrored in g.scratch_snd so the persistent system can stop
+// it if this instance dies mid-scratch (a room restart under the hand)
+snd_h = -1;
+g.scratch_snd = -1;
 flakes = [];
 t = 0;
 hot = false;
@@ -94,7 +100,15 @@ __open = function() {
 __close = function() {
 	if (!open) return;
 	open = false; held = false;
+	__snd_stop();
 	if (done) __finish();
+};
+
+/// @func __snd_stop()
+/// @desc the scratch loop lets go now (a close, a lift held too long)
+__snd_stop = function() {
+	if (snd_h >= 0 && audio_is_playing(snd_h)) audio_stop_sound(snd_h);
+	snd_h = -1; g.scratch_snd = -1; snd_t = 0;
 };
 
 /// @func __finish()

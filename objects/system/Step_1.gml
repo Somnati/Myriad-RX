@@ -15,6 +15,15 @@ prev_fps = desired_fps;
 // just move the globals; this applies them every step (per-sound sfx
 // volume happens inside play_sound_ext)
 audio_master_gain(g.mute ? 0 : g.vol_master / 100);
+// THE SCRATCH LOOP'S SAFETY (2026-09-14): obj_tickets loops snd_scratch
+// while a ticket is being scratched and stops it itself - but a room
+// restart under the hand (an autorebirth firing) destroys that instance
+// with the loop still going. The handle is mirrored in g.scratch_snd;
+// no ticket instance, no loop
+if (variable_global_exists("scratch_snd") && g.scratch_snd >= 0 && !instance_exists(obj_tickets)) {
+	if (audio_is_playing(g.scratch_snd)) audio_stop_sound(g.scratch_snd);
+	g.scratch_snd = -1;
+}
 
 
 
