@@ -25,6 +25,12 @@ if (variable_global_exists("tps_readout") && !g.tps_readout) exit;   // settings
 // than snapped to (its y trickles). Seeded off-screen in the Create, so
 // the first appearance rises from the edge like every later one.
 var _desy = room_height - 9;
+// ...ABOVE THE MILESTONE SCALE (his report, 2026-09-14: the line overlapped
+// the scale's text). The scale seats its bar at room_height - 15 with its
+// exponent labels 9 px above and its units line under it, so while it is
+// up the readout climbs clear of the labels; it follows the scale's own
+// rise, so the two never meet mid-arrival
+if (instance_exists(obj_scale_rx)) _desy -= clamp(room_height + 12 - obj_scale_rx.by, 0, 40);
 if (tps_y > room_height + 8) tps_y = room_height + 8;
 tps_y = trickle(tps_y, _desy, 5);
 

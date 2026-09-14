@@ -62,7 +62,10 @@ pillbox_init();
 __chip_r = function() {
 	draw_set_font(fnt);
 	var _w = string_width("fx  " + fx_names[__fx()]) + 8;
-	return { x : 3, y : room_height - 22, w : _w, h : 10 };
+	// (above the milestone scale when it is up - the same lift the tps
+	// readout takes, obj_clicker's Draw)
+	var _lift = instance_exists(obj_scale_rx) ? clamp(room_height + 12 - obj_scale_rx.by, 0, 40) : 0;
+	return { x : 3, y : room_height - 22 - _lift, w : _w, h : 10 };
 };
 /// obj_clicker asks: is this press the chip's?
 __consumes = function(_mx, _my) {

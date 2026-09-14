@@ -317,9 +317,18 @@ draw_set_halign(fa_right);
 if (_help != "" && tab == AT_DIALS) {
 	// the dials page fills the room to the bottom edge, so its help
 	// rides the strip; every other page has a footer for it
+	// ...CUT TO FIT (his report, 2026-09-14: a long help ran into the
+	// title): what does not fit beside "automation" ends in an ellipsis
+	var _hx0 = 6 + string_width("automation") + 12;
+	var _hw  = room_width - 8 - _hx0;
+	var _ht  = _help;
+	if (string_width(_ht) > _hw) {
+		while (string_length(_ht) > 4 && string_width(_ht + "...") > _hw) _ht = string_copy(_ht, 1, string_length(_ht) - 1);
+		_ht = string_trim_end(_ht) + "...";
+	}
 	draw_set_color(merge_colour(_rows[_hov].col, c_white, .5));
 	draw_set_alpha(.8);
-	draw_text(room_width - 8, bby + 5, _help);
+	draw_text(room_width - 8, bby + 5, _ht);
 } else if (tab == AT_DIALS) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
