@@ -34,11 +34,19 @@ function set_profile(_p) {
 	with (syst_handle_save) {
 		file_to_handle = save_slot_path(0);
 		save_recover();
-		// fresh profile: reset the per-profile state BEFORE the first
-		// save runs, or the new profile inherits the old one's progress.
-		// game_reset is the FULL fresh-run reset (new game's) - the old
-		// partial reset here leaked cores/power/machines/tiles/dims
-		if (!file_exists(file_to_handle)) game_reset();
+		// THE SLATE IS WIPED BEFORE EVERY LOAD, not just a fresh
+		// profile's (bug hunt, 2026-09-14). handle_save reads each key
+		// with the LIVE value as its default, so a save written before
+		// a section existed - the coin tally, the cheat rows, the deck's
+		// keys - would load with whatever the run in memory had, and the
+		// run in memory was the OTHER profile's: its abilities, its
+		// flips, its milestones, quietly adopted. game_reset is the FULL
+		// fresh-run reset (new game's); every section the file carries
+		// overwrites it, every section it lacks stays fresh - which is
+		// what an old save IS. (the old partial reset here leaked
+		// cores/power/machines/tiles/dims into fresh profiles, the same
+		// class of bug one door over)
+		game_reset();
 		// the offline log restarts with the profile: the load's own replay
 		// files this profile's first entry (game_reset does the same for a
 		// fresh one) - and a report queued for the OLD profile is void

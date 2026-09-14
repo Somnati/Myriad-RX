@@ -26,6 +26,10 @@ function save_import_apply(_txt, _file = "") {
 	// point the save system at what we just wrote, or the reload below
 	// reads whatever file was active before the import
 	syst_handle_save.file_to_handle = _dest;
+	// a clean slate under the import, like set_profile's load: a file
+	// from an older build lacks sections, and those would otherwise load
+	// as whatever the run in memory had (bug hunt, 2026-09-14)
+	game_reset();
 	with (syst_handle_save) {
 		action = sv_load;
 		handle_save();
