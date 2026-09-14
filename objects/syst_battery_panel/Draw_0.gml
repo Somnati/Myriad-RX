@@ -149,10 +149,13 @@ if (__part(3) > 0) {
 	draw_text(disc_cx, read_y, (_b.charge >= _cap - 1)
 		? ("full  -  " + crunch_time_long(_cap * 60) + " of charge")
 		: ("full in " + crunch_time_long(_need * 60)));
-	draw_set_color(c_gold);
+	var _th = ram_throttle();   // over budget, the draw is divided by this (battery_draw)
+	draw_set_color((_th < 1) ? c_hred : c_gold);
 	draw_set_alpha(.85);
 	draw_text(disc_cx, read_y + 11, (_draw <= 0) ? "nothing draws - it lasts forever"
-		: ("lasts " + crunch_time_long(_lasts * 60) + " away" + ((_draw < .999) ? ("  (x" + string_format(_draw, 1, 2) + ")") : "")));
+		: ("lasts " + crunch_time_long(_lasts * 60) + " away"
+			+ ((_th < 1) ? ("  -  over ram budget: draw x" + string_format(1 / _th, 1, 1))
+			             : ((_draw < .999) ? ("  (x" + string_format(_draw, 1, 2) + ")") : ""))));
 	draw_set_halign(fa_left);
 	__part_end();
 }

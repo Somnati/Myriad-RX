@@ -45,7 +45,11 @@ function battery_optimise(_away) {
 		}
 		return _d / _tot;
 	};
-	var _target = _b.charge / _away;   // the draw at which the charge lasts exactly the absence
+	// the draw at which the charge lasts exactly the absence - in RAW
+	// draw (the model above), so the over-budget factor battery_draw
+	// applies comes OFF the target (x ram_throttle: over budget, less
+	// raw draw is affordable)
+	var _target = _b.charge / _away * ram_throttle();
 
 	// the scale that never clamps everything: the largest s puts every
 	// machine at 100 - above that nothing changes

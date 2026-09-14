@@ -8,6 +8,12 @@
 /// long night away is best run slow. Machines switched off in the
 /// automation panel (the dials' cycling, the fabricator, the table's
 /// automerge flag) do not draw.
+/// OVER BUDGET BURNS CHARGE (his call, 2026-09-14): RAM is the online
+/// budget and used to cost nothing away. Now the draw is divided by
+/// ram_throttle - the same factor that slows every clock online - so
+/// hardware running at 62 of 18 sticks drains the battery x3.4. One
+/// penalty, in offline's own currency; the away rates themselves are
+/// not slowed (that would be the same penalty twice).
 function battery_draw() {
 	battery_init();
 	autom_init();
@@ -21,5 +27,5 @@ function battery_draw() {
 	if (_a.fab.on) _d += BAT_W_FAB   * sqr(_r.fab   / 100);
 	if (variable_global_exists("tiles") && g.tiles.automerge)
 	               _d += BAT_W_MERGE * sqr(_r.merge / 100);
-	return _d / _sum;
+	return (_d / _sum) / ram_throttle();
 }
