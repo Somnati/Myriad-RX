@@ -25,10 +25,14 @@ mask_index   = spr_pixel_1x1;
 image_alpha  = 0;
 x = -1000; y = -1000;
 
-CW = 60; CH = 66;       // the card
-PW = 18; PH = 12;       // a face on the pile
-GN = 20; CS = 2;        // the foil: GN x GN cells of CS px over the 40 x 40 grid
-CELL = 12; GAP = 2;     // the symbol cells
+// LARGER (his report, 2026-09-13): the card 82 x 94, the grid 60 (three 18s
+// and two 3s), the foil 30 x 30 cells of 2 px, the faces 24 x 16
+CW = 82; CH = 94;       // the card
+PW = 24; PH = 16;       // a face on the pile
+GN = 30; CS = 2;        // the foil: GN x GN cells of CS px over the 60 x 60 grid
+CELL = 18; GAP = 3;     // the symbol cells
+GW = 60;                // the grid's side (3 x CELL + 2 x GAP = GN x CS)
+SY = 1.5;               // the symbols' size against the old 12 px cell
 
 open  = false;
 oa    = 0;              // the card's ease, pile -> centre
@@ -57,13 +61,13 @@ __card = function() {
 	var _e = oa * oa * (3 - 2 * oa);
 	var _w = round(lerp(PW, CW, _e)), _h = round(lerp(PH, CH, _e));
 	var _cx = lerp(_p.x + PW * .5, room_width * .5, _e);
-	var _cy = lerp(_p.y + PH * .5, room_height * .5 - 8, _e);
+	var _cy = lerp(_p.y + PH * .5, room_height * .5 - 4, _e);
 	return { x : round(_cx - _w * .5), y : round(_cy - _h * .5), w : _w, h : _h };
 };
 
 /// the symbol grid's top-left inside a card rect
 __grid = function(_r) {
-	return { x : _r.x + ((_r.w - 40) div 2), y : _r.y + 12 };
+	return { x : _r.x + ((_r.w - GW) div 2), y : _r.y + 13 };
 };
 
 /// the card's close x (top right of the header)
@@ -129,13 +133,13 @@ __scratch = function(_x0, _y0, _x1, _y1) {
 	var _steps = max(1, ceil(_len / 1.5));
 	for (var _s = 0; _s <= _steps; _s++) {
 		var _px = lerp(_x0, _x1, _s / _steps), _py = lerp(_y0, _y1, _s / _steps);
-		if (_px < _g.x - 4 || _py < _g.y - 4 || _px > _g.x + 44 || _py > _g.y + 44) continue;
-		var _c0 = floor((_px - _g.x - 3.2) / CS), _c1 = floor((_px - _g.x + 3.2) / CS);
-		var _r0 = floor((_py - _g.y - 3.2) / CS), _r1 = floor((_py - _g.y + 3.2) / CS);
+		if (_px < _g.x - 5 || _py < _g.y - 5 || _px > _g.x + GW + 5 || _py > _g.y + GW + 5) continue;
+		var _c0 = floor((_px - _g.x - 4.5) / CS), _c1 = floor((_px - _g.x + 4.5) / CS);
+		var _r0 = floor((_py - _g.y - 4.5) / CS), _r1 = floor((_py - _g.y + 4.5) / CS);
 		for (var _rr = _r0; _rr <= _r1; _rr++)
 		for (var _cc = _c0; _cc <= _c1; _cc++) {
 			var _cx = _g.x + _cc * CS + CS * .5, _cy = _g.y + _rr * CS + CS * .5;
-			if (point_distance(_px, _py, _cx, _cy) > 3.2) continue;
+			if (point_distance(_px, _py, _cx, _cy) > 4.5) continue;
 			if (__clear(_cc, _rr, _g.x, _g.y)) _n++;
 		}
 	}
@@ -145,7 +149,7 @@ __scratch = function(_x0, _y0, _x1, _y1) {
 /// @func __reveal()
 __reveal = function() {
 	var _r = __card();
-	prize = ticket_pay(cur, roll, _r.x + _r.w * .5, _r.y + 32);
+	prize = ticket_pay(cur, roll, _r.x + _r.w * .5, _r.y + 43);
 	done = true; done_t = 1.9;
 	if (roll.win) play_sound_ext(snd_diamond, .95, 1.1, .6, 1);
 	else          play_sound_ext(snd_softclick, .8, .9, .5, 1);
@@ -170,24 +174,26 @@ __symbol = function(_k, _x, _y, _a) {
 	switch (_k) {
 		case 0:
 			draw_set_color(g.profit_color); draw_set_alpha(_a);
-			draw_circle(_x, _y, 3, false);
+			draw_circle(_x, _y, 3 * SY, false);
 			break;
 		case 1:
 			draw_set_color(c_lavender); draw_set_alpha(_a);
-			draw_triangle(_x, _y - 4, _x + 4, _y, _x, _y + 4, false);
-			draw_triangle(_x, _y - 4, _x - 4, _y, _x, _y + 4, false);
+			draw_triangle(_x, _y - 4 * SY, _x + 4 * SY, _y, _x, _y + 4 * SY, false);
+			draw_triangle(_x, _y - 4 * SY, _x - 4 * SY, _y, _x, _y + 4 * SY, false);
 			break;
 		case 2:
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y, 9, 1, 0, c_aqua, _a);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x, _y - 4, 1, 9, 0, c_aqua, _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 6, _y, 13, 1, 0, c_aqua, _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x, _y - 6, 1, 13, 0, c_aqua, _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 3, 7, 1, 0, c_aqua, _a * .6);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y + 3, 7, 1, 0, c_aqua, _a * .6);
 			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 1, 3, 3, 0, c_white, _a);
 			break;
 		case 3:
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 3, 7, 7, 0, c_horange, _a);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 1, 3, 3, 0, c_white, _a * .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 5, _y - 5, 11, 11, 0, c_horange, _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 5, 5, 0, c_white, _a * .8);
 			break;
 		default:
-			draw_sprite_ext(spr_gift_icon, 0, _x, _y, 1, 1, 0, c_gold, _a);
+			draw_sprite_ext(spr_gift_icon, 0, _x, _y, SY, SY, 0, c_gold, _a);
 			break;
 	}
 	draw_set_alpha(1);

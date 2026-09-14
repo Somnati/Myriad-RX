@@ -60,7 +60,7 @@ cont_w  = room_width - cont_x - 8;
 
 tab   = 0;
 tabs  = ["overview", "dials", "rebirth", "upgrades", "tiles"];
-tcol  = [c_gold, c_sblue, c_hred, c_lavender, c_seagreen];
+tcol  = [c_gold, c_feat_dials, c_feat_rebirth, c_feat_upgrades, c_feat_tiles];   // the feature colours (the RAM sticks read these)
 NTAB  = 5;
 #macro AT_OVER  0
 #macro AT_DIALS 1

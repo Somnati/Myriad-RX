@@ -29,8 +29,8 @@
 
 depth = -521;
 
-F      = 8;     // the perspective's focal count: slab k is f/(f+k) the size of the foot
-PITCH  = 16;    // px between slabs at the foot (13 tall + 3)
+F      = 6;     // the perspective's focal count: slot p is F/(F+p) the size of the foot (6: DE's compression)
+PITCH  = 15;    // px between slabs at the foot (13 tall + 2, DE's h + 2)
 SW = sprite_get_width(spr_tile);
 SH = sprite_get_height(spr_tile);
 cx     = 22;    // the column's centre x - every slab centres here, so the tower tapers about its own axis
@@ -53,19 +53,29 @@ view    = view_to;
 /// @desc the visible slabs, foot up: [{ tier, x, y, s, k }] - as many as
 ///       fit between the foot and the board's top
 __slabs = function() {
+	// ⚖️ CONTINUOUS SLOTS (his report, 2026-09-13: "trickle snapping"). The
+	// first version seated slab k at the k-th rung and slid the whole column
+	// by frac(view) x its own pitch - but the rungs are not evenly spaced,
+	// so at every whole number of view the column jumped by the difference
+	// between two rungs. Now a slab sits at the REAL-VALUED slot
+	// p = k - frac(view): its size is F/(F+p) and its bottom edge is the
+	// integral of the pitch, PITCH x F x ln(1 + p/F) above the foot - one
+	// smooth curve every slab rides, so a scroll is a glide and nothing
+	// ever snaps. A slab below slot 0 (p < 0) is on its way out under the
+	// foot and fades as it goes.
 	var _out = [];
-	var _y = foot_y;
-	for (var _k = 0; _k < 40; _k++) {
-		var _s = F / (F + _k);
+	var _fr = frac(view);
+	var _foot_b = foot_y + SH;
+	for (var _k = 0; _k < 48; _k++) {
+		var _p = _k - _fr;
+		var _s = F / (F + _p);
 		var _h = SH * _s;
-		if (_y - _h < top_y) break;
-		// the fractional view slides the whole column by a fraction of a
-		// pitch, so a scroll is a glide rather than a jump
-		var _tier = floor(view) + _k;
-		var _fr = frac(view);
-		array_push(_out, { tier : _tier, k : _k, s : _s,
-			x : cx - SW * _s * .5, y : _y - _h + _fr * PITCH * _s, h : _h, w : SW * _s });
-		_y -= PITCH * _s;
+		var _yb = _foot_b - PITCH * F * ln(1 + _p / F);
+		var _y  = _yb - _h;
+		if (_y < top_y) break;
+		array_push(_out, { tier : floor(view) + _k, k : _k, p : _p, s : _s,
+			x : cx - SW * _s * .5, y : _y, h : _h, w : SW * _s,
+			fade : clamp(1 + _p, 0, 1) });
 	}
 	return _out;
 };

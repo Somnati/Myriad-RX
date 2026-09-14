@@ -21,7 +21,7 @@ if (open || oa > .05) {
 	x = _r.x; y = _r.y; image_xscale = _r.w; image_yscale = _r.h;
 } else if (_show && _n > 0) {
 	var _p = __pile();
-	x = _p.x - 1; y = _p.y - 5; image_xscale = PW + 6 + 14; image_yscale = PH + 7;
+	x = _p.x - 1; y = _p.y - 5; image_xscale = PW + 6 + 16; image_yscale = PH + 7;
 } else {
 	x = -1000; y = -1000; image_xscale = 1; image_yscale = 1;
 }
@@ -46,8 +46,8 @@ else {
 		var _k = __scratch(lmx, lmy, mouse_x, mouse_y);
 		snd_t -= delta;
 		if (_k > 0 && snd_t <= 0) {
-			play_sound_ext(snd_scratch, .8, 1.25, .4, 1);
-			snd_t = 4;
+			play_sound_ext(snd_scratch, .85, 1.2, .45, 1);   // a coin on foil (his call: the synth rasp went)
+			snd_t = 5;
 		}
 	}
 	lmx = mouse_x; lmy = mouse_y;

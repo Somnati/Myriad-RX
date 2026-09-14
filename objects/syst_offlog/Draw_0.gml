@@ -130,7 +130,7 @@ if (_sp > .001) {
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, hh + 15, room_width, 1, 0, sett_ink, .25);
 	draw_set_halign(fa_left);
-	draw_set_color(c_sgreen);
+	draw_set_color(c_feat_offlog);
 	draw_set_alpha(.95);
 	draw_text(6, hh + 5, "offline log");
 	draw_set_color(dim);

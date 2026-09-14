@@ -15,6 +15,21 @@ for (var _k = 0; _k < array_length(_seats); _k++) {
 			c_white, (.1 + .12 * _ic.spin + .15 * _rp) * _a);
 	}
 	__glyph(_s.i, _s.x, _s.y, _a, _ic.spin, _hot);
+	// ITS NAME, above (his ask, 2026-09-13: "for some players it might be
+	// vague"): rides the hover ease, lifting a few px as it fades in
+	if (_ic.spin > .01) {
+		var _nm = _ic.name;
+		draw_set_font(fnt_outline);
+		draw_set_halign(fa_left);
+		draw_set_valign(fa_top);
+		draw_set_color(c_white);
+		draw_set_alpha(_ic.spin * _a);
+		var _nw = string_width(_nm);
+		var _nx = clamp(round(_s.x - .5 - _nw * .5), 2, room_width - _nw - 2);
+		draw_text(_nx, floor(_s.y) - 22 + round((1 - _ic.spin) * 3), _nm);
+		draw_set_font(fnt);
+		draw_set_alpha(1);
+	}
 }
 draw_set_alpha(1);
 draw_set_color(c_white);

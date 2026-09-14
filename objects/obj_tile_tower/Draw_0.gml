@@ -29,9 +29,11 @@ for (var _k = 0; _k < _n; _k++) {
 	var _tt = clamp((_r - min(_k, 25) * .02) / .5, 0, 1);   // the last slab's delay + its rise = the whole ease
 	var _e  = 1 - (1 - _tt) * (1 - _tt) * (1 - _tt);
 	if (_e <= .001) continue;
-	// depth: the far slabs fade like a tower into haze
-	var _da = clamp(_sl.s * 1.6, .25, 1);
+	// depth: the far slabs fade like a tower into haze (DE's alpha ran to
+	// nothing at the top; ours holds a trace so the count of rungs reads)
+	var _da = clamp(power((_sl.s - .15) / .85, .8), .12, 1) * _sl.fade;
 	var _a  = _e * _da;
+	if (_a <= .01) continue;
 	var _y  = _sl.y + (1 - _e) * 40;
 	var _x  = _sl.x;
 	var _known = (_sl.tier <= _hi);
@@ -47,24 +49,36 @@ for (var _k = 0; _k < _n; _k++) {
 		gpu_set_blendmode(bm_normal);
 	}
 
+	// DE'S SHELF (his: "the vertical depth mine had"): a line from the
+	// room's edge to the slab at its middle, thicker for the near slabs -
+	// every floor of the tower reaching into the wall
+	var _sh_y = floor(_y + _sl.h * .5);
+	var _sh_t = max(1, round(2 * _sl.s));
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, _sh_y, max(0, floor(_x) + 1), _sh_t, 0, _col, .55 * _a);
+	// THE SLAB'S SIDE: its thickness under it, in the gap to the next rung
+	// down - the rungs read as stacked blocks, not tiles on a line
+	var _side = max(1, round(2 * _sl.s));
+	draw_sprite_ext(spr_pixel_1x1, 0, floor(_x) + 1, floor(_y + _sl.h), max(1, round(_sl.w) - 2), _side, 0,
+		merge_colour(_col, c_black, .55), .9 * _a);
 	// the slab, as the board draws the tier: its colour, its material
 	var _skin = _known ? tile_skin_roll(_sl.tier) : 0;
 	tile_shape_draw(_known ? _sl.tier : 0, _x, _y, _sl.w, _sl.h, _col, _a, _skin, _sl.tier);
 
-	// the number: the board's text colour rule; large while near,
-	// small further up, none in the haze - and none on an unknown
-	if (_known && _sl.s >= .45) {
+	// the number: DE's - fnt_large scaled WITH the slab (his report: the
+	// text was doing something; it was swapping fonts at a threshold), the
+	// board's text colour rule; none in the haze, none on an unknown
+	if (_known && _sl.s >= .3) {
 		var _tc = (_sl.tier <= 1) ? c_white : make_colour_hsv(colour_get_hue(tile_color(_sl.tier)),
 			clamp(colour_get_saturation(tile_color(_sl.tier)), 100, 255), clamp(colour_get_value(tile_color(_sl.tier)), 190, 255));
 		draw_set_color(_tc);
 		draw_set_alpha(_a);
-		if (_sl.s >= .7) { draw_set_font(fnt_large); draw_text(floor(_x + _sl.w * .5), floor(_y + (_sl.h - 9) * .5), string(_sl.tier)); }
-		else             { draw_set_font(fnt);       draw_text(floor(_x + _sl.w * .5), floor(_y + (_sl.h - 7) * .5), string(_sl.tier)); }
+		draw_set_font(fnt_large);
+		draw_text_transformed(floor(_x + _sl.w * .5), floor(_y + (_sl.h - 9 * _sl.s) * .5), string(_sl.tier), _sl.s, _sl.s, 0);
 	}
 
 	// the pips: how many of this tier sit on the board
 	var _c = _cnt[$ string(_sl.tier)] ?? 0;
-	if (_c > 0 && _sl.s >= .45) {
+	if (_c > 0 && _sl.s >= .3) {
 		var _px = floor(_x + _sl.w + 4), _py = floor(_y + _sl.h * .5 - 1);
 		if (_c <= 5) {
 			for (var _j = 0; _j < _c; _j++)

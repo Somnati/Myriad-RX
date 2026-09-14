@@ -18,16 +18,16 @@ function menu2_content() {
 	// off the key here) until its panel is opened (unfold_tick)
 
 	menu2_section("game");
-	menu2_button("clicker",      rm_clicker,       c_horange);
-	menu2_button("objectives",   function() { objectives_open(); }, c_gold);   // the chain, in full (his spec, 2026-09-13)
-	if (unfold_has("rebirth"))    menu2_button("rebirth",      function() { rebirth_open(); }, c_hred, "rebirth"); // myriad
-	if (unfold_has("cheat"))      menu2_button("cheat shop",   function() { cheat_open(); },   c_pink, "cheat");   // disgaea's obtain rates (2026-09-13)
-	if (unfold_has("upgrades"))   menu2_button("upgrades",     function() { upgrades_open(); }, c_lavender, "upgrades"); // myriad (an overlay, 2026-09-12)
-	if (unfold_has("tiles"))      menu2_button("tiles",        function() { tiles_open(); },     c_aqua, "tiles");        // myriad (an overlay, 2026-09-12)
-	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_rarity_epic, "abilities"); // techdemo (an overlay, 2026-09-12)
-	if (unfold_has("automation")) menu2_button("automation",   function() { automation_open(); }, c_sblue, "automation");
-	if (unfold_has("timebank"))   menu2_button("time bank",    function() { timebank_open(); }, c_gold, "timebank");
-	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_steelblue, "expeditions");   // a game line, not a misc one (2026-09-13)
+	menu2_button("clicker",      rm_clicker,       c_feat_clicker);
+	menu2_button("objectives",   function() { objectives_open(); }, c_feat_objectives);   // the chain, in full (his spec, 2026-09-13)
+	if (unfold_has("rebirth"))    menu2_button("rebirth",      function() { rebirth_open(); }, c_feat_rebirth, "rebirth"); // myriad
+	if (unfold_has("cheat"))      menu2_button("cheat shop",   function() { cheat_open(); },   c_feat_cheat, "cheat");   // disgaea's obtain rates (2026-09-13)
+	if (unfold_has("upgrades"))   menu2_button("upgrades",     function() { upgrades_open(); }, c_feat_upgrades, "upgrades"); // myriad (an overlay, 2026-09-12)
+	if (unfold_has("tiles"))      menu2_button("tiles",        function() { tiles_open(); },     c_feat_tiles, "tiles");        // myriad (an overlay, 2026-09-12)
+	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_feat_abilities, "abilities");   // DE: gold // techdemo (an overlay, 2026-09-12)
+	if (unfold_has("automation")) menu2_button("automation",   function() { automation_open(); }, c_feat_automation, "automation");
+	if (unfold_has("timebank"))   menu2_button("time bank",    function() { timebank_open(); }, c_feat_timebank, "timebank");
+	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_feat_expeditions, "expeditions");   // a game line, not a misc one (2026-09-13)
 	// (the battery, the credit core, statistics and the daily gift are DOCK
 	// icons now - obj_ui_gear, beside the settings gear, 2026-09-13)
 	// an OVERLAY now, so it is a method destination: syst_menu2 folds the
@@ -41,5 +41,5 @@ function menu2_content() {
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
 	menu2_button("faq",          function() { faq_open(); }, c_gold);
-	if (unfold_has("offlog"))      menu2_button("offline log",  function() { offlog_open(); }, c_sgreen, "offlog");   // every absence's story (2026-09-12)
+	if (unfold_has("offlog"))      menu2_button("offline log",  function() { offlog_open(); }, c_feat_offlog, "offlog");   // every absence's story (2026-09-12)
 }

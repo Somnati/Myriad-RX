@@ -13,7 +13,7 @@ draw_sprite_ext(spr_scale_bracket, 0, x0 + W, by - 2, 1, 1, 0, c_white, 1);
 
 // ---- the ticks: one an order; labelled every order when there is room,
 // every third when there is not (DE's rule) ----
-var _every = (ppo >= 30) ? 1 : 3;
+var _every = 3;   // DE's stagger (his call, 2026-09-13: "lots of numbers" - every third order, and the milestone)
 draw_set_font(fnt);
 draw_set_halign(fa_center);
 draw_set_valign(fa_top);
@@ -35,12 +35,15 @@ for (var xx = floor(lo); xx <= ceil(hi); xx++) {
 	}
 	draw_sprite_ext(spr_scale_bracket, _img, _ix, by - 2, 1, 1, 0, _c, _ms ? 1 : _a);
 	if (_lbl) {
-		// the arc: DE's 2 -> -2 drift across the bar, glyphs at 1x
-		var _ys = round(lerp(2, -2, _px / W));
+		// DE's text, verbatim (his call, 2026-09-13: "i do prefer the scaling
+		// text of mine"): the label grows .6 -> 1.1 across the bar and drifts
+		// 2 -> -2 - the sweep. The milestone's is fnt_outline in its colour
+		var _ts = lerp(.6, 1.1, _px / W);
+		var _ys = lerp(2, -2, _px / W);
 		draw_set_alpha(_a);
 		if (_ms) { draw_set_font(fnt_outline); draw_set_color(cnext); }
 		else     { draw_set_font(fnt);         draw_set_color(c_white); }
-		draw_text(_ix, by - 9 + _ys, "e" + string(xx));   // the exponent alone (his call)
+		draw_text_transformed(_ix, by - 9 + _ys, "e" + string(xx), _ts, _ts, 0);   // the exponent alone (his call)
 	}
 }
 draw_set_alpha(1);

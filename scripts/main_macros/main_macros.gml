@@ -52,6 +52,32 @@ function main_macros() {
 #macro c_salmon rgb(250, 128, 114)
 #macro c_seagreen rgb(19,232,152)
 #macro c_steelblue rgb(75,146,184)
+
+// THE FEATURE COLOURS (2026-09-13, his ask): ONE macro a feature - DE's
+// menu colours wherever DE had the feature (obj_button_suboptions:
+// production sblue / upgrades lavender / tiles aqua / ability deck gold /
+// statistics sgreen / rebirth hred; its credit core slider lavender, its
+// daily gift lilac). Every menu line, statistics folder, RAM stick, tab,
+// panel strip and dock icon reads THESE - change one here, it changes
+// everywhere. Never write the raw colour at a feature's seat again.
+#macro c_feat_clicker     c_horange
+#macro c_feat_dials       c_sblue          // DE: "production"
+#macro c_feat_automation  c_sblue          // (DE's production drawer IS the automation)
+#macro c_feat_upgrades    c_lavender       // DE
+#macro c_feat_tiles       c_aqua           // DE
+#macro c_feat_abilities   c_gold           // DE: "ability deck"
+#macro c_feat_statistics  c_sgreen         // DE
+#macro c_feat_rebirth     c_hred           // DE
+#macro c_feat_credits     c_lavender       // DE's credit core slider
+#macro c_feat_ccore       c_lavender
+#macro c_feat_gift        rgb(215,185,255) // DE's daily gift timer tint
+#macro c_feat_battery     c_sgreen
+#macro c_feat_timebank    c_gold
+#macro c_feat_expeditions c_steelblue
+#macro c_feat_objectives  c_gold
+#macro c_feat_offlog      c_sgreen
+#macro c_feat_tickets     c_gold
+#macro c_feat_cheat       c_pink           // ("might need to be gold but idk" - one edit here)
 #macro c_dkblue #00008b
 // compound's universal currency color (his call 2026-07-14, joins
 // profit = c_gold / resin = c_seagreen): soft orange, defined ONCE -
@@ -533,7 +559,7 @@ function main_macros() {
 // exactly as it is in game from DE and your version of it"): true draws
 // DE's obj_scale_de at its seat with the rebuilt obj_scale_rx above it,
 // each tagged; false leaves only the rebuilt one, at the floor
-#macro SCALE_COMPARE     true
+#macro SCALE_COMPARE     false   // (his pick, 2026-09-13: the rebuilt one, with DE's stagger + scaling text)
 // THE CHEAT SHOP (2026-09-13, Disgaea's - his ask): obtain rates you
 // redistribute. cheat_config's rows, cheat_cap's total; these are the knobs
 #macro CHEAT_STEP        10    // a press moves a row this much

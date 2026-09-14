@@ -24,7 +24,7 @@ function stats_v2_content() {
 	// a whole tab... dedicated to 1 option".)
 
 	// ---- general ----
-	if (stats_v2_folder("general", c_sgreen)) {
+	if (stats_v2_folder("general", c_feat_statistics)) {
 		// TWO CLOCKS (his ask): what you played, and that plus the time
 		// the save spent away. They never overlap, so the second is
 		// simply their sum - DE's single total_seconds_played figure.
@@ -67,13 +67,13 @@ function stats_v2_content() {
 
 	// ---- tapping ----
 	if (variable_global_exists("total_taps"))
-	if (stats_v2_folder("tapping", c_gold)) {
+	if (stats_v2_folder("tapping", c_feat_clicker)) {
 		// ---- why a tap pays what it pays (his ask, 2026-09-10; first in
 		// the folder, his call) - the
 		// dial pages' sibling: a bar of what the tap is MADE of (a sum,
 		// shared linearly), then the multipliers on the whole ----
 		if (variable_global_exists("click_gps"))
-		if (stats_v2_folder("tap breakdown", c_gold)) {
+		if (stats_v2_folder("tap breakdown", c_feat_clicker)) {
 			var _tbk = tap_breakdown();
 			stats_v2_bar("what a tap is made of", _tbk.terms, 4);
 			for (var _s = 0; _s < array_length(_tbk.terms); _s++) {
@@ -157,7 +157,7 @@ function stats_v2_content() {
 	// top-level folders that each open into eight sub-folders read as
 	// sixteen pages about one thing) ----
 	if (variable_global_exists("dial"))
-	if (stats_v2_folder("dials", c_gold)) {
+	if (stats_v2_folder("dials", c_feat_dials)) {
 		// ---- dial profit: WHY each dial earns what it earns (his ask) ----
 		// Myriad DE had a page like this and his verdict was that it was
 		// lame. It was a list of numbers, and a list cannot answer the only
@@ -167,7 +167,7 @@ function stats_v2_content() {
 		// those shares. A x2 milestone beside a x1000 base curve stops
 		// looking equally important, because it is not.
 		if (variable_global_exists("dial"))
-		if (stats_v2_folder("dial profit", c_gold)) {
+		if (stats_v2_folder("dial profit", c_feat_dials)) {
 			var _any = false;
 			for (var _i = 0; _i < g.dial_total; _i++) {
 				var _d = g.dial[_i];
@@ -223,7 +223,7 @@ function stats_v2_content() {
 		// ---- milestones: THE DEBUG LIST (his ask) - every dial's rungs,
 		// earned or locked, the live totals, the next rung's premium ----
 		if (variable_global_exists("milestones") && variable_global_exists("dial"))
-		if (stats_v2_folder("milestones", c_aqua)) {
+		if (stats_v2_folder("milestones", c_feat_dials)) {
 			stats_v2_line("premium", "x" + string(g.milestone_cost_mult) + " the crossing level");
 			for (var _i = 0; _i < g.dial_total; _i++) {
 				var _d  = g.dial[_i];
@@ -251,7 +251,7 @@ function stats_v2_content() {
 
 	// ---- tiles ----
 	if (variable_global_exists("tiles"))
-	if (stats_v2_folder("tiles", c_aqua)) {
+	if (stats_v2_folder("tiles", c_feat_tiles)) {
 		// ---- the fabricator's luck, as a spread - FIRST in the folder
 		// (his call, 2026-09-10) ----
 		if (stats_v2_folder("rarity", c_horange)) {
@@ -357,7 +357,7 @@ function stats_v2_content() {
 
 	// ---- upgrades ----
 	if (variable_global_exists("upg"))
-	if (stats_v2_folder("upgrades", c_lavender)) {
+	if (stats_v2_folder("upgrades", c_feat_upgrades)) {
 		// ---- the rarity spread (Techdemo II's rarity bar) - FIRST in the
 		// folder (his call, 2026-09-10) ----
 		// The odds a roll plays by, drawn straight from the array the
@@ -456,7 +456,7 @@ function stats_v2_content() {
 
 	// ---- credits ----
 	if (variable_global_exists("credits"))
-	if (stats_v2_folder("credits", c_lavender)) {
+	if (stats_v2_folder("credits", c_feat_credits)) {
 		stats_v2_line("credits", (g.credits >= arb(1)) ? crunch_arb(g.credits) : "0", -1, c_lavender);
 		stats_v2_line("lifetime", (g.total_credits >= arb(1)) ? crunch_arb(g.total_credits) : "0");
 		// the credit core's own ledger (ccore_init: made / pulls, saved)
@@ -477,7 +477,7 @@ function stats_v2_content() {
 
 	// ---- automation ----
 	if (variable_global_exists("autom"))
-	if (stats_v2_folder("automation", c_sblue)) {
+	if (stats_v2_folder("automation", c_feat_automation)) {
 		var _ax = 0;
 		for (var _k = 0; _k < array_length(g.autom.dial); _k++)
 			if (g.autom.dial[_k].on) _ax++;
@@ -533,7 +533,7 @@ function stats_v2_content() {
 
 	// ---- time bank ----
 	if (variable_global_exists("timebank"))
-	if (stats_v2_folder("time bank", c_gold)) {
+	if (stats_v2_folder("time bank", c_feat_timebank)) {
 		var _tb = g.timebank;
 		stats_v2_line("banked", (_tb.bank >= 1)
 			? crunch_time_long(_tb.bank * 60) : "empty", -1,
@@ -553,7 +553,7 @@ function stats_v2_content() {
 
 	// ---- scratch tickets (2026-09-13) ----
 	if (variable_global_exists("tickets") && unfold_has("tickets"))
-	if (stats_v2_folder("scratch tickets", c_gold)) {
+	if (stats_v2_folder("scratch tickets", c_feat_tickets)) {
 		var _tk = g.tickets;
 		stats_v2_line("on the desk", string(array_length(_tk.pile)));
 		stats_v2_line("scratched", string(_tk.scratched));
@@ -565,7 +565,7 @@ function stats_v2_content() {
 
 	// ---- rebirth ----
 	if (variable_global_exists("rebirth"))
-	if (stats_v2_folder("rebirth", c_hred)) {
+	if (stats_v2_folder("rebirth", c_feat_rebirth)) {
 		stats_v2_line("units", (g.rebirth.units >= arb(1)) ? crunch_arb(g.rebirth.units) : "0");
 		stats_v2_line("total rebirths", string(g.rebirth.total));
 		stats_v2_line("fed profit", (g.rebirth.fed >= arb(1)) ? crunch_arb(g.rebirth.fed) : "0", -1, -1,

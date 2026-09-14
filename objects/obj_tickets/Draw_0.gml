@@ -24,15 +24,15 @@ if (_faces > 0 && _show) {
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx, _fy, 1, PH, 0, _rc.col, .7);
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx + PW - 1, _fy, 1, PH, 0, _rc.col, .7);
 		// a strip of foil
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 3, _fy + 4, PW - 6, 4, 0, _rc.foil, .9);
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 3, _fy + 4, PW - 6, 1, 0, c_white, .35);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + 5, PW - 8, 6, 0, _rc.foil, .9);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + 5, PW - 8, 1, 0, c_white, .35);
 	}
 	draw_set_font(fnt);
 	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
 	draw_set_color(c_white);
 	draw_set_alpha(.85);
-	draw_text(_p.x + PW + 5, _p.y - 1, "x" + string(_n));
+	draw_text(_p.x + PW + 6, _p.y + 1, "x" + string(_n));
 	draw_set_alpha(1);
 }
 
@@ -50,7 +50,7 @@ if (oa > .05 && cur != undefined) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _r.x + _r.w - 1, _r.y, 1, _r.h, 0, _rc.col, .8);
 	if (_e > 0) {
 		// the header: rarity left, the printed odds right, the x
-		draw_sprite_ext(spr_pixel_1x1, 0, _r.x + 1, _r.y + 1, _r.w - 2, 9, 0, _rc.col, .18 * _e);
+		draw_sprite_ext(spr_pixel_1x1, 0, _r.x + 1, _r.y + 1, _r.w - 2, 10, 0, _rc.col, .18 * _e);
 		draw_set_font(fnt);
 		draw_set_valign(fa_top);
 		draw_set_alpha(_e);
@@ -86,7 +86,7 @@ if (oa > .05 && cur != undefined) {
 		}
 		// the line under the grid: the rule, or the result
 		draw_set_halign(fa_center);
-		var _ly = _g.y + 40 + 4;
+		var _ly = _g.y + GW + 5;
 		if (!done) {
 			draw_set_color(c_white);
 			draw_set_alpha(.5 * _e);

@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.0749887,
+  "duration":0.1300000,
   "exportDir":"",
   "name":"snd_scratch",
   "parent":{

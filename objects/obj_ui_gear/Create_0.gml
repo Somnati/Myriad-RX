@@ -39,11 +39,11 @@ DOCK_STEP = 26;   // px between icons
 // literal binds to the STRUCT, and create_obj reads the caller's depth
 // (his crash report, 2026-09-13: "struct.depth not set")
 icons = [
-	{ key : "", spin : 0 },
-	{ key : "ccore", spin : 0 },
-	{ key : "battery", spin : 0 },
-	{ key : "statistics", spin : 0 },
-	{ key : "gift", spin : 0 },
+	{ key : "",           spin : 0, name : "settings" },
+	{ key : "ccore",      spin : 0, name : "credit core" },
+	{ key : "battery",    spin : 0, name : "battery" },
+	{ key : "statistics", spin : 0, name : "statistics" },
+	{ key : "gift",       spin : 0, name : "daily gift" },
 ];
 __open = function(_i) {
 	switch (icons[_i].key) {
@@ -140,13 +140,16 @@ __disc = function(_x, _y, _col, _fill, _a, _h) {
 /// @desc the small font, centred in a disc
 __label = function(_x, _y, _txt, _a) {
 	draw_set_font(fnt_outline);   // (his call: the outline keeps it readable over the fill)
-	draw_set_halign(fa_center);
+	draw_set_halign(fa_left);
 	draw_set_valign(fa_top);
 	draw_set_color(c_white);
 	draw_set_alpha(.95 * _a);
-	draw_text(_x - .5, _y - 4, _txt);   // centred on the disc's centre point (x-.5); rows 6..12 of the sprite
+	// ON THE GRID: centred on the disc's centre point (x-.5) and then
+	// ROUNDED to a whole column - a sprite font at a half pixel lands on
+	// whichever side the sampler picks, never both (his report: uncentred)
+	var _w = string_width(_txt);
+	draw_text(round(_x - .5 - _w * .5), _y - 4, _txt);
 	draw_set_font(fnt);
-	draw_set_halign(fa_left);
 	draw_set_alpha(1);
 };
 
@@ -169,14 +172,14 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			var _v = ccore_values();
 			var _live = (g.ccore.st == 1 || g.ccore.st == 2);
 			var _f = _live ? clamp(g.ccore.xp / max(1, _v.cap), 0, 1) : 0;
-			__disc(_x, _y, _hot ? merge_colour(c_lavender, c_white, .3) : c_lavender, _f, _a, _h);
+			__disc(_x, _y, _hot ? merge_colour(c_feat_ccore, c_white, .3) : c_feat_ccore, _f, _a, _h);
 			__label(_x, _y, _live ? string(floor(g.ccore.xp)) : "-", _a);
 			break;
 		}
 		case "battery": {
 			// the cell: green, its fill the charge, the percentage inside
 			var _f = clamp(g.battery.charge / max(1, battery_cap()), 0, 1);
-			__disc(_x, _y, _hot ? merge_colour(c_sgreen, c_white, .3) : c_sgreen, _f, _a, _h);
+			__disc(_x, _y, _hot ? merge_colour(c_feat_battery, c_white, .3) : c_feat_battery, _f, _a, _h);
 			var _pc = floor(_f * 100);
 			__label(_x, _y, (_pc >= 100) ? "100" : (string(_pc) + "%"), _a);   // ("100%" is a glyph too wide for the disc)
 			break;
@@ -186,12 +189,16 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// same round ground as the core and the battery (his ask), which is
 			// also what keeps the hover glow centred on it
 			__disc(_x, _y, _tone, 0, _a, _h);
-			// three bars, 4 wide with 2 between = 16 wide from x-8: centred on
-			// x-.5 exactly (paper-rendered against the disc, 2026-09-13)
-			var _hs = [6, 9, 12];   // the tallest spans rows 4..15 of the sprite: centre 9.5, the disc's
+			// ⚖️ THREE BARS, 3 WIDE WITH 2 BETWEEN = 13 WIDE, from x-7 (his second
+			// screenshot, 2026-09-13: still not centred). The disc's centre is
+			// the half-pixel point x-.5, so only an ODD width can sit on it: 13
+			// columns x-7..x+5 have their middle column at x-1, whose centre is
+			// x-.5. The old 16 (4/2/4/2/4) was even and sat half a pixel right.
+			// Rows: the tallest spans y-6..y+5, middle row y-1 -> centre y-.5
+			var _hs = [6, 9, 12];
 			for (var _k = 0; _k < 3; _k++) {
 				var _bh = _hs[_k] + _h;
-				draw_sprite_ext(spr_pixel_1x1, 0, _x - 8 + _k * 6, _y + 6 - _bh, 4, _bh, 0, _tone, (.85 + .15 * _h) * _a);
+				draw_sprite_ext(spr_pixel_1x1, 0, _x - 7 + _k * 5, _y + 6 - _bh, 3, _bh, 0, _tone, (.85 + .15 * _h) * _a);
 			}
 			break;
 		}
@@ -201,7 +208,7 @@ __glyph = function(_i, _x, _y, _a, _h, _hot) {
 			// is waiting
 			var _wait = gift_can_claim();
 			var _br = _wait ? (.7 + .3 * abs(dsin(current_time * .3))) : 1;
-			var _gc = _wait ? (_hot ? merge_colour(c_pink, c_white, .3) : c_pink) : _tone;
+			var _gc = _wait ? (_hot ? merge_colour(c_feat_gift, c_white, .3) : c_feat_gift) : _tone;
 			// on a disc, and drawn from the disc's centre PIXEL (floor): the box
 			// is eleven wide with its origin at five, so its middle column lands
 			// on the disc's - the glow, the disc and the box share one centre

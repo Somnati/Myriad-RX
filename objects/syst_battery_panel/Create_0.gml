@@ -55,7 +55,7 @@ btn_w   = land ? 54 : 44;
 
 rates   = ["run", "fab", "merge"];
 rate_lbl = land ? ["dials cycling", "fabricator", "auto merge"] : ["dials", "fab", "merge"];
-rate_col = [c_sgreen, c_seagreen, c_seagreen];
+rate_col = [c_feat_dials, c_feat_tiles, c_feat_tiles];   // the feature each rate drives (his ask, 2026-09-13)
 
 // ---- THE CRANK ----
 // A wheel with a handle. Grab the handle (or anywhere on the wheel)

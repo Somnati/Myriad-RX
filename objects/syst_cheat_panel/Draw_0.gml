@@ -15,7 +15,7 @@ if (_sp > .001) {
 	ui_fade_set(_sp);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, hh + 15, room_width, 1, 0, sett_ink, .25);
-	draw_set_color(c_pink);
+	draw_set_color(c_feat_cheat);
 	draw_set_alpha(.95);
 	draw_text(6, hh + 5, "cheat shop");
 	draw_set_halign(fa_right);
@@ -34,7 +34,7 @@ if (__part(2) > 0) {
 	draw_set_color((_free > 0) ? c_gold : sett_ink);
 	draw_set_alpha((_free > 0) ? .95 : .6);
 	draw_text(x0 + (land ? 70 : 52), band_y, "free " + string(max(0, _free)) + "%");
-	draw_ui_button(x1 - def_w, band_y - 2, def_w, 14, "default", c_pink, true, false);
+	draw_ui_button(x1 - def_w, band_y - 2, def_w, 14, "default", c_feat_cheat, true, false);
 	__part_end();
 }
 
