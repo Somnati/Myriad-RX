@@ -45,4 +45,9 @@ function send_deck() {
 	send_ability("ad_networth", g.ad_networth);
 	send_ability("ad_resetbracer", g.ad_resetbracer);
 	send_ability("ad_resetbracer2", g.ad_resetbracer2, g.ad_resetbracer);
+	send_ability("ad_cheatpool1", g.ad_cheatpool1);
+	send_ability("ad_cheatpool2", g.ad_cheatpool2, g.ad_cheatpool1);
+	send_ability("ad_cheatpool3", g.ad_cheatpool3, g.ad_cheatpool2);
+	send_ability("ad_cheatcap1", g.ad_cheatcap1);
+	send_ability("ad_cheatcap2", g.ad_cheatcap2, g.ad_cheatcap1);
 }

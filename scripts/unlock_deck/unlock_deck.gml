@@ -46,6 +46,11 @@ function unlock_deck() {
 	if (abi == "ad_networth") g.ad_networth = unlock_ability("Networth", 3);
 	if (abi == "ad_resetbracer") g.ad_resetbracer = unlock_ability("Reset Bracer", 2);
 	if (abi == "ad_resetbracer2") g.ad_resetbracer2 = unlock_ability("Reset Bracer+", 3);
+	if (abi == "ad_cheatpool1") g.ad_cheatpool1 = unlock_ability("Cheat Points", 1);
+	if (abi == "ad_cheatpool2") g.ad_cheatpool2 = unlock_ability("Cheat Points+", 2);
+	if (abi == "ad_cheatpool3") g.ad_cheatpool3 = unlock_ability("Cheat Points++", 4);
+	if (abi == "ad_cheatcap1") g.ad_cheatcap1 = unlock_ability("Cheat Ceiling", 2);
+	if (abi == "ad_cheatcap2") g.ad_cheatcap2 = unlock_ability("Cheat Ceiling+", 4);
 
 	abi = "";
 }

@@ -30,10 +30,13 @@ if (_sp > .001) {
 if (__part(2) > 0) {
 	draw_set_color(sett_ink);
 	draw_set_alpha(.6);
-	draw_text(x0, band_y, "cap " + string(_cap) + "%");
+	// "cap" here is what he calls the cap: how high a row may go (his
+	// report, 2026-09-14: the band showed the points total as "cap" and
+	// it "did not reflect the real value"). The unspent points are "spare"
+	draw_text(x0, band_y, "rows up to " + string(CHEAT_ROW_MAX) + "%");
 	draw_set_color((_free > 0) ? c_gold : sett_ink);
 	draw_set_alpha((_free > 0) ? .95 : .6);
-	draw_text(x0 + (land ? 70 : 52), band_y, "free " + string(max(0, _free)) + "%");
+	draw_text(x0 + (land ? 92 : 74), band_y, "spare " + string(max(0, _free)) + "%");
 	draw_ui_button(x1 - def_w, band_y - 2, def_w, 14, "default", c_feat_cheat, true, false);
 	__part_end();
 }
@@ -87,8 +90,7 @@ if (__part(3 + N) > 0) {
 		: "the normal amount is 100%. lower one thing to raise another.";
 	draw_text(room_width * .5, foot_y, _txt);
 	draw_set_alpha(.4);
-	draw_text(room_width * .5, foot_y + 12, "the cap grows +" + string(CHEAT_CAP_MS) + "% a rebirth milestone, +"
-		+ string(CHEAT_CAP_RB) + "% a rebirth (to " + string(CHEAT_CAP_RB_N) + ")");
+	draw_text(room_width * .5, foot_y + 12, "more to spend and higher rows come from the ability deck (cheat points, cheat ceiling)");
 	draw_set_halign(fa_left);
 	__part_end();
 }

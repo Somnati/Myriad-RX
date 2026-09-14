@@ -70,6 +70,11 @@ function grab_deck_ap() {
 	get_ap(g.ad_networth, 5);
 	get_ap(g.ad_resetbracer, 5);
 	get_ap(g.ad_resetbracer2, 10);
+	get_ap(g.ad_cheatpool1, 4);
+	get_ap(g.ad_cheatpool2, 6);
+	get_ap(g.ad_cheatpool3, 10);
+	get_ap(g.ad_cheatcap1, 6);
+	get_ap(g.ad_cheatcap2, 10);
 
 	// ---- finals: the pool, then what's left of it ----
 	g.maxap = 4 + 2 * g.new_abilities_unlocked;

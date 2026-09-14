@@ -84,6 +84,16 @@ function deck_card_info(_key) {
 			desc : "every dial keeps one level\nthrough a rebirth" };
 		case "ad_resetbracer2": return { name : "Reset Bracer+", rarity : 3, ap : 10,
 			desc : "every dial keeps all its\nlevels through a rebirth" };
+		case "ad_cheatpool1": return { name : "Cheat Points", rarity : 1, ap : 4,
+			desc : "+20% to spend in\nthe cheat shop" };
+		case "ad_cheatpool2": return { name : "Cheat Points+", rarity : 2, ap : 6,
+			desc : "+30% more to spend in\nthe cheat shop" };
+		case "ad_cheatpool3": return { name : "Cheat Points++", rarity : 4, ap : 10,
+			desc : "+50% more to spend in\nthe cheat shop" };
+		case "ad_cheatcap1": return { name : "Cheat Ceiling", rarity : 2, ap : 6,
+			desc : "a cheat shop row may\nreach 140%" };
+		case "ad_cheatcap2": return { name : "Cheat Ceiling+", rarity : 4, ap : 10,
+			desc : "a cheat shop row may\nreach 170%" };
 	}
 	return { name : "???", rarity : 0, ap : 0, desc : "" };
 }

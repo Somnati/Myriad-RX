@@ -87,7 +87,8 @@ function create_new_deck() {
 		// support
 		"ad_luckystrike", "ad_jackpot1", "ad_offlinecollect",
 		// rebirth
-		"ad_networth", "ad_resetbracer", "ad_resetbracer2",
+		"ad_networth", "ad_resetbracer", "ad_resetbracer2", "ad_cheatpool1", "ad_cheatpool2",
+		"ad_cheatpool3", "ad_cheatcap1", "ad_cheatcap2",
 	];
 	for (var _i = 0; _i < array_length(g.abi_keys); _i++)
 		variable_global_set(g.abi_keys[_i], -1);

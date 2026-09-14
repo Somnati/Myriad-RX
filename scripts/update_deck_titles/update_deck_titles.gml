@@ -40,5 +40,10 @@ function update_deck_titles() {
 		|| g.ad_offlinecollect != -1) ? 3 : -1;
 	g.ad_title_rebirth = (g.ad_networth != -1
 		|| g.ad_resetbracer != -1
-		|| g.ad_resetbracer2 != -1) ? 3 : -1;
+		|| g.ad_resetbracer2 != -1
+		|| g.ad_cheatpool1 != -1
+		|| g.ad_cheatpool2 != -1
+		|| g.ad_cheatpool3 != -1
+		|| g.ad_cheatcap1 != -1
+		|| g.ad_cheatcap2 != -1) ? 3 : -1;
 }

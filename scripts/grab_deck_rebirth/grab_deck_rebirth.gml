@@ -18,5 +18,35 @@ function grab_deck_rebirth() {
 	if (_open == false) ability_flavor("[requires reset bracer]", "", "", c_hred);
 	_open = true;
 
+	ability(g.ad_cheatpool1, "Cheat Points", uncommon, 4,
+		"+20% to spend in\nthe cheat shop", false, false);
+
+	_open = false;
+	if (g.ad_cheatpool1 == 1) _open = true;
+	if (g.ad_cheatpool1 == -1) _open = -1;
+	ability(g.ad_cheatpool2, "Cheat Points+", rare, 6,
+		"+30% more to spend in\nthe cheat shop", true, false);
+	if (_open == false) ability_flavor("[requires cheat points]", "", "", c_hred);
+	_open = true;
+
+	_open = false;
+	if (g.ad_cheatpool2 == 1) _open = true;
+	if (g.ad_cheatpool2 == -1) _open = -1;
+	ability(g.ad_cheatpool3, "Cheat Points++", epic, 10,
+		"+50% more to spend in\nthe cheat shop", true, false);
+	if (_open == false) ability_flavor("[requires cheat points+]", "", "", c_hred);
+	_open = true;
+
+	ability(g.ad_cheatcap1, "Cheat Ceiling", rare, 6,
+		"a cheat shop row may\nreach 140%", false, false);
+
+	_open = false;
+	if (g.ad_cheatcap1 == 1) _open = true;
+	if (g.ad_cheatcap1 == -1) _open = -1;
+	ability(g.ad_cheatcap2, "Cheat Ceiling+", epic, 10,
+		"a cheat shop row may\nreach 170%", true, false);
+	if (_open == false) ability_flavor("[requires cheat ceiling]", "", "", c_hred);
+	_open = true;
+
 	if (oo) if (a_ == -1) syst_rm_ability.batch_rebirth = _a;
 }

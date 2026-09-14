@@ -1,14 +1,12 @@
 /// @description cheat_cap() -> the total the rows may add up to. Base
-/// 100 a row; the meta-track on top: CHEAT_CAP_MS per rebirth milestone
-/// (the ruler under the tap room finally pays something - his note,
-/// 2026-09-13) and CHEAT_CAP_RB per rebirth, to CHEAT_CAP_RB_N of them.
+/// 100 a row, and NOTHING FREE on top (his call, 2026-09-14 - the
+/// milestone / rebirth track was "a free +30%"): the deck's Cheat Points
+/// I / II / III add +20 / +30 / +50 to spend, and that is all
 function cheat_cap() {
 	var _n = array_length(cheat_config().rows);
 	var _cap = _n * 100;
-	if (variable_global_exists("rebirth")) {
-		rebirth_init();
-		_cap += CHEAT_CAP_MS * max(0, g.rebirth[$ "hi_ms"] ?? 0);
-		_cap += CHEAT_CAP_RB * min(g.rebirth.total, CHEAT_CAP_RB_N);
-	}
+	if (abi_on("ad_cheatpool1")) _cap += 20;
+	if (abi_on("ad_cheatpool2")) _cap += 30;
+	if (abi_on("ad_cheatpool3")) _cap += 50;
 	return _cap;
 }

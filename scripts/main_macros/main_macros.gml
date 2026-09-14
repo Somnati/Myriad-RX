@@ -572,10 +572,14 @@ function main_macros() {
 // redistribute. cheat_config's rows, cheat_cap's total; these are the knobs
 #macro CHEAT_STEP        10    // a press moves a row this much
 #macro CHEAT_ROW_MIN     10    // a row never goes under (0 would zero a lane; arb has no zero)
-#macro CHEAT_ROW_MAX     120   // ...or over (his call, 2026-09-14: 120 - a lever, not a dump; was 400)
-#macro CHEAT_CAP_MS      25    // cap per rebirth milestone (the ruler's payout)
-#macro CHEAT_CAP_RB      5     // cap per rebirth...
-#macro CHEAT_CAP_RB_N    20    // ...for this many of them
+#macro CHEAT_ROW_BASE    120   // ...or over (his call, 2026-09-14: 120 - a lever, not a dump; was 400)...
+// ...UNLESS THE DECK SAYS SO (his call, later the same day): Cheat Ceiling
+// I / II lift every row's top to 140 / 170. The ceiling is read through
+// this expression everywhere (cheat_set, the panel, the save's heal), so
+// an ability landing moves every track at once
+#macro CHEAT_ROW_MAX     (CHEAT_ROW_BASE + (abi_on("ad_cheatcap1") ? 20 : 0) + (abi_on("ad_cheatcap2") ? 30 : 0))
+// (the +25 a milestone / +5 a rebirth free points are GONE - his call: no
+// free points; Cheat Points I-III on the deck are the only extras)
 // THE MATERIALS (2026-09-13, his ask: shader surfaces, a pool per tier -
 // tile_mat_config / tile_skin_roll / sh_tile_mat). false = every tile flat
 #macro TILE_MATERIAL     true

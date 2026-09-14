@@ -112,7 +112,7 @@ var _secs = [
 	["puck", ["ad_th_bounce1", "ad_th_bouncegain2"]],
 	["upgrades", ["ad_topgrade1", "ad_topgrade2", "ad_topgrade3", "ad_upgradetier"]],
 	["support", ["ad_luckystrike", "ad_jackpot1", "ad_offlinecollect"]],
-	["rebirth", ["ad_networth", "ad_resetbracer", "ad_resetbracer2"]],
+	["rebirth", ["ad_networth", "ad_resetbracer", "ad_resetbracer2", "ad_cheatpool1", "ad_cheatpool2", "ad_cheatpool3", "ad_cheatcap1", "ad_cheatcap2"]],
 ];
 for (var _s = 0; _s < array_length(_secs); _s++) {
 	array_push(coll_rows, { key : "", title : _secs[_s][0] });

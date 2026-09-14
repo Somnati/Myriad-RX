@@ -18,5 +18,8 @@ function deck_failsafes() {
 	if (g.ad_topgrade1 != 1 && g.ad_topgrade2 == 1) g.ad_topgrade2 = 0;
 	if (g.ad_topgrade2 != 1 && g.ad_topgrade3 == 1) g.ad_topgrade3 = 0;
 	if (g.ad_resetbracer != 1 && g.ad_resetbracer2 == 1) g.ad_resetbracer2 = 0;
+	if (g.ad_cheatpool1 != 1 && g.ad_cheatpool2 == 1) g.ad_cheatpool2 = 0;
+	if (g.ad_cheatpool2 != 1 && g.ad_cheatpool3 == 1) g.ad_cheatpool3 = 0;
+	if (g.ad_cheatcap1 != 1 && g.ad_cheatcap2 == 1) g.ad_cheatcap2 = 0;
 	deck_apply();
 }

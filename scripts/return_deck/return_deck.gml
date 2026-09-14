@@ -63,6 +63,11 @@ function return_deck() {
 	g.ad_networth = return_ability(g.ad_networth);
 	g.ad_resetbracer = return_ability(g.ad_resetbracer);
 	g.ad_resetbracer2 = return_ability(g.ad_resetbracer2);
+	g.ad_cheatpool1 = return_ability(g.ad_cheatpool1);
+	g.ad_cheatpool2 = return_ability(g.ad_cheatpool2);
+	g.ad_cheatpool3 = return_ability(g.ad_cheatpool3);
+	g.ad_cheatcap1 = return_ability(g.ad_cheatcap1);
+	g.ad_cheatcap2 = return_ability(g.ad_cheatcap2);
 
 	save_mark_dirty();
 }
