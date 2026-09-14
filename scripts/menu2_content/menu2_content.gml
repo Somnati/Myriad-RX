@@ -27,7 +27,6 @@ function menu2_content() {
 	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_feat_abilities, "abilities");   // DE: gold // techdemo (an overlay, 2026-09-12)
 	if (unfold_has("automation")) menu2_button("automation",   function() { automation_open(); }, c_feat_automation, "automation");
 	if (unfold_has("timebank"))   menu2_button("time bank",    function() { timebank_open(); }, c_feat_timebank, "timebank");
-	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_feat_expeditions, "expeditions");   // a game line, not a misc one (2026-09-13)
 	// (the battery, the credit core, statistics and the daily gift are DOCK
 	// icons now - obj_ui_gear, beside the settings gear, 2026-09-13)
 	// an OVERLAY now, so it is a method destination: syst_menu2 folds the
@@ -41,5 +40,6 @@ function menu2_content() {
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
 	menu2_button("faq",          function() { faq_open(); }, c_gold);
+	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_feat_expeditions, "expeditions");   // misc (his call, 2026-09-13)
 	if (unfold_has("offlog"))      menu2_button("offline log",  function() { offlog_open(); }, c_feat_offlog, "offlog");   // every absence's story (2026-09-12)
 }

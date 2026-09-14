@@ -312,6 +312,19 @@ if (TITLE_GRAD) {
 	grad_px.fn    = __draw_grad;
 }
 
+// THE BUTTONS' GLASS (his ask, 2026-09-13: "the title screen buttons... the
+// back shader the dial drawer has"): the field behind each row PIXELATED
+// (pixel_snap 3 room px a block, rims softened 4x) under the row's plate.
+// The capture is a proxy at depth 1 - after the field (100), the halo
+// (90), the glow pass (50), the fog (40) and the tube behind (5), before
+// this object's own Draw at 0 where the rows are painted
+snap_ok = false;
+__snap_cap = function() { snap_ok = pixel_snap(3, 4); };
+snap_px = create_obj(0, 0, obj_draw_proxy);
+snap_px.owner = id;
+snap_px.depth = 1;
+snap_px.fn    = __snap_cap;
+
 // THE CRT PASS moved out (2026-09-10): it was this screen's own proxy
 // at depth 20; now syst_crt (persistent, settings > crt) runs the same
 // shader in every room, over the interface or behind it. Behind, its

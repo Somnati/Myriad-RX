@@ -76,7 +76,15 @@ for (var _i = 0; _i < array_length(items); _i++) {
 	// the field read as a caption. (The fading gradient behind the
 	// whole column was tried and scrapped; this is per row.)
 	var _bx = rule_x - 3, _bw = (lm + row_w) - _bx + 4;
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .42 + .18 * _h);
+	// ...ON THE DIAL DRAWER'S GLASS (his ask, 2026-09-13): the field under
+	// the row pixelated (this frame's shot), the plate a shade lighter
+	// over it so the blocks read; the plain plate on a frame without a shot
+	if (snap_ok) {
+		draw_pixel_region(_bx, _ry - 2, _bw, row_h + 4, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .34 + .16 * _h);
+	} else {
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .42 + .18 * _h);
+	}
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, 1, 0, _col, (_en ? .10 : .05) + .25 * _h);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry + row_h + 1, _bw, 1, 0, c_black, .35);
 

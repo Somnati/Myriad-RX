@@ -23,13 +23,17 @@ if (!instance_exists(snap_px)) {
 	snap_px.depth = depth + 1;
 	snap_px.fn    = __snap_cap;
 }
-// ...and in the TILES (his ask, 2026-09-13: objectives may teach the
-// table) - landscape only, where the board sits under the card's foot
-var _ov = ui_overlay();
-var _ov_ok = (_ov == noone) || (_land && _ov.object_index == syst_tiles);
+// ⚖️ IN EVERY ROOM AND OVER EVERY PANEL (his ask, 2026-09-13: "the
+// objectives disappear when i head to the ability room even though one
+// of the objectives tells me to... i want the objective UI to still show
+// in any room"). It used to live in the money room only and yield to
+// every overlay but the tiles; now only the title, the new-game flow and
+// the veil hide it. Portrait still yields to the drawer and the dial
+// column (there the card and they are the same width)
 var _live = variable_global_exists("game_started") && g.game_started
-	&& in_room(rm_clicker) && unfold_has("tap") && !instance_exists(syst_unfold)
-	&& (_land || !instance_exists(syst_menu2)) && _ov_ok
+	&& !in_room(rm_titlescreen) && !in_room(rm_newgame) && !in_room(rm_quit)
+	&& unfold_has("tap") && !instance_exists(syst_unfold)
+	&& (_land || !instance_exists(syst_menu2))
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
 // the clear-room clock: runs only while nothing covers the card; anything
 // that does puts it back to OBJ_CARD_DELAY
