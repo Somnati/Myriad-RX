@@ -19,6 +19,19 @@
 /// spawns this one, swap its create line back to return.
 
 depth = -520; // above the blur layer (-500): the panel stays sharp
+
+// THE GLASS STYLE (settings > visuals > menu style, his ask 2026-09-13):
+// the room behind the panel PIXELATED (pixel_snap 3 room px a block, rims
+// softened 4x) under a light dim - the dial drawer's look. The capture is
+// an obj_draw_proxy slot placed JUST BEFORE the blur layer (-499; the blur
+// is -500) so the blocks are cut from the SHARP room; with an overlay up
+// it moves to -514, after the overlay (-510) and before its blur (-515).
+// Room-scoped; the Step keeps it alive while the style asks for it
+snap_px = noone;
+snap_ok = false;
+__snap_cap = function() {
+	snap_ok = (am > .002 && variable_global_exists("menu_style") && g.menu_style == "glass") ? pixel_snap(3, 4) : false;
+};
 open = true;
 am = 0; // fold, 0..1
 

@@ -54,8 +54,20 @@ for (var _k = 0; _k < 8; _k++) {
 // widths are the CONSTANT panel width (pw), never room_width-panel_x:
 // the drawer is a rigid unit that slides off the room edge, it does
 // not shrink against it (close-anim fix 2026-07-12)
-draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0,
-	c_hsv(169, 186, 7), .97);
+// ...IN THE CHOSEN STYLE (settings > visuals > menu style, 2026-09-13):
+// default = the teal plate; black = plain black; glass = this frame's
+// pixelated shot of what is under the panel, then the teal at a dim the
+// words still read through (the plate stands in on a frame without one)
+var _style = variable_global_exists("menu_style") ? g.menu_style : "default";
+if (_style == "glass" && snap_ok) {
+	draw_pixel_region(panel_x, 0, pw, room_height, 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0, c_hsv(169, 186, 7), .62);
+} else if (_style == "black") {
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0, c_black, 1);
+} else {
+	draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, pw, room_height, 0,
+		c_hsv(169, 186, 7), .97);
+}
 // one hairline of light on the panel's own edge - the shadow gives the
 // depth, this gives the edge somewhere to stop
 draw_sprite_ext(spr_pixel_1x1, 0, panel_x, 0, 1, room_height, 0, _slate, .28);

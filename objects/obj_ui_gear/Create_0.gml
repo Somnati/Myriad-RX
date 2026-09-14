@@ -97,7 +97,9 @@ __seats = function() {
 	var _s = __seat();
 	var _out = [];
 	if (_s.a <= .01) return _out;
-	var _title = !instance_exists(obj_ui_menu2);
+	// (the title-mode header brings an obj_ui_menu2 with it - the ROOM is the
+	// test, or the other four icons rose beside the gear there: his report)
+	var _title = in_room(rm_titlescreen) || !instance_exists(obj_ui_menu2);
 	var _land  = (room_width > 300);
 	var _n = 0;
 	for (var _i = 0; _i < array_length(icons); _i++) {

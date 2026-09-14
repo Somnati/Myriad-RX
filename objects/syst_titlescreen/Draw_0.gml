@@ -81,6 +81,15 @@ for (var _i = 0; _i < array_length(items); _i++) {
 	// over it so the blocks read; the plain plate on a frame without a shot
 	if (snap_ok) {
 		draw_pixel_region(_bx, _ry - 2, _bw, row_h + 4, 1);
+		// the fog's colour over the glass (the shot is taken above the fog -
+		// see the Create): the same bottom-lit ramp, additive, no dither
+		if (TITLE_GRAD) {
+			var _f0 = (_ry - 2) / room_height, _f1 = (_ry + row_h + 2) / room_height;
+			gpu_set_blendmode(bm_add);
+			draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _bx, _ry - 2, _bw, row_h + 4, 0,
+				c_hsv(169, 190, 18 * _f0), c_hsv(169, 190, 18 * _f0), c_hsv(169, 190, 18 * _f1), c_hsv(169, 190, 18 * _f1), TITLE_GRAD_A);
+			gpu_set_blendmode(bm_normal);
+		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .34 + .16 * _h);
 	} else {
 		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ry - 2, _bw, row_h + 4, 0, c_black, .42 + .18 * _h);

@@ -191,6 +191,30 @@ function settings_content() {
 		+ "edges - the blur is what keeps that gradient smooth, so the "
 		+ "two go together. off saves a little gpu.");
 
+	// THE HEADER MENU'S PANEL (his ask, 2026-09-13): the teal plate under the
+	// blur (default), plain black, or the dial drawer's pixelated glass
+	settings_pill("menu style", "menustyle",
+		g.menu_style,
+		function() {
+			set_pill("default", { val : "default", col : c_gold, enabled : (g.menu_style == "default") });
+			set_pill("black",   { val : "black",   col : c_gold, enabled : (g.menu_style == "black") });
+			set_pill("glass",   { val : "glass",   col : c_gold, enabled : (g.menu_style == "glass") });
+		},
+		function(_v) { g.menu_style = _v; },
+		"the header menu's panel: the teal plate under the blur, plain black, "
+		+ "or the dial drawer's pixelated glass.");
+
+	// THE TITLE'S BACKDROP (his lean, 2026-09-13): the drifting blocks, or a
+	// parallax starfield
+	settings_pill("title backdrop", "titlebg",
+		g.title_bg,
+		function() {
+			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
+			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
+		},
+		function(_v) { g.title_bg = _v; },
+		"what drifts behind the title: a starfield, or the money room's blocks.");
+
 	settings_toggle("pointer shading",
 		function() { return g.cursor_ray; },
 		function(_v) { g.cursor_ray = _v; },

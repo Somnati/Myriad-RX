@@ -144,6 +144,22 @@ array_sort(blk_h, function(_a, _b) { return sign(_a.d - _b.d); });
 // two flicker phases. They used to be hashed off their index, which is
 // a fixed field with extra steps.
 mote = [];
+
+// ---- THE STARFIELD (his lean, 2026-09-13: "i would like the background
+// to be a starfield maybe") - settings > visuals > title backdrop. Three
+// depths: far (1px, dim, slow), mid (1px, brighter), near (2px, bright -
+// the glow pass blooms these). All drift up-right on their depth, all
+// twinkle on their own phase. Rolled per boot like the blocks ----
+star = [];
+for (var _i = 0; _i < 150; _i++) {
+	var _d = random(1);   // depth 0 far .. 1 near
+	var _near = (_d > .86);
+	array_push(star, { x0 : random(1), y0 : random(1), d : _d,
+		sz : _near ? 2 : 1,
+		br : _near ? (.55 + random(.45)) : (.12 + _d * .45),
+		tw : .6 + random(2.2), ph : random(360),
+		col : (random(1) < .18) ? merge_colour(c_white, c_aqua, .5) : ((random(1) < .12) ? merge_colour(c_white, c_gold, .45) : c_white) });
+}
 repeat (22) array_push(mote, {
 	hx : random(1), hs : random_range(.10, .32),
 	p1 : random(360), p2 : random(360), y0 : random(400),
@@ -200,7 +216,22 @@ __draw_field = function() {
 	// as a rectangle, and they overlap - depth comes from occlusion and
 	// speed, which is what the parallax starfield was reaching for and what
 	// a flat grid can never have.
-	var _n = array_length(blk_h);
+	var _stars = (variable_global_exists("title_bg") && g.title_bg == "starfield");
+	if (_stars) {
+		// THE STARFIELD: parallax by depth (the near ones cross the room in
+		// a couple of minutes, the far ones barely move), a twinkle each
+		for (var _i = 0; _i < array_length(star); _i++) {
+			var _s = star[_i];
+			var _spd = .02 + _s.d * _s.d * .55;
+			var _sx = (_s.x0 * (room_width + 4) + tt * _spd * .6) mod (room_width + 4) - 2;
+			var _sy = (_s.y0 * (room_height + 4) - tt * _spd * .35) mod (room_height + 4);
+			if (_sy < 0) _sy += room_height + 4;
+			_sy -= 2;
+			var _tw = .7 + .3 * dsin(tt * _s.tw + _s.ph);
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _s.sz, _s.sz, 0, _s.col, _s.br * _tw);
+		}
+	}
+	var _n = _stars ? 0 : array_length(blk_h);
 	for (var _i = 0; _i < _n; _i++) {
 		var _b = blk_h[_i];
 
@@ -318,11 +349,18 @@ if (TITLE_GRAD) {
 // The capture is a proxy at depth 1 - after the field (100), the halo
 // (90), the glow pass (50), the fog (40) and the tube behind (5), before
 // this object's own Draw at 0 where the rows are painted
+// ⚖️ CAPTURED ABOVE THE FOG (his report: "weird graininess with the fog").
+// The fog is a temporally dithered gradient - noise by design, one LSB
+// sliding every frame so the ramp never bands - and a point-sampled
+// pixelation of that is a field of 3px cells each showing a different
+// frame of noise: grain. So the shot is taken at 45, after the glow pass
+// (50) and BEFORE the fog (40), and the fog's colour is laid on the glass
+// analytically in the row draw (a 17px slice of a gradient cannot band)
 snap_ok = false;
 __snap_cap = function() { snap_ok = pixel_snap(3, 4); };
 snap_px = create_obj(0, 0, obj_draw_proxy);
 snap_px.owner = id;
-snap_px.depth = 1;
+snap_px.depth = 45;
 snap_px.fn    = __snap_cap;
 
 // THE CRT PASS moved out (2026-09-10): it was this screen's own proxy

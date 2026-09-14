@@ -20,7 +20,7 @@ depth = -20;
 // band is measured from the RIGHT edge, which is where this drawer
 // lives, and an open drawer accepts a push from anywhere so it can
 // always be shut.
-SW_EDGE = 64;
+SW_EDGE = 28;   // the closed drawer's arm band, from the right edge (64 was half the tap surface - his call, 2026-09-13: closer to the edge)
 
 // ---- the drawer ----
 stage  = 0;   // 0 docked / 1 list / 2 buy

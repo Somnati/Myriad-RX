@@ -30,7 +30,7 @@
 	g.bounce_text = true;  // readouts "bounce tracker" (DE bounce_text)
 	g.mote_arc = 0;        // visuals "mote path": 0 swoop / 1 bow / 2 straight (DE part_grav)
 	g.random_profit_color = false;   // visuals "rainbow motes" (DE alt profit color)
-	g.swipe_protect = false;         // input "swipe protection": drawers close only from their own side (DE)
+	g.swipe_protect = true;          // input "swipe protection": drawers close only from their own side (DE) - on by default (his call, 2026-09-13)
 	g.bat_opt = false;               // gameplay "battery optimiser" - an ABILITY later, a debug toggle now (battery_optimise)
 	g.dial_hold = -1;                // the dial the pointer is held on (syst_dials -> prod_dials' hand-crank)
 	g.scene_light = 60;              // visuals "scene light": the field's colour on the dice / puck / sprites, % (syst_scene_light)
@@ -157,8 +157,8 @@
 	// either is only worth anything while the OTHER one is the binder.
 	// The twin's invariant 7 walks a real absence pattern and refuses a
 	// pairing where one of them is ever a dead buy.
-	g.tb_rate      = 5;    // minutes banked per hour away, at rate_lv 0
-	g.tb_rate_step = 2;    // per rate purchase
+	g.tb_rate      = 1;    // minutes banked per hour away, at rate_lv 0 (his nerf, 2026-09-13: was 5)
+	g.tb_rate_step = 1;    // per rate purchase (was 2)
 	// 45, not 40: 5 + 2n hits 45 exactly and skips over 40, so a 40
 	// ceiling was one the ladder could never actually reach (it stopped
 	// at 39 and the last level bought nothing).

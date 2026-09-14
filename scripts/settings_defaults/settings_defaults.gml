@@ -36,6 +36,8 @@ function settings_defaults(_section = "all") {
 		g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
 		g.vis_glow              = 15;   // visualiser glow intensity, %
 		g.dice_mat              = "random"; // dice finish (dice_mat_config)
+		g.menu_style            = "default"; // the header menu's panel (default / black / glass)
+		g.title_bg              = "starfield"; // the title's backdrop (starfield / blocks)
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
 		g.bit_pick              = { profit : "glow", credit : "glow",
 		                            unit : "glow", tile : "plain" }; // bit_config ids
@@ -82,7 +84,7 @@ function settings_defaults(_section = "all") {
 
 	if (_all || _section == "input") {
 		g.haptics       = true;
-		g.swipe_protect = false;
+		g.swipe_protect = true;   // on by default (his call, 2026-09-13)
 	}
 
 	if (_all || _section == "data") {

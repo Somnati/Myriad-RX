@@ -335,8 +335,9 @@ if (point_distance(_px, _py, mouse_x, mouse_y) > BUDGET) exit;
 // obj_clicker pays it.
 if (sp < .5) exit;
 
-// a tap left of the drawer face puts it away
-if (_px < face) { stage = 0; exit; }
+// (the tap left of the face that used to put it away is GONE - his call,
+// 2026-09-13: "i sometimes want to keep it open". A swipe right, or A)
+if (_px < face) exit;
 
 // ---- the buy bulk button (buy stage) ----
 if (stage >= 2 && __mode_gate())

@@ -6,6 +6,15 @@ if (instance_exists(obj_ui_menu2)) open = obj_ui_menu2.open;
 else open = false;
 am = move_to(am, open ? 1 : 0, 4); // move_to's adj is a divisor (delta-aware)
 if (!open && am < .01) { kill; exit; }
+// the glass capture slot (see the Create): only for the glass style
+if (variable_global_exists("menu_style") && g.menu_style == "glass") {
+	if (!instance_exists(snap_px)) {
+		snap_px = create_obj(0, 0, obj_draw_proxy);
+		snap_px.owner = id;
+		snap_px.fn    = __snap_cap;
+	}
+	snap_px.depth = (ui_overlay() != noone) ? -514 : -499;
+} else if (instance_exists(snap_px)) { instance_destroy(snap_px); snap_px = noone; snap_ok = false; }
 
 // blur rides the fold, and switches off entirely at zero.
 // g.blur (settings > display "menu blur") was a DEAD SETTING - saved,

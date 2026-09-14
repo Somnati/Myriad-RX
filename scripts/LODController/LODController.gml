@@ -47,6 +47,10 @@ function LODController() constructor {
                               // Overall zoom feel is renderer.base_unit,
                               // startup framing is vis.set_start_scale
     fade_width      = 0.15;   // crossfade half-width at handoffs, in OOMs
+    depth_below     = 2;      // how many OOMs UNDER the camera a field stays
+                              // fully visible before it fades out (his ask,
+                              // 2026-09-13: the white squares vanished a band
+                              // down; 1 was the old reach)
     digits_per_band = 2;      // OOMs per field
     wm_min          = -1.5;   // camera floor. Do not hand-tune this:
                               // use vis.set_start_scale(px) instead, which
@@ -104,7 +108,7 @@ function LODController() constructor {
     ///       zoom-in (the vanishing-remainder bug).
     static layer_alpha = function(_off) {
         var _d = wm - _off;
-        return clamp((-_d + 1 + fade_width) / (2 * fade_width), 0, 1);
+        return clamp((-_d + depth_below + fade_width) / (2 * fade_width), 0, 1);
     };
 
     /// @func visible_layers(max_mag)
@@ -122,7 +126,7 @@ function LODController() constructor {
         // chains duplicate the content field's chain, and their own
         // blocks sit offscreen at the slot-0 corner at that depth.
         var _out = [];
-        var _lo  = digits_per_band * ceil((wm - 1 - fade_width) / digits_per_band);
+        var _lo  = digits_per_band * ceil((wm - depth_below - fade_width) / digits_per_band);
         var _hi  = digits_per_band * ceil(_max_mag / digits_per_band);
         // the ceiling also follows the CAMERA, not just the content:
         // zooming out past the value ascends into unreached tiers, and
