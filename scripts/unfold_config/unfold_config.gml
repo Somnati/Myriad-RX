@@ -58,6 +58,10 @@ function unfold_config() {
 		// that finished that batch before the coin existed gets it here
 		{ key : "coin", banner : "a coin on the table - tap it to flip",
 		  need : function() { return variable_global_exists("obj") && (g.obj.done[$ "abil"] ?? false); } },
+		// THE PUCK (his call, 2026-09-14: "not till the tutorial is complete"):
+		// the chain done, the puck arrives - the toy is the graduation
+		{ key : "puck", banner : "a puck - fling it",
+		  need : function() { return variable_global_exists("obj") && is_undefined(objective_cur()); } },
 		// the daily gift, a quarter hour in
 		{ key : "gift", banner : "a gift is waiting",
 		  need : function() { return variable_global_exists("time_played_active") && g.time_played_active >= 900; } },

@@ -12,7 +12,7 @@
 /// launching with last frame's aim.
 
 // the material rides the settings pick live (the dice's arrangement)
-visible = unfold_has("puck");   // (the unfold: automation's reward; invisible = no draw, and syst_input never hands it a press)
+visible = unfold_has("puck");   // (the unfold: the chain's graduation; invisible = no draw, and syst_input never hands it a press)
 if (!visible) exit;
 if (variable_global_exists("puck_mat") && g.puck_mat != mat_id) __mat_apply();
 

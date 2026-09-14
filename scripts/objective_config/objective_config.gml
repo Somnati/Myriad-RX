@@ -76,8 +76,10 @@ function objective_config() {
 				if (g.autom.dial_all.on) return true;   // (the per-dial flags are the FILTER now, in by default - not a switch)
 				return g.autom.tap.on;
 			  } },
-		  ],
-		  reward : ["puck"], reward_txt : "a puck - fling it" },
+		  ] },
+		// (the puck was automation's reward - it is THE CHAIN'S now, arriving
+		// when the last objective is done: his call, 2026-09-14. unfold_config
+		// carries it, since a reward needs an objective to hang on)
 		{ key : "tiles", name : "the tile table",
 		  steps : [
 			// (was "purchase dial d" - a 100M dial on a 1M rebirth run is a wall,
