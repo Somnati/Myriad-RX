@@ -99,6 +99,9 @@ function handle_settings(_method) {
 	// the swappable sounds, BY ID. Three keys rather than one struct
 	// because handle() speaks primitives, and three strings in an ini is
 	// a thing a person can read and fix by hand.
+	g.vol_autotap   = handle("vol_autotap", g.vol_autotap);   // the autotapper's fader
+	g.changelog_seen = handle("changelog_seen", g.changelog_seen);   // the newest changelog version opened
+	if (_method == sv_load && g.title_bg == "nebula") g.title_bg = "trace";   // (nebula was scrapped for trace, 2026-09-14)
 	g.sfx_pick.tap  = handle("sfx_tap",  g.sfx_pick.tap);
 	g.sfx_pick.dial = handle("sfx_dial", g.sfx_pick.dial);
 	g.sfx_pick.crit = handle("sfx_crit", g.sfx_pick.crit);

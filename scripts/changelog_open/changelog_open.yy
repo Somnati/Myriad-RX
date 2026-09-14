@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"changelog_open",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"changelog_open",
+  "parent":{
+    "name":"ui",
+    "path":"folders/engine/ui.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

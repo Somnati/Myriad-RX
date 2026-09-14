@@ -97,6 +97,8 @@ g.sfx_pick  = { tap : "soft", dial : "gold", crit : "drum",
                 credit : "diamond" };   // his own picks are the defaults (2026-09-14)
 g.vol_tap   = 100;
 g.vol_dial  = 100;
+g.vol_autotap = 50;   // the autotapper's share of the tap volume (settings > audio)
+g.changelog_seen = "";   // the newest changelog version the player has opened (settings > data pips "new")
 // profit earned but not yet DELIVERED by its motes. Registered by
 // give_profit and released as each mote lands, so the counter can hold
 // it back. A global, because the alternative - summing the live motes

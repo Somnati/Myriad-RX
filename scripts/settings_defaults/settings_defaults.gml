@@ -72,6 +72,7 @@ function settings_defaults(_section = "all") {
 		// the three swappable sounds, stored BY ID - see sfx_config
 		g.sfx_pick   = { tap : "soft", dial : "gold", crit : "drum",
 		                 credit : "diamond" };   // his own picks (2026-09-14)
+		g.vol_autotap = 50;      // the autotapper's share of the tap volume (2026-09-14)
 		g.vol_tap    = 100;      // the two faders he asked for: one for
 		g.vol_dial   = 100;      // a thing you do, one for a thing that
 		                         // happens (sfx_volume)

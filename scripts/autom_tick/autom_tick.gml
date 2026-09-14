@@ -60,7 +60,8 @@ function autom_tick() {
 		var _nt = floor(_tp.acc);
 		if (_nt >= 1) {
 			_tp.acc -= _nt;
-			tap_fire(_nt, room_width * .5, room_height / 2.5, true, true, false);
+			tap_fire(_nt, room_width * .5, room_height / 2.5, true, true, false,
+				(variable_global_exists("vol_autotap") ? g.vol_autotap : 50) / 100);   // its own fader (2026-09-14)
 		}
 	} else _tp.acc = 0;
 

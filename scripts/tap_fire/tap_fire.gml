@@ -32,7 +32,9 @@
 ///              DE expressed this by sniffing the caller's identity
 ///              (give_click's `is_cube`); saying it at the call site is
 ///              the same law, declared instead of inferred.
-function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
+/// @arg [vol]   a multiplier on the tap's sound - the autotapper's fader
+///              (settings > audio, his ask 2026-09-14: default 50%)
+function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1) {
 	if (_n < 1) return;
 	if (!variable_global_exists("click_gps")) return;
 
@@ -111,8 +113,8 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	if (_fx && (!_hold || _show)) {
 		// both are the player's choice now (settings > audio). The crit
 		// keeps its haptic: it is the one tap you want to FEEL differently.
-		if (_crit) { sfx_play("crit"); vibrate(30, 3); }
-		else         sfx_play("tap");
+		if (_crit) { sfx_play("crit", _vol); vibrate(30, 3); }
+		else         sfx_play("tap", _vol);
 		// ⚖️ THE POINTER'S SQUISH IS THE TAP'S, and it goes with the sound
 		// (his ask, 2026-09-10): a held tap in another room plays nothing
 		// and shows nothing, so the arrow squashing there was feedback

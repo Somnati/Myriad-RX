@@ -459,10 +459,10 @@ function settings_content() {
 		function() {
 			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
 			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
-			set_pill("nebula",    { val : "nebula",    col : c_gold, enabled : (g.title_bg == "nebula") });
+			set_pill("trace",     { val : "trace",     col : c_gold, enabled : (g.title_bg == "trace") });
 		},
 		function(_v) { g.title_bg = _v; },
-		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or soft coloured clouds.");
+		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or a pen tracing figures.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
@@ -682,6 +682,16 @@ function settings_content() {
 		"%", 1, "taps and criticals, as a share of the effects volume.", c_hred,
 		function() { sfx_play("tap"); });
 
+	// THE AUTOTAPPER'S OWN FADER (his ask, 2026-09-14): its taps ride the
+	// tap sound at this share - half by default, so a machine tapping ten
+	// times a second sits under your own taps
+	settings_slider("autotapper volume", 0, 100,
+		function() { return g.vol_autotap; },
+		function(_v) { g.vol_autotap = _v; },
+		"%", 1, "the autotapper's taps, as a share of the tap volume. it taps a lot.",
+		merge_colour(c_hred, c_white, .35),
+		function() { sfx_play("tap", g.vol_autotap / 100); });
+
 
 	settings_pill("critical sound", "sfxcrit",
 		sfx_config("crit")[sfx_index("crit")].name,
@@ -866,6 +876,17 @@ function settings_content() {
 			assign_banner("the sprites have gone", c_gray, c_black);
 		},
 		"sends every sprite away. debug only.", c_gray);
+
+	// THE CHANGELOG (his ask, 2026-09-14): what changed, release by
+	// release - "new" while the newest version is one you have not opened
+	{
+		var _cl = changelog_content();
+		var _newest = (array_length(_cl) > 0) ? _cl[0].ver : "";
+		var _seen = variable_global_exists("changelog_seen") ? g.changelog_seen : "";
+		settings_action((_seen != _newest && _newest != "") ? "changelog  -  new" : "changelog",
+			function() { changelog_open(); },
+			"what changed, release by release. newest first.", c_gold);
+	}
 
 	// autosave and its backup ladder live here, with the saves they
 	// write (they sat under gameplay - a save cadence is not play)

@@ -79,6 +79,15 @@ if instance_exists(syst_faq) {
 	depth = syst_faq.depth - 1;
 }
 
+if i = scrl_changelog
+if instance_exists(syst_changelog) {
+	mn = room_height - syst_changelog.list_y - 4;
+	mx = syst_changelog.__content_h();
+	input = syst_changelog.scroll;
+	slot_height = 1;
+	depth = syst_changelog.depth - 1;
+}
+
 if i = scrl_offlog
 if instance_exists(syst_offlog) {
 	// PIXEL MODE: the runs' stacked height against the band
@@ -178,6 +187,7 @@ if i = scrl_abilitydeck if instance_exists(syst_rm_ability) g.ability_page = cla
 if i = scrl_menu2 if instance_exists(syst_menu2) syst_menu2.scr = clamp_min(input, 0);
 if i = scrl_stats_rail if instance_exists(syst_statistics_v2) syst_statistics_v2.rail_scroll = clamp_min(input, 0);
 if i = scrl_faq if instance_exists(syst_faq) syst_faq.scroll = clamp_min(input, 0);
+if i = scrl_changelog if instance_exists(syst_changelog) syst_changelog.scroll = clamp_min(input, 0);
 if i = scrl_offlog if instance_exists(syst_offlog) syst_offlog.scroll = clamp_min(input, 0);
 if i = scrl_objectives if instance_exists(syst_objectives_panel) syst_objectives_panel.scroll = clamp_min(input, 0);
 if i = scrl_autom if instance_exists(syst_automation_panel) syst_automation_panel.scroll[syst_automation_panel.tab] = clamp_min(input, 0);

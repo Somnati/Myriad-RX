@@ -193,6 +193,65 @@ layer_set_visible("title_glow", !variable_global_exists("vis_glow") || g.vis_glo
 // THE FIELD'S DRAW SLOT: backdrop, drift, motes - everything the glow
 // should touch - at depth 100, under the layer. obj_draw_proxy exists
 // for exactly this: one instance, two depths.
+// ---- TRACE (his ask, 2026-09-14: "scrap the nebula... procedural
+// shapes... abstract... something neat to look at"). A HARMONOGRAPH: a
+// pen driven by two damped sinusoids on each axis - x = A1 sin(f1 t + p1)
+// e^(-d1 t) + A2 sin(f2 t + p2) e^(-d2 t), y likewise with its own
+// frequencies - the Victorian drawing machine whose figures are the
+// Lissajous family with the spiral-in of the damping. The pen leaves a
+// trail of pixels that fade with age and drift through two tier colours;
+// when a figure has damped to nothing the pen re-rolls and starts the
+// next one over the ghost of the last. Drawn under the glow pass with
+// the field, so the fresh line blooms and the old one smoulders.
+// Nothing else in the game draws a curve; that is the point ----
+tr_pts = [];      // the trail, oldest first: { x, y }
+tr_max = 900;     // its length in points
+tr_t   = 0;       // the pen's time within the figure
+tr_p   = undefined;
+__trace_roll = function() {
+	// frequencies near small-integer ratios make closed, readable figures;
+	// the offsets keep two figures from ever repeating exactly
+	var _r1 = choose(1, 2, 3), _r2 = choose(2, 3, 4, 5);
+	tr_p = {
+		ax1 : random_range(.55, .8), ax2 : random_range(.15, .35),
+		ay1 : random_range(.55, .8), ay2 : random_range(.15, .35),
+		fx1 : _r1 + random_range(-.02, .02), fx2 : _r2 * .5 + random_range(-.02, .02),
+		fy1 : _r2 + random_range(-.02, .02), fy2 : _r1 * .5 + random_range(-.02, .02),
+		px1 : random(360), px2 : random(360), py1 : random(360), py2 : random(360),
+		d1  : random_range(.008, .016), d2 : random_range(.004, .012),
+		ca  : vis_tier_color(irandom(9)), cb : vis_tier_color(irandom(9)),
+		spd : random_range(.9, 1.3),
+	};
+	tr_t = 0;
+};
+__trace_roll();
+__draw_trace = function() {
+	var _p = tr_p;
+	var _cx = room_width * .5, _cy = room_height * .5;
+	var _rx = room_width * .42, _ry = room_height * .42;
+	// the pen advances a few points a frame, so the line is continuous at
+	// any speed; the damping is the figure's clock
+	repeat (3) {
+		tr_t += .8 * _p.spd * delta;
+		var _e1 = exp(-_p.d1 * tr_t), _e2 = exp(-_p.d2 * tr_t);
+		var _x = _cx + _rx * (_p.ax1 * dsin(_p.fx1 * tr_t + _p.px1) * _e1 + _p.ax2 * dsin(_p.fx2 * tr_t + _p.px2) * _e2);
+		var _y = _cy + _ry * (_p.ay1 * dsin(_p.fy1 * tr_t + _p.py1) * _e1 + _p.ay2 * dsin(_p.fy2 * tr_t + _p.py2) * _e2);
+		array_push(tr_pts, { x : _x, y : _y });
+		if (array_length(tr_pts) > tr_max) array_delete(tr_pts, 0, array_length(tr_pts) - tr_max);
+		// the figure has spiralled to a dot: the next one
+		if (_e1 < .06 && _e2 < .06) __trace_roll();
+	}
+	var _n = array_length(tr_pts);
+	for (var _i = 0; _i < _n; _i++) {
+		var _q = tr_pts[_i];
+		var _age = 1 - _i / _n;                 // 1 oldest .. 0 the pen
+		var _a = .05 + .45 * (1 - _age) * (1 - _age);
+		var _c = merge_colour(_p.cb, _p.ca, 1 - _age);
+		var _sz = (_age < .04) ? 2 : 1;
+		draw_sprite_ext(spr_pixel_1x1, 0, floor(_q.x), floor(_q.y), _sz, _sz, 0, _c, _a);
+	}
+};
+
 __draw_field = function() {
 	// ---- the ground ----
 	// plain black. The gradient is NOT under the glow pass any more -
@@ -214,7 +273,8 @@ __draw_field = function() {
 	// speed, which is what the parallax starfield was reaching for and what
 	// a flat grid can never have.
 	var _bg = variable_global_exists("title_bg") ? g.title_bg : "starfield";
-	var _stars = (_bg == "starfield"), _neb = (_bg == "nebula");
+	var _stars = (_bg == "starfield"), _trace = (_bg == "trace");
+	if (_trace) __draw_trace();
 	if (_stars) {
 		// THE FLIGHT: z shrinks a little every frame (delta-scaled); the
 		// screen point is the box point over z from the room's centre, so
@@ -238,26 +298,9 @@ __draw_field = function() {
 			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _sz, _sz, 0, _s.col, _br * _tw);
 		}
 	}
-	// NEBULA (his ask, 2026-09-14: a third style, in case): the same
-	// drift, but each block is a SOFT CLOUD three times its size in its
-	// tier's colour - the field as weather, no square in sight, no fog
-	var _n = _stars ? 0 : array_length(blk_h);
+	var _n = (_stars || _trace) ? 0 : array_length(blk_h);
 	for (var _i = 0; _i < _n; _i++) {
 		var _b = blk_h[_i];
-		if (_neb) {
-			var _sp2 = _b.spd * .6;
-			var _m2  = _b.size * 3 + 60;
-			var _nx = ((_b.x0 * (room_width + _m2) + tt * _sp2 * 1.7) mod (room_width + _m2)) - _m2 * .5;
-			var _ny = ((_b.y0 * (room_height + _m2) - tt * _sp2) mod (room_height + _m2));
-			if (_ny < 0) _ny += room_height + _m2;
-			_ny -= _m2 * .5;
-			var _na = .5 + .5 * dsin(tt * _b.br + _b.ph);
-			var _gw = sprite_get_width(spr_vis_glow_soft);
-			var _gs = (_b.size * 3) / _gw;
-			draw_sprite_ext(spr_vis_glow_soft, 0, _nx + _b.size * 1.5, _ny + _b.size * 1.5, _gs, _gs, 0,
-				vis_tier_color(_b.tier), (.05 + .07 * _na) * _b.dim);
-			continue;
-		}
 
 		// travel up-right forever, wrapping on a margin wider than the
 		// block so nothing ever pops in at an edge
@@ -296,7 +339,7 @@ __draw_field = function() {
 	// starfield (his call, 2026-09-14: "they look weird when you got some
 	// coming at you") - a field of stars flying at the camera has its own
 	// motion, and sparks drifting the other way argue with it
-	for (var _i = 0; _i < (_stars ? 0 : array_length(mote)); _i++) {
+	for (var _i = 0; _i < ((_stars || _trace) ? 0 : array_length(mote)); _i++) {
 		var _mt = mote[_i];
 		var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
 		var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));

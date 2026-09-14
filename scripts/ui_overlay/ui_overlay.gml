@@ -28,7 +28,8 @@ function ui_overlay() {
 	// answers when nothing else is up
 	static _list = [syst_settings, syst_statistics_v2, syst_timebank_panel, syst_gift_panel, syst_faq,
 	                syst_automation_panel, syst_battery_panel, syst_welcome, syst_upgrades, syst_rm_ability,
-	                syst_tiles, syst_ccore_panel, syst_exped_panel, syst_offlog, syst_objectives_panel, syst_cheat_panel];
+	                syst_tiles, syst_ccore_panel, syst_exped_panel, syst_offlog, syst_objectives_panel, syst_cheat_panel,
+	                syst_changelog];
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		if (!instance_exists(_list[_i])) continue;
 		var _inst = instance_find(_list[_i], 0);
@@ -50,6 +51,7 @@ function ui_overlay() {
 	if (instance_exists(syst_offlog))           return syst_offlog;
 	if (instance_exists(syst_objectives_panel)) return syst_objectives_panel;
 	if (instance_exists(syst_cheat_panel))      return syst_cheat_panel;
+	if (instance_exists(syst_changelog))        return syst_changelog;
 	// the rebirth overlay counts only while it is up or still fading -
 	// closed, the money room's instance is dormant furniture
 	if (instance_exists(syst_rebirth) && (syst_rebirth.open || syst_rebirth.alpha > .01))
