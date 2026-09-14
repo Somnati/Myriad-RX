@@ -20,7 +20,7 @@
   "preload":true,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
-  "sampleRate":96000,
+  "sampleRate":44100,
   "soundFile":"snd_obj_new.wav",
   "volume":1.0,
 }

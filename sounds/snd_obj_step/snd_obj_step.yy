@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":15.9692083,
+  "duration":2.3603175,
   "exportDir":"",
   "name":"snd_obj_step",
   "parent":{
@@ -20,7 +20,7 @@
   "preload":true,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
-  "sampleRate":96000,
+  "sampleRate":44100,
   "soundFile":"snd_obj_step.wav",
   "volume":1.0,
 }
