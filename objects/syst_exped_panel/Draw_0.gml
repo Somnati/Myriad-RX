@@ -454,3 +454,4 @@ for (var _i = 0; _i < _rows; _i++) {
 	}
 }
 ui_fade_set(1);
+draw_set_alpha(1);   // (the last row's .8 must not leak into the next draw - bug hunt, 2026-09-14)
