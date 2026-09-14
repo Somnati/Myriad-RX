@@ -16,6 +16,22 @@
 /// screen with the list centred, then three questions - and the saves
 /// screen only hands over the profile. One trigger, one place.
 function newgame_start(_prof, _diff, _persona) {
+	// THE RUN IN MEMORY GOES HOME FIRST (2026-09-14 bug hunt, the save bug's
+	// cousin): a dirty run from ANOTHER profile is flushed to its own main
+	// before the new game replaces it in memory - never to the profile
+	// being overwritten (its files are about to go), and never with a run
+	// that has no home yet
+	var _old = variable_global_exists("profile") ? g.profile : -1;
+	if (_old >= 0 && _old != _prof && variable_global_exists("save_dirty") && g.save_dirty
+	&& instance_exists(syst_handle_save) && file_exists(save_slot_path(0, _old))) {
+		with (syst_handle_save) {
+			file_to_handle = save_slot_path(0, _old);
+			action = sv_save;
+			handle_save();
+			action = -1;
+		}
+	}
+	if (variable_global_exists("save_dirty")) g.save_dirty = false;
 	for (var _s = 0; _s < 5; _s++) {
 		var _f = save_slot_path(_s, _prof);
 		if (file_exists(_f)) file_delete(_f);
