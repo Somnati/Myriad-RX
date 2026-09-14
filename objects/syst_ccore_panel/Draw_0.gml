@@ -179,11 +179,16 @@ if (__part(4) > 0) {
 	draw_set_alpha(.55);
 	draw_text(sl_x, band_y + 6, "split  -  " + string(_v.cap_lv) + " to capacity, " + string(_v.gain_lv) + " to rate");
 	var _sr = __sl_r();
-	var _fr = _c.split / 100;
+	// THE KNOB POINTS AT WHAT GETS MORE (his report, 2026-09-14): capacity
+	// is the left label, so the knob sits at 1 - split; the fill runs from
+	// the middle (an even split) toward the knob, a bias bar
+	var _fr = 1 - _c.split / 100;
+	var _mid = _sr.x + _sr.w * .5, _kx = _sr.x + _sr.w * _fr;
 	draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_black, .7 * _sa);
-	draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w * _fr, _sr.h, 0, _lc, .8 * _sa);
+	draw_sprite_ext(spr_pixel_1x1, 0, min(_mid, _kx), _sr.y, abs(_kx - _mid), _sr.h, 0, _lc, .8 * _sa);
 	draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _lc, .35 * _sa);
-	draw_sprite_ext(spr_pixel_1x1, 0, _sr.x + _sr.w * _fr - 1, _sr.y - 2, 3, _sr.h + 4, 0, c_white, .8 * _sa);
+	draw_sprite_ext(spr_pixel_1x1, 0, floor(_mid), _sr.y - 1, 1, _sr.h + 2, 0, c_white, .3 * _sa);
+	draw_sprite_ext(spr_pixel_1x1, 0, _kx - 1, _sr.y - 2, 3, _sr.h + 4, 0, c_white, .8 * _sa);
 	draw_set_color(_on ? c_white : _dim);
 	draw_set_alpha(.9 * _sa);
 	draw_text(_sr.x, _sr.y + 8, "capacity");

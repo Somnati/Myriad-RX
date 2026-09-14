@@ -22,11 +22,13 @@ draw_set_alpha(alpha);
 var _cc = merge_colour(col, c_black, .5);
 if (rd > .5) draw_circle_colour(_cx, _cy, rd, _cc, _cc, false);
 
-// the ring - DE's commented draw_ring, live: one px at des_size + 2,
-// the level's colour, filling from twelve; a faint track under it so an
-// empty ring still says where the bar will be
-draw_arc(_cx, _cy, OC_RING_R, 1, 1, merge_colour(col, c_black, .8), .4 * alpha);
-draw_arc(_cx, _cy, OC_RING_R, 1, fperc, col, .95 * alpha);
+// THE RING IS OFF (his pass, 2026-09-14: "verify it matches how it looked
+// in DE" - DE's draw_ring is commented out in its own source; the charge
+// is the disc growing, nothing else). OC_RING brings it back
+if (OC_RING) {
+	draw_arc(_cx, _cy, OC_RING_R, 1, 1, merge_colour(col, c_black, .8), .4 * alpha);
+	draw_arc(_cx, _cy, OC_RING_R, 1, fperc, col, .95 * alpha);
+}
 
 // the figure: DE's placement - left at x, its middle two px above the
 // disc's centre (DE: (y + 2) - h / 2 with fa_middle)

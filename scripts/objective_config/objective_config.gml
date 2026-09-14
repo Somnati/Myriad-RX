@@ -97,8 +97,9 @@ function objective_config() {
 			  done : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(15); } },
 			{ txt : "open the credit core from the menu",
 			  done : function() { return instance_exists(syst_ccore_panel); } },
-			{ txt : "buy its first level",
-			  done : function() { return variable_global_exists("ccore") && g.ccore.lv > 0; } },
+			// ("buy its first level" was the third step - at 500 credits (his
+			// ladder, 2026-09-14) that is a day's wait on a chain the rebirth
+			// sits behind; the panel says what it costs, the chain moves on)
 		  ] },
 		{ key : "rebirth", name : "rebirth",
 		  steps : [

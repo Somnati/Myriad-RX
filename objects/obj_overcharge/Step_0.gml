@@ -75,8 +75,11 @@ talpha = trickle(talpha, 1, 7);
 flash  = max(0, flash - .05 * delta);
 
 // ---- the charge, eased, and the disc's spring toward it ----
-var _tgt = (_xp <= 0 || _lv >= _max) ? ((_lv >= _max) ? 1 : 0) : (_xp / _need);
-fperc = (_xp <= 0 && _lv < _max) ? 0 : trickle(fperc, _tgt, 5);
+// (DE's law, restored 2026-09-14: at the top level xp is held at zero
+// and the charge disc EMPTIES - only the ground and the figure remain.
+// It used to sit full here, which was not DE's look)
+var _tgt = (_xp <= 0) ? 0 : (_xp / _need);
+fperc = (_xp <= 0) ? 0 : trickle(fperc, _tgt, 5);
 fperc = clamp(fperc, 0, 1) * alpha;
 rdv += (OC_DISC_R * fperc - rd) * .05 * delta;
 rdv *= power(.96, delta);

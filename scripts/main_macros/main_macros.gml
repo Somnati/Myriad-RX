@@ -231,6 +231,7 @@ function main_macros() {
 #macro OC_DRAIN_SEC   4   // once draining, a level empties in this many seconds (DE's tsec*4)
 #macro OC_DISC_R      4   // the charge disc's full radius (DE's des_size)
 #macro OC_RING_R      6   // the circular bar's radius: DE's des_size + 2, hugging the disc, one px thin
+#macro OC_RING    false   // ...and whether it draws at all: DE has none (his pass, 2026-09-14)
 #macro TAP_FX_TIC     5   // frames between tap floats while holding. The
                           // money is never rationed, only the show.
 #macro TPS_WINDOW    60   // delta units a manual tap counts toward the
@@ -388,7 +389,8 @@ function main_macros() {
 #macro CCORE_CAP0   30     // credits the well holds at split-level 0
 #macro CCORE_MIN0  150     // minutes it takes to fill at rate-level 0
 #macro CCORE_COOL   10     // seconds the cooldown takes after a collect
-#macro CCORE_COST0   5     // credits the first level costs (DE's 5 + (1 + lv/20) x lv)
+#macro CCORE_COST_OPEN 500 // credits the FIRST level costs - the well itself (his call, 2026-09-14)
+#macro CCORE_COST0   200   // ...then the second starts here and climbs (ccore_cost)
 
 // ---- EXPEDITIONS (the mock, 2026-09-12 - read exped_tick) ----
 // A trip is travel -> delve (EXPED_ROOMS rooms) -> return, on real

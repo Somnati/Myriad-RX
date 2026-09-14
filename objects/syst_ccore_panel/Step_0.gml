@@ -12,7 +12,10 @@ if (drag) {
 	if (!mouse_check_button(mb_left)) { drag = false; save_mark_dirty(); }
 	else {
 		var _r = __sl_r();
-		_c.split = clamp(round(lerp(0, 100, (mouse_x - _r.x) / max(1, _r.w)) / 5) * 5, 0, 100);
+		// (the knob toward "capacity" - the LEFT end - is more capacity:
+		// split is the capacity share, so it is 100 minus the knob's place.
+		// his report, 2026-09-14: it read backwards)
+		_c.split = 100 - clamp(round(lerp(0, 100, (mouse_x - _r.x) / max(1, _r.w)) / 5) * 5, 0, 100);
 		exit;
 	}
 }
@@ -44,7 +47,7 @@ var _sr = __sl_r();
 if (_c.lv > 0)
 if (point_in_rectangle(mouse_x, mouse_y, _sr.x - 3, _sr.y - 6, _sr.x + _sr.w + 3, _sr.y + _sr.h + 6)) {
 	drag = true;
-	_c.split = clamp(round(lerp(0, 100, (mouse_x - _sr.x) / max(1, _sr.w)) / 5) * 5, 0, 100);
+	_c.split = 100 - clamp(round(lerp(0, 100, (mouse_x - _sr.x) / max(1, _sr.w)) / 5) * 5, 0, 100);
 	exit;
 }
 
