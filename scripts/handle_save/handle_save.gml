@@ -574,7 +574,11 @@ function handle_save(){
 		// nobody. (handle() reads the default, 1, when the key is absent;
 		// the write above stores 1 too, so the tell is the seen list
 		// being empty against a real run)
-		if (_us == "" && variable_global_exists("dial") && g.dial[0].level > 0) unfold_reveal_all();
+		// ...read STRAIGHT OFF THE FILE (bug hunt, 2026-09-14): the dials
+		// section loads LAST, so g.dial[0].level here was whatever the run
+		// in memory had - after the load's reset, zero - and this never fired
+		var _d0lv = ini_read_real("dials", "d0_lv", 0);
+		if (_us == "" && _d0lv > 0) unfold_reveal_all();
 	}
 
 	// ---- the objectives (his spec, 2026-09-13): where the chain stands ----
@@ -584,7 +588,7 @@ function handle_save(){
 	var _od = handle("obj_done",  string_join_ext("|", variable_struct_get_names(g.obj.done)));
 	var _oa = handle("obj_act",   string_join_ext("|", variable_struct_get_names(g.obj.act)));
 	if (action == sv_load) {
-		var _was_all = (_us == "" && variable_global_exists("dial") && g.dial[0].level > 0);   // reveal_all ran above
+		var _was_all = (_us == "" && ini_read_real("dials", "d0_lv", 0) > 0);   // reveal_all ran above (the file's own level - see there)
 		g.obj.i = max(0, floor(_oi)); g.obj.done = {}; g.obj.act = {}; g.obj.just = ""; g.obj.gap = 0;
 		var _l1 = (_od != "") ? string_split(_od, "|") : [];
 		for (var _i = 0; _i < array_length(_l1); _i++) g.obj.done[$ _l1[_i]] = true;
@@ -603,7 +607,7 @@ function handle_save(){
 		// ever ACTIVATED - the first activates on the first tick after the
 		// veil - and a dial owned): catch up to where it stands - or, for
 		// a save from before the unfold itself, the whole chain is done
-		if (_oa == "" && _od == "" && variable_global_exists("dial") && g.dial[0].level > 0)
+		if (_oa == "" && _od == "" && ini_read_real("dials", "d0_lv", 0) > 0)
 			objective_catchup(_was_all);
 	}
 
