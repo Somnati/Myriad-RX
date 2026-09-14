@@ -193,7 +193,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	// [hints]: flip every "?" whisper at once (a chip beside [favs] -
 	// the round button it replaced "felt out of place", his report
 	// 2026-09-12)
-	if (point_in_rectangle(mouse_x, mouse_y, room_width - 106, bby + 1, room_width - 66, bby + 14)) {
+	if (point_in_circle(mouse_x, mouse_y, room_width - 84 + 6.5, bby + 7.5, 7.5)) {
 		g.settings_hints = !g.settings_hints;
 		if (!g.settings_hints) help_txt = ""; // fold an open explainer too
 		play_sound_ext(snd_softclick, g.settings_hints ? 1.1 : .9,

@@ -16,6 +16,9 @@ in_menu = false; // true = the slider LIVES on the menu layer (the
 	// input block instead of bailing on it
 bind_get = undefined; // fn -> real : read the setting
 bind_set = undefined; // fn(v)      : write the setting
+bind_rel = undefined; // fn()       : the knob was released (a fader's audition)
+__was_grabbed = false;
+if (!variable_instance_exists(id, "ui_layer")) ui_layer = 0;   // its rung (syst_input reads it; the gate below too)
 __last = undefined;
 gsc = 0; // grab ease 0..1 (round 26): the knob used to SWAP frames
 	// on grab/release (inset 7x7 <-> full 9x9) and the track margin
@@ -51,3 +54,11 @@ sat = c_sat(cbase);
 c0 = c_hsv(hue, 20, 50);
 c1 = cbase;
 cbar = c_hsv(c_hue(c1), sat, 150);
+/// a track in another colour (settings_slider's col): white reads as a
+/// grey track with a white knob
+recolour = function(_c) {
+	cbase = _c; hue = c_hue(_c); sat = c_sat(_c);
+	c0 = c_hsv(hue, min(sat, 20), 50);
+	c1 = _c;
+	cbar = (sat < 10) ? merge_colour(_c, c_black, .3) : c_hsv(hue, sat, 150);
+};

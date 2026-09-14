@@ -589,16 +589,20 @@ function settings_content() {
 		function(_v) { g.mute = _v; },
 		"silences everything without touching the volume levels.");
 
+	// THE FOUR FADERS IN FOUR COLOURS (his call, 2026-09-14): master white,
+	// effects yellow, tap hred, dial sblue - and each auditions on RELEASE
 	settings_slider("master volume", 0, 100,
 		function() { return g.vol_master; },
 		function(_v) { g.vol_master = _v; },
-		"%", 1);
+		"%", 1, "", c_white,
+		function() { play_sound_ext(snd_matclick2, 1, 1.05, .5, 1); });
 
 	settings_slider("effects volume", 0, 100,
 		function() { return g.vol_sfx; },
 		function(_v) { g.vol_sfx = _v; },
 		"%", 1,
-		"clicks, dice, ui. release the knob to hear it.");
+		"clicks, dice, ui. release the knob to hear it.", c_hyellow,
+		function() { play_sound_ext(snd_matclick2, 1, 1.05, .5, 1); });
 
 	// ---- THE THREE SWAPPABLE SOUNDS (DE's "gen sound", generalised) ----
 	// Each pill builds itself from sfx_config, so adding a sound is one
@@ -642,8 +646,9 @@ function settings_content() {
 	// as a pair at the end - a knob belongs with the sound it turns)
 	settings_slider("tap volume", 0, 100,
 		function() { return g.vol_tap; },
-		function(_v) { g.vol_tap = _v; sfx_play("tap"); },
-		"%", 1, "taps and criticals, as a share of the effects volume.");
+		function(_v) { g.vol_tap = _v; },
+		"%", 1, "taps and criticals, as a share of the effects volume.", c_hred,
+		function() { sfx_play("tap"); });
 
 
 	settings_pill("dial sound", "sfxdial",
@@ -671,8 +676,9 @@ function settings_content() {
 
 	settings_slider("dial volume", 0, 100,
 		function() { return g.vol_dial; },
-		function(_v) { g.vol_dial = _v; sfx_play("dial"); },
-		"%", 1, "finished dial cycles, as a share of the effects volume.");
+		function(_v) { g.vol_dial = _v; },
+		"%", 1, "finished dial cycles, as a share of the effects volume.", c_sblue,
+		function() { sfx_play("dial"); });
 
 
 	settings_pill("critical sound", "sfxcrit",

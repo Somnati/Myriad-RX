@@ -337,7 +337,7 @@ __flip = function() {
 	wy = dsin(_fa) * _fs;
 	wz = random_range(-.08, .08);
 	g.coin.flips += 1;
-	play_sound_ext(snd_cointoss, .95, 1.15, .5, 1);
+	play_sound_ext(snd_cointoss, .95, 1.15, 0.48, 1);
 };
 
 /// @func __read()

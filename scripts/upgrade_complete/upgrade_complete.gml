@@ -38,5 +38,5 @@ function upgrade_complete(_slot) {
 	g.upg.slot[_slot] = -1;
 
 	assign_banner("upgrade complete - slot freed", c_gold, c_black);
-	play_sound_ext(snd_diamond, .9, 1.1, .5, 2);
+	play_sound_ext(snd_diamond, .9, 1.1, 0.354, 2);
 }

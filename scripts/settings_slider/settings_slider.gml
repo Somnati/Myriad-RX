@@ -7,7 +7,11 @@
 /// at its final list x (sl_x, controller-derived) and the chaperone
 /// only ever moves it in y - the same rule stats_v2_widget documents.
 /// runs in syst_settings' scope; widget pooled by label.
-function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap = 1, _help = "") {
+/// [col]  the track's colour (the house blue when omitted) - his ask,
+///        2026-09-14: the four faders in four colours
+/// [rel]  a function run when the knob is RELEASED - what a fader
+///        auditions with, so a drag is not a sound a frame (his report)
+function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap = 1, _help = "", _col = -1, _rel = undefined) {
 
 	var _k = "s_" + _label;
 	var _inst = pool[$ _k];
@@ -19,7 +23,7 @@ function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap =
 		// widgets listen through that block rather than bailing on it
 		// (ui_layer for syst_input's arbitration, in_menu for the
 		// slider's own gate - it was built for exactly this)
-		_inst.ui_layer = ui_layer_popup;
+		_inst.ui_layer = ui_layer_overlay;   // (the overlay's own rung: under a pillbox it goes quiet - his report, 2026-09-14)
 		_inst.in_menu  = true;
 		_inst.image_xscale = sl_scale;
 		pool[$ _k] = _inst;
@@ -34,6 +38,8 @@ function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap =
 	// rebind every pass: content closures are rebuilt each step
 	_inst.bind_get = _get;
 	_inst.bind_set = _set;
+	_inst.bind_rel = _rel;
+	if (_col != -1 && _inst.cbase != _col) _inst.recolour(_col);
 
 	array_push(rows, {
 		kind : sett_kind_slider, name : _label, val : "",

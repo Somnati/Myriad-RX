@@ -51,6 +51,7 @@
 
 autom_init();
 depth = -510;     // over the room and its drawers, under the menu (-520) and the header (-1000)
+pillbox_init();   // the target row's dropdown (his ask, 2026-09-14: "needs to be a pillbox")
 
 oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
 closing = false;  // armed by automation_close; the Step destroys at zero
@@ -119,6 +120,14 @@ __strat_map  = [1, 2, 4, 3];
 __strat_sel  = function() {
 	for (var _k = 0; _k < array_length(__strat_map); _k++) if (__strat_map[_k] == g.autom.strat) return _k;
 	return 3;
+};
+__strat_name = function() {
+	switch (g.autom.strat) {
+		case 1: return "strongest";
+		case 2: return "cheapest";
+		case 4: return "lowest";
+	}
+	return "robin";
 };
 __strat_desc = function() {
 	switch (g.autom.strat) {
@@ -546,9 +555,7 @@ __page_rows = function() {
 		array_push(_o, { kind : 2, lo : 20, hi : 100, snap : 20, name : "cycling", ock : "speed", tag : "run",
 			on : _a.run.on, val : _a.run.spd, sfx : "% speed", st : -1,
 			col : c_sgreen, ram : ram_cost("speed", _a.run.spd),
-			help : "the dials running on their own - slower is cheaper, the red "
-			     + "notches overclock them. off FREEZES them where they are; hold "
-			     + "the pointer on one to crank it by hand" });
+			help : "the dials cycle on their own; slower is cheaper, red notches overclock" });
 		array_push(_o, __section("autobuy", tcol[AT_DIALS], __view_label(), "view"));
 		// THE MASTER ROW (his call, 2026-09-14: "keep the filter but have a
 		// master toggle"): one switch, one cap, one timer for every dial.
@@ -567,9 +574,11 @@ __page_rows = function() {
 			col : tcol[AT_DIALS], ram : 0,
 			help : "the most one pulse may spend, as a share of the profit you could spend "
 			     + "right now - spread down the target's order, first in line takes the most" });
+		// ONE BUTTON, A PILLBOX BEHIND IT (his ask, 2026-09-14): the settings
+		// screen's dropdown, not four inline buttons
 		array_push(_o, { kind : 7, name : "target", tag : "strat",
 			val : __strat_desc(),
-			btns : ["strongest", "cheapest", "lowest", "robin"], act : "strat", sel : __strat_sel(),
+			btns : [__strat_name()], act : "strat", sel : 0,
 			on : true, st : -1, col : tcol[AT_DIALS], ram : 0,
 			help : "the order the cap share is spread in - first in line takes the most" });
 		array_push(_o, { kind : 9, name : "filter", on : true, val : 0, sfx : "", st : -1,
@@ -834,11 +843,13 @@ __defaults = function() {
 /// an action row's button was tapped: the row and which button
 __action = function(_rw, _b) {
 	if (_rw.act == "strat") {
-		// the target pill: strongest / cheapest / lowest / robin
-		g.autom.strat = __strat_map[clamp(_b, 0, array_length(__strat_map) - 1)];
-		g.autom.dial_all.cur = 0;
-		save_mark_dirty();
-		play_sound_ext(snd_softclick, 1, 1.1, .45, 1);
+		// the target pillbox: strongest / cheapest / lowest / robin (the
+		// pick lands in the Step - _pselid / _pselval, pillbox_init's contract)
+		pillbox_init();
+		var _names = ["strongest", "cheapest", "lowest", "robin"];
+		for (var _k = 0; _k < array_length(__strat_map); _k++)
+			set_pill(_names[_k], { val : __strat_map[_k], col : tcol[AT_DIALS], enabled : (g.autom.strat == __strat_map[_k]) });
+		do_pillbox(mouse_x, mouse_y);
 		return;
 	}
 	if (_rw.act == "view") {

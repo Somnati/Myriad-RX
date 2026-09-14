@@ -15,6 +15,16 @@ if (drag_row >= 0) {
 	}
 }
 
+// ---- the target pillbox's pick (pillbox_init's contract) ----
+if (_pselid != -1) {
+	if (!is_undefined(_pselval)) {
+		g.autom.strat = _pselval;
+		g.autom.dial_all.cur = 0;
+		save_mark_dirty();
+	}
+	_pselid = -1;
+}
+
 // input: only once the panel has fully arrived, and only while nothing
 // sits over it (a pillbox, a popup, the menu)
 if (oa < .999 || closing) exit;

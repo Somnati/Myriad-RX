@@ -39,7 +39,7 @@ if (_has && (_tap || _auto)) {
 		if (_add < arb(15)) _n = clamp(round(power(10, arb_log10(_add))), 1, 15);
 		else _n = round(lerp(7, 20, clamp(arb_log10(_add) / 12, 0, 1)));
 		bezier_bits(x + 7, y + 8, _n, g.profit_color, undefined, undefined, -1, _add);
-		play_sound_ext(snd_cointoss, .9, 1.1, .5, 2);
+		play_sound_ext(snd_cointoss, .9, 1.1, 0.48, 2);
 		vibrate(40, 2);
 		flash = 20;
 		assign_banner("got +" + crunch_arb(_add), g.profit_color, g.profit_color);

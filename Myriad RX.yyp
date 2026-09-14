@@ -786,6 +786,7 @@
     {"id":{"name":"snd_rebirth","path":"sounds/snd_rebirth/snd_rebirth.yy",},},
     {"id":{"name":"snd_rebirthcollect","path":"sounds/snd_rebirthcollect/snd_rebirthcollect.yy",},},
     {"id":{"name":"snd_scratch","path":"sounds/snd_scratch/snd_scratch.yy",},},
+    {"id":{"name":"snd_softclick_n","path":"sounds/snd_softclick_n/snd_softclick_n.yy",},},
     {"id":{"name":"snd_softclick","path":"sounds/snd_softclick/snd_softclick.yy",},},
     {"id":{"name":"snd_sprite_poke","path":"sounds/snd_sprite_poke/snd_sprite_poke.yy",},},
     {"id":{"name":"snd_sprite_sleep","path":"sounds/snd_sprite_sleep/snd_sprite_sleep.yy",},},

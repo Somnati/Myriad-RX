@@ -19,7 +19,8 @@ function menu2_content() {
 
 	menu2_section("game");
 	menu2_button("clicker",      rm_clicker,       c_feat_clicker);
-	menu2_button("objectives",   function() { objectives_open(); }, c_feat_objectives);   // the chain, in full (his spec, 2026-09-13)
+	if (!is_undefined(objective_cur()))   // the chain, in full - and gone once it is complete (his ask, 2026-09-14)
+		menu2_button("objectives",   function() { objectives_open(); }, c_feat_objectives);
 	if (unfold_has("rebirth"))    menu2_button("rebirth",      function() { rebirth_open(); }, c_feat_rebirth, "rebirth"); // myriad
 	if (unfold_has("cheat"))      menu2_button("cheat shop",   function() { cheat_open(); },   c_feat_cheat, "cheat");   // disgaea's obtain rates (2026-09-13)
 	if (unfold_has("upgrades"))   menu2_button("upgrades",     function() { upgrades_open(); }, c_feat_upgrades, "upgrades"); // myriad (an overlay, 2026-09-12)

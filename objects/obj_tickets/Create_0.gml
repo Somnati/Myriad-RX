@@ -175,7 +175,7 @@ __reveal = function() {
 	var _r = __card();
 	prize = ticket_pay(cur, roll, _r.x + _r.w * .5, _r.y + 43);
 	done = true; done_t = 1.9;
-	if (roll.win) play_sound_ext(snd_diamond, .95, 1.1, .6, 1);
+	if (roll.win) play_sound_ext(snd_diamond, .95, 1.1, 0.424, 1);
 	else          play_sound_ext(snd_softclick, .8, .9, .5, 1);
 };
 

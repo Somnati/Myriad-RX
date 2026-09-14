@@ -265,7 +265,7 @@ if (held) {
 				resist += PUCK_TIER_RESIST * tier;
 				yaw_spd *= 1.6;   // a cannon shot leaves spinning hard
 				y = _t.y2;
-				play_sound_ext(snd_tierup, .9, 1.1, .55, 2);
+				play_sound_ext(snd_tierup, .9, 1.1, 0.125, 2);
 				__burst(20, 120, 4.2);
 			} else {
 				play_sound_ext(snd_softclick, .9, 1.1, .35, 1);

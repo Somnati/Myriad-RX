@@ -94,7 +94,7 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 		draw_text(val_x - 8, _ry + 4, _row.val);
 		draw_set_color(sett_ink);
 		draw_set_alpha(.7);
-		draw_text(val_x, _ry + 4, "v");
+		draw_text(val_x, _ry + 4, ">");   // (a ">" not a "v" - his call, 2026-09-14)
 	}
 	if (_row.kind == sett_kind_action) {
 		draw_set_halign(fa_right);

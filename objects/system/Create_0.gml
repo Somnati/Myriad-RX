@@ -93,8 +93,8 @@ g.persist_popups = false;
 // asset (asset ids move when the resource tree changes) and no longer a
 // list position either, which is what used to make the roster
 // append-only. See sfx_config's header.
-g.sfx_pick  = { tap : "click1", dial : "off", crit : "orb",
-                credit : "diamond" };
+g.sfx_pick  = { tap : "soft", dial : "gold", crit : "drum",
+                credit : "diamond" };   // his own picks are the defaults (2026-09-14)
 g.vol_tap   = 100;
 g.vol_dial  = 100;
 // profit earned but not yet DELIVERED by its motes. Registered by

@@ -43,6 +43,7 @@ function main_macros() {
 
 #macro c_sgreen rgb(136,245,99)
 #macro c_hred rgb(252,57,116)
+#macro c_hyellow rgb(255,214,64)   // the effects fader (his colour list, 2026-09-14)
 #macro c_gold rgb(255,220,130)
 #macro c_horange rgb(255, 90*.9, 30*.9)
 #macro c_hpurple #9f00ff 

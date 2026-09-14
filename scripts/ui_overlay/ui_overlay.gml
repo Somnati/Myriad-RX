@@ -19,6 +19,21 @@
 /// one. A new overlay is still one line here - plus those two
 /// variables in its Create and the three-line ease in its Step.
 function ui_overlay() {
+	// ⚖️ THE ONE OPENING WINS OVER THE ONE LEAVING (his report, 2026-09-14:
+	// "a lil weirdness" between the tiles and the cheat shop). An open()
+	// folds whatever is up and spawns its own panel in the same step, so
+	// for a few frames TWO exist - and the first in the list below used to
+	// answer, which could be the one fading OUT: the blur followed its
+	// ease down while the new panel's went up. A panel on its way out only
+	// answers when nothing else is up
+	static _list = [syst_settings, syst_statistics_v2, syst_timebank_panel, syst_gift_panel, syst_faq,
+	                syst_automation_panel, syst_battery_panel, syst_welcome, syst_upgrades, syst_rm_ability,
+	                syst_tiles, syst_ccore_panel, syst_exped_panel, syst_offlog, syst_objectives_panel, syst_cheat_panel];
+	for (var _i = 0; _i < array_length(_list); _i++) {
+		if (!instance_exists(_list[_i])) continue;
+		var _inst = instance_find(_list[_i], 0);
+		if (!_inst.closing) return _inst;
+	}
 	if (instance_exists(syst_settings))      return syst_settings;
 	if (instance_exists(syst_statistics_v2)) return syst_statistics_v2;
 	if (instance_exists(syst_timebank_panel)) return syst_timebank_panel;

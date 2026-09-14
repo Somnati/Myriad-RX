@@ -203,7 +203,7 @@ __widget = function(_k, _obj) {
 		// clickable whose ui_layer sits under g.input_block, and this
 		// screen raises that to ui_layer_popup so the room behind goes
 		// quiet - its own widgets have to be above the line they drew.
-		_i.ui_layer = ui_layer_popup;
+		_i.ui_layer = ui_layer_overlay;   // (one rung under a pillbox, 2026-09-14 - nothing answers behind an open list)
 		_i.depth = depth - 1; // above the rows, under the strip proxy
 			// (depth-2) and the menu - see the header note
 		pool[$ _k] = _i;
@@ -343,18 +343,22 @@ __draw_strip = function() {
 		draw_text(6 + string_width("settings") + 8, bby + 4, "saved");
 	}
 
-	// [hints]: the master switch for every "?" whisper in the list - a
-	// chip in the strip's row of chips, beside [favs] (the round button
-	// it replaced "felt out of place" - his report, 2026-09-12)
-	var _hx = room_width - 106;
+	// [?]: the master switch for every "?" whisper in the list - a ROUND
+	// button with a question mark (his call, 2026-09-14: back to the
+	// circle, centred), left of [favs]. The disc is 13 across, its centre
+	// the half-pixel point (cx, cy); the glyph is a 7-wide cell whose ink
+	// sits in columns 1..5 - drawn at cx - 3.5 its ink centre lands on cx
+	var _hx = room_width - 84;
+	var _cx = _hx + 6.5, _cy = bby + 7.5;
 	draw_set_alpha(1);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx, bby + 1, 40, 13, 0, c_black, .8);
-	draw_px_rect(_hx, bby + 1, 40, 13, g.settings_hints ? c_gold : rgb(170, 190, 230),
-		g.settings_hints ? .9 : .5);
-	draw_set_halign(fa_center);
+	draw_circle_colour(_cx, _cy, 6.5, c_black, c_black, false);
+	draw_set_alpha(.9);
+	draw_circle_colour(_cx, _cy, 6.5, g.settings_hints ? c_gold : rgb(170, 190, 230),
+		g.settings_hints ? c_gold : rgb(170, 190, 230), true);
+	draw_set_halign(fa_left);
 	draw_set_color(g.settings_hints ? c_gold : c_white);
 	draw_set_alpha(.9);
-	draw_text(_hx + 20, bby + 4, "hints");
+	draw_text(round(_cx - 3.5), bby + 4, "?");
 
 	// [favs]: the star gutter's switch (statistics' twin - pinning is
 	// rare, so the pips can be put away without unpinning anything)

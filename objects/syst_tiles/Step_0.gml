@@ -46,7 +46,7 @@ while (array_length(_t.ev) > 0) {
 			spark_burst(__slot_x(_e.i) + tw * .5, __slot_y(_e.i) + th * .5, 3,
 				tile_color(_t.tier[_e.i]));
 		if (_e.b) {
-			play_sound_ext(snd_tierup, .8, 1.1, .5, 1);
+			play_sound_ext(snd_tierup, .8, 1.1, 0.113, 1);
 			__tierup_fx(_e.i);
 		}
 	}
@@ -263,7 +263,7 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 			qtic = 0;
 			// the house purchase sound (upgrade_buy's), not the tier-up
 			// ding - see the event drain at the top of this file
-			play_sound_ext(snd_diamond, .95, 1.05, .5, 2);
+			play_sound_ext(snd_diamond, .95, 1.05, 0.354, 2);
 			// THE BUY LANDS IN THE ROW (his report, 2026-09-11: "not
 			// satisfying"): the row flashes its colour, the level pops,
 			// sparks leave the bar in the row's colour, and the float
@@ -304,7 +304,7 @@ if (mouse_check_button_released(mb_left) && dp_x >= 0) {
 			}
 		} else {
 			arm_rb = 120;   // two seconds to mean it
-			play_sound_ext(snd_tierup, .8, .9, .5, 1);
+			play_sound_ext(snd_tierup, .8, .9, 0.113, 1);
 		}
 		exit;
 	}
@@ -374,7 +374,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 				play_sound_ext(snd_matclick2, .5, .6, .6, 1);
 			} else {
 				arm_rs = 120;        // two seconds to mean it
-				play_sound_ext(snd_tierup, .8, .9, .5, 1);
+				play_sound_ext(snd_tierup, .8, .9, 0.113, 1);
 			}
 		}
 		// THE SECOND RESET (his ask, same day): the upgrade levels alone,
@@ -390,7 +390,7 @@ if (!variable_global_exists("click_owner") || g.click_owner == noone) {
 				play_sound_ext(snd_matclick2, .5, .6, .6, 1);
 			} else {
 				arm_ru = 120;
-				play_sound_ext(snd_tierup, .8, .9, .5, 1);
+				play_sound_ext(snd_tierup, .8, .9, 0.113, 1);
 			}
 		}
 		// a press on the open panel is spent, whatever it landed on
@@ -501,7 +501,7 @@ if (grab_i != -1) {
 			spark_burst(__slot_x(_dst) + tw * .5, __slot_y(_dst) + th * .5, 3,
 				tile_color(_t.tier[_dst]));
 		}
-		if (_res == 3) { play_sound_ext(snd_tierup, .8, 1.1, .6, 1); __tierup_fx(_dst); }
+		if (_res == 3) { play_sound_ext(snd_tierup, .8, 1.1, 0.136, 1); __tierup_fx(_dst); }
 		// a bounce or a move: the ghost glides to the slot it belongs
 		// to now (see ret_i in the Create); a merge just lands
 		if (_res == 0 || _res == 1) {

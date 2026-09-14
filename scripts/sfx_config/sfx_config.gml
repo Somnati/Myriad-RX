@@ -26,6 +26,14 @@
 /// name (the pill's label), snd (-1 = deliberately silent), pmn/pmx (the
 /// pitch range a play rolls in - varying pitch is why a fast tapper
 /// hears a sound rather than a buzz), vol.
+///
+/// ⚖️ THE VOLS ARE MEASURED, NOT GUESSED (2026-09-14, his report: "some are
+/// louder/quieter than others"). Every roster-only sample was rewritten
+/// to one loudness (-16 dBFS max 50 ms RMS; scratchpad/build_sfx_norm.py),
+/// snd_softclick got a normalised copy for the rosters (snd_softclick_n -
+/// the UI's own click stays), and each roster's vols are ONE number = the
+/// level he played at before, with the unrewritten rows (matte, pop)
+/// carrying their own correction. Re-run the script after adding a sound.
 function sfx_config(_kind) {
 	if (!variable_global_exists("sfx_cfg")) {
 		g.sfx_cfg = {
@@ -52,20 +60,20 @@ function sfx_config(_kind) {
 			// first. Ids are stable ACROSS rosters, so "gold" is the same
 			// sound wherever it appears.
 			tap : [
-				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : .9  },
-				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : 1.5 },
-				{ id : "soft",   name : "soft click", snd : snd_softclick,  pmn : .9,  pmx : 1.2,  vol : .45 },
-				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : .45 },
-				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : .5  },
-				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : .5  },
-				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : .5  },
-				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : .45 },
-				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : .45 },
-				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .2  },
-				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .5  },
+				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : 0.381  },
+				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : 0.508  },
+				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : 0.507  },
+				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : 0.56  },
+				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : 0.296 },
+				{ id : "soft",   name : "soft click", snd : snd_softclick_n,  pmn : .9,  pmx : 1.2,  vol : 0.543 },
+				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : 0.091 },
+				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : 0.296  },
+				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : 0.296  },
+				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : 0.296  },
+				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : 0.296 },
+				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : 0.296 },
+				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : 0.296  },
+				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : 0.296  },
 				{ id : "off",    name : "none",      snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 
@@ -78,44 +86,44 @@ function sfx_config(_kind) {
 			// something happening.
 			dial : [
 				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
-				{ id : "soft",   name : "soft click", snd : snd_softclick,  pmn : .9,  pmx : 1.2,  vol : .18 },
-				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : .18 },
-				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : .18 },
-				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : .18 },
-				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : .18 },
-				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : .16 },
-				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : .16 },
-				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : .14 },
-				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : .14 },
-				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : .16 },
-				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : .3  },
-				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : .14 },
-				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : .13 },
-				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : .14 },
-				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .08 },
-				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .14 },
+				{ id : "soft",   name : "soft click", snd : snd_softclick_n,  pmn : .9,  pmx : 1.2,  vol : 0.039 },
+				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : 0.007 },
+				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : 0.027 },
+				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : 0.036 },
+				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : 0.036 },
+				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : 0.016 },
+				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : 0.082 },
+				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : 0.021 },
+				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : 0.021 },
+				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : 0.04 },
+				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : 0.021  },
+				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : 0.021 },
+				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : 0.021 },
+				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : 0.021 },
+				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : 0.021 },
+				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : 0.021 },
 			],
 
 			// snd_orb is where this started: tap_fire played it hard
 			// coded, and a crit is exactly the moment that wants a sound
 			// of its own. It stays the default.
 			crit : [
-				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : .5  },
-				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : .45 },
-				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : .55 },
-				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : .5  },
-				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : .5  },
-				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : .5  },
-				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : .6  },
-				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : .9  },
-				{ id : "soft",   name : "soft click", snd : snd_softclick,  pmn : .9,  pmx : 1.2,  vol : .45 },
-				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : .45 },
-				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : .45 },
-				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .2  },
-				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .5  },
+				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : 0.228  },
+				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : 0.228  },
+				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : 0.228 },
+				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : 0.228 },
+				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : 0.228  },
+				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : 0.881  },
+				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : 0.293  },
+				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : 0.392  },
+				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : 0.391  },
+				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : 0.431  },
+				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : 0.228  },
+				{ id : "soft",   name : "soft click", snd : snd_softclick_n,  pmn : .9,  pmx : 1.2,  vol : 0.419 },
+				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : 0.07 },
+				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : 0.173 },
+				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : 0.228  },
+				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : 0.228  },
 				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 
@@ -124,22 +132,22 @@ function sfx_config(_kind) {
 			// is row 0 here. It rides the TAP fader: a credit drop is
 			// something your tap did, not something the fleet did.
 			credit : [
-				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : .3  },
-				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : .3  },
-				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : .28 },
-				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : .3  },
-				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : .3  },
-				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : .3  },
-				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : .3  },
-				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : .3  },
-				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : .3  },
-				{ id : "soft",   name : "soft click", snd : snd_softclick,  pmn : .9,  pmx : 1.2,  vol : .28 },
-				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : .28 },
-				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : .28 },
-				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : .35 },
-				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : .5  },
-				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : .15 },
-				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : .3  },
+				{ id : "diamond", name : "diamond",    snd : snd_diamond,    pmn : .95, pmx : 1.1,  vol : 0.212  },
+				{ id : "coin",   name : "coin toss",  snd : snd_cointoss,   pmn : .9,  pmx : 1.3,  vol : 0.819  },
+				{ id : "tier",   name : "tier up",    snd : snd_tierup,     pmn : .95, pmx : 1.1,  vol : 0.212 },
+				{ id : "orb",    name : "orb",        snd : snd_orb,        pmn : .95, pmx : 1.05, vol : 0.212  },
+				{ id : "gold",   name : "gold",       snd : snd_gold,       pmn : .8,  pmx : 1.5,  vol : 0.212  },
+				{ id : "gold2",  name : "gold two",   snd : snd_gold2,      pmn : .8,  pmx : 1.5,  vol : 0.212  },
+				{ id : "click1", name : "click",      snd : snd_tap_click1, pmn : .95, pmx : 1.1,  vol : 0.273  },
+				{ id : "click2", name : "click two",  snd : snd_tap_click2, pmn : .95, pmx : 1.1,  vol : 0.364  },
+				{ id : "click3", name : "click three", snd : snd_tap_click3, pmn : .95, pmx : 1.1,  vol : 0.363  },
+				{ id : "soft",   name : "soft click", snd : snd_softclick_n,  pmn : .9,  pmx : 1.2,  vol : 0.389 },
+				{ id : "mat",    name : "matte",      snd : snd_matclick,   pmn : .9,  pmx : 1.2,  vol : 0.065 },
+				{ id : "pop",    name : "pop",        snd : snd_popclick,   pmn : .8,  pmx : 1.5,  vol : 0.16 },
+				{ id : "heavy",  name : "tap heavy",  snd : snd_tapheavy,   pmn : .8,  pmx : 1.5,  vol : 0.401 },
+				{ id : "light",  name : "tap light",  snd : snd_tap2,       pmn : 1,   pmx : 1.2,  vol : 0.212  },
+				{ id : "atlas",  name : "atlas",      snd : snd_atlas,      pmn : .8,  pmx : 1.5,  vol : 0.212 },
+				{ id : "drum",   name : "drum",       snd : snd_drum,       pmn : .8,  pmx : 1.5,  vol : 0.212  },
 				{ id : "off",    name : "none",       snd : -1,             pmn : 1,   pmx : 1,    vol : 0   },
 			],
 		};
