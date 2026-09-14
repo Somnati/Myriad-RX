@@ -29,7 +29,7 @@ draw_set_alpha(.95);
 draw_text(6, 34, "ap " + string(g.ap) + "/" + string(g.maxap));
 
 draw_set_color(c_seagreen);
-draw_text(90, 34, "units " + crunch_arb(g.units));
+draw_text(90, 34, "units " + crunch_arb(g.rebirth.units));
 
 draw_set_color(rgb(170, 190, 230));
 draw_set_alpha(.7);
@@ -100,12 +100,15 @@ if (o_name == "" && i_name == "") {
 	draw_set_alpha(.9);
 	draw_text(info_x + 6, info_y + 5, "the ability deck");
 	var _schools = [
-		["survey",  "faster probes & scanning"],
-		["fleet",   "travel & warp tuning"],
-		["tiles",   "the tile bench, automated"],
-		["colony",  "city & planet boons"],
-		["combat",  "openers for the war room"],
-		["support", "ap, luck & bargains"]];
+		["tapper", "crits, syphons & the tap count"],
+		["overcharge", "the charger's cap & rate"],
+		["dials", "what a dial pays"],
+		["tiles", "the table, automated"],
+		["puck", "bounces & their pay"],
+		["upgrades", "rarer rolls, deeper tiers"],
+		["support", "credits, offline & the deck"],
+		["rebirth", "what a rebirth keeps & counts"],
+	];
 	for (var _l2 = 0; _l2 < array_length(_schools); _l2++) {
 		draw_set_color(c_white);
 		draw_set_alpha(.75);
@@ -129,7 +132,7 @@ if (g.new_abilities_unlocked == 0 && view == 0) { // deck view only
 
 // ---- discover button ----
 var _can = (g.unlockable_abilities > g.new_abilities_unlocked
-	&& g.units >= g.new_ability_cost);
+	&& g.rebirth.units >= g.new_ability_cost);
 var _done = (g.new_abilities_unlocked >= g.unlockable_abilities);
 draw_set_alpha(1);
 draw_sprite_ext(spr_pixel_1x1, 0, info_x, 200, info_w, 24, 0, c_black, .8);

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"abi_on",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"abi_on",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

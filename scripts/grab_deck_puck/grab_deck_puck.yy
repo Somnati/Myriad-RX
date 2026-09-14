@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"grab_deck_colony",
+  "%Name":"grab_deck_puck",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"grab_deck_colony",
+  "name":"grab_deck_puck",
   "parent":{
     "name":"deck",
     "path":"folders/game/deck.yy",

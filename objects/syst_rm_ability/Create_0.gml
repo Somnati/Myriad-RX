@@ -50,12 +50,14 @@ shown_aid  = -2; // which aid the info panel currently shows
 g.ability_page = 0;
 
 // batch offsets (grab_deck memoizes section boundaries here)
-batch_survey  = 0;
-batch_fleet   = 0;
-batch_tiles   = 0;
-batch_colony  = 0;
-batch_combat  = 0;
+batch_tapper = 0;
+batch_overcharge = 0;
+batch_dials = 0;
+batch_tiles = 0;
+batch_puck = 0;
+batch_upgrades = 0;
 batch_support = 0;
+batch_rebirth = 0;
 
 // slot-protocol vars this controller shares with obj_ability_slot
 // (grab_deck materializes the selection into these)
@@ -100,24 +102,16 @@ reveal_t    = 0;
 // this section map in sync when the deck changes ----
 view = 0;
 coll_rows = [];
-// (the second half of every section, 2026-09-11, is the made-up
-// unwired set - see create_new_deck's key list)
+// (GENERATED from scratchpad/build_deck.py's table, 2026-09-13)
 var _secs = [
-	["survey",  ["ad_probespeed", "ad_probespeed2", "ad_multiprobe",
-		"ad_deepscan", "ad_autosurvey",
-		"ad_signalboost", "ad_orbitalmap", "ad_probeswarm", "ad_coresampler", "ad_geologist"]],
-	["fleet",   ["ad_warptune", "ad_fuelcells", "ad_autopilot", "ad_deepspace",
-		"ad_cargohold", "ad_slingshot", "ad_hullplate", "ad_starcharts", "ad_wormhole"]],
-	["tiles",   ["ad_automerger", "ad_automerger2", "ad_fabricator",
-		"ad_fabricator2", "ad_duplicator", "ad_tilerarity", "ad_hotswap",
-		"ad_magnet", "ad_sorter", "ad_smelter", "ad_overclock", "ad_goldleaf"]],
-	["colony",  ["ad_cityloans", "ad_nightshift", "ad_census", "ad_terraformer",
-		"ad_lanterns", "ad_marketday", "ad_aqueducts", "ad_observatory", "ad_guilds", "ad_capital"]],
-	["combat",  ["ad_initiative", "ad_counterschool", "ad_fieldmedic", "ad_warcry",
-		"ad_drillsgt", "ad_ambush", "ad_shieldwall", "ad_lastword", "ad_veterans", "ad_ironwill"]],
-	["support", ["ad_onefinger", "ad_autobuy", "ad_aputilizer", "ad_luckcharm",
-		"ad_notekeeper", "ad_bargain", "ad_deeppockets", "ad_scholar",
-		"ad_alarmclock", "ad_archivist", "ad_nightowl", "ad_tinkerer", "ad_secondwind"]],
+	["tapper", ["ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2", "ad_critcut3", "ad_tappersyphon1", "ad_tappersyphon2", "ad_tappersyphon3", "ad_profitabletapper", "ad_criticaltapper", "ad_raretapper"]],
+	["overcharge", ["ad_chargercap", "ad_chargerate1"]],
+	["dials", ["ad_dialtier", "ad_patientpayload"]],
+	["tiles", ["ad_fabricator", "ad_fabricator2", "ad_fabricator3", "ad_automerger2", "ad_automerger3", "ad_duplicator", "ad_duplicator2", "ad_tiermerger1", "ad_tiermerger2", "ad_tiermerger3", "ad_mergecharger", "ad_mergecharge1", "ad_mergecharge2", "ad_raritymerger", "ad_taptomerge", "ad_taptofab", "ad_tilerarity", "ad_hotswap"]],
+	["puck", ["ad_th_bounce1", "ad_th_bouncereflect", "ad_th_bouncegain1", "ad_th_bouncegain2"]],
+	["upgrades", ["ad_topgrade1", "ad_topgrade2", "ad_topgrade3", "ad_upgradetier"]],
+	["support", ["ad_luckystrike", "ad_jackpot1", "ad_offlinecollect", "ad_bargain", "ad_scholar"]],
+	["rebirth", ["ad_networth", "ad_resetbracer", "ad_resetbracer2"]],
 ];
 for (var _s = 0; _s < array_length(_secs); _s++) {
 	array_push(coll_rows, { key : "", title : _secs[_s][0] });

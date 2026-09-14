@@ -731,6 +731,27 @@ function handle_save(){
 		g.coin.streak = max(0, floor(g.coin.streak)); g.coin.best = max(0, floor(g.coin.best)); g.coin.last = clamp(floor(g.coin.last), 0, 2);
 	}
 
+	// ---- THE ABILITY DECK (2026-09-13, with the real roster): every key's
+	// state (-1 locked / 0 off / 1 on / 100 new) and the discovery seed;
+	// the counts and the pool re-derive (fetch_new_ability) ----
+	section = "abilities";
+	if (!variable_global_exists("abi_keys")) create_new_deck();
+	for (var _i = 0; _i < array_length(g.abi_keys); _i++) {
+		var _k = g.abi_keys[_i];
+		variable_global_set(_k, handle(_k, variable_global_get(_k)));
+	}
+	g.abi_seed = handle("abi_seed", g.abi_seed);
+	if (action == sv_load) {
+		for (var _i = 0; _i < array_length(g.abi_keys); _i++) {
+			var _k = g.abi_keys[_i];
+			var _v = floor(variable_global_get(_k));
+			if (_v != -1 && _v != 0 && _v != 1 && _v != 100) _v = -1;
+			variable_global_set(_k, _v);
+		}
+		g.abi_seed = floor(g.abi_seed) & $7fffffff;
+		fetch_new_ability();   // the counts, the pool, the titles, the failsafes
+	}
+
 	section = "upgrades";
 	upgrade_init();
 	g.upg.bought = handle("slots_bought", g.upg.bought);

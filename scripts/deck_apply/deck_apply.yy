@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"deck_apply",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"deck_apply",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

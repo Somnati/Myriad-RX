@@ -48,7 +48,18 @@ function rebirth_do() {
 	// pile just went to zero. Leaving it would hold the whole of the
 	// next run's early profit against a number from the last one.
 	if (variable_global_exists("autom")) g.autom.lock_peak = 0;
+	// RESET BRACER / + (DE's deck, 2026-09-13): what the dials keep through
+	// the slate - one level each (the ladder stays open), or every level
+	var _keep = [];
+	if (variable_global_exists("dial"))
+		for (var _i = 0; _i < array_length(g.dial); _i++) _keep[_i] = g.dial[_i].level;
 	create_dials();   // levels 0, cycles 0, then update_dials -> update_click
+	if (abi_on("ad_resetbracer2") || abi_on("ad_resetbracer")) {
+		var _all = abi_on("ad_resetbracer2");
+		for (var _i = 0; _i < min(array_length(_keep), array_length(g.dial)); _i++)
+			if (_keep[_i] > 0) g.dial[_i].level = _all ? _keep[_i] : 1;
+		update_dials();
+	}
 	g.buy_lv = 1;
 
 	// ---- 4. the run clock + the heavy save ----

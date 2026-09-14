@@ -71,5 +71,11 @@ function update_dial(_i) {
 	var _cs = cheat_rate("dspeed");
 	if (_cs != 1) { _d.cycle_t /= _cs; _d.cps = 1 / _d.cycle_t; }
 
+	// THE DECK (DE's, 2026-09-13): dial tier+ pays +10% per tier (dial a is
+	// tier 0 - DE's give x (1 + .1 x tier)); patient payload pays +1% for
+	// every second of the cycle (DE's give x (1 + .01 x timer / 60))
+	if (abi_on("ad_dialtier") && _i > 0) _d.gpc = do_scale(_d.gpc, 1 + .1 * _i);
+	if (abi_on("ad_patientpayload"))    _d.gpc = do_scale(_d.gpc, 1 + .01 * max(0, _d.cycle_t));
+
 	_d.gps = do_scale(_d.gpc, _d.cps);
 }

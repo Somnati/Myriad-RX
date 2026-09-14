@@ -3,150 +3,117 @@
 /// (which skips locked abilities) - the collection names what you
 /// haven't found, the draft cards show what you're choosing between,
 /// and meta abilities (Scholar) look costs up here.
-/// touchpoint #6: keep in sync with the batches.
+/// (GENERATED from build_deck.py's table)
 function deck_card_info(_key) {
 	switch (_key) {
-		// survey
-		case "ad_probespeed":  return { name : "Fast Probes",  rarity : 0, ap : 2,
-			desc : "survey probes travel\n25% faster" };
-		case "ad_probespeed2": return { name : "Fast Probes+", rarity : 1, ap : 3,
-			desc : "probes travel another\n25% faster" };
-		case "ad_multiprobe":  return { name : "Twin Probes",  rarity : 2, ap : 5,
-			desc : "two survey sites can run\nat the same time" };
-		case "ad_deepscan":    return { name : "Deep Scan",    rarity : 1, ap : 3,
-			desc : "completed surveys reveal\none extra discovery" };
-		case "ad_autosurvey":  return { name : "Auto Survey",  rarity : 3, ap : 8,
-			desc : "finished sites relaunch\ntheir probes automatically" };
-		// fleet
-		case "ad_warptune":  return { name : "Warp Tuning",        rarity : 0, ap : 2,
-			desc : "warp travel on the starmap\nis 20% quicker" };
-		case "ad_fuelcells": return { name : "Fuel Cells",         rarity : 0, ap : 2,
-			desc : "system dives burn 15%\nless fuel" };
-		case "ad_autopilot": return { name : "Autopilot",          rarity : 2, ap : 6,
-			desc : "the ship climbs back to\norbit on its own" };
-		case "ad_deepspace": return { name : "Deep Space Antenna", rarity : 4, ap : 9,
-			desc : "idle gains keep flowing\nwhile in warp" };
+		// tapper
+		case "ad_critrate1": return { name : "Critical Rate+", rarity : 0, ap : 3,
+			desc : "the base critical chance\nis doubled" };
+		case "ad_critrate2": return { name : "Critical Rate++", rarity : 0, ap : 2,
+			desc : "all critical chance\n+200%" };
+		case "ad_critrate3": return { name : "Critical Rate+++", rarity : 1, ap : 3,
+			desc : "all critical chance\n+300%" };
+		case "ad_critcut1": return { name : "Critical Cut", rarity : 0, ap : 4,
+			desc : "halves the crit rate,\ndoubles the crit multiplier" };
+		case "ad_critcut2": return { name : "Critical Cut+", rarity : 0, ap : 4,
+			desc : "halves the crit rate again,\ndoubles the multiplier again" };
+		case "ad_critcut3": return { name : "Critical Cut++", rarity : 0, ap : 4,
+			desc : "and once more: half the\nrate, twice the multiplier" };
+		case "ad_tappersyphon1": return { name : "Tapper Syphon", rarity : 2, ap : 7,
+			desc : "a tap also pays 1% of what\nthe dials make a second" };
+		case "ad_tappersyphon2": return { name : "Tapper Syphon+", rarity : 2, ap : 10,
+			desc : "the syphon takes\nanother 10%" };
+		case "ad_tappersyphon3": return { name : "Tapper Syphon++", rarity : 3, ap : 15,
+			desc : "the syphon takes\nanother 50%" };
+		case "ad_profitabletapper": return { name : "Profitable Tapper", rarity : 0, ap : 3,
+			desc : "tap profit +1% for every\n2,500 taps ever made" };
+		case "ad_criticaltapper": return { name : "Critical Tapper", rarity : 1, ap : 5,
+			desc : "crit multipliers +1% for\nevery 7,500 taps ever made" };
+		case "ad_raretapper": return { name : "Rare Tapper", rarity : 3, ap : 7,
+			desc : "tile rarity +1% for every\n75,000 taps ever made" };
+		// overcharge
+		case "ad_chargercap": return { name : "Charger Cap+", rarity : 1, ap : 4,
+			desc : "the overcharger climbs\nfive levels further" };
+		case "ad_chargerate1": return { name : "Charge Rate+", rarity : 1, ap : 3,
+			desc : "taps charge the overcharger\ntwice as fast" };
+		// dials
+		case "ad_dialtier": return { name : "Dial Tier+", rarity : 0, ap : 5,
+			desc : "every dial pays +10% per\ntier: dial b +10%,\ndial c +20%, and so on" };
+		case "ad_patientpayload": return { name : "Patient Payload", rarity : 1, ap : 3,
+			desc : "a dial pays +1% for every\nsecond its cycle takes" };
 		// tiles
-		case "ad_automerger":  return { name : "Automerger",     rarity : 0, ap : 5,
-			desc : "the tile table merges\npairs on its own" };
-		case "ad_automerger2": return { name : "Automerger+",    rarity : 1, ap : 6,
-			desc : "auto merge interval\nreduced by 20%" };
-		case "ad_fabricator":  return { name : "Fabrication",    rarity : 0, ap : 2,
-			desc : "tiles fabricate\n10% faster" };
-		case "ad_fabricator2": return { name : "Fabrication+",   rarity : 1, ap : 3,
-			desc : "tiles fabricate another\n15% faster" };
-		case "ad_duplicator":  return { name : "Duplicator",     rarity : 2, ap : 4,
-			desc : "fabricated tiles have a 15%\nchance to arrive twice" };
-		case "ad_tilerarity":  return { name : "Refined Alloys", rarity : 3, ap : 7,
+		case "ad_fabricator": return { name : "Fabrication", rarity : 0, ap : 2,
+			desc : "the fabricator runs\n15% faster" };
+		case "ad_fabricator2": return { name : "Fabrication+", rarity : 0, ap : 2,
+			desc : "the fabricator runs\nanother 15% faster" };
+		case "ad_fabricator3": return { name : "Fabrication++", rarity : 1, ap : 3,
+			desc : "the fabricator runs\nanother 25% faster" };
+		case "ad_automerger2": return { name : "Automerger+", rarity : 1, ap : 6,
+			desc : "the automerger works\n25% faster" };
+		case "ad_automerger3": return { name : "Automerger++", rarity : 2, ap : 7,
+			desc : "the automerger works\nanother 40% faster" };
+		case "ad_duplicator": return { name : "Duplicator", rarity : 0, ap : 3,
+			desc : "+15% chance a fabricated\ntile arrives twice" };
+		case "ad_duplicator2": return { name : "Duplicator+", rarity : 1, ap : 5,
+			desc : "+20% more chance of\na second tile" };
+		case "ad_tiermerger1": return { name : "Tier Merger", rarity : 0, ap : 2,
+			desc : "+5% chance a merge climbs\nan extra tier" };
+		case "ad_tiermerger2": return { name : "Tier Merger+", rarity : 0, ap : 3,
+			desc : "+5% more" };
+		case "ad_tiermerger3": return { name : "Tier Merger++", rarity : 1, ap : 5,
+			desc : "+8% more" };
+		case "ad_mergecharger": return { name : "Merge Charger", rarity : 1, ap : 3,
+			desc : "every merge charges the\nfabricator by 5%" };
+		case "ad_mergecharge1": return { name : "Merge Charge+", rarity : 0, ap : 2,
+			desc : "a merge charges\n5% more" };
+		case "ad_mergecharge2": return { name : "Merge Charge++", rarity : 0, ap : 3,
+			desc : "a merge charges\n10% more" };
+		case "ad_raritymerger": return { name : "Rarity Merger", rarity : 2, ap : 7,
+			desc : "tile rarity +1% for\nevery 500 merges" };
+		case "ad_taptomerge": return { name : "Tap to Merge", rarity : 3, ap : 10,
+			desc : "every tap fully charges\nthe automerger" };
+		case "ad_taptofab": return { name : "Tap to Forge", rarity : 3, ap : 10,
+			desc : "every tap fully charges\nthe fabricator" };
+		case "ad_tilerarity": return { name : "Refined Alloys", rarity : 3, ap : 7,
 			desc : "tile rarity rate is\nraised by +400" };
-		case "ad_hotswap":     return { name : "Hot Swap",       rarity : 2, ap : 3,
+		case "ad_hotswap": return { name : "Hot Swap", rarity : 2, ap : 3,
 			desc : "dropping a tile onto a\nmismatched tile swaps them\ninstead of bouncing home" };
-		// colony
-		case "ad_cityloans":   return { name : "City Loans",   rarity : 0, ap : 2,
-			desc : "settled cities pay 10%\nmore tribute" };
-		case "ad_nightshift":  return { name : "Night Shift",  rarity : 1, ap : 4,
-			desc : "night side cities produce\n25% more while dark" };
-		case "ad_census":      return { name : "Census",       rarity : 0, ap : 1,
-			desc : "city populations become\nvisible from orbit" };
-		case "ad_terraformer": return { name : "Terraformers", rarity : 4, ap : 10,
-			desc : "biome shifts crawl\ntwice as fast" };
-		// combat
-		case "ad_initiative":    return { name : "Initiative",     rarity : 0, ap : 2,
-			desc : "your team opens battles\nwith +20% tic" };
-		case "ad_counterschool": return { name : "Counter School", rarity : 1, ap : 4,
-			desc : "every pawn gains +3%\ncounter chance" };
-		case "ad_fieldmedic":    return { name : "Field Medic",    rarity : 2, ap : 6,
-			desc : "survivors mend 10% of max\nhp after each battle" };
-		case "ad_warcry":        return { name : "War Cry",        rarity : 3, ap : 8,
-			desc : "the first attack of every\nbattle is a quality hit" };
+		// puck
+		case "ad_th_bounce1": return { name : "Bounce+", rarity : 0, ap : 5,
+			desc : "a throw has seven more\nbounces in it" };
+		case "ad_th_bouncereflect": return { name : "Bounce Reflect", rarity : 2, ap : 9,
+			desc : "walls take no speed\nfrom the puck" };
+		case "ad_th_bouncegain1": return { name : "Bounce Earnings", rarity : 0, ap : 4,
+			desc : "bounces pay x5" };
+		case "ad_th_bouncegain2": return { name : "Bounce Earnings+", rarity : 1, ap : 5,
+			desc : "fast bounces pay x5 more,\nslow bounces x10 more" };
+		// upgrades
+		case "ad_topgrade1": return { name : "Top Grade", rarity : 0, ap : 2,
+			desc : "rarer upgrades roll\n20% more often" };
+		case "ad_topgrade2": return { name : "Top Grade+", rarity : 1, ap : 3,
+			desc : "rarer upgrades roll\n30% more often still" };
+		case "ad_topgrade3": return { name : "Top Grade++", rarity : 2, ap : 5,
+			desc : "rarer upgrades roll\n50% more often still" };
+		case "ad_upgradetier": return { name : "Upgrade Tier+", rarity : 1, ap : 5,
+			desc : "upgrades roll with up to\ntwo more tiers" };
 		// support
-		case "ad_onefinger":   return { name : "One Finger Mode", rarity : 2, ap : 0,
-			desc : "hold-friendly input\neverywhere" };
-		case "ad_autobuy":     return { name : "Autobuy",         rarity : 0, ap : 0,
-			desc : "cheap purchases handle\nthemselves" };
-		case "ad_aputilizer":  return { name : "AP Utilizer",     rarity : 2, ap : 4,
-			desc : "raises max ap by +2" };
-		case "ad_luckcharm":   return { name : "Lucky Charm",     rarity : 1, ap : 3,
-			desc : "+5% to every roll that\nmentions luck" };
-		case "ad_notekeeper":  return { name : "Note Keeper",     rarity : 0, ap : 1,
-			desc : "the deck remembers the\nlast card you inspected" };
-		case "ad_bargain":     return { name : "Bargain Hunter",  rarity : 1, ap : 3,
+		case "ad_luckystrike": return { name : "Lucky Strike", rarity : 2, ap : 7,
+			desc : "credits drop from taps\ntwice as often" };
+		case "ad_jackpot1": return { name : "Jackpot", rarity : 0, ap : 3,
+			desc : "every credit drop\npays one more" };
+		case "ad_offlinecollect": return { name : "Autocollect", rarity : 0, ap : 2,
+			desc : "profit earned while away\nis collected on arrival" };
+		case "ad_bargain": return { name : "Bargain Hunter", rarity : 1, ap : 3,
 			desc : "discovering new abilities\ncosts 15% fewer units" };
-		case "ad_deeppockets": return { name : "Deep Pockets",    rarity : 2, ap : 2,
-			desc : "raises max ap by +4" };
-		case "ad_scholar":     return { name : "Scholar",         rarity : 3, ap : 4,
+		case "ad_scholar": return { name : "Scholar", rarity : 3, ap : 4,
 			desc : "discovered abilities arrive\nalready enabled when the\nap can cover them" };
-		// ---- the second half (2026-09-11): made up, unwired placeholders ----
-		// survey
-		case "ad_signalboost": return { name : "Signal Boost", rarity : 0, ap : 2,
-			desc : "probe reports arrive\n30% sooner" };
-		case "ad_orbitalmap": return { name : "Orbital Cartography", rarity : 1, ap : 3,
-			desc : "surveyed sites stay marked\nfrom orbit forever" };
-		case "ad_probeswarm": return { name : "Probe Swarm", rarity : 2, ap : 5,
-			desc : "one launch sends three\nprobes toward a site" };
-		case "ad_coresampler": return { name : "Core Sampler", rarity : 3, ap : 7,
-			desc : "surveys can strike the\nmantle: rare finds doubled" };
-		case "ad_geologist": return { name : "Field Geologist", rarity : 4, ap : 9,
-			desc : "every tenth survey is a\nguaranteed discovery" };
-		// fleet
-		case "ad_cargohold": return { name : "Cargo Hold", rarity : 0, ap : 2,
-			desc : "the ship carries 25%\nmore between systems" };
-		case "ad_slingshot": return { name : "Gravity Sling", rarity : 1, ap : 3,
-			desc : "a warp that passes a star\ncosts nothing" };
-		case "ad_hullplate": return { name : "Hull Plating", rarity : 1, ap : 4,
-			desc : "re-entry wear on the\nhull is halved" };
-		case "ad_starcharts": return { name : "Star Charts", rarity : 2, ap : 5,
-			desc : "unvisited systems show\ntheir planet count" };
-		case "ad_wormhole": return { name : "Wormhole Key", rarity : 4, ap : 10,
-			desc : "one free jump to any\nvisited star, once a day" };
-		// tiles
-		case "ad_magnet": return { name : "Tile Magnet", rarity : 0, ap : 2,
-			desc : "a dropped tile snaps to\nthe nearest matching pair" };
-		case "ad_sorter": return { name : "Sorting Arm", rarity : 1, ap : 4,
-			desc : "the table tidies itself\nby tier once a minute" };
-		case "ad_smelter": return { name : "Smelter", rarity : 2, ap : 5,
-			desc : "three tiles of one tier\nmerge as a single pair" };
-		case "ad_overclock": return { name : "Overclock", rarity : 3, ap : 7,
-			desc : "the fabricator runs at\ndouble speed for 30s\nafter every merge" };
-		case "ad_goldleaf": return { name : "Gold Leaf", rarity : 4, ap : 9,
-			desc : "a merged tile has a 2%\nchance to skip a tier" };
-		// colony
-		case "ad_lanterns": return { name : "Lanterns", rarity : 0, ap : 1,
-			desc : "city lights reach further\ninto the night side" };
-		case "ad_marketday": return { name : "Market Day", rarity : 0, ap : 2,
-			desc : "tribute collects 10%\nfaster on the day side" };
-		case "ad_aqueducts": return { name : "Aqueducts", rarity : 1, ap : 3,
-			desc : "cities grow one size past\nwhat their biome allows" };
-		case "ad_observatory": return { name : "Observatory", rarity : 2, ap : 4,
-			desc : "a city with an observatory\nreveals its whole system" };
-		case "ad_guilds": return { name : "Guilds", rarity : 2, ap : 5,
-			desc : "settled cities trade with\neach other: +15% tribute" };
-		case "ad_capital": return { name : "Capital", rarity : 3, ap : 8,
-			desc : "name one city the capital:\nit pays double" };
-		// combat
-		case "ad_drillsgt": return { name : "Drill Sergeant", rarity : 0, ap : 2,
-			desc : "recruits arrive with\n+10% hp" };
-		case "ad_ambush": return { name : "Ambush", rarity : 1, ap : 3,
-			desc : "the enemy's first turn\nis skipped" };
-		case "ad_shieldwall": return { name : "Shield Wall", rarity : 2, ap : 5,
-			desc : "pawns standing together\ntake 15% less" };
-		case "ad_lastword": return { name : "Last Word", rarity : 2, ap : 6,
-			desc : "a falling pawn lands one\nfree strike first" };
-		case "ad_veterans": return { name : "Veterans", rarity : 3, ap : 7,
-			desc : "survivors keep 5% of the\nxp they earned" };
-		case "ad_ironwill": return { name : "Iron Will", rarity : 4, ap : 9,
-			desc : "once a battle, a killing\nblow leaves 1 hp instead" };
-		// support
-		case "ad_alarmclock": return { name : "Alarm Clock", rarity : 0, ap : 1,
-			desc : "the welcome-back card\nsays what ran dry, and when" };
-		case "ad_archivist": return { name : "Archivist", rarity : 1, ap : 2,
-			desc : "the statistics remember\ntwice as far back" };
-		case "ad_nightowl": return { name : "Night Owl", rarity : 1, ap : 3,
-			desc : "the battery drains 10%\nslower while you are away" };
-		case "ad_tinkerer": return { name : "Tinkerer", rarity : 2, ap : 4,
-			desc : "the crank charges 25%\nmore per turn" };
-		case "ad_secondwind": return { name : "Second Wind", rarity : 3, ap : 6,
-			desc : "the time bank fills 20%\nfaster while it is empty" };
+		// rebirth
+		case "ad_networth": return { name : "Networth", rarity : 3, ap : 5,
+			desc : "rebirth counts the profit\nyou spent, not only what\nyou hold" };
+		case "ad_resetbracer": return { name : "Reset Bracer", rarity : 2, ap : 5,
+			desc : "every dial keeps one level\nthrough a rebirth" };
+		case "ad_resetbracer2": return { name : "Reset Bracer+", rarity : 3, ap : 10,
+			desc : "every dial keeps all its\nlevels through a rebirth" };
 	}
 	return { name : "???", rarity : 0, ap : 0, desc : "" };
 }

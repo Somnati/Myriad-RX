@@ -28,6 +28,12 @@ function update_click() {
 	// out in update_clicker, and this one is live
 	rebirth_init();
 	if (g.rebirth.units >= arb(1)) g.click_gps = do_add(g.click_gps, g.rebirth.units);
+	// THE DECK (Myriad DE's tapper abilities, 2026-09-13): the syphon is 1%
+	// of the fleet's rate, + tapper syphon's 1% / 10% / 50%
+	g.tapsyphon = .01;
+	if (abi_on("ad_tappersyphon1")) g.tapsyphon += .01;
+	if (abi_on("ad_tappersyphon2")) g.tapsyphon += .1;
+	if (abi_on("ad_tappersyphon3")) g.tapsyphon += .5;
 	g.tapsyphon_pull = 0;
 
 	if (g.tapsyphon > 0 && g.all_gps > 2)
@@ -48,6 +54,29 @@ function update_click() {
 	// overcharge_multi) at the end of update_clicker). obj_overcharge
 	// calls this the moment its level changes, so the per-tap readout
 	// shows the charged figure the way DE's did.
+	// profitable tapper: +1% for every 2,500 taps ever made (DE's)
+	var _taps = variable_global_exists("total_taps") ? g.total_taps : 0;
+	if (abi_on("ad_profitabletapper") && _taps >= 2500)
+		g.click_gps = do_scale(g.click_gps, 1 + .01 * floor(_taps / 2500));
+
+	// ---- THE CRIT FIGURES, DE's update_clicker: base 5% and x1.5..x5,
+	// then the deck - rate+ doubles the base, rate++ / +++ x3 / x4, every
+	// critical cut halves the rate and doubles the multiplier, the
+	// critical tapper adds 1% of multiplier per 7,500 taps. Stored here
+	// (create_clicker's bases are the constants) - the roll in tap_fire
+	// reads these and adds the upgrade table's own on top ----
+	var _cr = 5, _cm = 1;
+	if (abi_on("ad_critrate1")) _cr *= 2;
+	if (abi_on("ad_critrate2")) _cr *= 3;
+	if (abi_on("ad_critrate3")) _cr *= 4;
+	var _cuts = (abi_on("ad_critcut1") ? 1 : 0) + (abi_on("ad_critcut2") ? 1 : 0) + (abi_on("ad_critcut3") ? 1 : 0);
+	_cr /= power(2, _cuts);
+	_cm *= power(2, _cuts);
+	if (abi_on("ad_criticaltapper")) _cm *= 1 + .01 * floor(_taps / 7500);
+	g.click_crit      = _cr;
+	g.click_critx_min = 1.5 * _cm;
+	g.click_critx_max = 5 * _cm;
+
 	var _oc = overcharge_multi();
 	if (_oc > 1) g.click_gps = do_scale(g.click_gps, _oc);
 }

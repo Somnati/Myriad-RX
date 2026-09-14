@@ -72,7 +72,10 @@ function upgrade_roll(_slot) {
 	// table, then clamped by the roster's own ceiling so a grant stays
 	// one tier however lucky the roll was. This is what the dots under
 	// the row are counting.
-	var _cap = min(upgrade_roll_tiers(_rar), _pick.cap);
+	// (upgrade tier+, DE's: up to two tiers more, and the roster's ceiling
+	// gives the same two - upgrade_cap raises its clamp by two while it is on)
+	var _xt = abi_on("ad_upgradetier") ? irandom(2) : 0;
+	var _cap = min(upgrade_roll_tiers(_rar) + _xt, _pick.cap + (abi_on("ad_upgradetier") ? 2 : 0));
 
 	var _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
 	// two decimals: the exact number is noise, and a readout that

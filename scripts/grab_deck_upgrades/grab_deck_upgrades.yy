@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"grab_deck_combat",
+  "%Name":"grab_deck_upgrades",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"grab_deck_combat",
+  "name":"grab_deck_upgrades",
   "parent":{
     "name":"deck",
     "path":"folders/game/deck.yy",

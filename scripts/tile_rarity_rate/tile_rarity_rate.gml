@@ -61,5 +61,12 @@ function tile_rarity_rate() {
 		if (_lv > 0) _r *= 1 + (TILE_RARITY_STEP * _lv) / 100;
 	}
 
+	// THE DECK's stacks (DE's, 2026-09-13): rare tapper +1% per 75,000 taps
+	// ever, rarity merger +1% per 500 merges - multipliers, like the upgrade
+	if (abi_on("ad_raretapper") && variable_global_exists("total_taps"))
+		_r *= 1 + .01 * floor(g.total_taps / 75000);
+	if (abi_on("ad_raritymerger") && variable_global_exists("tiles"))
+		_r *= 1 + .01 * floor((g.tiles[$ "merges"] ?? 0) / 500);
+
 	return max(0, _r);
 }

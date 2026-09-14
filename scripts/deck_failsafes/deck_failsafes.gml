@@ -3,9 +3,25 @@
 /// can never stay ENABLED without its parent enabled - turning the
 /// parent off snaps its children off too (their AP returns on the
 /// next grab_deck_ap). runs after every write-back and on load.
-/// one line per parent->child chain; keep in sync with the batches.
+/// (GENERATED from build_deck.py's table - one line per chain link)
 function deck_failsafes() {
-	if (g.ad_probespeed != 1 && g.ad_probespeed2 == 1) g.ad_probespeed2 = 0;
-	if (g.ad_automerger != 1 && g.ad_automerger2 == 1) g.ad_automerger2 = 0;
+	if (g.ad_critrate1 != 1 && g.ad_critrate2 == 1) g.ad_critrate2 = 0;
+	if (g.ad_critrate2 != 1 && g.ad_critrate3 == 1) g.ad_critrate3 = 0;
+	if (g.ad_critcut1 != 1 && g.ad_critcut2 == 1) g.ad_critcut2 = 0;
+	if (g.ad_critcut2 != 1 && g.ad_critcut3 == 1) g.ad_critcut3 = 0;
+	if (g.ad_tappersyphon1 != 1 && g.ad_tappersyphon2 == 1) g.ad_tappersyphon2 = 0;
+	if (g.ad_tappersyphon2 != 1 && g.ad_tappersyphon3 == 1) g.ad_tappersyphon3 = 0;
 	if (g.ad_fabricator != 1 && g.ad_fabricator2 == 1) g.ad_fabricator2 = 0;
+	if (g.ad_fabricator2 != 1 && g.ad_fabricator3 == 1) g.ad_fabricator3 = 0;
+	if (g.ad_automerger2 != 1 && g.ad_automerger3 == 1) g.ad_automerger3 = 0;
+	if (g.ad_duplicator != 1 && g.ad_duplicator2 == 1) g.ad_duplicator2 = 0;
+	if (g.ad_tiermerger1 != 1 && g.ad_tiermerger2 == 1) g.ad_tiermerger2 = 0;
+	if (g.ad_tiermerger2 != 1 && g.ad_tiermerger3 == 1) g.ad_tiermerger3 = 0;
+	if (g.ad_mergecharger != 1 && g.ad_mergecharge1 == 1) g.ad_mergecharge1 = 0;
+	if (g.ad_mergecharge1 != 1 && g.ad_mergecharge2 == 1) g.ad_mergecharge2 = 0;
+	if (g.ad_th_bouncegain1 != 1 && g.ad_th_bouncegain2 == 1) g.ad_th_bouncegain2 = 0;
+	if (g.ad_topgrade1 != 1 && g.ad_topgrade2 == 1) g.ad_topgrade2 = 0;
+	if (g.ad_topgrade2 != 1 && g.ad_topgrade3 == 1) g.ad_topgrade3 = 0;
+	if (g.ad_resetbracer != 1 && g.ad_resetbracer2 == 1) g.ad_resetbracer2 = 0;
+	deck_apply();
 }

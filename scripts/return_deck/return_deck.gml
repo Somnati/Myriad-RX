@@ -1,91 +1,83 @@
 /// @description return_deck() - write a slot's toggled input back to
 /// the matching global. MUST mirror the grab_deck batch order exactly
 /// (same entries, same sequence - the cursor is the identity).
-/// titles are walked too; a title row's input (3) writes back as 3.
+/// titles are walked too. (GENERATED from build_deck.py's table)
 function return_deck() {
 	_a = 0;
 
-	// survey
-	g.ad_title_survey = return_ability(g.ad_title_survey);
-	g.ad_probespeed   = return_ability(g.ad_probespeed);
-	g.ad_probespeed2  = return_ability(g.ad_probespeed2);
-	g.ad_multiprobe   = return_ability(g.ad_multiprobe);
-	g.ad_deepscan     = return_ability(g.ad_deepscan);
-	g.ad_autosurvey   = return_ability(g.ad_autosurvey);
-	g.ad_signalboost = return_ability(g.ad_signalboost);
-	g.ad_orbitalmap = return_ability(g.ad_orbitalmap);
-	g.ad_probeswarm = return_ability(g.ad_probeswarm);
-	g.ad_coresampler = return_ability(g.ad_coresampler);
-	g.ad_geologist = return_ability(g.ad_geologist);
+	// tapper
+	g.ad_title_tapper = return_ability(g.ad_title_tapper);
+	g.ad_critrate1 = return_ability(g.ad_critrate1);
+	g.ad_critrate2 = return_ability(g.ad_critrate2);
+	g.ad_critrate3 = return_ability(g.ad_critrate3);
+	g.ad_critcut1 = return_ability(g.ad_critcut1);
+	g.ad_critcut2 = return_ability(g.ad_critcut2);
+	g.ad_critcut3 = return_ability(g.ad_critcut3);
+	g.ad_tappersyphon1 = return_ability(g.ad_tappersyphon1);
+	g.ad_tappersyphon2 = return_ability(g.ad_tappersyphon2);
+	g.ad_tappersyphon3 = return_ability(g.ad_tappersyphon3);
+	g.ad_profitabletapper = return_ability(g.ad_profitabletapper);
+	g.ad_criticaltapper = return_ability(g.ad_criticaltapper);
+	g.ad_raretapper = return_ability(g.ad_raretapper);
 
-	// fleet
-	g.ad_title_fleet = return_ability(g.ad_title_fleet);
-	g.ad_warptune    = return_ability(g.ad_warptune);
-	g.ad_fuelcells   = return_ability(g.ad_fuelcells);
-	g.ad_autopilot   = return_ability(g.ad_autopilot);
-	g.ad_deepspace   = return_ability(g.ad_deepspace);
-	g.ad_cargohold = return_ability(g.ad_cargohold);
-	g.ad_slingshot = return_ability(g.ad_slingshot);
-	g.ad_hullplate = return_ability(g.ad_hullplate);
-	g.ad_starcharts = return_ability(g.ad_starcharts);
-	g.ad_wormhole = return_ability(g.ad_wormhole);
+	// overcharge
+	g.ad_title_overcharge = return_ability(g.ad_title_overcharge);
+	g.ad_chargercap = return_ability(g.ad_chargercap);
+	g.ad_chargerate1 = return_ability(g.ad_chargerate1);
+
+	// dials
+	g.ad_title_dials = return_ability(g.ad_title_dials);
+	g.ad_dialtier = return_ability(g.ad_dialtier);
+	g.ad_patientpayload = return_ability(g.ad_patientpayload);
 
 	// tiles
-	g.ad_title_tiles  = return_ability(g.ad_title_tiles);
-	g.ad_automerger   = return_ability(g.ad_automerger);
-	g.ad_automerger2  = return_ability(g.ad_automerger2);
-	g.ad_fabricator   = return_ability(g.ad_fabricator);
-	g.ad_fabricator2  = return_ability(g.ad_fabricator2);
-	g.ad_duplicator   = return_ability(g.ad_duplicator);
-	g.ad_tilerarity   = return_ability(g.ad_tilerarity);
-	g.ad_hotswap      = return_ability(g.ad_hotswap);
-	g.ad_magnet = return_ability(g.ad_magnet);
-	g.ad_sorter = return_ability(g.ad_sorter);
-	g.ad_smelter = return_ability(g.ad_smelter);
-	g.ad_overclock = return_ability(g.ad_overclock);
-	g.ad_goldleaf = return_ability(g.ad_goldleaf);
+	g.ad_title_tiles = return_ability(g.ad_title_tiles);
+	g.ad_fabricator = return_ability(g.ad_fabricator);
+	g.ad_fabricator2 = return_ability(g.ad_fabricator2);
+	g.ad_fabricator3 = return_ability(g.ad_fabricator3);
+	g.ad_automerger2 = return_ability(g.ad_automerger2);
+	g.ad_automerger3 = return_ability(g.ad_automerger3);
+	g.ad_duplicator = return_ability(g.ad_duplicator);
+	g.ad_duplicator2 = return_ability(g.ad_duplicator2);
+	g.ad_tiermerger1 = return_ability(g.ad_tiermerger1);
+	g.ad_tiermerger2 = return_ability(g.ad_tiermerger2);
+	g.ad_tiermerger3 = return_ability(g.ad_tiermerger3);
+	g.ad_mergecharger = return_ability(g.ad_mergecharger);
+	g.ad_mergecharge1 = return_ability(g.ad_mergecharge1);
+	g.ad_mergecharge2 = return_ability(g.ad_mergecharge2);
+	g.ad_raritymerger = return_ability(g.ad_raritymerger);
+	g.ad_taptomerge = return_ability(g.ad_taptomerge);
+	g.ad_taptofab = return_ability(g.ad_taptofab);
+	g.ad_tilerarity = return_ability(g.ad_tilerarity);
+	g.ad_hotswap = return_ability(g.ad_hotswap);
 
-	// colony
-	g.ad_title_colony = return_ability(g.ad_title_colony);
-	g.ad_cityloans    = return_ability(g.ad_cityloans);
-	g.ad_nightshift   = return_ability(g.ad_nightshift);
-	g.ad_census       = return_ability(g.ad_census);
-	g.ad_terraformer  = return_ability(g.ad_terraformer);
-	g.ad_lanterns = return_ability(g.ad_lanterns);
-	g.ad_marketday = return_ability(g.ad_marketday);
-	g.ad_aqueducts = return_ability(g.ad_aqueducts);
-	g.ad_observatory = return_ability(g.ad_observatory);
-	g.ad_guilds = return_ability(g.ad_guilds);
-	g.ad_capital = return_ability(g.ad_capital);
+	// puck
+	g.ad_title_puck = return_ability(g.ad_title_puck);
+	g.ad_th_bounce1 = return_ability(g.ad_th_bounce1);
+	g.ad_th_bouncereflect = return_ability(g.ad_th_bouncereflect);
+	g.ad_th_bouncegain1 = return_ability(g.ad_th_bouncegain1);
+	g.ad_th_bouncegain2 = return_ability(g.ad_th_bouncegain2);
 
-	// combat
-	g.ad_title_combat  = return_ability(g.ad_title_combat);
-	g.ad_initiative    = return_ability(g.ad_initiative);
-	g.ad_counterschool = return_ability(g.ad_counterschool);
-	g.ad_fieldmedic    = return_ability(g.ad_fieldmedic);
-	g.ad_warcry        = return_ability(g.ad_warcry);
-	g.ad_drillsgt = return_ability(g.ad_drillsgt);
-	g.ad_ambush = return_ability(g.ad_ambush);
-	g.ad_shieldwall = return_ability(g.ad_shieldwall);
-	g.ad_lastword = return_ability(g.ad_lastword);
-	g.ad_veterans = return_ability(g.ad_veterans);
-	g.ad_ironwill = return_ability(g.ad_ironwill);
+	// upgrades
+	g.ad_title_upgrades = return_ability(g.ad_title_upgrades);
+	g.ad_topgrade1 = return_ability(g.ad_topgrade1);
+	g.ad_topgrade2 = return_ability(g.ad_topgrade2);
+	g.ad_topgrade3 = return_ability(g.ad_topgrade3);
+	g.ad_upgradetier = return_ability(g.ad_upgradetier);
 
 	// support
 	g.ad_title_support = return_ability(g.ad_title_support);
-	g.ad_onefinger     = return_ability(g.ad_onefinger);
-	g.ad_autobuy       = return_ability(g.ad_autobuy);
-	g.ad_aputilizer    = return_ability(g.ad_aputilizer);
-	g.ad_luckcharm     = return_ability(g.ad_luckcharm);
-	g.ad_notekeeper    = return_ability(g.ad_notekeeper);
-	g.ad_bargain       = return_ability(g.ad_bargain);
-	g.ad_deeppockets   = return_ability(g.ad_deeppockets);
-	g.ad_scholar       = return_ability(g.ad_scholar);
-	g.ad_alarmclock = return_ability(g.ad_alarmclock);
-	g.ad_archivist = return_ability(g.ad_archivist);
-	g.ad_nightowl = return_ability(g.ad_nightowl);
-	g.ad_tinkerer = return_ability(g.ad_tinkerer);
-	g.ad_secondwind = return_ability(g.ad_secondwind);
+	g.ad_luckystrike = return_ability(g.ad_luckystrike);
+	g.ad_jackpot1 = return_ability(g.ad_jackpot1);
+	g.ad_offlinecollect = return_ability(g.ad_offlinecollect);
+	g.ad_bargain = return_ability(g.ad_bargain);
+	g.ad_scholar = return_ability(g.ad_scholar);
+
+	// rebirth
+	g.ad_title_rebirth = return_ability(g.ad_title_rebirth);
+	g.ad_networth = return_ability(g.ad_networth);
+	g.ad_resetbracer = return_ability(g.ad_resetbracer);
+	g.ad_resetbracer2 = return_ability(g.ad_resetbracer2);
 
 	save_mark_dirty();
 }

@@ -134,11 +134,7 @@
 	g.tile_rarity_base = 0;
 	g.tile_rarity   = TILE_RARITY_BASE;  // DE's base - see tile_rarity_rate
 	g.rarity_rate   = 0;
-	// two ability-deck flags the tech demo's tile code reads. Nothing
-	// grants them yet; they are here so the ported code finds them
-	// rather than dying at the first roll.
-	g.ad_tilerarity = 0;   // +400 fabricator luck
-	g.ad_hotswap    = 0;   // pick a tile straight off the board
+	// (ad_tilerarity / ad_hotswap are deck keys now - create_new_deck)
 	// no tiles_init() here on purpose: while TILES_LIVE is false the
 	// table is lazy - syst_tiles' Create builds it when you open the
 	// room, and until then the engine does not exist to tick

@@ -4,25 +4,56 @@
 /// g.ad_title_* state so grab_deck and return_deck walk the same
 /// cursor; this derives them and runs from fetch_new_ability (which
 /// every unlock, load, and room entry passes through).
+/// (GENERATED from build_deck.py's table)
 function update_deck_titles() {
-	g.ad_title_survey = (g.ad_probespeed != -1 || g.ad_probespeed2 != -1
-		|| g.ad_multiprobe != -1 || g.ad_deepscan != -1
-		|| g.ad_autosurvey != -1) ? 3 : -1;
-
-	g.ad_title_fleet = (g.ad_warptune != -1 || g.ad_fuelcells != -1
-		|| g.ad_autopilot != -1 || g.ad_deepspace != -1) ? 3 : -1;
-
-	g.ad_title_tiles = (g.ad_automerger != -1 || g.ad_automerger2 != -1
-		|| g.ad_fabricator != -1 || g.ad_fabricator2 != -1
-		|| g.ad_duplicator != -1 || g.ad_tilerarity != -1) ? 3 : -1;
-
-	g.ad_title_colony = (g.ad_cityloans != -1 || g.ad_nightshift != -1
-		|| g.ad_census != -1 || g.ad_terraformer != -1) ? 3 : -1;
-
-	g.ad_title_combat = (g.ad_initiative != -1 || g.ad_counterschool != -1
-		|| g.ad_fieldmedic != -1 || g.ad_warcry != -1) ? 3 : -1;
-
-	g.ad_title_support = (g.ad_onefinger != -1 || g.ad_autobuy != -1
-		|| g.ad_aputilizer != -1 || g.ad_luckcharm != -1
-		|| g.ad_notekeeper != -1) ? 3 : -1;
+	g.ad_title_tapper = (g.ad_critrate1 != -1
+		|| g.ad_critrate2 != -1
+		|| g.ad_critrate3 != -1
+		|| g.ad_critcut1 != -1
+		|| g.ad_critcut2 != -1
+		|| g.ad_critcut3 != -1
+		|| g.ad_tappersyphon1 != -1
+		|| g.ad_tappersyphon2 != -1
+		|| g.ad_tappersyphon3 != -1
+		|| g.ad_profitabletapper != -1
+		|| g.ad_criticaltapper != -1
+		|| g.ad_raretapper != -1) ? 3 : -1;
+	g.ad_title_overcharge = (g.ad_chargercap != -1
+		|| g.ad_chargerate1 != -1) ? 3 : -1;
+	g.ad_title_dials = (g.ad_dialtier != -1
+		|| g.ad_patientpayload != -1) ? 3 : -1;
+	g.ad_title_tiles = (g.ad_fabricator != -1
+		|| g.ad_fabricator2 != -1
+		|| g.ad_fabricator3 != -1
+		|| g.ad_automerger2 != -1
+		|| g.ad_automerger3 != -1
+		|| g.ad_duplicator != -1
+		|| g.ad_duplicator2 != -1
+		|| g.ad_tiermerger1 != -1
+		|| g.ad_tiermerger2 != -1
+		|| g.ad_tiermerger3 != -1
+		|| g.ad_mergecharger != -1
+		|| g.ad_mergecharge1 != -1
+		|| g.ad_mergecharge2 != -1
+		|| g.ad_raritymerger != -1
+		|| g.ad_taptomerge != -1
+		|| g.ad_taptofab != -1
+		|| g.ad_tilerarity != -1
+		|| g.ad_hotswap != -1) ? 3 : -1;
+	g.ad_title_puck = (g.ad_th_bounce1 != -1
+		|| g.ad_th_bouncereflect != -1
+		|| g.ad_th_bouncegain1 != -1
+		|| g.ad_th_bouncegain2 != -1) ? 3 : -1;
+	g.ad_title_upgrades = (g.ad_topgrade1 != -1
+		|| g.ad_topgrade2 != -1
+		|| g.ad_topgrade3 != -1
+		|| g.ad_upgradetier != -1) ? 3 : -1;
+	g.ad_title_support = (g.ad_luckystrike != -1
+		|| g.ad_jackpot1 != -1
+		|| g.ad_offlinecollect != -1
+		|| g.ad_bargain != -1
+		|| g.ad_scholar != -1) ? 3 : -1;
+	g.ad_title_rebirth = (g.ad_networth != -1
+		|| g.ad_resetbracer != -1
+		|| g.ad_resetbracer2 != -1) ? 3 : -1;
 }

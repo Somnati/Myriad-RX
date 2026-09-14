@@ -34,6 +34,7 @@ function game_reset(_diff = 1) {
 	ticket_init(true);  // the scratch tickets: a new game clears the desk
 	cheat_init(true);   // the cheat shop: every row back to 100
 	coin_init(true);    // the coin's tally
+	create_new_deck();  // the ability deck: every key locked, a fresh discovery seed
 	gift_init(true);     // the login calendar starts over with a new game
 	battery_init(true);
 	ccore_init(true);

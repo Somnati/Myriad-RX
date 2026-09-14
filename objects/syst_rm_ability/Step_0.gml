@@ -167,14 +167,16 @@ if (mouse_check_button_pressed(mb_left)) {
 
 	// (no back button - the burger is the X, the overlay's rule)
 
-	// discover: spend units, then a DRAFT of up to three seeded
+	// discover: spend units - REBIRTH UNITS, DE's currency (2026-09-13, with
+	// the roster: the bank the rebirth boost reads, so a discovery costs
+	// boost - DE's tension) - then a DRAFT of up to three seeded
 	// candidates rises - the player picks one. gate on the POOL, not
 	// the counts - paying while nothing is drawable would eat units.
 	// the free-purchasing debug toggle waives the units cost
 	if (point_in_rectangle(mouse_x, mouse_y, info_x, 200, info_x + info_w, 224)) {
 		if (array_length(g.abi_pool) > 0
-		&& (g.abi_free || g.units >= g.new_ability_cost)) {
-			if (!g.abi_free) g.units = do_subtract(g.units, g.new_ability_cost);
+		&& (g.abi_free || g.rebirth.units >= g.new_ability_cost)) {
+			if (!g.abi_free) g.rebirth.units = do_subtract(g.rebirth.units, g.new_ability_cost);
 			deck_draft_roll();
 			play_sound_ext(snd_pop, .9, 1.1, .5, 1);
 		} else play_sound_ext(snd_softclick, .7, .8, .4, 1);
@@ -182,7 +184,7 @@ if (mouse_check_button_pressed(mb_left)) {
 
 	// debug: grant exactly the next discovery's cost in units
 	if (point_in_rectangle(mouse_x, mouse_y, info_x, 230, info_x + 70, 244)) {
-		g.units = do_add(g.units, do_ceil(g.new_ability_cost));
+		g.rebirth.units = do_add(g.rebirth.units, do_ceil(g.new_ability_cost));
 		play_sound_ext(snd_pop, 1.0, 1.2, .4, 1);
 	}
 

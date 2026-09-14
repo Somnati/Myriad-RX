@@ -24,5 +24,5 @@ function upgrade_cap(_slot) {
 	if (_e == -1) return 0;
 	var _c = _s[$ "cap"];
 	if (is_undefined(_c)) return max(1, round(_e.cap * (1 + _s.rar * 0.25)));
-	return clamp(floor(_c), 1, _e.cap);
+	return clamp(floor(_c), 1, _e.cap + (abi_on("ad_upgradetier") ? 2 : 0));   // (upgrade tier+: two more)
 }

@@ -25,5 +25,16 @@
 function tile_chance_rate(_id) {
 	if (!variable_global_exists("tiles")) return TILE_CHANCE_BASE;
 	var _lv = g.tiles.upg[$ _id] ?? 0;
-	return min(TILE_CHANCE_CAP, TILE_CHANCE_BASE + TILE_CHANCE_STEP * _lv);
+	var _r = min(TILE_CHANCE_CAP, TILE_CHANCE_BASE + TILE_CHANCE_STEP * _lv);
+	// THE DECK (DE's, 2026-09-13), on top of the capped upgrade: duplicator
+	// / + (+15 / +20 points), tier merger / + / ++ (+5 / +5 / +8 points)
+	if (_id == "dup") {
+		if (abi_on("ad_duplicator"))  _r += 15;
+		if (abi_on("ad_duplicator2")) _r += 20;
+	} else if (_id == "tierup") {
+		if (abi_on("ad_tiermerger1")) _r += 5;
+		if (abi_on("ad_tiermerger2")) _r += 5;
+		if (abi_on("ad_tiermerger3")) _r += 8;
+	}
+	return _r;
 }

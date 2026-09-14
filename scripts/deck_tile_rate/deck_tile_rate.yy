@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"grab_deck_fleet",
+  "%Name":"deck_tile_rate",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"grab_deck_fleet",
+  "name":"deck_tile_rate",
   "parent":{
     "name":"deck",
     "path":"folders/game/deck.yy",

@@ -26,7 +26,7 @@ function create_new_deck() {
 	g.curap_spend = 0; // spend across everything DISCOVERED
 
 	// ---- discovery (units currency buys new abilities) ----
-	g.units                  = 0;
+	g.units                  = 0;   // (unused since 2026-09-13: the deck spends g.rebirth.units, DE's currency)
 	g.new_abilities_unlocked = 0;
 	g.unlockable_abilities   = 0;
 	g.new_ability_cost       = arb(1);
@@ -51,47 +51,45 @@ function create_new_deck() {
 	// ---- section titles: HIDDEN (-1) until their section has at
 	// least one discovered ability - update_deck_titles() derives
 	// them, so a fresh deck shows nothing at all (native behavior) ----
-	g.ad_title_survey  = -1;
-	g.ad_title_fleet   = -1;
-	g.ad_title_tiles   = -1;
-	g.ad_title_colony  = -1;
-	g.ad_title_combat  = -1;
+	g.ad_title_tapper = -1;
+	g.ad_title_overcharge = -1;
+	g.ad_title_dials = -1;
+	g.ad_title_tiles = -1;
+	g.ad_title_puck = -1;
+	g.ad_title_upgrades = -1;
 	g.ad_title_support = -1;
+	g.ad_title_rebirth = -1;
 
-	// ---- every ability, all placeholders for future systems. the
-	// key list drives both init (-1 = locked) and the save section ----
+	// ---- THE ROSTER: Myriad DE's abilities, the ones our features can
+	// carry (his ask, 2026-09-13; the placeholders are gone). ONE TABLE
+	// in scratchpad/build_deck.py generates this list and every other
+	// touchpoint (grab_deck_*, _ap, send/unlock/return_deck,
+	// deck_card_info, update_deck_titles, deck_failsafes, the collection
+	// map); the seats are hand-placed and read abi_on(key). The key
+	// list drives both init (-1 = locked) and the save section ----
 	g.abi_keys = [
-		// survey
-		"ad_probespeed", "ad_probespeed2", "ad_multiprobe",
-		"ad_deepscan", "ad_autosurvey",
-		// fleet
-		"ad_warptune", "ad_fuelcells", "ad_autopilot", "ad_deepspace",
+		// tapper
+		"ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2",
+		"ad_critcut3", "ad_tappersyphon1", "ad_tappersyphon2", "ad_tappersyphon3",
+		"ad_profitabletapper", "ad_criticaltapper", "ad_raretapper",
+		// overcharge
+		"ad_chargercap", "ad_chargerate1",
+		// dials
+		"ad_dialtier", "ad_patientpayload",
 		// tiles
-		"ad_automerger", "ad_automerger2", "ad_fabricator",
-		"ad_fabricator2", "ad_duplicator", "ad_tilerarity", "ad_hotswap",
-		// colony
-		"ad_cityloans", "ad_nightshift", "ad_census", "ad_terraformer",
-		// combat
-		"ad_initiative", "ad_counterschool", "ad_fieldmedic", "ad_warcry",
+		"ad_fabricator", "ad_fabricator2", "ad_fabricator3", "ad_automerger2",
+		"ad_automerger3", "ad_duplicator", "ad_duplicator2", "ad_tiermerger1",
+		"ad_tiermerger2", "ad_tiermerger3", "ad_mergecharger", "ad_mergecharge1",
+		"ad_mergecharge2", "ad_raritymerger", "ad_taptomerge", "ad_taptofab", "ad_tilerarity",
+		"ad_hotswap",
+		// puck
+		"ad_th_bounce1", "ad_th_bouncereflect", "ad_th_bouncegain1", "ad_th_bouncegain2",
+		// upgrades
+		"ad_topgrade1", "ad_topgrade2", "ad_topgrade3", "ad_upgradetier",
 		// support
-		"ad_onefinger", "ad_autobuy", "ad_aputilizer", "ad_luckcharm",
-		"ad_notekeeper", "ad_bargain", "ad_deeppockets", "ad_scholar",
-		// ---- THE SECOND HALF (his ask, 2026-09-11: "twice the
-		// abilities... just make them up... don't wire in"). Every one
-		// is a placeholder for a system that does not exist yet; the
-		// deck framework treats them like the first half ----
-		// survey
-		"ad_signalboost", "ad_orbitalmap", "ad_probeswarm", "ad_coresampler", "ad_geologist",
-		// fleet
-		"ad_cargohold", "ad_slingshot", "ad_hullplate", "ad_starcharts", "ad_wormhole",
-		// tiles
-		"ad_magnet", "ad_sorter", "ad_smelter", "ad_overclock", "ad_goldleaf",
-		// colony
-		"ad_lanterns", "ad_marketday", "ad_aqueducts", "ad_observatory", "ad_guilds", "ad_capital",
-		// combat
-		"ad_drillsgt", "ad_ambush", "ad_shieldwall", "ad_lastword", "ad_veterans", "ad_ironwill",
-		// support
-		"ad_alarmclock", "ad_archivist", "ad_nightowl", "ad_tinkerer", "ad_secondwind",
+		"ad_luckystrike", "ad_jackpot1", "ad_offlinecollect", "ad_bargain", "ad_scholar",
+		// rebirth
+		"ad_networth", "ad_resetbracer", "ad_resetbracer2",
 	];
 	for (var _i = 0; _i < array_length(g.abi_keys); _i++)
 		variable_global_set(g.abi_keys[_i], -1);

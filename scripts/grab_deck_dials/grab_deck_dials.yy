@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"grab_deck_survey",
+  "%Name":"grab_deck_dials",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"grab_deck_survey",
+  "name":"grab_deck_dials",
   "parent":{
     "name":"deck",
     "path":"folders/game/deck.yy",
