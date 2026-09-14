@@ -9,17 +9,14 @@ function send_deck() {
 	send_ability("ad_critcut1", g.ad_critcut1);
 	send_ability("ad_critcut2", g.ad_critcut2, g.ad_critcut1);
 	send_ability("ad_critcut3", g.ad_critcut3, g.ad_critcut2);
+	send_ability("ad_criticalsyphon", g.ad_criticalsyphon);
 	send_ability("ad_tappersyphon1", g.ad_tappersyphon1);
 	send_ability("ad_tappersyphon2", g.ad_tappersyphon2, g.ad_tappersyphon1);
 	send_ability("ad_tappersyphon3", g.ad_tappersyphon3, g.ad_tappersyphon2);
-	send_ability("ad_profitabletapper", g.ad_profitabletapper);
-	send_ability("ad_criticaltapper", g.ad_criticaltapper);
-	send_ability("ad_raretapper", g.ad_raretapper);
 	// overcharge
 	send_ability("ad_chargercap", g.ad_chargercap);
 	send_ability("ad_chargerate1", g.ad_chargerate1);
 	// dials
-	send_ability("ad_dialtier", g.ad_dialtier);
 	send_ability("ad_patientpayload", g.ad_patientpayload);
 	// tiles
 	send_ability("ad_fabricator", g.ad_fabricator);
@@ -30,21 +27,11 @@ function send_deck() {
 	send_ability("ad_duplicator", g.ad_duplicator);
 	send_ability("ad_duplicator2", g.ad_duplicator2, g.ad_duplicator);
 	send_ability("ad_tiermerger1", g.ad_tiermerger1);
-	send_ability("ad_tiermerger2", g.ad_tiermerger2, g.ad_tiermerger1);
-	send_ability("ad_tiermerger3", g.ad_tiermerger3, g.ad_tiermerger2);
 	send_ability("ad_mergecharger", g.ad_mergecharger);
-	send_ability("ad_mergecharge1", g.ad_mergecharge1, g.ad_mergecharger);
-	send_ability("ad_mergecharge2", g.ad_mergecharge2, g.ad_mergecharge1);
 	send_ability("ad_raritymerger", g.ad_raritymerger);
-	send_ability("ad_taptomerge", g.ad_taptomerge);
-	send_ability("ad_taptofab", g.ad_taptofab);
-	send_ability("ad_tilerarity", g.ad_tilerarity);
-	send_ability("ad_hotswap", g.ad_hotswap);
 	// puck
 	send_ability("ad_th_bounce1", g.ad_th_bounce1);
-	send_ability("ad_th_bouncereflect", g.ad_th_bouncereflect);
-	send_ability("ad_th_bouncegain1", g.ad_th_bouncegain1);
-	send_ability("ad_th_bouncegain2", g.ad_th_bouncegain2, g.ad_th_bouncegain1);
+	send_ability("ad_th_bouncegain2", g.ad_th_bouncegain2);
 	// upgrades
 	send_ability("ad_topgrade1", g.ad_topgrade1);
 	send_ability("ad_topgrade2", g.ad_topgrade2, g.ad_topgrade1);
@@ -54,8 +41,6 @@ function send_deck() {
 	send_ability("ad_luckystrike", g.ad_luckystrike);
 	send_ability("ad_jackpot1", g.ad_jackpot1);
 	send_ability("ad_offlinecollect", g.ad_offlinecollect);
-	send_ability("ad_bargain", g.ad_bargain);
-	send_ability("ad_scholar", g.ad_scholar);
 	// rebirth
 	send_ability("ad_networth", g.ad_networth);
 	send_ability("ad_resetbracer", g.ad_resetbracer);

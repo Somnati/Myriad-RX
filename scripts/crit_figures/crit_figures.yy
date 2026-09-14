@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"crit_figures",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"crit_figures",
+  "parent":{
+    "name":"deck",
+    "path":"folders/game/deck.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

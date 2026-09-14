@@ -32,13 +32,7 @@ function fetch_new_ability(_do_unlock = false) {
 	unlock_deck();
 	update_deck_titles(); // the new ability may have opened its section
 
-	// Scholar (LIVE meta ability): the discovery arrives already
-	// enabled when the ap covers it (+2 maxap from the unlock itself
-	// is counted; the exact pool recomputes right after)
-	if (g.ad_scholar == 1 && variable_global_get(_drawn) == 100) {
-		var _ci = deck_card_info(_drawn);
-		if (g.ap + 2 >= _ci.ap) variable_global_set(_drawn, 1);
-	}
+	// (Scholar was cut from the roster, 2026-09-14: a discovery arrives off)
 
 	// refresh everything for the new state
 	g.abi_pool = [];

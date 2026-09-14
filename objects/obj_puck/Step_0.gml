@@ -328,18 +328,16 @@ if (!held && spd > 0) {
 		// THE POINT OF CONTACT: the float, the motes and the tap effect
 		// all leave the rim where it struck.
 		var _frac = clamp(spd / _max, 0, 1);
-		// THE DECK (DE's throwable cards, 2026-09-13): bounce earnings x5;
-		// bounce earnings+ x5 more on a fast bounce, x10 on a slow one
+		// THE DECK (DE's throwable card, 2026-09-13; the base one cut 2026-09-14):
+		// bounce earnings - x5 on a fast bounce, x10 on a slow one
 		var _pm = 1;
-		if (abi_on("ad_th_bouncegain1")) _pm *= 5;
 		if (abi_on("ad_th_bouncegain2")) _pm *= (_frac >= .5) ? 5 : 10;
 		puck_pay(_frac, _pm, __cx() + _hx, __cy() + _hy);
 
 		// restitution: fast bounces keep more than slow ones, so a
 		// throw decays gently at first and then falls off a cliff -
 		// which is what makes the last few bounces tense
-		if (!abi_on("ad_th_bouncereflect"))   // bounce reflect: the wall takes nothing (DE's)
-			spd *= lerp(PUCK_BNC_SLOW, PUCK_BNC_FAST, _frac);
+		spd *= lerp(PUCK_BNC_SLOW, PUCK_BNC_FAST, _frac);
 
 		// ⚖️ HIT-STUN, and the reason it works. The freeze itself is
 		// only two or three frames; what sells it is that friction is

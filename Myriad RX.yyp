@@ -303,6 +303,7 @@
     {"id":{"name":"credit_drop","path":"scripts/credit_drop/credit_drop.yy",},},
     {"id":{"name":"credit_tick","path":"scripts/credit_tick/credit_tick.yy",},},
     {"id":{"name":"credits_init","path":"scripts/credits_init/credits_init.yy",},},
+    {"id":{"name":"crit_figures","path":"scripts/crit_figures/crit_figures.yy",},},
     {"id":{"name":"crunch_arb_full","path":"scripts/crunch_arb_full/crunch_arb_full.yy",},},
     {"id":{"name":"crunch_arb","path":"scripts/crunch_arb/crunch_arb.yy",},},
     {"id":{"name":"crunch_time_ago","path":"scripts/crunch_time_ago/crunch_time_ago.yy",},},

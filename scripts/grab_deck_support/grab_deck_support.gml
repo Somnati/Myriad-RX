@@ -13,11 +13,5 @@ function grab_deck_support() {
 	ability(g.ad_offlinecollect, "Autocollect", common, 2,
 		"profit earned while away\nis collected on arrival", false, false);
 
-	ability(g.ad_bargain, "Bargain Hunter", uncommon, 3,
-		"discovering new abilities\ncosts 15% fewer units", false, false);
-
-	ability(g.ad_scholar, "Scholar", legendary, 4,
-		"discovered abilities arrive\nalready enabled when the\nap can cover them", false, false);
-
 	if (oo) if (a_ == -1) syst_rm_ability.batch_support = _a;
 }

@@ -42,6 +42,9 @@ function grab_deck_tapper() {
 	if (_open == false) ability_flavor("[requires critical cut+]", "", "", c_hred);
 	_open = true;
 
+	ability(g.ad_criticalsyphon, "Critical Syphon", uncommon, 5,
+		"the dials share your\ncritical rate and multiplier", false, false);
+
 	ability(g.ad_tappersyphon1, "Tapper Syphon", rare, 7,
 		"a tap also pays 1% of what\nthe dials make a second", false, false);
 
@@ -60,15 +63,6 @@ function grab_deck_tapper() {
 		"the syphon takes\nanother 50%", true, false);
 	if (_open == false) ability_flavor("[requires tapper syphon+]", "", "", c_hred);
 	_open = true;
-
-	ability(g.ad_profitabletapper, "Profitable Tapper", common, 3,
-		"tap profit +1% for every\n2,500 taps ever made", false, false);
-
-	ability(g.ad_criticaltapper, "Critical Tapper", uncommon, 5,
-		"crit multipliers +1% for\nevery 7,500 taps ever made", false, false);
-
-	ability(g.ad_raretapper, "Rare Tapper", legendary, 7,
-		"tile rarity +1% for every\n75,000 taps ever made", false, false);
 
 	if (oo) if (a_ == -1) syst_rm_ability.batch_tapper = _a;
 }

@@ -71,11 +71,17 @@ function update_dial(_i) {
 	var _cs = cheat_rate("dspeed");
 	if (_cs != 1) { _d.cycle_t /= _cs; _d.cps = 1 / _d.cycle_t; }
 
-	// THE DECK (DE's, 2026-09-13): dial tier+ pays +10% per tier (dial a is
-	// tier 0 - DE's give x (1 + .1 x tier)); patient payload pays +1% for
-	// every second of the cycle (DE's give x (1 + .01 x timer / 60))
-	if (abi_on("ad_dialtier") && _i > 0) _d.gpc = do_scale(_d.gpc, 1 + .1 * _i);
-	if (abi_on("ad_patientpayload"))    _d.gpc = do_scale(_d.gpc, 1 + .01 * max(0, _d.cycle_t));
+	// THE DECK (DE's, 2026-09-13): patient payload pays +1% for every second
+	// of the cycle (DE's give x (1 + .01 x timer / 60)); CRITICAL SYPHON
+	// (2026-09-14) shares the tapper's crit figures with every dial - as the
+	// EXPECTATION, rate x (mean multiplier - 1), so a cycle pays the same
+	// live and in the replay and the dial's readout stays honest
+	if (abi_on("ad_patientpayload")) _d.gpc = do_scale(_d.gpc, 1 + .01 * max(0, _d.cycle_t));
+	if (abi_on("ad_criticalsyphon")) {
+		var _cf = crit_figures();
+		var _p  = clamp(_cf.rate * luck_mod() / 100, 0, 1);
+		_d.gpc = do_scale(_d.gpc, 1 + _p * ((_cf.mn + _cf.mx) * .5 - 1));
+	}
 
 	_d.gps = do_scale(_d.gpc, _d.cps);
 }

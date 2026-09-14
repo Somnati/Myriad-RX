@@ -13,12 +13,10 @@ function return_deck() {
 	g.ad_critcut1 = return_ability(g.ad_critcut1);
 	g.ad_critcut2 = return_ability(g.ad_critcut2);
 	g.ad_critcut3 = return_ability(g.ad_critcut3);
+	g.ad_criticalsyphon = return_ability(g.ad_criticalsyphon);
 	g.ad_tappersyphon1 = return_ability(g.ad_tappersyphon1);
 	g.ad_tappersyphon2 = return_ability(g.ad_tappersyphon2);
 	g.ad_tappersyphon3 = return_ability(g.ad_tappersyphon3);
-	g.ad_profitabletapper = return_ability(g.ad_profitabletapper);
-	g.ad_criticaltapper = return_ability(g.ad_criticaltapper);
-	g.ad_raretapper = return_ability(g.ad_raretapper);
 
 	// overcharge
 	g.ad_title_overcharge = return_ability(g.ad_title_overcharge);
@@ -27,7 +25,6 @@ function return_deck() {
 
 	// dials
 	g.ad_title_dials = return_ability(g.ad_title_dials);
-	g.ad_dialtier = return_ability(g.ad_dialtier);
 	g.ad_patientpayload = return_ability(g.ad_patientpayload);
 
 	// tiles
@@ -40,22 +37,12 @@ function return_deck() {
 	g.ad_duplicator = return_ability(g.ad_duplicator);
 	g.ad_duplicator2 = return_ability(g.ad_duplicator2);
 	g.ad_tiermerger1 = return_ability(g.ad_tiermerger1);
-	g.ad_tiermerger2 = return_ability(g.ad_tiermerger2);
-	g.ad_tiermerger3 = return_ability(g.ad_tiermerger3);
 	g.ad_mergecharger = return_ability(g.ad_mergecharger);
-	g.ad_mergecharge1 = return_ability(g.ad_mergecharge1);
-	g.ad_mergecharge2 = return_ability(g.ad_mergecharge2);
 	g.ad_raritymerger = return_ability(g.ad_raritymerger);
-	g.ad_taptomerge = return_ability(g.ad_taptomerge);
-	g.ad_taptofab = return_ability(g.ad_taptofab);
-	g.ad_tilerarity = return_ability(g.ad_tilerarity);
-	g.ad_hotswap = return_ability(g.ad_hotswap);
 
 	// puck
 	g.ad_title_puck = return_ability(g.ad_title_puck);
 	g.ad_th_bounce1 = return_ability(g.ad_th_bounce1);
-	g.ad_th_bouncereflect = return_ability(g.ad_th_bouncereflect);
-	g.ad_th_bouncegain1 = return_ability(g.ad_th_bouncegain1);
 	g.ad_th_bouncegain2 = return_ability(g.ad_th_bouncegain2);
 
 	// upgrades
@@ -70,8 +57,6 @@ function return_deck() {
 	g.ad_luckystrike = return_ability(g.ad_luckystrike);
 	g.ad_jackpot1 = return_ability(g.ad_jackpot1);
 	g.ad_offlinecollect = return_ability(g.ad_offlinecollect);
-	g.ad_bargain = return_ability(g.ad_bargain);
-	g.ad_scholar = return_ability(g.ad_scholar);
 
 	// rebirth
 	g.ad_title_rebirth = return_ability(g.ad_title_rebirth);

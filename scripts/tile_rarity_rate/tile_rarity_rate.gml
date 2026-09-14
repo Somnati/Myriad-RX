@@ -40,10 +40,7 @@ function tile_rarity_rate() {
 		? g.tile_rarity : TILE_RARITY_BASE;
 
 	// ---- flat adders, first ----
-	// Refined Alloys (ability deck, LIVE): +400. Guarded so the tile
-	// framework stays independent of the deck.
-	if (variable_global_exists("ad_tilerarity") && g.ad_tilerarity == 1)
-		_r += 400;
+	// (Refined Alloys' +400 was cut with the ability, 2026-09-14)
 
 	// the flux ladder's floor, permanent (tile_flux_config)
 	if (variable_global_exists("tiles"))
@@ -61,10 +58,9 @@ function tile_rarity_rate() {
 		if (_lv > 0) _r *= 1 + (TILE_RARITY_STEP * _lv) / 100;
 	}
 
-	// THE DECK's stacks (DE's, 2026-09-13): rare tapper +1% per 75,000 taps
-	// ever, rarity merger +1% per 500 merges - multipliers, like the upgrade
-	if (abi_on("ad_raretapper") && variable_global_exists("total_taps"))
-		_r *= 1 + .01 * floor(g.total_taps / 75000);
+	// THE DECK's stack (DE's, 2026-09-13): rarity merger +1% per 500 merges
+	// - a multiplier, like the upgrade. (Rare tapper was vaulted with the
+	// other tap-count stacks, 2026-09-14: DE's own verdict on their scaling)
 	if (abi_on("ad_raritymerger") && variable_global_exists("tiles"))
 		_r *= 1 + .01 * floor((g.tiles[$ "merges"] ?? 0) / 500);
 

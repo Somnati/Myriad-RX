@@ -20,12 +20,10 @@ function grab_deck_ap() {
 	get_ap(g.ad_critcut1, 4);
 	get_ap(g.ad_critcut2, 4);
 	get_ap(g.ad_critcut3, 4);
+	get_ap(g.ad_criticalsyphon, 5);
 	get_ap(g.ad_tappersyphon1, 7);
 	get_ap(g.ad_tappersyphon2, 10);
 	get_ap(g.ad_tappersyphon3, 15);
-	get_ap(g.ad_profitabletapper, 3);
-	get_ap(g.ad_criticaltapper, 5);
-	get_ap(g.ad_raretapper, 7);
 
 	// overcharge
 	get_ap(g.ad_title_overcharge);
@@ -34,7 +32,6 @@ function grab_deck_ap() {
 
 	// dials
 	get_ap(g.ad_title_dials);
-	get_ap(g.ad_dialtier, 5);
 	get_ap(g.ad_patientpayload, 3);
 
 	// tiles
@@ -46,23 +43,13 @@ function grab_deck_ap() {
 	get_ap(g.ad_automerger3, 7);
 	get_ap(g.ad_duplicator, 3);
 	get_ap(g.ad_duplicator2, 5);
-	get_ap(g.ad_tiermerger1, 2);
-	get_ap(g.ad_tiermerger2, 3);
-	get_ap(g.ad_tiermerger3, 5);
-	get_ap(g.ad_mergecharger, 3);
-	get_ap(g.ad_mergecharge1, 2);
-	get_ap(g.ad_mergecharge2, 3);
+	get_ap(g.ad_tiermerger1, 5);
+	get_ap(g.ad_mergecharger, 4);
 	get_ap(g.ad_raritymerger, 7);
-	get_ap(g.ad_taptomerge, 10);
-	get_ap(g.ad_taptofab, 10);
-	get_ap(g.ad_tilerarity, 7);
-	get_ap(g.ad_hotswap, 3);
 
 	// puck
 	get_ap(g.ad_title_puck);
 	get_ap(g.ad_th_bounce1, 5);
-	get_ap(g.ad_th_bouncereflect, 9);
-	get_ap(g.ad_th_bouncegain1, 4);
 	get_ap(g.ad_th_bouncegain2, 5);
 
 	// upgrades
@@ -77,8 +64,6 @@ function grab_deck_ap() {
 	get_ap(g.ad_luckystrike, 7);
 	get_ap(g.ad_jackpot1, 3);
 	get_ap(g.ad_offlinecollect, 2);
-	get_ap(g.ad_bargain, 3);
-	get_ap(g.ad_scholar, 4);
 
 	// rebirth
 	get_ap(g.ad_title_rebirth);

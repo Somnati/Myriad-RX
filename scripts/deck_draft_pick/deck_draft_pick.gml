@@ -7,11 +7,7 @@ function deck_draft_pick(_key) {
 	unlock_deck();
 	update_deck_titles();
 
-	// Scholar: the pick arrives already enabled when the ap covers it
-	if (g.ad_scholar == 1 && variable_global_get(_key) == 100) {
-		var _ci = deck_card_info(_key);
-		if (g.ap + 2 >= _ci.ap) variable_global_set(_key, 1);
-	}
+	// (Scholar was cut from the roster, 2026-09-14)
 
 	g.abi_draft = [];
 	fetch_new_ability(); // recount + the next discovery's cost

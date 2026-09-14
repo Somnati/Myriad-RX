@@ -95,13 +95,6 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true) {
 	// the counter.
 	var _show = _fx && in_room(rm_clicker);
 
-	// TAP TO MERGE / TAP TO FORGE (DE's legendaries, 2026-09-13): a REAL tap
-	// (not a bounce routed through here) fully charges the automerger /
-	// the fabricator
-	if (_stat && variable_global_exists("tiles") && unfold_has("tiles")) {
-		if (abi_on("ad_taptomerge")) tiles_merge_charge(1);
-		if (abi_on("ad_taptofab"))   tiles_fab_charge(1);
-	}
 
 	if (variable_global_exists("credit_tap_chance"))
 	if (roll_perc(g.credit_tap_chance * _n * (1 + _ub.credit_luck / 100) * luck_mod() * (abi_on("ad_luckystrike") ? 2 : 1)))   // lucky strike: twice as often (DE's)

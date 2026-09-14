@@ -54,28 +54,14 @@ function update_click() {
 	// overcharge_multi) at the end of update_clicker). obj_overcharge
 	// calls this the moment its level changes, so the per-tap readout
 	// shows the charged figure the way DE's did.
-	// profitable tapper: +1% for every 2,500 taps ever made (DE's)
-	var _taps = variable_global_exists("total_taps") ? g.total_taps : 0;
-	if (abi_on("ad_profitabletapper") && _taps >= 2500)
-		g.click_gps = do_scale(g.click_gps, 1 + .01 * floor(_taps / 2500));
-
-	// ---- THE CRIT FIGURES, DE's update_clicker: base 5% and x1.5..x5,
-	// then the deck - rate+ doubles the base, rate++ / +++ x3 / x4, every
-	// critical cut halves the rate and doubles the multiplier, the
-	// critical tapper adds 1% of multiplier per 7,500 taps. Stored here
-	// (create_clicker's bases are the constants) - the roll in tap_fire
-	// reads these and adds the upgrade table's own on top ----
-	var _cr = 5, _cm = 1;
-	if (abi_on("ad_critrate1")) _cr *= 2;
-	if (abi_on("ad_critrate2")) _cr *= 3;
-	if (abi_on("ad_critrate3")) _cr *= 4;
-	var _cuts = (abi_on("ad_critcut1") ? 1 : 0) + (abi_on("ad_critcut2") ? 1 : 0) + (abi_on("ad_critcut3") ? 1 : 0);
-	_cr /= power(2, _cuts);
-	_cm *= power(2, _cuts);
-	if (abi_on("ad_criticaltapper")) _cm *= 1 + .01 * floor(_taps / 7500);
-	g.click_crit      = _cr;
-	g.click_critx_min = 1.5 * _cm;
-	g.click_critx_max = 5 * _cm;
+	// ---- THE CRIT FIGURES (crit_figures: DE's update_clicker with the deck
+	// on top), stored for tap_fire's roll; the upgrade table adds its own
+	// there. (The tap-count stacks - profitable / critical tapper - were
+	// vaulted 2026-09-14, DE's own verdict on their scaling.) ----
+	var _cf = crit_figures();
+	g.click_crit      = _cf.rate;
+	g.click_critx_min = _cf.mn;
+	g.click_critx_max = _cf.mx;
 
 	var _oc = overcharge_multi();
 	if (_oc > 1) g.click_gps = do_scale(g.click_gps, _oc);

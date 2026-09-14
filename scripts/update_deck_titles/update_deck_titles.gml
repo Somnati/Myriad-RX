@@ -12,16 +12,13 @@ function update_deck_titles() {
 		|| g.ad_critcut1 != -1
 		|| g.ad_critcut2 != -1
 		|| g.ad_critcut3 != -1
+		|| g.ad_criticalsyphon != -1
 		|| g.ad_tappersyphon1 != -1
 		|| g.ad_tappersyphon2 != -1
-		|| g.ad_tappersyphon3 != -1
-		|| g.ad_profitabletapper != -1
-		|| g.ad_criticaltapper != -1
-		|| g.ad_raretapper != -1) ? 3 : -1;
+		|| g.ad_tappersyphon3 != -1) ? 3 : -1;
 	g.ad_title_overcharge = (g.ad_chargercap != -1
 		|| g.ad_chargerate1 != -1) ? 3 : -1;
-	g.ad_title_dials = (g.ad_dialtier != -1
-		|| g.ad_patientpayload != -1) ? 3 : -1;
+	g.ad_title_dials = (g.ad_patientpayload != -1) ? 3 : -1;
 	g.ad_title_tiles = (g.ad_fabricator != -1
 		|| g.ad_fabricator2 != -1
 		|| g.ad_fabricator3 != -1
@@ -30,19 +27,9 @@ function update_deck_titles() {
 		|| g.ad_duplicator != -1
 		|| g.ad_duplicator2 != -1
 		|| g.ad_tiermerger1 != -1
-		|| g.ad_tiermerger2 != -1
-		|| g.ad_tiermerger3 != -1
 		|| g.ad_mergecharger != -1
-		|| g.ad_mergecharge1 != -1
-		|| g.ad_mergecharge2 != -1
-		|| g.ad_raritymerger != -1
-		|| g.ad_taptomerge != -1
-		|| g.ad_taptofab != -1
-		|| g.ad_tilerarity != -1
-		|| g.ad_hotswap != -1) ? 3 : -1;
+		|| g.ad_raritymerger != -1) ? 3 : -1;
 	g.ad_title_puck = (g.ad_th_bounce1 != -1
-		|| g.ad_th_bouncereflect != -1
-		|| g.ad_th_bouncegain1 != -1
 		|| g.ad_th_bouncegain2 != -1) ? 3 : -1;
 	g.ad_title_upgrades = (g.ad_topgrade1 != -1
 		|| g.ad_topgrade2 != -1
@@ -50,9 +37,7 @@ function update_deck_titles() {
 		|| g.ad_upgradetier != -1) ? 3 : -1;
 	g.ad_title_support = (g.ad_luckystrike != -1
 		|| g.ad_jackpot1 != -1
-		|| g.ad_offlinecollect != -1
-		|| g.ad_bargain != -1
-		|| g.ad_scholar != -1) ? 3 : -1;
+		|| g.ad_offlinecollect != -1) ? 3 : -1;
 	g.ad_title_rebirth = (g.ad_networth != -1
 		|| g.ad_resetbracer != -1
 		|| g.ad_resetbracer2 != -1) ? 3 : -1;

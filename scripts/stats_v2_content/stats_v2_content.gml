@@ -278,9 +278,6 @@ function stats_v2_content() {
 				"every fabricated tile rolls its tier through this. it "
 				+ "shifts the whole spread up, and past each 800 the "
 				+ "bottom tier stops being offered at all.");
-			if (variable_global_exists("ad_tilerarity"))
-			if (g.ad_tilerarity == 1)
-				stats_v2_line("refined alloys", "+400", -1, c_seagreen);
 		}
 		stats_v2_folder_end();
 

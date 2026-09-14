@@ -56,13 +56,12 @@ function tiles_merge(_a, _b) {
 	_t.skin[_a] = 0;
 
 	_t.merges++;
-	// MERGE CHARGER (DE's, 2026-09-13): a merge charges the fabricator - 5%,
-	// + 5%, + 10%. Online only: the replay's bulk merge maths has no per-
-	// merge hook, the way a sprite's taps are not simulated away either
-	if (!(variable_global_exists("offline_replaying") && g.offline_replaying)) {
-		var _mc = (abi_on("ad_mergecharger") ? .05 : 0) + (abi_on("ad_mergecharge1") ? .05 : 0) + (abi_on("ad_mergecharge2") ? .10 : 0);
-		if (_mc > 0) tiles_fab_charge(_mc);
-	}
+	// MERGE CHARGER (DE's three, consolidated to one - his call 2026-09-14): a
+	// merge charges the fabricator by 20%. Online only: the replay's bulk
+	// merge maths has no per-merge hook, the way a sprite's taps are not
+	// simulated away either
+	if (!(variable_global_exists("offline_replaying") && g.offline_replaying))
+		if (abi_on("ad_mergecharger")) tiles_fab_charge(.20);
 	if (_t.tier[_b] > _t.highest) _t.highest = _t.tier[_b];
 	_t.dirty = true;
 	save_mark_dirty(); // save-on-mutation law

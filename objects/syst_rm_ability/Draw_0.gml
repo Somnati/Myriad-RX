@@ -106,7 +106,7 @@ if (o_name == "" && i_name == "") {
 		["tiles", "the table, automated"],
 		["puck", "bounces & their pay"],
 		["upgrades", "rarer rolls, deeper tiers"],
-		["support", "credits, offline & the deck"],
+		["support", "credits & offline"],
 		["rebirth", "what a rebirth keeps & counts"],
 	];
 	for (var _l2 = 0; _l2 < array_length(_schools); _l2++) {

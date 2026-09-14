@@ -15,11 +15,6 @@ function deck_failsafes() {
 	if (g.ad_fabricator2 != 1 && g.ad_fabricator3 == 1) g.ad_fabricator3 = 0;
 	if (g.ad_automerger2 != 1 && g.ad_automerger3 == 1) g.ad_automerger3 = 0;
 	if (g.ad_duplicator != 1 && g.ad_duplicator2 == 1) g.ad_duplicator2 = 0;
-	if (g.ad_tiermerger1 != 1 && g.ad_tiermerger2 == 1) g.ad_tiermerger2 = 0;
-	if (g.ad_tiermerger2 != 1 && g.ad_tiermerger3 == 1) g.ad_tiermerger3 = 0;
-	if (g.ad_mergecharger != 1 && g.ad_mergecharge1 == 1) g.ad_mergecharge1 = 0;
-	if (g.ad_mergecharge1 != 1 && g.ad_mergecharge2 == 1) g.ad_mergecharge2 = 0;
-	if (g.ad_th_bouncegain1 != 1 && g.ad_th_bouncegain2 == 1) g.ad_th_bouncegain2 = 0;
 	if (g.ad_topgrade1 != 1 && g.ad_topgrade2 == 1) g.ad_topgrade2 = 0;
 	if (g.ad_topgrade2 != 1 && g.ad_topgrade3 == 1) g.ad_topgrade3 = 0;
 	if (g.ad_resetbracer != 1 && g.ad_resetbracer2 == 1) g.ad_resetbracer2 = 0;

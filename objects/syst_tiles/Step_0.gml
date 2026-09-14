@@ -480,7 +480,7 @@ if (grab_i != -1) {
 		// SWAPS the two tiles instead of bouncing home. guarded so the
 		// tile framework stays independent of the deck
 		if (_res == 0 && _dst != -1 && _dst != grab_i && _t.tier[_dst] != 0)
-		if (variable_global_exists("ad_hotswap") && g.ad_hotswap == 1) {
+		if (abi_on("ad_hotswap")) {   // (Hot Swap was cut from the roster, 2026-09-14 - this reads false; the branch stays for the day it returns)
 			var _tmp = _t.tier[_dst];
 			_t.tier[_dst] = _t.tier[grab_i];
 			_t.tier[grab_i] = _tmp;

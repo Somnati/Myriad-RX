@@ -13,7 +13,5 @@ function get_ability_cost() {
 	if (g.new_abilities_unlocked == 2) g.new_ability_cost = arb(50);
 	if (g.new_abilities_unlocked == 3) g.new_ability_cost = arb(250);
 
-	// Bargain Hunter (LIVE meta ability): discoveries cost 15% less
-	if (g.ad_bargain == 1)
-		g.new_ability_cost = do_multi(g.new_ability_cost, arb(.85));
+	// (Bargain Hunter was cut from the roster, 2026-09-14)
 }

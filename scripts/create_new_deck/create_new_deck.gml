@@ -70,24 +70,22 @@ function create_new_deck() {
 	g.abi_keys = [
 		// tapper
 		"ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2",
-		"ad_critcut3", "ad_tappersyphon1", "ad_tappersyphon2", "ad_tappersyphon3",
-		"ad_profitabletapper", "ad_criticaltapper", "ad_raretapper",
+		"ad_critcut3", "ad_criticalsyphon", "ad_tappersyphon1", "ad_tappersyphon2",
+		"ad_tappersyphon3",
 		// overcharge
 		"ad_chargercap", "ad_chargerate1",
 		// dials
-		"ad_dialtier", "ad_patientpayload",
+		"ad_patientpayload",
 		// tiles
 		"ad_fabricator", "ad_fabricator2", "ad_fabricator3", "ad_automerger2",
 		"ad_automerger3", "ad_duplicator", "ad_duplicator2", "ad_tiermerger1",
-		"ad_tiermerger2", "ad_tiermerger3", "ad_mergecharger", "ad_mergecharge1",
-		"ad_mergecharge2", "ad_raritymerger", "ad_taptomerge", "ad_taptofab", "ad_tilerarity",
-		"ad_hotswap",
+		"ad_mergecharger", "ad_raritymerger",
 		// puck
-		"ad_th_bounce1", "ad_th_bouncereflect", "ad_th_bouncegain1", "ad_th_bouncegain2",
+		"ad_th_bounce1", "ad_th_bouncegain2",
 		// upgrades
 		"ad_topgrade1", "ad_topgrade2", "ad_topgrade3", "ad_upgradetier",
 		// support
-		"ad_luckystrike", "ad_jackpot1", "ad_offlinecollect", "ad_bargain", "ad_scholar",
+		"ad_luckystrike", "ad_jackpot1", "ad_offlinecollect",
 		// rebirth
 		"ad_networth", "ad_resetbracer", "ad_resetbracer2",
 	];
