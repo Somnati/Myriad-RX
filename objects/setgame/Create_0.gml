@@ -114,6 +114,15 @@
 		{ level : 50,  kind : "profit", mult : 2 },
 		{ level : 75,  kind : "profit", mult : 2 },
 		{ level : 100, kind : "speed",  mult : 2 },
+		// PAST 100 (2026-09-14, run_twin: the game's multipliers push dial
+		// levels past 250 within days and the ladder ended here) - DE's
+		// shape, the x10 crossing premium kept
+		{ level : 250,   kind : "speed",  mult : 2 },
+		{ level : 500,   kind : "profit", mult : 5 },
+		{ level : 1000,  kind : "profit", mult : 10 },
+		{ level : 2000,  kind : "speed",  mult : 2 },
+		{ level : 5000,  kind : "profit", mult : 100 },
+		{ level : 10000, kind : "profit", mult : 100 },
 	];
 
 	// ---- CREDITS (the second currency; Myriad DE's dropper) - THE KNOBS ----
@@ -160,17 +169,17 @@
 	// 45, not 40: 5 + 2n hits 45 exactly and skips over 40, so a 40
 	// ceiling was one the ladder could never actually reach (it stopped
 	// at 39 and the last level bought nothing).
-	g.tb_rate_cap  = 45;   // the tuned ceiling (a hard 55 sits above it)
+	g.tb_rate_cap  = 20;   // the tuned ceiling (a hard 55 sits above it) - 20 since the 1 min/hr nerf: the ladder ends where a fee is still holdable (twin inv. 5)
 	// 30, not 60: at the base rate a 60-minute cap does not clip until
 	// TWELVE HOURS away, so the first capacity purchase bought nothing
 	// at all for anyone whose sessions are a normal day apart. At 30 it
 	// binds on an overnight, which is what makes it a purchase.
-	g.tb_cap       = 30;   // bank capacity in MINUTES, at cap_lv 0
+	g.tb_cap       = 10;   // bank capacity in MINUTES, at cap_lv 0 (30 -> 10 with the 1 min/hr nerf, 2026-09-14: 30 only clipped after THIRTY hours away - the first cap buy did nothing; 10 clips after ten)
 	// ⚖️ +30 MINUTES A LEVEL (his call, 2026-09-10), not x1.5. Linear:
 	// the tenth capacity buy adds what the first did. The geometric
 	// version compounded to days inside a dozen levels, and a bank that
 	// holds days is a bank nobody needs to think about.
-	g.tb_cap_step  = 30;   // minutes of capacity a level
+	g.tb_cap_step  = 10;   // minutes of capacity a level (30 -> 10 with the nerf)
 
 	// ⚖️ THE BANK PAYS FOR ITSELF (his call). Both upgrades cost BANKED
 	// TIME, not profit, which makes the bank a currency with two uses:
@@ -193,10 +202,13 @@
 	// then simply reads as unaffordable until the cap is raised. That
 	// is the one coupling left, and it is the honest one: you cannot
 	// bank what you cannot hold.
-	g.tb_cap_cost       = 20;   // minutes, capacity level 0
-	g.tb_cap_cost_step  = 15;   // more per capacity level held
-	g.tb_rate_cost      = 15;   // minutes, rate level 0
-	g.tb_rate_cost_step = 10;   // more per rate level held
+	// (2026-09-14, with the 1 min/hr nerf: the fees came down with it -
+	// 20 banked minutes for the first capacity level was TWENTY HOURS
+	// away; timebank_twin holds on this set)
+	g.tb_cap_cost       = 6;    // minutes, capacity level 0
+	g.tb_cap_cost_step  = 5;    // more per capacity level held
+	g.tb_rate_cost      = 5;    // minutes, rate level 0
+	g.tb_rate_cost_step = 4;    // more per rate level held
 	// The wall-clock price is what actually decelerates: cost/rate hours
 	// of absence, with the cap geometric and the rate capped at 45 min
 	// per hour. datafiles/timebank_twin.py walks it - run that first.
