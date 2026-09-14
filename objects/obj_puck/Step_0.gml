@@ -195,6 +195,10 @@ if (held) {
 	}
 	x = clamp(gx, _t.x1, _t.x2);
 	y = clamp(gy, _t.y1, _t.y2);
+	// the hand rides the puck (settings > input; obj_cursor draws the
+	// arrow at the grip point, which lags the real pointer with the puck)
+	g.cursor_ride = (variable_global_exists("puck_hand") && g.puck_hand)
+		? { x : x + grip_x, y : y + grip_y, owner : id } : undefined;
 
 	// ---- THE SLING'S SWEEP (see the Create) ----
 	// the pointer's angle about the puck this frame against last;
@@ -211,6 +215,7 @@ if (held) {
 	// ==================== RELEASE ====================
 	if (!mouse_check_button(mb_left)) {
 		held = false;
+		g.cursor_ride = undefined;   // the hand lets go: the arrow is the pointer again
 		var _launch = cannon;
 		was_cannon = _launch;
 

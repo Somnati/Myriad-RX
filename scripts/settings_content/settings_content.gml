@@ -768,6 +768,14 @@ function settings_content() {
 		"DE's: a drawer's close swipe has to start on the drawer's own "
 		+ "side. off, a swipe from anywhere shuts an open drawer.");
 
+	// THE HAND RIDES THE PUCK (his curiosity, 2026-09-14)
+	settings_toggle("hand rides the puck",
+		function() { return g.puck_hand; },
+		function(_v) { g.puck_hand = _v; if (!_v) g.cursor_ride = undefined; },
+		"while you hold the puck the arrow sits ON it and lags with it - "
+		+ "the puck still chases the real pointer exactly as before. off, "
+		+ "the arrow stays with your hand.");
+
 	if (!_desktop)
 		settings_toggle("haptics",
 			function() { return g.haptics; },
@@ -798,6 +806,17 @@ function settings_content() {
 		"a little helper appears in the money room and taps for you - "
 		+ "slowly, lazily, and while you are away. its taps are its own, "
 		+ "not yours. poke it.", c_sgreen);
+	// UNLIMITED TICKETS (his ask, 2026-09-14): the book refills as you
+	// scratch, off the milestone table so every rarity turns up. Not
+	// saved - it boots off, like the overlay
+	settings_toggle("debug: unlimited tickets",
+		function() { return variable_global_exists("tickets_free") && g.tickets_free; },
+		function(_v) {
+			g.tickets_free = _v;
+			if (_v) { ticket_init(); while (array_length(g.tickets.pile) < 3) ticket_grant("milestone", true); }
+		},
+		"the scratch tickets never run out: every one you finish is replaced, "
+		+ "rarities off the milestone table. debug only, boots off.", c_gold);
 	settings_action("debug: clear sprites",
 		function() {
 			g.sprites = [];

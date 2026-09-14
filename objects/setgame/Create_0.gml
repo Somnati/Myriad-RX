@@ -31,6 +31,8 @@
 	g.mote_arc = 0;        // visuals "mote path": 0 swoop / 1 bow / 2 straight (DE part_grav)
 	g.random_profit_color = false;   // visuals "rainbow motes" (DE alt profit color)
 	g.swipe_protect = true;          // input "swipe protection": drawers close only from their own side (DE) - on by default (his call, 2026-09-13)
+	g.puck_hand = true;              // input "hand rides the puck": the arrow draws on a held puck, lagging with it (2026-09-14)
+	g.cursor_ride = undefined;       // { x, y, owner } while something has the arrow (obj_cursor)
 	g.bat_opt = false;               // gameplay "battery optimiser" - an ABILITY later, a debug toggle now (battery_optimise)
 	g.dial_hold = -1;                // the dial the pointer is held on (syst_dials -> prod_dials' hand-crank)
 	g.scene_light = 60;              // visuals "scene light": the field's colour on the dice / puck / sprites, % (syst_scene_light)

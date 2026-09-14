@@ -32,6 +32,15 @@ if (os_type == os_android || os_type == os_ios) exit;
 // on the hotspot.
 var _al = max(.3, 1 - sq), _ac = 1 + sq;
 var _tx = mousex, _ty = mousey;   // fractional: the glide (the cells are the quad's own, so the arrow stays whole pixels)
+// THE HAND RIDES (his curiosity, 2026-09-14: "the mouse is attached to
+// the puck but still follows the real mouse"): a holder may seat the
+// arrow on itself - g.cursor_ride { x, y, owner } - and the arrow draws
+// THERE, lagging with the thing in the hand, while the hit-tests keep
+// reading the real pointer. A ride whose owner is gone is dropped
+if (variable_global_exists("cursor_ride") && is_struct(g.cursor_ride)) {
+	if (instance_exists(g.cursor_ride.owner)) { _tx = g.cursor_ride.x; _ty = g.cursor_ride.y; }
+	else g.cursor_ride = undefined;
+}
 
 // ---- THE SWEEP (motion blur, his ask 2026-09-10 - the puck's law) ----
 // The tip's last drawn seat to this one, over a fixed 1/60 shutter

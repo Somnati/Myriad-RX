@@ -64,6 +64,7 @@ function handle_settings(_method) {
 	g.mote_arc = handle("mote_arc",g.mote_arc);       // DE's part_grav, three ways
 	g.random_profit_color = handle("random_profit_color",g.random_profit_color);
 	g.swipe_protect = handle("swipe_protect",g.swipe_protect);
+	g.puck_hand = handle("puck_hand",g.puck_hand);   // the arrow rides a held puck
 	if (_method == sv_load) g.num_format = clamp(floor(g.num_format), 0, array_length(num_format_config()) - 1);
 	system.desired_fps = handle("fps_cap",system.desired_fps);
 	g.show_fps = handle("show_fps",g.show_fps);

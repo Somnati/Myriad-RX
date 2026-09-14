@@ -86,6 +86,7 @@ function settings_defaults(_section = "all") {
 	if (_all || _section == "input") {
 		g.haptics       = true;
 		g.swipe_protect = true;   // on by default (his call, 2026-09-13)
+		g.puck_hand     = true;   // the arrow rides a held puck (2026-09-14)
 	}
 
 	if (_all || _section == "data") {

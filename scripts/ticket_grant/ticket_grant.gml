@@ -6,7 +6,8 @@
 /// deterministically, so a ticket in the pile is already what it is).
 /// The first ticket ever unfolds "tickets" (the pile appears); every
 /// later one gets a banner. Returns the rarity index.
-function ticket_grant(_src = "gift") {
+/// quiet: no banner (the debug refill - settings > data > unlimited tickets)
+function ticket_grant(_src = "gift", _quiet = false) {
 	ticket_init();
 	var _c = ticket_config();
 	var _w = (_src == "milestone") ? _c.w_milestone : _c.w_common;
@@ -29,7 +30,7 @@ function ticket_grant(_src = "gift") {
 			rar : 0, src : _src, cells : undefined, cleared : 0 });
 	}
 	unfold_grant("tickets", _first ? "a book of scratch tickets is on the desk" : "");
-	if (!_first) {
+	if (!_first && !_quiet) {
 		var _rc = _c.rars[_rar];
 		var _what = (_src == "away") ? "a ticket was waiting" : "+1 scratch ticket";
 		assign_banner(_what + ((_rar > 0) ? " (" + _rc.name + ")" : ""), _rc.col, c_black);

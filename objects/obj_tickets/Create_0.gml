@@ -121,6 +121,11 @@ __snd_stop = function() {
 __finish = function() {
 	if (cur != undefined && array_length(g.tickets.pile) > 0 && g.tickets.pile[0] == cur)
 		array_delete(g.tickets.pile, 0, 1);
+	// UNLIMITED (his ask, 2026-09-14, settings > data): the book never
+	// runs out - a fresh ticket off the milestone table (every rarity
+	// shows up) takes the scratched one's place, no banner
+	if (variable_global_exists("tickets_free") && g.tickets_free && array_length(g.tickets.pile) < 3)
+		ticket_grant("milestone", true);
 	cur = undefined; roll = undefined; done = false; prize = undefined;
 	open = false; held = false;
 	save_mark_dirty();
