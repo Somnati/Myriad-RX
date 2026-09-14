@@ -42,26 +42,36 @@ else {
 	}
 	if (keyboard_check_pressed(vk_escape)) __close();
 	if (!mouse_check_button(mb_left)) held = false;
-	// THE SCRATCH LOOP (his sound, 2026-09-14: "Writing (6)" cut to its
-	// steadiest strokes, seamless, fixed pitch - snd_scratch loops now):
+	// THE SCRATCH LOOP (his sound, 2026-09-14: "Writing (6)" resynthesised
+	// as a smooth grain - no stroke, no swell - snd_scratch loops now):
 	// it starts the moment the coin bites, rides the scratching, and lets
 	// go a few frames after the hand stops moving - a short fade, no cut
 	var _bite = false;
 	if (open && held && peel < 0 && oa > .95) {
 		var _k = __scratch(lmx, lmy, mouse_x, mouse_y);
 		_bite = (_k > 0);
+		// the stroke's angle sets the pitch it is heading for: up = high,
+		// down = low, sideways = the loop as recorded (+-30%). a hand that
+		// has not moved keeps the last heading rather than reading noise
+		if (point_distance(lmx, lmy, mouse_x, mouse_y) >= 1)
+			snd_pt = 1 + .3 * dsin(point_direction(lmx, lmy, mouse_x, mouse_y));
 	}
 	if (_bite) {
 		snd_t = 6;
 		if (snd_h < 0 || !audio_is_playing(snd_h)) {
 			snd_h = audio_play_sound(snd_scratch, 1, true);
 			g.scratch_snd = snd_h;
-			audio_sound_pitch(snd_h, 1);
+			snd_p = snd_pt;
 			audio_sound_gain(snd_h, 0, 0);
 		}
 		var _sfx = variable_global_exists("vol_sfx") ? g.vol_sfx / 100 : 1;
 		audio_sound_gain(snd_h, .45 * _sfx, 60);
-	} else if (snd_h >= 0) {
+	}
+	if (snd_h >= 0 && audio_is_playing(snd_h)) {
+		snd_p = move_to(snd_p, snd_pt, 4);   // the glide
+		audio_sound_pitch(snd_h, snd_p);
+	}
+	if (!_bite && snd_h >= 0) {
 		snd_t -= delta;
 		if (snd_t <= 0 && audio_is_playing(snd_h)) audio_sound_gain(snd_h, 0, 90);
 		if (snd_t <= -8) __snd_stop();   // gone quiet: release the voice

@@ -51,6 +51,11 @@ snd_t = 0;              // frames of grace before the scratch loop lets go
 // it if this instance dies mid-scratch (a room restart under the hand)
 snd_h = -1;
 g.scratch_snd = -1;
+// THE PITCH FOLLOWS THE STROKE (his ask, 2026-09-14: "the pitch based off
+// the angle im scratching"): an upstroke climbs, a downstroke drops, a
+// sideways stroke sits at the loop's own pitch - and it SLIDES between
+// them (snd_p eases to snd_pt), so a reversal is a glissando, not a jump
+snd_p = 1; snd_pt = 1;
 flakes = [];
 t = 0;
 hot = false;
