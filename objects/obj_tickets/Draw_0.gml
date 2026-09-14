@@ -114,3 +114,4 @@ for (var _i = 0; _i < array_length(flakes); _i++) {
 draw_set_halign(fa_left);
 draw_set_alpha(1);
 draw_set_color(c_white);
+draw_set_font(fnt);   // (the prize line draws in the outline font; the next draw must not inherit it)

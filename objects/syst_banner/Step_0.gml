@@ -33,6 +33,7 @@ if clear = true {free_banner(l); show("[clear banner]");}
         }
         
         //position
+        draw_set_font(fnt);   // (measure in the banner's own font - whatever the last Step left set)
         w[l] = (string_width(string(text[l]))+15);
         dy[l] = move_to(dy[l],y_[l],5);
         dx[l] = move_to(dx[l],(string_width(string(text[l]))+15),5);

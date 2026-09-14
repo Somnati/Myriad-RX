@@ -53,6 +53,7 @@ if (_live && _lv < _max && _xp >= _need) {
 		play_sound_ext(snd_vibrate, .9, 1.1, .2, 0);
 		draw_set_font(fnt_outline);
 		var _bw = string_width("X" + string(overcharge_multi()));
+		draw_set_font(fnt);   // (put back: a Step that measures in one font must not leave it on for the next object's measure - bug hunt, 2026-09-14)
 		spark_burst(x + _bw * .5, y, 18, c_blue);
 	}
 }
