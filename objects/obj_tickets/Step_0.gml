@@ -66,7 +66,7 @@ else {
 			audio_sound_gain(snd_h, 0, 0);
 		}
 		var _sfx = variable_global_exists("vol_sfx") ? g.vol_sfx / 100 : 1;
-		audio_sound_gain(snd_h, .45 * _sfx, 60);
+		audio_sound_gain(snd_h, .22 * _sfx, 60);   // (quieter - his call, 2026-09-14)
 	}
 	if (snd_h >= 0 && audio_is_playing(snd_h)) {
 		snd_p = move_to(snd_p, snd_pt, 4);   // the glide

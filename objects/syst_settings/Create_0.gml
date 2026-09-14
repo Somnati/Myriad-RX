@@ -54,6 +54,9 @@ fav_t    = fav_show ? 1 : 0;   // the gutter's ease: the pips slide out from und
 // eases 0..1; peek_inst is the knob. oa_blur is what ui_blur_tick and
 // the backing read instead of oa while it is on
 peek = 0; peek_inst = noone; oa_blur = 0;
+// HOLD-TO-EXECUTE (settings_action's hold): the row under the held
+// pointer and how full its bar is (0..100); fires at 100
+hold_row = -1; hold_hp = 0;
 // the "?" hint whispers, hidden by default (ui stays clean); the
 // round ? button in the strip flips them all on/off at once.
 // session-remembered, deliberately not saved to settings.ini
@@ -354,8 +357,11 @@ __draw_strip = function() {
 	// circle, centred), left of [favs]. The disc is 13 across, its centre
 	// the half-pixel point (cx, cy); the glyph is a 7-wide cell whose ink
 	// sits in columns 1..5 - drawn at cx - 3.5 its ink centre lands on cx
+	// (his screenshot, 2026-09-14: the glyph sat up-left. The '?' inks
+	// columns 1..4 and rows 1..6 of its 7x7 cell - centre (3, 4) - so on
+	// an INTEGER disc centre the cell goes at (cx - 3, cy - 4), exactly)
 	var _hx = room_width - 84;
-	var _cx = _hx + 6.5, _cy = bby + 7.5;
+	var _cx = _hx + 6, _cy = bby + 8;
 	draw_set_alpha(1);
 	draw_circle_colour(_cx, _cy, 6.5, c_black, c_black, false);
 	draw_set_alpha(.9);
@@ -364,7 +370,7 @@ __draw_strip = function() {
 	draw_set_halign(fa_left);
 	draw_set_color(g.settings_hints ? c_gold : c_white);
 	draw_set_alpha(.9);
-	draw_text(round(_cx - 3.5), bby + 4, "?");
+	draw_text(_cx - 3, _cy - 4, "?");
 
 	// [favs]: the star gutter's switch (statistics' twin - pinning is
 	// rare, so the pips can be put away without unpinning anything)

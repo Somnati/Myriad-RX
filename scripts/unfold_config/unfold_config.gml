@@ -26,7 +26,7 @@ function unfold_config() {
 		{ key : "tiles", banner : "new: tiles",
 		  need : function() { return variable_global_exists("dial") && ((g.dial_total > 3 && g.dial[3].level > 0) || g.profit >= arb(100000)); } },
 		{ key : "abilities", banner : "new: abilities",
-		  need : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(10); } },
+		  need : function() { return variable_global_exists("rebirth") && g.rebirth.total >= 2; } },   // (the second rebirth, his call 2026-09-14)
 		{ key : "ccore", banner : "new: the credit core",
 		  need : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(15); } },
 		// the battery and the offline log, after the first real absence -

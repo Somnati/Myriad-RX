@@ -47,9 +47,14 @@ function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 	// room, where a burst of lavender pixels across a settings page is
 	// noise rather than feedback. The panel still pops and glows, so
 	// the drop is still announced - just where the balance lives.
+	// ...OVER AN OPEN PANEL (his report, 2026-09-14: "collecting from the
+	// credit core should spawn a bunch of credits bits" - it did, at -90,
+	// under the panel at -510; the credit display at -600 sits above both)
+	var _ov = ui_overlay();
+	var _dep = (_ov != noone) ? _ov.depth - 1 : -90;
 	if (_motes > 0)
 		bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, 1, 0,
-			-1, 1, "credit");
+			-1, 1, "credit", _dep);
 
 	show("[credits +" + string(_n) + "]");
 	return _n;

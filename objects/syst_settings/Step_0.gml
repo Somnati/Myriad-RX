@@ -194,6 +194,25 @@ if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 // while the click timer runs - the pillbox owns the pointer until it
 // has gone, however the frames fall
 if (instance_exists(obj_pillbox) || click_tic > 0) exit;
+
+// ---- THE HOLD (settings_action's hold rows): the pointer held on the
+// row fills it over ~three quarters of a second and fires at full; off
+// the row or let go, it empties ----
+if (hold_row >= 0) {
+	var _hr2 = (hold_row < array_length(view)) ? view[hold_row] : undefined;
+	var _on = !is_undefined(_hr2) && mouse_check_button(mb_left) && mouse_x >= rail_w
+		&& __row_at(mouse_y) == hold_row;
+	if (_on) {
+		hold_hp += delta * (100 / 45);
+		if (hold_hp >= 100) {
+			hold_hp = 0; hold_row = -1;
+			play_sound_ext(snd_matclick2, .9, 1.1, .5, 1);
+			_hr2.data();
+			click_tic = 6;
+		}
+	} else { hold_row = -1; hold_hp = 0; }
+	exit;
+}
 if (mouse_check_button_pressed(mb_left)) {
 	click_tic = 6;   // DE's tic: one tap, then a beat
 
@@ -202,7 +221,7 @@ if (mouse_check_button_pressed(mb_left)) {
 	// [hints]: flip every "?" whisper at once (a chip beside [favs] -
 	// the round button it replaced "felt out of place", his report
 	// 2026-09-12)
-	if (point_in_circle(mouse_x, mouse_y, room_width - 84 + 6.5, bby + 7.5, 7.5)) {
+	if (point_in_circle(mouse_x, mouse_y, room_width - 84 + 6, bby + 8, 7.5)) {
 		g.settings_hints = !g.settings_hints;
 		if (!g.settings_hints) help_txt = ""; // fold an open explainer too
 		play_sound_ext(snd_softclick, g.settings_hints ? 1.1 : .9,
@@ -320,6 +339,11 @@ if (mouse_check_button_pressed(mb_left)) {
 					break;
 
 				case sett_kind_action:
+					if (_hr[$ "hold"] ?? false) {   // a hold row: arm the clock, fire at full
+						hold_row = _hit; hold_hp = 0;
+						play_sound_ext(snd_softclick, .9, 1, .3, 1);
+						break;
+					}
 					play_sound_ext(snd_matclick2, .9, 1.1, .5, 1);
 					_hr.data(); // methods keep their declared scope
 					break;

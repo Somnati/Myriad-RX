@@ -80,23 +80,15 @@ function objective_config() {
 		  reward : ["puck"], reward_txt : "a puck - fling it" },
 		{ key : "tiles", name : "the tile table",
 		  steps : [
-			{ txt : "purchase dial d", unlocks : ["tiles"], banner : "new: tiles",
+			// (was "purchase dial d" - a 100M dial on a 1M rebirth run is a wall,
+			// his report 2026-09-14; the profit gate was always the real test)
+			{ txt : "hold a hundred thousand profit", unlocks : ["tiles"], banner : "new: tiles",
 			  done : function() { return variable_global_exists("dial") && (g.dial[3].level > 0 || g.profit >= arb(100000)); } },
 			{ txt : "open tiles from the menu",
 			  done : function() { return instance_exists(syst_tiles); } },
 			{ txt : "merge two tiles",
 			  done : function() { return variable_global_exists("tiles") && g.tiles.merges >= 1; } },
 		  ] },
-		{ key : "abil", name : "abilities",
-		  steps : [
-			{ txt : "earn 10 credits", unlocks : ["abilities"], banner : "new: abilities",
-			  done : function() { return variable_global_exists("total_credits") && g.total_credits >= arb(10); } },
-			{ txt : "open abilities from the menu",
-			  done : function() { return instance_exists(syst_rm_ability); } },
-			{ txt : "draft a card",
-			  done : function() { return variable_global_exists("new_abilities_unlocked") && g.new_abilities_unlocked >= 1; } },
-		  ],
-		  reward : ["coin"], reward_txt : "a coin on the table - tap it to flip" },
 		{ key : "ccore", name : "the credit core",
 		  steps : [
 			{ txt : "earn 15 credits", unlocks : ["ccore"], banner : "new: the credit core",
@@ -115,6 +107,19 @@ function objective_config() {
 			{ txt : "rebirth",
 			  done : function() { return variable_global_exists("rebirth") && g.rebirth.total > 0; } },
 		  ] },
+		{ key : "abil", name : "abilities",
+		  steps : [
+			// AFTER THE SECOND REBIRTH (his call, 2026-09-14): a discovery costs
+			// rebirth units, so the deck is not a thing to teach before there
+			// are units to spend
+			{ txt : "rebirth a second time", unlocks : ["abilities"], banner : "new: abilities",
+			  done : function() { return variable_global_exists("rebirth") && g.rebirth.total >= 2; } },
+			{ txt : "open abilities from the menu",
+			  done : function() { return instance_exists(syst_rm_ability); } },
+			{ txt : "draft a card",
+			  done : function() { return variable_global_exists("new_abilities_unlocked") && g.new_abilities_unlocked >= 1; } },
+		  ],
+		  reward : ["coin"], reward_txt : "a coin on the table - tap it to flip" },
 		// THE MILESTONE SCALE (2026-09-13): DE's ruler under the tap room -
 		// the chain teaches it rather than a floating notification. The first
 		// step is DE's own reveal point (eight orders short of 1e16)

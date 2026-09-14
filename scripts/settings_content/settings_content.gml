@@ -385,10 +385,11 @@ function settings_content() {
 		-1, true);
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset visuals to defaults",
 		function() { settings_defaults("visuals"); dirty_tic = 45; },
 		"puts the money room's look back to its defaults - the field, the motes, the finishes. "
-		+ "(the interface tab shares the same reset)", c_hred);
+		+ "(the interface tab shares the same reset)", c_hred, true);
 
 	// ============================ interface =========================
 	settings_section("interface", rgb(150, 170, 255));
@@ -464,10 +465,11 @@ function settings_content() {
 		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or soft coloured clouds.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset interface to defaults",
 		function() { settings_defaults("visuals"); dirty_tic = 45; },
 		"puts the menu, the screen and the title back to their defaults. "
-		+ "(the visuals tab shares the same reset)", c_hred);
+		+ "(the visuals tab shares the same reset)", c_hred, true);
 
 	// ============================== crt =============================
 	// THE TUBE (his ask, 2026-09-10): syst_crt + sh_crt. Its own tab:
@@ -549,10 +551,11 @@ function settings_content() {
 
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset crt to defaults",
 		function() { settings_defaults("crt"); dirty_tic = 45; },
 		"puts every option on THIS tab back to its default - the tube back to everywhere, over the interface, its five knobs and the roll. "
-		+ "the other tabs are not touched.", c_hred);
+		+ "the other tabs are not touched.", c_hred, true);
 
 	// ============================ readouts ==========================
 	// WHAT THE NUMBERS SAY AND WHERE (2026-09-10's tidy + DE's ports):
@@ -600,10 +603,11 @@ function settings_content() {
 		+ "its speed (DE's bounce text).");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset readouts to defaults",
 		function() { settings_defaults("readouts"); dirty_tic = 45; },
 		"puts every option on THIS tab back to its default - number format, tap numbers, the tap rate and bounce readouts, the dial view. "
-		+ "the other tabs are not touched.", c_hred);
+		+ "the other tabs are not touched.", c_hred, true);
 
 	// ============================ audio =============================
 	settings_section("audio", c_gold);
@@ -753,10 +757,11 @@ function settings_content() {
 	//     function(_v) { g.vol_music = _v; }, "%", 1);
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset audio to defaults",
 		function() { settings_defaults("audio"); dirty_tic = 45; },
 		"puts every option on THIS tab back to its default - every volume and the three swappable sounds. "
-		+ "the other tabs are not touched.", c_hred);
+		+ "the other tabs are not touched.", c_hred, true);
 
 	// ============================ gameplay ==========================
 	// how buying and the money room BEHAVE. (autosave moved to data,
@@ -789,10 +794,11 @@ function settings_content() {
 		+ "instead of sliding in only when credits drop.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset gameplay to defaults",
 		function() { settings_defaults("gameplay"); dirty_tic = 45; },
 		"puts every option on THIS tab back to its default - bulk-buy rounding, the credit panel, the battery optimiser. "
-		+ "the other tabs are not touched.", c_hred);
+		+ "the other tabs are not touched.", c_hred, true);
 
 	// ============================ input =============================
 	settings_section("input", c_horange);
@@ -823,10 +829,11 @@ function settings_content() {
 			+ "where they'll live.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset input to defaults",
 		function() { settings_defaults("input"); dirty_tic = 45; },
 		"puts every option on THIS tab back to its default - haptics and swipe protection. "
-		+ "the other tabs are not touched.", c_hred);
+		+ "the other tabs are not touched.", c_hred, true);
 
 	// ============================ data ==============================
 	settings_section("data", c_pink);
@@ -898,10 +905,11 @@ function settings_content() {
 		function() { goto_room(rm_saves); },
 		"import, export, and profile management.");
 
+	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset settings",
 		function() { settings_defaults(); dirty_tic = 45; },
 		"puts every option on this screen back to its default. your "
-		+ "save data is NOT touched.", c_hred);
+		+ "save data is NOT touched.", c_hred, true);
 
 
 	// ============= balance tabs (MYRIAD RX placeholder) =============

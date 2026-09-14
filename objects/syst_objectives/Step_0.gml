@@ -56,7 +56,10 @@ if (cel <= 0 && !_gap && _k != okey) {
 	okey = _k;
 	slide = 0;                 // it arrives from the left, whether the card was up or not
 	se = []; sf = []; sr = []; st = [];
-	open_t = 0; pin = false;   // a new objective opens the card
+	// a new objective opens the card AND KEEPS IT OPEN until it is tapped
+	// (his ask, 2026-09-14: "a player needs to see what's next - they
+	// might not know to click on the thing to open it")
+	open_t = 0; pin = true;
 }
 slide = min(1, slide + delta / 16);
 

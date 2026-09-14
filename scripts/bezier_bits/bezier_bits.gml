@@ -37,6 +37,12 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit", _dep = -90) {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
+	// ⚖️ NEVER MORE MOTES THAN THE MONEY (his law, 2026-09-14: "if i make 1
+	// per tap only 1 bit should spawn; 3 per tap i shouldn't see 5"). A
+	// burst that carries its amount is clamped to it here, once, for every
+	// caller - the tap's crit handful, the gift's fistful, all of them.
+	// (a burst carrying nothing - a chest, a ceremony - keeps its count)
+	if (_amt >= arb(1) && arb(_n) > _amt) _n = max(1, floor(unarb(_amt)));
 	if (_tx == undefined) {
 		// (the rm_dials / rm_production strip seats retired round 29
 		// with their rooms - every room targets the header corner now)

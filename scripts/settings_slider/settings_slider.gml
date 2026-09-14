@@ -43,6 +43,9 @@ function settings_slider(_label, _vmin, _vmax, _get, _set, _suffix = "", _snap =
 	_inst.bind_set = _set;
 	_inst.bind_rel = _rel;
 	_inst.live = _live;
+	// no colour given: the tab's own (his ask, 2026-09-14: "recolour any
+	// other slider you see" - one blue for every track was the complaint)
+	if (_col == -1 && array_length(sections) > 0) _col = sections[array_length(sections) - 1].col;
 	if (_col != -1 && _inst.cbase != _col) _inst.recolour(_col);
 
 	array_push(rows, {

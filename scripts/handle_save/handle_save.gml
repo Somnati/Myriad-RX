@@ -588,6 +588,15 @@ function handle_save(){
 		g.obj.i = max(0, floor(_oi)); g.obj.done = {}; g.obj.act = {}; g.obj.just = ""; g.obj.gap = 0;
 		var _l1 = (_od != "") ? string_split(_od, "|") : [];
 		for (var _i = 0; _i < array_length(_l1); _i++) g.obj.done[$ _l1[_i]] = true;
+		// THE INDEX FOLLOWS THE KEYS (2026-09-14: the chain's order moved -
+		// abilities now come after the second rebirth - and a saved index
+		// would have pointed at the wrong objective). The chain is
+		// sequential: the first objective not done is where it stands
+		{
+			var _oc = objective_config(), _k2 = 0;
+			while (_k2 < array_length(_oc) && (g.obj.done[$ _oc[_k2].key] ?? false)) _k2++;
+			g.obj.i = _k2;
+		}
 		var _l3 = (_oa != "") ? string_split(_oa, "|") : [];
 		for (var _i = 0; _i < array_length(_l3); _i++) g.obj.act[$ _l3[_i]] = true;
 		// a save that has played but never had objectives (no objective

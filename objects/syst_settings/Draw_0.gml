@@ -98,10 +98,22 @@ for (var _r = _first; _r < min(_n, _first + visible_rows + 1); _r++) {
 		draw_text(val_x, _ry + 4, ">");   // (a ">" not a "v" - his call, 2026-09-14)
 	}
 	if (_row.kind == sett_kind_action) {
-		draw_set_halign(fa_right);
-		draw_set_color(_row.col);
-		draw_set_alpha(.9);
-		draw_text(val_x, _ry + 4, ">");
+		// a hold row: the fill sweeping the row while it is held, and
+		// "hold" at the value column instead of the chevron
+		if (_row[$ "hold"] ?? false) {
+			if (hold_row == _r && hold_hp > 0)
+				draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, _cw * (hold_hp / 100), row_h, 0,
+					merge_colour(_row.col, c_black, .3), .55);
+			draw_set_halign(fa_right);
+			draw_set_color(_row.col);
+			draw_set_alpha(.7);
+			draw_text(val_x, _ry + 4, "hold");
+		} else {
+			draw_set_halign(fa_right);
+			draw_set_color(_row.col);
+			draw_set_alpha(.9);
+			draw_text(val_x, _ry + 4, ">");
+		}
 	}
 }
 ui_fade_set(1);   // never leave the shader on for the next drawer
