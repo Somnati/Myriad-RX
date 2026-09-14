@@ -19,6 +19,7 @@ shader_set_uniform_f_array(u_or2, _ot);
 shader_set_uniform_f(u_light2, -.42, -.62, .66);
 shader_set_uniform_f(u_col2, colour_get_red(tint) / 255, colour_get_green(tint) / 255, colour_get_blue(tint) / 255);
 shader_set_uniform_f(u_metal2, metal);
+shader_set_uniform_f(u_iri2, iri);
 shader_set_uniform_f(u_pad2, QP);
 shader_set_uniform_f(u_cells2, px_cell > 0 ? (_qh * 2) / px_cell : 0);
 scene_light_bind(s_scene2, s_scene2w, u_sceneuv2, u_sceneam2);

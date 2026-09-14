@@ -328,6 +328,20 @@ function settings_content() {
 		+ "different hue and finish for every die, which is the default.",
 		-1, true);
 
+	// THE COIN's finish, off the same roster (2026-09-14): gold by default
+	settings_pill("coin material", "coinmat",
+		coin_mat_name(),
+		function() {
+			var _l = dice_mat_config();
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j].name, { val : _l[_j].id,
+					col : c_gold, enabled : (_l[_j].id == g.coin_mat) });
+		},
+		function(_v) { g.coin_mat = _v; },
+		"what the coin is struck from. the same finishes as the dice; "
+		+ "a coin is always at least mostly metal.",
+		-1, true);
+
 	// the puck, off the dice's roster (his ask, 2026-09-10). "random" is
 	// the classic black rubber here - a puck should not roll a body
 	// colour - and the pill says so

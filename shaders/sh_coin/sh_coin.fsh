@@ -18,6 +18,7 @@ uniform vec3  u_or[3]; // object-from-view rotation rows
 uniform vec3  u_light; // direction TO the light, view space
 uniform vec3  u_col;   // metal tint 0..1
 uniform float u_metal; // finish: 0 matte .. 1 metal (a coin is 1)
+uniform float u_iri;   // iridescence 0..1 (the pearls on the roster)
 uniform float u_pad;   // quad half-extent in coin radii
 uniform float u_cells; // pixel cells across the quad. 0 = off
 uniform sampler2D u_scene;    // the room's light: tight (reflection)
@@ -28,6 +29,12 @@ uniform float u_scene_amt;
 const float CT  = 0.18;  // half thickness (coin radius = 1) - obj_coin's ct
 const float RDC = 0.10;  // edge rounding - obj_coin's rrc
 const float REL = 0.055; // the relief's height, in radii
+
+// the die's film (see sh_dice): a hue swept by the facing term
+vec3 iri_hue(float t)
+{
+    return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
+}
 
 float sd_coin(vec3 p)
 {
@@ -126,20 +133,33 @@ void main()
         n = normalize(n + tng * sin(ang * 48.0) * 0.45 * rimw);
     }
 
-    // ---- the die's metal lighting ----
+    // ---- THE METAL (round two, 2026-09-14): a GRADED REFLECTION. A metal
+    // is its reflections - a flat diffuse gold reads as yellow plastic. The
+    // reflected view ray's screen-up component picks a place on a fake
+    // environment: a cream sky above, a dark ground below, a bright band
+    // at the horizon - tinted by the body, so gold reflects gold, silver
+    // silver. The die's glint and grazing sheen on top; the film for the
+    // pearls; the raised metal catching a touch more ----
     vec3 nv = u_or[0] * n.x + u_or[1] * n.y + u_or[2] * n.z;
     float df = clamp(dot(nv, u_light), 0.0, 1.0);
-    float dfw = mix(0.35 + 0.72 * df, 0.18 + 0.56 * df, u_metal);
+    float dfw = mix(0.35 + 0.72 * df, 0.10 + 0.28 * df, u_metal);
     vec3 col = u_col * dfw;
-    // the raised metal catches a touch more light than the field
-    col *= 1.0 + 0.10 * lift;
-
     vec3 rf = reflect(vec3(0.0, 0.0, -1.0), nv);
-    float sp = pow(clamp(dot(rf, u_light), 0.0, 1.0), mix(9.0, 30.0, u_metal));
-    vec3 spc = mix(vec3(1.0), clamp(u_col * 1.2 + vec3(0.12), 0.0, 1.0), u_metal);
+    float up  = clamp(-rf.y * 0.5 + 0.5, 0.0, 1.0);      // screen-up is -y
+    float env = mix(0.16, 1.0, pow(up, 1.7)) + 0.32 * exp(-pow((up - 0.58) * 5.0, 2.0));
+    col += u_col * env * 0.72 * u_metal;
+    col *= 1.0 + 0.12 * lift;
+
+    float sp = pow(clamp(dot(rf, u_light), 0.0, 1.0), mix(9.0, 42.0, u_metal));
+    vec3 spc = mix(vec3(1.0), clamp(u_col * 1.25 + vec3(0.15), 0.0, 1.0), u_metal);
     float fr = pow(1.0 - clamp(nv.z, 0.0, 1.0), 3.0);
-    col += spc * sp * mix(0.22, 0.95, u_metal);
-    col += spc * fr * 0.22 * u_metal;
+    if (u_iri > 0.0) {
+        vec3 ih = iri_hue(fr * 0.85 + df * 0.35);
+        spc = mix(spc, ih, u_iri);
+        col = mix(col, mix(col, ih * (0.45 + 0.55 * dfw), 0.35), u_iri);
+    }
+    col += spc * sp * mix(0.22, 1.0, u_metal);
+    col += spc * fr * mix(0.22 * u_metal, 0.5, u_iri);
 
     vec3 amb  = max(sw0 + swx * 0.5 * nv.x + swy * 0.5 * nv.y, 0.0);
     vec3 refl = max(st0 + stx * 0.5 * nv.x + sty * 0.5 * nv.y, 0.0);

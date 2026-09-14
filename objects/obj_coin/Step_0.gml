@@ -2,6 +2,8 @@ visible = unfold_has("coin");   // (the unfold: an objective's reward)
 if (!visible) exit;
 stic -= delta;
 lean -= delta;
+// the finish is a setting: repaint on the frame it changes (the die's rule)
+if (variable_global_exists("coin_mat") && g.coin_mat != mat_id) coin_mat_apply();
 
 // ================= grab =================
 // a press near the coin takes it (arbitrated region pattern; obj_clicker

@@ -26,9 +26,10 @@ rr  = rrc;        // (the dice's name for it - their pair pass reads it)
 QP  = 1.3;        // draw quad half-extent in radii
 px_cell = 1;
 
-// the metal: gold, the die's metal lighting
-tint  = rgb(242, 198, 84);
-metal = 1;
+// the finish: the dice roster by g.coin_mat (settings > visuals), gold by
+// default - coin_mat_apply; the Step repaints on the setting changing
+tint = c_gold; metal = 1; iri = 0; mat_id = "";
+coin_mat_apply();
 
 // ---- rigid body ----
 pz = r + 16 + irandom(12);
@@ -37,13 +38,20 @@ wx = random_range(-.06, .06); wy = random_range(-.06, .06); wz = random_range(-.
 orient = mat3_mul(mat3_rot(1, 0, 0, random_range(-12, 12)), mat3_rot(0, 0, 1, irandom(359)));
 
 invm = 1;
-// a thin cylinder's tensor is not isotropic (I_z = r^2/2, I_x = r^2/4 +
-// h^2/12); the solver is. The mean of the three, r^2/3, keeps the
-// wobble-down honest enough (the rim contacts supply the character)
-invi = 1 / (r * r / 3);
+// ⚖️ THE TENSOR (round two, 2026-09-14): a thin cylinder is NOT isotropic
+// - about its axle I_z = r^2/2, across it I_x = I_y = r^2/4 + h^2/3 (h
+// the half thickness, m 1) - and that difference IS a coin's motion: a
+// tumble is twice as easy to start and stop as a spin, which is why a
+// spun coin wobbles down faster and faster while a tumbling one flops.
+// The contact maths runs its angular term through I^-1 in OBJECT space
+// (__winv); the scalar below is only what the dice's pair pass reads
+// for the far side of a coin-die contact - their mean
+invI_xy = 1 / (r * r / 4 + ct * ct / 3);
+invI_z  = 1 / (r * r / 2);
+invi    = (2 * invI_xy + invI_z) / 3;
 grav = .34;
 mu   = .42;
-e_pl = .40;   // a coin rings and settles quicker than a die
+e_pl = .36;   // a coin rings and settles quicker than a die
 e_dd = .45;
 sleeping = false;
 bal_t = 0;
@@ -112,6 +120,19 @@ __ortho = function(_m) {
 	return [_x0, _x1, _x2, _y0, _y1, _y2, _z0, _z1, _z2];
 };
 
+/// @func __winv(ax, ay, az)
+/// @desc I^-1 applied to a world vector: into object space (columns dot),
+///       scaled by the diagonal, back out
+__winv = function(_ax, _ay, _az) {
+	var _ox = orient[0] * _ax + orient[3] * _ay + orient[6] * _az;
+	var _oy = orient[1] * _ax + orient[4] * _ay + orient[7] * _az;
+	var _oz = orient[2] * _ax + orient[5] * _ay + orient[8] * _az;
+	_ox *= invI_xy; _oy *= invI_xy; _oz *= invI_z;
+	return [orient[0] * _ox + orient[1] * _oy + orient[2] * _oz,
+	        orient[3] * _ox + orient[4] * _oy + orient[5] * _oz,
+	        orient[6] * _ox + orient[7] * _oy + orient[8] * _oz];
+};
+
 // this coin's rounded-cylinder SDF, object space, px (sh_coin's)
 __sdf = function(_qx, _qy, _qz) {
 	var _ax = sqrt(_qx * _qx + _qy * _qy) - (r - rrc);
@@ -126,6 +147,7 @@ u_or2    = shader_get_uniform(sh_coin, "u_or");
 u_light2 = shader_get_uniform(sh_coin, "u_light");
 u_col2   = shader_get_uniform(sh_coin, "u_col");
 u_metal2 = shader_get_uniform(sh_coin, "u_metal");
+u_iri2   = shader_get_uniform(sh_coin, "u_iri");
 u_pad2   = shader_get_uniform(sh_coin, "u_pad");
 u_cells2 = shader_get_uniform(sh_coin, "u_cells");
 s_scene2   = shader_get_sampler_index(sh_coin, "u_scene");
@@ -152,12 +174,16 @@ __contact = function(_cx, _cy, _cz, _nx, _ny, _nz, _pen, _e) {
 	var _vn = _vcx * _nx + _vcy * _ny + _vcz * _nz;
 	if (_vn < 0) {
 		var _en = (_vn < -1.1) ? _e : 0;
+		// the angular term through the tensor: b = I^-1 (r x n); the
+		// effective inverse mass along n is invm + (b x r) . n
 		var _kx = _ry * _nz - _rz * _ny;
 		var _ky = _rz * _nx - _rx * _nz;
 		var _kz = _rx * _ny - _ry * _nx;
-		var _j = -(1 + _en) * _vn / (invm + invi * (_kx * _kx + _ky * _ky + _kz * _kz));
+		var _b = __winv(_kx, _ky, _kz);
+		var _bxr = (_b[1] * _rz - _b[2] * _ry) * _nx + (_b[2] * _rx - _b[0] * _rz) * _ny + (_b[0] * _ry - _b[1] * _rx) * _nz;
+		var _j = -(1 + _en) * _vn / (invm + _bxr);
 		vx += _nx * _j * invm; vy += _ny * _j * invm; vz += _nz * _j * invm;
-		wx += invi * _j * _kx; wy += invi * _j * _ky; wz += invi * _j * _kz;
+		wx += _b[0] * _j; wy += _b[1] * _j; wz += _b[2] * _j;
 		_vcx = vx + wy * _rz - wz * _ry;
 		_vcy = vy + wz * _rx - wx * _rz;
 		_vcz = vz + wx * _ry - wy * _rx;
@@ -169,10 +195,12 @@ __contact = function(_cx, _cy, _cz, _nx, _ny, _nz, _pen, _e) {
 			var _fx = _ry * _tz - _rz * _ty;
 			var _fy = _rz * _tx - _rx * _tz;
 			var _fz = _rx * _ty - _ry * _tx;
-			var _jt = _tl / (invm + invi * (_fx * _fx + _fy * _fy + _fz * _fz));
+			var _bf = __winv(_fx, _fy, _fz);
+			var _bfr = (_bf[1] * _rz - _bf[2] * _ry) * _tx + (_bf[2] * _rx - _bf[0] * _rz) * _ty + (_bf[0] * _ry - _bf[1] * _rx) * _tz;
+			var _jt = _tl / (invm + _bfr);
 			_jt = min(_jt, mu * _j);
 			vx += _tx * _jt * invm; vy += _ty * _jt * invm; vz += _tz * _jt * invm;
-			wx += invi * _jt * _fx; wy += invi * _jt * _fy; wz += invi * _jt * _fz;
+			wx += _bf[0] * _jt; wy += _bf[1] * _jt; wz += _bf[2] * _jt;
 		}
 		__clack(_j);
 		return 1;
@@ -255,11 +283,13 @@ __pair_dir = function(_s) {
 		var _en = (_vn < -1.1) ? e_dd : 0;
 		var _kax = _ray * _nz - _raz * _ny, _kay = _raz * _nx - _rax * _nz, _kaz = _rax * _ny - _ray * _nx;
 		var _kbx = _rby * _nz - _rbz * _ny, _kby = _rbz * _nx - _rbx * _nz, _kbz = _rbx * _ny - _rby * _nx;
-		var _den = invm + _s.invm + invi * (_kax * _kax + _kay * _kay + _kaz * _kaz)
+		var _ba = __winv(_kax, _kay, _kaz);   // my side through the tensor
+		var _bar = (_ba[1] * _raz - _ba[2] * _ray) * _nx + (_ba[2] * _rax - _ba[0] * _raz) * _ny + (_ba[0] * _ray - _ba[1] * _rax) * _nz;
+		var _den = invm + _s.invm + _bar
 			+ _s.invi * (_kbx * _kbx + _kby * _kby + _kbz * _kbz);
 		var _j = -(1 + _en) * _vn / _den;
 		vx -= _nx * _j * invm; vy -= _ny * _j * invm; vz -= _nz * _j * invm;
-		wx -= invi * _j * _kax; wy -= invi * _j * _kay; wz -= invi * _j * _kaz;
+		wx -= _ba[0] * _j; wy -= _ba[1] * _j; wz -= _ba[2] * _j;
 		_s.vx += _nx * _j * _s.invm; _s.vy += _ny * _j * _s.invm; _s.vz += _nz * _j * _s.invm;
 		_s.wx += _s.invi * _j * _kbx; _s.wy += _s.invi * _j * _kby; _s.wz += _s.invi * _j * _kbz;
 		_vax = vx + wy * _raz - wz * _ray; _vay = vy + wz * _rax - wx * _raz; _vaz = vz + wx * _ray - wy * _rax;
@@ -272,11 +302,13 @@ __pair_dir = function(_s) {
 			_tx /= _tl; _ty /= _tl; _tz /= _tl;
 			var _fax = _ray * _tz - _raz * _ty, _fay = _raz * _tx - _rax * _tz, _faz = _rax * _ty - _ray * _tx;
 			var _fbx = _rby * _tz - _rbz * _ty, _fby = _rbz * _tx - _rbx * _tz, _fbz = _rbx * _ty - _rby * _tx;
-			var _dent = invm + _s.invm + invi * (_fax * _fax + _fay * _fay + _faz * _faz)
+			var _bfa = __winv(_fax, _fay, _faz);
+			var _bfar = (_bfa[1] * _raz - _bfa[2] * _ray) * _tx + (_bfa[2] * _rax - _bfa[0] * _raz) * _ty + (_bfa[0] * _ray - _bfa[1] * _rax) * _tz;
+			var _dent = invm + _s.invm + _bfar
 				+ _s.invi * (_fbx * _fbx + _fby * _fby + _fbz * _fbz);
 			var _jt = min(_tl / _dent, mu * _j);
 			vx += _tx * _jt * invm; vy += _ty * _jt * invm; vz += _tz * _jt * invm;
-			wx += invi * _jt * _fax; wy += invi * _jt * _fay; wz += invi * _jt * _faz;
+			wx += _bfa[0] * _jt; wy += _bfa[1] * _jt; wz += _bfa[2] * _jt;
 			_s.vx -= _tx * _jt * _s.invm; _s.vy -= _ty * _jt * _s.invm; _s.vz -= _tz * _jt * _s.invm;
 			_s.wx -= _s.invi * _jt * _fbx; _s.wy -= _s.invi * _jt * _fby; _s.wz -= _s.invi * _jt * _fbz;
 		}

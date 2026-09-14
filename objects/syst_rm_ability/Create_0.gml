@@ -291,6 +291,14 @@ grab_deck_ap();
 sb = create_obj(1, list_y, obj_scrollbar);
 sb.i = scrl_abilitydeck;
 sb.image_yscale = (visible_rows * row_h) / sprite_get_height(spr_scrollbar);
+// ⚖️ THE BAR LIVES ABOVE THE OVERLAY BLOCK (his report, 2026-09-14: "the
+// scrollbar / scrolling doesn't work"). This screen became an overlay on
+// 2026-09-12 and syst_input holds the room under an overlay at
+// ui_layer_overlay - the bar's own gates read input_free(0) unless told
+// otherwise, so the drag, the touch fling and the wheel were all refused.
+// The settings / statistics / faq bars declare exactly this pair
+sb.ui_layer = ui_layer_popup;
+sb.in_menu  = true;
 
 var _sl = create_obj(list_x, list_y, obj_ability_slot);
 _sl.a_ = 0;

@@ -72,6 +72,7 @@ function handle_settings(_method) {
 	g.vis_grid_alpha = handle("vis_grid_alpha",g.vis_grid_alpha); // grid %
 	g.vis_glow = handle("vis_glow",g.vis_glow); // glow fx layer intensity %
 	g.dice_mat = handle("dice_mat",g.dice_mat); // dice finish, by roster id
+	g.coin_mat = handle("coin_mat",g.coin_mat); // the coin's
 	g.menu_style = handle("menu_style",g.menu_style); // the header menu's panel
 	g.title_bg = handle("title_bg",g.title_bg); // the title's backdrop
 	g.puck_mat = handle("puck_mat",g.puck_mat); // the puck's, same roster

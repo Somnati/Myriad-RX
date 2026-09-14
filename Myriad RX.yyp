@@ -290,6 +290,8 @@
     {"id":{"name":"clipboard_get","path":"scripts/clipboard_get/clipboard_get.yy",},},
     {"id":{"name":"clipboard_set","path":"scripts/clipboard_set/clipboard_set.yy",},},
     {"id":{"name":"coin_init","path":"scripts/coin_init/coin_init.yy",},},
+    {"id":{"name":"coin_mat_apply","path":"scripts/coin_mat_apply/coin_mat_apply.yy",},},
+    {"id":{"name":"coin_mat_name","path":"scripts/coin_mat_name/coin_mat_name.yy",},},
     {"id":{"name":"color_set_comp","path":"scripts/color_set_comp/color_set_comp.yy",},},
     {"id":{"name":"color_set_random","path":"scripts/color_set_random/color_set_random.yy",},},
     {"id":{"name":"color_set_triadic","path":"scripts/color_set_triadic/color_set_triadic.yy",},},

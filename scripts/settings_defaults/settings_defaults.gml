@@ -36,6 +36,7 @@ function settings_defaults(_section = "all") {
 		g.vis_grid_alpha        = 75;   // visualiser grid opacity, %
 		g.vis_glow              = 15;   // visualiser glow intensity, %
 		g.dice_mat              = "random"; // dice finish (dice_mat_config)
+		g.coin_mat              = "gold";   // the coin's, same roster
 		g.menu_style            = "default"; // the header menu's panel (default / black / glass)
 		g.title_bg              = "starfield"; // the title's backdrop (starfield / blocks)
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
