@@ -534,6 +534,14 @@ function main_macros() {
 // DE's obj_scale_de at its seat with the rebuilt obj_scale_rx above it,
 // each tagged; false leaves only the rebuilt one, at the floor
 #macro SCALE_COMPARE     true
+// THE CHEAT SHOP (2026-09-13, Disgaea's - his ask): obtain rates you
+// redistribute. cheat_config's rows, cheat_cap's total; these are the knobs
+#macro CHEAT_STEP        10    // a press moves a row this much
+#macro CHEAT_ROW_MIN     10    // a row never goes under (0 would zero a lane; arb has no zero)
+#macro CHEAT_ROW_MAX     400   // ...or over (x4 on one lane at the cost of the rest)
+#macro CHEAT_CAP_MS      25    // cap per rebirth milestone (the ruler's payout)
+#macro CHEAT_CAP_RB      5     // cap per rebirth...
+#macro CHEAT_CAP_RB_N    20    // ...for this many of them
 // THE MATERIALS (2026-09-13, his ask: shader surfaces, a pool per tier -
 // tile_mat_config / tile_skin_roll / sh_tile_mat). false = every tile flat
 #macro TILE_MATERIAL     true

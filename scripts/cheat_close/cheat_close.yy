@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cheat_close",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cheat_close",
+  "parent":{
+    "name":"cheat",
+    "path":"folders/game/cheat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

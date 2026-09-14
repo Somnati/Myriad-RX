@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cheat_cap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cheat_cap",
+  "parent":{
+    "name":"cheat",
+    "path":"folders/game/cheat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

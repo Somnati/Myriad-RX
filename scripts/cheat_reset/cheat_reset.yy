@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cheat_reset",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cheat_reset",
+  "parent":{
+    "name":"cheat",
+    "path":"folders/game/cheat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -21,6 +21,7 @@ function menu2_content() {
 	menu2_button("clicker",      rm_clicker,       c_horange);
 	menu2_button("objectives",   function() { objectives_open(); }, c_gold);   // the chain, in full (his spec, 2026-09-13)
 	if (unfold_has("rebirth"))    menu2_button("rebirth",      function() { rebirth_open(); }, c_hred, "rebirth"); // myriad
+	if (unfold_has("cheat"))      menu2_button("cheat shop",   function() { cheat_open(); },   c_pink, "cheat");   // disgaea's obtain rates (2026-09-13)
 	if (unfold_has("upgrades"))   menu2_button("upgrades",     function() { upgrades_open(); }, c_lavender, "upgrades"); // myriad (an overlay, 2026-09-12)
 	if (unfold_has("tiles"))      menu2_button("tiles",        function() { tiles_open(); },     c_aqua, "tiles");        // myriad (an overlay, 2026-09-12)
 	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_rarity_epic, "abilities"); // techdemo (an overlay, 2026-09-12)

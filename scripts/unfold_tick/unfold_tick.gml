@@ -24,6 +24,7 @@ function unfold_tick() {
 		else if (instance_exists(syst_exped_panel))      _vis = "expeditions";
 		else if (instance_exists(syst_statistics_v2))    _vis = "statistics";
 		else if (instance_exists(syst_offlog))           _vis = "offlog";
+		else if (instance_exists(syst_cheat_panel))      _vis = "cheat";
 		else if (instance_exists(syst_rebirth) && syst_rebirth.open) _vis = "rebirth";
 		if (_vis != "") {
 			var _at = array_get_index(_u.fresh, _vis);

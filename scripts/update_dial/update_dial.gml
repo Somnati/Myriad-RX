@@ -63,5 +63,13 @@ function update_dial(_i) {
 	var _rb = rebirth_boost();
 	if (_rb > arb(1)) _d.gpc = do_multi(_d.gpc, _rb);
 
+	// THE CHEAT SHOP (2026-09-13): dial profit and dial speed, the player's
+	// own allocation (cheat_rate is 1 until the shop unfolds). Result-side,
+	// after everything else, the way the upgrade seats above are
+	var _cp = cheat_rate("dprofit");
+	if (_cp != 1) _d.gpc = do_scale(_d.gpc, _cp);
+	var _cs = cheat_rate("dspeed");
+	if (_cs != 1) { _d.cycle_t /= _cs; _d.cps = 1 / _d.cycle_t; }
+
 	_d.gps = do_scale(_d.gpc, _d.cps);
 }

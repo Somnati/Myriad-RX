@@ -21,8 +21,9 @@ function autom_rate(_kind) {
 		// the staff work offline too (sprite_staff: no RAM, no battery)
 		switch (_kind) {
 			case "run":   return _a.run.on ? (_r.run   / 100) * (1 + sprite_staff("run")) : 0;
-			case "fab":   return _a.fab.on ? (_r.fab   / 100) * (1 + sprite_staff("fab")) : 0;
-			case "merge": return (_r.merge / 100) * (1 + sprite_staff("merge"));
+			// (x the cheat shop's row, 2026-09-13 - online below the same)
+			case "fab":   return (_a.fab.on ? (_r.fab   / 100) * (1 + sprite_staff("fab")) : 0) * cheat_rate("fab");
+			case "merge": return (_r.merge / 100) * (1 + sprite_staff("merge")) * cheat_rate("merge");
 		}
 		return 1;
 	}
@@ -32,8 +33,8 @@ function autom_rate(_kind) {
 	// not simulated and the staff term stands in for them
 	switch (_kind) {
 		case "run":   return _a.run.on ? (_a.run.spd / 100) * ram_throttle() * (1 + sprite_staff("run")) : 0;
-		case "fab":   return _a.fab.on ? (_a.fab.spd / 100) * ram_throttle() : 0;
-		case "merge": return (_a.am_speed / 100) * ram_throttle();
+		case "fab":   return (_a.fab.on ? (_a.fab.spd / 100) * ram_throttle() : 0) * cheat_rate("fab");
+		case "merge": return (_a.am_speed / 100) * ram_throttle() * cheat_rate("merge");
 	}
 	return 1;
 }

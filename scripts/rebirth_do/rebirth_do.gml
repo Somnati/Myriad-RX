@@ -35,6 +35,7 @@ function rebirth_do() {
 	g.rebirth.units = (g.rebirth.units >= arb(1))
 		? do_add(g.rebirth.units, _r.units) : _r.units;
 	g.rebirth.total += 1;
+	unfold_grant("cheat", "new: the cheat shop");   // Disgaea's, from the first rebirth (2026-09-13)
 
 	// ---- 3. the clean slate ----
 	g.profit        = 0;

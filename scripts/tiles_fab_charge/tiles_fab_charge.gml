@@ -13,7 +13,7 @@ function tiles_fab_charge(_frac) {
 	tiles_init();
 	var _t = g.tiles;
 	if (_frac <= 0) return;
-	_t.fab += _t.fab_t * _frac;
+	_t.fab += _t.fab_t * _frac * cheat_rate("fab");   // the cheat shop's fabrication row (2026-09-13)
 	var _guard = 0;
 	while (_t.fab >= _t.fab_t && _guard++ < 16) {
 		if (!tiles_fab_finish()) break;

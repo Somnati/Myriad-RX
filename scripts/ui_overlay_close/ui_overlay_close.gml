@@ -22,5 +22,6 @@ function ui_overlay_close() {
 	if (instance_exists(syst_exped_panel))      { exped_close();      return; }
 	if (instance_exists(syst_offlog))           { offlog_close();     return; }
 	if (instance_exists(syst_objectives_panel)) { objectives_close(); return; }
+	if (instance_exists(syst_cheat_panel))      { cheat_close();      return; }
 	if (instance_exists(syst_rebirth) && syst_rebirth.open) { syst_rebirth.open = false; return; }
 }

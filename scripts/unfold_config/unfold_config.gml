@@ -50,6 +50,10 @@ function unfold_config() {
 		// it regardless, as does any pile past a milestone
 		{ key : "scale", banner : "new: the milestone scale",
 		  need : function() { return variable_global_exists("profit") && variable_global_exists("rebirth") && (g.profit >= arb(100000000) || g.rebirth.hi_ms > 0); } },
+		// THE CHEAT SHOP (2026-09-13): rebirth_do grants it; the net for a save
+		// that rebirthed before it existed
+		{ key : "cheat", banner : "new: the cheat shop",
+		  need : function() { return variable_global_exists("rebirth") && g.rebirth.total > 0; } },
 		// the daily gift, a quarter hour in
 		{ key : "gift", banner : "a gift is waiting",
 		  need : function() { return variable_global_exists("time_played_active") && g.time_played_active >= 900; } },

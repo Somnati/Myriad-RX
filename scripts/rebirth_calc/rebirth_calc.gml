@@ -94,6 +94,10 @@ function rebirth_calc() {
 	var _ub = upgrade_bonus_live();
 	if (_ub.rebirth_units > 0 && _units >= arb(1))
 		_units = do_floor(do_scale(_units, 1 + _ub.rebirth_units / 100));
+	// THE CHEAT SHOP's rebirth units row (2026-09-13), last of all - the same
+	// argument as the upgrades: never before the clamp
+	var _cu = cheat_rate("units");
+	if (_cu != 1 && _units >= arb(1)) _units = do_floor(do_scale(_units, _cu));
 
 	_out.units = _units;
 	_out.can   = (_units >= arb(1));

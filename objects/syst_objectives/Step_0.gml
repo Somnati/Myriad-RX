@@ -16,6 +16,13 @@ if (cel > 0 && a > .5) cel = max(0, cel - delta / 60);
 // seeing tick); portrait's drawer is the whole room, so there it hides.
 // The open dial drawer is the whole width in portrait too
 var _land = (room_width > 300);
+// the glass capture slot, remade per room (see the Create)
+if (!instance_exists(snap_px)) {
+	snap_px = create_obj(0, 0, obj_draw_proxy);
+	snap_px.owner = id;
+	snap_px.depth = depth + 1;
+	snap_px.fn    = __snap_cap;
+}
 // ...and in the TILES (his ask, 2026-09-13: objectives may teach the
 // table) - landscape only, where the board sits under the card's foot
 var _ov = ui_overlay();

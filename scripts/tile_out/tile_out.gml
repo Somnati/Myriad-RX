@@ -28,9 +28,13 @@
 /// returned as it is.
 function tile_out(_tier) {
 	var _g = tile_gps(_tier);
-	var _b = tile_rebirth_boost();
-	if (_b <= 1) return _g;
+	// THE CHEAT SHOP's tile output rides the boost's lane (2026-09-13) - it
+	// can go UNDER 1, so the floor below may land on nothing: a tile that
+	// pays under a whole shard pays 0 (the honest "rounded down")
+	var _b = tile_rebirth_boost() * cheat_rate("tout");
+	if (_b == 1) return _g;
 	var _lg = arb_log10(_g) + log10(_b);
 	if (_lg >= 12) return log_to_arb(_lg);
-	return arb(floor(power(10, _lg) + .000001));
+	var _whole = floor(power(10, _lg) + .000001);
+	return (_whole >= 1) ? arb(_whole) : 0;
 }

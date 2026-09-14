@@ -21,6 +21,22 @@
 
 if (instance_number(syst_objectives) > 1) { kill; exit; }
 depth = -1100;
+
+// THE PLATE'S GLASS (his ask, 2026-09-13: "the same background shader the
+// dial dock has"): the room under the open card, PIXELATED - syst_dials'
+// region pixelation (pixel_snap 3 room px a block, rims softened 4x) and
+// its light dim. The capture is an obj_draw_proxy slot ONE STEP ABOVE the
+// card (-1099): everything the card sits on - the room, an overlay, the
+// drawer, the header - is in the shot and the card itself never is. The
+// proxy is room-scoped (not persistent) so the Step remakes it on
+// arrival; it captures only while the card is open (a full-surface
+// downscale a frame is not free), and the Draw falls back to the plain
+// plate on any frame without a shot.
+snap_px = noone;
+snap_ok = false;
+__snap_cap = function() {
+	snap_ok = (a > .01 && op > .01 && okey != "") ? pixel_snap(3, 4) : false;
+};
 persistent = true;
 
 a     = 0;      // presence, eased
