@@ -881,7 +881,7 @@ function settings_content() {
 	// release - "new" while the newest version is one you have not opened
 	{
 		var _cl = changelog_content();
-		var _newest = (array_length(_cl) > 0) ? _cl[0].ver : "";
+		var _newest = (array_length(_cl) > 0 && array_length(_cl[0].releases) > 0) ? _cl[0].releases[0].ver : "";
 		var _seen = variable_global_exists("changelog_seen") ? g.changelog_seen : "";
 		settings_action((_seen != _newest && _newest != "") ? "changelog  -  new" : "changelog",
 			function() { changelog_open(); },
