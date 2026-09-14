@@ -46,6 +46,7 @@ if (!guest) {
 	if (SCALE_COMPARE && !instance_exists(obj_scale_de)) create_obj(0, 0, obj_scale_de);
 	if (!instance_exists(obj_scale_rx)) create_obj(0, 0, obj_scale_rx);
 	if (!instance_exists(obj_tickets))  create_obj(0, 0, obj_tickets);   // the scratch tickets' pile
+	if (!instance_exists(obj_coin))     create_obj(room_width * .5 + 44, room_height * .64, obj_coin);   // the coin (2026-09-13)
 }
 image_speed = 0;
 visible = false; // closed: draws nothing, families skip it

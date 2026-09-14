@@ -96,6 +96,17 @@ if (_ok && instance_exists(obj_dice) && unfold_has("dice")) {   // (a die that h
 	}
 }
 
+// THE COIN claims its presses the same way (2026-09-13)
+if (_ok && instance_exists(obj_coin) && unfold_has("coin")) {
+	if (g.coin_scoop) _ok = false;
+	else {
+		var _cn = instance_nearest(mousex, mousey, obj_coin);
+		if (_cn != noone)
+		if (point_distance(mousex, mousey, _cn.x, _cn.y) < _cn.scoop_r)
+			_ok = false;
+	}
+}
+
 // NOTE, since it looks like an omission: settings is NOT excluded. He
 // wants the tapper live in there too (2026-09-08) - it is only pillbox
 // presses that must not pay, and syst_input handles those by raising

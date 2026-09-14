@@ -54,6 +54,10 @@ function unfold_config() {
 		// that rebirthed before it existed
 		{ key : "cheat", banner : "new: the cheat shop",
 		  need : function() { return variable_global_exists("rebirth") && g.rebirth.total > 0; } },
+		// THE COIN'S NET (2026-09-13): the abilities objective rewards it; a save
+		// that finished that batch before the coin existed gets it here
+		{ key : "coin", banner : "a coin on the table - tap it to flip",
+		  need : function() { return variable_global_exists("obj") && (g.obj.done[$ "abil"] ?? false); } },
 		// the daily gift, a quarter hour in
 		{ key : "gift", banner : "a gift is waiting",
 		  need : function() { return variable_global_exists("time_played_active") && g.time_played_active >= 900; } },

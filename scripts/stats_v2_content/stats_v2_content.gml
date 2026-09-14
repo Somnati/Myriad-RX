@@ -551,6 +551,18 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- the coin (2026-09-13) ----
+	if (variable_global_exists("coin") && unfold_has("coin"))
+	if (stats_v2_folder("the coin", c_gold)) {
+		var _cn = g.coin;
+		stats_v2_line("flips", string(_cn.flips));
+		stats_v2_line("heads", string(_cn.heads)
+			+ ((_cn.heads + _cn.tails > 0) ? " (" + string(round(100 * _cn.heads / (_cn.heads + _cn.tails))) + "%)" : ""));
+		stats_v2_line("tails", string(_cn.tails));
+		stats_v2_line("best run of one side", string(_cn.best));
+	}
+	stats_v2_folder_end();
+
 	// ---- scratch tickets (2026-09-13) ----
 	if (variable_global_exists("tickets") && unfold_has("tickets"))
 	if (stats_v2_folder("scratch tickets", c_feat_tickets)) {

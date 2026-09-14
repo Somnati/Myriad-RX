@@ -717,6 +717,20 @@ function handle_save(){
 		}
 	}
 
+	// ---- the coin's tally (2026-09-13) ----
+	section = "coin";
+	coin_init();
+	g.coin.flips  = handle("flips",  g.coin.flips);
+	g.coin.heads  = handle("heads",  g.coin.heads);
+	g.coin.tails  = handle("tails",  g.coin.tails);
+	g.coin.streak = handle("streak", g.coin.streak);
+	g.coin.best   = handle("best",   g.coin.best);
+	g.coin.last   = handle("last",   g.coin.last);
+	if (action == sv_load) {
+		g.coin.flips = max(0, floor(g.coin.flips)); g.coin.heads = max(0, floor(g.coin.heads)); g.coin.tails = max(0, floor(g.coin.tails));
+		g.coin.streak = max(0, floor(g.coin.streak)); g.coin.best = max(0, floor(g.coin.best)); g.coin.last = clamp(floor(g.coin.last), 0, 2);
+	}
+
 	section = "upgrades";
 	upgrade_init();
 	g.upg.bought = handle("slots_bought", g.upg.bought);

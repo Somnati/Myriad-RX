@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"coin_init",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"coin_init",
+  "parent":{
+    "name":"fidget",
+    "path":"folders/game/fidget.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -96,7 +96,8 @@ function objective_config() {
 			  done : function() { return instance_exists(syst_rm_ability); } },
 			{ txt : "draft a card",
 			  done : function() { return variable_global_exists("new_abilities_unlocked") && g.new_abilities_unlocked >= 1; } },
-		  ] },
+		  ],
+		  reward : ["coin"], reward_txt : "a coin on the table - tap it to flip" },
 		{ key : "ccore", name : "the credit core",
 		  steps : [
 			{ txt : "earn 15 credits", unlocks : ["ccore"], banner : "new: the credit core",
