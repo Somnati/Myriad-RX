@@ -553,64 +553,6 @@ function handle_save(){
 		exped_board_roll();
 	}
 
-	section = "unfold";
-	unfold_init();
-	var _us = handle("unf_seen",   string_join_ext("|", variable_struct_get_names(g.unf.seen)));
-	var _ud = handle("unf_done",   string_join_ext("|", variable_struct_get_names(g.unf.done)));
-	var _uo = handle("unf_opened", string_join_ext("|", variable_struct_get_names(g.unf.opened)));
-	var _uf = handle("unf_fresh",  string_join_ext("|", g.unf.fresh));
-	var _uv = handle("unf_v", 1);   // the key that says "this save knows the unfold"
-	if (action == sv_load) {
-		g.unf.seen = {}; g.unf.done = {}; g.unf.opened = {}; g.unf.fresh = [];
-		var _sl = (_us != "") ? string_split(_us, "|") : [];
-		for (var _i = 0; _i < array_length(_sl); _i++) g.unf.seen[$ _sl[_i]] = true;
-		var _dl = (_ud != "") ? string_split(_ud, "|") : [];
-		for (var _i = 0; _i < array_length(_dl); _i++) g.unf.done[$ _dl[_i]] = true;
-		var _ol = (_uo != "") ? string_split(_uo, "|") : [];
-		for (var _i = 0; _i < array_length(_ol); _i++) g.unf.opened[$ _ol[_i]] = true;
-		g.unf.fresh = (_uf != "") ? string_split(_uf, "|") : [];
-		// a save from before the unfold: a dial owned and no unfold key
-		// means a player who has been here - reveal everything, re-teach
-		// nobody. (handle() reads the default, 1, when the key is absent;
-		// the write above stores 1 too, so the tell is the seen list
-		// being empty against a real run)
-		// ...read STRAIGHT OFF THE FILE (bug hunt, 2026-09-14): the dials
-		// section loads LAST, so g.dial[0].level here was whatever the run
-		// in memory had - after the load's reset, zero - and this never fired
-		var _d0lv = ini_read_real("dials", "d0_lv", 0);
-		if (_us == "" && _d0lv > 0) unfold_reveal_all();
-	}
-
-	// ---- the objectives (his spec, 2026-09-13): where the chain stands ----
-	section = "objectives";
-	objective_init();
-	var _oi = handle("obj_i",     g.obj.i);
-	var _od = handle("obj_done",  string_join_ext("|", variable_struct_get_names(g.obj.done)));
-	var _oa = handle("obj_act",   string_join_ext("|", variable_struct_get_names(g.obj.act)));
-	if (action == sv_load) {
-		var _was_all = (_us == "" && ini_read_real("dials", "d0_lv", 0) > 0);   // reveal_all ran above (the file's own level - see there)
-		g.obj.i = max(0, floor(_oi)); g.obj.done = {}; g.obj.act = {}; g.obj.just = ""; g.obj.gap = 0;
-		var _l1 = (_od != "") ? string_split(_od, "|") : [];
-		for (var _i = 0; _i < array_length(_l1); _i++) g.obj.done[$ _l1[_i]] = true;
-		// THE INDEX FOLLOWS THE KEYS (2026-09-14: the chain's order moved -
-		// abilities now come after the second rebirth - and a saved index
-		// would have pointed at the wrong objective). The chain is
-		// sequential: the first objective not done is where it stands
-		{
-			var _oc = objective_config(), _k2 = 0;
-			while (_k2 < array_length(_oc) && (g.obj.done[$ _oc[_k2].key] ?? false)) _k2++;
-			g.obj.i = _k2;
-		}
-		var _l3 = (_oa != "") ? string_split(_oa, "|") : [];
-		for (var _i = 0; _i < array_length(_l3); _i++) g.obj.act[$ _l3[_i]] = true;
-		// a save that has played but never had objectives (no objective
-		// ever ACTIVATED - the first activates on the first tick after the
-		// veil - and a dial owned): catch up to where it stands - or, for
-		// a save from before the unfold itself, the whole chain is done
-		if (_oa == "" && _od == "" && ini_read_real("dials", "d0_lv", 0) > 0)
-			objective_catchup(_was_all);
-	}
-
 	section = "ccore";
 	ccore_init();
 	g.ccore.lv        = handle("cc_lv",    g.ccore.lv);
@@ -897,6 +839,69 @@ function handle_save(){
 			_d.cycle = clamp(_d.cycle, 0, 1);
 		}
 		update_dials(); // THE resync: every derived number, then the tap
+	}
+
+	// ---- THE UNFOLD + THE OBJECTIVES load AFTER EVERYTHING THEY READ (bug
+	// hunt, 2026-09-14): the catch-up for a save from before the chain
+	// evaluates every step - dial levels, the table, the automation, the
+	// credits - and those sections used to load after this one, so the
+	// catch-up saw the reset run and stopped at the first objective ----
+	section = "unfold";
+	unfold_init();
+	var _us = handle("unf_seen",   string_join_ext("|", variable_struct_get_names(g.unf.seen)));
+	var _ud = handle("unf_done",   string_join_ext("|", variable_struct_get_names(g.unf.done)));
+	var _uo = handle("unf_opened", string_join_ext("|", variable_struct_get_names(g.unf.opened)));
+	var _uf = handle("unf_fresh",  string_join_ext("|", g.unf.fresh));
+	var _uv = handle("unf_v", 1);   // the key that says "this save knows the unfold"
+	if (action == sv_load) {
+		g.unf.seen = {}; g.unf.done = {}; g.unf.opened = {}; g.unf.fresh = [];
+		var _sl = (_us != "") ? string_split(_us, "|") : [];
+		for (var _i = 0; _i < array_length(_sl); _i++) g.unf.seen[$ _sl[_i]] = true;
+		var _dl = (_ud != "") ? string_split(_ud, "|") : [];
+		for (var _i = 0; _i < array_length(_dl); _i++) g.unf.done[$ _dl[_i]] = true;
+		var _ol = (_uo != "") ? string_split(_uo, "|") : [];
+		for (var _i = 0; _i < array_length(_ol); _i++) g.unf.opened[$ _ol[_i]] = true;
+		g.unf.fresh = (_uf != "") ? string_split(_uf, "|") : [];
+		// a save from before the unfold: a dial owned and no unfold key
+		// means a player who has been here - reveal everything, re-teach
+		// nobody. (handle() reads the default, 1, when the key is absent;
+		// the write above stores 1 too, so the tell is the seen list
+		// being empty against a real run)
+		// ...read STRAIGHT OFF THE FILE (bug hunt, 2026-09-14): the dials
+		// section loads LAST, so g.dial[0].level here was whatever the run
+		// in memory had - after the load's reset, zero - and this never fired
+		var _d0lv = ini_read_real("dials", "d0_lv", 0);
+		if (_us == "" && _d0lv > 0) unfold_reveal_all();
+	}
+
+	// ---- the objectives (his spec, 2026-09-13): where the chain stands ----
+	section = "objectives";
+	objective_init();
+	var _oi = handle("obj_i",     g.obj.i);
+	var _od = handle("obj_done",  string_join_ext("|", variable_struct_get_names(g.obj.done)));
+	var _oa = handle("obj_act",   string_join_ext("|", variable_struct_get_names(g.obj.act)));
+	if (action == sv_load) {
+		var _was_all = (_us == "" && ini_read_real("dials", "d0_lv", 0) > 0);   // reveal_all ran above (the file's own level - see there)
+		g.obj.i = max(0, floor(_oi)); g.obj.done = {}; g.obj.act = {}; g.obj.just = ""; g.obj.gap = 0;
+		var _l1 = (_od != "") ? string_split(_od, "|") : [];
+		for (var _i = 0; _i < array_length(_l1); _i++) g.obj.done[$ _l1[_i]] = true;
+		// THE INDEX FOLLOWS THE KEYS (2026-09-14: the chain's order moved -
+		// abilities now come after the second rebirth - and a saved index
+		// would have pointed at the wrong objective). The chain is
+		// sequential: the first objective not done is where it stands
+		{
+			var _oc = objective_config(), _k2 = 0;
+			while (_k2 < array_length(_oc) && (g.obj.done[$ _oc[_k2].key] ?? false)) _k2++;
+			g.obj.i = _k2;
+		}
+		var _l3 = (_oa != "") ? string_split(_oa, "|") : [];
+		for (var _i = 0; _i < array_length(_l3); _i++) g.obj.act[$ _l3[_i]] = true;
+		// a save that has played but never had objectives (no objective
+		// ever ACTIVATED - the first activates on the first tick after the
+		// veil - and a dial owned): catch up to where it stands - or, for
+		// a save from before the unfold itself, the whole chain is done
+		if (_oa == "" && _od == "" && ini_read_real("dials", "d0_lv", 0) > 0)
+			objective_catchup(_was_all);
 	}
 
 	// pinned statistics (favorites) ride the save as a pipe-joined
