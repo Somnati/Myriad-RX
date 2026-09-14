@@ -42,8 +42,9 @@ else {
 	}
 	if (keyboard_check_pressed(vk_escape)) __close();
 	if (!mouse_check_button(mb_left)) held = false;
-	// THE SCRATCH LOOP (his sound, 2026-09-14: "Writing (6)" resynthesised
-	// as a smooth grain - no stroke, no swell - snd_scratch loops now):
+	// THE SCRATCH LOOP (his bfxr noise, 2026-09-14: its two-second sustain
+	// cut past the attack and before the release, seam folded - snd_scratch
+	// loops now):
 	// it starts the moment the coin bites, rides the scratching, and lets
 	// go a few frames after the hand stops moving - a short fade, no cut
 	var _bite = false;
