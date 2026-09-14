@@ -149,6 +149,14 @@ for (var _i = 0; _i < _n; _i++) {
 	// ...and the coloured stretch of that rim is as long as the rarity
 	// is high (DE's trick, his ask) - __plate
 	__plate(row_x, _ry, row_w, row_h, _s.rar, merge_colour(_rcl, c_black, _own ? .15 : .5));
+	// PICKED / HOVERED: DE's selected slot (obj_upgrade_slot frame 3) - an
+	// AQUA RIM round the capsule, full when picked, quiet under the pointer
+	// (his call, 2026-09-13: the white wash over the whole row went). A
+	// full outline, all four sides, the words still on black inside it
+	if (pick == _i || _hov) {
+		__rr(row_x, _ry, row_w, row_h, c_aqua, (pick == _i) ? .95 : .4);
+		draw_capsule(row_x + 1, _ry + 1, row_w - 2, row_h - 2, c_black, c_black, 1, capsule_bevel(row_h - 2));
+	}
 	// ---- THE HOLD BAR (DE's): a wash sweeping the WHOLE ROW - what is
 	// being spent, or consumed, is the slot. GREEN AND LINEAR to buy,
 	// RED AND SQUARED to sell (the squared one crawls at the start, so a
@@ -159,10 +167,6 @@ for (var _i = 0; _i < _n; _i++) {
 		var _hc = merge_colour((mode == 0) ? c_sgreen : c_hred, c_black, .3);
 		__rr(row_x, _ry, row_w * _hf, row_h, _hc, .55);
 	}
-	// picked: the deck's soft white echo over the whole capsule;
-	// hovered: a whisper of it
-	if (pick == _i) __rr(row_x, _ry, row_w, row_h, c_white, .14);
-	else if (_hov) __rr(row_x, _ry, row_w, row_h, c_white, .05);
 
 	// what - in the rarity colour, lit toward white once owned (the
 	// deck's "on" name)
