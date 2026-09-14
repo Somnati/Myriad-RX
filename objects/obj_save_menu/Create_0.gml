@@ -50,6 +50,24 @@ if (variable_global_exists("saves_mode") && g.saves_mode == "newgame") {
 	ng_mode = true;
 	g.saves_mode = "";
 }
+// ⚖️ FROM THE TITLE THERE IS ONLY LOAD (his rule, 2026-09-13: "even if i
+// already entered a game and went back to the title screen"). The title
+// sets the flag on its way here; it is consumed so an in-game visit (the
+// menu's saves line) is the save + load bench
+from_title = variable_global_exists("saves_from_title") && g.saves_from_title;
+g.saves_from_title = false;
+can_save = !from_title && !ng_mode;
+
+// THE SELECTED ROW (his ask: rows select, the big buttons act). Main to
+// begin with; -1 = nothing picked
+sel_row = 0;
+
+// THE CONFIRM POPUP, in the middle of the screen (his ask: not the
+// dialogue system) - "" / "save" / "load"; its ease; which button the
+// pointer is on
+confirm  = "";
+conf_a   = 0;
+conf_hot = 0;
 // the difficulty's name and colour, for the profile header line (the
 // pick itself lives in rm_newgame / syst_newgame now)
 ng_label = ["easy", "standard", "hard", "critical", "custom"];
@@ -174,16 +192,56 @@ __panel = function(_y, _h, _col, _a) {
 // clipboard route - which is why export+ and import+ are not two more
 // buttons any more: the platform picks the road, not the player.
 __band = function() {
-	var _w = 78;
+	var _w = 60;   // (78: the big save / load buttons took the right of the band, 2026-09-13)
 	var _g = 6;
 	var _x = content_x - 6;
 	return [
 		{ x : _x,                 y : band_y, w : _w,      h : band_h, id : "export" },
 		{ x : _x + (_w + _g),     y : band_y, w : _w,      h : band_h, id : "import" },
-		{ x : _x + (_w + _g) * 2, y : band_y, w : _w + 22, h : band_h, id : "wipe" },
+		{ x : _x + (_w + _g) * 2, y : band_y, w : _w + 24, h : band_h, id : "wipe" },
 	];
 };
 
+// THE BIG BUTTONS, bottom right (his ask, 2026-09-13): [save] [load] in a
+// game, [load] alone from the title. The transfer band keeps the left
+__bigbtns = function() {
+	var _h = 24, _w = 70, _g = 6;
+	var _y = room_height - _h - 6;
+	var _out = [];
+	if (can_save) {
+		array_push(_out, { x : room_width - 6 - _w * 2 - _g, y : _y, w : _w, h : _h, id : "save" });
+		array_push(_out, { x : room_width - 6 - _w,          y : _y, w : _w, h : _h, id : "load" });
+	} else {
+		array_push(_out, { x : room_width - 6 - 100, y : _y, w : 100, h : _h, id : "load" });
+	}
+	return _out;
+};
+
+/// the popup's box and its two buttons
+__conf_rect = function() {
+	var _w = min(room_width - 16, 230), _h = 74;
+	return { x : floor((room_width - _w) * .5), y : floor((room_height - _h) * .5), w : _w, h : _h };
+};
+__conf_btns = function() {
+	var _r = __conf_rect();
+	var _bw = 84, _bh = 18, _g = 8;
+	var _x0 = _r.x + floor((_r.w - _bw * 2 - _g) * .5);
+	return [ { x : _x0, y : _r.y + _r.h - _bh - 8, w : _bw, h : _bh, id : "ok" },
+	         { x : _x0 + _bw + _g, y : _r.y + _r.h - _bh - 8, w : _bw, h : _bh, id : "cancel" } ];
+};
+
+/// @func __conf_go()
+/// @desc the popup's yes: save writes this profile's main; load plays the
+///       selected file (main straight, a backup restored over main first)
+__conf_go = function() {
+	var _what = confirm;
+	confirm = "";
+	if (_what == "save") { dt_act_save(); play_sound_ext(snd_matclick2, 1.2, 1.3, .5, 1); return; }
+	if (_what == "load") {
+		dlg_row = max(0, sel_row);
+		if (slot_of_row[dlg_row] == 0) dt_act_play(); else dt_act_load_auto();
+	}
+};
 // new game's one button, sitting where the transfer band would be
 __ngbtn = function() {
 	return { x : content_x - 6, y : band_y, w : 160, h : band_h };

@@ -134,6 +134,12 @@ for (var _i = 0; _i < 5; _i++) {
 	if (g.click_owner == noone)
 	if (point_in_rectangle(mouse_x, mouse_y, rail_w, _ry, room_width, _ry + row_h - 1))
 		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, cw, row_h, 0, c_white, .04);
+	// THE SELECTED ROW (his ask: rows select, the buttons act): a wash and a
+	// rim in the row's own colour
+	if (sel_row == _i && !ng_mode) {
+		draw_sprite_ext(spr_pixel_1x1, 0, rail_w, _ry, cw, row_h, 0, _fc, .10);
+		draw_px_rect(rail_w, _ry, cw - 1, row_h - 1, _fc, .55);
+	}
 
 	draw_set_halign(fa_left);
 	draw_set_alpha(_ok ? .95 : .6);
@@ -207,6 +213,46 @@ if (ng_mode) {
 		}
 		draw_ui_button(_b.x, _b.y, _b.w, _b.h, _lb, _bc, _en, false);
 	}
+}
+
+// ---- THE BIG BUTTONS, bottom right (his ask, 2026-09-13) ----
+if (!ng_mode) {
+	var _bb = __bigbtns();
+	var _sok = (sel_row >= 0) && !is_undefined(info[sel_row]) && info[sel_row].valid;
+	for (var _i = 0; _i < array_length(_bb); _i++) {
+		var _b = _bb[_i];
+		if (_b.id == "save") draw_ui_button(_b.x, _b.y, _b.w, _b.h, "save", c_gold, true, true);
+		else                 draw_ui_button(_b.x, _b.y, _b.w, _b.h, "load", c_sblue, _sok, true);
+	}
+}
+
+// ---- THE CONFIRM POPUP (his ask: a box in the middle, not the dialogue) ----
+if (conf_a > .01) {
+	var _r = __conf_rect();
+	var _e = conf_a * conf_a * (3 - 2 * conf_a);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .55 * _e);
+	var _pc = g.profile_color[sel_prof];
+	var _ry0 = _r.y + (1 - _e) * 8;
+	draw_sprite_ext(spr_pixel_1x1, 0, _r.x + 2, _ry0 + 3, _r.w, _r.h, 0, c_black, .5 * _e);
+	draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _ry0, _r.w, _r.h, 0, c_hsv(169, 186, 9), _e);
+	draw_px_rect(_r.x, _ry0, _r.w, _r.h, _pc, .8 * _e);
+	draw_set_font(fnt);
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_top);
+	draw_set_color(c_white);
+	draw_set_alpha(.95 * _e);
+	var _nm = g.profile_name[sel_prof];
+	var _q = "";
+	if (confirm == "save") _q = __phas(sel_prof) ? ("are you sure you want to overwrite\n" + _nm + "'s save?") : ("save the run here, as " + _nm + "?");
+	else if (confirm == "load") _q = (sel_row > 0) ? ("are you sure you want to load this backup?\nit replaces " + _nm + "'s main save.") : ("are you sure you want to load\n" + _nm + "'s save?");
+	draw_text(_r.x + _r.w * .5, _ry0 + 12, _q);
+	var _cb = __conf_btns();
+	var _lbl = (confirm == "save") ? "save game" : "load game";
+	var _col = (confirm == "save") ? c_gold : c_sblue;
+	ui_fade_set(_e);
+	draw_ui_button(_cb[0].x, _cb[0].y - _r.y + _ry0, _cb[0].w, _cb[0].h, _lbl, _col, true, true);
+	draw_ui_button(_cb[1].x, _cb[1].y - _r.y + _ry0, _cb[1].w, _cb[1].h, "cancel", rgb(170, 190, 230), true, false);
+	ui_fade_set(1);
 }
 
 draw_set_halign(fa_left);

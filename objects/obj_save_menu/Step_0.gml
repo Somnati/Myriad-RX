@@ -25,6 +25,23 @@ if (pending != "") {
 	exit;  // nothing else on this screen acts while a transfer is armed
 }
 
+// ---- THE CONFIRM POPUP owns the screen while it is up ----
+conf_a = move_to(conf_a, (confirm != "") ? 1 : 0, 5);
+if (confirm != "") {
+	var _cb = __conf_btns();
+	conf_hot = 0;
+	for (var _i = 0; _i < 2; _i++) {
+		var _b = _cb[_i];
+		if (point_in_rectangle(mouse_x, mouse_y, _b.x, _b.y, _b.x + _b.w, _b.y + _b.h)) conf_hot = _i + 1;
+	}
+	if (keyboard_check_pressed(vk_escape)) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); exit; }
+	if (input_free() && conf_a > .9 && mouse_check_button_pressed(mb_left)) {
+		if (conf_hot == 1) __conf_go();
+		else if (conf_hot == 2) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); }
+	}
+	exit;
+}
+
 // Region UI plays by syst_input's rules: input must be free (no
 // dialogue or menu up - begin-step timing would otherwise eat the very
 // click that picked a popup option) and no button instance may own the
@@ -100,7 +117,21 @@ if (mouse_check_button_pressed(mb_left)) {
 		}
 	}
 
-	// ---- the slot rows ----
+	// ---- THE BIG BUTTONS (his ask, 2026-09-13): the popup asks, then acts ----
+	if (!ng_mode) {
+		var _bb = __bigbtns();
+		for (var _i = 0; _i < array_length(_bb); _i++) {
+			var _b = _bb[_i];
+			if (!point_in_rectangle(_mx, _my, _b.x, _b.y, _b.x + _b.w, _b.y + _b.h)) continue;
+			var _ok = !is_undefined(info[max(0, sel_row)]) && info[max(0, sel_row)].valid;
+			if (_b.id == "load" && (sel_row < 0 || !_ok)) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
+			confirm = _b.id;
+			exit;
+		}
+	}
+
+	// ---- the slot rows: A TAP SELECTS (his ask, 2026-09-13) ----
 	// In new-game mode the rows are read-only: you are here to see what
 	// you would be overwriting, not to load it.
 	if (ng_mode) exit;
@@ -108,21 +139,8 @@ if (mouse_check_button_pressed(mb_left)) {
 	for (var _i = 0; _i < 5; _i++) {
 		var _ry = __row_y(_i);
 		if (!point_in_rectangle(_mx, _my, rail_w, _ry, room_width, _ry + row_h)) continue;
-		var _slot = slot_of_row[_i];
-
-		// tapping a row opens the options popup; the dialogue trees
-		// (bound methods in Create) do the actual work. The box wears
-		// the savefile's personal colour.
-		dlg_row = _i;
-		play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
-		obj_dialogue.box_col_border = g.profile_color[sel_prof];
-		var _ok = !is_undefined(info[_i]) && info[_i].valid;
-		if (_slot == 0)
-			obj_dialogue.dialogue_start(_ok ? dt_slot_main : dt_slot_new);
-		else if (_slot == 4)
-			obj_dialogue.dialogue_start(_ok ? dt_slot_rebirth : dt_slot_rebirth_empty);
-		else
-			obj_dialogue.dialogue_start(_ok ? dt_slot_auto : dt_slot_empty);
+		sel_row = _i;
+		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
 		exit;
 	}
 }

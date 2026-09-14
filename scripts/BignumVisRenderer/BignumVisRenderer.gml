@@ -59,13 +59,17 @@ function BignumVisRenderer() constructor {
                       // for further out everywhere
     per_row   = 10;   // squares per field row
 
-    recurse_min_unit = 2;  // recursion starts fading in at this unit px.
+    recurse_min_unit = 1;  // recursion starts fading in at this unit px.
+                           // (2 / 3 below made a sub-level fully in only at
+                           // 5 px a unit; his report, 2026-09-13: the white
+                           // squares faded a zoom level out. 1 / 1.2 has a
+                           // 2 px unit 80% in and a 4 px one fully)
                            // 2 puts the first sub-level ~80% visible at
                            // the RESTING unit size (~4.5px) and brings
                            // the level below it in with a modest zoom:
                            // a couple layers deeper than the old 8,
                            // which never showed depth at rest at all
-    recurse_fade     = 3;  // and reaches full over this many px more.
+    recurse_fade     = 1.2; // and reaches full over this many px more.
                            // Each level shows 2 more digits at 1/10 scale,
                            // like the old telescoping levels, and now
                            // CROSSFADES in and out instead of hard-cutting,

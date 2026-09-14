@@ -84,10 +84,12 @@ if (mouse_check_button_pressed(mb_left)) {
 			// difficulty list on the active (empty) profile
 			if (!any_save) { g.ng_prof = g.profile; goto_room(rm_newgame); break; }
 			g.saves_mode = "newgame";
+			g.saves_from_title = true;
 			goto_room(rm_saves);
 		}
 		if (_it == "load") { // the saves bench; back returns here
 			play_sound_ext(snd_matclick2, .95, 1.1, .5, 1);
+			g.saves_from_title = true;   // load only there (his rule, 2026-09-13)
 			goto_room(rm_saves);
 		}
 		if (_it == "quit") {

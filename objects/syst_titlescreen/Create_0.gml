@@ -145,18 +145,15 @@ array_sort(blk_h, function(_a, _b) { return sign(_a.d - _b.d); });
 // a fixed field with extra steps.
 mote = [];
 
-// ---- THE STARFIELD (his lean, 2026-09-13: "i would like the background
-// to be a starfield maybe") - settings > visuals > title backdrop. Three
-// depths: far (1px, dim, slow), mid (1px, brighter), near (2px, bright -
-// the glow pass blooms these). All drift up-right on their depth, all
-// twinkle on their own phase. Rolled per boot like the blocks ----
+// ---- THE STARFIELD (his lean, 2026-09-13, then his shape: "the camera
+// moving through a starfield with stars moving towards the camera") -
+// settings > visuals > title backdrop. Points in a box ahead of the
+// camera, projected from the centre; each step they come nearer, spread
+// outward and brighten, and one that passes the camera is reborn far.
+// Slow: a title, not a jump. A few carry the game's aqua and gold ----
 star = [];
-for (var _i = 0; _i < 150; _i++) {
-	var _d = random(1);   // depth 0 far .. 1 near
-	var _near = (_d > .86);
-	array_push(star, { x0 : random(1), y0 : random(1), d : _d,
-		sz : _near ? 2 : 1,
-		br : _near ? (.55 + random(.45)) : (.12 + _d * .45),
+for (var _i = 0; _i < 170; _i++) {
+	array_push(star, { x : random_range(-1, 1), y : random_range(-1, 1), z : random_range(.05, 1),
 		tw : .6 + random(2.2), ph : random(360),
 		col : (random(1) < .18) ? merge_colour(c_white, c_aqua, .5) : ((random(1) < .12) ? merge_colour(c_white, c_gold, .45) : c_white) });
 }
@@ -218,17 +215,24 @@ __draw_field = function() {
 	// a flat grid can never have.
 	var _stars = (variable_global_exists("title_bg") && g.title_bg == "starfield");
 	if (_stars) {
-		// THE STARFIELD: parallax by depth (the near ones cross the room in
-		// a couple of minutes, the far ones barely move), a twinkle each
+		// THE FLIGHT: z shrinks a little every frame (delta-scaled); the
+		// screen point is the box point over z from the room's centre, so
+		// a star drifts outward as it nears; size and brightness by
+		// nearness; past the camera (z < .02) it is reborn at the far wall
+		var _cx = room_width * .5, _cy = room_height * .5;
+		var _ffx = room_width * .55, _ffy = room_height * .55;   // the box's half-extents, projected
 		for (var _i = 0; _i < array_length(star); _i++) {
 			var _s = star[_i];
-			var _spd = .02 + _s.d * _s.d * .55;
-			var _sx = (_s.x0 * (room_width + 4) + tt * _spd * .6) mod (room_width + 4) - 2;
-			var _sy = (_s.y0 * (room_height + 4) - tt * _spd * .35) mod (room_height + 4);
-			if (_sy < 0) _sy += room_height + 4;
-			_sy -= 2;
-			var _tw = .7 + .3 * dsin(tt * _s.tw + _s.ph);
-			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _s.sz, _s.sz, 0, _s.col, _s.br * _tw);
+			_s.z -= .0016 * delta;
+			if (_s.z < .02) { _s.z = 1; _s.x = random_range(-1, 1); _s.y = random_range(-1, 1); }
+			var _sx = _cx + _s.x / _s.z * _ffx * .12;
+			var _sy = _cy + _s.y / _s.z * _ffy * .12;
+			if (_sx < -2 || _sy < -2 || _sx > room_width + 2 || _sy > room_height + 2) { _s.z = 1; _s.x = random_range(-1, 1); _s.y = random_range(-1, 1); continue; }
+			var _near = 1 - _s.z;                         // 0 far .. 1 here
+			var _sz = (_near > .8) ? 2 : 1;
+			var _br = .08 + .9 * _near * _near;
+			var _tw = .75 + .25 * dsin(tt * _s.tw + _s.ph);
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _sz, _sz, 0, _s.col, _br * _tw);
 		}
 	}
 	var _n = _stars ? 0 : array_length(blk_h);
