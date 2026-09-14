@@ -225,8 +225,10 @@ __draw_field = function() {
 			var _s = star[_i];
 			_s.z -= .0016 * delta;
 			if (_s.z < .02) { _s.z = 1; _s.x = random_range(-1, 1); _s.y = random_range(-1, 1); }
-			var _sx = _cx + _s.x / _s.z * _ffx * .12;
-			var _sy = _cy + _s.y / _s.z * _ffy * .12;
+			// (.45 of the half-extents at the far wall - .12 bunched every new star
+			// in a 64px knot at the centre and left the edges to the streakers)
+			var _sx = _cx + _s.x / _s.z * _ffx * .45;
+			var _sy = _cy + _s.y / _s.z * _ffy * .45;
 			if (_sx < -2 || _sy < -2 || _sx > room_width + 2 || _sy > room_height + 2) { _s.z = 1; _s.x = random_range(-1, 1); _s.y = random_range(-1, 1); continue; }
 			var _near = 1 - _s.z;                         // 0 far .. 1 here
 			var _sz = (_near > .8) ? 2 : 1;

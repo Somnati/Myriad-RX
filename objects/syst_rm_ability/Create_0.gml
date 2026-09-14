@@ -100,6 +100,7 @@ reveal_t    = 0;
 // ---- collection view (view 1): every card in deck order, the
 // undiscovered as ??? silhouettes. rows mirror the batches - keep
 // this section map in sync when the deck changes ----
+rebirth_init();   // the deck spends g.rebirth.units (2026-09-13) - the bank must exist before the first Draw reads it
 view = 0;
 coll_rows = [];
 // (GENERATED from scratchpad/build_deck.py's table, 2026-09-13)

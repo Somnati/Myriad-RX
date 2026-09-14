@@ -480,6 +480,7 @@
     {"id":{"name":"pad_init","path":"scripts/pad_init/pad_init.yy",},},
     {"id":{"name":"pad_pressed","path":"scripts/pad_pressed/pad_pressed.yy",},},
     {"id":{"name":"pad_rebind","path":"scripts/pad_rebind/pad_rebind.yy",},},
+    {"id":{"name":"pad_rumble","path":"scripts/pad_rumble/pad_rumble.yy",},},
     {"id":{"name":"pad_tick","path":"scripts/pad_tick/pad_tick.yy",},},
     {"id":{"name":"pad_value","path":"scripts/pad_value/pad_value.yy",},},
     {"id":{"name":"pad_x","path":"scripts/pad_x/pad_x.yy",},},

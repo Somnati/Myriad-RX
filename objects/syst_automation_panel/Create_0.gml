@@ -263,6 +263,16 @@ __pick = function(_rw, _r, _which) {
 __oc_rect = function() {
 	return { x : room_width - 8 - 96 - 60, y : band_y + 1, w : 56, h : band_h - 2 };
 };
+// ...and its press: the notches open or close on every tab; closing drops
+// anything sitting on one (ram_oc_clamp). (This handler shipped with the
+// overclock, 124fef7, and was lost in a later rewrite of this file - the
+// chip crashed on the tap; restored in the 2026-09-14 bug hunt)
+__oc_flip = function() {
+	g.autom.oc = !g.autom.oc;
+	if (!g.autom.oc) ram_oc_clamp();
+	save_mark_dirty();
+	play_sound_ext(g.autom.oc ? snd_matclick2 : snd_matclick, 1.1, 1.3, .5, 1);
+};
 
 // ---- the RAM meter's geometry: one stick per unit, sized to fit ----
 stk_x0 = 62; stk_w = 4; stk_gap = 1;

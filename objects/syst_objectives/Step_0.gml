@@ -35,6 +35,9 @@ if (!instance_exists(snap_px)) {
 // column (there the card and they are the same width)
 var _live = variable_global_exists("game_started") && g.game_started
 	&& !in_room(rm_titlescreen) && !in_room(rm_newgame) && !in_room(rm_quit)
+	// ...nor the benches whose own rails live where the card sits (the saves
+	// screen's profile rail is the card's exact corner - 2026-09-14 bug hunt)
+	&& !in_room(rm_saves) && !in_room(rm_gamepad) && !in_room(rm_services) && !in_room(rm_numfmt)
 	&& unfold_has("tap") && !instance_exists(syst_unfold)
 	&& (_land || !instance_exists(syst_menu2))
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
