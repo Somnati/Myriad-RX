@@ -1168,109 +1168,56 @@ if (view == "depart") {
 	var _rg = region_get(_d, rg_sel);
 	var _q  = (dp_mode == "quest") ? dp_quest : undefined;                          // the quest picked
 	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;  // ...or the explore card (2026-09-15)
+	var _oL = -(1 - dp_in) * 200;   // the swing: the list from the left, the seats and the brief from the right
 	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, (dp_mode == "explore") ? ((is_struct(_xc) ? (_xc.name + "  -  ") : "explore ") + _rg.name) : ("the quest  -  " + _rg.name));
-	// the crew, left
+	draw_text((land ? 14 : 4) + _oL, list_y + 6, (dp_mode == "explore") ? ((is_struct(_xc) ? (_xc.name + "  -  ") : "explore ") + _rg.name) : ("the quest  -  " + _rg.name));
+	// THE CREW as banners in a list (his ask, 2026-09-15): tap one for its
+	// info box, [+] for the next free seat, hold to pick it up; a seated
+	// one leaves a grey ghost here
 	draw_set_color(_ink); draw_set_alpha(.6);
-	var _np = array_length(sel_crew);
-	draw_text(land ? 14 : 4, dchip_y - 12, "the crew  -  tap up to " + string(EXPED_PARTY) + ((_np > 0) ? ("  -  " + string(_np) + " picked") : ""));
+	draw_text((land ? 14 : 4) + _oL, list_y + 22, "the crew  -  tap for the sheet, [+] or drag to a seat");
 	var _crew = [];
+	var _np = 0;
+	for (var _j = 0; _j < EXPED_PARTY; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) { array_push(_crew, __sp_by_id(dp_slots[_j])); _np++; }
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		var _sp = g.sprites[_k];
-		var _cr = __dchip_r(_k);
+		var _rr = __dp_row_r(_k);
+		var _seated = (__dp_seat_of(_sp.id) >= 0);
 		var _away = (_sp[$ "trip"] ?? false);
-		var _ok = !_away;   // (asleep is fine: the tap wakes it)
-		var _at = array_get_index(sel_crew, _sp.id);
-		if (_at >= 0) array_push(_crew, _sp);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, c_black, .7);
-		draw_px_rect(_cr.x, _cr.y, _cr.w, _cr.h, (_at >= 0) ? c_white : _sp.col, (_at >= 0) ? .9 : (_ok ? .5 : .2));
-		__dot(_cr.x + _cr.w * .5, _cr.y + _cr.h * .5 - 1, land ? 6 : 4, _sp.col, _ok ? .95 : .3);
-		if (_at >= 0) { draw_set_halign(fa_center); draw_set_color(c_black); draw_set_alpha(.9); draw_text(_cr.x + _cr.w * .5 + 1, _cr.y + _cr.h * .5 - 4, string(_at + 1)); }
-		draw_set_halign(fa_center);
-		draw_set_color(_ok ? _ink : _dim); draw_set_alpha(_ok ? .8 : .5);
-		draw_text(_cr.x + _cr.w * .5, _cr.y + _cr.h + 1, _away ? "out" : (_sp.asleep ? "zz - tap" : (string_copy(_sp.name, 1, 4) + " " + string(sprite_sheet(_sp).lv))));
-		// short of hp / mp: a sliver under the chip
-		if (!_away && ((_sp[$ "hpf"] ?? 1) < 1 || (_sp[$ "mpf"] ?? 1) < 1)) {
-			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y + _cr.h - 3, _cr.w, 2, 0, c_black, .8);
-			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y + _cr.h - 3, _cr.w * (_sp[$ "hpf"] ?? 1), 2, 0, c_hred, .9);
-		}
-	}
-	draw_set_halign(fa_left);
-	// THE INSPECTED SPRITE (his ask, 2026-09-15: "i want to see the stats of
-	// a sprite i select... im kinda just hoping they are strong enough"):
-	// the last chip tapped - its sheet in brief, and its points against a
-	// par foe of the region
-	if (land) {
-		var _lk = __sp_by_id(dp_look);
-		var _lr = __dlook_r();
-		if (!is_undefined(_lk) && _lr.h > 40) {
-			var _lsh = sprite_sheet(_lk), _lst = sprite_stats(_lk), _lc = _lst.cls, _lbal = cbt_balance();
-			var _lpar = sprite_par_pts(_rg.lv) * SPRITE_FOE_BUDGET;
-			draw_sprite_ext(spr_pixel_1x1, 0, _lr.x, _lr.y, _lr.w, _lr.h, 0, merge_colour(_lk.col, c_black, .9), .6);
-			draw_px_rect(_lr.x, _lr.y, _lr.w, _lr.h, _lk.col, .35);
-			// (the sheet's own look - his ask, 2026-09-15: "consistent with our main crew stats page")
-			var _lx = _lr.x + 6, _ly = _lr.y + 4;
-			ui_fade_set(1);
-			sprite_portrait(_lk, _lx + 7, _ly + 8, 1);
-			ui_fade_set(_ea);
-			draw_set_font(fnt_large); draw_set_color(_lk.col); draw_set_alpha(.95); draw_text(_lx + 18, _ly - 3, str_cap(_lk.name)); draw_set_font(fnt);
-			draw_set_color(_lc.col); draw_text(_lx + 18, _ly + 10, _lc.name + "  -  lv " + string(_lsh.lv));
-			draw_set_halign(fa_right);
-			draw_set_color((_lst.total >= _lpar) ? c_sgreen : c_hred); draw_set_alpha(.9);
-			draw_text(_lr.x + _lr.w - 6, _ly, string(round(_lst.total)) + " pts  vs " + string(round(_lpar)) + " par");
+		if (_seated) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, 1, true);   // the ghost
+		else {
+			// the banner sits in its row unless it is flying home from a seat (dp_pos)
+			var _ps = dp_pos[$ string(_sp.id)];
+			var _bx = is_struct(_ps) ? _ps.x : _rr.x, _by = is_struct(_ps) ? _ps.y : _rr.y;
+			if (dp_drag != _sp.id) __dp_banner(_sp, _bx, _by, _rr.w, _away ? .45 : 1, false);
+			var _pr = __dp_plus_r(_k);
+			var _can = !_away && (_np < EXPED_PARTY);
+			draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
+			draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _can ? c_sgreen : _dim, _can ? .7 : .25);
+			draw_set_halign(fa_center); draw_set_color(_can ? c_sgreen : _dim); draw_set_alpha(_can ? .95 : .35);
+			draw_text(_pr.x + _pr.w * .5, _pr.y + 3, "+");
 			draw_set_halign(fa_left);
-			_ly += 22;
-			// hp / mp bars, whole, as the sheet's
-			var _lhp = floor(_lst.pts.hp * _lbal.hp_per_point + _lbal.hp_flat_add), _lmp = max(1, round(_lst.pts.mp));
-			var _lhc = floor(_lhp * (_lk[$ "hpf"] ?? 1)), _lmc = round(_lmp * (_lk[$ "mpf"] ?? 1));
-			var _lbw = _lr.w - 30;
-			draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_lx, _ly, "hp");
-			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw, 5, 0, c_black, .7);
-			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw * clamp(_lhc / max(1, _lhp), 0, 1), 5, 0, c_hred, .8);
-			draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly - 1, string(_lhc) + " / " + string(_lhp)); draw_set_halign(fa_left); draw_set_font(fnt);
-			draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_lx, _ly + 10, "mp");
-			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw, 5, 0, c_black, .7);
-			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw * clamp(_lmc / max(1, _lmp), 0, 1), 5, 0, c_sblue, .8);
-			draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly + 9, string(_lmc) + " / " + string(_lmp)); draw_set_halign(fa_left); draw_set_font(fnt);
-			_ly += 24;
-			// the grid, the gear's share in green (the sheet's)
-			var _lkeys = ["atk", "def", "mag", "mdef", "spd", "hit"], _llbl = ["atk", "def", "int", "res", "spd", "hit"];
-			for (var _k = 0; _k < 6; _k++) {
-				var _gx = _lx + (_k mod 2) * 76, _gy = _ly + (_k div 2) * 11;
-				draw_set_color(_dim); draw_set_alpha(.8); draw_text(_gx, _gy, _llbl[_k]);
-				draw_set_halign(fa_right); draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
-				draw_text(_gx + 44, _gy, string_format(_lst.pts[$ _lkeys[_k]], 1, 1));
-				draw_set_font(fnt); draw_set_halign(fa_left);
-				var _lg = _lst.gear[$ _lkeys[_k]];
-				if (_lg > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_gx + 47, _gy, "+" + string_format(_lg, 1, 1)); }
-			}
-			_ly += 34;
-			draw_set_color(_dim); draw_set_alpha(.7);
-			draw_text(_lx, _ly, "crit " + string(_lc.crit) + "% x" + string(_lc.cmulti) + "  -  counter " + string(_lc.cnt) + "%");
-			_ly += 11;
-			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, "weapon");
-			if (is_undefined(_lsh.w1)) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_lx + 40, _ly, "(bare hands)"); }
-			else {
-				var _wnm = _lsh.w1.name, _wav = _lr.w - 12 - 40;
-				if (string_width(_wnm) > _wav) { while (string_width(_wnm + "..") > _wav && string_length(_wnm) > 2) _wnm = string_copy(_wnm, 1, string_length(_wnm) - 1); _wnm += ".."; }
-				draw_set_color(_lsh.w1.col); draw_set_alpha(.95); draw_text(_lx + 40, _ly, _wnm);
-			}
-			_ly += 12;
-			// the skills as rows (the sheet's), name and mp
-			var _lsk = sprite_skills(_lk);
-			draw_set_color(_ink); draw_set_alpha(.5); draw_text(_lx, _ly, "skills");
-			for (var _k = 0; _k < array_length(_lsk); _k++) {
-				var _ls2 = _lsk[_k], _lsy = _ly + 11 + _k * 11;
-				if (_lsy + 10 > _lr.y + _lr.h - 2) break;
-				draw_sprite_ext(spr_pixel_1x1, 0, _lx - 2, _lsy - 1, _lr.w - 8, 10, 0, c_black, .35);
-				draw_set_color(_ls2.magic ? c_hpurple : c_horange); draw_set_alpha(.9); draw_text(_lx, _lsy, _ls2.name);
-				draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85); draw_text(_lx - 2 + _lr.w - 8 - 4, _lsy, string(_ls2.cost) + " mp"); draw_set_halign(fa_left);
-			}
-		} else if (_lr.h > 40) {
-			draw_set_color(_dim); draw_set_alpha(.45);
-			draw_text(_lr.x + 6, _lr.y + 4, "tap a sprite to see its sheet");
 		}
 	}
+	// THE SEATS: banner-shaped, a [+] in the middle while empty; a seated banner at its eased place
+	for (var _j = 0; _j < EXPED_PARTY; _j++) {
+		var _sr = __dp_seat_r(_j);
+		var _sid = dp_slots[_j];
+		var _hot = (dp_drag >= 0 && point_in_rectangle(mouse_x, mouse_y, _sr.x - 4, _sr.y - 4, _sr.x + _sr.w + 4, _sr.y + _sr.h + 4));
+		draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_black, .6);
+		draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _hot ? c_sgreen : (dp_drag >= 0 ? c_gold : _dim), _hot ? .95 : (dp_drag >= 0 ? .6 : .35));
+		if (_sid < 0 || is_undefined(__sp_by_id(_sid))) {
+			draw_set_halign(fa_center); draw_set_color(_hot ? c_sgreen : _dim); draw_set_alpha(_hot ? .95 : .5);
+			draw_text(_sr.x + _sr.w * .5, _sr.y + 3, "+");
+			draw_set_halign(fa_left);
+		} else if (dp_drag != _sid) {
+			var _ssp = __sp_by_id(_sid);
+			var _ps2 = dp_pos[$ string(_sid)];
+			__dp_banner(_ssp, is_struct(_ps2) ? _ps2.x : _sr.x, is_struct(_ps2) ? _ps2.y : _sr.y, _sr.w, 1, false);
+		}
+	}
+	draw_set_color(_dim); draw_set_alpha(.5);
+	draw_text(__dp_seat_r(0).x, __dp_seat_r(0).y - 12, "the party  -  " + string(_np) + " of " + string(EXPED_PARTY) + "  -  tap a seat to send one back");
 	// the brief, right
 	var _br2 = __brief_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _br2.x, _br2.y, _br2.w, _br2.h, 0, c_black, .7);
@@ -1334,7 +1281,7 @@ if (view == "depart") {
 	draw_set_color(_ink); draw_set_alpha(.8);
 	draw_text(_tx, _ty, "chance of success");
 	draw_set_halign(fa_right);
-	if (_od.p < 0) { draw_set_color(_dim); draw_text(_tx + _tw, _ty, "pick a crew"); }
+	if (_od.p < 0) { draw_set_color(_dim); draw_text(_tx + _tw, _ty, "seat a crew"); }
 	else {
 		var _pc = round(_od.p * 100);
 		draw_set_color((_pc >= 70) ? c_sgreen : ((_pc >= 40) ? c_gold : c_hred));
@@ -1344,7 +1291,16 @@ if (view == "depart") {
 	// [depart]
 	var _dr = __depart_r();
 	var _can = (_np > 0 && _have >= _cost.total);
-	draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, (_np == 0) ? "pick a crew" : ((_have < _cost.total) ? "short of credits" : "depart"), _can ? c_sgreen : c_gray, true, _can);
+	draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, (_np == 0) ? "seat a crew" : ((_have < _cost.total) ? "short of credits" : "depart"), _can ? c_sgreen : c_gray, true, _can);
+	// THE INFO BOX (a tap on a banner): the sheet in brief, over the brief
+	var _lk = __sp_by_id(dp_look);
+	if (!is_undefined(_lk)) __draw_sprite_brief(_lk, __dp_pop_r());
+	// the banner in hand, over everything
+	if (dp_drag >= 0) {
+		var _dsp = __sp_by_id(dp_drag);
+		var _dps = dp_pos[$ string(dp_drag)];
+		if (!is_undefined(_dsp) && is_struct(_dps)) { draw_sprite_ext(spr_pixel_1x1, 0, _dps.x + 2, _dps.y + 3, __dp_bw(), 14, 0, c_black, .5); __dp_banner(_dsp, _dps.x, _dps.y, __dp_bw(), 1, false); }
+	}
 	__draw_turn();
 	ui_fade_set(1);
 	exit;

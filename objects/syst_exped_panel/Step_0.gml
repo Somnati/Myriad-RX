@@ -9,6 +9,30 @@ var _e = g.exped;
 var _under = instance_exists(syst_settings);
 depth = _under ? -500 : -510;
 if (_under && hand != "") __hand_close();
+// THE SWINGS (his ask, 2026-09-15: "ui elements swing in from off screen"):
+// the preparation page in (dp_in 0 -> 1) and out again (dp_dir -1, then
+// dp_next); region mode's info box and buttons (rg_in)
+if (view == "depart") {
+	dp_in = move_to(dp_in, (dp_dir < 0) ? 0 : 1, 4);
+	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") pv_mode = "region"; }
+	else if (dp_dir >= 0 && dp_in >= .985) dp_in = 1;
+} else if (pg_dir == 0) dp_in = 0;
+if (view == "planet" && pv_mode == "region") { rg_in = move_to(rg_in, 1, 4); if (rg_in >= .985) rg_in = 1; } else rg_in = 0;
+// the banners' places: each eases toward its seat or its row (the swing between them)
+if (view == "depart") {
+	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		var _sp = g.sprites[_k];
+		var _j = __dp_seat_of(_sp.id);
+		var _tr = (_j >= 0) ? __dp_seat_r(_j) : __dp_row_r(_k);
+		var _key = string(_sp.id);
+		if (dp_drag == _sp.id) { dp_pos[$ _key] = { x : mouse_x - __dp_bw() * .5, y : mouse_y - 7 }; continue; }
+		var _cur = dp_pos[$ _key];
+		if (!is_struct(_cur) || dp_in < .5) { dp_pos[$ _key] = { x : _tr.x, y : _tr.y }; continue; }
+		var _kk = 1 - power(.72, delta);
+		_cur.x = lerp(_cur.x, _tr.x, _kk); _cur.y = lerp(_cur.y, _tr.y, _kk);
+		if (point_distance(_cur.x, _cur.y, _tr.x, _tr.y) < .6) { _cur.x = _tr.x; _cur.y = _tr.y; }
+	}
+}
 // THE PAGE TURN: to black, the view turns, back to light (__page_go)
 if (pg_dir < 0) { pg_a = move_to(pg_a, 0, 3); if (pg_a <= .04) { pg_a = 0; view = pg_next; pg_dir = 1; } }
 else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; pg_dir = 0; } }
@@ -175,6 +199,47 @@ if (confirm != "") {
 }
 if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
 if (pg_dir != 0) exit;    // (the page is turning)
+if (view == "depart" && (dp_dir != 0 || dp_in < 1)) exit;   // (the page is swinging)
+// ---- THE PREPARATION PAGE'S HOLD AND DRAG (held and released input - above the press gate) ----
+if (view == "depart") {
+	if (dp_press < 0 && mouse_check_button_pressed(mb_left)) {
+		// a press on a banner: in the list (not seated, not away), or in a seat
+		for (var _k = 0; _k < array_length(g.sprites) && dp_press < 0; _k++) {
+			var _sp = g.sprites[_k];
+			var _j = __dp_seat_of(_sp.id);
+			var _r = (_j >= 0) ? __dp_seat_r(_j) : __dp_row_r(_k);
+			if (_j < 0) { var _pr = __dp_plus_r(_k); if (point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) continue; }   // ([+] is the gate's, below)
+			if (!point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) continue;
+			dp_press = _sp.id; dp_from = (_j >= 0) ? "seat" : "row"; dp_hold = 0; dp_px = mouse_x; dp_py = mouse_y;
+		}
+	}
+	if (dp_press >= 0 && mouse_check_button(mb_left)) {
+		dp_hold += delta;
+		var _psp = __sp_by_id(dp_press);
+		// held a beat, or pulled: the banner comes off into the hand (an away sprite stays put)
+		if (dp_drag < 0 && !is_undefined(_psp) && !(_psp[$ "trip"] ?? false) && (dp_hold >= 12 || point_distance(dp_px, dp_py, mouse_x, mouse_y) > 6)) {
+			dp_drag = dp_press; dp_look = -1;
+			play_sound_ext(snd_softclick, 1.1, 1.2, .3, 1);
+		}
+	}
+	if (dp_press >= 0 && !mouse_check_button(mb_left)) {
+		if (dp_drag >= 0) {
+			// the drop: on a seat = sit there; anywhere else = the list
+			var _onj = -1;
+			for (var _j = 0; _j < EXPED_PARTY; _j++) { var _sr = __dp_seat_r(_j); if (point_in_rectangle(mouse_x, mouse_y, _sr.x - 4, _sr.y - 4, _sr.x + _sr.w + 4, _sr.y + _sr.h + 4)) _onj = _j; }
+			if (_onj >= 0) __dp_seat(dp_drag, _onj);
+			else if (__dp_seat_of(dp_drag) >= 0) __dp_unseat(dp_drag);
+			else play_sound_ext(snd_softclick, .9, 1, .3, 1);
+		} else if (dp_hold < 12) {
+			// a tap: in the list, the info box; in a seat, back to the list
+			if (dp_from == "seat") __dp_unseat(dp_press);
+			else { dp_look = (dp_look == dp_press) ? -1 : dp_press; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+		}
+		dp_press = -1; dp_drag = -1; dp_hold = 0;
+		exit;
+	}
+	if (dp_drag >= 0) exit;   // (a banner in hand: nothing else takes the press)
+}
 // ---- THE HAND (the quest / explore cards) owns the page while it is up ----
 if (hand != "") {
 	if (view != "planet" || pv_mode != "region") __hand_close();
@@ -472,10 +537,11 @@ if (view == "galaxy") exit;
 
 // (the region window is gone - the planet page's region mode, 2026-09-15)
 
-// ======================= THE DEPARTURE: the crew, the brief, [depart] =======================
+// ======================= THE DEPARTURE: [+], the info box, [depart] (the hold / drag is above the gate) =======================
 if (view == "depart") {
 	var _dr = __depart_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
+		__dp_sync();
 		var _crew = [];
 		for (var _c = 0; _c < array_length(sel_crew); _c++) { var _sp = __sp_by_id(sel_crew[_c]); if (!is_undefined(_sp)) array_push(_crew, _sp); }
 		var _di = -1;
@@ -484,26 +550,22 @@ if (view == "depart") {
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
 			dp_slot = -1;
-			sel_crew = [];
-			view = "hub";
+			sel_crew = []; dp_slots = array_create(EXPED_PARTY, -1); dp_pos = {};
+			__dp_leave("hub");   // (the page swings out, then the hub)
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 		exit;
 	}
-	// the crew: tap to add to the party, tap again to drop; up to EXPED_PARTY
+	// [+] on a banner in the list: the next free seat
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
-		var _cr = __dchip_r(_k);
-		if (!point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) continue;
 		var _sp = g.sprites[_k];
-		dp_look = _sp.id;   // (inspected, picked or not)
-		var _at = array_get_index(sel_crew, _sp.id);
-		if (_at >= 0) { array_delete(sel_crew, _at, 1); play_sound_ext(snd_softclick, .9, 1, .4, 1); exit; }
-		if ((_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
-		// a napping one wakes on the tap (his ask: no walking off to poke it)
-		if (_sp.asleep) { _sp.asleep = false; _sp.hurt = 0; save_mark_dirty(); }
-		array_push(sel_crew, _sp.id);
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		if (__dp_seat_of(_sp.id) >= 0) continue;
+		var _pr = __dp_plus_r(_k);
+		if (!point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) continue;
+		__dp_seat(_sp.id);
 		exit;
 	}
+	// the info box: a press off it closes it (a press on a banner was taken above)
+	if (dp_look >= 0) { var _pp = __dp_pop_r(); if (!point_in_rectangle(mouse_x, mouse_y, _pp.x, _pp.y, _pp.x + _pp.w, _pp.y + _pp.h)) dp_look = -1; }
 	exit;
 }
 
