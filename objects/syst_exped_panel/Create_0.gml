@@ -55,6 +55,8 @@ crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = ever
 it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
+dp_look  = -1;           // the departure window's INSPECTED sprite (the last chip tapped): its sheet in brief under the chips
+__dlook_r = function() { var _rows = max(1, ceil(array_length(g.sprites) / (land ? 5 : 6))); var _y = dchip_y + _rows * (chip + 10) + 2; return { x : land ? 14 : 4, y : _y, w : land ? 156 : (room_width - 8), h : room_height - 8 - _y }; };
 dp_mode  = "quest";      // ...and its mode
 crew_off = 0;        // the crew list's scroll (px)
 crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
@@ -76,9 +78,9 @@ list_w  = land ? (room_width - list_x - 10) : (room_width - 8);
 row_h   = land ? 36 : 30;
 
 // ---- the trip view ----
-big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 150 : 96;
+big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 106 : 66;   // the world box holds the render only (2026-09-15: the banners moved under it)
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
-log_y = land ? big_y : (big_y + big_h + 24);   // (portrait: the button row under the box comes first)
+log_y = land ? big_y : (big_y + big_h + 22 + EXPED_PARTY * 12 + 4);   // (portrait: the button row and the banners under the box come first)
 fight_s = 64;        // the combat window's side
 wb_surf = -1;        // the world box's surface (__draw_world_rect): the globe and its ring clipped at the box; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
@@ -223,7 +225,9 @@ __list_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k *
 __crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };
 __sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 22, w : 20, h : 13 }; };
 __sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };
-__crew_row_r = function(_k) { return { x : big_x + 8, y : big_y + (land ? 112 : 76) + _k * 11 - 2, w : big_w - 16, h : 10 }; };
+// THE CREW'S BANNERS (his ask, 2026-09-15: under the world box): a row each
+// under the button row - dot, name, level, the hp bar (live in a fight)
+__crew_row_r = function(_k) { return { x : big_x, y : big_y + big_h + 22 + _k * 12, w : big_w, h : 11 }; };
 /// the diary painter: truth lines plain, "~ " lines as the crew's voice
 /// (dimmer, indented), "+ " lines as REWARDS (gold: xp, drops, credits -
 /// his ask, 2026-09-15: the fight's end in the diary), newest at the

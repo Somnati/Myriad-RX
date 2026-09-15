@@ -45,11 +45,6 @@ function exped_unpack(_s) {
 				}
 			}
 			var _id = real(_tt[7]);
-			if (_p[0] == "H") {
-				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
-				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ] });
-				continue;
-			}
 			var _hh = string_split(_p[4], "~");
 			var _hp = [], _hm = [];
 			if (array_length(_hh) >= 2) {
@@ -59,6 +54,14 @@ function exped_unpack(_s) {
 					array_push(_hp, (_k < array_length(_h1) && _h1[_k] != "") ? real(_h1[_k]) : _hm[_k]);
 				}
 			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 10); array_push(_hm, 10); }
+			if (_p[0] == "H") {
+				// a haul: the hp read above is the crew's at the end (a save from
+				// before carried none - they show whole)
+				if (array_length(_hh) < 2 || _hh[0] == "") for (var _k = 0; _k < array_length(_sids); _k++) _hp[_k] = _hm[_k];
+				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
+				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm });
+				continue;
+			}
 			var _rooms = (_p[5] != "") ? string_split(_p[5], ",") : [];
 			if (array_length(_rooms) < EXPED_ROOMS) {
 				var _bi = exped_biomes()[clamp(_d.biome, 0, 3)];

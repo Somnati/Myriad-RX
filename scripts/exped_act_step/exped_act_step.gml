@@ -103,7 +103,10 @@ function exped_act_step(_tr) {
 			var _r = random(100);
 			if (_r < 30) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin"), irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
 			else if (_r < 50) exped_room_find(_tr, _nd.name + ": ");
-			else array_push(_tr.log, _nd.name + ": " + choose("looked at it. it is a " + _nd.kind + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
+			else {
+				var _isit = ((_nd.kind == "hills" || _nd.kind == "mountains") ? "they are " : ((_nd.kind == "tundra") ? "it is " : "it is a ")) + _nd.kind;
+				array_push(_tr.log, _nd.name + ": " + choose("looked at it. " + _isit + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
+			}
 			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "wolf", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }
 			break;
 		}

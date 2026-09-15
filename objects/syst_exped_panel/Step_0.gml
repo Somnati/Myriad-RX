@@ -176,6 +176,7 @@ if (view == "region") {
 		if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
 		if (_i < array_length(_ql)) { dp_quest = _ql[_i]; dp_mode = "quest"; }
 		else { dp_quest = undefined; dp_mode = "explore"; }
+		dp_look = (array_length(sel_crew) > 0) ? sel_crew[0] : -1;
 		view = "depart";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
@@ -203,6 +204,7 @@ if (view == "depart") {
 		var _cr = __dchip_r(_k);
 		if (!point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) continue;
 		var _sp = g.sprites[_k];
+		dp_look = _sp.id;   // (inspected, picked or not)
 		var _at = array_get_index(sel_crew, _sp.id);
 		if (_at >= 0) { array_delete(sel_crew, _at, 1); play_sound_ext(snd_softclick, .9, 1, .4, 1); exit; }
 		if (_sp.asleep || (_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }

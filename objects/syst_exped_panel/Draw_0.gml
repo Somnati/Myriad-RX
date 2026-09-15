@@ -90,7 +90,8 @@ if (view == "haul") {
 	ui_fade_set(1); shader_reset();
 	// the card on the left, the trip's log on the right (his ask, 2026-09-15:
 	// "i want to see the log on that screen so i can read what they did")
-	var _cw = land ? 224 : (room_width - 8), _ch = 40 + array_length(_h.finds) * 12 + (_recruit ? 52 : 40);
+	var _nb = array_length(_h.sids);   // the banners' rows
+	var _cw = land ? 224 : (room_width - 8), _ch = 40 + _nb * 12 + 4 + array_length(_h.finds) * 12 + (_recruit ? 52 : 40);
 	var _cx = land ? 14 : 4, _cy = list_y + 22;
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, _ch, 0, c_black, .9);
@@ -107,9 +108,26 @@ if (view == "haul") {
 	draw_set_alpha(.85);
 	draw_text(_cx + 42, _cy + 24, (_h.routed ? "routed - " : "") + string(_h[$ "wins"] ?? 0) + " fights won, " + string(_h.cleared) + " things done");
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx + 8, _cy + 34, _cw - 16, 1, 0, _ink, .25);
+	// THE CREW'S BANNERS (his ask, 2026-09-15): the crew as they came home
+	var _hhp = _h[$ "hp"] ?? [], _hhm = _h[$ "hpmax"] ?? [];
+	for (var _k = 0; _k < _nb; _k++) {
+		var _by = _cy + 38 + _k * 12;
+		var _hpk = (_k < array_length(_hhp)) ? _hhp[_k] : 1, _hmk = max(1, (_k < array_length(_hhm)) ? _hhm[_k] : 1);
+		var _up = (_hpk > 0);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx + 8, _by, _cw - 16, 11, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx + 8, _by, 2, 11, 0, _h.cols[_k], _up ? .9 : .3);
+		__dot(_cx + 18, _by + 5, 3, _h.cols[_k], _up ? .95 : .3);
+		var _rsp = __sp_by_id(_h.sids[_k]);
+		draw_set_halign(fa_left); draw_set_color(_up ? _ink : _dim); draw_set_alpha(.85);
+		draw_text(_cx + 25, _by + 1, _h.names[_k] + (is_undefined(_rsp) ? "" : ("  lv " + string(sprite_sheet(_rsp).lv))) + (_up ? "" : "  -  down"));
+		var _bw = 50, _hf = clamp(_hpk / _hmk, 0, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx + _cw - 14 - _bw, _by + 3, _bw, 5, 0, c_black, .7);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx + _cw - 14 - _bw, _by + 3, _bw * _hf, 5, 0, (_hf > .35) ? c_sgreen : c_hred, .9);
+		draw_px_rect(_cx + _cw - 14 - _bw, _by + 3, _bw, 5, c_white, .12);
+	}
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
-		var _ry = _cy + 40 + _i * 12;
+		var _ry = _cy + 40 + _nb * 12 + 4 + _i * 12;
 		draw_set_halign(fa_left);
 		draw_set_color(_ink);
 		draw_set_alpha(.55);
@@ -481,19 +499,27 @@ if (view == "trip") {
 	draw_set_alpha(.8);
 	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), exped_region(_tr).name + "  -  lv " + string(exped_trip_lv(_tr)));
 	draw_set_halign(fa_left);
-	// the crew's hp, one bar each
+	// THE CREW'S BANNERS, under the buttons (his ask, 2026-09-15): a row
+	// each - dot, name, level, the hp bar - LIVE in a fight (the pawn's hp
+	// by its trip index, or the replay frame's), the trip's hp between
+	var _lf = _tr.fight;
 	for (var _k = 0; _k < _n; _k++) {
-		var _hy = big_y + (land ? 112 : 76) + _k * 11;
-		if (_hy + 8 > big_y + big_h) break;
-		__dot(big_x + 12, _hy + 3, 3, _tr.cols[_k], (_tr.hp[_k] > 0) ? .95 : .3);
-		draw_set_color((_tr.hp[_k] > 0) ? _ink : _dim);
-		draw_set_alpha(.8);
+		var _cr = __crew_row_r(_k);
+		var _hpk = _tr.hp[_k], _hmk = max(1, _tr.hpmax[_k]);
+		if (!is_undefined(_lf)) { for (var _pi = 0; _pi < array_length(_lf.party); _pi++) if ((_lf.party[_pi][$ "mi"] ?? -1) == _k) _hpk = _lf.party[_pi].hp; }
+		else if (!is_undefined(rp)) { var _rfr = rp.r.ev[rp.i]; for (var _pi = 0; _pi < array_length(rp.r.party); _pi++) if ((rp.r.party[_pi][$ "mi"] ?? _pi) == _k && _pi < array_length(_rfr.php)) _hpk = _rfr.php[_pi]; }
+		var _up = (_hpk > 0);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, c_black, .6);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, 2, _cr.h, 0, _tr.cols[_k], _up ? .9 : .3);
+		__dot(_cr.x + 10, _cr.y + 5, 3, _tr.cols[_k], _up ? .95 : .3);
+		draw_set_color(_up ? _ink : _dim); draw_set_alpha(.85);
 		var _rsp = __sp_by_id(_tr.sids[_k]);
-		draw_text(big_x + 19, _hy - 1, _tr.names[_k] + (is_undefined(_rsp) ? "" : ("  lv " + string(sprite_sheet(_rsp).lv))));   // (tap the row: the sheet)
-		var _bw = big_w - 24 - 52;
-		var _hf = clamp(_tr.hp[_k] / max(1, _tr.hpmax[_k]), 0, 1);
-		draw_sprite_ext(spr_pixel_1x1, 0, big_x + big_w - 12 - _bw, _hy + 1, _bw, 4, 0, c_black, .7);
-		draw_sprite_ext(spr_pixel_1x1, 0, big_x + big_w - 12 - _bw, _hy + 1, _bw * _hf, 4, 0, (_hf > .35) ? c_sgreen : c_hred, .9);
+		draw_text(_cr.x + 17, _cr.y + 1, _tr.names[_k] + (is_undefined(_rsp) ? "" : ("  lv " + string(sprite_sheet(_rsp).lv))));   // (tap the row: the sheet)
+		var _bw = 50;
+		var _hf = clamp(_hpk / _hmk, 0, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw, 5, 0, c_black, .7);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw * _hf, 5, 0, (_hf > .35) ? c_sgreen : c_hred, .9);
+		draw_px_rect(_cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw, 5, c_white, .12);
 	}
 
 	// the track: the flight there | the world | the flight home - the fill
@@ -805,6 +831,55 @@ if (view == "depart") {
 		draw_text(_cr.x + _cr.w * .5, _cr.y + _cr.h + 1, _away ? "out" : (_sp.asleep ? "zz" : (string_copy(_sp.name, 1, 4) + " " + string(sprite_sheet(_sp).lv))));
 	}
 	draw_set_halign(fa_left);
+	// THE INSPECTED SPRITE (his ask, 2026-09-15: "i want to see the stats of
+	// a sprite i select... im kinda just hoping they are strong enough"):
+	// the last chip tapped - its sheet in brief, and its points against a
+	// par foe of the region
+	if (land) {
+		var _lk = __sp_by_id(dp_look);
+		var _lr = __dlook_r();
+		if (!is_undefined(_lk) && _lr.h > 40) {
+			var _lsh = sprite_sheet(_lk), _lst = sprite_stats(_lk), _lc = _lst.cls, _lbal = cbt_balance();
+			var _lpar = sprite_par_pts(_rg.lv) * SPRITE_FOE_BUDGET;
+			draw_sprite_ext(spr_pixel_1x1, 0, _lr.x, _lr.y, _lr.w, _lr.h, 0, merge_colour(_lk.col, c_black, .9), .6);
+			draw_px_rect(_lr.x, _lr.y, _lr.w, _lr.h, _lk.col, .35);
+			var _lx = _lr.x + 6, _ly = _lr.y + 4;
+			__dot(_lx + 4, _ly + 4, 4, _lk.col, .95);
+			draw_set_color(_lk.col); draw_set_alpha(.95); draw_text(_lx + 12, _ly, _lk.name);
+			draw_set_color(_lc.col); draw_text(_lx + 12 + string_width(_lk.name) + 6, _ly, _lc.name + " lv " + string(_lsh.lv));
+			_ly += 11;
+			var _lhp = round((_lst.pts.hp * _lbal.hp_per_point + _lbal.hp_flat_add) * 10) / 10, _lmp = max(1, round(_lst.pts.mp));
+			draw_set_color(_ink); draw_set_alpha(.85);
+			draw_text(_lx, _ly, "hp " + string(_lhp) + "   mp " + string(_lmp));
+			draw_set_halign(fa_right);
+			draw_set_color((_lst.total >= _lpar) ? c_sgreen : c_hred);
+			draw_text(_lr.x + _lr.w - 6, _ly, string(round(_lst.total)) + " pts  vs " + string(round(_lpar)) + " par");
+			draw_set_halign(fa_left);
+			_ly += 11;
+			var _lkeys = ["atk", "def", "mag", "mdef", "spd", "hit"], _llbl = ["atk", "def", "int", "res", "spd", "hit"];
+			for (var _k = 0; _k < 6; _k++) {
+				var _gx = _lx + (_k mod 2) * 76, _gy = _ly + (_k div 2) * 10;
+				draw_set_color(_dim); draw_set_alpha(.8); draw_text(_gx, _gy, _llbl[_k]);
+				draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.95);
+				draw_text(_gx + 44, _gy, string_format(_lst.pts[$ _lkeys[_k]], 1, 1));
+				draw_set_halign(fa_left);
+				var _lg = _lst.gear[$ _lkeys[_k]];
+				if (_lg > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_gx + 47, _gy, "+" + string_format(_lg, 1, 1)); }
+			}
+			_ly += 31;
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, "weapon");
+			if (is_undefined(_lsh.w1)) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_lx + 40, _ly, "(bare hands)"); }
+			else { draw_set_color(_lsh.w1.col); draw_set_alpha(.95); draw_text(_lx + 40, _ly, string_copy(_lsh.w1.name, 1, 22)); }
+			_ly += 10;
+			var _lsk = sprite_skills(_lk), _lskt = "";
+			for (var _k = 0; _k < array_length(_lsk); _k++) _lskt += ((_k > 0) ? ", " : "") + _lsk[_k].name;
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, "skills");
+			draw_set_color(c_horange); draw_set_alpha(.9); draw_text_ext(_lx + 40, _ly, (_lskt == "") ? "(none)" : _lskt, 9, _lr.w - 52);
+		} else if (_lr.h > 40) {
+			draw_set_color(_dim); draw_set_alpha(.45);
+			draw_text(_lr.x + 6, _lr.y + 4, "tap a sprite to see its sheet");
+		}
+	}
 	// the brief, right
 	var _br2 = __brief_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _br2.x, _br2.y, _br2.w, _br2.h, 0, c_black, .7);

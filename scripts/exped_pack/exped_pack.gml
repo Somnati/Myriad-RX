@@ -34,7 +34,11 @@ function exped_pack() {
 			_o += "|" + string_join_ext(",", _r.rooms);
 		} else {
 			_o += "|0:2:0:" + string(_r.cleared) + ":" + (_r.routed ? "1" : "0") + ":" + string(_r[$ "wins"] ?? 0) + ":1:" + string(_r.id);
-			_o += "|~";
+			// the crew's hp at the end (the haul card's banners, 2026-09-15)
+			var _hhp = "", _hhm = "";
+			var _rhp = _r[$ "hp"] ?? [], _rhm = _r[$ "hpmax"] ?? [];
+			for (var _k = 0; _k < array_length(_rhp); _k++) { _hhp += ((_k > 0) ? "," : "") + string(_rhp[_k]); _hhm += ((_k > 0) ? "," : "") + string((_k < array_length(_rhm)) ? _rhm[_k] : 10); }
+			_o += "|" + _hhp + "~" + _hhm;
 			_o += "|";
 		}
 		var _f = "";
