@@ -8,7 +8,7 @@
 /// landmark, an animal, a sit-down, or a road note in someone's pad.
 /// Never a fight - those are exped_encounter's.
 function exped_road_beat(_tr) {
-	if (!roll_perc(EXPED_ROAD_BEAT)) return;
+	if (!roll_perc(EXPED_ROAD_BEAT)) { exped_say(_tr, "road", undefined, .16); return; }   // (an hour of nothing: the voice, sometimes - 2026-09-15)
 	var _rd = _tr.road;
 	if (!is_struct(_rd)) return;
 	var _rg = exped_region(_tr);

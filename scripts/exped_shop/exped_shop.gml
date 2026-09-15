@@ -33,6 +33,7 @@ function exped_shop(_tr) {
 			var _tk = sprite_take(_sp, _it);
 			array_push(_tr.log, _sp.name + " bought " + _it.name + " for " + string(_price) + " credits" + (_tk.worn ? "" : (_tk.kept ? " - and pocketed it" : " - " + string_delete(_tk.txt, 1, string_pos(" and ", _tk.txt) + 4))));
 			if (_tk.worn) { _tr.hpmax[_k] = sprite_pawn(_sp).maxhp; _tr.hp[_k] = min(_tr.hp[_k], _tr.hpmax[_k]); }
+			exped_say(_tr, "bought", { sid : _sp.id, item : _it.name }, .55);   // (the buyer speaks - 2026-09-15)
 		} else if (roll_perc(35)) {
 			array_push(_tr.log, _sp.name + " looked at " + _it.name + " (" + string(_price) + " credits) and " + choose("walked out", "put it back", "decided against it", "could not afford it"));
 		}

@@ -70,6 +70,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 			if (array_length(_bare) == 0)      array_push(_tr.log, _where + "the crew holds it - " + exped_crew_txt(_held));
 			else if (array_length(_held) == 0) array_push(_tr.log, _where + exped_crew_txt(_bare) + " " + _hz.bite);
 			else                               array_push(_tr.log, _where + exped_crew_txt(_bare) + " " + _hz.bite + "; " + exped_crew_txt(_held) + ((array_length(_held) > 1) ? " hold it" : " holds it"));
+			if (array_length(_bare) > 0) exped_say(_tr, "hazard", undefined, .6);   // (the voice pass: a bare one speaks)
 		}
 		if (array_length(_bare) > 0) cbt_log(_f, _hz.name + ": " + exped_crew_txt(_bare) + " " + _hz.bite);
 	}

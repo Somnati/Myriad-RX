@@ -21,17 +21,19 @@ function exped_act_step(_tr) {
 				if (is_array(_tr[$ "mp"])) for (var _k = 0; _k < array_length(_tr.mp); _k++) _tr.mp[_k] = 1;
 				exped_stat("inns");
 				array_push(_tr.log, "a night at the inn in " + _nd.name + " (" + string(_cost) + " credits) - everyone is whole again");
+				exped_say(_tr, "inn", undefined, .7);
 			} else {
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .5);
 				array_push(_tr.log, "no coin for the inn - slept in a barn in " + _nd.name + ". half a night's rest");
+				exped_say(_tr, "poor", undefined, .8);
 			}
-			exped_say(_tr, "rest", undefined, .7);
 			exped_note_beat(_tr, "rest", .3);
 			break;
 		}
-		case "shop": exped_shop(_tr); break;
+		case "shop": exped_shop(_tr); exped_say(_tr, "shop", undefined, .4); break;
 		case "tavern": {
 			exped_stat("taverns");
+			exped_say(_tr, "tavern", undefined, .5);
 			exped_skill_beat(_tr, .12);   // (a trick off a drunk, sometimes)
 			var _r = random(100);
 			if (_r < 35) {
@@ -90,6 +92,7 @@ function exped_act_step(_tr) {
 				_q.done += 1;
 				array_push(_tr.log, "sack " + string(_q.done) + " of " + string(_q.n) + ": " + string(_cnt) + " " + _fam + " out of " + _nd.name + ((_q.done >= _q.n) ? ". the sacks are full. the quest is done" : ""));
 			} else array_push(_tr.log, "mined " + string(_cnt) + " " + _fam + " at " + _nd.name);
+			exped_say(_tr, "mine", undefined, .4);
 			break;
 		}
 		// ---- THE MISSION-TYPE PASS (2026-09-15) ----
@@ -98,6 +101,7 @@ function exped_act_step(_tr) {
 			if (is_struct(_q)) _q.at = 1;
 			exped_stat("met");
 			array_push(_tr.log, "met " + (is_struct(_q) ? _q.who : "the merchant") + " in " + _nd.name + ". " + choose("the cart is full of turnips", "the cart squeaks", "they talk a lot", "the cart is mostly cheese", "it has a hat and opinions", "the mule is called something long"));
+			exped_say(_tr, "meet", undefined, .9);
 			break;
 		}
 		case "fetch": {
@@ -108,6 +112,7 @@ function exped_act_step(_tr) {
 			} else {
 				if (is_struct(_q)) _q.at = 1;
 				array_push(_tr.log, "found " + (is_struct(_q) ? _q.who : "it") + " at " + _nd.name + ". " + choose("it is heavier than it looks", "it is fine", "it complained", "someone had labelled it", "it was under a rock, of course"));
+				exped_say(_tr, "fetch", undefined, .8);
 			}
 			break;
 		}
@@ -122,6 +127,7 @@ function exped_act_step(_tr) {
 				_a.steps = 1;   // (found: the search ends here)
 				array_push(_tr.log, "found " + _who + " " + _in + choose("in one piece", "asleep", "annoyed", "under a table", "arguing with a rat", "halfway through a sandwich", "hiding rather well"));
 				exped_stat("met");
+				exped_say(_tr, "found", undefined, .9);
 			}
 			else if (_r < 70) array_push(_tr.log, _in + "no sign of " + _who + ". " + choose("a boot", "scratches on the wall", "an echo", "a half-eaten thing", "footprints, going the other way"));
 			else exped_room_find(_tr, _in);
@@ -132,7 +138,7 @@ function exped_act_step(_tr) {
 			if (_a.steps >= 2 && is_struct(_q)) {
 				_tr.fight = exped_fight_new(_tr, _q.foe, irandom_range(1, 2), 1, { boss : true, name : _q.who });
 				array_push(_tr.log, _q.who + " " + choose("is here, and knows it", "was waiting", "stands up. it is big", "does not run") + " - " + _nd.name);
-				exped_say(_tr, "fight_open", { foe : _q.who }, .8);
+				exped_say(_tr, "boss", { foe : _q.who }, .9);
 			} else array_push(_tr.log, choose("nothing else moves at " + _nd.name, "the rest of them left in a hurry"));
 			break;
 		}
@@ -143,13 +149,14 @@ function exped_act_step(_tr) {
 			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "wolf");
 			_tr.fight = exped_fight_new(_tr, _fk, irandom_range(2, 3), 0);
 			array_push(_tr.log, "wave " + string(_wave) + " of " + string(_nw) + " at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " " + _fk + "s " + choose("out of the treeline", "over the fence", "up the road, not quietly"));
-			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
+			exped_say(_tr, "wave", { foe : _tr.fight.b.name }, .55);
 			break;
 		}
 		case "shrine": {
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .3);
 			exped_skill_beat(_tr, .3);   // (a shrine teaches, sometimes)
 			array_push(_tr.log, "the shrine at " + _nd.name + ": " + choose("a small blessing", "the water was cold and helped", "someone left a candle. it counted"));
+			exped_say(_tr, "shrine", undefined, .6);
 			if (roll_perc(20)) { array_push(_tr.finds, { kind : "charm", rar : 0, txt : "a charm (+1 luck)", col : c_seagreen }); array_push(_tr.log, "...and a charm, left on the step"); }
 			break;
 		}
@@ -158,6 +165,7 @@ function exped_act_step(_tr) {
 			if (_r < 50) exped_room_find(_tr, _nd.name + ": ");
 			else if (_r < 80) exped_room_trap(_tr, _nd.name + ": ");
 			else array_push(_tr.log, _nd.name + ": " + choose("stones. old ones.", "a floor with no house", "someone lived here. they left"));
+			exped_say(_tr, "ruin", undefined, .5);
 			break;
 		}
 		case "wild": {
@@ -169,6 +177,7 @@ function exped_act_step(_tr) {
 				array_push(_tr.log, _nd.name + ": " + choose("looked at it. " + _isit + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
 			}
 			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "wolf", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }
+			if (is_undefined(_tr.fight)) exped_say(_tr, "wild", undefined, .3);
 			break;
 		}
 		case "look": break;

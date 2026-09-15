@@ -9,5 +9,5 @@ function exped_skill_beat(_tr, _chance) {
 	var _sp = exped_sprite(_tr.sids[_up[irandom(array_length(_up) - 1)]]);
 	if (is_undefined(_sp)) return;
 	var _txt = sprite_skill_learn(_sp);
-	if (_txt != "") { array_push(_tr.log, "+ " + _txt); exped_stat("skills"); }
+	if (_txt != "") { array_push(_tr.log, "+ " + _txt); exped_stat("skills"); exped_say(_tr, "skill", { sid : _sp.id }, .6); }
 }

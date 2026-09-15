@@ -33,7 +33,8 @@ function exped_xp_grant(_tr, _xp, _why) {
 			_tr.hp[_k] = min(_now, _tr.hp[_k] + max(0, _now - _was));
 			exped_stat("levels", _got);
 			array_push(_tr.log, "+ " + _sp.name + " reached level " + string(sprite_sheet(_sp).lv));
-			if (roll_perc(40)) { var _lt = sprite_skill_learn(_sp); if (_lt != "") { array_push(_tr.log, "+ " + _lt); exped_stat("skills"); } }
+			exped_say(_tr, "levelup", { sid : _sp.id }, .75);   // (the one who levelled speaks - 2026-09-15)
+			if (roll_perc(40)) { var _lt = sprite_skill_learn(_sp); if (_lt != "") { array_push(_tr.log, "+ " + _lt); exped_stat("skills"); exped_say(_tr, "skill", { sid : _sp.id }, .6); } }
 			if (roll_perc(40)) { var _nt = sprite_note_gen(_sp, "levelup", { lv : sprite_sheet(_sp).lv }); if (_nt != "" && sprite_note(_sp, _nt, "")) array_push(_tr.log, _sp.name + " writes: \"" + _nt + "\""); }
 		}
 	}
