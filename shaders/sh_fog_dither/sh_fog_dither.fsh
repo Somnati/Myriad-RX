@@ -13,15 +13,25 @@ varying vec4 v_vColour;
 
 uniform float u_time;
 
+// white noise, no lattice (Hoskins' hash12): the grain that reads as film
+// grain, not the diagonal checkerboard interleaved-gradient noise makes
+// on pixel cells (his report, 2026-09-15)
+float hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
 void main()
 {
     vec4 c = v_vColour * texture2D(gm_BaseTexture, v_vTexcoord);
 
     // REMASTERED: jimenez IGN, pattern re-seeded at 30hz (half the
     // shimmer of every-frame, same temporal averaging)
-    vec2 p = floor(gl_FragCoord.xy)
-        + fract(floor(u_time * 30.0) * vec2(0.7548776, 0.5698402)) * 64.0;
-    float n = fract(52.9829189 * fract(0.06711056 * p.x + 0.00583715 * p.y));
+    float fr = floor(u_time * 60.0);
+    vec2 p = floor(gl_FragCoord.xy) + vec2(fr * 13.0, fr * 7.0);
+    float n = hash12(p);   // (white grain, not the lattice)
 
     // LUMINANCE-GATED amplitude (in final 8-bit levels, the alpha
     // compensation below cancels): zero on pure black - the night sky

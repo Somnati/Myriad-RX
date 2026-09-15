@@ -22,6 +22,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		tsize : shader_get_uniform(sh_planet, "u_tsize"),
 		pad   : shader_get_uniform(sh_planet, "u_pad"),
 		time  : shader_get_uniform(sh_planet, "u_time"),
+		dither : shader_get_uniform(sh_planet, "u_dither"),
 		cells : shader_get_uniform(sh_planet, "u_cells"),
 		ring  : shader_get_uniform(sh_planet, "u_ring"),
 		raxis : shader_get_uniform(sh_planet, "u_raxis"),
@@ -77,6 +78,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
+	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);   // (into a float page: the page dithers once at its blit)
 	var _cty = array_create(24, 0);
 	var _ctn = 0;
 	if (!is_undefined(_pn.civ)) {

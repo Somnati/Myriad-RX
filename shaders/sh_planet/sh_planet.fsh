@@ -24,6 +24,7 @@ uniform vec3  u_atmo;
 uniform vec2  u_tsize;
 uniform float u_pad;
 uniform float u_time;
+uniform float u_dither;   // 1 = dither the gradients here (an 8-bit target), 0 = the page is float and dithers once at its blit
 uniform float u_cells;
 uniform float u_ring;
 uniform vec3  u_raxis;
@@ -66,6 +67,16 @@ float cloud_at(vec3 n, vec2 ts)
     return texture2D(u_cloud, sphere_uv(t, ts)).a * u_cfade;
 }
 
+// white noise, no lattice (Hoskins' hash12): the grain that reads as film
+// grain, not the diagonal checkerboard interleaved-gradient noise makes
+// on pixel cells (his report, 2026-09-15)
+float hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
 float lightband(float d)
 {
     return mix(0.10, 1.0, smoothstep(-0.22, 0.30, d));
@@ -78,9 +89,12 @@ void main()
     vec2 p = (q * 2.0 - 1.0) * u_pad;
     float r2 = dot(p, p);
 
+    // (white grain, a fresh one every frame - the lattice noise read as a checkerboard)
     vec2 dpx = (u_cells > 0.5) ? floor(q * u_cells) : floor(gl_FragCoord.xy);
-    dpx += fract(floor(u_time * 30.0) * vec2(0.7548776, 0.5698402)) * 64.0;
-    float dn = fract(52.9829189 * fract(0.06711056 * dpx.x + 0.00583715 * dpx.y)) - 0.5;
+    float dfr = floor(u_time * 60.0);
+    dpx += vec2(dfr * 13.0, dfr * 7.0);
+    float dn = (hash12(dpx) - 0.5) * u_dither;
+    float dsp = hash12(dpx + vec2(31.0, 71.0));   // the sea's sparkle
 
     float rl = 0.0;
     if (r2 > 0.0001) {
@@ -224,7 +238,7 @@ void main()
             vec3 hv = normalize(u_light + vec3(0.0, 0.0, 1.0));
             float sp = pow(max(dot(n, hv), 0.0), 36.0);
             float day = smoothstep(-0.05, 0.30, dot(n, u_light));
-            col += vec3(1.0, 0.96, 0.86) * sp * 0.85 * day * (1.0 + 0.5 * dn);
+            col += vec3(1.0, 0.96, 0.86) * sp * 0.85 * day * (0.8 + 0.4 * dsp);
         }
 
         float em = 1.0 - tex.a;

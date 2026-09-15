@@ -80,6 +80,7 @@ g.dice_mat = "random";   // dice_mat_config's roster
 g.coin_mat = "gold";     // the coin's finish, same roster
 g.menu_style = "default";   // the header menu's panel: default / black / glass (settings > visuals)
 g.title_bg = "starfield";   // the title's backdrop: starfield / blocks
+g.page_dither = "ordered";  // the expedition pages' dither: ordered / retro / chunky / grain (settings > visuals)
 g.puck_mat = "random";   // the puck's, off the same roster ("random" = black rubber)
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.

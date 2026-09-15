@@ -61,6 +61,16 @@ float fbm(vec3 p)
     return s;
 }
 
+// white noise, no lattice (Hoskins' hash12): the grain that reads as film
+// grain, not the diagonal checkerboard interleaved-gradient noise makes
+// on pixel cells (his report, 2026-09-15)
+float hash12(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
 void main()
 {
     // the same projection the star draws use: sx = cx + vx * 230 / -vz,
@@ -105,8 +115,9 @@ void main()
     // interfere into visible blotches)
     vec2 ip = (u_cell > 0.5) ? floor(v_vTexcoord * u_geom / u_cell)
                              : floor(v_vTexcoord * u_geom);
-    ip += fract(floor(u_time * 30.0) * vec2(0.7548776, 0.5698402)) * 64.0;
-    float g = fract(52.9829189 * fract(0.06711056 * ip.x + 0.00583715 * ip.y));
+    float sfr = floor(u_time * 60.0);
+    ip += vec2(sfr * 13.0, sfr * 7.0);
+    float g = hash12(ip);   // (white grain, not the lattice)
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
 

@@ -409,6 +409,25 @@ function settings_content() {
 		+ "classic; the rest are the dice's finishes.",
 		-1, true);
 
+	// THE EXPEDITION PAGES' DITHER (his call, 2026-09-15: "those oldschool
+	// dither methods"): the one quantisation the float pages meet, at
+	// their blit (sh_page_out) - the bayer ordered pattern, plain or
+	// posterised into it, or a film grain
+	settings_group("the expedition pages", c_salmon);
+	settings_pill("page dither", "pagedith",
+		g.page_dither,
+		function() {
+			set_pill("ordered", { val : "ordered", col : c_gold, enabled : (g.page_dither == "ordered") });
+			set_pill("retro",   { val : "retro",   col : c_gold, enabled : (g.page_dither == "retro") });
+			set_pill("chunky",  { val : "chunky",  col : c_gold, enabled : (g.page_dither == "chunky") });
+			set_pill("grain",   { val : "grain",   col : c_gold, enabled : (g.page_dither == "grain") });
+		},
+		function(_v) { g.page_dither = _v; },
+		"how the sky, the world and the galaxy meet the screen's 8 bits: ORDERED is the old-school "
+		+ "bayer crosshatch at full colour (it only shows where a gradient steps); RETRO posterises "
+		+ "to 16 steps a channel through it and CHUNKY to 8 - the pattern becomes the picture; "
+		+ "GRAIN is a fresh film grain every frame instead.");
+
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)
 	settings_action("reset visuals to defaults",

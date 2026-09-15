@@ -804,7 +804,9 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, true);
 	galaxy_fog_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	g.dither_off = page_float();   // (the world into a float page: no dither of its own - the blit's grain is the one)
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, pv_sky.light_w);
+	g.dither_off = false;
 	// (not built yet: the sky alone - the lite portrait that stood in "looked really bad", his report 2026-09-15; the boot builds the board's worlds)
 	if (_built && _spots != -1) {
 		draw_set_font(fnt_outline); draw_set_halign(fa_left); draw_set_valign(fa_top);
