@@ -157,8 +157,8 @@ __back = function() {
 	switch (view) {
 		case "map":    view = map_from; break;
 		case "galaxy": view = gx_from; break;
-		case "depart": view = "region"; break;
-		case "region": view = "planet"; break;   // (the pick stays: the world keeps facing it, [view region] still there)
+		case "depart": view = "planet"; pv_mode = "region"; break;   // (back to the region, on the planet page)
+		case "planet": if (pv_mode == "region") pv_mode = "planet"; else view = "hub"; break;   // region mode -> the planet, the planet -> the hub
 		case "crew":   view = (crew_trip >= 0) ? "trip" : "hub"; crew_trip = -1; it_pop = undefined; break;
 		default:       view = "hub"; break;
 	}
@@ -216,6 +216,11 @@ pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, an
 pv_sky   = undefined;                // galaxy_sky_build()
 pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
+pv_mode  = "planet";                 // "planet" (the world, the drawer) or "region" (pulled in on the pick: the banner, the quests)
+pv_zoom  = 1;                        // region mode's pull-in (PV_ZOOM_RG), eased
+pv_cfade = 1;                        // ...and the clouds thinning with it
+// the trip page's world: the same render, the camera fixed on the trip's region
+tp_id = -1; tp_cam = mat3_rot(1, 0, 0, -32); tp_spin = 0;
 sky_fog_surf = -1;                   // sh_sky_fog's canvas (the page's size)
 __pv_r     = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
 __pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5 - 46 * pv_dwa, y : _r.y + _r.h * .5 + 2 }; };   // (the world slides left as the drawer opens)
@@ -224,6 +229,10 @@ __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // 
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
 __galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : 64, h : 16 }; };   // [galaxy], bottom left of the planet page
+__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x + _g.w + 4, y : _g.y, w : 90, h : 16 }; };   // the geosync toggle (the demo's), beside it
+// region mode: the banner on the left, the quests (then explore) on the right
+__rg_banner_r = function() { return { x : land ? 14 : 4, y : list_y + 40, w : land ? 150 : 120, h : 96 }; };
+__rg_q_row = function(_i) { var _w = land ? 196 : 150; return { x : room_width - (land ? 14 : 4) - _w, y : list_y + 44 + _i * 30, w : _w, h : 27 }; };
 __hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 64, h : 14 }; };
 /// a region's spot as a unit vector in TEXTURE space (sphere_uv's frame)
 __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat), dcos(_lat) * dsin(_lon)]; };
@@ -231,6 +240,13 @@ __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat),
 __pv_ui_hit = function() {
 	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
 	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
+	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
+	if (pv_mode == "region") {
+		var _bn = __rg_banner_r(); if (point_in_rectangle(mouse_x, mouse_y, _bn.x, _bn.y, _bn.x + _bn.w, _bn.y + _bn.h)) return true;
+		var _mr = __rg_map_r(); if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) return true;
+		for (var _qi = 0; _qi <= 3; _qi++) { var _qr = __rg_q_row(_qi); if (point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) return true; }
+		return false;
+	}
 	if (pl_focus >= 0) { var _v = __view_rg_r(); if (point_in_rectangle(mouse_x, mouse_y, _v.x, _v.y, _v.x + _v.w, _v.y + _v.h)) return true; }
 	if (mouse_x >= __pv_dw_x() && mouse_y < room_height - 30) return true;   // the tab and the drawer (the button row under it stays live)
 	return false;
@@ -375,9 +391,96 @@ __draw_world_rect = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _zoom, _spin, 
 	ui_fade_set(_fa);
 	draw_surface(wb_surf, _x, _y);
 };
-/// the world in its box, turned by pl_spin and zoomed by pl_zoom (the
-/// clouds fading as it comes in), with the regions' spots on it; the
-/// planet and region windows
+/// THE ORBIT RENDERER (2026-09-15: "have all models of the planet match our
+/// main one... stars and all"): the sky (the real neighbourhood, the milky
+/// way, the sun - pv_sky), the world at (pcx, pcy) of the rect with radius
+/// pr through the camera cam (view -> world) and its own spin, and the
+/// regions' spots: a 2px square each on the far-side test, the focused
+/// one a pulsing hollow square in 2px lines (pixel, not a circle), labels
+/// in the OUTLINE font when facing you (his ask: readable over the world).
+/// Rendered into wb_surf and blitted at (x, y): nothing spills. spots =
+/// -1 none, -2 all, else only that region. Returns { m, r } (texture-
+/// from-view and its inverse) for the caller's pick
+__draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots, _focus, _cfade) {
+	_w = max(2, floor(_w)); _h = max(2, floor(_h));
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
+		if (surface_exists(wb_surf)) surface_free(wb_surf);
+		wb_surf = surface_create(_w, _h);
+	}
+	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) {
+		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
+		sky_fog_surf = surface_create(_w, _h);
+	}
+	if (!is_struct(pv_sky)) pv_sky = galaxy_sky_build();
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _built = (_pn.row >= _pn.th);
+	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	var _mm = mat3_mul(mat3_transpose(_wm), _cam);
+	var _mr = mat3_transpose(_mm);
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	galaxy_sky_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, true);
+	galaxy_fog_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, pv_sky.light_w);
+	else __portrait(_d, _pcx, _pcy, _pr);
+	if (_built && _spots != -1) {
+		draw_set_font(fnt_outline); draw_set_halign(fa_left); draw_set_valign(fa_top);
+		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			if (_spots >= 0 && _i != _spots) continue;
+			var _rg = region_get(_d, _i);
+			var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
+			var _v = mat3_apply(_mr, _t[0], _t[1], _t[2]);
+			if (_v[2] <= .1) continue;
+			var _sx = floor(_pcx) + floor(_v[0] * _pr * .5) * 2, _sy = floor(_pcy) + floor(_v[1] * _pr * .5) * 2;
+			var _on = (_i == _focus);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
+			if (_on) {
+				var _s = 8 + _pulse * 2;
+				__px_box2(_sx - _s * .5, _sy - _s * .5, _s, c_gold, .95);
+			}
+			if (_v[2] > .3) {
+				draw_set_color(_on ? c_gold : c_white); draw_set_alpha(_on ? .95 : .85);
+				draw_text(_sx + 6 + (_on ? 3 : 0), _sy - 4, _on ? _rg.name : ("lv " + string(_rg.lv)));
+			}
+		}
+		draw_set_font(fnt);
+		draw_set_alpha(1);
+	}
+	surface_reset_target();
+	ui_fade_set(_fa);
+	draw_surface(wb_surf, _x, _y);
+	return { m : _mm, r : _mr };
+};
+/// a hollow square in 2px lines (the pixel look: no fine lines)
+__px_box2 = function(_x, _y, _s, _col, _a) {
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _s, 2, 0, _col, _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y + _s - 2, _s, 2, 0, _col, _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y + 2, 2, _s - 4, 0, _col, _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x + _s - 2, _y + 2, 2, _s - 4, 0, _col, _a);
+};
+/// a camera turned to FACE a region's spot (the face-turn run to the end):
+/// the trip page's world, fixed on where the crew is
+__cam_face = function(_pn, _spin, _rg, _cam) {
+	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
+	var _nw = mat3_apply(_wm, _t[0], _t[1], _t[2]);
+	repeat (80) {
+		var _v = mat3_apply(mat3_transpose(_cam), _nw[0], _nw[1], _nw[2]);
+		if (_v[2] > .9999) break;
+		var _ang = darccos(clamp(_v[2], -1, 1)) * .35;
+		var _axl = sqrt(_v[0] * _v[0] + _v[1] * _v[1]);
+		var _a0 = (_axl < .0001) ? 0 : (_v[1] / _axl);
+		var _a1 = (_axl < .0001) ? 1 : (-_v[0] / _axl);
+		var _c1 = mat3_mul(_cam, mat3_rot(_a0, _a1, 0, _ang)), _c2 = mat3_mul(_cam, mat3_rot(_a0, _a1, 0, -_ang));
+		var _v1 = mat3_apply(mat3_transpose(_c1), _nw[0], _nw[1], _nw[2]), _v2 = mat3_apply(mat3_transpose(_c2), _nw[0], _nw[1], _nw[2]);
+		_cam = (_v1[2] >= _v2[2]) ? _c1 : _c2;
+	}
+	return _cam;
+};
+/// (the old small box: the region window's spinning world - retired 2026-09-15, the planet page's region mode took its place)
 __draw_world_box = function(_d) {
 	var _b = exped_biomes()[_d.biome];
 	var _bx = __pl_box();

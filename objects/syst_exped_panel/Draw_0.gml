@@ -480,7 +480,8 @@ if (view == "trip") {
 	// nothing spills past the box); the lite portrait holds the spot
 	// while the world is still being built
 	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .95);
-	__draw_world_rect(_d, big_x + 1, big_y + 1, big_w - 2, land ? 102 : 62, (big_w - 2) * .5, land ? 47 : 29, land ? 34 : 20, 1, undefined, 1, false);
+	// (the main world's render, its camera fixed on the trip's region - tp_cam, the Step)
+	__draw_orbit(_d, big_x + 1, big_y + 1, big_w - 2, land ? 102 : 62, (big_w - 2) * .5, land ? 47 : 29, land ? 34 : 20, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
 	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
 	ui_fade_set(_ea);
 	// the buttons, under the box: [crew] [map] [abort]
@@ -712,50 +713,9 @@ if (view == "planet") {
 		sky_fog_surf = surface_create(_w, _h);
 	}
 	var _lcx = _pvc.x - _pvr.x, _lcy = _pvc.y - _pvr.y;
-	var _pr = _ocf.pr;
-	// the matrices: texture-from-view for the shader and the pick, its
-	// inverse for the spots (the demo's mat_m / mat_r)
-	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
-	pv_mat_m = mat3_mul(mat3_transpose(_wm), pv_cam);
-	pv_mat_r = mat3_transpose(pv_mat_m);
-	var _fa = g.ui_fade_a;
-	ui_fade_set(1);
-	surface_set_target(wb_surf);
-	draw_clear_alpha(c_black, 1);
-	if (is_struct(pv_sky)) {
-		galaxy_sky_draw(pv_sky, pv_cam, _lcx, _lcy, _w, _h, true);
-		galaxy_fog_draw(pv_sky, pv_cam, _lcx, _lcy, _w, _h, sky_fog_surf);
-	} else planet_sky_draw(_d.seed, 0, 0, _w, _h);
-	if (_built) planet_draw(_pn, _lcx, _lcy, _pr, pv_spin, 1, pv_cam, is_struct(pv_sky) ? pv_sky.light_w : undefined);
-	else __portrait(_d, _lcx, _lcy, _pr);
-	// the spots: a 2px square each where the globe carries it (the far side
-	// skipped), the picked one a pulsing hollow square, labels facing you
-	if (_built) {
-		draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
-		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-			var _rg = region_get(_d, _i);
-			var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
-			var _v = mat3_apply(pv_mat_r, _t[0], _t[1], _t[2]);
-			if (_v[2] <= .1) continue;
-			var _sx = floor(_lcx) + floor(_v[0] * _pr * .5) * 2, _sy = floor(_lcy) + floor(_v[1] * _pr * .5) * 2;
-			var _on = (_i == pl_focus);
-			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
-			if (_on) {
-				var _s = 6 + _pulse * 2;
-				draw_px_rect(_sx - _s * .5, _sy - _s * .5, _s, _s, c_gold, .95);
-				draw_px_rect(_sx - _s * .5 + 1, _sy - _s * .5 + 1, _s - 2, _s - 2, c_gold, .5);
-			}
-			if (_v[2] > .3) {
-				draw_set_color(_on ? c_gold : c_white); draw_set_alpha(_on ? .95 : .8);
-				draw_text(_sx + 6 + (_on ? 2 : 0), _sy - 4, _on ? _rg.name : ("lv " + string(_rg.lv)));
-			}
-		}
-		draw_set_alpha(1);
-	}
-	surface_reset_target();
-	ui_fade_set(_fa);
-	draw_surface(wb_surf, _pvr.x, _pvr.y);
+	var _pr = _ocf.pr * pv_zoom;
+	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, (pv_mode == "region") ? pl_focus : -2, pl_focus, pv_cfade);
+	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);
 	// the title (the strip row) and the facts, over the sky
 	draw_set_color(c_white); draw_set_alpha(.95);
@@ -769,10 +729,69 @@ if (view == "planet") {
 	}
 	draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(land ? 14 : 4, list_y + 30, "drag to orbit  -  tap a region");
-	// [galaxy], [view region]
+	// [galaxy], the geosync toggle, [view region]
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
-	if (pl_focus >= 0) {
+	var _ge = __geo_r();
+	draw_ui_button(_ge.x, _ge.y, _ge.w, _ge.h, pv_geo ? "riding the spin" : "free camera", pv_geo ? c_sgreen : c_gray, true, false);
+	if (pv_mode == "region") {
+		// REGION MODE: the banner left (name, level, places, the wild), the map
+		// button, the quests right (then explore) - the old window's rows
+		var _rg = region_get(_d, rg_sel);
+		var _bn = __rg_banner_r();
+		var _kk = region_kinds();
+		var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
+		for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
+			var _kd = _kk[$ _rg.nodes[_j].kind];
+			if (is_undefined(_kd)) continue;
+			if (_kd.civ) _nciv++;
+			if (_rg.nodes[_j].kind == "dungeon") _ndun++;
+			if (_rg.nodes[_j].kind == "camp") _ncmp++;
+			if (_rg.nodes[_j].kind == "landing") _nlnd++;
+		}
+		var _wk = _rg[$ "wild"] ?? [], _wtxt = "";
+		for (var _wi = 0; _wi < array_length(_wk); _wi++) { var _wn = _wk[_wi]; if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s"; _wtxt += ((_wi > 0) ? ", " : "") + _wn; }
+		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
+		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
+		draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
+		draw_text_ext(_bn.x + 8, _bn.y + 5, _rg.name, 11, _bn.w - 14);
+		var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 2;
+		draw_set_font(fnt);
+		draw_set_color((rg_sel == 0) ? c_sgreen : ((rg_sel == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
+		draw_text(_bn.x + 8, _bny, "level " + string(_rg.lv) + "  -  " + string(array_length(_rg.nodes)) + " places");
+		draw_set_color(_ink); draw_set_alpha(.8);
+		draw_text(_bn.x + 8, _bny + 11, string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon" : " dungeons"));
+		draw_text(_bn.x + 8, _bny + 21, string(_ncmp) + ((_ncmp == 1) ? " bandit camp" : " bandit camps") + ((_nlnd > 0) ? ", 2 landing zones" : ", 1 landing zone"));
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text_ext(_bn.x + 8, _bny + 33, "the wild: " + ((_wtxt == "") ? "unknown" : _wtxt), 9, _bn.w - 14);
+		var _mr0 = __rg_map_r();
+		draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "map", c_steelblue, true, false);
+		draw_set_color(_ink); draw_set_alpha(.6);
+		var _q0 = __rg_q_row(0);
+		draw_text(_q0.x, _q0.y - 12, "quests on offer  -  tap one");
+		var _ql = exped_region_quests(_d, rg_sel);
+		var _dc = [c_sgreen, c_gold, c_horange, c_hred];
+		for (var _i = 0; _i <= array_length(_ql); _i++) {
+			var _qr = __rg_q_row(_i);
+			var _isx = (_i >= array_length(_ql));
+			draw_sprite_ext(spr_pixel_1x1, 0, _qr.x, _qr.y, _qr.w, _qr.h, 0, c_black, .82);
+			draw_px_rect(_qr.x, _qr.y, _qr.w, _qr.h, _isx ? c_horange : c_gold, .5);
+			if (_isx) {
+				draw_set_color(c_horange); draw_set_alpha(.95);
+				draw_text(_qr.x + 6, _qr.y + 4, "explore");
+				draw_set_color(_dim); draw_set_alpha(.7);
+				draw_text_ext(_qr.x + 6, _qr.y + 14, "wander the region until recalled", 9, _qr.w - 12);
+			} else {
+				var _q = _ql[_i];
+				draw_set_color(c_white); draw_set_alpha(.95);
+				draw_text(_qr.x + 6, _qr.y + 4, string_copy(_q.txt, 1, land ? 38 : 28));
+				draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_set_alpha(.9);
+				draw_text(_qr.x + 6, _qr.y + 14, _q.diff_txt);
+				draw_set_color(_dim); draw_set_alpha(.7);
+				draw_text(_qr.x + 6 + string_width(_q.diff_txt) + 8, _qr.y + 14, string(_q.hours) + "h  -  " + string(_q.reward) + " cr  -  x" + string(_q.mult) + " xp");
+			}
+		}
+	} else if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
 		draw_ui_button(_vr.x, _vr.y, _vr.w, _vr.h, "view region", c_gold, true, true);
 	} else {
@@ -780,8 +799,9 @@ if (view == "planet") {
 		draw_text(room_width - (land ? 14 : 4), room_height - 8 - 12, "pick a region to view it");
 		draw_set_halign(fa_left);
 	}
-	// THE DRAWER: the tab on the right edge, the regions when open
+	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
 	var _dwx = __pv_dw_x();
+	if (pv_mode == "region") { ui_fade_set(1); exit; }
 	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
@@ -965,46 +985,7 @@ if (view == "galaxy") {
 	exit;
 }
 
-// ======================= THE REGION: the quests on offer, or explore =======================
-if (view == "region") {
-	var _d = pl_dest;
-	var _rg = region_get(_d, rg_sel);
-	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, _d.name + "  -  " + _rg.name);
-	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text((land ? 14 : 4) + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv));
-	// the world, turned to the region (his ask: it rotates and zooms in on it)
-	__draw_world_box(_d);
-	ui_fade_set(_ea);
-	var _mr0 = __rg_map_r();
-	draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "map", c_steelblue, true, false);
-	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text(__q_row(0).x, list_y + 28, "quests on offer  -  tap one");
-	var _ql = exped_region_quests(_d, rg_sel);
-	var _dc = [c_sgreen, c_gold, c_horange, c_hred];
-	for (var _i = 0; _i <= array_length(_ql); _i++) {
-		var _qr = __q_row(_i);
-		var _isx = (_i >= array_length(_ql));
-		draw_sprite_ext(spr_pixel_1x1, 0, _qr.x, _qr.y, _qr.w, _qr.h, 0, c_black, .7);
-		draw_px_rect(_qr.x, _qr.y, _qr.w, _qr.h, _isx ? c_horange : c_gold, .5);
-		if (_isx) {
-			draw_set_color(c_horange); draw_set_alpha(.95);
-			draw_text(_qr.x + 6, _qr.y + 4, "explore");
-			draw_set_color(_dim); draw_set_alpha(.7);
-			draw_text(_qr.x + 6, _qr.y + 14, "wander the region until recalled - inns, taverns, bounties, whatever they find");
-		} else {
-			var _q = _ql[_i];
-			draw_set_color(c_white); draw_set_alpha(.95);
-			draw_text(_qr.x + 6, _qr.y + 4, _q.txt);
-			draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_set_alpha(.9);
-			draw_text(_qr.x + 6, _qr.y + 14, _q.diff_txt);
-			draw_set_color(_dim); draw_set_alpha(.7);
-			draw_text(_qr.x + 6 + string_width(_q.diff_txt) + 8, _qr.y + 14, string(_q.hours) + "h out  -  " + string(_q.reward) + " credits  -  x" + string(_q.mult) + " xp");
-		}
-	}
-	ui_fade_set(1);
-	exit;
-}
+// (the region window is gone - the planet page's region mode, 2026-09-15)
 
 // ======================= THE DEPARTURE: the crew, the brief, [depart] =======================
 if (view == "depart") {

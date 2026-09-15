@@ -90,6 +90,22 @@ if (view == "planet" && is_struct(pl_dest)) {
 		}
 	}
 	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
+	// region mode: the pull-in, the clouds thinning (both eased)
+	pv_zoom  = lerp(pv_zoom,  (pv_mode == "region") ? PV_ZOOM_RG : 1, 1 - power(.88, delta));
+	pv_cfade = lerp(pv_cfade, (pv_mode == "region") ? .12 : 1, 1 - power(.88, delta));
+}
+// THE TRIP PAGE'S WORLD: the same render, its camera turned to the trip's
+// region once (a new trip on the page), riding the spin after (geosync)
+if (view == "trip") {
+	var _ttr = __trip();
+	if (!is_undefined(_ttr)) {
+		var _tpn = planet_get(_ttr.dest.seed, exped_planet_hint(_ttr.dest));
+		if (tp_id != _ttr.id) { tp_id = _ttr.id; tp_spin = ((current_time / 1000) * 60 * _tpn.spin) mod 360; tp_cam = __cam_face(_tpn, tp_spin, exped_region(_ttr), mat3_rot(1, 0, 0, -32)); }
+		var _tds = _tpn.spin * delta;
+		tp_spin += _tds;
+		var _tax = mat3_apply(mat3_rot(0, 0, 1, _tpn.tilt), 0, 1, 0);
+		tp_cam = mat3_mul(mat3_rot(_tax[0], _tax[1], _tax[2], _tds), tp_cam);
+	}
 }
 if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
 if (view != "galaxy") gx_press = false;
@@ -267,12 +283,40 @@ if (view == "planet") {
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
-	// [view region]: the picked one's window
+	// the geosync toggle (the demo's): the camera rides the spin, or not
+	var _ge = __geo_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) {
+		pv_geo = !pv_geo;
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+		exit;
+	}
+	// REGION MODE (his ask: no separate window - the camera pulls in, the
+	// banner left, the quests right): [map], a quest row, explore
+	if (pv_mode == "region") {
+		var _mr0 = __rg_map_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
+			map_dest = pl_dest; map_rgi = rg_sel; map_from = "planet"; view = "map";
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+		var _ql = exped_region_quests(pl_dest, rg_sel);
+		for (var _i = 0; _i <= array_length(_ql); _i++) {
+			var _qr = __rg_q_row(_i);
+			if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
+			if (_i < array_length(_ql)) { dp_quest = _ql[_i]; dp_mode = "quest"; }
+			else { dp_quest = undefined; dp_mode = "explore"; }
+			dp_look = (array_length(sel_crew) > 0) ? sel_crew[0] : -1;
+			view = "depart";
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+		exit;
+	}
+	// [view region]: the pull-in (region mode) on the picked one
 	if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
-			rg_sel = pl_focus;
-			view = "region";
+			rg_sel = pl_focus; pv_face = pl_focus; pv_mode = "region"; pv_dw = false;
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -299,27 +343,7 @@ if (view == "planet") {
 // ======================= THE GALAXY: presses do nothing here (the pan / tap are above) =======================
 if (view == "galaxy") exit;
 
-// ======================= THE REGION: the quests, or explore =======================
-if (view == "region") {
-	var _mr0 = __rg_map_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
-		map_dest = pl_dest; map_rgi = rg_sel; map_from = "region"; view = "map";
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-		exit;
-	}
-	var _ql = exped_region_quests(pl_dest, rg_sel);
-	for (var _i = 0; _i <= array_length(_ql); _i++) {
-		var _qr = __q_row(_i);
-		if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
-		if (_i < array_length(_ql)) { dp_quest = _ql[_i]; dp_mode = "quest"; }
-		else { dp_quest = undefined; dp_mode = "explore"; }
-		dp_look = (array_length(sel_crew) > 0) ? sel_crew[0] : -1;
-		view = "depart";
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-		exit;
-	}
-	exit;
-}
+// (the region window is gone - the planet page's region mode, 2026-09-15)
 
 // ======================= THE DEPARTURE: the crew, the brief, [depart] =======================
 if (view == "depart") {
@@ -495,7 +519,7 @@ if (point_in_rectangle(mouse_x, mouse_y, _hgl.x, _hgl.y, _hgl.x + _hgl.w, _hgl.y
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _c = __card_r(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, _c.x, _c.y, _c.x + _c.w, _c.y + _c.h)) {
-		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; view = "planet";
+		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; view = "planet"; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
