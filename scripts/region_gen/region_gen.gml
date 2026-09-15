@@ -48,7 +48,13 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _ob = _ps.ob;
 			// water, shallows and the ice sheets are no place to land; the peaks neither
 			if (_ob == 0 || _ob == 1 || _ob == 11 || _ob == 14 || _ob == 9 || _ob == 10) continue;
-			if (_ri == 0 && _try <= 60 && !(_ob == 4 || _ob == 5 || _ob == 6)) continue;   // (grass, forest, jungle)
+			// THE LADDER (his call, 2026-09-15): the first reach green (grass, forest,
+			// jungle), the second a MARSH (swamp), the third a DESERT (desert, salt flat)
+			if (_try <= 60) {
+				if (_ri == 0 && !(_ob == 4 || _ob == 5 || _ob == 6)) continue;
+				if (_ri == 1 && _ob != 12) continue;
+				if (_ri == 2 && !(_ob == 3 || _ob == 13)) continue;
+			}
 			_spot = { lon : _clon, lat : _clat };
 			_found = true;
 		}
@@ -72,8 +78,18 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _wk = _map(_ps.ob);
 			if (_wk != "") array_push(_tw, _wk);
 		}
-		// (the starter keeps only its green: fields, forests, hills, a marsh, a coast - no desert or tundra in the first reach)
-		if (_ri == 0) { var _tg = []; for (var _gi = 0; _gi < array_length(_tw); _gi++) if (_tw[_gi] == "field" || _tw[_gi] == "forest" || _tw[_gi] == "hills" || _tw[_gi] == "marsh" || _tw[_gi] == "coast") array_push(_tg, _tw[_gi]); if (array_length(_tg) == 0) _tg = ["field", "forest"]; _tw = _tg; }
+		// ...and each keeps only its own kinds: the first reach green (fields,
+		// forests, hills, a coast), the second marsh-heavy (marshes, forests,
+		// fields, a coast), the third desert (deserts, hills, mountains)
+		if (_ri <= 2) {
+			var _keep = (_ri == 0) ? ["field", "forest", "hills", "coast"] : ((_ri == 1) ? ["marsh", "forest", "field", "coast", "hills"] : ["desert", "hills", "mountains", "coast"]);
+			var _tg = [];
+			for (var _gi = 0; _gi < array_length(_tw); _gi++) if (array_contains(_keep, _tw[_gi])) array_push(_tg, _tw[_gi]);
+			if (_ri == 1) array_push(_tg, "marsh", "marsh", "marsh");       // (the marsh is the region)
+			if (_ri == 2) array_push(_tg, "desert", "desert", "desert");    // (the desert is the region)
+			if (array_length(_tg) == 0) _tg = (_ri == 0) ? ["field", "forest"] : ((_ri == 1) ? ["marsh", "forest"] : ["desert", "hills"]);
+			_tw = _tg;
+		}
 		if (array_length(_tw) > 0) {
 			array_push(_tw, "hills");   // (a floor of variety: every land has a rise somewhere)
 			// the biome family's specials keep a seat (mines, ruins, shrines)
