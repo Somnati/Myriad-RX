@@ -1402,7 +1402,7 @@ for (var _i = 0; _i < _rows; _i++) {
 		draw_set_halign(fa_right);
 		draw_set_color(!is_undefined(_r.fight) ? c_hred : _dim);
 		draw_set_alpha(.8);
-		draw_text(_rr.x + _rr.w - 6, _rr.y + 5, ((_r[$ "mode"] ?? "quest") == "explore") ? "exploring" : "on a quest");
+		draw_text(_rr.x + _rr.w - 6, _rr.y + 5, ((_r[$ "mode"] ?? "quest") == "explore") ? ((is_struct(_r[$ "ex"]) && _r.ex.kind == "ramble") ? "roaming" : ((is_struct(_r[$ "ex"]) && _r.ex.kind == "survey") ? "surveying" : "exploring")) : "on a quest");
 		draw_set_halign(fa_left);
 		draw_set_color(_dim); draw_set_alpha(.7);
 		draw_text(_rr.x + 34, _rr.y + 27, exped_where(_r));
