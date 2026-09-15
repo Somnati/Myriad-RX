@@ -59,8 +59,7 @@ function galaxy_sky_build() {
 		var _b   = darctan2(_p2z - _p1z, _p2x - _p1x);
 		array_push(_out.sibs, { x : dcos(_b), y : 0, z : dsin(_b), col : _sp.col, s : clamp(_sp.size * 22 / max(_dd, 12), 1.5, 6) });
 	}
-	var _sb = _ang1 + 180;
-	_out.light_w = [dcos(_sb), 0, dsin(_sb)];
+	_out.light_w = galaxy_sun_dir();   // (the one bearing the agent's daylight reads too)
 	_out.sun_col  = _sys.star.col;
 	_out.sun_size = _sys.star.size;
 	// the dust

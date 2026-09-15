@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"galaxy_sun_dir",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"galaxy_sun_dir",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

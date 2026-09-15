@@ -47,13 +47,13 @@ if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_
 // resumes from where it was (an offset, so nothing jumps)
 if (is_struct(pl_dest)) {
 	var _pn2 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	var _amb = (current_time / 1000) * 60 * _pn2.spin + pl_spin_off;
+	var _amb = planet_spin_now(_pn2) + pl_spin_off;
 	if (pl_focus >= 0) {
 		var _dd = angle_difference(pl_spin_t, pl_spin);
 		pl_spin += _dd * (1 - power(.9, delta));
 		pl_zoom = lerp(pl_zoom, PL_ZOOM_IN, 1 - power(.9, delta));
 	} else {
-		pl_spin_off = pl_spin - (current_time / 1000) * 60 * _pn2.spin;   // (keep the drawn spin continuous)
+		pl_spin_off = pl_spin - planet_spin_now(_pn2);   // (keep the drawn spin continuous)
 		pl_spin = _amb;
 		pl_zoom = lerp(pl_zoom, 1, 1 - power(.9, delta));
 	}
@@ -65,7 +65,7 @@ if (is_struct(pl_dest)) {
 // that lifts the spot's view z toward one; the sign is tried both ways
 if (view == "planet" && is_struct(pl_dest)) {
 	var _pn4 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = ((current_time / 1000) * 60 * _pn4.spin) mod 360; pv_sky = galaxy_sky_build(); }
+	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = planet_spin_now(_pn4); pv_sky = galaxy_sky_build(); }
 	var _ds = _pn4.spin * delta;
 	pv_spin += _ds;
 	var _sax = mat3_apply(mat3_rot(0, 0, 1, _pn4.tilt), 0, 1, 0);
@@ -100,7 +100,7 @@ if (view == "trip") {
 	var _ttr = __trip();
 	if (!is_undefined(_ttr)) {
 		var _tpn = planet_get(_ttr.dest.seed, exped_planet_hint(_ttr.dest));
-		if (tp_id != _ttr.id) { tp_id = _ttr.id; tp_spin = ((current_time / 1000) * 60 * _tpn.spin) mod 360; tp_cam = __cam_face(_tpn, tp_spin, exped_region(_ttr), mat3_rot(1, 0, 0, -32)); }
+		if (tp_id != _ttr.id) { tp_id = _ttr.id; tp_spin = planet_spin_now(_tpn); tp_cam = __cam_face(_tpn, tp_spin, exped_region(_ttr), mat3_rot(1, 0, 0, -32)); }
 		var _tds = _tpn.spin * delta;
 		tp_spin += _tds;
 		var _tax = mat3_apply(mat3_rot(0, 0, 1, _tpn.tilt), 0, 1, 0);

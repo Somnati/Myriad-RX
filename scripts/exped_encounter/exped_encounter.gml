@@ -1,9 +1,9 @@
-/// @description exped_encounter(trip) - something on the road (called once per road-hour crossed)
+/// @description exped_encounter(trip, [mult]) - something on the road (called once per road-hour crossed; mult scales the odds - night)
 /// EXPED_ENC% a road-hour: a wild fight (45), a passer-by who talks (25),
 /// a bandit sprite (15), a friendly sprite who asks to come along (15 -
 /// a "sprite" find: the haul's recruit moment decides at home).
-function exped_encounter(_tr) {
-	if (!roll_perc(EXPED_ENC)) return;
+function exped_encounter(_tr, _mult = 1) {
+	if (!roll_perc(EXPED_ENC * _mult)) return;   // (x1.5 at night: the road is busier in the dark)
 	var _r = random(100);
 	if (_r < 45) {
 		_tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0);

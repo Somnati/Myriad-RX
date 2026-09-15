@@ -599,7 +599,7 @@ if (view == "trip") {
 	draw_px_rect(_sx, _sy + 8, _sw, 6, c_steelblue, .35);
 	draw_set_color(_dim);
 	draw_set_alpha(.7);
-	draw_text(_sx, _sy + 18, _leg);
+	draw_text(_sx, _sy + 18, _leg + ((_tr.stage == 1) ? ((_tr[$ "night"] ?? false) ? "  -  night" : "  -  day") : ""));
 	draw_set_halign(fa_right);
 	draw_set_color(c_white);
 	draw_set_alpha(.85);
@@ -1002,22 +1002,6 @@ if (view == "galaxy") {
 		var _s = _st.props.size * gx_zoom;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _s * .5, _sy - _s * .5, _s, _s, 0, _st.props.color, 1);
 	}
-	// THE GLOW (his memory of the demo's glow layer - it was a room fx there;
-	// here the demo's own per-star bloom, additive: a stepped-circle frame
-	// by the star's screen size)
-	gpu_set_blendmode(bm_add);
-	for (var _i = 0; _i < array_length(_vis); _i++) {
-		var _st = _sm.stars[_vis[_i]];
-		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
-		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
-		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
-		var _gw2 = _st.props.size * gx_zoom * 6;
-		var _gi = 0;
-		if (_gw2 > 4) _gi = 1; if (_gw2 > 6) _gi = 2; if (_gw2 > 10) _gi = 3; if (_gw2 > 14) _gi = 4; if (_gw2 > 18) _gi = 5;
-		var _gsc = (_gw2 > 24) ? (_gw2 / 24) : 1;
-		draw_sprite_ext(spr_star_glow, _gi, _sx, _sy, _gsc, _gsc, 0, _st.props.color, .28);
-	}
-	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, dithered
 	var _fd = _gcf.fog_depth;
 	var _ffx = (_vcx * (1 - _fd) - gx_x) * gx_zoom, _ffy = (_vcy * (1 - _fd) - gx_y) * gx_zoom;
@@ -1065,6 +1049,9 @@ if (view == "galaxy") {
 	}
 	ui_fade_set(_fa);
 	draw_surface(wb_surf, _gr.x, _gr.y);
+	// THE GLOW (his memory of the demo's glow layer, as a shader: sh_blur -
+	// the finished map at half size, two passes, laid back additively)
+	__bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75);
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
 	draw_surface(gx_mm, _mmr.x, _mmr.y);

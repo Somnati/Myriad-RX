@@ -12,7 +12,7 @@
 function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined) {
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
-	if (is_undefined(_spin)) _spin = (current_time / 1000) * 60 * _pn.spin;   // deg per step x 60 = per second
+	if (is_undefined(_spin)) _spin = planet_spin_now(_pn);   // the universal clock (the agent's day / night agrees with it)
 	static _u = undefined;
 	if (is_undefined(_u)) _u = {
 		rot   : shader_get_uniform(sh_planet, "u_rot"),

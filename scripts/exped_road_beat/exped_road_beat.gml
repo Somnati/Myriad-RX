@@ -22,7 +22,12 @@ function exped_road_beat(_tr) {
 	var _other = _tr.names[(_who + 1) mod _n];
 	exped_stat("beats");
 	var _r = random(100);
-	if (_r < 16) {
+	if (_r < 16 && (_tr[$ "night"] ?? false)) {
+		// the night's own
+		array_push(_tr.log, choose("an owl. " + _nm + " answered it. it did not answer back.", "stars, all of them. " + _nm + " picked one and kept it.",
+			"a fire, far off. nobody went to look.", "something walked alongside them in the dark for a while, then did not.",
+			"cold. " + _nm + " and " + _other + " walked closer together and said nothing about it.", "the road glowed a little. nobody knew why."));
+	} else if (_r < 16) {
 		// the weather
 		array_push(_tr.log, choose("rain. everyone is wet now.", "the wind picked up, then thought better of it.",
 			"sun. " + _nm + " complained about the sun.", "fog. " + _nm + " walked into " + _other + " twice.",

@@ -17,15 +17,33 @@ function exped_agent(_tr, _dt) {
 		exped_act_step(_tr);
 		return false;
 	}
+	// DAY AND NIGHT (his ask, 2026-09-15): where the crew stands, the sun
+	// is up or it is not (exped_daylight); the crossings go in the diary
+	var _dl = exped_daylight(_tr);
+	var _night = (_dl < -.12);
+	var _was = _tr[$ "night"] ?? _night;
+	if (_night != _was) array_push(_tr.log, _night ? choose("night falls. the road goes on, darker", "dusk. the light goes and the noises start", "night. someone lights the lamp") : choose("dawn, grey then gold", "morning. everything is wet", "the sun is up. so is the crew, more or less"));
+	_tr.night = _night;
 	// on a road
 	if (is_struct(_tr.road)) {
 		var _rd = _tr.road;
 		var _before = floor(_rd.t / EXPED_HOUR);
-		_rd.t += _dt;
+		_rd.t += _dt * (_night ? .8 : 1);   // (slow going in the dark)
 		var _after = floor(_rd.t / EXPED_HOUR);
 		if (_after > _before && _rd.t < _rd.d * EXPED_HOUR) {
 			var _nl = array_length(_tr.log);
-			exped_encounter(_tr);
+			// the dark: a wrong turn (another road out of the node they left -
+			// the path is thrown away, they decide afresh where they end up),
+			// or an hour lost, before anything else
+			if (_night && roll_perc(6)) {
+				var _nb = region_neighbors(_rg, _rd.a);
+				if (array_length(_nb) > 1) {
+					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
+					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; array_push(_tr.log, "took the wrong road in the dark. it goes to " + _rg.nodes[_pick].name); return false; }
+				}
+			}
+			if (_night && roll_perc(10)) { _rd.t = max(0, _rd.t - EXPED_HOUR); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); return false; }
+			exped_encounter(_tr, _night ? 1.5 : 1);
 			if (!is_undefined(_tr.fight)) return false;
 			// nothing met: a little thing, maybe (exped_road_beat)
 			if (array_length(_tr.log) == _nl) exped_road_beat(_tr);

@@ -33,7 +33,9 @@ function exped_node_event(_tr, _again = false) {
 	for (var _i = 0; _i < array_length(_tr.hp); _i++) if (_tr.hp[_i] > 0) { _mean += _tr.hp[_i] / max(1, _tr.hpmax[_i]); _up++; }
 	_mean = (_up > 0) ? _mean / _up : 1;
 	if (_kk.civ) {
-		if (_mean < .6 || (_tr.mode == "explore" && roll_perc(25))) _tr.act = { kind : "rest", left : EXPED_HOUR * .5, steps : 1 };
+		// a bed at night when there is coin (his ask: the time of day tells)
+		var _night2 = (_tr[$ "night"] ?? false);
+		if (_mean < .6 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(55)) || (_tr.mode == "explore" && roll_perc(25))) _tr.act = { kind : "rest", left : EXPED_HOUR * .5, steps : 1 };
 		else if (_tr.mode == "explore" && roll_perc(40)) _tr.act = { kind : "tavern", left : EXPED_ROOM_T, steps : 1 };
 		else _tr.act = { kind : "shop", left : EXPED_ROOM_T, steps : 1 };
 		return;
