@@ -24,7 +24,7 @@ if (view == "depart") {
 } else if (pg_dir == 0) dp_in = 0;
 if (view == "planet" && pv_mode == "region") { rg_in = move_to(rg_in, 1, 4); if (rg_in >= .985) rg_in = 1; } else rg_in = 0;
 // the banners' places: each eases toward its seat or its row (the swing between them)
-if (view == "depart") {
+if (view == "depart" && is_struct(pl_dest)) {
 	dp_off = clamp(dp_off, 0, __dp_off_max());
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		var _sp = g.sprites[_k];
@@ -203,10 +203,10 @@ if (confirm != "") {
 	exit;
 }
 if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
-if (pg_dir != 0) exit;    // (the page is turning)
+if (pg_dir < 0) exit;     // (the page is turning to black; a page lighting up already takes presses - snappier)
 if (view == "depart" && (dp_dir != 0 || dp_in < 1)) exit;   // (the page is swinging)
 // ---- THE PREPARATION PAGE'S LIST: the wheel, or a drag on it (held input - above the press gate) ----
-if (view == "depart") {
+if (view == "depart" && is_struct(pl_dest)) {
 	var _dl = __dp_list_r();
 	var _din = point_in_rectangle(mouse_x, mouse_y, _dl.x, _dl.y, _dl.x + _dl.w, _dl.y + _dl.h);
 	if (_din && __dp_off_max() > 0) {

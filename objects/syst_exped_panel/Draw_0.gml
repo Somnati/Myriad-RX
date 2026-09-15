@@ -16,22 +16,30 @@ var _br = abs(dsin(current_time * .3));
 draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, room_height - hh, 0, c_black, .94);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + 15, room_width, 1, 0, _ink, .25);
-// THE TITLE SAYS THE PAGE (his ask, 2026-09-15): the world's page names the
-// world and its kind, the preparation page says so
-var _ttl = "expeditions";
-if (view == "planet" && is_struct(pl_dest)) _ttl = land ? ("expedition  -  " + pl_dest.name + " / " + exped_biomes()[pl_dest.biome].name + " world") : pl_dest.name;
-if (view == "depart") _ttl = land ? "expedition  -  preparation" : "preparation";
+// THE TITLE SAYS THE PAGE (his ask, 2026-09-15): three parts - a prefix,
+// the WORLD'S NAME in its seeded colour, a suffix - so every page reads
+// "expedition - Mudra IV / the landing reach" or the like
+var _t1 = "expeditions", _t2 = "", _t3 = "", _td = undefined;
+switch (view) {
+	case "planet": _td = pl_dest; _t3 = "  /  " + exped_biomes()[pl_dest.biome].name + " world" + ((pv_mode == "region") ? ("  /  " + region_get(pl_dest, rg_sel).name) : ""); break;
+	case "depart": _td = pl_dest; _t3 = "  /  preparation"; break;
+	case "trip":   { var _ttr = __trip(); if (!is_undefined(_ttr)) { _td = _ttr.dest; _t3 = "  /  " + exped_region(_ttr).name; } break; }
+	case "haul":   { var _thi = __haul_i(); if (_thi >= 0) { _td = _e.hauls[_thi].dest; _t3 = "  /  home"; } break; }
+	case "map":    if (is_struct(map_dest)) { _td = map_dest; _t3 = "  /  " + region_get(map_dest, map_rgi).name + " map"; } break;
+	case "crew":   _t1 = "expedition  -  the crew"; break;
+	case "galaxy": _t1 = "expedition  -  the galaxy"; break;
+}
+if (is_struct(_td)) { _t1 = land ? "expedition  -  " : ""; _t2 = _td.name; if (!land) _t3 = ""; }
+var _ttl = _t1 + _t2 + _t3;
 draw_set_color(c_steelblue);
 draw_set_alpha(.95);
-if (view == "planet" && is_struct(pl_dest)) {
-	// (the world's name in its SEEDED colour - his ask, 2026-09-15)
-	var _t1 = land ? "expedition  -  " : "", _t3 = land ? ("  /  " + exped_biomes()[pl_dest.biome].name + " world") : "";
-	draw_text(6, strip_y + 5, _t1);
-	draw_set_color(exped_world_col(pl_dest));
-	draw_text(6 + string_width(_t1), strip_y + 5, pl_dest.name);
+draw_text(6, strip_y + 5, _t1);
+if (_t2 != "") {
+	draw_set_color(exped_world_col(_td));
+	draw_text(6 + string_width(_t1), strip_y + 5, _t2);
 	draw_set_color(c_steelblue);
-	draw_text(6 + string_width(_t1 + pl_dest.name), strip_y + 5, _t3);
-} else draw_text(6, strip_y + 5, _ttl);
+	draw_text(6 + string_width(_t1 + _t2), strip_y + 5, _t3);
+}
 if (land) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
@@ -977,22 +985,15 @@ if (view == "planet") {
 			draw_text(_rr.x + _rr.w - 5, _rr.y + 3, "lv " + string(_rg.lv));
 			draw_set_halign(fa_left);
 			draw_set_color(_dim); draw_set_alpha(.7);
-			draw_text(_rr.x + 5, _rr.y + 13, (_rg[$ "mood"] ?? "quiet") + "  -  " + string(array_length(_rg.nodes)) + " places");   // (the mood, his ask: one word)
+			var _rinf = region_info(_d, _rg), _rbio = "";
+			for (var _ri2 = 0; _ri2 < array_length(_rinf); _ri2++) if (_rinf[_ri2].k == "biome") _rbio = _rinf[_ri2].v;
+			draw_text(_rr.x + 5, _rr.y + 13, (_rg[$ "mood"] ?? "quiet") + "  -  " + _rbio);   // (the mood and the biome, the info box's words)
 			var _out = 0;
 			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
 			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 		}
-		// the wild, under the rows
-		var _wl = [];
-		for (var _wi = 0; _wi < EXPED_REGIONS; _wi++) { var _wrg = region_get(_d, _wi); var _wk = _wrg[$ "wild"] ?? []; for (var _wj = 0; _wj < array_length(_wk); _wj++) if (!array_contains(_wl, _wk[_wj])) array_push(_wl, _wk[_wj]); }
-		var _wtxt = "";
-		for (var _wi = 0; _wi < array_length(_wl); _wi++) {
-			var _wn = _wl[_wi];
-			if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s";
-			_wtxt += ((_wi > 0) ? ", " : "") + _wn;
-		}
-		draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa);
-		draw_text_ext(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 4, "the wild here: " + ((_wtxt == "") ? "unknown" : _wtxt) + ". medieval: settlements and camps are common, towns rare, a city rarer.", 9, __pv_dw_w() - 8);
+		draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa);
+		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 4, "tap a row: the world turns to it");
 	}
 	__draw_back();
 	ui_fade_set(1);
@@ -1332,13 +1333,13 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	draw_text(_c.x + 48, _c.y + 6, _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
 	draw_set_alpha(.85);
-	draw_text(_c.x + 48, _c.y + 16, _b.name + " world  -  tier " + string(_d.tier) + "  -  lv " + string(exped_world_lv(_d)));
+	draw_text(_c.x + 48, _c.y + 16, _b.name + " world  -  lv " + string(exped_world_lv(_d)));   // (no "tier" - his call, 2026-09-15)
 	draw_set_color(_dim);
 	draw_set_alpha(.7);
 	draw_text(_c.x + 48, _c.y + 26, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
 	draw_text(_c.x + 6, _c.y + 48, string(EXPED_REGIONS) + " regions  -  lv " + string(exped_world_lv(_d)) + " to " + string(exped_world_lv(_d) + 2 * (EXPED_REGIONS - 1)));
 	draw_set_color(c_gold); draw_set_alpha(.85);
-	draw_text(_c.x + 6, _c.y + 60, "quests on offer, and explore");
+	draw_text(_c.x + 6, _c.y + 60, string(EXPED_QUESTS) + " quests a region, and explore");
 	if (_out > 0) {
 		draw_set_halign(fa_right);
 		draw_set_color(c_steelblue);
