@@ -38,6 +38,7 @@ function exped_unpack(_s) {
 						case "offer":   _l.txt = "an upgrade offer (" + _rinfo.name + ")"; _l.col = _rinfo.col; break;
 						case "charm":   _l.txt = "a charm (+1 luck)"; _l.col = c_seagreen; break;
 						case "chart":   _l.txt = "a chart fragment"; _l.col = c_sblue; break;
+						case "gear":    _l.txt = "an item - its finder dealt with it"; _l.col = _rinfo.col; break;   // (taken on the spot, exped_room; nothing to collect)
 						default:        _l.txt = string(_l.n) + " credits"; _l.col = c_lavender; break;
 					}
 					array_push(_finds, _l);

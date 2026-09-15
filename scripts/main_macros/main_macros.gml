@@ -402,6 +402,7 @@ function main_macros() {
 #macro EXPED_RETURN  .15     // ...and getting back; the delve is the rest
 #macro EXPED_DIST0   90      // seconds a tier-1 world is away (x2 a tier - the mock's scale)
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
+#macro EXPED_TICK_MAX  5     // the trip clock walks in slices this long at most (exped_tick): a room a slice, so an absence walks the whole delve, fights and all
 #macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)
 #macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)
 #macro EXPED_BOND_TRIP 6     // bond a pair gains for a trip together (exped_bond)...
