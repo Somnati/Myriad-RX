@@ -21,7 +21,7 @@ if (view == "trip") {
 	if (!is_undefined(_tvr)) {
 		var _rr = _tvr[$ "replay"];
 		// a fight watched LIVE on this page is not replayed after
-		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr.room_i);
+		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr[$ "fights"] ?? 0);   // (the fight counter - room_i is the old delve's)
 		if (!is_undefined(_rr) && !_rr.seen && seen_live == string(_tvr.id) + ":" + string(_rr.room)) _rr.seen = true;
 		if (is_undefined(rp) && !is_undefined(_rr) && !_rr.seen && is_undefined(_tvr.fight) && array_length(_rr.ev) > 0)
 			rp = { i : 0, t : 0, r : _rr, id : _tvr.id };

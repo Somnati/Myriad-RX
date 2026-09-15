@@ -45,7 +45,7 @@ function exped_tick_one(_tr, _dt) {
 		var _rfoes = [];
 		for (var _j = 0; _j < array_length(_f.foes); _j++) array_push(_rfoes, { name : _f.foes[_j].name, hpmax : _f.foes[_j].hpmax, lv : _f.foes[_j][$ "lv"] ?? 1, kind : _f.foes[_j][$ "kind"] ?? "", col : _f.foes[_j][$ "col"] ?? c_hred });
 		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foes : _rfoes, foe : _rfoes[0],
-		               won : _f.won, seen : false, room : _tr.cleared };
+		               won : _f.won, seen : false, room : _tr[$ "fights"] ?? 0 };   // (room = the fight's number: the panel's seen-live key)
 		_tr.fight = undefined;
 		if (_tr.routed) { exped_rout(_tr); _tr.act = undefined; _tr.road = undefined; }
 		return false;

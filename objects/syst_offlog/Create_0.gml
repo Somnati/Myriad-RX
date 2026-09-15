@@ -216,7 +216,7 @@ __rows = function() {
 			for (var _ti = 0; _ti < array_length(_x.after.trips); _ti++) {
 				var _a = _x.after.trips[_ti];
 				var _v = _a.home ? (_a.routed ? "limped home from " + _a.planet : "home from " + _a.planet + " - a haul waits")
-				       : ((_a.stage == 0) ? ("travelling to " + _a.planet) : ((_a.stage == 1) ? (_a.planet + ", room " + string(_a.room + 1)) : ("heading home from " + _a.planet)));
+				       : ((_a.stage == 0) ? ("travelling to " + _a.planet) : ((_a.stage == 1) ? (_a.planet + ": " + (_a[$ "where"] ?? "on the world")) : ("heading home from " + _a.planet)));
 				_push(_out, "row", RH_ROW, { l : _a.name, v : _v, col : (_a.home && _a.routed) ? c_horange : c_steelblue });
 				var _nl = min(array_length(_a.lines), _dbg ? 99 : 2);
 				for (var _k = 0; _k < _nl; _k++) _push(_out, "sub", RH_SUB, { l : "", v : _a.lines[_k], col : sett_ink });

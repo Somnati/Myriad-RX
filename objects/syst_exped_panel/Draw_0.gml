@@ -103,8 +103,7 @@ if (view == "haul") {
 	draw_text(_cx + 42, _cy + 8, exped_crew_txt(_h.names) + ((array_length(_h.names) > 1) ? " are" : " is") + " back from " + _h.dest.name);
 	draw_set_color(_h.routed ? c_hred : c_sgreen);
 	draw_set_alpha(.85);
-	draw_text(_cx + 42, _cy + 19, _h.routed ? ("routed - " + string(_h.cleared) + " of " + string(EXPED_ROOMS) + " rooms")
-		: (string(_h.cleared) + " of " + string(EXPED_ROOMS) + " rooms cleared"));
+	draw_text(_cx + 42, _cy + 19, (_h.routed ? "routed - " : "") + string(_h[$ "wins"] ?? 0) + " fights won, " + string(_h.cleared) + " things done");
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx + 8, _cy + 34, _cw - 16, 1, 0, _ink, .25);
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
@@ -158,8 +157,8 @@ if (view == "map") {
 	var _px = function(_v, _mr) { return _mr.x + 8 + _v * (_mr.w - 16); };
 	var _py = function(_v, _mr) { return _mr.y + 8 + _v * (_mr.h - 16); };
 	// the roads, with their hours at the midpoint
-	for (var _e = 0; _e < array_length(_rg.edges); _e++) {
-		var _ed = _rg.edges[_e];
+	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {   // (_e is g.exped up top - the shadow crashed the map, 2026-09-14)
+		var _ed = _rg.edges[_ei];
 		var _a = _rg.nodes[_ed.a], _b2 = _rg.nodes[_ed.b];
 		var _x1 = _px(_a.x, _mr), _y1 = _py(_a.y, _mr), _x2 = _px(_b2.x, _mr), _y2 = _py(_b2.y, _mr);
 		draw_px_line(_x1, _y1, _x2, _y2, _ink, .25);   // (the house line: a primitive would lose the shader's texcoord)
@@ -533,7 +532,7 @@ if (view == "trip") {
 		draw_set_color(_dim);
 		draw_set_alpha(.7);
 		if (_f[$ "replay"] ?? false)
-			draw_text(_tx, _fy + 12, "replay  -  room " + string(rp.r.room + 1) + "  -  tap to skip");
+			draw_text(_tx, _fy + 12, "replay  -  fight " + string(rp.r.room) + "  -  tap to skip");
 		else
 			draw_text(_tx, _fy + 14 + ((string_width(_pk) > _sw - fight_s - 8) ? 9 : 0), "action " + string(_f.turn) + "  -  lv " + string(_f.b[$ "lv"] ?? 1) + "  -  " + string(_nfo) + ((_nfo == 1) ? " foe" : " foes"));
 		var _fl = array_length(_f.log);

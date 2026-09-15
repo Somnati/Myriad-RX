@@ -199,6 +199,7 @@ function offline_replay(_secs, _src = "boot return") {
 		var _lines = [];
 		for (var _li = _from; _li < array_length(_tr1.log); _li++) array_push(_lines, _tr1.log[_li]);
 		array_push(_ex1.trips, { name : exped_crew_txt(_tr1.names), planet : _tr1.dest.name, stage : _tr1.stage, room : _tr1.room_i,
+		                         where : exped_where(_tr1),   // (the agent, 2026-09-14: "on the road to Orbury - 1.4h")
 		                         home : false, routed : _tr1.routed, lines : _lines });
 	}
 	// home during the absence: a haul whose trip was out when it began
