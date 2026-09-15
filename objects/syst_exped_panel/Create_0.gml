@@ -325,7 +325,7 @@ __log_band_h = function() { var _r = __log_r(); return max(1, _r.h); };
 /// the layout: each line's height at the column's width, the total (once
 /// a frame - the count or the width changing recomputes)
 __log_layout = function(_log, _w) {
-	if (is_array(_log) && log_lay.n == array_length(_log) && log_lay.w == _w) return log_lay;
+	if (is_array(_log) && log_lay.n == array_length(_log) && log_lay.w == _w && (log_lay[$ "id"] ?? -1) == view_id) return log_lay;   // (keyed by the page's trip too: another diary of the same length is another layout)
 	var _hs = [], _tot = 0;
 	if (is_array(_log)) {
 		draw_set_font(fnt);
@@ -336,7 +336,7 @@ __log_layout = function(_log, _w) {
 			array_push(_hs, _h); _tot += _h;
 		}
 	}
-	log_lay = { n : is_array(_log) ? array_length(_log) : 0, w : _w, hs : _hs, total : _tot };
+	log_lay = { n : is_array(_log) ? array_length(_log) : 0, w : _w, hs : _hs, total : _tot, id : view_id };
 	return log_lay;
 };
 __log_content_h = function() { var _r = __log_r(); var _l = __log_lines(); return __log_layout(_l, _r.w - 8).total; };
