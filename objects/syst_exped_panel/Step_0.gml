@@ -389,7 +389,9 @@ if (view == "depart") {
 		dp_look = _sp.id;   // (inspected, picked or not)
 		var _at = array_get_index(sel_crew, _sp.id);
 		if (_at >= 0) { array_delete(sel_crew, _at, 1); play_sound_ext(snd_softclick, .9, 1, .4, 1); exit; }
-		if (_sp.asleep || (_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+		if ((_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+		// a napping one wakes on the tap (his ask: no walking off to poke it)
+		if (_sp.asleep) { _sp.asleep = false; _sp.hurt = 0; save_mark_dirty(); }
 		array_push(sel_crew, _sp.id);
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;

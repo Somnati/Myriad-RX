@@ -12,6 +12,16 @@ function sprites_tick() {
 		// a hurt sprite (routed on an expedition) naps its EXPED_NAP out, then wakes on its own
 		var _h = _s[$ "hurt"] ?? 0;
 		if (_h > 0) { _s.hurt = _h - _dt; if (_s.hurt <= 0) { _s.hurt = 0; _s.asleep = false; } }
+		// THE CLIMB (his ask, 2026-09-15): hp and mp come back slowly - asleep
+		// in SPRITE_HEAL_NAP seconds, on its feet in SPRITE_HEAL_AWAKE; a
+		// sprite RESTING (asleep because it came home short) wakes when whole
+		var _hpf = _s[$ "hpf"] ?? 1, _mpf = _s[$ "mpf"] ?? 1;
+		if (_hpf < 1 || _mpf < 1) {
+			var _rate = _dt / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE);
+			_s.hpf = min(1, _hpf + _rate);
+			_s.mpf = min(1, _mpf + _rate * 1.5);
+			if ((_s[$ "resting"] ?? false) && _s.hpf >= 1 && _s.mpf >= 1) { _s.resting = false; if (_h <= 0) _s.asleep = false; }
+		} else if (_s[$ "resting"] ?? false) { _s.resting = false; if (_h <= 0) _s.asleep = false; }
 		if (_s[$ "trip"] ?? false) continue;   // away on an expedition: not here to tap
 		var _job = _s[$ "job"] ?? "tap";
 		// the dials' and the autotapper's staff are a rate (sprite_staff) -

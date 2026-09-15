@@ -104,6 +104,15 @@ __next_state = function() {
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
 	st_t = random_range(200, 320);
+	// SHORT OF HP OR MP (his ask, 2026-09-15): woken early, it is prone to
+	// nap again when nobody is looking at it (the card closed) - the more
+	// it is missing, the more likely - until it is whole
+	var _short = 1 - min(s[$ "hpf"] ?? 1, s[$ "mpf"] ?? 1);
+	if (_short > 0 && !card_open && random(1) < .25 + .55 * _short) {
+		s.asleep = true; s.resting = true; st = 3;
+		bub = choose("zzz", "...just five minutes", "ow. zzz"); bub_t = 90;
+		return;
+	}
 	if (random(1) < _p.work) { st = 2; tap_t = min(tap_t, 30); }
 	else if (random(1) < .5) st = 0;
 	else {

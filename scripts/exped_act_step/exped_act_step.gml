@@ -18,6 +18,7 @@ function exped_act_step(_tr) {
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = _tr.hpmax[_k];
+				if (is_array(_tr[$ "mp"])) for (var _k = 0; _k < array_length(_tr.mp); _k++) _tr.mp[_k] = 1;
 				exped_stat("inns");
 				array_push(_tr.log, "a night at the inn in " + _nd.name + " (" + string(_cost) + " credits) - everyone is whole again");
 			} else {

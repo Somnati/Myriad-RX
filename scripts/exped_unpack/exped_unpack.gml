@@ -46,20 +46,22 @@ function exped_unpack(_s) {
 			}
 			var _id = real(_tt[7]);
 			var _hh = string_split(_p[4], "~");
-			var _hp = [], _hm = [];
+			var _hp = [], _hm = [], _mp = [];
 			if (array_length(_hh) >= 2) {
 				var _h1 = string_split(_hh[0], ","), _h2 = string_split(_hh[1], ",");
+				var _h3 = (array_length(_hh) >= 3) ? string_split(_hh[2], ",") : [];
 				for (var _k = 0; _k < array_length(_sids); _k++) {
 					array_push(_hm, (_k < array_length(_h2) && _h2[_k] != "") ? max(1, real(_h2[_k])) : 10);
 					array_push(_hp, (_k < array_length(_h1) && _h1[_k] != "") ? real(_h1[_k]) : _hm[_k]);
+					array_push(_mp, (_k < array_length(_h3) && _h3[_k] != "") ? clamp(real(_h3[_k]), 0, 1) : 1);
 				}
-			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 10); array_push(_hm, 10); }
+			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 10); array_push(_hm, 10); array_push(_mp, 1); }
 			if (_p[0] == "H") {
 				// a haul: the hp read above is the crew's at the end (a save from
 				// before carried none - they show whole)
 				if (array_length(_hh) < 2 || _hh[0] == "") for (var _k = 0; _k < array_length(_sids); _k++) _hp[_k] = _hm[_k];
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
-				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm });
+				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp });
 				continue;
 			}
 			var _rooms = (_p[5] != "") ? string_split(_p[5], ",") : [];
@@ -71,7 +73,7 @@ function exped_unpack(_s) {
 				id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
 				t : real(_tt[0]), dur : _d.dist, stage : real(_tt[1]),
 				rooms : _rooms, room_i : real(_tt[2]), cleared : real(_tt[3]),
-				hp : _hp, hpmax : _hm,
+				hp : _hp, hpmax : _hm, mp : _mp,
 				fight : undefined, routed : (_tt[4] == "1"), rout_t : real(_tt[0]),
 				finds : _finds, log : [ "on the way to " + _d.name + " (the diary's earlier pages did not survive the save)" ],
 				threads : (_p[7] != "") ? string_split(_p[7], ",") : [], said_travel : (_tt[6] == "1"), wins : real(_tt[5]),

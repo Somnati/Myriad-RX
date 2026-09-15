@@ -489,6 +489,8 @@ function handle_save(){
 		// THE ID (2026-09-14, the inspection): bonds, trips in flight and the
 		// `trip` flags are keyed by it - it must survive a load (field 25)
 		_sps += "/" + string(_sp.id);
+		// hp / mp at home, and the resting nap (2026-09-15; fields 26-28)
+		_sps += "/" + string_format(_sp[$ "hpf"] ?? 1, 1, 3) + "/" + string_format(_sp[$ "mpf"] ?? 1, 1, 3) + "/" + ((_sp[$ "resting"] ?? false) ? "1" : "0");
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -522,6 +524,10 @@ function handle_save(){
 				});
 				// the sheet, from field 18 on (a save from before: a fresh one, sprite_sheet)
 				sprite_sheet_unpack(g.sprites[array_length(g.sprites) - 1], _f, 18);
+				var _nsp = g.sprites[array_length(g.sprites) - 1];
+				_nsp.hpf = (array_length(_f) > 26) ? clamp(real(_f[26]), 0, 1) : 1;
+				_nsp.mpf = (array_length(_f) > 27) ? clamp(real(_f[27]), 0, 1) : 1;
+				_nsp.resting = (array_length(_f) > 28) ? (_f[28] == "1") : false;
 				if (real(_law) < SPRITE_XP_LAW) { var _rsh = sprite_sheet(g.sprites[array_length(g.sprites) - 1]); _rsh.lv = 1; _rsh.xp = 0; }
 			}
 		}

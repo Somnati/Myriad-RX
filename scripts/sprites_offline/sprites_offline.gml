@@ -14,6 +14,12 @@ function sprites_offline(_secs) {
 	var _work = SPRITE_ATTN * ln(1 + _secs / SPRITE_ATTN);
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _s = g.sprites[_i];
+		// the climb, over the absence (the offline nap below is its own rule: untouched)
+		if ((_s[$ "hpf"] ?? 1) < 1 || (_s[$ "mpf"] ?? 1) < 1) {
+			var _hr = _secs / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE);
+			_s.hpf = min(1, (_s[$ "hpf"] ?? 1) + _hr); _s.mpf = min(1, (_s[$ "mpf"] ?? 1) + _hr * 1.5);
+		}
+		if ((_s[$ "resting"] ?? false) && (_s[$ "hpf"] ?? 1) >= 1 && (_s[$ "mpf"] ?? 1) >= 1) _s.resting = false;
 		// away, asleep or on a machine: no room taps from it (the machine's
 		// rate carries its share through autom_rate)
 		if ((_s[$ "trip"] ?? false) || _s.asleep || (_s[$ "job"] ?? "tap") != "tap") { _s.away = 0; continue; }

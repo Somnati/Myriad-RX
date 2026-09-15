@@ -14,7 +14,11 @@ function exped_tick_one(_tr, _dt) {
 		if (!_f.over) return false;
 		// the hp comes back by trip index (mi); a pawn's own maxhp may have
 		// ERODED in the fight - the trip's hpmax is the sheet's, untouched
-		for (var _k = 0; _k < array_length(_f.party); _k++) _tr.hp[_f.party[_k].mi] = round(_f.party[_k].hp * 10) / 10;
+		if (!is_array(_tr[$ "mp"])) _tr.mp = array_create(array_length(_tr.sids), 1);
+		for (var _k = 0; _k < array_length(_f.party); _k++) {
+			_tr.hp[_f.party[_k].mi] = round(_f.party[_k].hp * 10) / 10;
+			_tr.mp[_f.party[_k].mi] = clamp(_f.party[_k].mp / max(1, _f.party[_k].maxmp), 0, 1);   // (mp rides the trip)
+		}
 		var _drawn = (_f[$ "withdrew"] ?? false);   // (the 300-action rail: nobody won, nobody is robbed)
 		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else if (!_drawn) _tr.routed = true;
 		// THE LEDGER: the fight, the slain, the down (a party pawn was up going in)

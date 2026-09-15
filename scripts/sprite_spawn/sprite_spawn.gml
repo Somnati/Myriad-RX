@@ -45,6 +45,7 @@ function sprite_spawn(_job = "tap") {
 		fy     : random_range(.20, .88),   // off the edges, under the header
 		away   : 0,
 		asleep : false,
+		hpf : 1, mpf : 1, resting : false,   // hp / mp as fractions of the sheet's max, carried home from a trip; resting = asleep until whole
 		// the diary's memory (exped_say's `need` gates): trips out, fights
 		// won, routs, the last planet, trips in a row without a rout
 		mem    : { trips : 0, wins : 0, routs : 0, last : "", streak : 0 },

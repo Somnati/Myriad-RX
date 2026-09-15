@@ -27,7 +27,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
 	var _rg = region_get(_d, _ri);
 	_e.seq += 1;
-	var _sids = [], _names = [], _cols = [], _hp = [], _hpmax = [];
+	var _sids = [], _names = [], _cols = [], _hp = [], _hpmax = [], _mp = [];
 	for (var _i = 0; _i < array_length(_crew); _i++) {
 		var _sp = _crew[_i];
 		_sp.trip = true;
@@ -35,8 +35,10 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 		array_push(_names, _sp.name);
 		array_push(_cols, _sp.col);
 		var _h = sprite_pawn(_sp).maxhp;         // hp: the sheet's (class x level x gear, sprite_pawn)
-		array_push(_hp, _h);
+		array_push(_hp, max(1, round(_h * (_sp[$ "hpf"] ?? 1) * 10) / 10));   // ...at what it has (a sprite sent out short leaves short)
 		array_push(_hpmax, _h);
+		array_push(_mp, _sp[$ "mpf"] ?? 1);
+		_sp.resting = false;
 	}
 	var _q = undefined;
 	if (_mode == "quest") {
@@ -53,7 +55,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 		t : 0, dur : _d.dist, stage : 0,             // 0 flying there, 1 on the world, 2 flying home
 		leave_t : 0,                                 // when stage 2 began (the flight home is dur x EXPED_RETURN)
 		rooms : [], room_i : -1, cleared : 0,        // (the old delve's - kept for the save's shape)
-		hp : _hp, hpmax : _hpmax,                    // per member
+		hp : _hp, hpmax : _hpmax, mp : _mp,          // per member (mp a fraction: a fight opens at what is left)
 		fight : undefined, routed : false, rout_t : 0, fights : 0,
 		finds : [],                                  // the haul, as it is gathered
 		log : [ exped_crew_txt(_names) + " left for " + _d.name + ((_mode == "explore") ? " to explore" : "") + "  (fuel " + string(_cost.fuel) + ", pocket " + string(_cost.pocket) + ")" ],

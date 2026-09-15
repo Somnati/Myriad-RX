@@ -2,9 +2,10 @@
 /// The tech demo's combat_pawn on a sprite: real stats from the points
 /// through cbt_balance (hp = pts x 3.75 + 4, eva = spd x .5, tic_spd =
 /// 1 + sqrt(spd) / 2), the class garnish, the sprite's skills, a
-/// half-charged mp. hp given = carry the trip's hp in (undefined = full).
+/// half-charged mp - or the trip's mp fraction (mpf) when given. hp given =
+/// carry the trip's hp in (undefined = full).
 /// team / k are set by cbt_fight_new. sid links the pawn back.
-function sprite_pawn(_sp, _hp = undefined) {
+function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 	var _b  = cbt_balance();
 	var _st = sprite_stats(_sp);
 	var _c  = _st.cls;
@@ -16,7 +17,7 @@ function sprite_pawn(_sp, _hp = undefined) {
 		team : 0, k : 0,
 		maxhp_real : _maxhp, maxhp : _maxhp, hpmax : _maxhp,
 		hp : is_undefined(_hp) ? _maxhp : clamp(_hp, 0, _maxhp),
-		maxmp : _maxmp, mp : ceil(_maxmp * _b.mp_start_frac),
+		maxmp : _maxmp, mp : is_undefined(_mpf) ? ceil(_maxmp * _b.mp_start_frac) : clamp(round(_maxmp * _mpf), 0, _maxmp),   // (a trip carries mp between fights: the fraction it had)
 		atk : _p.atk, def : _p.def, mag : _p.mag, mdef : _p.mdef, spd : _p.spd, hit : _p.hit,
 		eva : _p.spd * _b.spd_to_eva,
 		crit_rate : _c.crit, crit_multi : _c.cmulti, cnt : _c.cnt, erode : 1,

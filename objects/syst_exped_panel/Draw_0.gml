@@ -310,7 +310,7 @@ if (view == "crew" || view == "sheet") {
 	draw_text(_nx + string_width(_c.name) + 8, _hy, "level " + string(_sh.lv));
 	var _pl = sprite_personalities();
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_nx + string_width(_c.name) + 8, _hy + 10, _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name + "  -  " + ((_sp[$ "trip"] ?? false) ? "out" : (_sp.asleep ? "asleep" : "home")));
+	draw_text(_nx + string_width(_c.name) + 8, _hy + 10, _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name + "  -  " + ((_sp[$ "trip"] ?? false) ? "out" : (_sp.asleep ? ((_sp[$ "resting"] ?? false) ? "resting - asleep until whole" : "asleep") : "home")));
 	var _need = sprite_xp_need(_sh.lv);
 	var _xw = land ? 110 : 80, _xx = _x1 - 8 - _xw;
 	draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.7);
@@ -321,11 +321,12 @@ if (view == "crew" || view == "sheet") {
 	// HP / MP bars (the Disgaea row): the maxima - a sprite at home is whole
 	var _hpr = round((_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add) * 10) / 10;
 	var _mpr = max(1, round(_st.pts.mp));
-	// the current hp: a sprite out on a trip carries it there; at home it is whole
-	var _hpc = _hpr;
+	// the current hp and mp: a sprite out on a trip carries them there; at
+	// home they are what it came back with, climbing (sprites_tick)
+	var _hpc = round(_hpr * (_sp[$ "hpf"] ?? 1) * 10) / 10, _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
 	for (var _t = 0; _t < array_length(_e.trips); _t++) {
 		var _tt = _e.trips[_t];
-		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) _hpc = min(_hpr, _tt.hp[_k]);
+		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) { _hpc = min(_hpr, _tt.hp[_k]); if (is_array(_tt[$ "mp"]) && _k < array_length(_tt.mp)) _mpc = round(_mpr * _tt.mp[_k]); }
 	}
 	var _by = _hy + 24, _bw = land ? 150 : (_w - 16);
 	draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_hx, _by, "hp");
@@ -334,8 +335,8 @@ if (view == "crew" || view == "sheet") {
 	draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by - 1, string(_hpc) + " / " + string(_hpr)); draw_set_halign(fa_left);
 	draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_hx, _by + 10, "mp");
 	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw, 5, 0, c_black, .7);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw, 5, 0, c_sblue, .8);
-	draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by + 9, string(_mpr) + " / " + string(_mpr)); draw_set_halign(fa_left);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw * clamp(_mpc / max(1, _mpr), 0, 1), 5, 0, c_sblue, .8);
+	draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by + 9, string(_mpc) + " / " + string(_mpr)); draw_set_halign(fa_left);
 	// the stats grid (two columns of three), base + the gear's share
 	var _keys = ["atk", "def", "mag", "mdef", "spd", "hit"];
 	var _labels = ["atk", "def", "int", "res", "spd", "hit"];
@@ -1065,7 +1066,7 @@ if (view == "depart") {
 		var _sp = g.sprites[_k];
 		var _cr = __dchip_r(_k);
 		var _away = (_sp[$ "trip"] ?? false);
-		var _ok = !_sp.asleep && !_away;
+		var _ok = !_away;   // (asleep is fine: the tap wakes it)
 		var _at = array_get_index(sel_crew, _sp.id);
 		if (_at >= 0) array_push(_crew, _sp);
 		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, c_black, .7);
@@ -1074,7 +1075,12 @@ if (view == "depart") {
 		if (_at >= 0) { draw_set_halign(fa_center); draw_set_color(c_black); draw_set_alpha(.9); draw_text(_cr.x + _cr.w * .5 + 1, _cr.y + _cr.h * .5 - 4, string(_at + 1)); }
 		draw_set_halign(fa_center);
 		draw_set_color(_ok ? _ink : _dim); draw_set_alpha(_ok ? .8 : .5);
-		draw_text(_cr.x + _cr.w * .5, _cr.y + _cr.h + 1, _away ? "out" : (_sp.asleep ? "zz" : (string_copy(_sp.name, 1, 4) + " " + string(sprite_sheet(_sp).lv))));
+		draw_text(_cr.x + _cr.w * .5, _cr.y + _cr.h + 1, _away ? "out" : (_sp.asleep ? "zz - tap" : (string_copy(_sp.name, 1, 4) + " " + string(sprite_sheet(_sp).lv))));
+		// short of hp / mp: a sliver under the chip
+		if (!_away && ((_sp[$ "hpf"] ?? 1) < 1 || (_sp[$ "mpf"] ?? 1) < 1)) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y + _cr.h - 3, _cr.w, 2, 0, c_black, .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y + _cr.h - 3, _cr.w * (_sp[$ "hpf"] ?? 1), 2, 0, c_hred, .9);
+		}
 	}
 	draw_set_halign(fa_left);
 	// THE INSPECTED SPRITE (his ask, 2026-09-15: "i want to see the stats of

@@ -349,6 +349,8 @@ function main_macros() {
 #macro SPRITE_ATTN    7200  // attention: offline work decays as 1/(1+t/T),
                             // T seconds - 8h away yields T ln(1+8h/T) of work
 #macro SPRITE_NAP     3600  // away longer than this and they are found asleep
+#macro SPRITE_HEAL_NAP   300  // seconds a sprite ASLEEP takes to heal from nothing to whole (hp; mp x1.5 as fast) - a resting sprite wakes when whole
+#macro SPRITE_HEAL_AWAKE 1200 // ...and one on its feet (woken early: it is prone to nap again until whole, obj_blob)
 #macro SPRITE_SPECK_RAR   4 // rarity from which a sprite wears the orbiting
                             // specks (legendary and up)
 #macro SPRITE_STAFF   .05  // a sprite on a machine adds this x (1 + rarity rung) to its rate - sprite_staff (OFFLINE; online its taps charge)

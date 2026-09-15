@@ -25,7 +25,7 @@ function exped_tick(_secs) {
 		array_delete(_e.trips, _i, 1);
 		array_push(_e.hauls, { id : _tr.id, dest : _tr.dest, sids : _tr.sids, names : _tr.names, cols : _tr.cols,
 		                       sid : _tr.sid, sname : _tr.sname, finds : _tr.finds, routed : _tr.routed,
-		                       cleared : _tr.cleared, wins : _tr.wins, log : _tr.log, hp : _tr.hp, hpmax : _tr.hpmax });
+		                       cleared : _tr.cleared, wins : _tr.wins, log : _tr.log, hp : _tr.hp, hpmax : _tr.hpmax, mp : _tr[$ "mp"] ?? [] });
 		save_mark_dirty();
 	}
 }

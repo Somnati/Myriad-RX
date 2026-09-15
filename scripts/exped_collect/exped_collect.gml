@@ -19,6 +19,15 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 		if (!array_contains(_h.sids, _sp.id)) continue;
 		_sp.trip = false;
 		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP; }
+		// HOME SHORT (his ask, 2026-09-15): the hp and mp they came back with
+		// ride the sprite; short of either, it sleeps until whole (resting -
+		// sprites_tick's climb wakes it; the offline nap is another rule)
+		var _k = array_get_index(_h.sids, _sp.id);
+		var _hhp = _h[$ "hp"] ?? [], _hhm = _h[$ "hpmax"] ?? [], _hmp = _h[$ "mp"] ?? [];
+		_sp.hpf = (_k >= 0 && _k < array_length(_hhp)) ? clamp(_hhp[_k] / max(1, (_k < array_length(_hhm)) ? _hhm[_k] : 1), 0, 1) : 1;
+		_sp.mpf = (_k >= 0 && _k < array_length(_hmp)) ? clamp(_hmp[_k], 0, 1) : 1;
+		if (_sp.hpf <= 0) _sp.hpf = .05;   // (down at the end: it comes home at a sliver)
+		if (_sp.hpf < 1 || _sp.mpf < 1) { _sp.asleep = true; _sp.resting = true; }
 	}
 	var _swapped = false;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {

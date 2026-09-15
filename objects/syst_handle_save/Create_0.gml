@@ -68,3 +68,7 @@ var _gs = 1337;
 if (file_exists(file_to_handle)) { ini_open(file_to_handle); _gs = ini_read_real("exped", "ex_galaxy", 1337); ini_close(); }
 g.galaxy_seed = max(1, floor(_gs));
 boot_gen = starmap_gen_begin(g.galaxy_seed);
+// (rm_gameload is a 144x296 stub with no obj_set_landscape: the gui was
+// the window's own pixels and the spinner drew warped - the landscape
+// rooms' 480x270 gui, so the boot screen is the game's own scale)
+display_set_gui_size(480, 270);

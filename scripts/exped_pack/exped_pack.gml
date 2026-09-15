@@ -28,17 +28,18 @@ function exped_pack() {
 			var _ri = _r.room_i - (is_undefined(_r.fight) ? 0 : 1);
 			_o += "|" + string(_r.t) + ":" + string(_r.stage) + ":" + string(_ri) + ":" + string(_r.cleared) + ":" + (_r.routed ? "1" : "0")
 			    + ":" + string(_r[$ "wins"] ?? 0) + ":" + ((_r[$ "said_travel"] ?? false) ? "1" : "0") + ":" + string(_r.id);
-			var _hp = "", _hm = "";
-			for (var _k = 0; _k < array_length(_r.hp); _k++) { _hp += ((_k > 0) ? "," : "") + string(_r.hp[_k]); _hm += ((_k > 0) ? "," : "") + string(_r.hpmax[_k]); }
-			_o += "|" + _hp + "~" + _hm;
+			var _hp = "", _hm = "", _mpp = "";
+			var _rmp = _r[$ "mp"] ?? [];
+			for (var _k = 0; _k < array_length(_r.hp); _k++) { _hp += ((_k > 0) ? "," : "") + string(_r.hp[_k]); _hm += ((_k > 0) ? "," : "") + string(_r.hpmax[_k]); _mpp += ((_k > 0) ? "," : "") + string_format((_k < array_length(_rmp)) ? _rmp[_k] : 1, 1, 3); }
+			_o += "|" + _hp + "~" + _hm + "~" + _mpp;   // (mp fractions: a third part, 2026-09-15)
 			_o += "|" + string_join_ext(",", _r.rooms);
 		} else {
 			_o += "|0:2:0:" + string(_r.cleared) + ":" + (_r.routed ? "1" : "0") + ":" + string(_r[$ "wins"] ?? 0) + ":1:" + string(_r.id);
 			// the crew's hp at the end (the haul card's banners, 2026-09-15)
-			var _hhp = "", _hhm = "";
-			var _rhp = _r[$ "hp"] ?? [], _rhm = _r[$ "hpmax"] ?? [];
-			for (var _k = 0; _k < array_length(_rhp); _k++) { _hhp += ((_k > 0) ? "," : "") + string(_rhp[_k]); _hhm += ((_k > 0) ? "," : "") + string((_k < array_length(_rhm)) ? _rhm[_k] : 10); }
-			_o += "|" + _hhp + "~" + _hhm;
+			var _hhp = "", _hhm = "", _hmp = "";
+			var _rhp = _r[$ "hp"] ?? [], _rhm = _r[$ "hpmax"] ?? [], _rmp2 = _r[$ "mp"] ?? [];
+			for (var _k = 0; _k < array_length(_rhp); _k++) { _hhp += ((_k > 0) ? "," : "") + string(_rhp[_k]); _hhm += ((_k > 0) ? "," : "") + string((_k < array_length(_rhm)) ? _rhm[_k] : 10); _hmp += ((_k > 0) ? "," : "") + string_format((_k < array_length(_rmp2)) ? _rmp2[_k] : 1, 1, 3); }
+			_o += "|" + _hhp + "~" + _hhm + "~" + _hmp;
 			_o += "|";
 		}
 		var _f = "";

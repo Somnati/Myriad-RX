@@ -19,7 +19,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 		if (_tr.hp[_k] <= 0) continue;
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
-		var _pw = sprite_pawn(_sp, _tr.hp[_k]);
+		var _pw = sprite_pawn(_sp, _tr.hp[_k], (is_array(_tr[$ "mp"]) && _k < array_length(_tr.mp)) ? _tr.mp[_k] : undefined);
 		_pw.hit += _bonus;
 		_pw.mi = _k;
 		_pw.studied = sprite_notes_kinds(_sp);

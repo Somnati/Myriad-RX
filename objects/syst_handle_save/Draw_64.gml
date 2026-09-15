@@ -3,6 +3,8 @@
 /// the galaxy" beside it - until the galaxy is built and the save is in
 if (!in_room(rm_gameload) || boot_phase >= 2) exit;
 var _gw = display_get_gui_width(), _gh = display_get_gui_height();
+// the whole gui black first (the room behind is a stub of another shape)
+draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, _gw, _gh, 0, c_black, 1);
 var _cx = _gw - 22, _cy = _gh - 22;
 var _ph = (current_time / 90) mod 8;
 for (var _i = 0; _i < 8; _i++) {
