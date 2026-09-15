@@ -570,7 +570,7 @@ if (view == "trip") {
 	var _n  = array_length(_tr.sids);
 	// THE WORLD: the full planet (planet_get / planet_draw - the tech
 	// demo's raycast sphere with the mountains, its ring if it has one)
-	// over its own stars, through the box's surface (__draw_world_rect:
+	// over its own stars, through the box's surface (__draw_orbit:
 	// nothing spills past the box); the lite portrait holds the spot
 	// while the world is still being built
 	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .95);

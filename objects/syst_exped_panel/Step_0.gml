@@ -42,23 +42,6 @@ if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprit
 if (view == "map" && !is_struct(map_dest)) view = "hub";
 if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) view = "hub";
 
-// THE WORLD'S TURN (his ask, 2026-09-15): focused on a region, the spin
-// eases to the spot's and the view zooms in; unfocused, the ambient spin
-// resumes from where it was (an offset, so nothing jumps)
-if (is_struct(pl_dest)) {
-	var _pn2 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	var _amb = planet_spin_now(_pn2) + pl_spin_off;
-	if (pl_focus >= 0) {
-		var _dd = angle_difference(pl_spin_t, pl_spin);
-		pl_spin += _dd * (1 - power(.9, delta));
-		pl_zoom = lerp(pl_zoom, PL_ZOOM_IN, 1 - power(.9, delta));
-	} else {
-		pl_spin_off = pl_spin - planet_spin_now(_pn2);   // (keep the drawn spin continuous)
-		pl_spin = _amb;
-		pl_zoom = lerp(pl_zoom, 1, 1 - power(.9, delta));
-	}
-}
-
 // THE ORBIT VIEW'S CLOCK: the world spins its own axis (the universal
 // clock sets it the first time), the camera rides the spin (geosync), and
 // turns to face a picked region (pv_face) - a rotation about the view axis

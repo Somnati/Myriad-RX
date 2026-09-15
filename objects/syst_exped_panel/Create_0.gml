@@ -47,10 +47,6 @@ pl_dest  = undefined;    // the planet window's world
 rg_sel   = 0;            // the region picked in the planet window (EXPED_REGIONS a world)
 map_rgi  = 0;            // the map view's region
 pl_focus = -1;           // the planet window: the region the world has turned to (-1 = none, ambient spin)
-pl_spin  = 0;            // the world's spin as drawn (deg)
-pl_spin_t = 0;           // ...and where it is turning to
-pl_zoom  = 1;            // ...and how far in
-pl_spin_off = 0;         // the ambient spin's offset, so leaving a focus does not jump
 crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = everyone)
 it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
@@ -82,7 +78,7 @@ big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
 log_y = land ? big_y : (big_y + big_h + 22 + EXPED_PARTY * 12 + 4);   // (portrait: the button row and the banners under the box come first)
 fight_s = 64;        // the combat window's side
-wb_surf = -1;        // the world box's surface (__draw_world_rect): the globe and its ring clipped at the box; freed in the CleanUp
+wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothing spills past a rect; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
 confirm  = "";       // "abort" while the question is up
 conf_a   = 0;
@@ -139,14 +135,7 @@ __dot = function(_x, _y, _r, _col, _a) {
 
 // ---- the region law: the Step's hits and the Draw share these ----
 __card_r = function(_i) { return { x : card_x0 + _i * (card_w + card_gap), y : card_y, w : card_w, h : card_h }; };
-__chip_r = function(_k) {
-	var _per = land ? 5 : 6;
-	return { x : card_x0 + (_k mod _per) * (chip + chip_gap), y : crew_y + 10 + (_k div _per) * (chip + 10), w : chip, h : chip };
-};
-__crew_rows = function() { var _per = land ? 5 : 6; return max(1, ceil(array_length(g.sprites) / _per)); };
-__send_r = function() { return { x : card_x0, y : crew_y + 10 + __crew_rows() * (chip + 10) + 2, w : land ? 74 : (room_width - 8), h : 14 }; };   // [quest]
-__explore_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 4, y : _s.y, w : land ? 74 : (room_width - 8), h : 14 }; };   // [explore]
-__list_y0 = function() { return land ? (card_y - 10) : (__send_r().y + 14 + 8); };
+__list_y0 = function() { return land ? (card_y - 10) : (crew_y + 10 + 2 * (chip + 10) + 2 + 14 + 8); };   // (portrait: under where the hub's crew rows sat)
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
@@ -164,9 +153,6 @@ __back = function() {
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 };
-// the planet window: the world big on the left, its facts, the regions on the right
-__pl_box  = function() { return { x : land ? 14 : 4, y : list_y + 22, w : land ? 170 : (room_width - 8), h : land ? 150 : 96 }; };
-__pl_row  = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? list_y + 44 : _b.y + _b.h + 26) + _i * 26, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 24 }; };
 /// the crew the crew menu lists: everyone, or one trip's (crew_trip)
 __crew_list = function() {
 	if (crew_trip < 0) return g.sprites;
@@ -183,23 +169,6 @@ __crew_list = function() {
 __trip_btn_r = function(_k) { var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + big_h + 4, w : _bw - 2, h : 13 }; };
 __trip_crew_r  = function() { return __trip_btn_r(0); };
 __trip_abort_r = function() { return __trip_btn_r(2); };
-/// where a region's spot sits on the drawn world: the same matrix planet_draw
-/// hands the shader (world = rot(tilt) x rot(y, spin); a texture direction t
-/// shows at n = W t), so the marker lands where the terrain does
-__spot_view = function(_pn, _spin, _lon, _lat) {
-	var _tx = dcos(_lat) * dcos(_lon), _ty = dsin(_lat), _tz = dcos(_lat) * dsin(_lon);
-	var _w = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
-	return mat3_apply(_w, _tx, _ty, _tz);
-};
-/// the spin that brings a spot to the front: sampled, so no sign convention can be wrong
-__spin_for = function(_pn, _lon, _lat) {
-	var _best = 0, _bz = -2;
-	for (var _s = 0; _s < 360; _s += 3) {
-		var _n = __spot_view(_pn, _s, _lon, _lat);
-		if (_n[2] > _bz) { _bz = _n[2]; _best = _s; }
-	}
-	return _best;
-};
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
 // ---- THE ORBIT VIEW (the planet page, 2026-09-15: the tech demo's rm_planet in the panel) ----
 // cam = view -> world (an arcball: drag post-multiplies about the view's
@@ -255,9 +224,6 @@ __pv_ui_hit = function() {
 /// camera turns to face it, the region window's small world too
 __pv_pick = function(_i) {
 	rg_sel = _i; pl_focus = _i; pv_face = _i;
-	var _rgs = region_get(pl_dest, _i);
-	var _pn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	pl_spin_t = __spin_for(_pn3, _rgs.spot.lon, _rgs.spot.lat);
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 };
 // ---- THE GALAXY VIEW (the star map, 2026-09-15: the tech demo's rm_starmap as a page) ----
@@ -386,8 +352,6 @@ __log_r = function() {
 };
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
 __gx_r = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
-// the region window: the quests, then explore
-__q_row   = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? (list_y + 40) : (_b.y + _b.h + 26)) + _i * 30, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 27 }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
 dchip_y   = list_y + 40;
 __dchip_r = function(_k) { var _per = land ? 5 : 6; return { x : (land ? 14 : 4) + (_k mod _per) * (chip + chip_gap), y : dchip_y + (_k div _per) * (chip + 10), w : chip, h : chip }; };
@@ -395,7 +359,6 @@ __brief_r = function() { return { x : land ? 176 : 4, y : list_y + 22, w : land 
 __depart_r = function() { var _b = __brief_r(); return { x : _b.x, y : _b.y + _b.h + 4, w : 100, h : 16 }; };
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 60, h : 14 }; };
 __rg_map_r = function() { return { x : room_width - (land ? 14 : 4) - 44 - 50, y : list_y + 3, w : 44, h : 13 }; };
-__sheet_r = function() { var _s = __explore_r(); return { x : _s.x + _s.w + 4, y : _s.y, w : 44, h : 14 }; };   // [crew]
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
@@ -508,117 +471,10 @@ __map_labels = function(_rg, _mr, _key) {
 	map_lab = { key : _key, pos : _pos };
 	return _pos;
 };
-__card_map_r = function(_i) { var _c = __card_r(_i); return { x : _c.x + _c.w - 27, y : _c.y + 3, w : 24, h : 10 }; };
 __trip_map_r = function() { return __trip_btn_r(1); };
-__crew_y0 = function() { return list_y + 22; };
-__list_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };   // (the crew LIST's rows; __crew_row_r is the trip page's)
-__crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };
-__sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 22, w : 20, h : 13 }; };
-__sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };
 // THE CREW'S BANNERS (his ask, 2026-09-15: under the world box): a row each
 // under the button row - dot, name, level, the hp bar (live in a fight)
 __crew_row_r = function(_k) { return { x : big_x, y : big_y + big_h + 22 + _k * 12, w : big_w, h : 11 }; };
-/// the diary painter: truth lines plain, "~ " lines as the crew's voice
-/// (dimmer, indented), "+ " lines as REWARDS (gold: xp, drops, credits -
-/// his ask, 2026-09-15: the fight's end in the diary), newest at the
-/// bottom, as many whole entries as fit between y and y_end. col = the
-/// world's colour for the voice
-__draw_log = function(_log, _x, _y, _w, _y_end, _col, _off = 0) {
-	var _nl = array_length(_log) - clamp(_off, 0, max(0, array_length(_log) - 1));
-	if (_off > 0) {
-		// scrolled: a dim line says so, and the room above it is the log's
-		draw_set_font(fnt); draw_set_color(sett_ink); draw_set_alpha(.4);
-		draw_text(_x, _y_end - 8, "- " + string(_off) + " newer below - wheel down -");
-		_y_end -= 10;
-	}
-	var _hs = array_create(_nl, 0);
-	var _room = _y_end - _y;
-	var _from = _nl;
-	draw_set_font(fnt);
-	for (var _i = _nl - 1; _i >= 0; _i--) {
-		var _pre = string_copy(_log[_i], 1, 2);
-		var _isv = (_pre == "~ ");
-		var _h = string_height_ext(_isv ? string_delete(_log[_i], 1, 2) : _log[_i], 9, _w - (_isv ? 8 : 0)) + 2;
-		if (_h > _room) break;
-		_room -= _h;
-		_hs[_i] = _h;
-		_from = _i;
-	}
-	var _yy = _y;
-	for (var _i = _from; _i < _nl; _i++) {
-		var _pre = string_copy(_log[_i], 1, 2);
-		var _isv = (_pre == "~ "), _isr = (_pre == "+ ");
-		var _last = (_i == _nl - 1);
-		if (_isv) {
-			draw_set_color(_last ? merge_colour(sett_ink, c_white, .5) : merge_colour(sett_ink, _col, .35));
-			draw_set_alpha(_last ? .9 : .55);
-			draw_text_ext(_x + 8, _yy, string_delete(_log[_i], 1, 2), 9, _w - 8);
-		} else if (_isr) {
-			draw_set_color(_last ? merge_colour(c_gold, c_white, .3) : c_gold);
-			draw_set_alpha(_last ? .95 : .8);
-			draw_text_ext(_x, _yy, string_delete(_log[_i], 1, 2), 9, _w);
-		} else {
-			draw_set_color(_last ? c_white : sett_ink);
-			draw_set_alpha(_last ? .95 : .7);
-			draw_text_ext(_x, _yy, _log[_i], 9, _w);
-		}
-		_yy += _hs[_i];
-	}
-	draw_set_alpha(1);
-};
-/// THE WORLD IN A RECT, through a surface (wb_surf, 2026-09-15): the sky,
-/// the globe at (pcx, pcy) of the rect with radius pr x zoom, and nothing
-/// spills past the rect - a RING (the shader draws one on a ringed world;
-/// the globe shrinks so the ring fits the rect at zoom 1) or the zoom on a
-/// region is simply clipped. cfade 0..1 thins the clouds (planet_draw);
-/// spots draws the regions: a 2px square each where the same matrix the
-/// shader gets puts it, the far side skipped (z under .12), the focused
-/// one in a pulsing hollow square (his ask: pixel, not a circle). The lite
-/// portrait holds the spot while the world is still being built
-__draw_world_rect = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _zoom, _spin, _cfade, _spots) {
-	_w = max(2, floor(_w)); _h = max(2, floor(_h));
-	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
-		if (surface_exists(wb_surf)) surface_free(wb_surf);
-		wb_surf = surface_create(_w, _h);
-	}
-	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	var _built = (_pn.row >= _pn.th);
-	if (_built && _pn.ring) _pr = min(_pr, min(_w, _h) * .5 / 2.3);   // (the ring reaches 2.25 radii)
-	_pr *= _zoom;
-	var _fa = g.ui_fade_a;
-	ui_fade_set(1);
-	surface_set_target(wb_surf);
-	draw_clear_alpha(c_black, 1);
-	planet_sky_draw(_d.seed, 0, 0, _w, _h);
-	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade);
-	else __portrait(_d, _pcx, _pcy, _pr);
-	if (_spots && _built) {
-		draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
-		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));   // 0..3, in steps
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-			var _rg = region_get(_d, _i);
-			var _n = __spot_view(_pn, is_undefined(_spin) ? 0 : _spin, _rg.spot.lon, _rg.spot.lat);
-			if (_n[2] <= .12) continue;   // the far side, and the very limb
-			// on the shader's 2px cell grid
-			var _sx = floor(_pcx) + floor(_n[0] * _pr * .5) * 2, _sy = floor(_pcy) + floor(_n[1] * _pr * .5) * 2;
-			var _on = (_i == pl_focus);
-			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
-			if (_on) {
-				var _s = 6 + _pulse * 2;
-				draw_px_rect(_sx - _s * .5, _sy - _s * .5, _s, _s, c_gold, .95);
-				draw_px_rect(_sx - _s * .5 + 1, _sy - _s * .5 + 1, _s - 2, _s - 2, c_gold, .5);
-			}
-			if (_n[2] > .3) {
-				draw_set_color(_on ? c_gold : c_white); draw_set_alpha(_on ? .95 : .8);
-				draw_text(_sx + 6 + (_on ? 2 : 0), _sy - 4, _on ? _rg.name : ("lv " + string(_rg.lv)));
-			}
-		}
-		draw_set_alpha(1);
-	}
-	surface_reset_target();
-	ui_fade_set(_fa);
-	draw_surface(wb_surf, _x, _y);
-};
 /// THE ORBIT RENDERER (2026-09-15: "have all models of the planet match our
 /// main one... stars and all"): the sky (the real neighbourhood, the milky
 /// way, the sun - pv_sky), the world at (pcx, pcy) of the rect with radius
@@ -709,15 +565,6 @@ __cam_face = function(_pn, _spin, _rg, _cam) {
 		_cam = (_v1[2] >= _v2[2]) ? _c1 : _c2;
 	}
 	return _cam;
-};
-/// (the old small box: the region window's spinning world - retired 2026-09-15, the planet page's region mode took its place)
-__draw_world_box = function(_d) {
-	var _b = exped_biomes()[_d.biome];
-	var _bx = __pl_box();
-	var _cf = clamp(1 - (pl_zoom - 1) / (PL_ZOOM_IN - 1), 0, 1);
-	__draw_world_rect(_d, _bx.x + 1, _bx.y + 1, _bx.w - 2, _bx.h - 2, (_bx.w - 2) * .5, (_bx.h - 2) * .5, min(_bx.w, _bx.h) * .3, pl_zoom, pl_spin, _cf, true);
-	draw_px_rect(_bx.x, _bx.y, _bx.w, _bx.h, merge_colour(_b.col2, c_white, .2), .5);
-	draw_set_alpha(1);
 };
 /// a world small (the hub's card, the list's rows, the haul's card): the
 /// FULL world once it is built - clouds and ring (the globe at .62 so the
