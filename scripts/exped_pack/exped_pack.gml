@@ -48,11 +48,13 @@ function exped_pack() {
 		// a trip reloads standing at its node (the road and the activity start over; the quest's text is rebuilt)
 		if (_is) {
 			var _q = _r[$ "quest"], _bo = _r[$ "bounty"];
+			var _vv = _r[$ "visited"] ?? [], _vis = "";
+			for (var _vi = 0; _vi < array_length(_vv); _vi++) _vis += ((_vi > 0) ? ";" : "") + string(_vv[_vi]);
 			_o += "|" + string(_r[$ "mode"] ?? "quest") + ":" + string(_r[$ "pos"] ?? 0) + ":" + string(_r[$ "credits"] ?? 0) + ":" + ((_r[$ "recall"] ?? false) ? "1" : "0")
 			    + ":" + string(_r[$ "leave_t"] ?? 0) + ":" + string(_r[$ "planet_t"] ?? 0)
 			    + ":" + (is_struct(_q) ? (_q.kind + ":" + string(_q.node) + ":" + _q.foe + ":" + string(_q.n) + ":" + string(_q.done) + ":" + string(_q.mult) + ":" + string(_q.reward)) : "::::::")
 			    + ":" + (is_struct(_bo) ? (string(_bo.node) + ":" + _bo.foe + ":" + string(_bo.n) + ":" + string(_bo.done) + ":" + string(_bo.pay)) : "::::")
-			    + ":" + string_join_ext(";", _r[$ "visited"] ?? []);
+			    + ":" + _vis;
 		} else _o += "|";
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}
