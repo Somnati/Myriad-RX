@@ -378,7 +378,7 @@ __hand_open = function(_kind) {
 			}
 			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj,
 			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
-			                     slot : _sl[_i], si : _i, hours : _q.hours });
+			                     slot : _sl[_i], si : _i, hours : _q.hours, salt0 : _sl[_i].salt });
 		}
 		// easiest to hardest, left to right (his call); the shorter road first among equals
 		array_sort(_faces, function(_a, _b) { return (_a.diff != _b.diff) ? (_a.diff - _b.diff) : (_a.hours - _b.hours); });

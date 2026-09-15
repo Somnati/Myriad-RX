@@ -204,6 +204,10 @@ if (hand != "") {
 			var _c = hand_ids[_d];
 			if (!instance_exists(_c)) continue;
 			if (hand_sec != _sec) _c.invalidate_front();   // (who is on it, live)
+			// a slot that turned over under the hand (its clock ran out): the
+			// card would show the old quest and pick the new - the hand is
+			// dealt again (bug hunt 2026-09-15)
+			if (hand == "quests" && is_struct(_c.face[$ "slot"]) && _c.face.slot.salt != _c.face.salt0) { __hand_open("quests"); exit; }
 			// THE THROW: unseen until its turn, then snapped to its seat from the
 			// bottom middle (a quarter of the gap a frame), the lean and the
 			// twist settling with it
@@ -478,7 +482,7 @@ if (view == "depart") {
 		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
 		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel)) {
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq);   // (the board marks it taken - 2026-09-15)
+			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
 			dp_slot = -1;
 			sel_crew = [];
 			view = "hub";

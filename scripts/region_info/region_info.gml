@@ -10,7 +10,7 @@ function region_info(_d, _rg) {
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
 	var _bi = exped_biomes()[_d.biome].name;
 	var _out = [];
-	var _pick = function(_seed, _salt, _pool) { return _pool[hash_mix(_seed, _salt) mod array_length(_pool)]; };
+	static _pick = function(_seed, _salt, _pool) { return _pool[hash_mix(_seed, _salt) mod array_length(_pool)]; };   // (static: no closure built a call - twice a frame)
 	// the level and the mood (region_gen's word and rating)
 	array_push(_out, { k : "level " + string(_rg.lv), v : _rg[$ "mood"] ?? "quiet", t : _rg[$ "mood_t"] ?? 0 });
 	// BIOME (his ask, 2026-09-15): the wild kind most of the region is - the
@@ -27,7 +27,7 @@ function region_info(_d, _rg) {
 		if (_cn > _n1) { _b2 = _b1; _n2 = _n1; _b1 = _cks[_i]; _n1 = _cn; }
 		else if (_cn > _n2) { _b2 = _cks[_i]; _n2 = _cn; }
 	}
-	var _plu = function(_w) { if (_w == "marsh") return "marshes"; if (_w == "hills" || _w == "mountains" || _w == "tundra") return _w; return _w + "s"; };
+	static _plu = function(_w) { if (_w == "marsh") return "marshes"; if (_w == "hills" || _w == "mountains" || _w == "tundra") return _w; return _w + "s"; };
 	var _btxt = (_b1 == "") ? "the wild" : (_plu(_b1) + ((_b2 != "" && _n2 >= _n1 * .6) ? (" and " + _plu(_b2)) : ""));
 	var _bcol = (_b1 != "" && is_struct(_kk[$ _b1])) ? _kk[$ _b1].col : c_gold;
 	array_push(_out, { k : "biome", v : _btxt, t : 0, col : _bcol });
