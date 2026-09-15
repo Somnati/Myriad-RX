@@ -189,8 +189,16 @@ if (view == "haul") {
 		draw_ui_button(_sw.x, _sw.y, _sw.w, _sw.h, "swap one out", c_gold, true, true);
 		draw_ui_button(_go.x, _go.y, _go.w, _go.h, "let them go", c_gray, true, false);
 	} else {
-		var _cb = __col_r();
+		var _cb = __col_r(), _ag = __again_r();
 		draw_ui_button(_cb.x, _cb.y, _cb.w, _cb.h, "collect", c_gold, true, true);
+		// [SEND AGAIN] (2026-09-15): the same crew, the same region, the
+		// easiest open card - what it would do, above the buttons
+		var _pl = __again_plan(_h);
+		draw_ui_button(_ag.x, _ag.y, _ag.w, _ag.h, "send again", _pl.ok ? c_sgreen : c_gray, true, false);
+		var _at = _pl.ok ? ("again: " + _pl.txt + (_pl.short ? "  -  they go as they are" : "")) : _pl.why;
+		var _ah = string_height_ext(_at, 9, _cw - 32);
+		draw_set_color(_pl.ok ? _dim : c_hred); draw_set_alpha(.75);
+		draw_text_ext(_cx + 16, _cb.y - 3 - _ah, _at, 9, _cw - 32);
 	}
 	ui_fade_set(1);
 	exit;
@@ -986,6 +994,27 @@ if (view == "depart") {
 		draw_text(_tx, _ty, "difficulty");
 		draw_set_halign(fa_right); draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_text(_tx + _tw, _ty, _q.diff_txt + "  -  " + string(sprite_xp_quest(_q[$ "lv"] ?? _rg.lv, 1, _q.mult)) + " xp, " + string(_q.reward) + " credits"); draw_set_halign(fa_left);
 		_ty += 11;
+	}
+	// THE HAZARD (2026-09-15): the place's, who in the seats holds it, who is
+	// bare - and what would hold it, when someone is
+	var _hzl = __dp_hazards();
+	for (var _hi2 = 0; _hi2 < array_length(_hzl); _hi2++) {
+		var _hzr = _hzl[_hi2], _hz = _hzr.hz;
+		var _nh = array_length(_hzr.held), _nb = array_length(_hzr.bare);
+		draw_set_color(_hz.col); draw_set_alpha(.9);
+		draw_text(_tx, _ty, _hz.name);
+		draw_set_halign(fa_right);
+		if (_nh + _nb == 0)  { draw_set_color(_dim); draw_set_alpha(.75); draw_text(_tx + _tw, _ty, _hz.hold + " holds it"); }
+		else if (_nb == 0)   { draw_set_color(c_sgreen); draw_set_alpha(.95); draw_text(_tx + _tw, _ty, (_nh > 1) ? "the crew holds it" : (_hzr.held[0] + " holds it")); }
+		else if (_nh == 0)   { draw_set_color(c_hred); draw_set_alpha(.95); draw_text(_tx + _tw, _ty, (_nb > 1) ? "nobody holds it" : (_hzr.bare[0] + " is bare to it")); }
+		else {
+			var _sb = exped_crew_txt(_hzr.bare) + " bare", _sh = exped_crew_txt(_hzr.held) + ((_nh > 1) ? " hold it" : " holds it") + "  -  ";
+			draw_set_color(c_hred); draw_set_alpha(.95); draw_text(_tx + _tw, _ty, _sb);
+			draw_set_color(c_sgreen); draw_text(_tx + _tw - string_width(_sb), _ty, _sh);
+		}
+		draw_set_halign(fa_left);
+		_ty += 11;
+		if (_nb > 0) { draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.75); draw_text(_tx + _tw, _ty, _hz.hold + " holds it"); draw_set_halign(fa_left); _ty += 11; }
 	}
 	draw_set_color(_ink); draw_set_alpha(.8);
 	draw_text(_tx, _ty, "time");

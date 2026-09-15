@@ -55,6 +55,9 @@ function exped_tick_one(_tr, _dt) {
 		exped_note_fight(_tr, _f);
 		if (_f.won) array_push(_tr.log, "the way is clear");
 		if (!_drawn) exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
+		// THE REASON (2026-09-15): a loss under a hazard says what would have held it
+		if (!_f.won && !_drawn && is_struct(_f[$ "hazard"]) && array_length(_f.hazard.bare) > 0)
+			array_push(_tr.log, _f.hazard.name + " did it - " + _f.hazard.hold + " holds it" + ((array_length(_f.hazard.bare) == array_length(_f.party)) ? "" : (", and " + exped_crew_txt(_f.hazard.bare) + " had none of that")));
 		// THE FILM stays on the trip for the panel's replay (not saved)
 		var _rfoes = [];
 		for (var _j = 0; _j < array_length(_f.foes); _j++) array_push(_rfoes, { name : _f.foes[_j].name, hpmax : _f.foes[_j].hpmax, lv : _f.foes[_j][$ "lv"] ?? 1, kind : _f.foes[_j][$ "kind"] ?? "", col : _f.foes[_j][$ "col"] ?? c_hred });

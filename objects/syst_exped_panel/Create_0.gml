@@ -95,11 +95,11 @@ __dp_layout = function() {
 			case "rout":  _obj = "walk into the camp at " + _nd.name + " and win two fights against its bandits"; break;
 			case "scout": _obj = "get to " + _nd.name + " and come back with a look at it"; break;
 		}
-		_th = string_height_ext(_q.txt, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 11 * 5;
+		_th = string_height_ext(_q.txt, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 11 * (5 + __dp_haz_rows());
 	} else {
 		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");
 		var _obj2 = is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
-		_th = string_height_ext(_xt, 9, _tw) + 4 + string_height_ext(_obj2, 9, _tw) + 6 + 11 * 4;
+		_th = string_height_ext(_xt, 9, _tw) + 4 + string_height_ext(_obj2, 9, _tw) + 6 + 11 * (4 + __dp_haz_rows());
 	}
 	var _ns = exped_party_max();
 	var _sy0 = _y + 6 + _th + 14;
@@ -107,6 +107,27 @@ __dp_layout = function() {
 	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns };
 };
 __brief_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : _l.h }; };
+/// THE HAZARDS of the mission (2026-09-15): a quest's place, or every one an explore's region carries; who in the seats holds each, who is bare
+__dp_hazards = function() {
+	var _out = [];
+	if (!is_struct(pl_dest)) return _out;
+	var _rg = region_get(pl_dest, rg_sel), _hzs = [];
+	if (dp_mode == "quest" && is_struct(dp_quest)) { var _h1 = cbt_hazard_at(_rg.nodes[clamp(dp_quest.node, 0, array_length(_rg.nodes) - 1)].kind); if (is_struct(_h1)) array_push(_hzs, _h1); }
+	else _hzs = region_hazards(_rg);
+	for (var _i = 0; _i < array_length(_hzs); _i++) {
+		var _hz = _hzs[_i], _held = [], _bare = [];
+		for (var _j = 0; _j < array_length(dp_slots); _j++) {
+			if (dp_slots[_j] < 0) continue;
+			var _sp = __sp_by_id(dp_slots[_j]);
+			if (is_undefined(_sp)) continue;
+			if (cbt_hazard_hold(_sp, _hz).ok) array_push(_held, _sp.name); else array_push(_bare, _sp.name);
+		}
+		array_push(_out, { hz : _hz, held : _held, bare : _bare });
+	}
+	return _out;
+};
+/// ...and the rows they take in the mission box: one each, and one more under it when someone seated is bare (what holds it)
+__dp_haz_rows = function() { var _l = __dp_hazards(), _r = 0; for (var _i = 0; _i < array_length(_l); _i++) _r += 1 + ((array_length(_l[_i].bare) > 0) ? 1 : 0); return _r; };
 __dp_seat_r = function(_j) { var _l = __dp_layout(); return { x : _l.x + 8, y : _l.seat_y0 + _j * (__dp_bh() + 4), w : __dp_bw(), h : __dp_bh() }; };
 __dp_minus_r = function(_j) { var _r = __dp_seat_r(_j); return { x : _r.x + _r.w + 4, y : _r.y + 4, w : 14, h : 14 }; };
 __depart_r = function() { var _b = __brief_r(); return { x : _b.x + _b.w - 100, y : min(room_height - 8 - 16, _b.y + _b.h + 4) + (1 - dp_in) * 60, w : 100, h : 16 }; };
@@ -414,7 +435,9 @@ __qcard_face = function() {
 	draw_set_font(fnt);
 	draw_set_color(merge_colour(_col, c_white, .4)); draw_set_alpha(.7);
 	draw_text(card_w * .5, _ty, face.sub);
-	_ty += 12;
+	_ty += 10;
+	// the hazard, in its colour (2026-09-15)
+	if (is_struct(face[$ "haz"])) { draw_set_color(face.haz.col); draw_set_alpha(.95); draw_text(card_w * .5, _ty, face.haz.name); _ty += 10; } else _ty += 2;
 	// the objective
 	draw_set_color(c_white); draw_set_alpha(.92);
 	draw_text_ext(card_w * .5, _ty, face.txt, 9, card_w - 10);
@@ -495,7 +518,7 @@ __hand_open = function(_kind) {
 				case "rout":  _obj = "rout the bandits: two fights, then their chest"; break;
 				case "scout": _obj = "get there, have a look, come back"; break;
 			}
-			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj,
+			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : cbt_hazard_at(_nd.kind),
 			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
 			                     slot : _sl[_i], si : _i, hours : _q.hours, salt0 : _sl[_i].salt });
 		}
@@ -1360,7 +1383,40 @@ __sp_by_id = function(_id) {
 	return undefined;
 };
 __step_r = function() { return { x : log_x, y : room_height - 8 - 14, w : 70, h : 14 }; };   // [step turn], under the fight's lines, left of the window
-__col_r  = function() { return { x : (land ? 14 : 4) + 67, y : room_height - 8 - 16, w : 90, h : 16 }; };   // under the haul card (left half)
+__col_r  = function() { return { x : (land ? 14 : 4) + 16, y : room_height - 8 - 16, w : 90, h : 16 }; };    // under the haul card, [send again] beside it
+__again_r = function() { return { x : (land ? 14 : 4) + 118, y : room_height - 8 - 16, w : 90, h : 16 }; };
+/// [SEND AGAIN] (his pick from the review, 2026-09-15: one tap, not five): this haul's crew, as they are, back to the same
+/// region on the easiest open card - or a wander when the board there is empty. -> { ok, why, di, crew, mode, pick, slot, txt, short }
+__again_plan = function(_h) {
+	var _e = g.exped, _di = -1;
+	for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == _h.dest.seed) _di = _i;
+	if (_di < 0) return { ok : false, why : "that world is off the board" };
+	var _crew = [], _short = (_h[$ "routed"] ?? false);
+	var _hhp = _h[$ "hp"] ?? [], _hhm = _h[$ "hpmax"] ?? [], _hmp = _h[$ "mp"] ?? [];
+	for (var _k = 0; _k < array_length(_h.sids) && array_length(_crew) < exped_party_max(); _k++) {
+		var _sp = __sp_by_id(_h.sids[_k]);
+		if (is_undefined(_sp)) continue;
+		array_push(_crew, _sp);
+		if (_k < array_length(_hhp) && _k < array_length(_hhm) && _hhp[_k] < _hhm[_k]) _short = true;
+		if (_k < array_length(_hmp) && _hmp[_k] < 1) _short = true;
+	}
+	if (array_length(_crew) == 0) return { ok : false, why : "nobody left to send" };
+	var _rgi = _h[$ "rgi"] ?? 0;
+	// the easiest open card (the hand's order: difficulty, then the shorter road)
+	var _sl = exped_region_quests(_h.dest, _rgi), _best = -1;
+	for (var _i = 0; _i < array_length(_sl); _i++) {
+		if (_sl[_i].taken != 0) continue;
+		var _q = _sl[_i].q;
+		if (_best < 0 || _q.diff < _sl[_best].q.diff || (_q.diff == _sl[_best].q.diff && (_q[$ "hours"] ?? 0) < (_sl[_best].q[$ "hours"] ?? 0))) _best = _i;
+	}
+	var _mode = "quest", _pick = undefined, _txt = "";
+	if (_best >= 0) { _pick = _sl[_best].q; _txt = _pick.txt + "  (" + _pick.diff_txt + ")"; }
+	else { var _xc = exped_explore_cards(_h.dest, _rgi); if (array_length(_xc) == 0) return { ok : false, why : "nothing to do there" }; _mode = "explore"; _pick = _xc[0]; _txt = _pick.txt; }
+	var _cost = exped_cost(_h.dest, array_length(_crew));
+	credits_init();
+	var _ok = (g.credits >= arb(_cost.total));
+	return { ok : _ok, why : _ok ? "" : ("short of credits for another trip (" + string(_cost.total) + ")"), di : _di, crew : _crew, mode : _mode, pick : _pick, slot : _best, txt : _txt, short : _short };
+};
 __swap_r = function() { return { x : (land ? 14 : 4) + 16, y : room_height - 8 - 16, w : 90, h : 16 }; };
 __go_r   = function() { return { x : (land ? 14 : 4) + 118, y : room_height - 8 - 16, w : 90, h : 16 }; };
 __pick_r = function(_k) { return { x : room_width * .5 - 100, y : list_y + 30 + _k * 16, w : 200, h : 15 }; };

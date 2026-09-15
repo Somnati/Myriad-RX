@@ -602,6 +602,23 @@ if (view == "haul") {
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			exit;
 		}
+		// [SEND AGAIN] (2026-09-15): collect, wake this crew as they are (the
+		// seat's rule), and off on the easiest open card
+		var _ag = __again_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _ag.x, _ag.y, _ag.x + _ag.w, _ag.y + _ag.h)) {
+			var _pl = __again_plan(_h);
+			if (!_pl.ok) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+			var _rgi2 = _h[$ "rgi"] ?? 0, _dest2 = _h.dest;
+			exped_collect(_hi, room_width * .5, room_height * .5);
+			for (var _c = 0; _c < array_length(_pl.crew); _c++) { var _csp = _pl.crew[_c]; if (_csp.asleep) { _csp.asleep = false; _csp.hurt = 0; } }
+			if (exped_start(_pl.di, _pl.crew, _pl.mode, _pl.pick, _rgi2)) {
+				if (_pl.mode == "quest" && _pl.slot >= 0) exped_offer_take(_dest2, _rgi2, _pl.slot, g.exped.seq, _pl.pick);
+				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+			save_mark_dirty();
+			view = "hub";
+			exit;
+		}
 	}
 	exit;
 }

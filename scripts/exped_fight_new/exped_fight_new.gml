@@ -8,9 +8,14 @@
 /// (exped_bond, up to +10), and the notepad's studied kinds. The struct
 /// is what the combat window reads; each party pawn remembers its trip
 /// index (mi) for the hp write-back. The pack's xp is the kill's pay.
+/// THE HAZARD (2026-09-15): the place's (exped_hazard) cuts a bare
+/// member's lane (cbt_hazards); who holds it and who is bare goes on the
+/// fight (f.hazard) and into the diary once a place.
 function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 	var _d  = _tr.dest;
 	var _party = [];
+	var _bal = cbt_balance();
+	var _hzr = exped_hazard(_tr), _hz = _hzr.hz, _bare = [], _held = [];
 	var _n = array_length(_tr.sids);
 	var _bsum = 0, _bn = 0;
 	for (var _a = 0; _a < _n; _a++) for (var _b = _a + 1; _b < _n; _b++) { _bsum += exped_bond(_tr.sids[_a], _tr.sids[_b]); _bn++; }
@@ -23,6 +28,16 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 		_pw.hit += _bonus;
 		_pw.mi = _k;
 		_pw.studied = sprite_notes_kinds(_sp);
+		if (is_struct(_hz)) {
+			var _ho = cbt_hazard_hold(_sp, _hz);
+			if (_ho.ok) array_push(_held, _sp.name + " (" + _ho.by + ")");
+			else {
+				_pw[$ _hz.lane] *= _hz.f;
+				if (_hz.lane == "spd") { _pw.eva = _pw.spd * _bal.spd_to_eva; _pw.tic_spd = _bal.tic_spd_base + sqrt(max(0, _pw.spd)) / _bal.tic_spd_div; }   // (the derived pair follows)
+				_pw.haz = _hz.key;
+				array_push(_bare, _sp.name);
+			}
+		}
 		array_push(_party, _pw);
 	}
 	var _foes = [], _xp = 0;
@@ -39,5 +54,21 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 	}
 	var _f = cbt_fight_new(_party, _foes);
 	_f.xp = _xp;
+	// the hazard on the fight, and the diary's word on it (once a place: the
+	// crew notices it going in, not every room)
+	if (is_struct(_hz)) {
+		var _rg = exped_region(_tr);
+		var _pn = _rg.nodes[clamp(_hzr.ni, 0, array_length(_rg.nodes) - 1)].name;
+		_f.hazard = { key : _hz.key, name : _hz.name, hold : _hz.hold, bare : _bare, held : _held, place : _pn };
+		var _hk = string(_hzr.ni) + ":" + _hz.key;
+		if ((_tr[$ "haz_said"] ?? "") != _hk) {
+			_tr.haz_said = _hk;
+			var _where = _hz.name + " of " + _pn + ": ";
+			if (array_length(_bare) == 0)      array_push(_tr.log, _where + "the crew holds it - " + exped_crew_txt(_held));
+			else if (array_length(_held) == 0) array_push(_tr.log, _where + exped_crew_txt(_bare) + " " + _hz.bite);
+			else                               array_push(_tr.log, _where + exped_crew_txt(_bare) + " " + _hz.bite + "; " + exped_crew_txt(_held) + ((array_length(_held) > 1) ? " hold it" : " holds it"));
+		}
+		if (array_length(_bare) > 0) cbt_log(_f, _hz.name + ": " + exped_crew_txt(_bare) + " " + _hz.bite);
+	}
 	return _f;
 }

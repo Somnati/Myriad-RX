@@ -14,8 +14,16 @@ function exped_odds(_d, _q, _crew, _ri = 0) {
 	if (_n == 0) return { p : -1, fights : 0, ratio : 0 };
 	var _lv = region_get(_d, _ri).lv;
 	if (is_struct(_q) && !is_undefined(_q[$ "lv"])) _lv = _q.lv;
+	// THE HAZARD (2026-09-15): a bare member's cut lane comes off its total
+	// (accuracy weighs more than its points: the hit curve is steep)
+	var _hz = undefined;
+	if (is_struct(_q)) { var _rg = region_get(_d, _ri); _hz = cbt_hazard_at(_rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)].kind); }
 	var _mine = 0;
-	for (var _i = 0; _i < _n; _i++) _mine += sprite_stats(_crew[_i]).total;
+	for (var _i = 0; _i < _n; _i++) {
+		var _st = sprite_stats(_crew[_i]), _t = _st.total;
+		if (is_struct(_hz) && !cbt_hazard_hold(_crew[_i], _hz).ok) _t -= _st.pts[$ _hz.lane] * (1 - _hz.f) * ((_hz.lane == "hit") ? 2.5 : 1.5);
+		_mine += max(1, _t);
+	}
 	var _theirs = 2 * sprite_par_pts(_lv) * SPRITE_FOE_BUDGET;   // the average pack is two (one to three, not the party's size)
 	var _r = _mine / max(1, _theirs);
 	// refit 2026-09-15 to the twin's packs of one to three: at par a solo
