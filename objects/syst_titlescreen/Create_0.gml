@@ -252,6 +252,203 @@ __draw_trace = function() {
 	}
 };
 
+// ---- THE FORGE (his ask, 2026-09-14: "a thing where you can view a dial
+// and it takes you to a room where there is a larger version of a dial
+// with lots of fancy particles... i love the way this looks but never
+// figured out how to implement it naturally"). That is DE's rm_genforge -
+// the gen forge, reachable only from its debug menu with a dial's index
+// (g.forge_id) - ported TERM FOR TERM as a backdrop, a random dial's
+// colour in place of the viewed dial's. DE's room was 144x296 portrait
+// with the cell at its centre; the panel sits centred here (fg.px/py is
+// its origin), the bands span its width, the motes roam the whole title.
+//   the cell     obj_gf_slot_cell in its "claimed" state: a disc whose
+//                size is a spring (set_wiggle .08/.9) chasing 15 x fill,
+//                fill trickling toward .3..1 with the dial's CYCLE (a
+//                sawtooth here, the cycle simulated), under a spr_glow_sw
+//                halo scaled by _circ_perc = size / 11.25 and turned by a
+//                random angle every frame; the disc flickers while it is
+//                small (glow_alpha = random(lerp(1, -.5, perc)))
+//   the motes    obj_gf_eff: one in fourteen frames a mote is born at a
+//                random point, homing on the cell at random(2) px a frame,
+//                its size a spring decaying (trickle 30) to nothing, a
+//                circle + a .2 halo; 5% carry the BIG GLOW - a room-wide
+//                horizontal spr_glow_sw streak (20 x .1 of 144 px) in the
+//                complementary colour pulsing on a sawtooth (rot)
+//   the sparks   obj_eff_shardspark: every mote sheds one 6% of frames -
+//                a 2px square easing to .65..1, blown on a wind toward
+//                the cell whose direction random-walks (wind_dir_change
+//                relaxing to random(-3, 3) over a random(.9) - DE's
+//                overshoot included), living 1..3 s, faster with a crowd
+//   the bands    obj_gf_titleback: three slanted 15px bands at the top
+//                sliding in from -10 (trickle 4 / 10 / 30), the name in
+//                fnt_large, the level at the right
+// The stat bars and the density bar (the cell's normal Draw) are the
+// forge's UI, not its look - left out. The whole thing draws ABOVE the
+// glow pass (a proxy at 48): DE lit it with its own additive halos, and
+// a bloom on top of those is a different picture ----
+fg = undefined;
+__forge_roll = function() {
+	var _cx = floor((room_width - 144) * .5), _cy = -13;   // the 144x296 panel, its centre on the title's
+	var _col = dial_color(irandom(12));                    // a random dial, a..m
+	fg = {
+		px : _cx, py : _cy,
+		x : _cx + 72, y : _cy + 144,       // the cell (DE: instance at 72,144)
+		c : _col,
+		name : gen_name_planet(), level : irandom_range(1, 250),
+		cycle : random(1), cycle_len : random_range(150, 300),
+		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
+		circ : 0, glow : 0, wdc : random_range(-4, 4),
+		effs : [], sparks : [],
+		// obj_gf_titleback's Create
+		a_yos : random_range(1, 0), a_diros : random_range(0, .1), a_sos : -10,
+		b_side : choose(0, 1), b_yos : random_range(-4, 2), b_diros : random_range(.5, 1.2), b_sos : -10,
+		c_yos : random_range(2, -2), c_diros : random(.6), c_sos : -10,
+		t_alpha : 0,
+	};
+};
+__forge_roll();
+/// the complementary colour (DE's colour_set_comp: the hue turned half way)
+__forge_comp = function(_c) {
+	return make_colour_hsv((c_hue(_c) + 128) mod 256, c_sat(_c), c_val(_c));
+};
+/// DE's do_wiggle on a struct: a spring toward `des` (recovery + damper)
+__forge_wiggle = function(_s, _des) {
+	_s.chg += ((_des - _s.size) * _s.rec) * delta;
+	_s.chg *= power(_s.dmp, delta);
+	_s.chg = clamp(_s.chg, -10, 10);
+	_s.size += _s.chg;
+	if (_s.size < 0) { _s.size = 0; _s.chg /= 2; }
+	if (delta > 4) { _s.size = 0; _s.chg = 0; }
+	if (_s.size < 0) { _s.size = 0; _s.chg = 0; }
+};
+__forge_step = function() {
+	var _f = fg;
+	// ---- the dial's cycle, simulated (DE read g.cycle[s]) ----
+	_f.cycle += delta / _f.cycle_len;
+	if (_f.cycle >= 1) _f.cycle -= 1;
+	// ---- obj_gf_slot_cell, claimed: fill and alpha ride the cycle ----
+	_f.fill  = trickle(_f.fill, lerp(.3, 1, _f.cycle), 5);
+	_f.alpha = lerp(.3, 1, _f.cycle);
+	var _max = (30 * .5) * _f.fill;                 // created: (sprite_width / 2) x fill
+	__forge_wiggle(_f, _max);
+	_f.circ = _f.size / ((30 * .75) * .5);
+	// the motes (dens_perc 1: roll_perc(7) a frame)
+	if (roll_perc(7)) {
+		array_push(_f.effs, {
+			x : random(room_width), y : random(room_height),
+			size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
+			max_size : random(2), decay : 30, alpha : 1, spd : random(2), part_chance : 2,
+			big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
+		});
+	}
+	_f.glow = clamp(_f.glow - .05, 0, 1);
+	_f.alpha = trickle(_f.alpha, 1, 3.5);
+	// ---- obj_gf_eff ----
+	for (var _i = array_length(_f.effs) - 1; _i >= 0; _i--) {
+		var _e = _f.effs[_i];
+		__forge_wiggle(_e, _e.max_size);
+		_e.max_size = trickle(_e.max_size, 0, _e.decay);
+		_e.alpha    = trickle(_e.alpha, 0, _e.decay);
+		if (_e.max_size <= 0) { array_delete(_f.effs, _i, 1); continue; }
+		if (roll_perc(3 * _e.part_chance)) {
+			// a shard spark on the wind toward the cell (DE's Create, its
+			// xspd/yspd zeroed by the mote - the wind is the whole motion)
+			var _hp = 60 * random_range(1, 1.5);
+			if (roll_perc(50)) _hp = 60 * random_range(1.5, 2);
+			if (roll_perc(7))  _hp = 60 * random_range(2, 3);
+			array_push(_f.sparks, {
+				x : _e.x, y : _e.y,
+				wind_dir : point_direction(_e.x, _e.y, _f.x, _f.y), wind_spd : random_range(.2, .5),
+				wdc : _f.wdc, wind_trick : random(.9),
+				hp : _hp, scale : 2, scale_min : random_range(.65, 1),
+				col : make_colour_hsv(c_hue(_f.c), c_sat(_f.c), 255),
+			});
+		}
+		var _d = point_direction(_e.x, _e.y, _f.x, _f.y);   // move_away false: toward the cell
+		_e.x += lengthdir_x(_e.spd, _d);
+		_e.y += lengthdir_y(_e.spd, _d);
+		if (point_distance(_e.x, _e.y, _f.x, _f.y) < 144 / 4) { array_delete(_f.effs, _i, 1); continue; }
+		_e.rot += _e.rot_spd;
+		if (_e.rot > 1) _e.rot = -1;
+		_e.glow_alpha = _e.rot;
+	}
+	// ---- obj_eff_shardspark ----
+	var _ns = array_length(_f.sparks);
+	for (var _i = _ns - 1; _i >= 0; _i--) {
+		var _s = _f.sparks[_i];
+		_s.scale = _s.scale + ((_s.scale_min - _s.scale) / (5 / delta));
+		_s.wdc = _s.wdc + ((random_range(-3, 3) - _s.wdc) / (_s.wind_trick / delta));
+		_s.wind_dir += _s.wdc;
+		_s.x += lengthdir_x(_s.wind_spd, _s.wind_dir);
+		_s.y += lengthdir_y(_s.wind_spd, _s.wind_dir);
+		_s.hp -= (1 * delta) * (lerp(1, 4, _ns / 200));
+		if (_s.hp <= 0) array_delete(_f.sparks, _i, 1);
+	}
+	// ---- obj_gf_titleback: the bands slide in (created) ----
+	_f.a_sos = trickle(_f.a_sos, 0, 4);
+	_f.b_sos = trickle(_f.b_sos, 0, 10);
+	_f.c_sos = trickle(_f.c_sos, 0, 30);
+	_f.t_alpha = trickle(_f.t_alpha, 1, 3);
+};
+__draw_forge = function() {
+	__forge_step();
+	var _f = fg;
+	var _c = _f.c, _w = 144, _px = _f.px, _py = _f.py;
+	// ---- the bands (obj_gf_titleback's Draw Begin, normal blend, under the rest) ----
+	var _c1 = merge_colour(_c, c_black, .5), _c2 = merge_colour(_c, c_black, .9);
+	var _p = 1 - (_f.a_sos / -10); _p *= _p; _p = lerp(5, 1, _p);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.a_sos + (25 + _f.a_yos), _w, 15, (_f.a_diros * _p), _c, _c, _c, _c, .12 * _f.t_alpha);
+	_p = 1 - (_f.b_sos / -10); _p *= _p; _p = lerp(5, 0, _p);
+	if (_f.b_side == 0) draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.b_sos + (24 + _f.b_yos), _w, 15,  (1.1 + (_f.b_diros * _p)), _c1, _c2, _c2, _c1, 1 * _f.t_alpha);
+	if (_f.b_side == 1) draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.b_sos + (15 + _f.b_yos), _w, 15, -(1.1 + (_f.b_diros * _p)), _c1, _c2, _c2, _c1, 1 * _f.t_alpha);
+	_p = 1 - (_f.c_sos / -10); _p *= _p; _p = lerp(5, 0, _p);
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.c_sos + (15 + _f.c_yos), _w, 15, .6 + (_f.c_diros * _p), _c, _c2, _c2, _c, 1 * _f.t_alpha);
+	draw_set_color(merge_colour(_c, c_white, .5));
+	draw_set_halign(fa_left);
+	draw_set_valign(fa_top);
+	draw_set_alpha(_f.t_alpha);
+	draw_set_font(fnt_large);
+	draw_text(_px + 4, _py + _f.c_sos + 10 + 15 + 7, _f.name);
+	draw_set_color(c_aqua);
+	draw_set_halign(fa_right);
+	draw_text(_px + _w - 4, _py + _f.b_sos + 10 + 15 + 10 + 2, string(_f.level));
+	draw_set_color(c_gray);
+	draw_set_font(fnt);
+	draw_text(_px + _w - 4, _py + _f.a_sos + 10 + 15 + 3, "level");
+	draw_set_halign(fa_left);
+	draw_set_alpha(1);
+
+	// ---- everything par_ambi_draw drew: additive ----
+	gpu_set_blendmode(bm_add);
+	// the cell (obj_gf_slot_cell's Draw Begin, claimed: no outline, no black disc)
+	var _cr = random(360);
+	var _ca = _f.alpha, _cp = _f.circ;
+	draw_sprite_ext(spr_glow_sw, 0, _f.x, _f.y, _cp, _cp, _cr, _c, lerp(0, .6, _cp * (1 + _f.glow)) * _ca);
+	draw_sprite_ext(spr_glow_sw, 0, _f.x, _f.y, _cp, _cp * ((_ca * _ca) * _ca), 0, _c, lerp(0, .6, _cp * (1 + _f.glow)) * (1 - _ca));
+	var _ga = random(lerp(1, -.5, _cp));            // the flicker while small
+	var _sz = _f.size * (_ca * _ca);
+	draw_set_alpha(clamp(1 - _ga, 0, 1) * _ca);
+	draw_circle_colour(_f.x - 1.5, _f.y - 1, _sz, _c, make_colour_hsv(c_hue(_c), 255, c_val(_c)), false);
+	draw_set_alpha(1);
+	// the motes (obj_gf_eff's Draw Begin)
+	var _comp = __forge_comp(_c);
+	for (var _i = 0; _i < array_length(_f.effs); _i++) {
+		var _e = _f.effs[_i];
+		draw_circle_colour(_e.x, _e.y, _e.size, _c, _c, false);
+		draw_sprite_ext(spr_glow_sw, 0, _e.x, _e.y, .2, .2, 0, _c, .3 * _e.alpha);
+		if (_e.big_glow)
+			draw_sprite_ext(spr_glow_sw, 0, _e.x, _e.y, 20 * random_range(.95, 1.05), (.1 * _e.glow_scale) + random_range(-.05, .05), 0,
+				_comp, (.7 + random_range(-.05, .05)) * (_e.glow_alpha * _e.alpha));
+	}
+	// the sparks (obj_eff_shardspark's Draw Begin: a `scale` square on its centre)
+	for (var _i = 0; _i < array_length(_f.sparks); _i++) {
+		var _s = _f.sparks[_i];
+		draw_sprite_ext(spr_pixel_1x1, 0, _s.x - _s.scale * .5, _s.y - _s.scale * .5, _s.scale, _s.scale, 0, _s.col, 1);
+	}
+	gpu_set_blendmode(bm_normal);
+	draw_set_color(c_white);
+};
+
 __draw_field = function() {
 	// ---- the ground ----
 	// plain black. The gradient is NOT under the glow pass any more -
@@ -273,7 +470,7 @@ __draw_field = function() {
 	// speed, which is what the parallax starfield was reaching for and what
 	// a flat grid can never have.
 	var _bg = variable_global_exists("title_bg") ? g.title_bg : "starfield";
-	var _stars = (_bg == "starfield"), _trace = (_bg == "trace");
+	var _stars = (_bg == "starfield"), _trace = (_bg == "trace"), _forge = (_bg == "forge");
 	if (_trace) __draw_trace();
 	if (_stars) {
 		// THE FLIGHT: z shrinks a little every frame (delta-scaled); the
@@ -298,7 +495,7 @@ __draw_field = function() {
 			draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), floor(_sy), _sz, _sz, 0, _s.col, _br * _tw);
 		}
 	}
-	var _n = (_stars || _trace) ? 0 : array_length(blk_h);
+	var _n = (_stars || _trace || _forge) ? 0 : array_length(blk_h);
 	for (var _i = 0; _i < _n; _i++) {
 		var _b = blk_h[_i];
 
@@ -339,7 +536,7 @@ __draw_field = function() {
 	// starfield (his call, 2026-09-14: "they look weird when you got some
 	// coming at you") - a field of stars flying at the camera has its own
 	// motion, and sparks drifting the other way argue with it
-	for (var _i = 0; _i < ((_stars || _trace) ? 0 : array_length(mote)); _i++) {
+	for (var _i = 0; _i < ((_stars || _trace || _forge) ? 0 : array_length(mote)); _i++) {
 		var _mt = mote[_i];
 		var _mx = _mt.hx * room_width + dsin(tt * .35 + _mt.p1) * 5;
 		var _my = room_height + 8 - ((tt * _mt.hs + _mt.y0) mod (room_height + 16));
@@ -352,6 +549,13 @@ field_px = create_obj(0, 0, obj_draw_proxy);
 field_px.owner = id;
 field_px.depth = 100;
 field_px.fn    = __draw_field;
+
+// THE FORGE'S SLOT: above the pass, below the buttons' glass capture -
+// only while it is the backdrop (the field stays black under it)
+forge_px = create_obj(0, 0, obj_draw_proxy);
+forge_px.owner = id;
+forge_px.depth = 48;
+forge_px.fn    = function() { if (variable_global_exists("title_bg") && g.title_bg == "forge") __draw_forge(); };
 
 // ⚖️ THE NAME IS LIT BY THE PASS TOO - BUT ONLY A DIM COPY OF IT (his
 // reports, 2026-09-10: first "title still has sprite glow" - the

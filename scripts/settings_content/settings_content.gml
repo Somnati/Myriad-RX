@@ -485,9 +485,11 @@ function settings_content() {
 			set_pill("starfield", { val : "starfield", col : c_gold, enabled : (g.title_bg == "starfield") });
 			set_pill("blocks",    { val : "blocks",    col : c_gold, enabled : (g.title_bg == "blocks") });
 			set_pill("trace",     { val : "trace",     col : c_gold, enabled : (g.title_bg == "trace") });
+			set_pill("forge",     { val : "forge",     col : c_gold, enabled : (g.title_bg == "forge") });
 		},
 		function(_v) { g.title_bg = _v; },
-		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, or a pen tracing figures.");
+		"what drifts behind the title: a starfield flying at you, the money room's blocks in the fog, "
+		+ "a pen tracing figures, or DE's gen forge - a dial's cell breathing under its halo, motes and sparks drawn to it.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)

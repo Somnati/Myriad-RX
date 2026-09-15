@@ -39,7 +39,7 @@ function settings_defaults(_section = "all") {
 		g.dice_mat              = "random"; // dice finish (dice_mat_config)
 		g.coin_mat              = "gold";   // the coin's, same roster
 		g.menu_style            = "default"; // the header menu's panel (default / black / glass)
-		g.title_bg              = "starfield"; // the title's backdrop (starfield / blocks)
+		g.title_bg              = "starfield"; // the title's backdrop (starfield / blocks / trace / forge)
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
 		g.bit_pick              = { profit : "glow", credit : "glow",
 		                            unit : "glow", tile : "plain" }; // bit_config ids
