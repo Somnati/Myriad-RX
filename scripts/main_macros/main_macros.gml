@@ -419,7 +419,7 @@ function main_macros() {
 #macro EXPED_ROAD_BEAT 45    // % chance per road-hour, when no encounter opened, of a little thing (exped_road_beat: weather, a coin, berries, a stumble, a shortcut...)
 #macro EXPED_DROP     40     // % chance a won fight drops something (exped_fight_loot: credits or a piece of gear)
 #macro PL_ZOOM_IN    1.7     // the planet window's zoom on a focused region (syst_exped_panel; the clouds fade to nothing by it, the box clips the rest)
-#macro PAGE_GRAIN    1.0     // the one dither's grain (sh_page_out, page_blit): levels either way at the blit - 1 = the textbook triangular dither; raise it for a visible film grain
+#macro PAGE_GRAIN_MAX 6      // the one dither at its slider's 100% (sh_page_out, page_blit): levels either way at the blit; 1 level (~17%) is the textbook amount, more = a visible pattern / grain
 #macro PV_ZOOM_RG    1.55    // the planet page's pull-in on [view region] (region mode: the banner left, the quests right, the clouds thinned)
 #macro EXPED_QUESTS    5     // quests a region offers at once (his ask, 2026-09-15), each slot on its own clock...
 #macro EXPED_QUEST_LIFE_LO 1800   // ...seconds a slot lives before it re-deals (the expedition clock: x the debug speed, offline too)...

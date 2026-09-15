@@ -6,7 +6,7 @@
 /// hair on top, which is harmless.
 function page_blit(_surf, _x, _y) {
 	static _u = undefined;
-	if (is_undefined(_u)) _u = { time : shader_get_uniform(sh_page_out, "u_time"), cell : shader_get_uniform(sh_page_out, "u_cell"), amp : shader_get_uniform(sh_page_out, "u_amp"), mode : shader_get_uniform(sh_page_out, "u_mode"), levels : shader_get_uniform(sh_page_out, "u_levels") };
+	if (is_undefined(_u)) _u = { time : shader_get_uniform(sh_page_out, "u_time"), cell : shader_get_uniform(sh_page_out, "u_cell"), amp : shader_get_uniform(sh_page_out, "u_amp"), mode : shader_get_uniform(sh_page_out, "u_mode") };
 	if (!surface_exists(_surf)) return;
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);
@@ -14,11 +14,11 @@ function page_blit(_surf, _x, _y) {
 	shader_set(sh_page_out);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
 	shader_set_uniform_f(_u.cell, max(1, planet_config().px_size) * _sc);
-	shader_set_uniform_f(_u.amp, page_float() ? PAGE_GRAIN : PAGE_GRAIN * .5);
-	// the look (settings > visuals > page dither): ordered / retro / chunky / grain
+	// the look and the intensity (settings > visuals): ordered / grain, 0-100% of PAGE_GRAIN_MAX levels
 	var _pd = variable_global_exists("page_dither") ? g.page_dither : "ordered";
+	var _pa = (variable_global_exists("page_dither_amt") ? g.page_dither_amt : 25) / 100 * PAGE_GRAIN_MAX;
+	shader_set_uniform_f(_u.amp, page_float() ? _pa : _pa * .5);
 	shader_set_uniform_f(_u.mode, (_pd == "grain") ? 0 : 1);
-	shader_set_uniform_f(_u.levels, (_pd == "retro") ? 15 : ((_pd == "chunky") ? 7 : 255));
 	draw_surface_ext(_surf, _x, _y, 1, 1, 0, c_white, _fa);
 	shader_reset();
 	ui_fade_set(_fa);

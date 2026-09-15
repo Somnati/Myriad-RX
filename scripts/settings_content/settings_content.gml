@@ -418,15 +418,22 @@ function settings_content() {
 		g.page_dither,
 		function() {
 			set_pill("ordered", { val : "ordered", col : c_gold, enabled : (g.page_dither == "ordered") });
-			set_pill("retro",   { val : "retro",   col : c_gold, enabled : (g.page_dither == "retro") });
-			set_pill("chunky",  { val : "chunky",  col : c_gold, enabled : (g.page_dither == "chunky") });
 			set_pill("grain",   { val : "grain",   col : c_gold, enabled : (g.page_dither == "grain") });
 		},
 		function(_v) { g.page_dither = _v; },
 		"how the sky, the world and the galaxy meet the screen's 8 bits: ORDERED is the old-school "
-		+ "bayer crosshatch at full colour (it only shows where a gradient steps); RETRO posterises "
-		+ "to 16 steps a channel through it and CHUNKY to 8 - the pattern becomes the picture; "
-		+ "GRAIN is a fresh film grain every frame instead.");
+		+ "bayer crosshatch, static; GRAIN is a fresh film grain every frame. the slider under this "
+		+ "sets how much of either.");
+	// (LIVE: the settings fade to the knob while it is held, the expedition
+	// page under it - his ask: "so i can see the changes live")
+	settings_slider("dither intensity", 0, 100,
+		function() { return g.page_dither_amt; },
+		function(_v) { g.page_dither_amt = _v; },
+		"%", 1,
+		"how strong the dither is: about 17% is one level - just enough to break the bands; "
+		+ "more and the pattern (or the grain) becomes part of the look. hold the knob and the "
+		+ "settings fade so the expedition page shows it as you drag.",
+		-1, undefined, true);
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)

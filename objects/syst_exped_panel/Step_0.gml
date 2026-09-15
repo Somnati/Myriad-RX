@@ -4,6 +4,11 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 
 var _e = g.exped;
+// UNDER THE SETTINGS (2026-09-15): the panel stays up but deeper (the
+// settings draws over it), its hand folded, its input off (below)
+var _under = instance_exists(syst_settings);
+depth = _under ? -500 : -510;
+if (_under && hand != "") __hand_close();
 // THE PAGE TURN: to black, the view turns, back to light (__page_go)
 if (pg_dir < 0) { pg_a = move_to(pg_a, 0, 3); if (pg_a <= .04) { pg_a = 0; view = pg_next; pg_dir = 1; } }
 else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; pg_dir = 0; } }
@@ -137,7 +142,7 @@ if (view == "trip" || view == "haul") {
 		sb.image_yscale = _lr.h / max(1, sprite_get_height(spr_scrollbar));
 		sb.wheel_x1 = _lr.x; sb.wheel_x2 = _lr.x + _lr.w;
 		sb.visible = (oa >= .999 && !closing && _lmax > 0);
-		sb.enabled = (oa >= .999 && !closing);
+		sb.enabled = (oa >= .999 && !closing && !_under);
 	}
 } else {
 	log_n = -1; log_follow = true; log_scroll = 0;
@@ -146,6 +151,7 @@ if (view == "trip" || view == "haul") {
 if (view != "galaxy") gx_press = false;
 
 if (oa < .999 || closing) exit;
+if (_under) exit;   // (the settings own the input; the pages keep drawing under them)
 if (!input_free(ui_layer_overlay)) exit;
 // ---- THE CONFIRM POPUP owns the panel while it is up (abort) ----
 if (view != "trip") confirm = "";   // (the page turned under it - a trip got home)

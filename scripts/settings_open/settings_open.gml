@@ -24,6 +24,11 @@ function settings_open() {
 		return;
 	}
 	if (instance_exists(syst_settings)) return;   // already up: nothing to do (the fold-what-is-up line below must not fold THIS)
-	if (ui_overlay() != noone) ui_overlay_close();   // one panel at a time: the one up folds (2026-09-13 - the menu opens over panels now)
+	// one panel at a time: the one up folds (2026-09-13 - the menu opens over
+	// panels now) - EXCEPT the expedition panel (his ask, 2026-09-15): it
+	// stays under the settings, quiet and deeper, so the pages' dither is
+	// seen live as the slider moves
+	var _ov = ui_overlay();
+	if (_ov != noone && _ov.object_index != syst_exped_panel) ui_overlay_close();
 	create_obj(0, 0, syst_settings);
 }

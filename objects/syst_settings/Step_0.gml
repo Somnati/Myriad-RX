@@ -12,7 +12,8 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 
 // ---- THE PEEK: a held visualiser knob, the visualiser in the room ----
 var _pk = noone;
-if (instance_exists(obj_bignum5) && !closing)
+// (...or the expedition page under the settings - the dither slider, 2026-09-15)
+if ((instance_exists(obj_bignum5) || instance_exists(syst_exped_panel)) && !closing)
 	with (obj_set_slider) if (live && grabbed) _pk = id;
 if (_pk != noone) peek_inst = _pk;
 peek = move_to(peek, (_pk != noone) ? 1 : 0, 5);

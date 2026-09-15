@@ -6,11 +6,11 @@
 //             (two hashes summed: the grain's level is the same everywhere),
 //             u_amp levels either way, a fresh grain every frame
 //   u_mode 1  THE OLD-SCHOOL ORDERED DITHER - an 8x8 Bayer threshold,
-//             static, on the render's pixel cells; u_levels steps a
-//             channel (255 = every 8-bit level, the crosshatch only shows
-//             where a gradient steps; 15 / 7 = retro / chunky, the gradients
-//             posterised into the pattern - the image he sent)
-// Both on the render's pixel cells (u_cell window px). Exact black stays black.
+//             static, on the render's pixel cells, u_amp levels either way
+//             (at one level it only shows where a gradient steps; wider,
+//             the crosshatch is the picture)
+// u_amp = the intensity slider (settings > visuals). Both on the render's
+// pixel cells (u_cell window px). Exact black stays black.
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
@@ -19,7 +19,6 @@ uniform float u_time;
 uniform float u_cell;
 uniform float u_amp;
 uniform float u_mode;
-uniform float u_levels;
 
 // white noise, no lattice (Hoskins' hash12): the grain that reads as film
 // grain, not the diagonal checkerboard interleaved-gradient noise makes
@@ -47,8 +46,7 @@ void main()
         c.rgb += n * (u_amp / 255.0);
     } else {
         float t = bayer8(p);                                          // 0..1, this cell's threshold
-        float L = max(u_levels, 1.0);
-        c.rgb = floor(c.rgb * L + t) / L;                             // posterised through the pattern
+        c.rgb += (t - 0.5) * (u_amp / 255.0);
     }
     gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), c.a) * v_vColour;
 }
