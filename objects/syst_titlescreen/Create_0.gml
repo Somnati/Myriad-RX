@@ -298,7 +298,7 @@ __forge_roll = function() {
 		cycle : random(1), cycle_len : random_range(150, 300),
 		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
 		circ : 0, glow : 0, wdc : random_range(-4, 4),
-		effs : [], sparks : [],
+		effs : [], sparks : [], rings : [],
 	};
 };
 __forge_roll();
@@ -320,7 +320,26 @@ __forge_step = function() {
 	var _f = fg;
 	// ---- the dial's cycle, simulated (DE read g.cycle[s]) ----
 	_f.cycle += delta / _f.cycle_len;
-	if (_f.cycle >= 1) _f.cycle -= 1;
+	if (_f.cycle >= 1) {
+		_f.cycle -= 1;
+		// THE PULSE (prod_dials' GENFORGE block, on the cycle's completion -
+		// his memory: "the pulsing of the dial affected the particles"): a
+		// kick to the cell's spring (push_wiggle 2), a RING out of it
+		// (obj_gf_eff_ring), and create_pull - four to ten motes born at
+		// random points and pulled in (obj_gf_eff's own Create: spd random(3),
+		// decay by size, part_chance 1)
+		_f.chg += 2;
+		array_push(_f.rings, { size : 0, spd : 3.5, decay : random_range(15, 30), alpha : 1 });
+		repeat (choose(2, 3, 4, 5) * 2) {
+			var _sp0 = random(1);
+			array_push(_f.effs, {
+				x : _f.px + random(144), y : _f.py + random(296),
+				size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
+				max_size : random(2), decay : lerp(60, 15, _sp0), alpha : 1, spd : random(3), part_chance : 1,
+				big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
+			});
+		}
+	}
 	// ---- obj_gf_slot_cell, claimed: fill and alpha ride the cycle ----
 	_f.fill  = trickle(_f.fill, lerp(.3, 1, _f.cycle), 5);
 	_f.alpha = lerp(.3, 1, _f.cycle);
@@ -367,6 +386,13 @@ __forge_step = function() {
 		if (_e.rot > 1) _e.rot = -1;
 		_e.glow_alpha = _e.rot;
 	}
+	// ---- obj_gf_eff_ring: out from the cell, fading ----
+	for (var _i = array_length(_f.rings) - 1; _i >= 0; _i--) {
+		var _r = _f.rings[_i];
+		_r.size = max(_r.size + _r.spd * delta, _f.size);
+		_r.alpha = trickle(_r.alpha, 0, _r.decay);
+		if (_r.alpha <= 0) array_delete(_f.rings, _i, 1);
+	}
 	// ---- obj_eff_shardspark ----
 	var _ns = array_length(_f.sparks);
 	for (var _i = _ns - 1; _i >= 0; _i--) {
@@ -395,6 +421,15 @@ __draw_forge = function() {
 	var _sz = _f.size * (_ca * _ca);
 	draw_set_alpha(clamp(1 - _ga, 0, 1) * _ca);
 	draw_circle_colour(_f.x - 1.5, _f.y - 1, _sz, _c, make_colour_hsv(c_hue(_c), 255, c_val(_c)), false);
+	draw_set_alpha(1);
+	// the rings (obj_gf_eff_ring's Draw Begin: a half disc and a full outline)
+	for (var _i = 0; _i < array_length(_f.rings); _i++) {
+		var _r = _f.rings[_i];
+		draw_set_alpha(.5 * _r.alpha);
+		draw_circle_colour(_f.x, _f.y, _r.size, _c, _c, false);
+		draw_set_alpha(_r.alpha);
+		draw_circle_colour(_f.x, _f.y, _r.size, _c, _c, true);
+	}
 	draw_set_alpha(1);
 	// the motes (obj_gf_eff's Draw Begin)
 	var _comp = __forge_comp(_c);
