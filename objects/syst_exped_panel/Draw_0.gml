@@ -356,17 +356,44 @@ if (view == "trip") {
 	var _d  = _tr.dest;
 	var _b  = exped_biomes()[_d.biome];
 	var _n  = array_length(_tr.sids);
-	// THE WORLD: the full planet (planet_get / planet_draw - the tech
-	// demo's raycast sphere with the mountains, its ring if it has one)
-	// over its own stars, through the box's surface (__draw_orbit:
-	// nothing spills past the box); the lite portrait holds the spot
-	// while the world is still being built
-	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .95);
-	// (the main world's render, its camera fixed on the trip's region - tp_cam, the Step)
-	__draw_orbit(_d, big_x + 1, big_y + 1, big_w - 2, land ? 102 : 62, (big_w - 2) * .5, land ? 47 : 29, land ? 34 : 20, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
-	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
+	var _rg = exped_region(_tr);
+	var _wc = exped_world_col(_d);
+	var _lf = _tr.fight;
+	// ---- THE WORLD'S ISLAND: the render (its camera fixed on the trip's
+	// region - tp_cam), the name, the region, the leg, the buttons ----
+	var _isl = __trip_isle_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, _isl.w, _isl.h, 0, c_black, .85);
+	draw_px_rect(_isl.x, _isl.y, _isl.w, _isl.h, _wc, .35);
+	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, 2, _isl.h, 0, _wc, .9);
+	__draw_orbit(_d, big_x + 2, big_y + 1, big_w - 3, big_h - 2, (big_w - 3) * .5, (big_h - 2) * .5 + 2, land ? 30 : 26, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
 	ui_fade_set(_ea);
-	// the buttons, under the box: [crew] [map] [abort]
+	draw_set_halign(fa_center);
+	draw_set_font(fnt_large);
+	draw_set_color(_wc); draw_set_alpha(.95);
+	draw_text(big_x + big_w * .5, big_y + big_h + 3, str_cap(_d.name));
+	draw_set_font(fnt);
+	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
+	draw_text(big_x + big_w * .5, big_y + big_h + 17, _rg.name + "  -  lv " + string(exped_trip_lv(_tr)));
+	draw_set_halign(fa_left);
+	// the leg: a labelled bar (the hub's), then the day and the weather
+	var _travel = _tr.dur * EXPED_TRAVEL;
+	var _tf = 0, _leg = "";
+	if (_tr.stage == 0) { _tf = clamp(_tr.t / max(1, _travel), 0, 1); _leg = "flying out"; }
+	else if (_tr.stage == 2) { _tf = clamp((_tr.t - (_tr[$ "leave_t"] ?? _tr.t)) / max(1, _tr.dur * EXPED_RETURN), 0, 1); _leg = "flying home"; }
+	else if (is_struct(_tr[$ "road"])) { _tf = clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1); _leg = "on the road"; }
+	else if (is_struct(_tr[$ "act"])) { _tf = 1 - clamp(_tr.act.left / max(1, EXPED_ROOM_T), 0, 1); _leg = "at " + _rg.nodes[clamp(_tr.pos, 0, array_length(_rg.nodes) - 1)].name; }
+	else { _tf = 0; _leg = "deciding"; }
+	var _lgy = big_y + big_h + 30;
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(big_x + 6, _lgy, string_copy(_leg, 1, 14));
+	var _lbx = big_x + 6 + max(46, string_width(string_copy(_leg, 1, 14)) + 6), _lbw = big_x + big_w - 6 - _lbx;
+	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw, 4, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw * _tf, 4, 0, (_tr.stage == 1) ? c_sgreen : c_steelblue, .9);
+	draw_px_rect(_lbx, _lgy + 2, _lbw, 4, c_white, .1);
+	draw_set_color(_dim); draw_set_alpha(.6);
+	var _sky = (_tr.stage == 1) ? (((_tr[$ "night"] ?? false) ? "night" : "day") + (((_tr[$ "weather"] ?? "clear") != "clear") ? (", " + _tr.weather) : "")) : "in space";
+	draw_text(big_x + 6, _lgy + 11, _sky + ((_e.spd > 1) ? ("  -  x" + string(_e.spd)) : ""));
+	// [crew] [map] [abort] at the island's foot
 	var _tcr = __trip_crew_r();
 	draw_ui_button(_tcr.x, _tcr.y, _tcr.w, _tcr.h, "crew", c_steelblue, true, false);
 	var _tmr = __trip_map_r();
@@ -374,82 +401,69 @@ if (view == "trip") {
 	var _abr = __trip_abort_r();
 	var _can_abort = !(_tr[$ "aborted"] ?? false) && _tr.stage != 2;
 	draw_ui_button(_abr.x, _abr.y, _abr.w, _abr.h, (_tr[$ "aborted"] ?? false) ? "aborted" : "abort", c_hred, _can_abort, false);
-	draw_set_halign(fa_center);
-	draw_set_color(exped_world_col(_d));
-	draw_set_alpha(.95);
-	draw_text(big_x + big_w * .5, big_y + (land ? 88 : 54), _d.name);
-	draw_set_color(merge_colour(_b.col2, c_white, .3));
-	draw_set_alpha(.8);
-	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), exped_region(_tr).name + "  -  lv " + string(exped_trip_lv(_tr)));
-	draw_set_halign(fa_left);
-	// THE CREW'S BANNERS, under the buttons (his ask, 2026-09-15): a row
-	// each - dot, name, level, the hp bar - LIVE in a fight (the pawn's hp
-	// by its trip index, or the replay frame's), the trip's hp between
-	var _lf = _tr.fight;
+	// ---- THE CREW as banners (the preparation page's), hp / mp LIVE in a
+	// fight (the pawn's, or the replay frame's), the trip's between ----
 	for (var _k = 0; _k < _n; _k++) {
 		var _cr = __crew_row_r(_k);
+		var _rsp = __sp_by_id(_tr.sids[_k]);
 		var _hpk = _tr.hp[_k], _hmk = max(1, _tr.hpmax[_k]);
-		if (!is_undefined(_lf)) { for (var _pi = 0; _pi < array_length(_lf.party); _pi++) if ((_lf.party[_pi][$ "mi"] ?? -1) == _k) _hpk = _lf.party[_pi].hp; }
+		var _mpf = (is_array(_tr[$ "mp"]) && _k < array_length(_tr.mp)) ? _tr.mp[_k] : 1;
+		var _mpm = is_undefined(_rsp) ? 1 : max(1, round(sprite_stats(_rsp).pts.mp)), _mpk = round(_mpm * _mpf);
+		if (!is_undefined(_lf)) { for (var _pi = 0; _pi < array_length(_lf.party); _pi++) if ((_lf.party[_pi][$ "mi"] ?? -1) == _k) { _hpk = _lf.party[_pi].hp; _mpk = _lf.party[_pi][$ "mp"] ?? _mpk; _mpm = max(1, _lf.party[_pi][$ "maxmp"] ?? _mpm); } }
 		else if (!is_undefined(rp)) { var _rfr = rp.r.ev[rp.i]; for (var _pi = 0; _pi < array_length(rp.r.party); _pi++) if ((rp.r.party[_pi][$ "mi"] ?? _pi) == _k && _pi < array_length(_rfr.php)) _hpk = _rfr.php[_pi]; }
 		var _up = (_hpk > 0);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, c_black, .6);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, 2, _cr.h, 0, _tr.cols[_k], _up ? .9 : .3);
-		__dot(_cr.x + 10, _cr.y + 5, 3, _tr.cols[_k], _up ? .95 : .3);
-		draw_set_color(_up ? _ink : _dim); draw_set_alpha(.85);
-		var _rsp = __sp_by_id(_tr.sids[_k]);
-		draw_text(_cr.x + 17, _cr.y + 1, _tr.names[_k] + (is_undefined(_rsp) ? "" : ("  lv " + string(sprite_sheet(_rsp).lv))));   // (tap the row: the sheet)
-		var _bw = 50;
-		var _hf = clamp(_hpk / _hmk, 0, 1);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw, 5, 0, c_black, .7);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw * _hf, 5, 0, (_hf > .35) ? c_sgreen : c_hred, .9);
-		draw_px_rect(_cr.x + _cr.w - 6 - _bw, _cr.y + 3, _bw, 5, c_white, .12);
+		if (!is_undefined(_rsp)) __dp_banner(_rsp, _cr.x, _cr.y, _cr.w, _up ? 1 : .45, false, { hp : _hpk, hpmax : _hmk, mp : _mpk, mpmax : _mpm });
+		else {
+			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, c_black, .6);
+			draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, 2, _cr.h, 0, _tr.cols[_k], _up ? .9 : .3);
+			draw_set_color(_up ? _ink : _dim); draw_set_alpha(.85); draw_text(_cr.x + 8, _cr.y + 3, _tr.names[_k]);
+		}
+		if (!_up) { draw_set_halign(fa_right); draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_cr.x + _cr.w - 4, _cr.y + 3, "down"); draw_set_halign(fa_left); }
 	}
 
-	// the track: the flight there | the world | the flight home - the fill
-	// is the current leg (a road's hours while walking), and under it
-	// WHERE they are and the quest (exped_where)
+	// ---- THE QUEST'S ISLAND, right: the ask and the tally, the pocket and
+	// the wins; [recall] on an explore ----
 	var _sx = log_x, _sy = log_y, _sw = log_w;
-	var _travel = _tr.dur * EXPED_TRAVEL;
-	var _tf = 0, _leg = "";
-	if (_tr.stage == 0) { _tf = clamp(_tr.t / max(1, _travel), 0, 1); _leg = "the flight"; }
-	else if (_tr.stage == 2) { _tf = clamp((_tr.t - (_tr[$ "leave_t"] ?? _tr.t)) / max(1, _tr.dur * EXPED_RETURN), 0, 1); _leg = "the flight home"; }
-	else if (is_struct(_tr[$ "road"])) { _tf = clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1); _leg = "the road"; }
-	else if (is_struct(_tr[$ "act"])) { _tf = 1 - clamp(_tr.act.left / max(1, EXPED_ROOM_T), 0, 1); _leg = "at " + exped_region(_tr).nodes[clamp(_tr.pos, 0, array_length(exped_region(_tr).nodes) - 1)].name; }
-	else { _tf = 0; _leg = "deciding"; }
-	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy + 8, _sw, 6, 0, c_black, .7);
-	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy + 8, _sw * _tf, 6, 0, (_tr.stage == 1) ? c_sgreen : c_steelblue, .9);
-	draw_px_rect(_sx, _sy + 8, _sw, 6, c_steelblue, .35);
-	draw_set_color(_dim);
-	draw_set_alpha(.7);
-	draw_text(_sx, _sy + 18, _leg + ((_tr.stage == 1) ? (((_tr[$ "night"] ?? false) ? "  -  night" : "  -  day") + (((_tr[$ "weather"] ?? "clear") != "clear") ? (", " + _tr.weather) : "")) : ""));
-	draw_set_halign(fa_right);
-	draw_set_color(c_white);
-	draw_set_alpha(.85);
+	var _q = _tr[$ "quest"];
 	var _mode = _tr[$ "mode"] ?? "quest";
+	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy, _sw, 36, 0, c_black, .8);
+	draw_px_rect(_sx, _sy, _sw, 36, is_struct(_q) ? c_gold : c_horange, .3);
+	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy, 2, 36, 0, is_struct(_q) ? c_gold : c_horange, .9);
+	var _qtw = _sw - 16 - ((_mode == "explore" && !(_tr[$ "recall"] ?? false) && _tr.stage == 1) ? 62 : 0);
+	draw_set_color(is_struct(_q) ? c_gold : c_horange); draw_set_alpha(.95);
+	if (is_struct(_q)) draw_text(_sx + 8, _sy + 4, string_copy(_q.txt, 1, land ? 52 : 26));
+	else {
+		var _tex = _tr[$ "ex"], _texw = "exploring " + _rg.name;
+		if (is_struct(_tex) && _tex.kind == "ramble") _texw = "roaming " + _rg.name + " - " + string(_tex.n) + "h asked";
+		else if (is_struct(_tex) && _tex.kind == "survey") _texw = "surveying " + _rg.name + " - " + string(max(0, array_length(_tr[$ "visited"] ?? []) - 1)) + " of " + string(_tex.n) + " places";
+		draw_text(_sx + 8, _sy + 4, string_copy(_texw, 1, land ? 52 : 26));
+	}
+	// the tally line: done / n (or the hours), the pocket, the wins, where
+	draw_set_color(_ink); draw_set_alpha(.8);
+	var _tl = is_struct(_q) ? (string(_q.done) + " / " + string(_q.n) + ((_q.done >= _q.n) ? "  done" : "")) : (string_format((_tr[$ "planet_t"] ?? 0) / EXPED_HOUR, 1, 1) + "h on the world");
+	draw_text(_sx + 8, _sy + 15, _tl);
+	draw_set_color(c_lavender); draw_set_alpha(.85);
+	draw_text(_sx + 8 + string_width(_tl) + 10, _sy + 15, string(_tr[$ "credits"] ?? 0) + " cr in the pocket");
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_sx + 8, _sy + 25, string_copy(exped_where(_tr) + ((_tr[$ "recall"] ?? false) ? "  -  heading home" : ""), 1, land ? 56 : 28));
+	draw_set_halign(fa_right);
+	draw_set_color((_tr[$ "wins"] ?? 0) > 0 ? c_sgreen : _dim); draw_set_alpha(.8);
+	draw_text(_sx + _sw - 8, _sy + 25, string(_tr[$ "wins"] ?? 0) + ((_tr[$ "wins"] ?? 0) == 1 ? " fight won" : " fights won"));
+	draw_set_halign(fa_left);
 	if (_mode == "explore" && !(_tr[$ "recall"] ?? false) && _tr.stage == 1) {
 		var _rr2 = __recall_r();
 		draw_ui_button(_rr2.x, _rr2.y, _rr2.w, _rr2.h, "recall", c_horange, true, true);
-	} else draw_text(_sx + _sw, _sy + 18, exped_where(_tr) + ((_e.spd > 1) ? ("  at x" + string(_e.spd)) : ""));
-	draw_set_halign(fa_left);
-	// the quest line, or the explore's clock
-	var _q = _tr[$ "quest"];
-	draw_set_color(c_gold); draw_set_alpha(.9);
-	if (is_struct(_q)) draw_text_ext(_sx, _sy + 28, _q.txt + "  -  " + string(_q.done) + " / " + string(_q.n) + ((_q.done >= _q.n) ? "  done" : ""), 9, _sw);
-	else {
-		// (the explore card's word: a ramble says its hours, a survey its places - bug hunt 2026-09-15)
-		var _tex = _tr[$ "ex"], _texw = "exploring";
-		if (is_struct(_tex) && _tex.kind == "ramble") _texw = "roaming, " + string(_tex.n) + "h asked";
-		else if (is_struct(_tex) && _tex.kind == "survey") _texw = "surveying, " + string(max(0, array_length(_tr[$ "visited"] ?? []) - 1)) + " of " + string(_tex.n) + " places";
-		draw_text(_sx, _sy + 28, _texw + "  -  " + string_format((_tr[$ "planet_t"] ?? 0) / EXPED_HOUR, 1, 1) + "h on the world  -  " + string(_tr[$ "credits"] ?? 0) + " credits in the pocket" + ((_tr[$ "recall"] ?? false) ? "  -  heading home" : ""));
 	}
-	if (is_struct(_q)) { draw_set_color(_dim); draw_set_alpha(.6); draw_text(_sx, _sy + 38, string(_tr[$ "credits"] ?? 0) + " credits in the pocket"); }
 
-	// THE COMBAT WINDOW, while a fight is on - or while a fight that
-	// ended off screen REPLAYS from its film (rp): a square at the
-	// column's foot - the foe top right, the crew bottom left, hp bars,
-	// a flash on whoever was just hit, the line beside it
+	// ---- THE COMBAT WINDOW (his ask: moved to the corner, a little bigger,
+	// not a centrepiece), while a fight is on - or while a fight that ended
+	// off screen REPLAYS from its film (rp): the crew as their own
+	// portraits bottom left, the foes as diamonds top right, hp over each,
+	// the flash and the shake on whoever was hit, the damage in the outline
+	// font; the fight's lines to the window's LEFT ----
 	var _fighting = !is_undefined(_tr.fight) || !is_undefined(rp);
-	var _fy = room_height - 8 - fight_s;
+	var _fr0 = __fight_r();
+	var _fy = _fr0.y;
 	if (_fighting) {
 		var _f = _tr.fight;
 		if (is_undefined(_f)) {
@@ -459,7 +473,7 @@ if (view == "trip") {
 			var _pp = [];
 			for (var _pi = 0; _pi < array_length(rp.r.party); _pi++) {
 				var _pm = rp.r.party[_pi];
-				array_push(_pp, { name : _pm.name, col : _pm.col, hpmax : _pm.hpmax,
+				array_push(_pp, { name : _pm.name, col : _pm.col, hpmax : _pm.hpmax, sid : _pm[$ "sid"] ?? -1, mi : _pm[$ "mi"] ?? _pi,
 				                  hp : (_pi < array_length(_fr.php)) ? _fr.php[_pi] : _pm.hp });
 			}
 			var _pf = [];
@@ -475,69 +489,68 @@ if (view == "trip") {
 			       log : [ _fr.txt ], last : (_fr.dmg > 0) ? { side : _fr.side, i : _fr.i, dmg : _fr.dmg, at : current_time - rp.t * 1000 } : undefined,
 			       replay : true };
 		}
-		var _fx = _sx;
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx, _fy, fight_s, fight_s, 0, c_black, .85);
-		draw_px_rect(_fx, _fy, fight_s, fight_s, c_hred, .5 + .3 * _br);
-		// a floor line
-		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + fight_s - 12, fight_s - 8, 1, 0, _ink, .2);
+		var _fx = _fr0.x, _fs = fight_s;
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx, _fy, _fs, _fs, 0, c_black, .88);
+		// the ground: a dark band, a floor line
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 1, _fy + _fs - 18, _fs - 2, 17, 0, merge_colour(_b.col2, c_black, .82), .9);
+		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + _fs - 18, _fs - 8, 1, 0, _ink, .25);
+		draw_px_rect(_fx, _fy, _fs, _fs, (_f[$ "replay"] ?? false) ? _dim : c_hred, ((_f[$ "replay"] ?? false) ? .4 : .5) + .3 * _br);
 		var _flash_t = (!is_undefined(_f.last)) ? clamp(1 - (current_time - _f.last.at) / 350, 0, 1) : 0;
-		// the foes, a row top right (as many as the crew, exped_fight_new):
-		// a diamond each, its hp above, the one hit flashes white
+		// the foes, a row top right: a diamond each, its hp above
 		var _fos = _f[$ "foes"] ?? [ _f.b ];
 		var _nfo = array_length(_fos);
-		var _bx = _fx + fight_s - 16, _by = _fy + 22;
 		for (var _j = 0; _j < _nfo; _j++) {
 			var _fo = _fos[_j];
-			var _jx = _fx + fight_s - 12 - _j * 13, _jy = _fy + 22 - (_j mod 2) * 6;
+			var _jx = _fx + _fs - 14 - _j * 18, _jy = _fy + 28 - (_j mod 2) * 7;
 			var _jhit = (_flash_t > 0 && _f.last.side == "b" && (_f.last.i == _j || (_f.last.i < 0 && _j == 0)));
 			var _shk = _jhit ? (irandom(2) - 1) : 0;
 			var _jc = _fo[$ "col"] ?? c_hred;
-			if (_fo.hp > 0) draw_sprite_ext(spr_pixel_1x1, 0, _jx - 5 + _shk, _jy - 5, 10, 10, 45, _jhit ? c_white : _jc, .95);
-			else draw_sprite_ext(spr_pixel_1x1, 0, _jx - 5, _jy + 2, 10, 3, 0, _jc, .4);
+			if (_fo.hp > 0) { draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6 + _shk, _jy - 6, 12, 12, 45, merge_colour(_jc, c_black, .35), .95); draw_sprite_ext(spr_pixel_1x1, 0, _jx - 4 + _shk, _jy - 4, 8, 8, 45, _jhit ? c_white : _jc, .95); }
+			else draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy + 3, 12, 3, 0, _jc, .4);
 			var _jf = clamp(_fo.hp / max(1, _fo.hpmax), 0, 1);
-			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy - 12, 12, 2, 0, c_black, .8);
-			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy - 12, 12 * _jf, 2, 0, c_hred, .9);
+			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 7, _jy - 14, 14, 2, 0, c_black, .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 7, _jy - 14, 14 * _jf, 2, 0, c_hred, .9);
 		}
-		// the crew
+		// the crew, bottom left: their own portraits (the room's blobs), hp over each
+		ui_fade_set(1);
 		for (var _k = 0; _k < array_length(_f.party); _k++) {
 			var _m = _f.party[_k];
-			var _mx = _fx + 12 + _k * 13, _my = _fy + fight_s - 20 - (_k mod 2) * 6;
+			var _mx = _fx + 14 + _k * 18, _my = _fy + _fs - 24 - (_k mod 2) * 7;
 			var _mhit = (_flash_t > 0 && _f.last.side == "a" && _f.last.i == _k);
 			var _sk = _mhit ? (irandom(2) - 1) : 0;
-			if (_m.hp > 0) __dot(_mx + _sk, _my, 5, _mhit ? c_white : _m.col, .95);
-			else __dot(_mx, _my + 4, 5, _m.col, .25);
+			var _msp = __sp_by_id(_m[$ "sid"] ?? -1);
+			if (is_undefined(_msp) && (_m[$ "mi"] ?? -1) >= 0 && _m.mi < _n) _msp = __sp_by_id(_tr.sids[_m.mi]);
+			if (_m.hp > 0) {
+				if (!is_undefined(_msp)) sprite_portrait(_msp, _mx + _sk, _my, 1); else __dot(_mx + _sk, _my, 5, _m.col, .95);
+				if (_mhit) draw_sprite_ext(spr_pixel_1x1, 0, _mx - 6 + _sk, _my - 6, 12, 12, 0, c_white, .55);
+			} else __dot(_mx, _my + 5, 5, _m.col, .25);
 			var _mf = clamp(_m.hp / max(1, _m.hpmax), 0, 1);
-			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 6, _my - 10, 12, 2, 0, c_black, .8);
-			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 6, _my - 10, 12 * _mf, 2, 0, (_mf > .35) ? c_sgreen : c_horange, .9);
+			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 7, _my - 12, 14, 2, 0, c_black, .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 7, _my - 12, 14 * _mf, 2, 0, (_mf > .35) ? c_sgreen : c_horange, .9);
 		}
-		// the damage number, floating off the one hit
+		ui_fade_set(_ea);
+		// the damage number, floating off the one hit (the outline font)
 		if (_flash_t > 0) {
-			draw_set_halign(fa_center);
-			draw_set_color(c_white);
-			draw_set_alpha(_flash_t);
-			var _dx = (_f.last.side == "b") ? (_fx + fight_s - 12 - max(0, _f.last.i) * 13) : (_fx + 12 + _f.last.i * 13);
-			var _dy = ((_f.last.side == "b") ? _by : (_fy + fight_s - 20)) - 16 - (1 - _flash_t) * 8;
+			draw_set_font(fnt_outline); draw_set_halign(fa_center);
+			draw_set_color(c_white); draw_set_alpha(_flash_t);
+			var _dx = (_f.last.side == "b") ? (_fx + _fs - 14 - max(0, _f.last.i) * 18) : (_fx + 14 + _f.last.i * 18);
+			var _dy = ((_f.last.side == "b") ? (_fy + 28) : (_fy + _fs - 24)) - 20 - (1 - _flash_t) * 8;
 			draw_text(_dx, _dy, "-" + string(_f.last.dmg));
-			draw_set_halign(fa_left);
+			draw_set_halign(fa_left); draw_set_font(fnt);
 		}
-		// beside it: the foe, the turn, the last line
-		var _tx = _fx + fight_s + 8;
-		draw_set_color(c_hred);
-		draw_set_alpha(.95);
-		// the pack: every foe's name, the down ones dimmed by their bracket
+		// the fight's lines, to the window's left: the pack, the action, the last line
+		var _tx = _sx, _ltw = _fx - 8 - _sx;
+		draw_set_color(c_hred); draw_set_alpha(.95);
 		var _pk = "";
 		for (var _j = 0; _j < _nfo; _j++) _pk += ((_j > 0) ? ", " : "") + ((_fos[_j].hp > 0) ? _fos[_j].name : ("[" + _fos[_j].name + "]"));
-		draw_text_ext(_tx, _fy + 2, _pk, 9, _sw - fight_s - 8);
-		draw_set_color(_dim);
-		draw_set_alpha(.7);
-		if (_f[$ "replay"] ?? false)
-			draw_text(_tx, _fy + 12, "replay  -  fight " + string(rp.r.room) + "  -  tap to skip");
-		else
-			draw_text(_tx, _fy + 14 + ((string_width(_pk) > _sw - fight_s - 8) ? 9 : 0), "action " + string(_f.turn) + "  -  lv " + string(_f.b[$ "lv"] ?? 1) + "  -  " + string(_nfo) + ((_nfo == 1) ? " foe" : " foes"));
+		draw_text_ext(_tx, _fy + 2, _pk, 9, _ltw);
+		var _pkh = string_height_ext(_pk, 9, _ltw);
+		draw_set_color(_dim); draw_set_alpha(.7);
+		if (_f[$ "replay"] ?? false) draw_text(_tx, _fy + 4 + _pkh, "replay  -  fight " + string(rp.r.room) + "  -  tap to skip");
+		else draw_text(_tx, _fy + 4 + _pkh, "action " + string(_f.turn) + "  -  lv " + string(_f.b[$ "lv"] ?? 1) + "  -  " + string(_nfo) + ((_nfo == 1) ? " foe" : " foes"));
 		var _fl = array_length(_f.log);
-		draw_set_color(c_white);
-		draw_set_alpha(.9);
-		draw_text_ext(_tx, _fy + 26 + ((string_width(_pk) > _sw - fight_s - 8) ? 9 : 0), (_fl > 0) ? _f.log[_fl - 1] : "...", 9, _sw - fight_s - 8);
+		draw_set_color(c_white); draw_set_alpha(.9);
+		draw_text_ext(_tx, _fy + 16 + _pkh, (_fl > 0) ? _f.log[_fl - 1] : "...", 9, _ltw);
 		if (!(_f[$ "replay"] ?? false)) {
 			var _st = __step_r();
 			draw_ui_button(_st.x, _st.y, _st.w, _st.h, _f.over ? "done" : "step turn", c_hred, !_f.over, !_f.over);
@@ -545,14 +558,14 @@ if (view == "trip") {
 			var _rdr = (rp.r[$ "drawn"] ?? false);
 			draw_set_color(_f.won ? c_sgreen : (_rdr ? _dim : c_hred));
 			draw_set_alpha(.9);
-			draw_text(_tx, _fy + fight_s - 12, _f.won ? "won" : (_rdr ? "withdrew" : "routed"));
+			draw_text(_tx, _fy + _fs - 12, _f.won ? "won" : (_rdr ? "withdrew" : "routed"));
 		}
 	}
 
-	// THE DIARY: truth lines plain, the "~ " lines (exped_say) as the
-	// crew's own voice - dimmer, indented, wrapped to the column.
-	// Newest at the bottom; as many whole entries as fit above it
-	var _ly = _sy + 48;
+	// ---- THE DIARY, under the quest's island: truth lines plain, the "~ "
+	// lines the crew's own voice, "+ " the rewards in gold; newest at the
+	// bottom, on the scrollbar (it follows the newest line while you sit there) ----
+	var _ly = _sy + 42;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
 	__draw_log_band(_tr.log, { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);
 	// THE CONFIRM POPUP (abort): the save menu's box, over everything

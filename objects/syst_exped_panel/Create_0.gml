@@ -132,7 +132,7 @@ __dp_unseat = function(_sid) { var _j = __dp_seat_of(_sid); if (_j >= 0) dp_slot
 /// the page swings out, then turns (the reverse of its entrance)
 __dp_leave = function(_next) { dp_next = _next; dp_dir = -1; dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); };
 /// a banner (22 tall): the colour bar and the dot, the name and class, then hp and mp - a thin bar each with the numbers beside
-__dp_banner = function(_sp, _x, _y, _w, _a, _ghost) {
+__dp_banner = function(_sp, _x, _y, _w, _a, _ghost, _ovr = undefined) {   // ovr = { hp, hpmax, mp, mpmax } (the trip page: the trip's, live in a fight)
 	var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];
 	var _away = (_sp[$ "trip"] ?? false);
 	var _h = __dp_bh();
@@ -152,6 +152,7 @@ __dp_banner = function(_sp, _x, _y, _w, _a, _ghost) {
 		var _st = sprite_stats(_sp), _bal = cbt_balance();
 		var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add), _mpr = max(1, round(_st.pts.mp));
 		var _hpc = floor(_hpr * (_sp[$ "hpf"] ?? 1)), _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
+		if (is_struct(_ovr)) { _hpr = max(1, floor(_ovr.hpmax)); _hpc = clamp(floor(_ovr.hp), 0, _hpr); _mpr = max(1, round(_ovr.mpmax)); _mpc = clamp(round(_ovr.mp), 0, _mpr); }
 		var _half = floor((_w - 8) * .5), _bw = max(8, _half - 14 - 26);
 		var _ly = _y + 13;
 		draw_set_color(c_hred); draw_set_alpha(.9 * _a); draw_text(_x + 4, _ly, "hp");
@@ -207,10 +208,15 @@ list_w  = land ? (room_width - list_x - 10) : (room_width - 8);
 row_h   = land ? 44 : 40;              // a trip's island (redone 2026-09-15: four lines)
 
 // ---- the trip view ----
-big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 106 : 66;   // the world box holds the render only (2026-09-15: the banners moved under it)
+// THE TRIP PAGE (polished 2026-09-15): the world's island on the left (the
+// render, the name, the region, the leg, the buttons), the crew's banners
+// under it; the quest's island and the diary on the right; the combat
+// window in the right column's bottom-right corner
+big_x = land ? 14 : 4; big_y = list_y + 22; big_w = land ? 150 : (room_width - 8); big_h = land ? 66 : 62;   // the render's box (the island runs on below it)
+isle_h = big_h + 66;                                                  // the island: the render, the name and region, the leg, the buttons
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
-log_y = land ? big_y : (big_y + big_h + 22 + EXPED_PARTY * 12 + 4);   // (portrait: the button row and the banners under the box come first)
-fight_s = 64;        // the combat window's side
+log_y = land ? big_y : (big_y + isle_h + 6 + EXPED_PARTY * 24 + 4);    // (portrait: the island and the banners come first)
+fight_s = 80;        // the combat window's side (grown from 64 - his ask; the right column's bottom-right corner)
 wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothing spills past a rect; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
 confirm  = "";       // "abort" while the question is up
@@ -332,7 +338,8 @@ __crew_list = function() {
 };
 // the trip page's buttons: a row UNDER the world box (his ask, 2026-09-15:
 // "move the crew/map buttons off the world panel"): [crew] [map] [abort]
-__trip_btn_r = function(_k) { var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + big_h + 4, w : _bw - 2, h : 13 }; };
+__trip_isle_r = function() { return { x : big_x, y : big_y, w : big_w, h : isle_h }; };
+__trip_btn_r = function(_k) { var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + isle_h - 18, w : _bw - 2, h : 13 }; };
 __trip_crew_r  = function() { return __trip_btn_r(0); };
 __trip_abort_r = function() { return __trip_btn_r(2); };
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
@@ -725,7 +732,7 @@ __log_r = function() {
 		var _t = __trip();
 		var _fighting = !is_undefined(_t) && (!is_undefined(_t.fight) || !is_undefined(rp));
 		var _yend = _fighting ? (room_height - 8 - fight_s - 6) : (room_height - 10);
-		return { x : log_x, y : log_y + 48, w : log_w, h : _yend - (log_y + 48) };
+		return { x : log_x, y : log_y + 42, w : log_w, h : _yend - (log_y + 42) };   // (under the quest's island)
 	}
 	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12; return { x : _lx, y : list_y + 22 + 12, w : room_width - _lx - 14, h : room_height - 10 - (list_y + 22 + 12) }; }
 	return { x : 0, y : 0, w : 0, h : 0 };
@@ -1044,7 +1051,8 @@ __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 6
 tab_w = land ? 78 : 60; tab_h = 15;
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
 __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
-__recall_r = function() { return { x : log_x + log_w - 60, y : log_y + 18, w : 60, h : 12 }; };
+__recall_r = function() { return { x : log_x + log_w - 62, y : log_y + 4, w : 56, h : 12 }; };   // (in the quest island's corner)
+__fight_r  = function() { return { x : log_x + log_w - fight_s, y : room_height - 8 - fight_s, w : fight_s, h : fight_s }; };   // the combat window: the right column's bottom-right corner
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
 __map_r = function() { var _x = land ? (14 + rg_box_w + 10) : 4; return { x : _x, y : list_y + 22, w : room_width - _x - (land ? 14 : 4), h : room_height - 8 - 14 - (list_y + 22) }; };   // (right of the info box - his ask, 2026-09-15)
@@ -1193,7 +1201,7 @@ __map_labels = function(_rg, _mr, _key) {
 __trip_map_r = function() { return __trip_btn_r(1); };
 // THE CREW'S BANNERS (his ask, 2026-09-15: under the world box): a row each
 // under the button row - dot, name, level, the hp bar (live in a fight)
-__crew_row_r = function(_k) { return { x : big_x, y : big_y + big_h + 22 + _k * 12, w : big_w, h : 11 }; };
+__crew_row_r = function(_k) { return { x : big_x, y : big_y + isle_h + 6 + _k * 24, w : big_w, h : 22 }; };   // the crew's banners under the island (the preparation page's)
 /// THE ORBIT RENDERER (2026-09-15: "have all models of the planet match our
 /// main one... stars and all"): the sky (the real neighbourhood, the milky
 /// way, the sun - pv_sky), the world at (pcx, pcy) of the rect with radius
@@ -1320,7 +1328,7 @@ __sp_by_id = function(_id) {
 	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _id) return g.sprites[_i];
 	return undefined;
 };
-__step_r = function() { return { x : log_x + fight_s + 8, y : room_height - 8 - 14, w : 70, h : 14 }; };
+__step_r = function() { return { x : log_x, y : room_height - 8 - 14, w : 70, h : 14 }; };   // [step turn], under the fight's lines, left of the window
 __col_r  = function() { return { x : (land ? 14 : 4) + 67, y : room_height - 8 - 16, w : 90, h : 16 }; };   // under the haul card (left half)
 __swap_r = function() { return { x : (land ? 14 : 4) + 16, y : room_height - 8 - 16, w : 90, h : 16 }; };
 __go_r   = function() { return { x : (land ? 14 : 4) + 118, y : room_height - 8 - 16, w : 90, h : 16 }; };

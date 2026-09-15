@@ -611,8 +611,8 @@ if (view == "trip") {
 	var _tr = __trip();
 	// a tap on the replay's window skips the rest of it
 	if (!is_undefined(rp)) {
-		var _fy0 = room_height - 8 - fight_s;
-		if (point_in_rectangle(mouse_x, mouse_y, log_x, _fy0, log_x + log_w, _fy0 + fight_s)) {
+		var _fw = __fight_r();
+		if (point_in_rectangle(mouse_x, mouse_y, log_x, _fw.y, log_x + log_w, _fw.y + _fw.h)) {
 			rp.r.seen = true; rp = undefined;
 			play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 			exit;
