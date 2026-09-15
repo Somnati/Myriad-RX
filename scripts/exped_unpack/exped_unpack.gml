@@ -86,6 +86,8 @@ function exped_unpack(_s) {
 				var _ag = string_split(_p[8], ":");
 				if (array_length(_ag) >= 18) {
 					if (array_length(_ag) > 20) { _trn.rgi = clamp(real(_ag[19]), 0, EXPED_REGIONS - 1); _trn.home = real(_ag[20]); }
+					_trn.ex = { kind : "wander", n : 0 };
+					if (array_length(_ag) > 22 && _ag[21] != "") _trn.ex = { kind : _ag[21], n : real(_ag[22]) };
 					_trn.mode = (_ag[0] == "explore") ? "explore" : "quest";
 					var _rgn = array_length(region_get(_d, _trn.rgi).nodes);
 					_trn.pos = clamp(real(_ag[1]), 0, _rgn - 1); _trn.home = clamp(_trn.home, 0, _rgn - 1);

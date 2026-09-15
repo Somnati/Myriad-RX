@@ -13,3 +13,4 @@ gx_glow_a = -1; gx_glow_b = -1;
 if (surface_exists(log_surf)) surface_free(log_surf);
 log_surf = -1;
 if (instance_exists(sb)) instance_destroy(sb);
+__hand_close();

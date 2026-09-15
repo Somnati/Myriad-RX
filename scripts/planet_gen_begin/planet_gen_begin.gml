@@ -24,7 +24,11 @@ function planet_gen_begin(_seed, _hint = undefined) {
 		_wet_f  = _hint[$ "wet"] ?? -1;
 	}
 	var _tilt = random_range(-28, 28);
-	var _spin = lerp(.005, .05, power(random(1), 1.7)) * choose(1, -1);
+	// A DAY IS HOURS (his ask, 2026-09-15: "planets might need to rotate much
+	// slower... 3hr"): 1.5-6 h a turn, most near three (the same two rolls
+	// as before, so nothing downstream moves); gas worlds spin faster
+	var _dayh = lerp(1.5, 6, power(random(1), 1.7));
+	var _spin = (360 / (_dayh * 3600)) / 60 * choose(1, -1);   // degrees a step (x60 = a second)
 	if (_kind == "gas") _spin *= 1.8;
 	var _wt  = (random_range(.46, .58) - .46) / .12;
 	var _wet = clamp(_wt + (_clim - .5) * .9, 0, 1);

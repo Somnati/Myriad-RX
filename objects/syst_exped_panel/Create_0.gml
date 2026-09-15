@@ -54,6 +54,25 @@ dp_quest = undefined;    // the departure window's quest (undefined = an explore
 dp_look  = -1;           // the departure window's INSPECTED sprite (the last chip tapped): its sheet in brief under the chips
 __dlook_r = function() { var _rows = max(1, ceil(array_length(g.sprites) / (land ? 5 : 6))); var _y = dchip_y + _rows * (chip + 10) + 2; return { x : land ? 14 : 4, y : _y, w : land ? 156 : (room_width - 8), h : room_height - 8 - _y }; };
 dp_mode  = "quest";      // ...and its mode
+dp_slot  = -1;           // ...and the offer slot it came from (exped_offer_take on departure; -1 = none / an explore)
+// THE HAND (his ask, 2026-09-15: "put the quests on the cards we have"):
+// "" / "quests" / "explore" while the cards are up, the obj_card
+// instances, the veil's ease, the second the faces were last repainted
+// (their clocks are live text)
+hand = ""; hand_ids = []; hand_a = 0; hand_sec = -1;
+// THE PAGE TURN (his ask: "a fade in animation when i click a quest and
+// it takes me to the expedition prep room"): the view coming, the light
+// (1 = lit; it goes to black, the view turns, it comes back), the direction
+pg_next = ""; pg_a = 1; pg_dir = 0;
+__page_go = function(_v) { pg_next = _v; pg_dir = -1; };
+/// the turn's veil over the page (under the strip), for the pages that turn
+__draw_turn = function() {
+	if (pg_a >= .999) return;
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, 1 - pg_a);
+	ui_fade_set(_fa);
+};
 crew_off = 0;        // the crew list's scroll (px)
 crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
 sel_dest = 0;        // the world picked (one on the board, his call: always the first)
@@ -197,11 +216,171 @@ __pv_dw_w  = function() { return land ? 150 : 120; };
 __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
-__galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : 64, h : 16 }; };   // [galaxy], bottom left of the planet page
-__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x + _g.w + 4, y : _g.y, w : 90, h : 16 }; };   // the geosync toggle (the demo's), beside it
-// region mode: the banner on the left, the quests (then explore) on the right
-__rg_banner_r = function() { return { x : land ? 14 : 4, y : list_y + 40, w : land ? 150 : 120, h : 96 }; };
-__rg_q_row = function(_i) { var _w = land ? 196 : 150; return { x : room_width - (land ? 14 : 4) - _w, y : list_y + 44 + _i * 30, w : _w, h : 27 }; };
+// THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
+// at the foot, [region map] over it in region mode, the geosync toggle on
+// top; bottom right in region mode - [quests] over [explore]
+__galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : land ? 90 : 70, h : 16 }; };
+__rgmap_r  = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };   // [region map] (region mode)
+__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - ((pv_mode == "region") ? 40 : 20), w : _g.w, h : 16 }; };
+__explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w, y : room_height - 8 - 16, w : _w, h : 16 }; };
+__quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
+// region mode: the info box on the left (region_info's lines)
+__rg_banner_r = function() { return { x : land ? 14 : 4, y : list_y + 40, w : land ? 150 : 120, h : 110 }; };
+// THE HAND'S SEATS: the cards in a row across the page (portrait: two columns)
+__hand_seats = function(_n) {
+	var _out = [];
+	var _pv = __pv_r();
+	if (land) {
+		var _pitch = 92, _x0 = room_width * .5 - (_n - 1) * .5 * _pitch, _y = _pv.y + _pv.h * .5 + 4;
+		for (var _i = 0; _i < _n; _i++) array_push(_out, { x : floor(_x0 + _i * _pitch), y : floor(_y) });
+	} else {
+		var _x0 = room_width * .5 - 33, _y0 = _pv.y + 42;
+		for (var _i = 0; _i < _n; _i++) array_push(_out, { x : floor(_x0 + (_i mod 2) * 66), y : floor(_y0 + (_i div 2) * 80) });
+	}
+	return _out;
+};
+/// a quest / explore card's face (self = the card; face = what it says)
+__qcard_face = function() {
+	draw_clear_alpha(c_black, 1);
+	var _col = face.col;
+	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, 0, 0, card_w, card_h, 0, merge_colour(_col, c_black, .8), merge_colour(_col, c_black, .8), c_black, c_black, 1);
+	draw_px_rect(1, 1, card_w - 2, card_h - 2, _col, .9);
+	draw_set_halign(fa_center); draw_set_valign(fa_top);
+	var _big = (card_w >= 80);
+	var _tw = card_w - 8;
+	// the title: the place (a quest) or the card's name (an explore), in its kind's colour
+	draw_set_font(_big ? fnt_large : fnt);
+	if (string_width(face.title) > _tw) draw_set_font(fnt);
+	draw_set_color(_col); draw_set_alpha(1);
+	var _ty = _big ? 6 : 4;
+	var _tsep = (draw_get_font() == fnt_large) ? 12 : 9;
+	draw_text_ext(card_w * .5, _ty, face.title, _tsep, _tw);
+	_ty += string_height_ext(face.title, _tsep, _tw) + 2;
+	draw_set_font(fnt);
+	draw_set_color(merge_colour(_col, c_white, .4)); draw_set_alpha(.7);
+	draw_text(card_w * .5, _ty, face.sub);
+	_ty += 12;
+	// the objective
+	draw_set_color(c_white); draw_set_alpha(.92);
+	draw_text_ext(card_w * .5, _ty, face.txt, 9, card_w - 10);
+	// the difficulty and the numbers, from the foot up
+	var _dc = [c_sgreen, c_gold, c_horange, c_hred];
+	var _fy = card_h - (_big ? 14 : 12);
+	// the state (live): taken - by whom; or the clock
+	var _sl = face[$ "slot"];
+	if (is_struct(_sl)) {
+		if (_sl.taken != 0) {
+			var _who = "returned";
+			for (var _t = 0; _t < array_length(g.exped.trips); _t++) if (g.exped.trips[_t].id == _sl.taken) _who = exped_crew_txt(g.exped.trips[_t].names);
+			draw_set_color(c_steelblue); draw_set_alpha(.95);
+			draw_text_ext(card_w * .5, _fy - 9, "taken  -  " + _who, 9, _tw);
+		} else {
+			draw_set_color(merge_colour(_col, c_white, .5)); draw_set_alpha(.6);
+			draw_text(card_w * .5, _fy, "gone in " + crunch_time_long(_sl.left / max(1, g.exped.spd)));
+		}
+	} else if (!is_undefined(face[$ "foot"])) {
+		draw_set_color(merge_colour(_col, c_white, .5)); draw_set_alpha(.6);
+		draw_text(card_w * .5, _fy, face.foot);
+	}
+	if (!is_undefined(face[$ "meta"])) {
+		draw_set_color(sett_ink); draw_set_alpha(.75);
+		draw_text(card_w * .5, _fy - 10, face.meta);
+	}
+	if (!is_undefined(face[$ "diff_txt"])) {
+		draw_set_color(_dc[clamp(face.diff, 0, 3)]); draw_set_alpha(.95);
+		draw_text(card_w * .5, _fy - 20, face.diff_txt);
+	}
+	// taken: the face goes dark under a stamp
+	if (is_struct(_sl) && _sl.taken != 0) {
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, card_w, card_h, 0, c_black, .5);
+		draw_set_font(_big ? fnt_large : fnt);
+		draw_set_color(c_steelblue); draw_set_alpha(.9);
+		draw_text(card_w * .5, card_h * .5 - 6, "taken");
+		draw_set_font(fnt);
+	}
+	draw_set_halign(fa_left); draw_set_alpha(1);
+};
+__qcard_back = function() {
+	draw_clear_alpha(rgb(12, 22, 36), 1);
+	draw_px_rect(1, 1, card_w - 2, card_h - 2, face.col, .8);
+	draw_px_rect(5, 5, card_w - 10, card_h - 10, face.col, .3);
+	draw_set_halign(fa_center);
+	draw_set_font(fnt_large);
+	draw_set_color(face.col); draw_set_alpha(.9);
+	draw_text(card_w * .5, card_h * .5 - 5, "?");
+	draw_set_font(fnt);
+	draw_set_halign(fa_left); draw_set_alpha(1);
+};
+/// the hand dealt: the region's quests, or the explore cards
+__hand_open = function(_kind) {
+	__hand_close();
+	if (!is_struct(pl_dest)) return;
+	var _rg = region_get(pl_dest, rg_sel);
+	var _kk = region_kinds();
+	var _faces = [];
+	if (_kind == "quests") {
+		var _sl = exped_region_quests(pl_dest, rg_sel);
+		for (var _i = 0; _i < array_length(_sl); _i++) {
+			var _q = _sl[_i].q;
+			var _nd = _rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)];
+			var _kd = _kk[$ _nd.kind];
+			var _obj = "";
+			switch (_q.kind) {
+				case "slay":  _obj = "slay " + string(_q.n) + " " + _q.foe + "s there"; break;
+				case "clear": _obj = "clear it, room by room (" + string(_q.n) + ")"; break;
+				case "rout":  _obj = "rout the bandits: two fights, then their chest"; break;
+				case "scout": _obj = "get there, have a look, come back"; break;
+			}
+			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj,
+			                     diff : _q.diff, diff_txt : _q.diff_txt, meta : string(_q.hours) + "h  -  " + string(_q.reward) + " cr  -  x" + string(_q.mult) + " xp",
+			                     slot : _sl[_i], fx : [0, 1, 8, 16 | 4][clamp(_q.diff, 0, 3)] });
+		}
+	} else {
+		var _xc = exped_explore_cards(pl_dest, rg_sel);
+		for (var _i = 0; _i < array_length(_xc); _i++) {
+			var _c = _xc[_i];
+			array_push(_faces, { title : _c.name, sub : "explore", col : c_horange, txt : _c.txt,
+			                     foot : (_c.ex == "wander") ? "until recalled" : ((_c.ex == "ramble") ? ("about " + string(_c.n) + "h") : (string(_c.n) + " places")),
+			                     meta : "xp by the hours out", card : _c, fx : [0, 1, 8][_i] });
+		}
+	}
+	var _seats = __hand_seats(array_length(_faces));
+	for (var _i = 0; _i < array_length(_faces); _i++) {
+		var _c = create_obj(_seats[_i].x, _seats[_i].y, obj_card);
+		_c.depth = depth - 3;   // over the panel, under the menu's blur (-515)
+		_c.auto = false;
+		if (!land) { _c.card_w = 60; _c.card_h = 76; }
+		_c.face = _faces[_i];
+		_c.draw_front_content = method(_c, __qcard_face);
+		_c.draw_back_content  = method(_c, __qcard_back);
+		_c.rot_y = 180;
+		_c.flip_delay = 4 + _i * 5;
+		_c.fx = _faces[_i].fx;
+		_c.invalidate_front(); _c.invalidate_back();
+		array_push(hand_ids, _c);
+	}
+	hand = _kind; hand_a = 0; hand_sec = -1;
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+};
+__hand_close = function() {
+	for (var _i = 0; _i < array_length(hand_ids); _i++) if (instance_exists(hand_ids[_i])) instance_destroy(hand_ids[_i]);
+	hand_ids = []; hand = ""; hand_a = 0;
+};
+/// a card tapped: the departure (a taken quest says no)
+__hand_pick = function(_i) {
+	if (_i < 0 || _i >= array_length(hand_ids)) return;
+	var _f = hand_ids[_i].face;
+	if (hand == "quests") {
+		if (_f.slot.taken != 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); return; }
+		dp_quest = _f.slot.q; dp_mode = "quest"; dp_slot = _i;
+	} else {
+		dp_quest = _f.card; dp_mode = "explore"; dp_slot = -1;
+	}
+	dp_look = (array_length(sel_crew) > 0) ? sel_crew[0] : -1;
+	__hand_close();
+	__page_go("depart");
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+};
 __hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 64, h : 14 }; };
 /// a region's spot as a unit vector in TEXTURE space (sphere_uv's frame)
 __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat), dcos(_lat) * dsin(_lon)]; };
@@ -212,8 +391,9 @@ __pv_ui_hit = function() {
 	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
 	if (pv_mode == "region") {
 		var _bn = __rg_banner_r(); if (point_in_rectangle(mouse_x, mouse_y, _bn.x, _bn.y, _bn.x + _bn.w, _bn.y + _bn.h)) return true;
-		var _mr = __rg_map_r(); if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) return true;
-		for (var _qi = 0; _qi <= 3; _qi++) { var _qr = __rg_q_row(_qi); if (point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) return true; }
+		var _mr = __rgmap_r(); if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) return true;
+		var _qb = __quests_r(); if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) return true;
+		var _xb = __explore_r(); if (point_in_rectangle(mouse_x, mouse_y, _xb.x, _xb.y, _xb.x + _xb.w, _xb.y + _xb.h)) return true;
 		return false;
 	}
 	if (pl_focus >= 0) { var _v = __view_rg_r(); if (point_in_rectangle(mouse_x, mouse_y, _v.x, _v.y, _v.x + _v.w, _v.y + _v.h)) return true; }
@@ -358,7 +538,6 @@ __dchip_r = function(_k) { var _per = land ? 5 : 6; return { x : (land ? 14 : 4)
 __brief_r = function() { return { x : land ? 176 : 4, y : list_y + 22, w : land ? (room_width - 176 - 14) : (room_width - 8), h : land ? (room_height - 8 - 22 - (list_y + 22)) : 110 }; };
 __depart_r = function() { var _b = __brief_r(); return { x : _b.x, y : _b.y + _b.h + 4, w : 100, h : 16 }; };
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 60, h : 14 }; };
-__rg_map_r = function() { return { x : room_width - (land ? 14 : 4) - 44 - 50, y : list_y + 3, w : 44, h : 13 }; };
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };

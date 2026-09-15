@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"hash_mix",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"hash_mix",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

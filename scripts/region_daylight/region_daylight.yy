@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_daylight",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_daylight",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

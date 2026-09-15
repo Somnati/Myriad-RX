@@ -46,6 +46,10 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 		// the quest is THIS crew's now: the copy walks, the board keeps its own until the re-deal
 		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair" };
 	}
+	// THE EXPLORE CARD (2026-09-15): wander until recalled, ramble for N
+	// hours, or survey N places - the agent turns them home when it is due
+	var _ex = { kind : "wander", n : 0 };
+	if (_mode == "explore" && is_struct(_pick) && !is_undefined(_pick[$ "ex"])) _ex = { kind : _pick.ex, n : _pick[$ "n"] ?? 0 };
 	// THE LANDING: a quest's crew lands at the landing zone nearest its
 	// objective (his ask); an explore at the first
 	var _home = is_struct(_q) ? region_nearest_landing(_rg, _q.node) : _rg.landing;
@@ -64,8 +68,11 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 		mode : _mode, quest : _q,
 		pos : _home, home : _home, rgi : _ri, path : [], road : undefined, act : undefined,
 		credits : _cost.pocket, recall : false, visited : [ _home ], planet_t : 0, bounty : undefined,
+		ex : _ex,
 	};
 	if (is_struct(_q)) array_push(_tr.log, "the quest: " + _q.txt + "  (" + _rg.name + ")");
+	else if (_ex.kind == "ramble") array_push(_tr.log, "to roam " + _rg.name + " for about " + string(_ex.n) + " hours");
+	else if (_ex.kind == "survey") array_push(_tr.log, "to see " + string(_ex.n) + " places in " + _rg.name);
 	else array_push(_tr.log, "to explore " + _rg.name);
 	array_push(_e.trips, _tr);
 	exped_stat("trips");

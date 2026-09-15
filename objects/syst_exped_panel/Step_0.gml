@@ -4,6 +4,9 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 
 var _e = g.exped;
+// THE PAGE TURN: to black, the view turns, back to light (__page_go)
+if (pg_dir < 0) { pg_a = move_to(pg_a, 0, 3); if (pg_a <= .04) { pg_a = 0; view = pg_next; pg_dir = 1; } }
+else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; pg_dir = 0; } }
 // the worlds are built a few rows a frame (planet_gen_step, __worlds_step:
 // the board's, the trips', the planet window's), so every portrait is the
 // full world within a second or two, without a hitch
@@ -142,6 +145,43 @@ if (confirm != "") {
 	exit;
 }
 if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
+if (pg_dir != 0) exit;    // (the page is turning)
+// ---- THE HAND (the quest / explore cards) owns the page while it is up ----
+if (hand != "") {
+	if (view != "planet" || pv_mode != "region") __hand_close();
+	else {
+		if (keyboard_check_pressed(vk_escape)) { __hand_close(); play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+		hand_a = move_to(hand_a, 1, 5);
+		var _sec = floor(current_time / 1000);
+		for (var _d = 0; _d < array_length(hand_ids); _d++) {
+			var _c = hand_ids[_d];
+			if (!instance_exists(_c)) continue;
+			if (hand_sec != _sec) _c.invalidate_front();   // (the clocks on the faces)
+			if (_c.flip_delay > 0) { _c.flip_delay -= delta; continue; }
+			var _hov = point_in_rectangle(mouse_x, mouse_y, _c.x - _c.card_w * .5, _c.y - _c.card_h * .5, _c.x + _c.card_w * .5, _c.y + _c.card_h * .5);
+			// hover leans the card toward the pointer; idle keeps it held (the deck's)
+			var _ty2 = _hov ? clamp((mouse_x - _c.x) * .35, -14, 14) : 4 * dsin(current_time / 900 + _d * 2);
+			var _tx2 = _hov ? clamp(-(mouse_y - _c.y) * .35, -14, 14) : 3 * dsin(current_time / 1300 + _d);
+			_c.rot_y = trickle(_c.rot_y, _ty2, 6);
+			_c.rot_x = trickle(_c.rot_x, _tx2, 6);
+		}
+		hand_sec = _sec;
+		if (mouse_check_button_pressed(mb_left)) {
+			var _onany = false;
+			for (var _d = 0; _d < array_length(hand_ids); _d++) {
+				var _c2 = hand_ids[_d];
+				if (!instance_exists(_c2)) continue;
+				if (!point_in_rectangle(mouse_x, mouse_y, _c2.x - _c2.card_w * .5, _c2.y - _c2.card_h * .5, _c2.x + _c2.card_w * .5, _c2.y + _c2.card_h * .5)) continue;
+				_onany = true;
+				if (_c2.rot_y > 60) break;   // still flipping: not a pick
+				__hand_pick(_d);
+				break;
+			}
+			if (!_onany) { __hand_close(); play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
+		}
+		exit;
+	}
+}
 // ---- [back], and escape: one step up the chain (__back, the Create) ----
 if (keyboard_check_pressed(vk_escape)) {
 	if (view != "hub") __back(); else exped_close();
@@ -314,25 +354,19 @@ if (view == "planet") {
 		exit;
 	}
 	// REGION MODE (his ask: no separate window - the camera pulls in, the
-	// banner left, the quests right): [map], a quest row, explore
+	// info box left): [region map] in the left column, [quests] / [explore]
+	// bottom right deal THE HAND (the cards pick the departure)
 	if (pv_mode == "region") {
-		var _mr0 = __rg_map_r();
+		var _mr0 = __rgmap_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
 			map_dest = pl_dest; map_rgi = rg_sel; map_from = "planet"; view = "map";
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
-		var _ql = exped_region_quests(pl_dest, rg_sel);
-		for (var _i = 0; _i <= array_length(_ql); _i++) {
-			var _qr = __rg_q_row(_i);
-			if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
-			if (_i < array_length(_ql)) { dp_quest = _ql[_i]; dp_mode = "quest"; }
-			else { dp_quest = undefined; dp_mode = "explore"; }
-			dp_look = (array_length(sel_crew) > 0) ? sel_crew[0] : -1;
-			view = "depart";
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
+		var _qb = __quests_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) { __hand_open("quests"); exit; }
+		var _xb = __explore_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _xb.x, _xb.y, _xb.x + _xb.w, _xb.y + _xb.h)) { __hand_open("explore"); exit; }
 		exit;
 	}
 	// [view region]: the pull-in (region mode) on the picked one
@@ -378,6 +412,8 @@ if (view == "depart") {
 		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
 		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel)) {
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq);   // (the board marks it taken - 2026-09-15)
+			dp_slot = -1;
 			sel_crew = [];
 			view = "hub";
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);

@@ -21,7 +21,12 @@ function exped_next_node(_tr, _rg) {
 		var _lz = region_nearest_landing(_rg, _tr.pos);
 		return (_tr.pos == _lz) ? -1 : _lz;
 	}
-	// explore
+	// explore: the card's clock or count come due = the recall (2026-09-15)
+	var _ex = _tr[$ "ex"];
+	if (is_struct(_ex) && !(_tr[$ "recall"] ?? false)) {
+		if (_ex.kind == "ramble" && (_tr[$ "planet_t"] ?? 0) >= _ex.n * EXPED_HOUR) { _tr.recall = true; array_push(_tr.log, choose("that was the walk. they turn for the landing zone", "the hours are up. home, by the roads they know")); save_mark_dirty(); }
+		else if (_ex.kind == "survey" && array_length(_tr[$ "visited"] ?? []) - 1 >= _ex.n) { _tr.recall = true; array_push(_tr.log, string(_ex.n) + " places seen. they turn for the landing zone"); save_mark_dirty(); }
+	}
 	if (_tr[$ "recall"] ?? false) { var _lz2 = region_nearest_landing(_rg, _tr.pos); return (_tr.pos == _lz2) ? -1 : _lz2; }
 	var _bo = _tr[$ "bounty"];
 	if (is_struct(_bo) && _bo.done < _bo.n) return _bo.node;

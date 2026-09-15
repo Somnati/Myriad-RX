@@ -16,13 +16,18 @@ var _br = abs(dsin(current_time * .3));
 draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, room_height - hh, 0, c_black, .94);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + 15, room_width, 1, 0, _ink, .25);
+// THE TITLE SAYS THE PAGE (his ask, 2026-09-15): the world's page names the
+// world and its kind, the preparation page says so
+var _ttl = "expeditions";
+if (view == "planet" && is_struct(pl_dest)) _ttl = land ? ("expedition  -  " + pl_dest.name + " / " + exped_biomes()[pl_dest.biome].name + " world") : pl_dest.name;
+if (view == "depart") _ttl = land ? "expedition  -  preparation" : "preparation";
 draw_set_color(c_steelblue);
 draw_set_alpha(.95);
-draw_text(6, strip_y + 5, "expeditions");
+draw_text(6, strip_y + 5, _ttl);
 if (land) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
-	draw_text(6 + string_width("expeditions") + 8, strip_y + 5,
+	draw_text(6 + string_width(_ttl) + 8, strip_y + 5,
 		(array_length(_e.trips) == 0) ? "" : (string(array_length(_e.trips)) + " out"));
 }
 // the debug clock
@@ -814,8 +819,7 @@ if (view == "planet") {
 	// the title (the strip row) and the facts, over the sky
 	draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text(land ? 14 : 4, list_y + 6, _d.name);
-	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
-	draw_text((land ? 14 : 4) + string_width(_d.name) + 10, list_y + 6, _b.name + " world  -  tier " + string(_d.tier) + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
+	// (the tier and the flight time are gone from here - his ask, 2026-09-15; the strip names the world's kind)
 	if (is_struct(pv_sky)) {
 		var _sm = starmap_get(), _hm = galaxy_home();
 		draw_set_color(_dim); draw_set_alpha(.7);
@@ -823,67 +827,47 @@ if (view == "planet") {
 	}
 	draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(land ? 14 : 4, list_y + 30, "drag to orbit  -  tap a region");
-	// [galaxy], the geosync toggle, [view region]
+	// the left column: [galaxy] at the foot, [region map] over it in region mode, the geosync toggle on top
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
 	var _ge = __geo_r();
-	draw_ui_button(_ge.x, _ge.y, _ge.w, _ge.h, pv_geo ? "riding the spin" : "free camera", pv_geo ? c_sgreen : c_gray, true, false);
+	draw_ui_button(_ge.x, _ge.y, _ge.w, _ge.h, pv_geo ? (land ? "riding the spin" : "geosync") : "free camera", pv_geo ? c_sgreen : c_gray, true, false);
 	if (pv_mode == "region") {
-		// REGION MODE: the banner left (name, level, places, the wild), the map
-		// button, the quests right (then explore) - the old window's rows
+		// REGION MODE: THE INFO BOX left (his shape, 2026-09-15: the name, then
+		// "level 1 - peaceful / temperature - warm / weather - calm / time -
+		// dusk / flora - bountiful / fauna - passive / civilization -
+		// farmlands", the word coloured by its threat - region_info), [region
+		// map] in the left column, [quests] over [explore] bottom right
 		var _rg = region_get(_d, rg_sel);
 		var _bn = __rg_banner_r();
-		var _kk = region_kinds();
-		var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
-		for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
-			var _kd = _kk[$ _rg.nodes[_j].kind];
-			if (is_undefined(_kd)) continue;
-			if (_kd.civ) _nciv++;
-			if (_rg.nodes[_j].kind == "dungeon" || _rg.nodes[_j].kind == "crypt") _ndun++;
-			if (_rg.nodes[_j].kind == "camp") _ncmp++;
-			if (_rg.nodes[_j].kind == "landing") _nlnd++;
-		}
-		var _wk = _rg[$ "wild"] ?? [], _wtxt = "";
-		for (var _wi = 0; _wi < array_length(_wk); _wi++) { var _wn = _wk[_wi]; if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s"; _wtxt += ((_wi > 0) ? ", " : "") + _wn; }
+		var _inf = region_info(_d, _rg);
 		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
 		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
 		draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
 		draw_text_ext(_bn.x + 8, _bn.y + 5, _rg.name, 11, _bn.w - 14);
-		var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 2;
+		var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 3;
 		draw_set_font(fnt);
-		draw_set_color((rg_sel == 0) ? c_sgreen : ((rg_sel == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
-		draw_text(_bn.x + 8, _bny, "level " + string(_rg.lv) + "  -  " + (_rg[$ "mood"] ?? "quiet"));
-		draw_set_color(_ink); draw_set_alpha(.8);
-		draw_text(_bn.x + 8, _bny + 11, string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon" : " dungeons"));
-		draw_text(_bn.x + 8, _bny + 21, string(_ncmp) + ((_ncmp == 1) ? " bandit camp" : " bandit camps") + ((_nlnd > 0) ? ", 2 landing zones" : ", 1 landing zone"));
-		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text_ext(_bn.x + 8, _bny + 33, "the wild: " + ((_wtxt == "") ? "unknown" : _wtxt), 9, _bn.w - 14);
-		var _mr0 = __rg_map_r();
-		draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "map", c_steelblue, true, false);
-		draw_set_color(_ink); draw_set_alpha(.6);
-		var _q0 = __rg_q_row(0);
-		draw_text(_q0.x, _q0.y - 12, "quests on offer  -  tap one");
-		var _ql = exped_region_quests(_d, rg_sel);
-		var _dc = [c_sgreen, c_gold, c_horange, c_hred];
-		for (var _i = 0; _i <= array_length(_ql); _i++) {
-			var _qr = __rg_q_row(_i);
-			var _isx = (_i >= array_length(_ql));
-			draw_sprite_ext(spr_pixel_1x1, 0, _qr.x, _qr.y, _qr.w, _qr.h, 0, c_black, .82);
-			draw_px_rect(_qr.x, _qr.y, _qr.w, _qr.h, _isx ? c_horange : c_gold, .5);
-			if (_isx) {
-				draw_set_color(c_horange); draw_set_alpha(.95);
-				draw_text(_qr.x + 6, _qr.y + 4, "explore");
-				draw_set_color(_dim); draw_set_alpha(.7);
-				draw_text_ext(_qr.x + 6, _qr.y + 14, "wander the region until recalled", 9, _qr.w - 12);
-			} else {
-				var _q = _ql[_i];
-				draw_set_color(c_white); draw_set_alpha(.95);
-				draw_text(_qr.x + 6, _qr.y + 4, string_copy(_q.txt, 1, land ? 38 : 28));
-				draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_set_alpha(.9);
-				draw_text(_qr.x + 6, _qr.y + 14, _q.diff_txt);
-				draw_set_color(_dim); draw_set_alpha(.7);
-				draw_text(_qr.x + 6 + string_width(_q.diff_txt) + 8, _qr.y + 14, string(_q.hours) + "h  -  " + string(_q.reward) + " cr  -  x" + string(_q.mult) + " xp");
-			}
+		var _tc = [c_sgreen, c_gold, c_horange, c_hred];
+		for (var _li = 0; _li < array_length(_inf); _li++) {
+			var _ln = _inf[_li];
+			draw_set_color(_ink); draw_set_alpha(.8);
+			draw_text(_bn.x + 8, _bny, _ln.k + " - ");
+			draw_set_color(_tc[clamp(_ln.t, 0, 3)]); draw_set_alpha(.95);
+			draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
+			_bny += 11;
+		}
+		var _mr0 = __rgmap_r();
+		draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "region map", c_steelblue, true, false);
+		var _qb = __quests_r();
+		draw_ui_button(_qb.x, _qb.y, _qb.w, _qb.h, "quests", c_gold, true, true);
+		var _xb = __explore_r();
+		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
+		// THE HAND'S VEIL (the cards themselves are obj_card instances over the panel)
+		if (hand_a > .001) {
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y + 16, room_width, room_height - (list_y + 16), 0, c_black, .62 * hand_a);
+			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.7 * hand_a);
+			draw_text(room_width * .5, list_y + 24, (hand == "quests") ? "quests on offer  -  tap one; off the cards to close" : "explore  -  tap a card; off the cards to close");
+			draw_set_halign(fa_left);
 		}
 	} else if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
@@ -895,7 +879,7 @@ if (view == "planet") {
 	}
 	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
 	var _dwx = __pv_dw_x();
-	if (pv_mode == "region") { ui_fade_set(1); exit; }
+	if (pv_mode == "region") { __draw_turn(); ui_fade_set(1); exit; }
 	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
@@ -1112,9 +1096,10 @@ if (view == "galaxy") {
 if (view == "depart") {
 	var _d = pl_dest;
 	var _rg = region_get(_d, rg_sel);
-	var _q = dp_quest;
+	var _q  = (dp_mode == "quest") ? dp_quest : undefined;                          // the quest picked
+	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;  // ...or the explore card (2026-09-15)
 	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, (dp_mode == "explore") ? ("explore " + _rg.name) : ("the quest  -  " + _rg.name));
+	draw_text(land ? 14 : 4, list_y + 6, (dp_mode == "explore") ? ((is_struct(_xc) ? (_xc.name + "  -  ") : "explore ") + _rg.name) : ("the quest  -  " + _rg.name));
 	// the crew, left
 	draw_set_color(_ink); draw_set_alpha(.6);
 	var _np = array_length(sel_crew);
@@ -1212,10 +1197,11 @@ if (view == "depart") {
 		draw_text_ext(_tx, _ty, _obj, 9, _tw);
 		_ty += string_height_ext(_obj, 9, _tw) + 6;
 	} else {
-		draw_text_ext(_tx, _ty, "wander " + _rg.name + " until recalled", 9, _tw);
-		_ty += 12;
+		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");
+		draw_text_ext(_tx, _ty, _xt, 9, _tw);
+		_ty += string_height_ext(_xt, 9, _tw) + 4;
 		draw_set_color(_dim); draw_set_alpha(.75);
-		var _obj2 = "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
+		var _obj2 = is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
 		draw_text_ext(_tx, _ty, _obj2, 9, _tw);
 		_ty += string_height_ext(_obj2, 9, _tw) + 6;
 	}
@@ -1234,7 +1220,7 @@ if (view == "depart") {
 	}
 	draw_set_color(_ink); draw_set_alpha(.8);
 	draw_text(_tx, _ty, "time");
-	var _eta = exped_eta(_d, _q);
+	var _eta = exped_eta(_d, is_struct(_xc) ? _xc : _q);
 	draw_set_halign(fa_right); draw_set_color(c_white);
 	draw_text(_tx + _tw, _ty, (_eta < 0) ? "until recalled" : ("about " + crunch_time_long(_eta * 60 / max(1, _e.spd)) + ((_e.spd > 1) ? ("  at x" + string(_e.spd)) : "")));
 	draw_set_halign(fa_left);
@@ -1263,6 +1249,7 @@ if (view == "depart") {
 	var _dr = __depart_r();
 	var _can = (_np > 0 && _have >= _cost.total);
 	draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, (_np == 0) ? "pick a crew" : ((_have < _cost.total) ? "short of credits" : "depart"), _can ? c_sgreen : c_gray, true, _can);
+	__draw_turn();
 	ui_fade_set(1);
 	exit;
 }

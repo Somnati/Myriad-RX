@@ -420,6 +420,9 @@ function main_macros() {
 #macro EXPED_DROP     40     // % chance a won fight drops something (exped_fight_loot: credits or a piece of gear)
 #macro PL_ZOOM_IN    1.7     // the planet window's zoom on a focused region (syst_exped_panel; the clouds fade to nothing by it, the box clips the rest)
 #macro PV_ZOOM_RG    1.55    // the planet page's pull-in on [view region] (region mode: the banner left, the quests right, the clouds thinned)
+#macro EXPED_QUESTS    5     // quests a region offers at once (his ask, 2026-09-15), each slot on its own clock...
+#macro EXPED_QUEST_LIFE_LO 1800   // ...seconds a slot lives before it re-deals (the expedition clock: x the debug speed, offline too)...
+#macro EXPED_QUEST_LIFE_HI 4500   // ...to this (30-75 min; "other people take quests too")
 #macro EXPED_TICK_MAX  5     // the trip clock walks in slices this long at most (exped_tick): a room a slice, so an absence walks the whole delve, fights and all
 #macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)
 #macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)

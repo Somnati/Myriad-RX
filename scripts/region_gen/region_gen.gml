@@ -126,6 +126,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	var _nciv = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
 	var _ndun = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
 	var _ncmp = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
+	if (_ri == 0) _ncmp = 1;   // THE STARTER IS PEACEFUL (his ask, 2026-09-15: "i want the first region to be peaceful"): one camp at most (the rolls above still go, so the rest holds)
 	var _nlnd = 0;   // ONE landing zone a region (his call, 2026-09-15)
 	var _city = false;
 	repeat (_nciv) {
@@ -275,20 +276,23 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		if (_mk == "dungeon" || _mk == "crypt") _mdun++;
 		if (_mk == "ruin") _mruin++;
 	}
-	var _mood = "quiet";
-	if (_mcmp >= 3) _mood = "war torn";
-	else if (_mciv >= 2 && _mcmp >= 2) _mood = "at war";
-	else if (_mcmp >= 2 && _mcmp >= _mciv) _mood = "lawless";
-	else if (_mcity && _mcmp <= 1) _mood = "prosperous";
-	else if (_mdun >= 3) _mood = "haunted";
-	else if (_mruin >= 2) _mood = "ruined";
-	else if (_mciv >= 3) _mood = "peaceful";
-	else if (_mciv == 1 && _mdun <= 1) _mood = "remote";
-	else _mood = choose("quiet", "sleepy", "untroubled");
+	// ...rated 0..3 (mood_t: the word's colour) and worded from a pool
+	// (his ask: variety); the starter (ri 0) always reads calm
+	var _mood = "quiet", _mood_t = 0;
+	if (_ri == 0)                              { _mood = _mcity ? choose("prosperous", "thriving") : choose("peaceful", "calm", "untroubled", "gentle"); _mood_t = 0; }
+	else if (_mcmp >= 3)                       { _mood = choose("war torn", "overrun"); _mood_t = 3; }
+	else if (_mciv >= 2 && _mcmp >= 2)         { _mood = choose("at war", "besieged"); _mood_t = 3; }
+	else if (_mcmp >= 2 && _mcmp >= _mciv)     { _mood = choose("lawless", "bandit-ridden"); _mood_t = 2; }
+	else if (_mcity && _mcmp <= 1)             { _mood = choose("prosperous", "thriving"); _mood_t = 0; }
+	else if (_mdun >= 3)                       { _mood = choose("haunted", "cursed"); _mood_t = 2; }
+	else if (_mruin >= 2)                      { _mood = choose("ruined", "forsaken"); _mood_t = 2; }
+	else if (_mciv >= 3)                       { _mood = choose("peaceful", "settled", "gentle"); _mood_t = 0; }
+	else if (_mciv == 1 && _mdun <= 1)         { _mood = choose("remote", "lonely", "quiet"); _mood_t = 1; }
+	else                                       { _mood = choose("quiet", "sleepy", "untroubled", "calm"); _mood_t = 0; }
 	// the distinct wild kinds here (the planet window lists them)
 	var _wk2 = [];
 	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);
 	rng_release(_old);
 	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
-	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood, radius : _R, cx : _cx0, cy : _cy0 };
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood, mood_t : _mood_t, radius : _R, cx : _cx0, cy : _cy0 };
 }

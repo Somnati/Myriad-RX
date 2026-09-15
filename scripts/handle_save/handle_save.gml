@@ -567,7 +567,9 @@ function handle_save(){
 	var _seen = g.exped[$ "seen"] ?? [];
 	for (var _i = 0; _i < array_length(_seen); _i++) _xsn += ((_i > 0) ? "|" : "") + _seen[_i];
 	_xsn = handle("ex_seen", _xsn);
+	var _xof = handle("ex_offer", exped_offer_pack());   // THE QUEST BOARDS (2026-09-15)
 	if (action == sv_load) {
+		exped_offer_unpack(_xof);
 		g.exped.st = {};
 		if (_xs != "") {
 			var _sl = string_split(_xs, "|");
