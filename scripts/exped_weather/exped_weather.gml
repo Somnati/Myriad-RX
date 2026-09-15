@@ -6,7 +6,8 @@
 function exped_weather(_tr) {
 	var _rg = exped_region(_tr);
 	var _slot = floor((date_current_datetime() * 86400) / 600);
-	var _h = ((_rg.seed ^ (_slot * 2654435761)) * 1103515245 + 12345) & $7fffffff;
+	var _h = ((_rg.seed ^ ((_slot mod 100003) * 2654435761)) & $7fffffff);   // (the slot folded small first: a product past 2^53 loses its low bits in a double)
+	_h = ((_h * 1103515245) + 12345) & $7fffffff;
 	_h = ((_h ^ (_h >> 13)) * 1274126177) & $7fffffff;
 	var _r = (_h mod 1000) / 10;   // 0..100
 	var _ice = (exped_biomes()[_tr.dest.biome].name == "ice");

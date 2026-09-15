@@ -49,8 +49,10 @@ if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_
 if (view == "planet" && is_struct(pl_dest)) {
 	var _pn4 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = planet_spin_now(_pn4); pv_sky = galaxy_sky_build(); }
-	var _ds = _pn4.spin * delta;
-	pv_spin += _ds;
+	// (the clock's spin, exactly: the agent's daylight reads the same clock)
+	var _ns = planet_spin_now(_pn4);
+	var _ds = angle_difference(_ns, pv_spin);
+	pv_spin = _ns;
 	var _sax = mat3_apply(mat3_rot(0, 0, 1, _pn4.tilt), 0, 1, 0);
 	if (pv_geo) pv_cam = mat3_mul(mat3_rot(_sax[0], _sax[1], _sax[2], _ds), pv_cam);
 	if (pv_face >= 0) {
@@ -84,8 +86,9 @@ if (view == "trip") {
 	if (!is_undefined(_ttr)) {
 		var _tpn = planet_get(_ttr.dest.seed, exped_planet_hint(_ttr.dest));
 		if (tp_id != _ttr.id) { tp_id = _ttr.id; tp_spin = planet_spin_now(_tpn); tp_cam = __cam_face(_tpn, tp_spin, exped_region(_ttr), mat3_rot(1, 0, 0, -32)); }
-		var _tds = _tpn.spin * delta;
-		tp_spin += _tds;
+		var _tns = planet_spin_now(_tpn);
+		var _tds = angle_difference(_tns, tp_spin);
+		tp_spin = _tns;
 		var _tax = mat3_apply(mat3_rot(0, 0, 1, _tpn.tilt), 0, 1, 0);
 		tp_cam = mat3_mul(mat3_rot(_tax[0], _tax[1], _tax[2], _tds), tp_cam);
 	}
@@ -164,12 +167,12 @@ if (view == "planet" && is_struct(pl_dest)) {
 		pv_dx = mouse_x; pv_dy = mouse_y;
 	} else if (pv_drag) {
 		pv_drag = false;
-		if (pv_px <= 4) {
+		if (pv_px <= 4 && pv_mode == "planet") {
 			// a still tap: the region under it - planet_pick (the render run
-			// backwards) then the nearest spot within twelve degrees
+			// backwards, at the drawn radius) then the nearest spot within twelve degrees
 			var _pc = __pv_c();
 			var _ppn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-			var _pk = planet_pick(_ppn, mouse_x, mouse_y, _pc.x, _pc.y, _ocf.pr, pv_mat_m);
+			var _pk = planet_pick(_ppn, mouse_x, mouse_y, _pc.x, _pc.y, _ocf.pr * pv_zoom, pv_mat_m);
 			if (_pk.hit) {
 				var _best = -1, _bd = dcos(12);
 				for (var _i = 0; _i < EXPED_REGIONS; _i++) {

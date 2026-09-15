@@ -140,7 +140,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// settled kind of its own, keeping its landing flag; the must-list gives
 	// one up so the count holds
 	var _lz_in = (random(1) < .3);
-	if (_lz_in) { _nodes[0].kind = (random(1) < .3) ? "city" : "town"; if (_nodes[0].kind == "city") _city = true; if (array_length(_must) > 0) array_delete(_must, 0, 1); }
+	if (_lz_in) { _nodes[0].kind = (random(1) < .3 && !_city) ? "city" : "town"; if (_nodes[0].kind == "city") _city = true; if (array_length(_must) > 0) array_delete(_must, 0, 1); }
 	var _si = 0;
 	for (; _si < array_length(_must) && _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _must[_si];
 	for (; _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _wild[irandom(array_length(_wild) - 1)];
