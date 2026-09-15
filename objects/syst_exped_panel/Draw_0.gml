@@ -269,16 +269,29 @@ if (view == "map") {
 			var _rpp = __map_xy(_rp, _rg, _mr);
 			_cx = _rpp.x; _cy = _rpp.y;
 		}
+		// THE ROUTE, along the roads' own lines (his report: some roads had no
+		// highlight - the road being walked was skipped, and six samples cut
+		// the corners of a bent one): the road under them from where they
+		// stand, then every road of the path; a quest crew with no path yet
+		// shows the way to its objective, dimmer
 		var _pp = _tr2[$ "path"] ?? [];
-		var _from = is_struct(_tr2[$ "road"]) ? _tr2.road.b : _cpos;
+		var _from = _cpos;
+		if (_tr2.stage == 1 && is_struct(_tr2[$ "road"])) {
+			__map_road_hl(_rg, _mr, _tr2.road.a, _tr2.road.b, clamp(_tr2.road.t / max(1, _tr2.road.d * EXPED_HOUR), 0, 1), _tc, .6);
+			_from = _tr2.road.b;
+		}
+		var _hlal = .55;
+		if (array_length(_pp) == 0 && _tr2.stage == 1 && is_struct(_tr2[$ "quest"]) && _tr2.quest.done < _tr2.quest.n && !(_tr2[$ "recall"] ?? false) && !(_tr2[$ "aborted"] ?? false)) { _pp = region_path(_rg, _from, _tr2.quest.node); _hlal = .28; }
 		for (var _k = 0; _k < array_length(_pp); _k++) {
 			var _to = clamp(_pp[_k], 0, array_length(_rg.nodes) - 1);
-			for (var _q2 = 0; _q2 < 6; _q2++) {
-				var _a1 = region_road_point(_rg, _from, _to, _q2 / 6), _a2 = region_road_point(_rg, _from, _to, (_q2 + 1) / 6);
-				var _b1 = __map_xy(_a1, _rg, _mr), _b2 = __map_xy(_a2, _rg, _mr);
-				draw_px_line(_b1.x, _b1.y, _b2.x, _b2.y, _tc, .5);
-			}
+			if (_to != _from) __map_road_hl(_rg, _mr, _from, _to, 0, _tc, _hlal);
 			_from = _to;
+		}
+		// the objective: a pulsing square in the crew's colour
+		if (_tr2.stage == 1 && is_struct(_tr2[$ "quest"]) && _tr2.quest.done < _tr2.quest.n) {
+			var _qn = __map_xy(_rg.nodes[clamp(_tr2.quest.node, 0, array_length(_rg.nodes) - 1)], _rg, _mr);
+			var _qs = 7 + floor(_br * 2);
+			draw_px_rect(floor(_qn.x) - _qs, floor(_qn.y) - _qs, _qs * 2, _qs * 2, _tc, .5 + .4 * _br);
 		}
 		if (_tr2.stage != 1) { var _lzp = __map_xy(_rg.nodes[_rg.landing], _rg, _mr); _cx = _lzp.x - 12; _cy = _lzp.y; }
 		for (var _k = 0; _k < array_length(_tr2.sids); _k++) __dot(_cx - 6 + _k * 6, _cy + 8, 3, _tr2.cols[_k], (_tr2.hp[_k] > 0) ? .95 : .3);
@@ -288,9 +301,9 @@ if (view == "map") {
 	// [legend], and the note
 	var _lgr = __legend_r();
 	draw_ui_button(_lgr.x, _lgr.y, _lgr.w, _lgr.h, "legend", c_steelblue, true, false);
-	draw_set_color(_dim); draw_set_alpha(.35);
+	draw_set_color(_dim); draw_set_alpha(.4);
 	draw_set_halign(fa_right);
-	draw_text(room_width - (land ? 14 : 4), _mr.y + _mr.h + 3, "debug - the player never sees this");
+	draw_text(room_width - (land ? 14 : 4), _mr.y + _mr.h + 3, "hours on the roads  -  a crew's route in its colour");
 	draw_set_halign(fa_left);
 	if (map_legend) {
 		// THE LEGEND (his ask): every kind, its icon or dot, its name; two columns

@@ -231,15 +231,18 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// amplitude by the land: mountains wind wide, hills less, marsh and
 	// forest wander, fields and coasts barely bend, a boat road runs
 	// straight. The hours follow the bent length
+	// THE GRAMMARS (his call, 2026-09-15: "dynamic pathing based on the
+	// biome", not a sawtooth and not one bow for everything): rank = which
+	// end's land shapes the road (a pass beats a marsh beats hills...)
 	var _bend = function(_k) {
 		switch (_k) {
-			case "mountains": return { amp : .05, n : 10, zig : true };
-			case "hills":     return { amp : .035, n : 8, zig : true };
-			case "marsh":     return { amp : .03, n : 6, zig : false };
-			case "forest":    return { amp : .025, n : 5, zig : false };
-			case "desert": case "tundra": case "field": case "coast": return { amp : .012, n : 4, zig : false };
+			case "mountains": return { amp : .05,  n : 10, gram : "pass",   rank : 5 };   // switchbacks: two or three hairpins on long legs
+			case "marsh":     return { amp : .04,  n : 6,  gram : "marsh",  rank : 4 };   // wide detours, as if round the pools
+			case "hills":     return { amp : .035, n : 8,  gram : "hills",  rank : 3 };   // a lazy S
+			case "forest":    return { amp : .03,  n : 6,  gram : "wander", rank : 2 };   // a wandering line, no bow
+			case "desert": case "tundra": case "field": case "coast": return { amp : .012, n : 4, gram : "straight", rank : 1 };
 		}
-		return { amp : .018, n : 5, zig : false };
+		return { amp : .018, n : 5, gram : "straight", rank : 1 };
 	};
 	for (var _e = 0; _e < array_length(_edges); _e++) {
 		var _ed = _edges[_e];
@@ -247,18 +250,34 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		var _ba = _bend(_ea.kind), _bb = _bend(_eb.kind);
 		var _pts = [ { x : _ea.x, y : _ea.y } ];
 		if (!(_ed[$ "boat"] ?? false)) {
-			var _np = max(_ba.n, _bb.n);
-			var _zig = (_ba.zig || _bb.zig);
+			var _bg = (_ba.rank >= _bb.rank) ? _ba : _bb;   // the land that shapes this road
+			var _np = _bg.n;
 			var _dx = _eb.x - _ea.x, _dy = _eb.y - _ea.y;
 			var _len = point_distance(_ea.x, _ea.y, _eb.x, _eb.y);
 			var _nx = -_dy / max(.0001, _len), _ny = _dx / max(.0001, _len);
 			var _sgn = choose(1, -1), _prev = 0;
-			var _wv = 1 + (hash_mix(_seed, _e * 13 + 5) mod 3) * .5;   // 1 / 1.5 / 2 waves along the road
+			var _hv = hash_mix(_seed, _e * 13 + 5);
+			var _turns = 2 + (_hv mod 2);                 // a pass: two or three hairpins
+			var _wv = 1 + ((_hv >> 3) mod 2);             // a marsh: one or two detours
 			for (var _k = 1; _k < _np; _k++) {
 				var _t = _k / _np;
-				var _amp = lerp(_ba.amp, _bb.amp, _t) * sin(_t * pi);   // (pinned at both ends)
-				var _nz = _prev * .5 + random_range(-1, 1) * .5; _prev = _nz;   // (one roll a point, as before)
-				var _off = _sgn * _amp * (_zig ? 1.3 : .9) * sin(_t * pi * _wv) + _nz * _amp * (_zig ? .35 : .6);
+				var _nz = _prev * .5 + random_range(-1, 1) * .5; _prev = _nz;   // (one roll a point, as before - the stream holds)
+				var _env = sin(_t * pi);                                        // (pinned at both ends)
+				var _off = 0;
+				switch (_bg.gram) {
+					case "pass": {
+						// switchbacks: a triangle wave of `_turns` legs under a flat-topped
+						// envelope - long straight legs, sharp reversals, the hairpins of a pass
+						var _ph = frac(_t * _turns * .5 + .25);
+						var _tri = 4 * abs(_ph - .5) - 1;   // -1..1, straight legs
+						_off = _sgn * _bg.amp * _tri * clamp(_env * 1.7, 0, 1) + _nz * _bg.amp * .12;
+						break;
+					}
+					case "hills":    _off = _sgn * _bg.amp * sin(_t * pi * 1.5) * _env + _nz * _bg.amp * .3; break;   // a lazy S
+					case "wander":   _off = _nz * _bg.amp * 1.6 * _env; break;                                       // the noise IS the road
+					case "marsh":    _off = _sgn * _bg.amp * sin(_t * pi * _wv) * _env + _nz * _bg.amp * .35; break;   // wide detours
+					default:         _off = _sgn * _bg.amp * .8 * _env * sin(_t * pi) + _nz * _bg.amp * .3; break;    // near straight
+				}
 				array_push(_pts, { x : _ea.x + _dx * _t + _nx * _off, y : _ea.y + _dy * _t + _ny * _off });
 			}
 		}

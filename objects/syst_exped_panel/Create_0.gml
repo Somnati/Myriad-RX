@@ -1096,6 +1096,37 @@ __draw_info_box = function(_d, _rg, _bn) {
 };
 map_legend = false;                  // the legend popup (his ask: a [legend] button, the kinds listed)
 map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
+/// a road highlighted along its OWN polyline from fraction q0 of the way (arc length) to its end - the crew's route (the map)
+__map_road_hl = function(_rg, _mr, _a, _b, _q0, _col, _al) {
+	var _pts = undefined, _rev = false;
+	for (var _e = 0; _e < array_length(_rg.edges); _e++) {
+		var _ed = _rg.edges[_e];
+		if (_ed.a == _a && _ed.b == _b) { _pts = _ed[$ "pts"]; break; }
+		if (_ed.a == _b && _ed.b == _a) { _pts = _ed[$ "pts"]; _rev = true; break; }
+	}
+	if (!is_array(_pts) || array_length(_pts) < 2) {
+		var _s1 = region_road_point(_rg, _a, _b, _q0), _s2 = _rg.nodes[clamp(_b, 0, array_length(_rg.nodes) - 1)];
+		var _m1 = __map_xy(_s1, _rg, _mr), _m2 = __map_xy(_s2, _rg, _mr);
+		draw_px_line(_m1.x, _m1.y, _m2.x, _m2.y, _col, _al);
+		return;
+	}
+	// walk the polyline from a to b (reversed when stored the other way)
+	var _n = array_length(_pts);
+	var _seq = [];
+	for (var _k = 0; _k < _n; _k++) array_push(_seq, _rev ? _pts[_n - 1 - _k] : _pts[_k]);
+	var _len = 0;
+	for (var _k = 1; _k < _n; _k++) _len += point_distance(_seq[_k - 1].x, _seq[_k - 1].y, _seq[_k].x, _seq[_k].y);
+	var _want = clamp(_q0, 0, 1) * _len, _acc = 0;
+	for (var _k = 1; _k < _n; _k++) {
+		var _sl = point_distance(_seq[_k - 1].x, _seq[_k - 1].y, _seq[_k].x, _seq[_k].y);
+		if (_acc + _sl <= _want) { _acc += _sl; continue; }
+		var _f = (_sl > 0) ? clamp((_want - _acc) / _sl, 0, 1) : 0;
+		var _p1 = { x : lerp(_seq[_k - 1].x, _seq[_k].x, _f), y : lerp(_seq[_k - 1].y, _seq[_k].y, _f) };
+		var _m1 = __map_xy(_p1, _rg, _mr), _m2 = __map_xy(_seq[_k], _rg, _mr);
+		draw_px_line(_m1.x, _m1.y, _m2.x, _m2.y, _col, _al);
+		_acc += _sl; _want = -1;   // (the rest whole)
+	}
+};
 __legend_r = function() { var _m = __map_r(); return { x : _m.x, y : _m.y + _m.h + 2, w : 56, h : 13 }; };
 /// a node's place on the map rect: the region's circle fills the rect's
 /// shorter side (his ask: bounded by a radius, not the rectangle)
