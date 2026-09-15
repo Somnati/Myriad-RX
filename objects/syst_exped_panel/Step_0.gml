@@ -53,7 +53,7 @@ if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_
 // THE SUN IS LIVE (his report, 2026-09-15: "mid-morning but clearly night" -
 // the render's sun was the one at open, the words read the clock's; the
 // orbits ran a year in minutes, so they parted within it)
-if (is_struct(pv_sky) && (view == "planet" || view == "trip")) pv_sky.light_w = galaxy_sun_dir();
+if (is_struct(pv_sky)) pv_sky.light_w = galaxy_sun_dir();   // (every page: the small worlds on the haul card and the list rows read it too - bug hunt)
 // THE ORBIT VIEW'S CLOCK: the world spins its own axis (the universal
 // clock sets it the first time), the camera rides the spin (geosync), and
 // turns to face a picked region (pv_face) - a rotation about the view axis

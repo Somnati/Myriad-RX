@@ -714,7 +714,13 @@ if (view == "trip") {
 	var _q = _tr[$ "quest"];
 	draw_set_color(c_gold); draw_set_alpha(.9);
 	if (is_struct(_q)) draw_text_ext(_sx, _sy + 28, _q.txt + "  -  " + string(_q.done) + " / " + string(_q.n) + ((_q.done >= _q.n) ? "  done" : ""), 9, _sw);
-	else draw_text(_sx, _sy + 28, "exploring  -  " + string_format((_tr[$ "planet_t"] ?? 0) / EXPED_HOUR, 1, 1) + "h on the world  -  " + string(_tr[$ "credits"] ?? 0) + " credits in the pocket" + ((_tr[$ "recall"] ?? false) ? "  -  recalled" : ""));
+	else {
+		// (the explore card's word: a ramble says its hours, a survey its places - bug hunt 2026-09-15)
+		var _tex = _tr[$ "ex"], _texw = "exploring";
+		if (is_struct(_tex) && _tex.kind == "ramble") _texw = "roaming, " + string(_tex.n) + "h asked";
+		else if (is_struct(_tex) && _tex.kind == "survey") _texw = "surveying, " + string(max(0, array_length(_tr[$ "visited"] ?? []) - 1)) + " of " + string(_tex.n) + " places";
+		draw_text(_sx, _sy + 28, _texw + "  -  " + string_format((_tr[$ "planet_t"] ?? 0) / EXPED_HOUR, 1, 1) + "h on the world  -  " + string(_tr[$ "credits"] ?? 0) + " credits in the pocket" + ((_tr[$ "recall"] ?? false) ? "  -  heading home" : ""));
+	}
 	if (is_struct(_q)) { draw_set_color(_dim); draw_set_alpha(.6); draw_text(_sx, _sy + 38, string(_tr[$ "credits"] ?? 0) + " credits in the pocket"); }
 
 	// THE COMBAT WINDOW, while a fight is on - or while a fight that
