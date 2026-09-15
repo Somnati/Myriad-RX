@@ -14,3 +14,4 @@ if (surface_exists(log_surf)) surface_free(log_surf);
 log_surf = -1;
 if (instance_exists(sb)) instance_destroy(sb);
 __hand_close();
+if (instance_exists(turn_px)) instance_destroy(turn_px);

@@ -53,48 +53,75 @@ it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
 dp_look  = -1;           // the preparation page's INSPECTED sprite: its sheet in brief, a popup (tap a banner)
-// THE PREPARATION PAGE (reworked 2026-09-15, his ask): the crew as BANNERS
-// in a list, a [+] on each; three SEATS on the right, banner-shaped, a [+]
-// in the middle. Tap a banner = its info box; tap [+] = the next free
-// seat; HOLD a banner = pick it up, drag it onto a seat. A seated banner
-// leaves a grey ghost in the list; tap it in its seat (or drag it off) to
-// send it back. Banners SWING between the list and the seats (dp_pos)
-dp_slots = array_create(EXPED_PARTY, -1);   // the seats: a sprite id each, -1 empty (sel_crew = the seated, in seat order)
+// THE PREPARATION PAGE (reworked 2026-09-15, his ask; round two the same
+// day): the crew as BANNERS in a list on the left, a [+] beside each -
+// tap the banner for its sheet (the crew page's own), tap [+] to seat it;
+// THE MISSION BOX on the right with the SEATS inside it under the numbers
+// (exped_party_max() of them - the box grows to fit), a [-] beside each
+// seat to send one back. A seated banner leaves a grey ghost in its row
+// until it is home again; banners SWING between the list and the seats
+// (dp_pos). The list scrolls (dp_off) when the crew outgrows the band
+dp_slots = array_create(exped_party_max(), -1);   // the seats: a sprite id each, -1 empty (sel_crew = the seated, in seat order)
 dp_pos   = {};                              // sid -> { x, y } where the banner is drawn now (eased toward its seat or its row)
-dp_press = -1; dp_from = ""; dp_hold = 0; dp_px = 0; dp_py = 0;   // a press on a banner: which, where from ("row" / "seat"), how long
-dp_drag  = -1;                              // the banner in hand
+dp_off   = 0;                               // the list's scroll (px)
+dp_ldrag = undefined;                       // { y0, off0, moved } while a finger drags the list
 dp_in    = 0; dp_dir = 0; dp_next = "";     // THE SWING: the page slides in (0 -> 1) and out (dp_dir -1, then dp_next)
 rg_in    = 0;                               // region mode's own swing (the info box from the left, the buttons from the right)
+view_last = "";                             // the view a frame ago: a change fades the new page in (the one veil, turn_px)
 __dp_bw  = function() { return land ? 120 : (room_width - 8 - 18); };   // a banner's width
-__dp_row_r = function(_k) { var _o = -(1 - dp_in) * 200; return { x : (land ? 14 : 4) + _o, y : list_y + 34 + _k * 16, w : __dp_bw(), h : 14 }; };
-__dp_plus_r = function(_k) { var _r = __dp_row_r(_k); return { x : _r.x + _r.w + 3, y : _r.y, w : 14, h : 14 }; };
-__dp_seat_r = function(_j) {
+__dp_bh  = function() { return 22; };                                    // ...and its height (the name line, the hp / mp line)
+__dp_list_r = function() { var _o = -(1 - dp_in) * 200; return { x : (land ? 14 : 4) + _o, y : list_y + 34, w : __dp_bw() + 18, h : room_height - 8 - (list_y + 34) }; };
+__dp_row_r = function(_k) { var _l = __dp_list_r(); return { x : _l.x, y : _l.y + _k * (__dp_bh() + 4) - dp_off, w : __dp_bw(), h : __dp_bh() }; };
+__dp_row_in = function(_k) { var _l = __dp_list_r(), _r = __dp_row_r(_k); return (_r.y >= _l.y - 1 && _r.y + _r.h <= _l.y + _l.h + 1); };   // the row wholly in the band
+__dp_plus_r = function(_k) { var _r = __dp_row_r(_k); return { x : _r.x + _r.w + 3, y : _r.y + 4, w : 14, h : 14 }; };
+__dp_off_max = function() { var _l = __dp_list_r(); return max(0, array_length(g.sprites) * (__dp_bh() + 4) - 4 - _l.h); };
+/// THE MISSION BOX's layout: the text and the numbers, then the seats; the box grows to fit
+__dp_layout = function() {
 	var _o = (1 - dp_in) * 340;
-	if (land) return { x : 160 + _o, y : list_y + 34 + _j * 16, w : __dp_bw(), h : 14 };
-	return { x : 4 + _o, y : list_y + 34 + array_length(g.sprites) * 16 + 10 + _j * 16, w : room_width - 8, h : 14 };
+	var _x = land ? (160 + _o) : (4 + _o), _y = list_y + 22;
+	var _w = land ? (room_width - 160 - 14) : (room_width - 8);
+	var _tw = _w - 16;
+	var _rg = region_get(pl_dest, rg_sel);
+	var _q  = (dp_mode == "quest") ? dp_quest : undefined;
+	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;
+	draw_set_font(fnt);
+	var _th = 0;
+	if (is_struct(_q)) {
+		var _nd = _rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)];
+		var _obj = "";
+		switch (_q.kind) {
+			case "slay":  _obj = "hunt " + _q.foe + "s at " + _nd.name + " (" + _nd.kind + "), " + string(_q.n) + " of them; the crew comes home when the count is met"; break;
+			case "clear": _obj = "go room by room through " + _nd.name + ", " + string(_q.n) + " rooms - fights, finds, traps"; break;
+			case "rout":  _obj = "walk into the camp at " + _nd.name + " and win two fights against its bandits"; break;
+			case "scout": _obj = "get to " + _nd.name + " and come back with a look at it"; break;
+		}
+		_th = string_height_ext(_q.txt, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 11 * 5;
+	} else {
+		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");
+		var _obj2 = is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
+		_th = string_height_ext(_xt, 9, _tw) + 4 + string_height_ext(_obj2, 9, _tw) + 6 + 11 * 4;
+	}
+	var _ns = exped_party_max();
+	var _sy0 = _y + 6 + _th + 14;
+	var _h = 6 + _th + 14 + _ns * (__dp_bh() + 4) + 4;
+	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns };
 };
-__brief_r = function() {
-	var _o = (1 - dp_in) * 340;
-	if (land) return { x : 160 + _o, y : list_y + 34 + EXPED_PARTY * 16 + 8, w : room_width - 160 - 14, h : room_height - 8 - 22 - (list_y + 34 + EXPED_PARTY * 16 + 8) };
-	var _y = list_y + 34 + array_length(g.sprites) * 16 + 10 + EXPED_PARTY * 16 + 8;
-	return { x : 4 + _o, y : _y, w : room_width - 8, h : max(40, room_height - 8 - 22 - _y) };
-};
-__depart_r = function() { var _b = __brief_r(); return { x : _b.x + _b.w - 100, y : room_height - 8 - 16 + (1 - dp_in) * 60, w : 100, h : 16 }; };
-__dp_pop_r = function() { var _o = (1 - dp_in) * 340; if (land) return { x : room_width - 14 - 186 + _o, y : list_y + 34, w : 186, h : 150 }; return { x : 4 + _o, y : list_y + 34, w : room_width - 8, h : 150 }; };
+__brief_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : _l.h }; };
+__dp_seat_r = function(_j) { var _l = __dp_layout(); return { x : _l.x + 8, y : _l.seat_y0 + _j * (__dp_bh() + 4), w : __dp_bw(), h : __dp_bh() }; };
+__dp_minus_r = function(_j) { var _r = __dp_seat_r(_j); return { x : _r.x + _r.w + 4, y : _r.y + 4, w : 14, h : 14 }; };
+__depart_r = function() { var _b = __brief_r(); return { x : _b.x + _b.w - 100, y : min(room_height - 8 - 16, _b.y + _b.h + 4) + (1 - dp_in) * 60, w : 100, h : 16 }; };
 /// the seat a sprite sits in (-1 = the list)
-__dp_seat_of = function(_sid) { for (var _j = 0; _j < EXPED_PARTY; _j++) if (dp_slots[_j] == _sid) return _j; return -1; };
+__dp_seat_of = function(_sid) { for (var _j = 0; _j < array_length(dp_slots); _j++) if (dp_slots[_j] == _sid) return _j; return -1; };
 /// sel_crew follows the seats (the odds, the bill, the departure read it)
-__dp_sync = function() { sel_crew = []; for (var _j = 0; _j < EXPED_PARTY; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) array_push(sel_crew, dp_slots[_j]); };
-/// a sprite into a seat (the next free one when j = -1); a napping one wakes on the way
-__dp_seat = function(_sid, _j = -1) {
+__dp_sync = function() { sel_crew = []; for (var _j = 0; _j < array_length(dp_slots); _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) array_push(sel_crew, dp_slots[_j]); };
+/// a sprite into the next free seat; a napping one wakes on the way
+__dp_seat = function(_sid) {
+	if (array_length(dp_slots) != exped_party_max()) { var _old = dp_slots; dp_slots = array_create(exped_party_max(), -1); for (var _k = 0; _k < min(array_length(_old), array_length(dp_slots)); _k++) dp_slots[_k] = _old[_k]; }
 	var _sp = __sp_by_id(_sid);
-	if (is_undefined(_sp) || (_sp[$ "trip"] ?? false)) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); return false; }
-	var _was = __dp_seat_of(_sid);
-	if (_was >= 0) dp_slots[_was] = -1;
-	if (_j < 0) for (var _k = 0; _k < EXPED_PARTY && _j < 0; _k++) if (dp_slots[_k] < 0) _j = _k;
-	if (_j < 0) { if (_was >= 0) dp_slots[_was] = _sid; play_sound_ext(snd_matclick2, .7, .8, .35, 0); return false; }
-	// a seat already taken: its sitter goes back to the list (or into the seat this one left)
-	if (dp_slots[_j] >= 0 && dp_slots[_j] != _sid) { if (_was >= 0) dp_slots[_was] = dp_slots[_j]; }
+	if (is_undefined(_sp) || (_sp[$ "trip"] ?? false) || __dp_seat_of(_sid) >= 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); return false; }
+	var _j = -1;
+	for (var _k = 0; _k < array_length(dp_slots) && _j < 0; _k++) if (dp_slots[_k] < 0) _j = _k;
+	if (_j < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); return false; }
 	dp_slots[_j] = _sid;
 	if (_sp.asleep) { _sp.asleep = false; _sp.hurt = 0; save_mark_dirty(); }
 	__dp_sync();
@@ -103,14 +130,15 @@ __dp_seat = function(_sid, _j = -1) {
 };
 __dp_unseat = function(_sid) { var _j = __dp_seat_of(_sid); if (_j >= 0) dp_slots[_j] = -1; __dp_sync(); play_sound_ext(snd_softclick, .9, 1, .4, 1); };
 /// the page swings out, then turns (the reverse of its entrance)
-__dp_leave = function(_next) { dp_next = _next; dp_dir = -1; dp_drag = -1; dp_press = -1; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); };
-/// a banner: the colour bar, the dot, the name, the class and level, the hp sliver
+__dp_leave = function(_next) { dp_next = _next; dp_dir = -1; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); };
+/// a banner (22 tall): the colour bar and the dot, the name and class, then hp and mp - a thin bar each with the numbers beside
 __dp_banner = function(_sp, _x, _y, _w, _a, _ghost) {
 	var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];
 	var _away = (_sp[$ "trip"] ?? false);
-	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, 14, 0, c_black, .8 * _a);
-	draw_px_rect(_x, _y, _w, 14, _ghost ? sett_ink : _sp.col, (_ghost ? .25 : .6) * _a);
-	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, 14, 0, _sp.col, (_ghost ? .3 : .9) * _a);
+	var _h = __dp_bh();
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_black, .8 * _a);
+	draw_px_rect(_x, _y, _w, _h, _ghost ? sett_ink : _sp.col, (_ghost ? .25 : .6) * _a);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, _h, 0, _sp.col, (_ghost ? .3 : .9) * _a);
 	__dot(_x + 9, _y + 7, 3, _sp.col, (_ghost ? .3 : .95) * _a);
 	draw_set_halign(fa_left); draw_set_valign(fa_top);
 	draw_set_color(_ghost ? sett_ink : c_white); draw_set_alpha((_ghost ? .35 : .95) * _a);
@@ -119,69 +147,22 @@ __dp_banner = function(_sp, _x, _y, _w, _a, _ghost) {
 	draw_text(_x + 16 + string_width(str_cap(_sp.name)) + 5, _y + 3, _c.name + " " + string(_sh.lv));
 	if (_away) { draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.6 * _a); draw_text(_x + _w - 4, _y + 3, "out"); draw_set_halign(fa_left); }
 	else if (_sp.asleep) { draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.6 * _a); draw_text(_x + _w - 4, _y + 3, "zz"); draw_set_halign(fa_left); }
-	// the hp sliver along the foot
-	var _hf = _sp[$ "hpf"] ?? 1;
-	if (!_ghost && _hf < 1) { draw_sprite_ext(spr_pixel_1x1, 0, _x + 2, _y + 12, _w - 4, 1, 0, c_black, .8 * _a); draw_sprite_ext(spr_pixel_1x1, 0, _x + 2, _y + 12, (_w - 4) * _hf, 1, 0, c_hred, .9 * _a); }
-	draw_set_alpha(1);
-};
-/// a sprite's sheet in brief (the info popup): portrait, name, class, hp / mp bars, the grid with the gear's share, crit / counter, weapon, skills
-__draw_sprite_brief = function(_lk, _lr) {
-	var _lsh = sprite_sheet(_lk), _lst = sprite_stats(_lk), _lc = _lst.cls, _lbal = cbt_balance();
-	draw_sprite_ext(spr_pixel_1x1, 0, _lr.x + 2, _lr.y + 3, _lr.w, _lr.h, 0, c_black, .5);
-	draw_sprite_ext(spr_pixel_1x1, 0, _lr.x, _lr.y, _lr.w, _lr.h, 0, c_hsv(169, 186, 9), .98);
-	draw_px_rect(_lr.x, _lr.y, _lr.w, _lr.h, _lk.col, .6);
-	var _lx = _lr.x + 6, _ly = _lr.y + 4;
-	var _fa = g.ui_fade_a;
-	ui_fade_set(1);
-	sprite_portrait(_lk, _lx + 7, _ly + 8, 1);
-	ui_fade_set(_fa);
-	draw_set_halign(fa_left); draw_set_valign(fa_top);
-	draw_set_font(fnt_large); draw_set_color(_lk.col); draw_set_alpha(.95); draw_text(_lx + 18, _ly - 3, str_cap(_lk.name)); draw_set_font(fnt);
-	draw_set_color(_lc.col); draw_text(_lx + 18, _ly + 10, _lc.name + "  -  lv " + string(_lsh.lv));
-	_ly += 22;
-	var _lhp = floor(_lst.pts.hp * _lbal.hp_per_point + _lbal.hp_flat_add), _lmp = max(1, round(_lst.pts.mp));
-	var _lhc = floor(_lhp * (_lk[$ "hpf"] ?? 1)), _lmc = round(_lmp * (_lk[$ "mpf"] ?? 1));
-	var _lbw = _lr.w - 30;
-	draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_lx, _ly, "hp");
-	draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw, 5, 0, c_black, .7);
-	draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw * clamp(_lhc / max(1, _lhp), 0, 1), 5, 0, c_hred, .8);
-	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly - 1, string(_lhc) + " / " + string(_lhp)); draw_set_halign(fa_left); draw_set_font(fnt);
-	draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_lx, _ly + 10, "mp");
-	draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw, 5, 0, c_black, .7);
-	draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw * clamp(_lmc / max(1, _lmp), 0, 1), 5, 0, c_sblue, .8);
-	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly + 9, string(_lmc) + " / " + string(_lmp)); draw_set_halign(fa_left); draw_set_font(fnt);
-	_ly += 24;
-	var _lkeys = ["atk", "def", "mag", "mdef", "spd", "hit"], _llbl = ["atk", "def", "int", "res", "spd", "hit"];
-	var _gp = floor((_lr.w - 12) * .5);
-	for (var _k = 0; _k < 6; _k++) {
-		var _gx = _lx + (_k mod 2) * _gp, _gy = _ly + (_k div 2) * 11;
-		draw_set_color(sett_ink); draw_set_alpha(.8); draw_text(_gx, _gy, _llbl[_k]);
-		draw_set_halign(fa_right); draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
-		draw_text(_gx + 44, _gy, string_format(_lst.pts[$ _lkeys[_k]], 1, 1));
-		draw_set_font(fnt); draw_set_halign(fa_left);
-		var _lg = _lst.gear[$ _lkeys[_k]];
-		if (_lg > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_gx + 47, _gy, "+" + string_format(_lg, 1, 1)); }
-	}
-	_ly += 34;
-	draw_set_color(sett_ink); draw_set_alpha(.7);
-	draw_text(_lx, _ly, "crit " + string(_lc.crit) + "% x" + string(_lc.cmulti) + "  -  counter " + string(_lc.cnt) + "%");
-	_ly += 11;
-	draw_set_color(sett_ink); draw_set_alpha(.8); draw_text(_lx, _ly, "weapon");
-	if (is_undefined(_lsh.w1)) { draw_set_color(sett_ink); draw_set_alpha(.5); draw_text(_lx + 40, _ly, "(bare hands)"); }
-	else {
-		var _wnm = _lsh.w1.name, _wav = _lr.w - 12 - 40;
-		if (string_width(_wnm) > _wav) { while (string_width(_wnm + "..") > _wav && string_length(_wnm) > 2) _wnm = string_copy(_wnm, 1, string_length(_wnm) - 1); _wnm += ".."; }
-		draw_set_color(_lsh.w1.col); draw_set_alpha(.95); draw_text(_lx + 40, _ly, _wnm);
-	}
-	_ly += 12;
-	var _lsk = sprite_skills(_lk);
-	draw_set_color(sett_ink); draw_set_alpha(.5); draw_text(_lx, _ly, "skills");
-	for (var _k = 0; _k < array_length(_lsk); _k++) {
-		var _ls2 = _lsk[_k], _lsy = _ly + 11 + _k * 11;
-		if (_lsy + 10 > _lr.y + _lr.h - 2) break;
-		draw_sprite_ext(spr_pixel_1x1, 0, _lx - 2, _lsy - 1, _lr.w - 8, 10, 0, c_black, .35);
-		draw_set_color(_ls2.magic ? c_hpurple : c_horange); draw_set_alpha(.9); draw_text(_lx, _lsy, _ls2.name);
-		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85); draw_text(_lx - 2 + _lr.w - 8 - 4, _lsy, string(_ls2.cost) + " mp"); draw_set_halign(fa_left);
+	if (!_ghost) {
+		// hp / mp: a label, a 3px bar, the numbers (the sheet's, condensed)
+		var _st = sprite_stats(_sp), _bal = cbt_balance();
+		var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add), _mpr = max(1, round(_st.pts.mp));
+		var _hpc = floor(_hpr * (_sp[$ "hpf"] ?? 1)), _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
+		var _half = floor((_w - 8) * .5), _bw = max(8, _half - 14 - 26);
+		var _ly = _y + 13;
+		draw_set_color(c_hred); draw_set_alpha(.9 * _a); draw_text(_x + 4, _ly, "hp");
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + 15, _ly + 2, _bw, 3, 0, c_black, .7 * _a);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + 15, _ly + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 3, 0, c_hred, .85 * _a);
+		draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_x + 15 + _bw + 3, _ly, string(_hpc) + "/" + string(_hpr));
+		var _mx = _x + 4 + _half;
+		draw_set_color(c_sblue); draw_set_alpha(.9 * _a); draw_text(_mx, _ly, "mp");
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx + 11, _ly + 2, _bw, 3, 0, c_black, .7 * _a);
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx + 11, _ly + 2, _bw * clamp(_mpc / max(1, _mpr), 0, 1), 3, 0, c_sblue, .85 * _a);
+		draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_mx + 11 + _bw + 3, _ly, string(_mpc) + "/" + string(_mpr));
 	}
 	draw_set_alpha(1);
 };
@@ -666,6 +647,13 @@ log_follow = true;
 log_n = -1;                          // the diary's line count last seen (a new line = follow)
 log_surf = -1;                       // the diary's band, rendered offset
 log_lay = { n : 0, w : 0, hs : [], total : 0 };   // the layout: every line's height, the total
+// THE ONE VEIL (2026-09-15): every page fades in from black on a view
+// change (view_last, the Step) - a proxy a step above the panel draws it,
+// so no branch has to remember to (__draw_turn)
+turn_px = create_obj(0, 0, obj_draw_proxy);
+turn_px.owner = id;
+turn_px.depth = depth - 1;
+turn_px.fn = function() { __draw_turn(); };
 sb = create_obj(0, 0, obj_scrollbar);
 sb.i = scrl_exped_log;
 sb.depth = depth - 1;

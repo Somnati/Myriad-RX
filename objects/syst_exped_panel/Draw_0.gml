@@ -184,7 +184,6 @@ if (view == "haul") {
 		var _cb = __col_r();
 		draw_ui_button(_cb.x, _cb.y, _cb.w, _cb.h, "collect", c_gold, true, true);
 	}
-	__draw_turn();
 	ui_fade_set(1);
 	exit;
 }
@@ -945,7 +944,7 @@ if (view == "planet") {
 	}
 	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
 	var _dwx = __pv_dw_x();
-	if (pv_mode == "region") { __draw_back(); __draw_turn(); ui_fade_set(1); exit; }
+	if (pv_mode == "region") { __draw_back(); ui_fade_set(1); exit; }
 	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
@@ -1168,30 +1167,34 @@ if (view == "depart") {
 	var _rg = region_get(_d, rg_sel);
 	var _q  = (dp_mode == "quest") ? dp_quest : undefined;                          // the quest picked
 	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;  // ...or the explore card (2026-09-15)
-	var _oL = -(1 - dp_in) * 200;   // the swing: the list from the left, the seats and the brief from the right
+	var _oL = -(1 - dp_in) * 200;   // the swing: the list from the left, the box from the right
+	var _ns = exped_party_max();
+	if (array_length(dp_slots) != _ns) { var _old2 = dp_slots; dp_slots = array_create(_ns, -1); for (var _k = 0; _k < min(array_length(_old2), _ns); _k++) dp_slots[_k] = _old2[_k]; }
 	draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text((land ? 14 : 4) + _oL, list_y + 6, (dp_mode == "explore") ? ((is_struct(_xc) ? (_xc.name + "  -  ") : "explore ") + _rg.name) : ("the quest  -  " + _rg.name));
-	// THE CREW as banners in a list (his ask, 2026-09-15): tap one for its
-	// info box, [+] for the next free seat, hold to pick it up; a seated
-	// one leaves a grey ghost here
+	// THE CREW as banners in a list: tap one for its sheet, [+] to seat it;
+	// a seated one leaves a grey ghost here until it is home again
+	var _dl = __dp_list_r();
 	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text((land ? 14 : 4) + _oL, list_y + 22, "the crew  -  tap for the sheet, [+] or drag to a seat");
+	draw_text(_dl.x, list_y + 22, "the crew  -  tap for the sheet, [+] to seat" + ((__dp_off_max() > 0) ? "  -  scrolls" : ""));
 	var _crew = [];
 	var _np = 0;
-	for (var _j = 0; _j < EXPED_PARTY; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) { array_push(_crew, __sp_by_id(dp_slots[_j])); _np++; }
+	for (var _j = 0; _j < _ns; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) { array_push(_crew, __sp_by_id(dp_slots[_j])); _np++; }
+	var _fly = [];   // banners in flight: drawn last, over everything
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		if (!__dp_row_in(_k)) continue;
 		var _sp = g.sprites[_k];
 		var _rr = __dp_row_r(_k);
 		var _seated = (__dp_seat_of(_sp.id) >= 0);
 		var _away = (_sp[$ "trip"] ?? false);
-		if (_seated) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, 1, true);   // the ghost
-		else {
-			// the banner sits in its row unless it is flying home from a seat (dp_pos)
-			var _ps = dp_pos[$ string(_sp.id)];
-			var _bx = is_struct(_ps) ? _ps.x : _rr.x, _by = is_struct(_ps) ? _ps.y : _rr.y;
-			if (dp_drag != _sp.id) __dp_banner(_sp, _bx, _by, _rr.w, _away ? .45 : 1, false);
+		var _ps = dp_pos[$ string(_sp.id)];
+		var _home = is_struct(_ps) && point_distance(_ps.x, _ps.y, _rr.x, _rr.y) < 1;
+		// the ghost stays until the banner is HOME (his report: the row lost it while the banner flew)
+		if (_seated || !_home) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, 1, true);
+		if (!_seated && is_struct(_ps)) { if (_home) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, _away ? .45 : 1, false); else array_push(_fly, _sp); }
+		if (!_seated) {
 			var _pr = __dp_plus_r(_k);
-			var _can = !_away && (_np < EXPED_PARTY);
+			var _can = !_away && (_np < _ns);
 			draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
 			draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _can ? c_sgreen : _dim, _can ? .7 : .25);
 			draw_set_halign(fa_center); draw_set_color(_can ? c_sgreen : _dim); draw_set_alpha(_can ? .95 : .35);
@@ -1199,30 +1202,12 @@ if (view == "depart") {
 			draw_set_halign(fa_left);
 		}
 	}
-	// THE SEATS: banner-shaped, a [+] in the middle while empty; a seated banner at its eased place
-	for (var _j = 0; _j < EXPED_PARTY; _j++) {
-		var _sr = __dp_seat_r(_j);
-		var _sid = dp_slots[_j];
-		var _hot = (dp_drag >= 0 && point_in_rectangle(mouse_x, mouse_y, _sr.x - 4, _sr.y - 4, _sr.x + _sr.w + 4, _sr.y + _sr.h + 4));
-		draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_black, .6);
-		draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _hot ? c_sgreen : (dp_drag >= 0 ? c_gold : _dim), _hot ? .95 : (dp_drag >= 0 ? .6 : .35));
-		if (_sid < 0 || is_undefined(__sp_by_id(_sid))) {
-			draw_set_halign(fa_center); draw_set_color(_hot ? c_sgreen : _dim); draw_set_alpha(_hot ? .95 : .5);
-			draw_text(_sr.x + _sr.w * .5, _sr.y + 3, "+");
-			draw_set_halign(fa_left);
-		} else if (dp_drag != _sid) {
-			var _ssp = __sp_by_id(_sid);
-			var _ps2 = dp_pos[$ string(_sid)];
-			__dp_banner(_ssp, is_struct(_ps2) ? _ps2.x : _sr.x, is_struct(_ps2) ? _ps2.y : _sr.y, _sr.w, 1, false);
-		}
-	}
-	draw_set_color(_dim); draw_set_alpha(.5);
-	draw_text(__dp_seat_r(0).x, __dp_seat_r(0).y - 12, "the party  -  " + string(_np) + " of " + string(EXPED_PARTY) + "  -  tap a seat to send one back");
-	// the brief, right
-	var _br2 = __brief_r();
+	// THE MISSION BOX: the text, the numbers, then the seats inside it
+	var _lay = __dp_layout();
+	var _br2 = { x : _lay.x, y : _lay.y, w : _lay.w, h : _lay.h };
 	draw_sprite_ext(spr_pixel_1x1, 0, _br2.x, _br2.y, _br2.w, _br2.h, 0, c_black, .7);
 	draw_px_rect(_br2.x, _br2.y, _br2.w, _br2.h, (dp_mode == "explore") ? c_horange : c_gold, .5);
-	var _tx = _br2.x + 8, _ty = _br2.y + 6, _tw = _br2.w - 16;
+	var _tx = _br2.x + 8, _ty = _br2.y + 6, _tw = _lay.tw;
 	var _dc = [c_sgreen, c_gold, c_horange, c_hred];
 	draw_set_color(c_white); draw_set_alpha(.95);
 	if (is_struct(_q)) {
@@ -1288,20 +1273,40 @@ if (view == "depart") {
 		draw_text(_tx + _tw, _ty, "about " + string(_pc) + "%  (" + string(round(_od.fights)) + ((_od.fights == 1) ? " fight" : " fights") + " expected)");
 	}
 	draw_set_halign(fa_left);
+	// THE SEATS, inside the box: a [+] while empty, the banner when taken, a [-] beside it
+	draw_set_color(_dim); draw_set_alpha(.5);
+	draw_text(_tx, _lay.seat_y0 - 12, "the party  -  " + string(_np) + " of " + string(_ns));
+	for (var _j = 0; _j < _ns; _j++) {
+		var _sr = __dp_seat_r(_j);
+		var _sid = dp_slots[_j];
+		var _ssp = (_sid >= 0) ? __sp_by_id(_sid) : undefined;
+		draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_black, .6);
+		draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _dim, .35);
+		if (is_undefined(_ssp)) {
+			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.5);
+			draw_text(_sr.x + _sr.w * .5, _sr.y + 7, "+");
+			draw_set_halign(fa_left);
+		} else {
+			var _ps2 = dp_pos[$ string(_sid)];
+			var _home2 = is_struct(_ps2) && point_distance(_ps2.x, _ps2.y, _sr.x, _sr.y) < 1;
+			if (_home2) __dp_banner(_ssp, _sr.x, _sr.y, _sr.w, 1, false); else array_push(_fly, _ssp);
+			var _mr2 = __dp_minus_r(_j);
+			draw_sprite_ext(spr_pixel_1x1, 0, _mr2.x, _mr2.y, _mr2.w, _mr2.h, 0, c_black, .8);
+			draw_px_rect(_mr2.x, _mr2.y, _mr2.w, _mr2.h, c_hred, .7);
+			draw_set_halign(fa_center); draw_set_color(c_hred); draw_set_alpha(.95);
+			draw_text(_mr2.x + _mr2.w * .5, _mr2.y + 3, "-");
+			draw_set_halign(fa_left);
+		}
+	}
 	// [depart]
 	var _dr = __depart_r();
 	var _can = (_np > 0 && _have >= _cost.total);
 	draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, (_np == 0) ? "seat a crew" : ((_have < _cost.total) ? "short of credits" : "depart"), _can ? c_sgreen : c_gray, true, _can);
-	// THE INFO BOX (a tap on a banner): the sheet in brief, over the brief
-	var _lk = __sp_by_id(dp_look);
-	if (!is_undefined(_lk)) __draw_sprite_brief(_lk, __dp_pop_r());
-	// the banner in hand, over everything
-	if (dp_drag >= 0) {
-		var _dsp = __sp_by_id(dp_drag);
-		var _dps = dp_pos[$ string(dp_drag)];
-		if (!is_undefined(_dsp) && is_struct(_dps)) { draw_sprite_ext(spr_pixel_1x1, 0, _dps.x + 2, _dps.y + 3, __dp_bw(), 14, 0, c_black, .5); __dp_banner(_dsp, _dps.x, _dps.y, __dp_bw(), 1, false); }
+	// the banners in flight, over everything
+	for (var _f = 0; _f < array_length(_fly); _f++) {
+		var _fsp = _fly[_f], _fps = dp_pos[$ string(_fsp.id)];
+		if (is_struct(_fps)) { draw_sprite_ext(spr_pixel_1x1, 0, _fps.x + 2, _fps.y + 3, __dp_bw(), __dp_bh(), 0, c_black, .5); __dp_banner(_fsp, _fps.x, _fps.y, __dp_bw(), 1, false); }
 	}
-	__draw_turn();
 	ui_fade_set(1);
 	exit;
 }

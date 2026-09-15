@@ -413,6 +413,7 @@
     {"id":{"name":"exped_offer_unpack","path":"scripts/exped_offer_unpack/exped_offer_unpack.yy",},},
     {"id":{"name":"exped_open","path":"scripts/exped_open/exped_open.yy",},},
     {"id":{"name":"exped_pack","path":"scripts/exped_pack/exped_pack.yy",},},
+    {"id":{"name":"exped_party_max","path":"scripts/exped_party_max/exped_party_max.yy",},},
     {"id":{"name":"exped_pick","path":"scripts/exped_pick/exped_pick.yy",},},
     {"id":{"name":"exped_planet_hint","path":"scripts/exped_planet_hint/exped_planet_hint.yy",},},
     {"id":{"name":"exped_quest_gen","path":"scripts/exped_quest_gen/exped_quest_gen.yy",},},
