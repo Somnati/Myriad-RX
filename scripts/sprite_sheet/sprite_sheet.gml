@@ -1,5 +1,5 @@
 /// @description sprite_sheet(sprite) -> its SHEET (made on first ask)
-/// { cls, lv, xp, sks, w1, w2, armor[], talis[], inv[] } - the class
+/// { cls, lv, xp, sks, w1, w2, armor[], talis[], inv[], notes[] } - the class
 /// (rolled from the sprite's id so a sprite is the same class on every
 /// load), the level and its xp toward the next, the skill seed (its
 /// procedural skills derive from it: sprite_skills), the worn gear by
@@ -8,7 +8,7 @@
 /// existed gets one here, level 1, empty-handed. Meta: survives rebirth
 /// with the sprite (his call).
 function sprite_sheet(_sp) {
-	if (is_struct(_sp[$ "sheet"])) return _sp.sheet;
+	if (is_struct(_sp[$ "sheet"])) { if (!is_array(_sp.sheet[$ "notes"])) _sp.sheet.notes = []; return _sp.sheet; }
 	var _cl = sprite_classes();
 	var _sh = {
 		cls : (_sp.id * 7 + 3) mod array_length(_cl),   // spread across the roster, stable per id
@@ -16,6 +16,7 @@ function sprite_sheet(_sp) {
 		sks : (_sp.id * 2654435761 + 977) & $7fffffff,
 		w1 : undefined, w2 : undefined, armor : [], talis : [],
 		inv : [],
+		notes : [],   // THE NOTEPAD (his ask): { txt, tag } - tag "foe:<kind>" or "" (sprite_note)
 	};
 	_sp.sheet = _sh;
 	return _sh;

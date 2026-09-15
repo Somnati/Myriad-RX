@@ -8,6 +8,9 @@
 ///           the DIARY, and while a fight is on THE COMBAT WINDOW - a
 ///           small square where it plays out a turn a second (the
 ///           crew's dots, the foe, hp bars, a flash on each hit)
+///   "crew"  every sprite, a row each (his ask, 2026-09-14): name / class /
+///           level / hp, the eight stats, what is worn; scrolls (wheel or
+///           drag); tap a row for its sheet. [crew] in the hub
 ///   "sheet" one sprite's sheet (2026-09-14): class, level + xp, the eight
 ///           stats with the gear's share, the slots and what is worn, the
 ///           pocket, the skills; [<] [>] browse the roster. From the hub's
@@ -34,6 +37,8 @@ view_id = -1;        // the trip's or haul's id
 rp      = undefined; // the combat window's REPLAY of a fight that ended off screen: { i, t, r : the film }
 seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / level / gear)
+crew_off = 0;        // the crew list's scroll (px)
+crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
 sel_dest = -1;       // the world picked
 sel_crew = [];       // sprite ids picked for the party, in order
 swap_pick = false;   // the recruit moment's roster list is up
@@ -107,7 +112,11 @@ __list_y0 = function() { return land ? (card_y - 10) : (__send_r().y + 14 + 8); 
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : land ? 14 : 4, y : list_y + 3, w : 40, h : 13 }; };
-__sheet_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 6, y : _s.y, w : 50, h : 14 }; };
+__sheet_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 6, y : _s.y, w : 50, h : 14 }; };   // (the [crew] button now)
+crew_row_h = land ? 36 : 44;
+__crew_y0 = function() { return list_y + 22; };
+__crew_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };
+__crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };
 __sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 22, w : 20, h : 13 }; };
 __sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };
 __crew_row_r = function(_k) { return { x : big_x + 8, y : big_y + (land ? 112 : 76) + _k * 11 - 2, w : big_w - 16, h : 10 }; };

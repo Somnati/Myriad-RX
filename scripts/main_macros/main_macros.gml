@@ -419,6 +419,8 @@ function main_macros() {
 #macro SPRITE_QUEST_XP_LO 2   // a quest's xp in par kills: barely done...
 #macro SPRITE_QUEST_XP_HI 5   // ...to fully done (exped_tick_one pays by rooms cleared for now)
 #macro SPRITE_INV        10   // a sprite's inventory (his call): past it the worst is trashed
+#macro SPRITE_NOTES      12   // a sprite's notepad holds this many lines (the oldest falls off)
+#macro SPRITE_NOTE_HIT    5   // hit chance a sprite gains against a foe kind it has a note on ("goblins are quick. swing early.")
 #macro SPRITE_FOE_BUDGET .9   // a foe's stat budget as a share of a sprite's at the same level (the twin: at par a crew of three wins ~78%, a lone warrior 87%, a lone mage 60%)
 #macro SPRITE_LV_MAX    200   // the ladder's top (the need keeps growing; this is the sanity rail)
 #macro SPRITE_CAP     10     // the roster's size (his call): an eleventh found sprite is a swap-or-let-go moment, never an inventory

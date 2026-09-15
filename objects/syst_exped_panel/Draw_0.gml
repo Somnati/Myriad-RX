@@ -136,6 +136,79 @@ if (view == "haul") {
 	exit;
 }
 
+// ======================= THE CREW LIST (his ask, 2026-09-14) =======================
+// a row a sprite: the dot, the name, the class, the level, the hp; the
+// eight stats; what is worn (the rarity's colour). Scrolls; tap = the sheet
+if (view == "crew") {
+	var _y0 = __crew_y0();
+	var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"];
+	var _cls = sprite_classes();
+	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		var _sp = g.sprites[_k];
+		var _r = __crew_row_r(_k);
+		if (_r.y + _r.h < _y0 || _r.y > room_height - 8) continue;
+		var _sh = sprite_sheet(_sp);
+		var _st = sprite_stats(_sp);
+		var _c  = _st.cls;
+		var _away = (_sp[$ "trip"] ?? false);
+		// the row's plate, clipped to the list's top
+		var _ry = max(_r.y, _y0), _rh = _r.y + _r.h - _ry;
+		if (_rh <= 0) continue;
+		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _ry, _r.w, _rh, 0, c_black, .55);
+		draw_px_rect(_r.x, _ry, _r.w, _rh, _sp.col, .25);
+		if (_r.y < _y0) continue;   // (a row cut by the top draws its plate only)
+		var _tx = _r.x + 16, _ty = _r.y + 3;
+		__dot(_r.x + 8, _ty + 4, 4, _sp.col, _away ? .4 : .95);
+		draw_set_color(_sp.col); draw_set_alpha(.95);
+		draw_text(_tx, _ty, _sp.name);
+		var _nx = _tx + string_width(_sp.name) + 6;
+		draw_set_color(_c.col); draw_set_alpha(.9);
+		draw_text(_nx, _ty, _c.name);
+		_nx += string_width(_c.name) + 6;
+		draw_set_color(_ink); draw_set_alpha(.85);
+		var _hpr = round((_st.pts.hp * cbt_balance().hp_per_point + cbt_balance().hp_flat_add) * 10) / 10;
+		draw_text(_nx, _ty, "lv " + string(_sh.lv) + "   " + string(_hpr) + " hp   " + string(round(_st.total)) + " pts");
+		draw_set_halign(fa_right);
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(_r.x + _r.w - 4, _ty, _away ? "out" : (_sp.asleep ? "asleep" : "home"));
+		draw_set_halign(fa_left);
+		// the eight stats, one line
+		var _sx = _tx, _sy = _ty + 11;
+		for (var _q = 0; _q < 8; _q++) {
+			draw_set_color(_dim); draw_set_alpha(.7);
+			draw_text(_sx, _sy, _keys[_q]);
+			draw_set_color(_ink); draw_set_alpha(.9);
+			draw_text(_sx + string_width(_keys[_q]) + 2, _sy, string_format(_st.pts[$ _keys[_q]], 1, (land ? 1 : 0)));
+			_sx += land ? 52 : 40;
+			if (!land && _q == 3) { _sx = _tx; _sy += 9; }
+		}
+		// what is worn, in one line (the rarity's colour each)
+		var _wx = _tx, _wy = _ty + (land ? 22 : 30);
+		var _worn = _st.worn;
+		if (array_length(_worn) == 0) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_wx, _wy, "wearing nothing"); }
+		for (var _w = 0; _w < array_length(_worn); _w++) {
+			var _it = _worn[_w];
+			if (_w > 0) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_wx, _wy, "-"); _wx += 8; }
+			draw_set_color(_it.col); draw_set_alpha(.9);
+			draw_text(_wx, _wy, _it.name);
+			_wx += string_width(_it.name) + 4;
+			if (_wx > _r.x + _r.w - 40) break;
+		}
+	}
+	// the list's title over the rows, and a scroll hint on the right
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y + 16, room_width, _y0 - (list_y + 16), 0, c_black, .94);
+	draw_set_color(_ink); draw_set_alpha(.6);
+	draw_text(land ? 14 : 4, list_y + 6, "the crew  -  " + string(array_length(g.sprites)) + " of " + string(SPRITE_CAP) + "  -  tap one for its sheet");
+	if (__crew_max_off() > 0) {
+		var _th = room_height - 8 - _y0;
+		var _bh = max(8, _th * _th / (array_length(g.sprites) * crew_row_h));
+		var _by = _y0 + (_th - _bh) * (crew_off / __crew_max_off());
+		draw_sprite_ext(spr_pixel_1x1, 0, room_width - (land ? 10 : 3), _by, 2, _bh, 0, _ink, .35);
+	}
+	ui_fade_set(1);
+	exit;
+}
+
 // ======================= THE SHEET (2026-09-14, his pitch) =======================
 // one sprite's class, level and xp, the eight stats (base + gear), the
 // garnish, the four slot kinds with what is worn, the pocket, the skills
@@ -234,6 +307,20 @@ if (view == "sheet") {
 		draw_text(_x0 + 90, _ly, string(_s.cost) + " mp  " + _s.targ + ((_s[$ "mult"] ?? 0) > 0 ? ("  x" + string_format(_s.mult, 1, 1)) : "") + ((_s[$ "healp"] ?? 0) > 0 ? ("  heals " + string(round(_s.healp * 100)) + "%") : ""));
 	}
 	if (_sh.lv < 20) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_x0, _ky + 11 + array_length(_sk) * 10, "next skill at level " + string((_sh.lv < 10) ? 10 : 20)); }
+	// THE NOTEPAD (his ask): what it wrote on its journeys, newest last;
+	// a foe note carries its tag colour (it counts: SPRITE_NOTE_HIT)
+	var _ny = _ky + 11 + (array_length(_sk) + 1) * 10 + 4;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_x0, _ny, "notepad  " + string(array_length(_sh.notes)) + " / " + string(SPRITE_NOTES));
+	var _nmax = floor((room_height - 8 - (_ny + 11)) / 9);
+	var _n0 = max(0, array_length(_sh.notes) - _nmax);
+	for (var _i = _n0; _i < array_length(_sh.notes); _i++) {
+		var _nt = _sh.notes[_i];
+		var _ly2 = _ny + 11 + (_i - _n0) * 9;
+		draw_set_color((_nt.tag != "") ? c_horange : _dim); draw_set_alpha((_nt.tag != "") ? .8 : .6);
+		draw_text(_x0 + 4, _ly2, "- " + _nt.txt);
+	}
+	if (array_length(_sh.notes) == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_x0 + 4, _ny + 11, "- (blank. it will write on the way)"); }
 	ui_fade_set(1);
 	exit;
 }
@@ -520,7 +607,7 @@ draw_ui_button(_sr.x, _sr.y, _sr.w, _sr.h,
 // [sheet]: the picked sprite's (or the first one's) class / level / gear
 if (array_length(g.sprites) > 0) {
 	var _shr = __sheet_r();
-	draw_ui_button(_shr.x, _shr.y, _shr.w, _shr.h, "sheet", c_steelblue, true, false);
+	draw_ui_button(_shr.x, _shr.y, _shr.w, _shr.h, "crew", c_steelblue, true, false);
 }
 
 // THE LIST: hauls waiting, then trips out

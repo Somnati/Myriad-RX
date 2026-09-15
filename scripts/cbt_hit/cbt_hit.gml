@@ -29,6 +29,9 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		_hc = clamp(_b.hitcurve_a * _r * _r + _b.hitcurve_b * _r, 1, 99);
 	}
 	_hc = clamp(_hc * _lm, 1, 99);
+	// THE NOTEPAD'S BITE: a foe kind the attacker has a note on is a little
+	// easier to hit ("goblins are quick. swing early." - sprite_note)
+	if (is_array(_u[$ "studied"]) && is_string(_t[$ "kind"]) && array_contains(_u.studied, _t.kind)) _hc = clamp(_hc + SPRITE_NOTE_HIT, 1, 99);
 	var _roll = random(100);
 
 	// ---- miss ----

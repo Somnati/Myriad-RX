@@ -18,6 +18,9 @@ function exped_tick_one(_tr, _dt) {
 		// THE KILL'S XP (his law): the foe's stat total to every survivor;
 		// a level climbs the sheet and the trip's hp pool grows with it
 		if (_f.won) exped_xp_grant(_tr, _f[$ "xp"] ?? 0, "");
+		// THE NOTEPAD: someone who is still up writes about a foe they met
+		// (one note a kind, ever - sprite_note), or, routed, a resolution
+		exped_note_fight(_tr, _f);
 		array_push(_tr.log, _f.won ? "the way is clear" : (exped_crew_txt(_tr.names) + ((array_length(_tr.names) > 1) ? " limp home" : " limps home")));
 		exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
 		// THE FILM stays on the trip for the panel's replay - a fight that
@@ -43,6 +46,7 @@ function exped_tick_one(_tr, _dt) {
 		_tr.stage = 1;
 		array_push(_tr.log, "landed on " + _tr.dest.name);
 		exped_say(_tr, "land");
+		exped_note_beat(_tr, "land", .3);
 	}
 	if (_tr.stage == 1) {
 		if (_tr.routed) { _tr.stage = 2; _tr.rout_t = _tr.t; exped_say(_tr, "return", undefined, .8); return false; }
@@ -70,6 +74,7 @@ function exped_tick_one(_tr, _dt) {
 		// the diary's last word - a payoff for anything still open, or a
 		// home line - and every member's MEMORY moves on
 		exped_say(_tr, "home");
+		exped_note_beat(_tr, "home", .25);
 		for (var _si = 0; _si < array_length(g.sprites); _si++) {
 			var _sp = g.sprites[_si];
 			if (!array_contains(_tr.sids, _sp.id)) continue;

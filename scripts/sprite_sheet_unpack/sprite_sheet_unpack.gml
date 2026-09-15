@@ -29,4 +29,14 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 		var _vs = string_split(_f[_at + 5], ";");
 		for (var _i = 0; _i < array_length(_vs); _i++) { var _it = gear_unpack(_vs[_i]); if (!is_undefined(_it)) array_push(_sh.inv, _it); }
 	}
+	// the notepad (a seventh field; a save without one keeps an empty pad)
+	_sh.notes = [];
+	if (array_length(_f) > _at + 6 && _f[_at + 6] != "") {
+		var _ns = string_split(_f[_at + 6], "^");
+		for (var _i = 0; _i < array_length(_ns); _i++) {
+			var _tt = string_split(_ns[_i], "~");
+			if (array_length(_tt) < 2) continue;
+			array_push(_sh.notes, { tag : _tt[0], txt : _tt[1] });
+		}
+	}
 }

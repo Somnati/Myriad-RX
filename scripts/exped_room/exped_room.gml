@@ -29,12 +29,14 @@ function exped_room(_tr) {
 			array_push(_tr.finds, _l);
 			_tr.cleared += 1;
 			exped_say(_tr, "find", { item : (_l.kind == "gear") ? _l.item.name : _l.txt }, .8);
+			exped_note_beat(_tr, "find", .2, (_l.kind == "gear") ? _l.item.name : _l.txt);
 			break;
 		case "rest":
 			for (var _k = 0; _k < array_length(_tr.hp); _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + max(1, round(_tr.hpmax[_k] * .25)));   // a quarter of the pool (the sheet's hp, not the mock's 10)
 			array_push(_tr.log, _rm + "a quiet room - rested");
 			_tr.cleared += 1;
 			exped_say(_tr, "rest", undefined, .85);
+			exped_note_beat(_tr, "rest", .3);
 			exped_say(_tr, "sky", undefined, .2);
 			break;
 		case "trap":

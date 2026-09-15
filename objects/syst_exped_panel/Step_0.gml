@@ -54,6 +54,39 @@ if (keyboard_check_pressed(vk_escape)) {
 	exit;
 }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
+
+// ======================= THE CREW LIST: scroll, drag, tap =======================
+if (view == "crew") {
+	var _mo = __crew_max_off();
+	if (mouse_wheel_down()) crew_off = clamp(crew_off + crew_row_h, 0, _mo);
+	if (mouse_wheel_up())   crew_off = clamp(crew_off - crew_row_h, 0, _mo);
+	var _y0 = __crew_y0();
+	if (mouse_check_button_pressed(mb_left)) {
+		var _bk = __back_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { view = "hub"; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+		if (mouse_y >= _y0) crew_drag = { y0 : mouse_y, off0 : crew_off, moved : false };
+	}
+	if (!is_undefined(crew_drag)) {
+		if (mouse_check_button(mb_left)) {
+			if (abs(mouse_y - crew_drag.y0) > 7) crew_drag.moved = true;
+			if (crew_drag.moved) crew_off = clamp(crew_drag.off0 - (mouse_y - crew_drag.y0), 0, _mo);
+		} else {
+			// the release: a tap lands on the row under it
+			if (!crew_drag.moved)
+				for (var _k = 0; _k < array_length(g.sprites); _k++) {
+					var _cr = __crew_row_r(_k);
+					if (point_in_rectangle(mouse_x, mouse_y, _cr.x, max(_y0, _cr.y), _cr.x + _cr.w, _cr.y + _cr.h)) {
+						sheet_id = g.sprites[_k].id; view = "sheet";
+						play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+						break;
+					}
+				}
+			crew_drag = undefined;
+		}
+	}
+	exit;
+}
+
 if (!mouse_check_button_pressed(mb_left)) exit;
 
 // the debug clock: x1 / x10 / x100
@@ -192,12 +225,11 @@ if (sel_dest >= 0 && array_length(sel_crew) > 0
 	} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 	exit;
 }
-// [sheet]: the picked sprite's, or the first one's
+// [crew]: the roster as a list (his ask, 2026-09-14)
 if (array_length(g.sprites) > 0) {
 	var _shr = __sheet_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
-		sheet_id = (array_length(sel_crew) > 0) ? sel_crew[0] : g.sprites[0].id;
-		view = "sheet";
+		view = "crew"; crew_off = 0; crew_drag = undefined;
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}

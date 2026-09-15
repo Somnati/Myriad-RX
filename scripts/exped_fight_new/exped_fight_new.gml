@@ -22,6 +22,7 @@ function exped_fight_new(_tr) {
 		var _pw = sprite_pawn(_sp, _tr.hp[_k]);
 		_pw.hit += _bonus;
 		_pw.mi = _k;
+		_pw.studied = sprite_notes_kinds(_sp);   // the notepad: foe kinds it has written up (cbt_hit: +SPRITE_NOTE_HIT)
 		array_push(_party, _pw);
 	}
 	// A CREW OF N MEETS N FOES (the twin: three on one was a formality) -
