@@ -100,7 +100,16 @@ function exped_unpack(_s) {
 						var _rgq = region_get(_d, _trn.rgi);
 						var _qn = clamp(real(_ag[7]), 0, array_length(_rgq.nodes) - 1);
 						_trn.quest = { kind : _ag[6], node : _qn, foe : _ag[8], n : real(_ag[9]), done : real(_ag[10]), mult : real(_ag[11]), reward : real(_ag[12]), hours : 0,
-						               txt : ((_ag[6] == "slay") ? ("slay " + _ag[9] + " " + _ag[8] + "s at ") : ((_ag[6] == "clear") ? "clear " : ((_ag[6] == "rout") ? "rout the bandits at " : "scout "))) + _rgq.nodes[_qn].name };
+						               from : -1, at : 0, who : "", nodes : undefined, txt : "" };
+						// the mission-type pass (2026-09-15): the two-stop kinds' first stop and whether it is done, the name, the survey's nodes
+						if (array_length(_ag) > 26) {
+							_trn.quest.from = (_ag[23] == "" || _ag[23] == "-1") ? -1 : clamp(real(_ag[23]), 0, array_length(_rgq.nodes) - 1);
+							_trn.quest.at = (_ag[24] == "1") ? 1 : 0;
+							_trn.quest.who = _ag[25];
+							if (_ag[26] != "") { var _qns = string_split(_ag[26], ";"), _qnl = []; for (var _qi = 0; _qi < array_length(_qns); _qi++) if (_qns[_qi] != "") array_push(_qnl, clamp(real(_qns[_qi]), 0, array_length(_rgq.nodes) - 1)); if (array_length(_qnl) > 0) _trn.quest.nodes = _qnl; }
+						}
+						_trn.quest.pi = (_trn.quest.from >= 0) ? _trn.quest.from : (is_array(_trn.quest.nodes) ? _trn.quest.nodes[0] : _qn);
+						_trn.quest.txt = exped_quest_txt(_trn.quest, _rgq);   // (the one builder - the line reads as it did)
 					}
 					if (_ag[13] != "") _trn.bounty = { node : real(_ag[13]), foe : _ag[14], n : real(_ag[15]), done : real(_ag[16]), pay : real(_ag[17]) };
 					_trn.visited = [];

@@ -15,7 +15,7 @@ function exped_next_node(_tr, _rg) {
 				var _c = region_nearest_civ(_rg, _tr.pos);
 				if (_c >= 0 && _c != _tr.pos) return _c;
 			}
-			return _q.node;
+			return exped_quest_target(_q);   // (the stop the crew heads for now, 2026-09-15)
 		}
 		// done: the nearest landing zone (the ship picks them up at any); there, leave
 		var _lz = region_nearest_landing(_rg, _tr.pos);

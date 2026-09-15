@@ -289,7 +289,7 @@ if (view == "map") {
 			_from = _tr2.road.b;
 		}
 		var _hlal = .55;
-		if (array_length(_pp) == 0 && _tr2.stage == 1 && is_struct(_tr2[$ "quest"]) && _tr2.quest.done < _tr2.quest.n && !(_tr2[$ "recall"] ?? false) && !(_tr2[$ "aborted"] ?? false)) { _pp = region_path(_rg, _from, _tr2.quest.node); _hlal = .28; }
+		if (array_length(_pp) == 0 && _tr2.stage == 1 && is_struct(_tr2[$ "quest"]) && _tr2.quest.done < _tr2.quest.n && !(_tr2[$ "recall"] ?? false) && !(_tr2[$ "aborted"] ?? false)) { _pp = region_path(_rg, _from, exped_quest_target(_tr2.quest)); _hlal = .28; }
 		for (var _k = 0; _k < array_length(_pp); _k++) {
 			var _to = clamp(_pp[_k], 0, array_length(_rg.nodes) - 1);
 			if (_to != _from) __map_road_hl(_rg, _mr, _from, _to, 0, _tc, _hlal);
@@ -297,7 +297,7 @@ if (view == "map") {
 		}
 		// the objective: a pulsing square in the crew's colour
 		if (_tr2.stage == 1 && is_struct(_tr2[$ "quest"]) && _tr2.quest.done < _tr2.quest.n) {
-			var _qn = __map_xy(_rg.nodes[clamp(_tr2.quest.node, 0, array_length(_rg.nodes) - 1)], _rg, _mr);
+			var _qn = __map_xy(_rg.nodes[clamp(exped_quest_target(_tr2.quest), 0, array_length(_rg.nodes) - 1)], _rg, _mr);   // (the stop the crew heads for now)
 			var _qs = 7 + floor(_br * 2);
 			draw_px_rect(floor(_qn.x) - _qs, floor(_qn.y) - _qs, _qs * 2, _qs * 2, _tc, .5 + .4 * _br);
 		}
@@ -962,14 +962,7 @@ if (view == "depart") {
 	if (is_struct(_q)) {
 		draw_text_ext(_tx, _ty, _q.txt, 9, _tw);
 		_ty += string_height_ext(_q.txt, 9, _tw) + 4;
-		var _nd = _rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)];
-		var _obj = "";
-		switch (_q.kind) {
-			case "slay":  _obj = "hunt " + _q.foe + "s at " + _nd.name + " (" + _nd.kind + "), " + string(_q.n) + " of them; the crew comes home when the count is met"; break;
-			case "clear": _obj = "go room by room through " + _nd.name + ", " + string(_q.n) + " rooms - fights, finds, traps"; break;
-			case "rout":  _obj = "walk into the camp at " + _nd.name + " and win two fights against its bandits"; break;
-			case "scout": _obj = "get to " + _nd.name + " and come back with a look at it"; break;
-		}
+		var _obj = exped_quest_obj(_q, _rg, true);   // (the one builder, 2026-09-15)
 		draw_set_color(_dim); draw_set_alpha(.75);
 		draw_text_ext(_tx, _ty, _obj, 9, _tw);
 		_ty += string_height_ext(_obj, 9, _tw) + 6;

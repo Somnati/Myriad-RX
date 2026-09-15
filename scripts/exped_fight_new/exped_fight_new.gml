@@ -11,7 +11,9 @@
 /// THE HAZARD (2026-09-15): the place's (exped_hazard) cuts a bare
 /// member's lane (cbt_hazards); who holds it and who is bare goes on the
 /// fight (f.hazard) and into the diary once a place.
-function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
+/// opts (2026-09-15) = { boss : true, name : "..." } - the first foe is a
+/// BOSS (foe_gen's budget x1.4) under that name (the bounty kind).
+function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undefined) {
 	var _d  = _tr.dest;
 	var _party = [];
 	var _bal = cbt_balance();
@@ -48,7 +50,8 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 	_tr.fights = (_tr[$ "fights"] ?? 0) + 1;
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
-		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _kind);
+		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _kind, (_j == 0 && is_struct(_opts)) ? (_opts[$ "boss"] ?? undefined) : undefined);
+		if (_j == 0 && is_struct(_opts) && is_string(_opts[$ "name"])) { _foe.name = _opts.name; _foe.named = true; }
 		array_push(_foes, _foe);
 		_xp += foe_xp(_foe);
 	}

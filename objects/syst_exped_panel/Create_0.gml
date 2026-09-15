@@ -87,14 +87,7 @@ __dp_layout = function() {
 	draw_set_font(fnt);
 	var _th = 0;
 	if (is_struct(_q)) {
-		var _nd = _rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)];
-		var _obj = "";
-		switch (_q.kind) {
-			case "slay":  _obj = "hunt " + _q.foe + "s at " + _nd.name + " (" + _nd.kind + "), " + string(_q.n) + " of them; the crew comes home when the count is met"; break;
-			case "clear": _obj = "go room by room through " + _nd.name + ", " + string(_q.n) + " rooms - fights, finds, traps"; break;
-			case "rout":  _obj = "walk into the camp at " + _nd.name + " and win two fights against its bandits"; break;
-			case "scout": _obj = "get to " + _nd.name + " and come back with a look at it"; break;
-		}
+		var _obj = exped_quest_obj(_q, _rg, true);   // (the one builder, 2026-09-15)
 		_th = string_height_ext(_q.txt, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 11 * (5 + __dp_haz_rows());
 	} else {
 		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");
@@ -112,7 +105,17 @@ __dp_hazards = function() {
 	var _out = [];
 	if (!is_struct(pl_dest)) return _out;
 	var _rg = region_get(pl_dest, rg_sel), _hzs = [];
-	if (dp_mode == "quest" && is_struct(dp_quest)) { var _h1 = cbt_hazard_at(_rg.nodes[clamp(dp_quest.node, 0, array_length(_rg.nodes) - 1)].kind); if (is_struct(_h1)) array_push(_hzs, _h1); }
+	if (dp_mode == "quest" && is_struct(dp_quest)) {
+		// every stop's hazard, each once (the two-stop kinds, 2026-09-15)
+		var _pls = exped_quest_places(dp_quest);
+		for (var _pi = 0; _pi < array_length(_pls); _pi++) {
+			var _h1 = cbt_hazard_at(_rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);
+			if (!is_struct(_h1)) continue;
+			var _dup = false;
+			for (var _hj = 0; _hj < array_length(_hzs); _hj++) if (_hzs[_hj].key == _h1.key) _dup = true;
+			if (!_dup) array_push(_hzs, _h1);
+		}
+	}
 	else _hzs = region_hazards(_rg);
 	for (var _i = 0; _i < array_length(_hzs); _i++) {
 		var _hz = _hzs[_i], _held = [], _bare = [];
@@ -509,15 +512,9 @@ __hand_open = function(_kind) {
 		var _sl = exped_region_quests(pl_dest, rg_sel);
 		for (var _i = 0; _i < array_length(_sl); _i++) {
 			var _q = _sl[_i].q;
-			var _nd = _rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)];
+			var _nd = _rg.nodes[clamp(_q[$ "pi"] ?? _q.node, 0, array_length(_rg.nodes) - 1)];   // (the card's place: the first stop, 2026-09-15)
 			var _kd = _kk[$ _nd.kind];
-			var _obj = "";
-			switch (_q.kind) {
-				case "slay":  _obj = "slay " + string(_q.n) + " " + _q.foe + "s there"; break;
-				case "clear": _obj = "clear it, room by room (" + string(_q.n) + ")"; break;
-				case "rout":  _obj = "rout the bandits: two fights, then their chest"; break;
-				case "scout": _obj = "get there, have a look, come back"; break;
-			}
+			var _obj = exped_quest_obj(_q, _rg, false);
 			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : cbt_hazard_at(_nd.kind),
 			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
 			                     slot : _sl[_i], si : _i, hours : _q.hours, salt0 : _sl[_i].salt });

@@ -18,7 +18,7 @@ function exped_offer_deal(_of, _i, _easy = false) {
 		if (is_struct(_sl.q)) for (var _j = 0; _j < array_length(_of.slots); _j++) {
 			if (_j == _i) continue;
 			var _o = _of.slots[_j];
-			if (is_struct(_o.q) && _o.q.node == _sl.q.node) _dup = true;
+			if (is_struct(_o.q) && (_o.q[$ "pi"] ?? _o.q.node) == (_sl.q[$ "pi"] ?? _sl.q.node)) _dup = true;   // (the card's place - the first stop, 2026-09-15)
 		}
 	} until (!_dup || _try >= 8);
 	if (!_easy && is_struct(_sl.q)) {

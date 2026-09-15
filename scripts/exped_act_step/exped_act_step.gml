@@ -81,11 +81,69 @@ function exped_act_step(_tr) {
 			if (_a.steps <= 1) _a.loot = true;   // the last fight's win pays the camp's chest (exped_tick_one)
 			break;
 		}
-		case "mine": {
+		case "mine": case "gather": {
 			var _fam = ["ferrite", "bloom", "glass"][_tr.dest.biome mod 3];
 			var _cnt = 1 + irandom(2) + _tr.dest.tier;
 			array_push(_tr.finds, { kind : "mats", rar : 0, fam : _fam, tier : _tr.dest.tier, n : _cnt, txt : string(_cnt) + " " + _fam + " (t" + string(_tr.dest.tier) + ")", col : c_white });
-			array_push(_tr.log, "mined " + string(_cnt) + " " + _fam + " at " + _nd.name);
+			if (_a.kind == "gather" && is_struct(_q) && _q.kind == "gather" && _q.done < _q.n) {
+				// a sack of the quest's ore (the gather kind, 2026-09-15)
+				_q.done += 1;
+				array_push(_tr.log, "sack " + string(_q.done) + " of " + string(_q.n) + ": " + string(_cnt) + " " + _fam + " out of " + _nd.name + ((_q.done >= _q.n) ? ". the sacks are full. the quest is done" : ""));
+			} else array_push(_tr.log, "mined " + string(_cnt) + " " + _fam + " at " + _nd.name);
+			break;
+		}
+		// ---- THE MISSION-TYPE PASS (2026-09-15) ----
+		case "meet": {
+			// the escort's merchant, met; the cart rides with the crew from here (exped_encounter: bandits like it)
+			if (is_struct(_q)) _q.at = 1;
+			exped_stat("met");
+			array_push(_tr.log, "met " + (is_struct(_q) ? _q.who : "the merchant") + " in " + _nd.name + ". " + choose("the cart is full of turnips", "the cart squeaks", "they talk a lot", "the cart is mostly cheese", "it has a hat and opinions", "the mule is called something long"));
+			break;
+		}
+		case "fetch": {
+			// two steps: something may be sitting on it, then the thing itself
+			if (_a.steps >= 2) {
+				if (roll_perc(40)) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin", "slime"), irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " was sitting on " + (is_struct(_q) ? _q.who : "it")); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+				else array_push(_tr.log, _nd.name + ": " + choose("looked around", "poked about", "asked a bird", "checked under things"));
+			} else {
+				if (is_struct(_q)) _q.at = 1;
+				array_push(_tr.log, "found " + (is_struct(_q) ? _q.who : "it") + " at " + _nd.name + ". " + choose("it is heavier than it looks", "it is fine", "it complained", "someone had labelled it", "it was under a rock, of course"));
+			}
+			break;
+		}
+		case "rescue": {
+			// room by room until found (the last room always finds them)
+			var _last = (_a.steps <= 1), _who = is_struct(_q) ? _q.who : "them";
+			var _in = (_nd.kind == "dungeon" || _nd.kind == "crypt") ? ("a room of " + _nd.name + ": ") : ("searching " + _nd.name + ": ");
+			var _r = random(100);
+			if (_r < 35 && !_last) { _tr.fight = exped_fight_new(_tr, (_nd.kind == "crypt") ? choose("skeleton", "wisp") : "", -1, 0); array_push(_tr.log, _in + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+			else if (_last || roll_perc(35)) {
+				if (is_struct(_q)) _q.at = 1;
+				_a.steps = 1;   // (found: the search ends here)
+				array_push(_tr.log, "found " + _who + " " + _in + choose("in one piece", "asleep", "annoyed", "under a table", "arguing with a rat", "halfway through a sandwich", "hiding rather well"));
+				exped_stat("met");
+			}
+			else if (_r < 70) array_push(_tr.log, _in + "no sign of " + _who + ". " + choose("a boot", "scratches on the wall", "an echo", "a half-eaten thing", "footprints, going the other way"));
+			else exped_room_find(_tr, _in);
+			break;
+		}
+		case "bossfight": {
+			// one big fight: the bounty's named boss and whatever it keeps
+			if (_a.steps >= 2 && is_struct(_q)) {
+				_tr.fight = exped_fight_new(_tr, _q.foe, irandom_range(1, 2), 1, { boss : true, name : _q.who });
+				array_push(_tr.log, _q.who + " " + choose("is here, and knows it", "was waiting", "stands up. it is big", "does not run") + " - " + _nd.name);
+				exped_say(_tr, "fight_open", { foe : _q.who }, .8);
+			} else array_push(_tr.log, choose("nothing else moves at " + _nd.name, "the rest of them left in a hurry"));
+			break;
+		}
+		case "defend": {
+			// a wave; the villagers patch the crew up between waves
+			var _wave = is_struct(_q) ? (_q.done + 1) : 1, _nw = is_struct(_q) ? _q.n : 1;
+			if (_wave > 1) { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .15); array_push(_tr.log, "the villagers patch them up between waves"); }
+			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "wolf");
+			_tr.fight = exped_fight_new(_tr, _fk, irandom_range(2, 3), 0);
+			array_push(_tr.log, "wave " + string(_wave) + " of " + string(_nw) + " at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " " + _fk + "s " + choose("out of the treeline", "over the fence", "up the road, not quietly"));
+			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
 			break;
 		}
 		case "shrine": {

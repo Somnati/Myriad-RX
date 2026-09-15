@@ -8,7 +8,8 @@
 /// level - the stat total climbs and so does their xp, his law), and
 /// one in twelve a BOSS: the name gets a title and the budget x1.4.
 /// pts_total is what the kill pays (foe_xp).
-function foe_gen(_lv, _seed, _kind = "") {
+/// bossf (2026-09-15): true / false forces the boss roll (the roll is still made - the stream holds)
+function foe_gen(_lv, _seed, _kind = "", _bossf = undefined) {
 	var _b = cbt_balance();
 	cbt_skills();
 	var _old = random_get_seed();
@@ -25,6 +26,7 @@ function foe_gen(_lv, _seed, _kind = "") {
 	var _r = _ros[irandom(array_length(_ros) - 1)];
 	if (_kind != "") for (var _ri = 0; _ri < array_length(_ros); _ri++) if (_ros[_ri].name == _kind) _r = _ros[_ri];   // a kind asked for (a quest's, a camp's)
 	var _boss = (random(1) < 1 / 12);
+	if (!is_undefined(_bossf)) _boss = _bossf;
 	var _budget = sprite_par_pts(_lv) * SPRITE_FOE_BUDGET * (_boss ? 1.4 : 1);
 	var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"];
 	var _pts = {};

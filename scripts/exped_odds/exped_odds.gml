@@ -17,7 +17,11 @@ function exped_odds(_d, _q, _crew, _ri = 0) {
 	// THE HAZARD (2026-09-15): a bare member's cut lane comes off its total
 	// (accuracy weighs more than its points: the hit curve is steep)
 	var _hz = undefined;
-	if (is_struct(_q)) { var _rg = region_get(_d, _ri); _hz = cbt_hazard_at(_rg.nodes[clamp(_q.node, 0, array_length(_rg.nodes) - 1)].kind); }
+	if (is_struct(_q)) {
+		// the first hazard on any of the quest's stops (the two-stop kinds, 2026-09-15)
+		var _rg = region_get(_d, _ri), _pls = exped_quest_places(_q);
+		for (var _pi = 0; _pi < array_length(_pls) && is_undefined(_hz); _pi++) _hz = cbt_hazard_at(_rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);
+	}
 	var _mine = 0;
 	for (var _i = 0; _i < _n; _i++) {
 		var _st = sprite_stats(_crew[_i]), _t = _st.total;
@@ -36,7 +40,16 @@ function exped_odds(_d, _q, _crew, _ri = 0) {
 			case "clear": _fights = max(1, ceil(_q.n * .5)); break;
 			case "rout":  _fights = 2; break;
 			case "scout": _fights = 1; break;
+			// the mission-type pass (2026-09-15)
+			case "escort": _fights = 1; break;                     // (the road's bandits come with the hours below, doubled)
+			case "fetch":  _fights = 1.4; break;                   // (something sits on it 40% of the time)
+			case "rescue": _fights = 2; break;                     // (rooms, a third of them a fight)
+			case "bounty": _fights = 1.6; break;                   // (one fight, a big one)
+			case "defend": _fights = _q.n; break;
+			case "survey": _fights = 1; break;
+			case "gather": _fights = .5; break;
 		}
+		if (_q.kind == "escort") _fights += (_q[$ "hours"] ?? 0) * EXPED_ENC / 100;
 		_fights += (_q[$ "hours"] ?? 0) * EXPED_ENC / 100;
 	}
 	return { p : power(_pf, _fights), fights : _fights, ratio : _r };

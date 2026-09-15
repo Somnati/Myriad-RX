@@ -11,6 +11,14 @@ function exped_eta(_d, _q) {
 		return -1;
 	}
 	var _roads = 2 * (_q[$ "hours"] ?? 0) * EXPED_HOUR;
-	var _do = ((_q.kind == "scout") ? 1 : 4) * EXPED_ROOM_T;
+	var _do = 4;
+	switch (_q.kind) {   // (steps of the doing, by kind - the mission-type pass, 2026-09-15)
+		case "scout": case "survey": _do = 1 + _q.n; break;
+		case "escort": case "fetch": _do = 3; break;
+		case "rescue": _do = 5; break;
+		case "bounty": _do = 3; break;
+		case "defend": case "gather": _do = 1 + _q.n; break;
+	}
+	_do *= EXPED_ROOM_T;
 	return _fly + _roads + _do;
 }

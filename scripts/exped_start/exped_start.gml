@@ -44,7 +44,8 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 	if (_mode == "quest") {
 		_q = is_struct(_pick) ? _pick : (is_struct(_d[$ "quest"]) ? _d.quest : exped_quest_gen(_d));   // (the departure window's pick, 2026-09-15)
 		// the quest is THIS crew's now: the copy walks, the board keeps its own until the re-deal
-		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair" };
+		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair",
+		       from : _q[$ "from"] ?? -1, at : 0, who : _q[$ "who"] ?? "", nodes : _q[$ "nodes"], pi : _q[$ "pi"] ?? _q.node };   // (the mission-type pass, 2026-09-15)
 	}
 	// THE EXPLORE CARD (2026-09-15): wander until recalled, ramble for N
 	// hours, or survey N places - the agent turns them home when it is due
@@ -52,7 +53,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 	if (_mode == "explore" && is_struct(_pick) && !is_undefined(_pick[$ "ex"])) _ex = { kind : _pick.ex, n : _pick[$ "n"] ?? 0 };
 	// THE LANDING: a quest's crew lands at the landing zone nearest its
 	// objective (his ask); an explore at the first
-	var _home = is_struct(_q) ? region_nearest_landing(_rg, _q.node) : _rg.landing;
+	var _home = is_struct(_q) ? region_nearest_landing(_rg, exped_quest_target(_q)) : _rg.landing;   // (nearest the FIRST stop)
 	var _tr = {
 		id : _e.seq, dest : _d,
 		sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],

@@ -62,7 +62,8 @@ function exped_pack() {
 			    + ":" + (is_struct(_bo) ? (string(_bo.node) + ":" + _bo.foe + ":" + string(_bo.n) + ":" + string(_bo.done) + ":" + string(_bo.pay)) : "::::")
 			    + ":" + _vis
 			    + ":" + string(_r[$ "rgi"] ?? 0) + ":" + string(_r[$ "home"] ?? 0)   // (the region, the landing zone - 2026-09-15)
-			    + ":" + _rex.kind + ":" + string(_rex.n);   // (the explore card: kind, n - 2026-09-15)
+			    + ":" + _rex.kind + ":" + string(_rex.n)   // (the explore card: kind, n - 2026-09-15)
+			    + ":" + (is_struct(_q) ? (string(_q[$ "from"] ?? -1) + ":" + string(_q[$ "at"] ?? 0) + ":" + string(_q[$ "who"] ?? "") + ":" + (is_array(_q[$ "nodes"]) ? string_join_ext(";", _q.nodes) : "")) : ":::");   // (the mission-type pass: from, at, who, the survey's nodes - 2026-09-15)
 		} else _o += "|" + string(_r[$ "rgi"] ?? 0);   // (a haul: its region - 2026-09-15)
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}
