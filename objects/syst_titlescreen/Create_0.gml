@@ -346,8 +346,10 @@ __forge_step = function() {
 	var _max = (30 * .5) * _f.fill;                 // created: (sprite_width / 2) x fill
 	__forge_wiggle(_f, _max);
 	_f.circ = _f.size / ((30 * .75) * .5);
-	// the motes (dens_perc 1: roll_perc(7) a frame)
-	if (roll_perc(7)) {
+	// the motes (dens_perc 1: roll_perc(7) a frame - a 60hz frame: DE's
+	// per-frame numbers ride delta here, 2026-09-15, or a 144hz machine ran
+	// the forge 2.4x too fast and too thick)
+	if (roll_perc(7 * delta)) {
 		array_push(_f.effs, {
 			x : _f.px + random(144), y : _f.py + random(296),   // (born inside DE's room, not across the whole title)
 			size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
@@ -355,7 +357,7 @@ __forge_step = function() {
 			big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
 		});
 	}
-	_f.glow = clamp(_f.glow - .05, 0, 1);
+	_f.glow = clamp(_f.glow - .05 * delta, 0, 1);
 	_f.alpha = trickle(_f.alpha, 1, 3.5);
 	// ---- obj_gf_eff ----
 	for (var _i = array_length(_f.effs) - 1; _i >= 0; _i--) {
@@ -364,7 +366,7 @@ __forge_step = function() {
 		_e.max_size = trickle(_e.max_size, 0, _e.decay);
 		_e.alpha    = trickle(_e.alpha, 0, _e.decay);
 		if (_e.max_size <= 0) { array_delete(_f.effs, _i, 1); continue; }
-		if (roll_perc(3 * _e.part_chance)) {
+		if (roll_perc(3 * _e.part_chance * delta)) {
 			// a shard spark on the wind toward the cell (DE's Create, its
 			// xspd/yspd zeroed by the mote - the wind is the whole motion)
 			var _hp = 60 * random_range(1, 1.5);
@@ -379,10 +381,10 @@ __forge_step = function() {
 			});
 		}
 		var _d = point_direction(_e.x, _e.y, _f.x, _f.y);   // move_away false: toward the cell
-		_e.x += lengthdir_x(_e.spd, _d);
-		_e.y += lengthdir_y(_e.spd, _d);
+		_e.x += lengthdir_x(_e.spd * delta, _d);
+		_e.y += lengthdir_y(_e.spd * delta, _d);
 		if (point_distance(_e.x, _e.y, _f.x, _f.y) < 144 / 4) { array_delete(_f.effs, _i, 1); continue; }
-		_e.rot += _e.rot_spd;
+		_e.rot += _e.rot_spd * delta;
 		if (_e.rot > 1) _e.rot = -1;
 		_e.glow_alpha = _e.rot;
 	}
@@ -399,9 +401,9 @@ __forge_step = function() {
 		var _s = _f.sparks[_i];
 		_s.scale = _s.scale + ((_s.scale_min - _s.scale) / (5 / delta));
 		_s.wdc = _s.wdc + ((random_range(-3, 3) - _s.wdc) / (_s.wind_trick / delta));
-		_s.wind_dir += _s.wdc;
-		_s.x += lengthdir_x(_s.wind_spd, _s.wind_dir);
-		_s.y += lengthdir_y(_s.wind_spd, _s.wind_dir);
+		_s.wind_dir += _s.wdc * delta;
+		_s.x += lengthdir_x(_s.wind_spd * delta, _s.wind_dir);
+		_s.y += lengthdir_y(_s.wind_spd * delta, _s.wind_dir);
 		_s.hp -= (1 * delta) * (lerp(1, 4, _ns / 200));
 		if (_s.hp <= 0) array_delete(_f.sparks, _i, 1);
 	}
@@ -411,6 +413,10 @@ __draw_forge = function() {
 	var _f = fg;
 	var _c = _f.c;
 	// ---- everything par_ambi_draw drew: additive ----
+	// (DE set draw_set_circle_precision(48) every frame - syst_roomtrans'
+	// Draw End, global gpu state - so its discs were round; GM's default 24
+	// made the cell a fifteen-pixel polygon here. 48 for the forge, put back after)
+	draw_set_circle_precision(48);
 	gpu_set_blendmode(bm_add);
 	// the cell (obj_gf_slot_cell's Draw Begin, claimed: no outline, no black disc)
 	var _cr = random(360);
@@ -447,6 +453,7 @@ __draw_forge = function() {
 		draw_sprite_ext(spr_pixel_1x1, 0, _s.x - _s.scale * .5, _s.y - _s.scale * .5, _s.scale, _s.scale, 0, _s.col, 1);
 	}
 	gpu_set_blendmode(bm_normal);
+	draw_set_circle_precision(24);
 	draw_set_color(c_white);
 };
 
