@@ -163,99 +163,119 @@ if (view == "haul") {
 	exit;
 }
 
-// ======================= THE MAP (his ask, 2026-09-14: "the region debug map") =======================
-// the world's region: edges with their hours, nodes by kind with names,
-// the landing zone ringed, crews out to the world at the landing zone
-// (they do not walk the graph yet - the agent is slice three), a legend
+// ======================= THE MAP (round three, 2026-09-15) =======================
+// the region's circle in the rect; the roads along their bent lines with
+// the hours at the middle; icons by kind (a flag, houses, tents,
+// doorways); labels placed clear of the roads; the crews walking the
+// bent roads; [legend] lists the kinds
 if (view == "map") {
 	var _d  = map_dest;
 	var _rg = region_get(_d, map_rgi);
 	var _kk = region_kinds();
 	var _mr = __map_r();
 	var _bb = exped_biomes()[_d.biome];
+	var _lkey = string(_rg.seed) + ":" + string(map_rgi) + ":" + string(_mr.w) + "x" + string(_mr.h);
+	var _lab = __map_labels(_rg, _mr, _lkey);
 	// the header (short: the back button sits on the right)
 	draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text(_mr.x, list_y + 6, _d.name + "  -  " + _rg.name);
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_mr.x + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + string(array_length(_rg.nodes)) + " places");
-	// the ground
+	draw_text(_mr.x + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + (_rg[$ "mood"] ?? "quiet") + "  -  " + string(array_length(_rg.nodes)) + " places");
+	// the ground, and the region's circle
 	draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .6);
 	draw_px_rect(_mr.x, _mr.y, _mr.w, _mr.h, _ink, .15);
-	var _px = function(_v, _mr) { return _mr.x + 8 + _v * (_mr.w - 16); };
-	var _py = function(_v, _mr) { return _mr.y + 8 + _v * (_mr.h - 16); };
-	// the roads, with their hours at the midpoint
-	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {   // (_e is g.exped up top - the shadow crashed the map, 2026-09-14)
+	var _ccx = _mr.x + _mr.w * .5, _ccy = _mr.y + _mr.h * .5, _crad = min(_mr.w, _mr.h) * .5 - 10;
+	for (var _a = 0; _a < 360; _a += 6) draw_sprite_ext(spr_pixel_1x1, 0, floor(_ccx + lengthdir_x(_crad + 6, _a)), floor(_ccy + lengthdir_y(_crad + 6, _a)), 1, 1, 0, _bb.col2, .35);
+	// the roads: the bent lines, the hours at the middle point
+	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
 		var _ed = _rg.edges[_ei];
-		var _a = _rg.nodes[_ed.a], _b2 = _rg.nodes[_ed.b];
-		var _x1 = _px(_a.x, _mr), _y1 = _py(_a.y, _mr), _x2 = _px(_b2.x, _mr), _y2 = _py(_b2.y, _mr);
-		draw_px_line(_x1, _y1, _x2, _y2, _ink, .25);   // (the house line: a primitive would lose the shader's texcoord)
-		draw_set_alpha(.35); draw_set_color(_dim);
+		var _pts = _ed[$ "pts"];
+		if (!is_array(_pts) || array_length(_pts) < 2) _pts = [ _rg.nodes[_ed.a], _rg.nodes[_ed.b] ];
+		var _boat = (_ed[$ "boat"] ?? false);
+		for (var _k = 1; _k < array_length(_pts); _k++) {
+			var _p1 = __map_xy(_pts[_k - 1], _rg, _mr), _p2 = __map_xy(_pts[_k], _rg, _mr);
+			if (_boat) { if (_k mod 2 == 1) draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, rgb(120, 190, 210), .35); }
+			else draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _ink, .28);
+		}
+		var _mid = region_road_point(_rg, _ed.a, _ed.b, .5);
+		var _mp = __map_xy(_mid, _rg, _mr);
+		draw_set_alpha(.4); draw_set_color(_dim);
 		draw_set_halign(fa_center);
-		draw_text((_x1 + _x2) * .5, (_y1 + _y2) * .5 - 4, string(_ed.d) + "h");
+		draw_text(_mp.x, _mp.y - 4, string(_ed.d) + "h");
 	}
-	// the places
+	// the places: an icon by kind, the label where it fits
 	draw_set_halign(fa_left);
 	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
 		var _nd = _rg.nodes[_i];
 		var _kd = _kk[$ _nd.kind] ?? _kk.field;
-		var _nx = _px(_nd.x, _mr), _ny = _py(_nd.y, _mr);
-		if (_nd.kind == "landing") {
-			draw_circle_colour(_nx, _ny, 5, c_white, c_white, true);
-			__dot(_nx, _ny, 2, c_white, .9);
-		} else __dot(_nx, _ny, _kd.r, _kd.col, .95);
-		// every place by its name (his ask, 2026-09-15: the wild's full names);
-		// the places that matter carry their kind under it, the wild is dim
-		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6); draw_text(_nx + _kd.r + 3, _ny - 4, _nd.name); }
-		else {
-			draw_set_color(_kd.col); draw_set_alpha(.9);
-			draw_text(_nx + _kd.r + 3, _ny - 4, _nd.name);
-			draw_set_color(_dim); draw_set_alpha(.4);
-			draw_text(_nx + _kd.r + 3, _ny + 5, _kd.name);
-		}
+		var _np = __map_xy(_nd, _rg, _mr);
+		var _nx = floor(_np.x), _ny = floor(_np.y);
+		var _lz = (_nd[$ "landing"] ?? false);
+		if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _nx, _ny, _kd.col);   // (a town with the landing zone inside: the house, and the flag beside it)
+		__map_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 9 : 0), _ny, _lz ? c_white : _kd.col);
+		var _lp = is_undefined(_lab[_i]) ? { x : _nx + 7, y : _ny - 4 } : _lab[_i];
+		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6); }
+		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.9); }
+		draw_text(floor(_lp.x), floor(_lp.y), _nd.name);
 	}
-	// who is out to this world: at their node, or along their road; the
-	// path they mean to walk drawn in their colour
+	// who is out to this world: at their node, or along their road (the
+	// bent one); the path they mean to walk drawn in their colour
 	for (var _t = 0; _t < array_length(_e.trips); _t++) {
 		var _tr2 = _e.trips[_t];
-		if (_tr2.dest.seed != _d.seed) continue;
+		if (_tr2.dest.seed != _d.seed || (_tr2[$ "rgi"] ?? 0) != map_rgi) continue;
 		var _tc = _tr2.cols[0];
 		var _cpos = clamp(_tr2[$ "pos"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1);
-		var _cx = _px(_rg.nodes[_cpos].x, _mr), _cy = _py(_rg.nodes[_cpos].y, _mr);
+		var _cp = __map_xy(_rg.nodes[_cpos], _rg, _mr);
+		var _cx = _cp.x, _cy = _cp.y;
 		if (is_struct(_tr2[$ "road"])) {
-			var _ra = _rg.nodes[_tr2.road.a], _rb = _rg.nodes[_tr2.road.b];
 			var _q = clamp(_tr2.road.t / max(1, _tr2.road.d * EXPED_HOUR), 0, 1);
-			_cx = lerp(_px(_ra.x, _mr), _px(_rb.x, _mr), _q);
-			_cy = lerp(_py(_ra.y, _mr), _py(_rb.y, _mr), _q);
+			var _rp = region_road_point(_rg, _tr2.road.a, _tr2.road.b, _q);
+			var _rpp = __map_xy(_rp, _rg, _mr);
+			_cx = _rpp.x; _cy = _rpp.y;
 		}
-		// the path ahead
 		var _pp = _tr2[$ "path"] ?? [];
-		var _lx0 = _cx, _ly0 = _cy;
+		var _from = is_struct(_tr2[$ "road"]) ? _tr2.road.b : _cpos;
 		for (var _k = 0; _k < array_length(_pp); _k++) {
-			var _pn = _rg.nodes[clamp(_pp[_k], 0, array_length(_rg.nodes) - 1)];
-			var _lx1 = _px(_pn.x, _mr), _ly1 = _py(_pn.y, _mr);
-			draw_px_line(_lx0, _ly0, _lx1, _ly1, _tc, .5);
-			_lx0 = _lx1; _ly0 = _ly1;
+			var _to = clamp(_pp[_k], 0, array_length(_rg.nodes) - 1);
+			for (var _q2 = 0; _q2 < 6; _q2++) {
+				var _a1 = region_road_point(_rg, _from, _to, _q2 / 6), _a2 = region_road_point(_rg, _from, _to, (_q2 + 1) / 6);
+				var _b1 = __map_xy(_a1, _rg, _mr), _b2 = __map_xy(_a2, _rg, _mr);
+				draw_px_line(_b1.x, _b1.y, _b2.x, _b2.y, _tc, .5);
+			}
+			_from = _to;
 		}
-		if (_tr2.stage != 1) { _cx = _px(_rg.nodes[_rg.landing].x, _mr) - 12; _cy = _py(_rg.nodes[_rg.landing].y, _mr); }
+		if (_tr2.stage != 1) { var _lzp = __map_xy(_rg.nodes[_rg.landing], _rg, _mr); _cx = _lzp.x - 12; _cy = _lzp.y; }
 		for (var _k = 0; _k < array_length(_tr2.sids); _k++) __dot(_cx - 6 + _k * 6, _cy + 8, 3, _tr2.cols[_k], (_tr2.hp[_k] > 0) ? .95 : .3);
 		draw_set_color(_tc); draw_set_alpha(.85);
 		draw_text(_cx - 6, _cy + 12, exped_crew_txt(_tr2.names) + ": " + ((_tr2.stage == 1) ? exped_where(_tr2) : ((_tr2.stage == 0) ? "on the way" : "gone home")));
 	}
-	// the legend
-	var _lgx = _mr.x, _lgy = _mr.y + _mr.h + 3;
-	var _legend = ["settlement", "village", "town", "city", "camp", "dungeon", "field", "forest", "hills", "marsh"];
-	for (var _i = 0; _i < array_length(_legend); _i++) {
-		var _kd = _kk[$ _legend[_i]];
-		__dot(_lgx + 3, _lgy + 4, 2, _kd.col, .9);
-		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(_lgx + 8, _lgy, _kd.name);
-		_lgx += string_width(_kd.name) + 16;
-		if (_lgx > room_width - 60) break;
-	}
+	// [legend], and the note
+	var _lgr = __legend_r();
+	draw_ui_button(_lgr.x, _lgr.y, _lgr.w, _lgr.h, "legend", c_steelblue, true, false);
 	draw_set_color(_dim); draw_set_alpha(.35);
 	draw_set_halign(fa_right);
 	draw_text(room_width - (land ? 14 : 4), _mr.y + _mr.h + 3, "debug - the player never sees this");
 	draw_set_halign(fa_left);
+	if (map_legend) {
+		// THE LEGEND (his ask): every kind, its icon or dot, its name; two columns
+		var _lgk = ["landing", "settlement", "village", "town", "city", "camp", "dungeon", "crypt", "ruin", "shrine", "mine", "field", "forest", "hills", "marsh", "mountains", "desert", "tundra", "coast", "isle"];
+		var _lgw = 230, _lgh = 14 + ceil(array_length(_lgk) / 2) * 12 + 6;
+		var _lgx = _mr.x + 8, _lgy = _mr.y + _mr.h - _lgh - 8;
+		draw_sprite_ext(spr_pixel_1x1, 0, _lgx + 2, _lgy + 3, _lgw, _lgh, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _lgx, _lgy, _lgw, _lgh, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_lgx, _lgy, _lgw, _lgh, c_steelblue, .8);
+		draw_set_color(c_steelblue); draw_set_alpha(.95);
+		draw_text(_lgx + 6, _lgy + 4, "the legend");
+		for (var _i = 0; _i < array_length(_lgk); _i++) {
+			var _lk = _lgk[_i];
+			var _lkd = _kk[$ _lk];
+			if (is_undefined(_lkd)) continue;
+			var _lx = _lgx + 8 + (_i mod 2) * 112, _ly = _lgy + 18 + (_i div 2) * 12;
+			__map_icon(_lk, (_lk == "landing"), _lx + 5, _ly + 3, (_lk == "landing") ? c_white : _lkd.col);
+			draw_set_color(_ink); draw_set_alpha(.85);
+			draw_text(_lx + 16, _ly, _lkd.name);
+		}
+	}
 	ui_fade_set(1);
 	exit;
 }
@@ -294,13 +314,9 @@ if (view == "crew" || view == "sheet") {
 	var _bal = cbt_balance();
 	var _x0 = __sheet_x0(), _y0 = list_y + 22, _x1 = room_width - (land ? 14 : 4);
 	var _w = _x1 - _x0;
-	// THE GROUND (his ask): black, a gradient rising from the bottom in the sprite's colour
+	// THE GROUND: black (the gradient came and went the same day - his call)
 	var _gh0 = room_height - 8 - _y0;
 	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0, _w, _gh0, 0, c_black, .92);
-	for (var _gb = 0; _gb < 12; _gb++) {
-		var _bh = floor(_gh0 * .5 / 12);
-		draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0 + _gh0 - (_gb + 1) * _bh, _w, _bh, 0, merge_colour(_sp.col, c_black, .55), .34 * (1 - _gb / 12));
-	}
 	draw_px_rect(_x0, _y0, _w, _gh0, _sp.col, .35);
 	// the header: the name, the class UNDER it (his ask), the personality
 	// line further down; the level beside the xp bar (with its brothers)
@@ -322,6 +338,9 @@ if (view == "crew" || view == "sheet") {
 	draw_set_halign(fa_left);
 	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw, 3, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw * clamp(_sh.xp / max(1, _need), 0, 1), 3, 0, c_gold, .9);
+	// (the whole level / xp corner is a tap: the next level's gains - his ask)
+	array_push(it_rects, { x : _xx - 50, y : _hy - 3, w : _xw + 58, h : 18, lvup : true });
+	draw_px_rect(_xx - 50, _hy - 3, _xw + 58, 18, _dim, .12);
 	// HP / MP bars (the Disgaea row): the maxima - a sprite at home is whole
 	var _hpr = round((_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add) * 10) / 10;
 	var _mpr = max(1, round(_st.pts.mp));
@@ -358,13 +377,8 @@ if (view == "crew" || view == "sheet") {
 	}
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(_hx, _gy + 34, "crit " + string(_c.crit) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%  -  " + (_c.magic ? "magic basics" : "steel basics") + "  -  " + string(round(_st.total)) + " pts total");
-	// WHAT A LEVEL ADDS (his ask): SPRITE_LV_PTS points along the class's shape
-	var _lvl = "a level: +" + string(SPRITE_LV_PTS) + " pts along the shape  -  hp +" + string_format(_c.shape.hp * SPRITE_LV_PTS / 40 * _bal.hp_per_point, 1, 1);
-	for (var _k = 0; _k < 6; _k++) _lvl += "  " + _labels[_k] + " +" + string_format(_c.shape[$ _keys[_k]] * SPRITE_LV_PTS / 40, 1, 1);
-	draw_set_color(_dim); draw_set_alpha(.55);
-	draw_text(_hx, _gy + 44, _lvl);
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_hx, _gy + 54, _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name + "  -  " + ((_sp[$ "trip"] ?? false) ? "out" : (_sp.asleep ? ((_sp[$ "resting"] ?? false) ? "resting - asleep until whole" : "asleep") : "home")));
+	draw_text(_hx, _gy + 44, _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name + "  -  " + ((_sp[$ "trip"] ?? false) ? "out" : (_sp.asleep ? ((_sp[$ "resting"] ?? false) ? "resting - asleep until whole" : "asleep") : "home")));
 	// the equipment (the Disgaea list): slot - item
 	var _ex = land ? (_x0 + 208) : _hx, _ey = land ? (_by) : (_gy + 48);
 	draw_set_color(_ink); draw_set_alpha(.5);
@@ -392,7 +406,7 @@ if (view == "crew" || view == "sheet") {
 	}
 	// the skills, under the stats; the pocket and the notepad under the equipment
 	var _sk = sprite_skills(_sp);
-	var _ky = _gy + 68;
+	var _ky = _gy + 58;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_hx, _ky, "skills");
 	var _skw = land ? 190 : (_w - 16);
@@ -442,7 +456,27 @@ if (view == "crew" || view == "sheet") {
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
-	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
+		// THE NEXT LEVEL (his ask): each stat that climbs, and by how much
+		var _lpsp = it_pop.sp, _lpsh = sprite_sheet(_lpsp), _lpc = sprite_classes()[_lpsh.cls], _lpb = cbt_balance();
+		var _lkeys = ["hp", "atk", "def", "mag", "mdef", "spd", "hit", "mp"], _llab = ["hp", "atk", "def", "int", "res", "spd", "hit", "mp"];
+		var _lpw = 120, _lph = 20 + 8 * 10 + 6;
+		var _lpx = clamp(it_pop.x, 4, room_width - _lpw - 4), _lpy = clamp(it_pop.y, list_y + 20, room_height - _lph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _lpx + 2, _lpy + 3, _lpw, _lph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _lpx, _lpy, _lpw, _lph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_lpx, _lpy, _lpw, _lph, c_gold, .8);
+		draw_set_color(c_gold); draw_set_alpha(.95);
+		draw_text(_lpx + 6, _lpy + 4, "next level up");
+		for (var _j = 0; _j < 8; _j++) {
+			var _gain = _lpc.shape[$ _lkeys[_j]] * SPRITE_LV_PTS / 40;
+			if (_lkeys[_j] == "hp") _gain *= _lpb.hp_per_point;
+			draw_set_color(_ink); draw_set_alpha(.85);
+			draw_text(_lpx + 6, _lpy + 18 + _j * 10, _llab[_j]);
+			draw_set_halign(fa_right); draw_set_color(c_sgreen); draw_set_alpha(.95);
+			draw_text(_lpx + _lpw - 6, _lpy + 18 + _j * 10, "+" + string_format(_gain, 1, 1));
+			draw_set_halign(fa_left);
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
 		// THE NOTE POPUP (his ask): what a note does to the sprite
 		var _pnt = it_pop.nt;
 		var _ntxt = (_pnt.tag != "" && string_pos("foe:", _pnt.tag) == 1)

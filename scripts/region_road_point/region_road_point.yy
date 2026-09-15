@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_road_point",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_road_point",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

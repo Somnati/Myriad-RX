@@ -25,6 +25,7 @@ function region_kinds() {
 		mountains  : { name : "mountains",    col : rgb(200, 200, 215),   r : 2, civ : false, wild : true },
 		tundra     : { name : "tundra",       col : rgb(200, 225, 240),   r : 2, civ : false, wild : true },
 		coast      : { name : "coast",        col : rgb(150, 200, 220),   r : 2, civ : false, wild : true },
+		isle       : { name : "island",       col : rgb(120, 210, 200),   r : 2, civ : false, wild : true },   // off a coast, by boat (region_gen)
 	};
 	return _k;
 }

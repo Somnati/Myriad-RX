@@ -283,7 +283,7 @@ if (view == "crew") {
 	for (var _k = 0; _k < array_length(it_rects); _k++) {
 		var _ir = it_rects[_k];
 		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
-			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
+			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], lvup : _ir[$ "lvup"] ?? false, sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -291,8 +291,13 @@ if (view == "crew") {
 	exit;
 }
 
-// ======================= THE MAP =======================
-if (view == "map") exit;
+// ======================= THE MAP: [legend] =======================
+if (view == "map") {
+	var _lgr = __legend_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _lgr.x, _lgr.y, _lgr.x + _lgr.w, _lgr.y + _lgr.h)) { map_legend = !map_legend; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+	if (map_legend) { map_legend = false; exit; }   // (any other press folds it)
+	exit;
+}
 
 // ======================= THE PLANET PAGE: its buttons, the drawer =======================
 // (the grab / drag / tap are above the press gate)

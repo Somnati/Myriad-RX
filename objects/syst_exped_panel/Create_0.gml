@@ -326,6 +326,110 @@ __recall_r = function() { return { x : log_x + log_w - 60, y : log_y + 18, w : 6
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
 __map_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : room_width - (land ? 28 : 8), h : room_height - 8 - 14 - (list_y + 22) }; };
+map_legend = false;                  // the legend popup (his ask: a [legend] button, the kinds listed)
+map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
+__legend_r = function() { var _m = __map_r(); return { x : _m.x, y : _m.y + _m.h + 2, w : 56, h : 13 }; };
+/// a node's place on the map rect: the region's circle fills the rect's
+/// shorter side (his ask: bounded by a radius, not the rectangle)
+__map_xy = function(_nd, _rg, _mr) {
+	var _rad = _rg[$ "radius"] ?? .46, _ccx = _rg[$ "cx"] ?? .5, _ccy = _rg[$ "cy"] ?? .5;
+	var _sc = (min(_mr.w, _mr.h) * .5 - 10) / _rad;
+	return { x : _mr.x + _mr.w * .5 + (_nd.x - _ccx) * _sc, y : _mr.y + _mr.h * .5 + (_nd.y - _ccy) * _sc };
+};
+/// the pixel icons (his ask): a flag for the landing zone, a house for a
+/// settled place, a tent for a camp, a doorway for a dungeon or crypt
+__map_icon = function(_kind, _lz, _x, _y, _col) {
+	if (_lz) {
+		// the flag: a pole and a pennant, white
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 7, 1, 10, 0, c_white, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 7, 5, 2, 0, c_white, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 5, 3, 1, 0, c_white, .95);
+		return;
+	}
+	switch (_kind) {
+		case "settlement": case "village": case "town": case "city": {
+			// the house: a roof stepping in, a body, a door
+			var _big = (_kind == "town" || _kind == "city") ? 1 : 0;
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4 - _big, _y - 1, 8 + _big * 2, 5 + _big, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3 - _big, _y - 3, 6 + _big * 2, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5 - _big, 2, 2 + _big, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y + 2, 2, 2 + _big, 0, c_black, .8);
+			if (_kind == "city") draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y - 6, 2, 4, 0, _col, .95);
+			return;
+		}
+		case "camp": {
+			// the tent: rows widening down, a dark flap
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5, 2, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 3, 4, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 1, 6, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 1, 8, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y, 2, 3, 0, c_black, .8);
+			return;
+		}
+		case "dungeon": case "crypt": {
+			// the doorway: a dark arch in a block
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 4, 8, 8, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 4, 6, 0, c_black, .85);
+			return;
+		}
+	}
+	__dot(_x, _y, 2, _col, .95);
+};
+/// does a segment touch a rectangle? (an end inside, or a crossing of one of its sides)
+__seg_rect = function(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry2) {
+	if (point_in_rectangle(_x1, _y1, _rx1, _ry1, _rx2, _ry2) || point_in_rectangle(_x2, _y2, _rx1, _ry1, _rx2, _ry2)) return true;
+	var _cr = function(_ax, _ay, _bx, _by, _cx, _cy, _dx, _dy) {
+		var _d = (_bx - _ax) * (_dy - _cy) - (_by - _ay) * (_dx - _cx);
+		if (abs(_d) < .000001) return false;
+		var _t = ((_cx - _ax) * (_dy - _cy) - (_cy - _ay) * (_dx - _cx)) / _d;
+		var _u = ((_cx - _ax) * (_by - _ay) - (_cy - _ay) * (_bx - _ax)) / _d;
+		return (_t >= 0 && _t <= 1 && _u >= 0 && _u <= 1);
+	};
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry1)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry2, _rx2, _ry2)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx1, _ry2)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx2, _ry1, _rx2, _ry2)) return true;
+	return false;
+};
+/// where each label goes: four sides tried, the one crossing the fewest
+/// roads (and no other label) wins; once a map (map_lab caches by key)
+__map_labels = function(_rg, _mr, _key) {
+	if (is_struct(map_lab) && map_lab.key == _key) return map_lab.pos;
+	var _kk = region_kinds();
+	var _pos = array_create(array_length(_rg.nodes), undefined);
+	var _boxes = [];
+	// every road segment on the map, once
+	var _segs = [];
+	for (var _e = 0; _e < array_length(_rg.edges); _e++) {
+		var _ed = _rg.edges[_e];
+		var _pts = _ed[$ "pts"];
+		if (!is_array(_pts) || array_length(_pts) < 2) _pts = [ _rg.nodes[_ed.a], _rg.nodes[_ed.b] ];
+		for (var _k = 1; _k < array_length(_pts); _k++) {
+			var _p1 = __map_xy(_pts[_k - 1], _rg, _mr), _p2 = __map_xy(_pts[_k], _rg, _mr);
+			array_push(_segs, { x1 : _p1.x, y1 : _p1.y, x2 : _p2.x, y2 : _p2.y });
+		}
+	}
+	draw_set_font(fnt);
+	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
+		var _nd = _rg.nodes[_i];
+		var _c = __map_xy(_nd, _rg, _mr);
+		var _tw = string_width(_nd.name), _th = 8;
+		var _cand = [ { x : _c.x + 7, y : _c.y - 4 }, { x : _c.x - 7 - _tw, y : _c.y - 4 }, { x : _c.x - _tw * .5, y : _c.y - 14 }, { x : _c.x - _tw * .5, y : _c.y + 6 } ];
+		var _best = 0, _bs = infinity;
+		for (var _q = 0; _q < 4; _q++) {
+			var _b = { x1 : _cand[_q].x - 1, y1 : _cand[_q].y - 1, x2 : _cand[_q].x + _tw + 1, y2 : _cand[_q].y + _th + 1 };
+			var _sc = _q * .1;   // (a tie goes to the right side, then left, up, down)
+			if (_b.x1 < _mr.x || _b.x2 > _mr.x + _mr.w || _b.y1 < _mr.y || _b.y2 > _mr.y + _mr.h) _sc += 5;
+			for (var _s = 0; _s < array_length(_segs); _s++) if (__seg_rect(_segs[_s].x1, _segs[_s].y1, _segs[_s].x2, _segs[_s].y2, _b.x1, _b.y1, _b.x2, _b.y2)) _sc += 1;
+			for (var _o = 0; _o < array_length(_boxes); _o++) if (rectangle_in_rectangle(_b.x1, _b.y1, _b.x2, _b.y2, _boxes[_o].x1, _boxes[_o].y1, _boxes[_o].x2, _boxes[_o].y2)) _sc += 2;
+			if (_sc < _bs) { _bs = _sc; _best = _q; }
+		}
+		_pos[_i] = _cand[_best];
+		array_push(_boxes, { x1 : _cand[_best].x - 1, y1 : _cand[_best].y - 1, x2 : _cand[_best].x + _tw + 1, y2 : _cand[_best].y + _th + 1 });
+	}
+	map_lab = { key : _key, pos : _pos };
+	return _pos;
+};
 __card_map_r = function(_i) { var _c = __card_r(_i); return { x : _c.x + _c.w - 27, y : _c.y + 3, w : 24, h : 10 }; };
 __trip_map_r = function() { return __trip_btn_r(1); };
 __crew_y0 = function() { return list_y + 22; };

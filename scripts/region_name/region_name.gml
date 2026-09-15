@@ -37,6 +37,7 @@ function region_name(_kind) {
 		case "desert":    _nouns = ["desert", "sands", "waste", "flats", "dunes", "dust", "badlands", "scrub"]; break;
 		case "tundra":    _nouns = ["tundra", "frost", "snows", "barrens", "whites", "ice fields", "drifts"]; break;
 		case "coast":     _nouns = ["shore", "strand", "cove", "cliffs", "bay", "headland", "sands", "beach"]; break;
+		case "isle":      _nouns = ["isle", "island", "skerry", "holm", "rock", "key", "reef"]; break;
 	}
 	var _noun = _nouns[irandom(array_length(_nouns) - 1)];
 	var _adj = choose("green", "wide", "long", "dim", "wet", "high", "old", "far", "still", "windy", "lesser", "grey", "black", "white", "red",

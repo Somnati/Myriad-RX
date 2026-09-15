@@ -6,14 +6,14 @@
 ///   nodes  [{ i, kind, name, x, y }]  x / y in 0..1 (the map scales them)
 ///   edges  [{ a, b, d }]  d = the walk between, in HOURS (1..~14)
 ///   landing = the landing zone's index (a node on the left edge)
-/// The roll: 12..17 nodes placed by rejection (no two closer than .17);
-/// the landing zone first; then 1-3 settled places (settlement / village
-/// / town / a city at most once), 1-3 dungeons, 1-3 camps, maybe a second
-/// landing zone (his spec, 2026-09-15: "each consecutive one being
-/// rarer"), the wilderness from the biome's list for the rest.
-/// Edges: every node to its nearest, to its second nearest half the
-/// time (so branches end in dead ends), then the graph is stitched
-/// connected (union-find, nearest pair across components). Medieval,
+/// The roll (round three, 2026-09-15): 12..17 nodes GROWN from the landing
+/// zone inside a circle (each off one before it, .15 clear of the rest -
+/// a tree), then 1-3 settled places (settlement / village / town / a city
+/// at most once), 1-3 dungeons (a crypt now and then), 1-3 camps, the
+/// wild from the terrain for the rest; ONE landing zone, now and then
+/// inside a town; the tree's roads plus a few BRIDGES that cross nothing
+/// (loops with dead ends left over), isles off the coasts by boat; every
+/// road a polyline bent by the land at its ends (edge.pts). Medieval,
 /// all of it: the civilisation is his call.
 function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	var _old = random_get_seed();
@@ -85,17 +85,34 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	random_set_seed((_seed ^ 48271) & $7fffffff);
 	var _n = irandom_range(12, 17);
 	var _nodes = [];
-	// the landing zone, on the left edge
-	array_push(_nodes, { i : 0, kind : "landing", name : "the landing zone", x : random_range(.04, .10), y : random_range(.3, .7) });
-	// the rest of the places, by rejection
+	// THE PLACEMENT (his ask, 2026-09-15: "bounded by a circular radius...
+	// start generating from the landing zone and branch out"): the landing
+	// zone near the middle, then every place GROWN off one already there -
+	// a step of .16-.24 in a direction leaning away from its parent, inside
+	// the circle (radius .46 about the centre), .15 clear of everything -
+	// so the region is a tree from the landing; the bridges below close it
+	// into loops. Each node remembers its parent (the road it grew along)
+	var _R = .46, _cx0 = .5, _cy0 = .5;
+	var _la = random(360), _ld = random_range(0, .22);
+	array_push(_nodes, { i : 0, kind : "landing", name : "the landing zone", x : _cx0 + lengthdir_x(_ld, _la), y : _cy0 + lengthdir_y(_ld, _la), par : -1, kids : 0, landing : true });
 	var _tries = 0;
-	while (array_length(_nodes) < _n && _tries < 600) {
+	while (array_length(_nodes) < _n && _tries < 900) {
 		_tries += 1;
-		var _x = random_range(.08, .96), _y = random_range(.08, .92);
+		// a parent: the frontier first (few children), any at a pinch
+		var _pi = -1, _pw = 0;
+		for (var _i = 0; _i < array_length(_nodes); _i++) { var _wgt = 1 / (1 + _nodes[_i].kids * 1.6); _pw += _wgt; if (random(_pw) < _wgt) _pi = _i; }
+		if (_pi < 0) _pi = 0;
+		var _par = _nodes[_pi];
+		var _dir = random(360);
+		if (_par.par >= 0) { var _gp = _nodes[_par.par]; _dir = point_direction(_gp.x, _gp.y, _par.x, _par.y) + random_range(-75, 75); }
+		var _len = random_range(.16, .24);
+		var _x = _par.x + lengthdir_x(_len, _dir), _y = _par.y + lengthdir_y(_len, _dir);
+		if (point_distance(_x, _y, _cx0, _cy0) > _R) continue;
 		var _ok = true;
-		for (var _i = 0; _i < array_length(_nodes) && _ok; _i++)
-			if (point_distance(_x, _y, _nodes[_i].x, _nodes[_i].y) < .17) _ok = false;
-		if (_ok) array_push(_nodes, { i : array_length(_nodes), kind : "", name : "", x : _x, y : _y });
+		for (var _i = 0; _i < array_length(_nodes) && _ok; _i++) if (point_distance(_x, _y, _nodes[_i].x, _nodes[_i].y) < .15) _ok = false;
+		if (!_ok) continue;
+		array_push(_nodes, { i : array_length(_nodes), kind : "", name : "", x : _x, y : _y, par : _pi, kids : 0, landing : false });
+		_par.kids += 1;
 	}
 	_n = array_length(_nodes);
 	// THE KINDS (his spec, 2026-09-15): 1-3 settled places, 1-3 dungeons,
@@ -109,7 +126,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	var _nciv = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
 	var _ndun = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
 	var _ncmp = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
-	var _nlnd = ((random(1) < .35) ? 1 : 0);
+	var _nlnd = 0;   // ONE landing zone a region (his call, 2026-09-15)
 	var _city = false;
 	repeat (_nciv) {
 		var _r = random(100);
@@ -119,7 +136,11 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	}
 	repeat (_ndun) array_push(_must, (random(1) < .3) ? "crypt" : "dungeon");   // (a crypt: a dungeon of the dead, 2026-09-15)
 	repeat (_ncmp) array_push(_must, "camp");
-	repeat (_nlnd) array_push(_must, "landing");
+	// SOMETIMES THE LANDING ZONE IS INSIDE A TOWN (his ask): node 0 takes a
+	// settled kind of its own, keeping its landing flag; the must-list gives
+	// one up so the count holds
+	var _lz_in = (random(1) < .3);
+	if (_lz_in) { _nodes[0].kind = (random(1) < .3) ? "city" : "town"; if (_nodes[0].kind == "city") _city = true; if (array_length(_must) > 0) array_delete(_must, 0, 1); }
 	var _si = 0;
 	for (; _si < array_length(_must) && _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _must[_si];
 	for (; _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _wild[irandom(array_length(_wild) - 1)];
@@ -143,55 +164,101 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		if (_best >= 0 && _bd > _near) { var _kk3 = _nodes[_best].kind; _nodes[_best].kind = "camp"; _nodes[_i].kind = _kk3; }
 	}
 	var _landings = [0];
-	for (var _i = 1; _i < _n; _i++) if (_nodes[_i].kind == "landing") array_push(_landings, _i);
-	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = (_nodes[_i].kind == "landing") ? ("the " + choose("second", "far", "high", "old", "north") + " landing") : region_name(_nodes[_i].kind);
-	// the edges: two nearest each
+	if (_nodes[0].kind != "landing") _nodes[0].name = region_name(_nodes[0].kind);   // (a town with the landing zone inside it)
+	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = region_name(_nodes[_i].kind);
+	// THE ROADS: the tree's (every place to the one it grew from), then
+	// BRIDGES - a few near pairs joined where the new road crosses none,
+	// so the tree closes into loops with dead-end spurs left over (his
+	// ask: a main loop with splits and some dead ends)
 	var _edges = [];
 	var _has = function(_edges, _a, _b) {
 		for (var _e = 0; _e < array_length(_edges); _e++) if ((_edges[_e].a == _a && _edges[_e].b == _b) || (_edges[_e].a == _b && _edges[_e].b == _a)) return true;
 		return false;
 	};
-	for (var _i = 0; _i < _n; _i++) {
-		var _d1 = -1, _d2 = -1, _b1 = 999, _b2 = 999;
-		for (var _j = 0; _j < _n; _j++) {
-			if (_j == _i) continue;
-			var _d = point_distance(_nodes[_i].x, _nodes[_i].y, _nodes[_j].x, _nodes[_j].y);
-			if (_d < _b1) { _b2 = _b1; _d2 = _d1; _b1 = _d; _d1 = _j; }
-			else if (_d < _b2) { _b2 = _d; _d2 = _j; }
+	// do two segments cross (not at a shared end)?
+	var _cross = function(_p1, _p2, _p3, _p4) {
+		var _d = (_p2.x - _p1.x) * (_p4.y - _p3.y) - (_p2.y - _p1.y) * (_p4.x - _p3.x);
+		if (abs(_d) < .000001) return false;
+		var _t = ((_p3.x - _p1.x) * (_p4.y - _p3.y) - (_p3.y - _p1.y) * (_p4.x - _p3.x)) / _d;
+		var _u = ((_p3.x - _p1.x) * (_p2.y - _p1.y) - (_p3.y - _p1.y) * (_p2.x - _p1.x)) / _d;
+		return (_t > .02 && _t < .98 && _u > .02 && _u < .98);
+	};
+	for (var _i = 1; _i < _n; _i++) if (_nodes[_i].par >= 0) array_push(_edges, { a : _nodes[_i].par, b : _i, d : 0, pts : [] });
+	var _cands = [];
+	for (var _i = 0; _i < _n; _i++) for (var _j = _i + 1; _j < _n; _j++) {
+		if (_has(_edges, _i, _j)) continue;
+		var _dd = point_distance(_nodes[_i].x, _nodes[_i].y, _nodes[_j].x, _nodes[_j].y);
+		if (_dd < .30) array_push(_cands, { a : _i, b : _j, d : _dd });
+	}
+	array_shuffle_ext(_cands);
+	var _nbr = clamp(2 + irandom(2), 0, array_length(_cands));
+	for (var _c = 0; _c < array_length(_cands) && _nbr > 0; _c++) {
+		var _cd = _cands[_c];
+		var _clear = true;
+		for (var _e = 0; _e < array_length(_edges) && _clear; _e++) {
+			var _ed = _edges[_e];
+			if (_ed.a == _cd.a || _ed.a == _cd.b || _ed.b == _cd.a || _ed.b == _cd.b) continue;
+			if (_cross(_nodes[_cd.a], _nodes[_cd.b], _nodes[_ed.a], _nodes[_ed.b])) _clear = false;
 		}
-		if (_d1 >= 0 && !_has(_edges, _i, _d1)) array_push(_edges, { a : _i, b : _d1, d : 0 });
-		// the second road only half the time (his ask, 2026-09-15: "branches that end in dead ends")
-		if (_d2 >= 0 && random(1) < .5 && !_has(_edges, _i, _d2)) array_push(_edges, { a : _i, b : _d2, d : 0 });
+		if (!_clear) continue;
+		array_push(_edges, { a : _cd.a, b : _cd.b, d : 0, pts : [] });
+		_nbr -= 1;
 	}
-	// stitch the components together: union-find, nearest pair across
-	var _parent = array_create(_n);
-	for (var _i = 0; _i < _n; _i++) _parent[_i] = _i;
-	var _find = function(_parent, _x) { while (_parent[_x] != _x) _x = _parent[_x]; return _x; };
+	// THE ISLES (his ask): off a coast, one place out to sea - a boat road
+	for (var _i = _n - 1; _i >= 1; _i--) {
+		if (_nodes[_i].kind != "coast" || random(1) > .45) continue;
+		var _od = point_direction(_cx0, _cy0, _nodes[_i].x, _nodes[_i].y) + random_range(-40, 40);
+		var _ol = random_range(.13, .19);
+		var _ix = _nodes[_i].x + lengthdir_x(_ol, _od), _iy = _nodes[_i].y + lengthdir_y(_ol, _od);
+		if (point_distance(_ix, _iy, _cx0, _cy0) > _R + .05) continue;
+		var _iok = true;
+		for (var _j = 0; _j < array_length(_nodes) && _iok; _j++) if (point_distance(_ix, _iy, _nodes[_j].x, _nodes[_j].y) < .12) _iok = false;
+		if (!_iok) continue;
+		array_push(_nodes, { i : array_length(_nodes), kind : "isle", name : region_name("isle"), x : _ix, y : _iy, par : _i, kids : 0, landing : false, boat : true });
+		array_push(_edges, { a : _i, b : array_length(_nodes) - 1, d : 0, pts : [], boat : true });
+	}
+	_n = array_length(_nodes);
+	// THE BENT ROADS (his ask: "procedural curves and corners based off the
+	// type of biome"): every road is a polyline - points along it pushed
+	// sideways by the land at its ends: mountains and hills ZIGZAG (sharp,
+	// alternating), marsh and forest wobble, fields and coasts barely bend,
+	// a boat road runs straight. The hours follow the bent length
+	var _bend = function(_k) {
+		switch (_k) {
+			case "mountains": return { amp : .045, n : 8, zig : true };
+			case "hills":     return { amp : .03, n : 6, zig : true };
+			case "marsh":     return { amp : .03, n : 6, zig : false };
+			case "forest":    return { amp : .025, n : 5, zig : false };
+			case "desert": case "tundra": case "field": case "coast": return { amp : .012, n : 4, zig : false };
+		}
+		return { amp : .018, n : 5, zig : false };
+	};
 	for (var _e = 0; _e < array_length(_edges); _e++) {
-		var _ra = _find(_parent, _edges[_e].a), _rb = _find(_parent, _edges[_e].b);
-		if (_ra != _rb) _parent[_ra] = _rb;
-	}
-	var _guard = 0;
-	while (_guard < _n) {
-		_guard += 1;
-		var _r0 = _find(_parent, 0);
-		var _best = -1, _bi2 = -1, _bd = 999;
-		for (var _i = 0; _i < _n; _i++) {
-			if (_find(_parent, _i) != _r0) continue;
-			for (var _j = 0; _j < _n; _j++) {
-				if (_find(_parent, _j) == _r0) continue;
-				var _d = point_distance(_nodes[_i].x, _nodes[_i].y, _nodes[_j].x, _nodes[_j].y);
-				if (_d < _bd) { _bd = _d; _best = _i; _bi2 = _j; }
+		var _ed = _edges[_e];
+		var _ea = _nodes[_ed.a], _eb = _nodes[_ed.b];
+		var _ba = _bend(_ea.kind), _bb = _bend(_eb.kind);
+		var _pts = [ { x : _ea.x, y : _ea.y } ];
+		if (!(_ed[$ "boat"] ?? false)) {
+			var _np = max(_ba.n, _bb.n);
+			var _zig = (_ba.zig || _bb.zig);
+			var _dx = _eb.x - _ea.x, _dy = _eb.y - _ea.y;
+			var _len = point_distance(_ea.x, _ea.y, _eb.x, _eb.y);
+			var _nx = -_dy / max(.0001, _len), _ny = _dx / max(.0001, _len);
+			var _sgn = choose(1, -1), _prev = 0;
+			for (var _k = 1; _k < _np; _k++) {
+				var _t = _k / _np;
+				var _amp = lerp(_ba.amp, _bb.amp, _t) * sin(_t * pi);   // (pinned at both ends)
+				var _off;
+				if (_zig) { _off = _sgn * _amp * random_range(.6, 1); _sgn = -_sgn; }
+				else { _off = _prev * .55 + random_range(-1, 1) * _amp; _prev = _off; }
+				array_push(_pts, { x : _ea.x + _dx * _t + _nx * _off, y : _ea.y + _dy * _t + _ny * _off });
 			}
 		}
-		if (_best < 0) break;   // one component: done
-		array_push(_edges, { a : _best, b : _bi2, d : 0 });
-		_parent[_find(_parent, _bi2)] = _r0;
-	}
-	// the distances: hours of walking, by the map's length
-	for (var _e = 0; _e < array_length(_edges); _e++) {
-		var _ea = _nodes[_edges[_e].a], _eb = _nodes[_edges[_e].b];
-		_edges[_e].d = max(1, round(point_distance(_ea.x, _ea.y, _eb.x, _eb.y) * 14));
+		array_push(_pts, { x : _eb.x, y : _eb.y });
+		_ed.pts = _pts;
+		var _pl = 0;
+		for (var _k = 1; _k < array_length(_pts); _k++) _pl += point_distance(_pts[_k - 1].x, _pts[_k - 1].y, _pts[_k].x, _pts[_k].y);
+		_ed.d = max(1, round(_pl * 14 * ((_ed[$ "boat"] ?? false) ? 1.5 : 1)));
 	}
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)
@@ -223,5 +290,5 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);
 	rng_release(_old);
 	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
-	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood };
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood, radius : _R, cx : _cx0, cy : _cy0 };
 }

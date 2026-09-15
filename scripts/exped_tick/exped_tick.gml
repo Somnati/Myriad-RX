@@ -12,9 +12,13 @@
 function exped_tick(_secs) {
 	exped_init();
 	var _e = g.exped;
-	var _dt = _secs * max(1, _e.spd);
+	var _spd = max(1, _e.spd);
+	var _dt = _secs * _spd;
 	for (var _i = array_length(_e.trips) - 1; _i >= 0; _i--) {
 		var _tr = _e.trips[_i];
+		// A FIGHT PLAYS AT ITS OWN PACE (his ask, 2026-09-15): the debug clock
+		// hurries the walk, not the fight - unless it is at x100
+		if (!is_undefined(_tr.fight) && _spd < 100) { exped_tick_one(_tr, _secs); continue; }
 		var _left = _dt, _home = false;
 		while (_left > 0 && !_home) {
 			var _step = min(_left, EXPED_TICK_MAX);

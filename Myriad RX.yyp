@@ -602,6 +602,7 @@
     {"id":{"name":"region_nearest_landing","path":"scripts/region_nearest_landing/region_nearest_landing.yy",},},
     {"id":{"name":"region_neighbors","path":"scripts/region_neighbors/region_neighbors.yy",},},
     {"id":{"name":"region_path","path":"scripts/region_path/region_path.yy",},},
+    {"id":{"name":"region_road_point","path":"scripts/region_road_point/region_road_point.yy",},},
     {"id":{"name":"return_ability","path":"scripts/return_ability/return_ability.yy",},},
     {"id":{"name":"return_deck","path":"scripts/return_deck/return_deck.yy",},},
     {"id":{"name":"rgb","path":"scripts/rgb/rgb.yy",},},
