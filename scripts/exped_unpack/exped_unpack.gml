@@ -61,7 +61,8 @@ function exped_unpack(_s) {
 				// before carried none - they show whole)
 				if (array_length(_hh) < 2 || _hh[0] == "") for (var _k = 0; _k < array_length(_sids); _k++) _hp[_k] = _hm[_k];
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
-				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp });
+				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp,
+				                       rgi : (array_length(_p) > 8 && _p[8] != "") ? clamp(real(_p[8]), 0, EXPED_REGIONS - 1) : 0 });
 				continue;
 			}
 			var _rooms = (_p[5] != "") ? string_split(_p[5], ",") : [];

@@ -108,7 +108,7 @@ function exped_tick_one(_tr, _dt) {
 	// ---- stage 2: the flight home ----
 	if (_tr.stage == 2 && _tr.t >= (_tr[$ "leave_t"] ?? _tr.t) + _tr.dur * EXPED_RETURN) {
 		// home: the floor of credits by distance, the pocket's remainder, the quest's reward
-		var _floor = { kind : "credits", rar : 0, n : 3 * _tr.dest.tier, txt : string(3 * _tr.dest.tier) + " credits", col : c_lavender };
+		var _floor = { kind : "credits", rar : 0, n : 3 * _tr.dest.tier, txt : string(3 * _tr.dest.tier) + " credits - the trip's pay", col : c_lavender };   // ("the floor" made no sense on the card - 2026-09-15)
 		array_insert(_tr.finds, 0, _floor);
 		if ((_tr[$ "credits"] ?? 0) > 0) array_push(_tr.finds, { kind : "credits", rar : 0, n : _tr.credits, txt : string(_tr.credits) + " credits - the pocket, unspent", col : c_lavender });
 		var _q = _tr[$ "quest"];

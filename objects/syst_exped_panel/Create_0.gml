@@ -48,6 +48,7 @@ rg_sel   = 0;            // the region picked in the planet window (EXPED_REGION
 map_rgi  = 0;            // the map view's region
 pl_focus = -1;           // the planet window: the region the world has turned to (-1 = none, ambient spin)
 crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = everyone)
+crew_from = "hub";       // where the crew menu returns to (the strip's [crew] is on every page - his ask, 2026-09-15)
 it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
@@ -159,7 +160,8 @@ __list_y0 = function() { return land ? (card_y - 10) : (crew_y + 10 + 2 * (chip 
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
-/// [back] painted (the pages that render a sky call it again AFTER the sky - the render plane covers the row)
+__crewstrip_r = function() { var _b = __back_r(); return { x : _b.x - 4 - 44, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
+/// [back] and [crew] painted (the pages that render a sky call it again AFTER the sky - the render plane covers the row)
 __draw_back = function() {
 	var _bk = __back_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _bk.x, _bk.y, _bk.w, _bk.h, 0, c_black, .8);
@@ -168,7 +170,28 @@ __draw_back = function() {
 	draw_set_color(c_white);
 	draw_set_alpha(.9);
 	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
+	if (view != "crew" && view != "hub" && array_length(g.sprites) > 0) {
+		var _cs = __crewstrip_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _cs.x, _cs.y, _cs.w, _cs.h, 0, c_black, .8);
+		draw_px_rect(_cs.x, _cs.y, _cs.w, _cs.h, c_steelblue, .5);
+		draw_set_color(c_steelblue);
+		draw_text(_cs.x + _cs.w * .5, _cs.y + 3, "crew");
+	}
 	draw_set_halign(fa_left);
+};
+/// the camera that faces a region's spot dead on (a still portrait: the
+/// haul card, the list rows), the world's axis up the screen
+__cam_at = function(_pn, _spin, _rg) {
+	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
+	var _z = mat3_apply(_wm, _t[0], _t[1], _t[2]);
+	var _up = mat3_apply(mat3_rot(0, 0, 1, _pn.tilt), 0, 1, 0);
+	var _x = [_up[1] * _z[2] - _up[2] * _z[1], _up[2] * _z[0] - _up[0] * _z[2], _up[0] * _z[1] - _up[1] * _z[0]];
+	var _xl = sqrt(_x[0] * _x[0] + _x[1] * _x[1] + _x[2] * _x[2]);
+	if (_xl < .001) { _up = [1, 0, 0]; _x = [_up[1] * _z[2] - _up[2] * _z[1], _up[2] * _z[0] - _up[0] * _z[2], _up[0] * _z[1] - _up[1] * _z[0]]; _xl = sqrt(_x[0] * _x[0] + _x[1] * _x[1] + _x[2] * _x[2]); }
+	_x = [_x[0] / _xl, _x[1] / _xl, _x[2] / _xl];
+	var _y = [_z[1] * _x[2] - _z[2] * _x[1], _z[2] * _x[0] - _z[0] * _x[2], _z[0] * _x[1] - _z[1] * _x[0]];
+	return [_x[0], _y[0], _z[0], _x[1], _y[1], _z[1], _x[2], _y[2], _z[2]];   // (columns = the view's axes in the world)
 };
 /// [back] and escape: one step up the chain - map -> where it came from;
 /// depart -> region -> planet -> hub; crew / trip / haul -> hub
@@ -179,7 +202,7 @@ __back = function() {
 		case "galaxy": view = gx_from; break;
 		case "depart": view = "planet"; pv_mode = "region"; break;   // (back to the region, on the planet page)
 		case "planet": if (pv_mode == "region") pv_mode = "planet"; else view = "hub"; break;   // region mode -> the planet, the planet -> the hub
-		case "crew":   view = (crew_trip >= 0) ? "trip" : "hub"; crew_trip = -1; it_pop = undefined; break;
+		case "crew":   view = (crew_trip >= 0) ? "trip" : crew_from; crew_trip = -1; it_pop = undefined; break;
 		default:       view = "hub"; break;
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
@@ -439,6 +462,7 @@ __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat),
 /// a press on one of the page's controls is not a grab of the world
 __pv_ui_hit = function() {
 	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
+	var _cs = __crewstrip_r(); if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) return true;
 	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
 	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
 	if (pv_mode == "region") {
@@ -839,9 +863,14 @@ __cam_face = function(_pn, _spin, _rg, _cam) {
 /// FULL world once it is built - clouds and ring (the globe at .62 so the
 /// ring fits) - the lite portrait until then (his ask: every version
 /// shows clouds). The caller has the fade off (the shader replaces it)
-__world_small = function(_d, _cx, _cy, _r) {
+__world_small = function(_d, _cx, _cy, _r, _rg = undefined) {
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	if (_pn.row >= _pn.th) planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r);
+	if (_pn.row >= _pn.th) {
+		// FACING ITS REGION when the card is about one (his ask, 2026-09-15): the
+		// spot dead on, the clock's spin under it (the terminator moves, the region holds)
+		if (is_struct(_rg)) { var _sp = planet_spin_now(_pn); planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r, _sp, 1, __cam_at(_pn, _sp, _rg), is_struct(pv_sky) ? pv_sky.light_w : undefined); }
+		else planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r);
+	}
 	else __portrait(_d, _cx, _cy, _r);
 };
 /// the worlds are built a few rows a frame (planet_gen_step): the board's,

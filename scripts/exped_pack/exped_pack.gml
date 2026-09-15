@@ -63,7 +63,7 @@ function exped_pack() {
 			    + ":" + _vis
 			    + ":" + string(_r[$ "rgi"] ?? 0) + ":" + string(_r[$ "home"] ?? 0)   // (the region, the landing zone - 2026-09-15)
 			    + ":" + _rex.kind + ":" + string(_rex.n);   // (the explore card: kind, n - 2026-09-15)
-		} else _o += "|";
+		} else _o += "|" + string(_r[$ "rgi"] ?? 0);   // (a haul: its region - 2026-09-15)
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}
 	return _out;

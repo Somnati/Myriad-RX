@@ -51,17 +51,8 @@ for (var _k = 0; _k < 3; _k++) {
 }
 draw_set_halign(fa_left);
 
-// [back], on a page
-if (view != "hub") {
-	var _bk = __back_r();
-	draw_sprite_ext(spr_pixel_1x1, 0, _bk.x, _bk.y, _bk.w, _bk.h, 0, c_black, .8);
-	draw_px_rect(_bk.x, _bk.y, _bk.w, _bk.h, rgb(170, 190, 230), .5);
-	draw_set_halign(fa_center);
-	draw_set_color(c_white);
-	draw_set_alpha(.9);
-	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
-	draw_set_halign(fa_left);
-}
+// [back] (and [crew]) on a page
+if (view != "hub") __draw_back();
 
 // ======================= THE HAUL =======================
 if (view == "haul") {
@@ -104,14 +95,23 @@ if (view == "haul") {
 	// the card on the left, the trip's log on the right (his ask, 2026-09-15:
 	// "i want to see the log on that screen so i can read what they did")
 	var _nb = array_length(_h.sids);   // the banners' rows
-	var _cw = land ? 224 : (room_width - 8), _ch = 40 + _nb * 12 + 4 + array_length(_h.finds) * 12 + (_recruit ? 52 : 40);
+	var _cw = land ? 224 : (room_width - 8);
+	// THE FINDS (his ask, 2026-09-15: "remake the findings so it looks nicer
+	// and makes sense"): a label a kind, the text wrapped to the card
+	var _flw = _cw - 66, _fhs = [], _fsum = 0;
+	for (var _i = 0; _i < array_length(_h.finds); _i++) {
+		var _ftx = (_h.finds[_i].kind == "sprite" && _recruit) ? "a sprite - wants to join" : _h.finds[_i].txt;
+		var _fh = string_height_ext(_ftx, 9, _flw) + 2;
+		array_push(_fhs, _fh); _fsum += _fh;
+	}
+	var _ch = 40 + _nb * 12 + 4 + 11 + _fsum + (_recruit ? 52 : 40);
 	var _cx = land ? 14 : 4, _cy = list_y + 22;
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, _ch, 0, c_black, .9);
 	draw_px_rect(_cx, _cy, _cw, _ch, _h.routed ? c_hred : c_gold, .6);
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, 1, 0, _h.routed ? c_hred : c_gold, .9);
 	ui_fade_set(1);
-	__world_small(_h.dest, _cx + 22, _cy + 22, 12);
+	__world_small(_h.dest, _cx + 22, _cy + 22, 12, region_get(_h.dest, _h[$ "rgi"] ?? 0));   // (facing the region it came from)
 	ui_fade_set(_ea);
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
@@ -138,17 +138,29 @@ if (view == "haul") {
 		draw_sprite_ext(spr_pixel_1x1, 0, _cx + _cw - 14 - _bw, _by + 3, _bw * _hf, 5, 0, (_hf > .35) ? c_sgreen : c_hred, .9);
 		draw_px_rect(_cx + _cw - 14 - _bw, _by + 3, _bw, 5, c_white, .12);
 	}
+	var _fy = _cy + 40 + _nb * 12 + 4;
+	draw_set_halign(fa_left);
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_cx + 10, _fy, "brought home");
+	_fy += 11;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
-		var _ry = _cy + 40 + _nb * 12 + 4 + _i * 12;
-		draw_set_halign(fa_left);
-		draw_set_color(_ink);
-		draw_set_alpha(.55);
-		draw_text(_cx + 10, _ry, (_i == 0) ? "the floor" : ("find " + string(_i)));
-		draw_set_halign(fa_right);
-		draw_set_color(_l.col);
-		draw_set_alpha(.95);
-		draw_text(_cx + _cw - 10, _ry, (_l.kind == "sprite" && _recruit) ? "a sprite - wants to join" : _l.txt);
+		var _flb = "";
+		switch (_l.kind) {
+			case "credits": _flb = "credits"; break;
+			case "gear":    _flb = "gear"; break;
+			case "sprite":  _flb = "a sprite"; break;
+			case "offer":   _flb = "an offer"; break;
+			case "charm":   _flb = "a charm"; break;
+			case "chart":   _flb = "a chart"; break;
+			case "mats":    _flb = "materials"; break;
+			default:        _flb = _l.kind; break;
+		}
+		draw_set_color(merge_colour(_l.col, _ink, .5)); draw_set_alpha(.7);
+		draw_text(_cx + 10, _fy, _flb);
+		draw_set_color(_l.col); draw_set_alpha(.95);
+		draw_text_ext(_cx + 56, _fy, (_l.kind == "sprite" && _recruit) ? "a sprite - wants to join" : _l.txt, 9, _flw);
+		_fy += _fhs[_i];
 	}
 	// the log: newest at the bottom, as much as fits
 	if (land) {
@@ -172,6 +184,7 @@ if (view == "haul") {
 		var _cb = __col_r();
 		draw_ui_button(_cb.x, _cb.y, _cb.w, _cb.h, "collect", c_gold, true, true);
 	}
+	__draw_turn();
 	ui_fade_set(1);
 	exit;
 }
@@ -340,14 +353,14 @@ if (view == "crew" || view == "sheet") {
 	// THE PORTRAIT: the room's blob (his ask, 2026-09-15), the name in the
 	// big font capitalised, the class under it
 	ui_fade_set(1);
-	sprite_portrait(_sp, _hx + 10, _hy + 11, 10);
+	sprite_portrait(_sp, _hx + 7, _hy + 9, 1);   // (the room's size exactly - x2 was "HUGE")
 	ui_fade_set(_ea);
 	draw_set_font(fnt_large);
 	draw_set_color(_sp.col); draw_set_alpha(.95);
-	draw_text(_hx + 26, _hy - 2, str_cap(_sp.name));
+	draw_text(_hx + 18, _hy - 2, str_cap(_sp.name));
 	draw_set_font(fnt);
 	draw_set_color(_c.col); draw_set_alpha(.95);
-	draw_text(_hx + 26, _hy + 12, _c.name);
+	draw_text(_hx + 18, _hy + 12, _c.name);
 	var _pl = sprite_personalities();
 	var _need = sprite_xp_need(_sh.lv);
 	// THE LEVEL CORNER (his ask, 2026-09-15): "level N" above the bar at its
@@ -1187,38 +1200,64 @@ if (view == "depart") {
 			var _lpar = sprite_par_pts(_rg.lv) * SPRITE_FOE_BUDGET;
 			draw_sprite_ext(spr_pixel_1x1, 0, _lr.x, _lr.y, _lr.w, _lr.h, 0, merge_colour(_lk.col, c_black, .9), .6);
 			draw_px_rect(_lr.x, _lr.y, _lr.w, _lr.h, _lk.col, .35);
+			// (the sheet's own look - his ask, 2026-09-15: "consistent with our main crew stats page")
 			var _lx = _lr.x + 6, _ly = _lr.y + 4;
-			__dot(_lx + 4, _ly + 4, 4, _lk.col, .95);
-			draw_set_color(_lk.col); draw_set_alpha(.95); draw_text(_lx + 12, _ly, _lk.name);
-			draw_set_color(_lc.col); draw_text(_lx + 12 + string_width(_lk.name) + 6, _ly, _lc.name + " lv " + string(_lsh.lv));
-			_ly += 11;
-			var _lhp = floor(_lst.pts.hp * _lbal.hp_per_point + _lbal.hp_flat_add), _lmp = max(1, round(_lst.pts.mp));
-			draw_set_color(_ink); draw_set_alpha(.85);
-			draw_text(_lx, _ly, "hp " + string(_lhp) + "   mp " + string(_lmp));
+			ui_fade_set(1);
+			sprite_portrait(_lk, _lx + 7, _ly + 8, 1);
+			ui_fade_set(_ea);
+			draw_set_font(fnt_large); draw_set_color(_lk.col); draw_set_alpha(.95); draw_text(_lx + 18, _ly - 3, str_cap(_lk.name)); draw_set_font(fnt);
+			draw_set_color(_lc.col); draw_text(_lx + 18, _ly + 10, _lc.name + "  -  lv " + string(_lsh.lv));
 			draw_set_halign(fa_right);
-			draw_set_color((_lst.total >= _lpar) ? c_sgreen : c_hred);
+			draw_set_color((_lst.total >= _lpar) ? c_sgreen : c_hred); draw_set_alpha(.9);
 			draw_text(_lr.x + _lr.w - 6, _ly, string(round(_lst.total)) + " pts  vs " + string(round(_lpar)) + " par");
 			draw_set_halign(fa_left);
-			_ly += 11;
+			_ly += 22;
+			// hp / mp bars, whole, as the sheet's
+			var _lhp = floor(_lst.pts.hp * _lbal.hp_per_point + _lbal.hp_flat_add), _lmp = max(1, round(_lst.pts.mp));
+			var _lhc = floor(_lhp * (_lk[$ "hpf"] ?? 1)), _lmc = round(_lmp * (_lk[$ "mpf"] ?? 1));
+			var _lbw = _lr.w - 30;
+			draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_lx, _ly, "hp");
+			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw, 5, 0, c_black, .7);
+			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 2, _lbw * clamp(_lhc / max(1, _lhp), 0, 1), 5, 0, c_hred, .8);
+			draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly - 1, string(_lhc) + " / " + string(_lhp)); draw_set_halign(fa_left); draw_set_font(fnt);
+			draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_lx, _ly + 10, "mp");
+			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw, 5, 0, c_black, .7);
+			draw_sprite_ext(spr_pixel_1x1, 0, _lx + 18, _ly + 12, _lbw * clamp(_lmc / max(1, _lmp), 0, 1), 5, 0, c_sblue, .8);
+			draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_lx + 18 + _lbw - 2, _ly + 9, string(_lmc) + " / " + string(_lmp)); draw_set_halign(fa_left); draw_set_font(fnt);
+			_ly += 24;
+			// the grid, the gear's share in green (the sheet's)
 			var _lkeys = ["atk", "def", "mag", "mdef", "spd", "hit"], _llbl = ["atk", "def", "int", "res", "spd", "hit"];
 			for (var _k = 0; _k < 6; _k++) {
-				var _gx = _lx + (_k mod 2) * 76, _gy = _ly + (_k div 2) * 10;
+				var _gx = _lx + (_k mod 2) * 76, _gy = _ly + (_k div 2) * 11;
 				draw_set_color(_dim); draw_set_alpha(.8); draw_text(_gx, _gy, _llbl[_k]);
-				draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.95);
+				draw_set_halign(fa_right); draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
 				draw_text(_gx + 44, _gy, string_format(_lst.pts[$ _lkeys[_k]], 1, 1));
-				draw_set_halign(fa_left);
+				draw_set_font(fnt); draw_set_halign(fa_left);
 				var _lg = _lst.gear[$ _lkeys[_k]];
 				if (_lg > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_gx + 47, _gy, "+" + string_format(_lg, 1, 1)); }
 			}
-			_ly += 31;
+			_ly += 34;
+			draw_set_color(_dim); draw_set_alpha(.7);
+			draw_text(_lx, _ly, "crit " + string(_lc.crit) + "% x" + string(_lc.cmulti) + "  -  counter " + string(_lc.cnt) + "%");
+			_ly += 11;
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, "weapon");
 			if (is_undefined(_lsh.w1)) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_lx + 40, _ly, "(bare hands)"); }
-			else { draw_set_color(_lsh.w1.col); draw_set_alpha(.95); draw_text(_lx + 40, _ly, string_copy(_lsh.w1.name, 1, 22)); }
-			_ly += 10;
-			var _lsk = sprite_skills(_lk), _lskt = "";
-			for (var _k = 0; _k < array_length(_lsk); _k++) _lskt += ((_k > 0) ? ", " : "") + _lsk[_k].name;
-			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, "skills");
-			draw_set_color(c_horange); draw_set_alpha(.9); draw_text_ext(_lx + 40, _ly, (_lskt == "") ? "(none)" : _lskt, 9, _lr.w - 52);
+			else {
+				var _wnm = _lsh.w1.name, _wav = _lr.w - 12 - 40;
+				if (string_width(_wnm) > _wav) { while (string_width(_wnm + "..") > _wav && string_length(_wnm) > 2) _wnm = string_copy(_wnm, 1, string_length(_wnm) - 1); _wnm += ".."; }
+				draw_set_color(_lsh.w1.col); draw_set_alpha(.95); draw_text(_lx + 40, _ly, _wnm);
+			}
+			_ly += 12;
+			// the skills as rows (the sheet's), name and mp
+			var _lsk = sprite_skills(_lk);
+			draw_set_color(_ink); draw_set_alpha(.5); draw_text(_lx, _ly, "skills");
+			for (var _k = 0; _k < array_length(_lsk); _k++) {
+				var _ls2 = _lsk[_k], _lsy = _ly + 11 + _k * 11;
+				if (_lsy + 10 > _lr.y + _lr.h - 2) break;
+				draw_sprite_ext(spr_pixel_1x1, 0, _lx - 2, _lsy - 1, _lr.w - 8, 10, 0, c_black, .35);
+				draw_set_color(_ls2.magic ? c_hpurple : c_horange); draw_set_alpha(.9); draw_text(_lx, _lsy, _ls2.name);
+				draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85); draw_text(_lx - 2 + _lr.w - 8 - 4, _lsy, string(_ls2.cost) + " mp"); draw_set_halign(fa_left);
+			}
 		} else if (_lr.h > 40) {
 			draw_set_color(_dim); draw_set_alpha(.45);
 			draw_text(_lr.x + 6, _lr.y + 4, "tap a sprite to see its sheet");
@@ -1369,7 +1408,7 @@ for (var _i = 0; _i < _rows; _i++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, 1, 0, c_white, .07);
 	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, 2, _rr.h, 0, _ish ? c_gold : c_steelblue, .85);
 	ui_fade_set(1);
-	__world_small(_r.dest, _rr.x + 16, _rr.y + _rr.h * .5, 9);
+	__world_small(_r.dest, _rr.x + 16, _rr.y + _rr.h * .5, 9, region_get(_r.dest, _r[$ "rgi"] ?? 0));
 	ui_fade_set(_ea);
 	// the crew's faces
 	for (var _k = 0; _k < array_length(_r.sids); _k++) __dot(_rr.x + 34 + _k * 9, _rr.y + 9, 3, _r.cols[_k],

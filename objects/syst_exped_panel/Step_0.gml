@@ -38,7 +38,7 @@ if (view == "trip") {
 	} else rp = undefined;
 } else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
-if (view == "trip" && is_undefined(__trip())) view = (__haul_i() >= 0) ? "haul" : "hub";
+if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "hub"; if (view == "haul") { pg_a = 0; pg_dir = 1; } }   // (the haul fades in - his ask, 2026-09-15)
 if (view == "haul" && __haul_i() < 0) { view = "hub"; swap_pick = false; }
 if (view == "sheet") view = "crew";
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
@@ -106,10 +106,29 @@ if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
 if (view == "trip" || view == "haul") {
 	var _lr = __log_r();
 	var _ll = __log_lines();
+	// A RE-WRAP KEEPS YOUR PLACE (his ask, 2026-09-15): the band's width
+	// changed (the trip page turned into the haul) - the line at the top of
+	// the band before is the line at the top after
+	if (is_array(_ll) && log_lay.w != _lr.w - 8 && log_lay.n == array_length(_ll) && array_length(log_lay.hs) > 0) {
+		var _acc = 0, _top = array_length(log_lay.hs), _off = 0;
+		for (var _li = 0; _li < array_length(log_lay.hs); _li++) { if (_acc + log_lay.hs[_li] > log_scroll) { _top = _li; _off = log_scroll - _acc; break; } _acc += log_lay.hs[_li]; }
+		var _lay2 = __log_layout(_ll, _lr.w - 8);
+		var _acc2 = 0;
+		for (var _li = 0; _li < min(_top, array_length(_lay2.hs)); _li++) _acc2 += _lay2.hs[_li];
+		log_scroll = _acc2 + ((_top < array_length(_lay2.hs)) ? min(_off, _lay2.hs[_top] - 1) : 0);
+		if (instance_exists(sb)) { sb.ty = log_scroll; sb.input = log_scroll; sb.ty_speed_actual = 0; }
+	}
 	var _lmax = max(0, __log_content_h() - _lr.h);
 	if (is_array(_ll)) {
-		if (log_n != array_length(_ll)) { if (log_follow) log_scroll = _lmax; log_n = array_length(_ll); }
-		log_follow = (log_scroll >= _lmax - 4);
+		// THE FOLLOW: at the bottom, a new line pulls the band down with it;
+		// scrolled up at all, the band holds still (the bar's own ty is the
+		// scroll's truth every step, so the bar is told too - his report:
+		// it never followed)
+		if (log_n != array_length(_ll)) {
+			if (log_follow) { log_scroll = _lmax; if (instance_exists(sb)) { sb.ty = _lmax; sb.input = _lmax; sb.ty_speed_actual = 0; } }
+			log_n = array_length(_ll);
+		}
+		log_follow = (log_scroll >= _lmax - 2);
 	}
 	log_scroll = clamp(log_scroll, 0, _lmax);
 	if (instance_exists(sb)) {
@@ -330,10 +349,18 @@ for (var _k = 0; _k < 3; _k++) {
 		exit;
 	}
 }
-// [back] from any page (drawn on the right, syst_exped_panel's Draw)
+// [back] from any page (drawn on the right, syst_exped_panel's Draw); [crew] beside it (his ask, 2026-09-15)
 if (view != "hub") {
 	var _bk = __back_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { __back(); exit; }
+	if (view != "crew" && array_length(g.sprites) > 0) {
+		var _cs = __crewstrip_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) {
+			crew_from = view; view = "crew"; crew_trip = -1; it_pop = undefined;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 }
 
 // ======================= THE CREW MENU: tabs on the left =======================
@@ -588,7 +615,7 @@ var _rows = array_length(_e.hauls) + array_length(_e.trips);
 for (var _i = 0; _i < _rows; _i++) {
 	var _rr = __row_r(_i);
 	if (!point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) continue;
-	if (_i < array_length(_e.hauls)) { view = "haul"; view_id = _e.hauls[_i].id; }
+	if (_i < array_length(_e.hauls)) { view = "haul"; view_id = _e.hauls[_i].id; pg_a = 0; pg_dir = 1; }
 	else { view = "trip"; view_id = _e.trips[_i - array_length(_e.hauls)].id; }
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
@@ -597,7 +624,7 @@ for (var _i = 0; _i < _rows; _i++) {
 if (array_length(g.sprites) > 0) {
 	var _shr = __crewbtn_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
-		view = "crew"; crew_trip = -1; it_pop = undefined;
+		view = "crew"; crew_trip = -1; it_pop = undefined; crew_from = "hub";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
