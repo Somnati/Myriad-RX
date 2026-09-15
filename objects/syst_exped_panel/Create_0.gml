@@ -218,7 +218,7 @@ pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
 sky_fog_surf = -1;                   // sh_sky_fog's canvas (the page's size)
 __pv_r     = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
-__pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5, y : _r.y + _r.h * .5 + 2 }; };
+__pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5 - 46 * pv_dwa, y : _r.y + _r.h * .5 + 2 }; };   // (the world slides left as the drawer opens)
 __pv_dw_w  = function() { return land ? 150 : 120; };
 __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
@@ -232,7 +232,7 @@ __pv_ui_hit = function() {
 	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
 	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
 	if (pl_focus >= 0) { var _v = __view_rg_r(); if (point_in_rectangle(mouse_x, mouse_y, _v.x, _v.y, _v.x + _v.w, _v.y + _v.h)) return true; }
-	if (mouse_x >= __pv_dw_x()) return true;   // the tab and the drawer
+	if (mouse_x >= __pv_dw_x() && mouse_y < room_height - 30) return true;   // the tab and the drawer (the button row under it stays live)
 	return false;
 };
 /// a region picked on the planet page (a tap on its spot, or its row): the

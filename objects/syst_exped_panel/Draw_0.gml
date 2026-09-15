@@ -782,7 +782,7 @@ if (view == "planet") {
 	}
 	// THE DRAWER: the tab on the right edge, the regions when open
 	var _dwx = __pv_dw_x();
-	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - (list_y + 16), 0, c_black, .82 * pv_dwa);
+	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
 	draw_px_rect(_tb.x, _tb.y, _tb.w, _tb.h, c_steelblue, .6);
@@ -855,6 +855,10 @@ if (view == "galaxy") {
 			array_push(gx_para, { f : .15 + .175 * _l, tw : _tw, th : _th, stars : _lst });
 		}
 	}
+	// (the fade off before anything bakes: a sheet baked under the open
+	// animation's fade shader would keep that alpha for good)
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
 	// the fog sheet: the density grid baked once, warm core to cool rim
 	if (!surface_exists(gx_fog) || gx_fog_seed != _sm.seed) {
 		if (surface_exists(gx_fog)) surface_free(gx_fog);
@@ -889,8 +893,6 @@ if (view == "galaxy") {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
 		wb_surf = surface_create(_vw, _vh);
 	}
-	var _fa = g.ui_fade_a;
-	ui_fade_set(1);
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
 	draw_set_alpha(1);

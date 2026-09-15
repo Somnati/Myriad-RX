@@ -7,6 +7,11 @@
 /// dependent; draws are not).
 function planet_bake(_pn) {
 	if (_pn.row < _pn.th) return false;
+	if (surface_exists(_pn.tsurf) && surface_exists(_pn.csurf) && surface_exists(_pn.hsurf)) return true;
+	// a bake under a shader someone left set (the ui fade) would keep its
+	// tint for good: the stamps go through the plain pipeline (bug hunt 2026-09-15)
+	var _sh = shader_current();
+	if (_sh != -1) shader_reset();
 	var _tw = _pn.tw, _th = _pn.th;
 	if (!surface_exists(_pn.tsurf)) {
 		_pn.tsurf = surface_create(_tw, _th);
@@ -53,5 +58,6 @@ function planet_bake(_pn) {
 		gpu_set_blendmode(bm_normal);
 		surface_reset_target();
 	}
+	if (_sh != -1) shader_set(_sh);
 	return true;
 }
