@@ -4,7 +4,9 @@
 /// people live, "the <adj> <noun>" for dungeons and the wild, "<name>'s
 /// camp" for bandits.
 function region_name(_kind) {
-	_name = "";
+	// (letter_get_s_planet is gen_name_planet's helper: it reads these off
+	// the caller - set them as gen_name_planet does before it calls)
+	_name = ""; has_m = false; has_suffix = false; n_type = 0;
 	letter_get_s_planet();
 	var _base = _name;
 	if (string_length(_base) < 2) _base = choose("or", "el", "an", "ur", "ash");
