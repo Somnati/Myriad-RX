@@ -237,6 +237,7 @@ __conf_go = function() {
 	var _what = confirm;
 	confirm = "";
 	if (_what == "save") { dt_act_save(); play_sound_ext(snd_matclick2, 1.2, 1.3, .5, 1); return; }
+	if (_what == "newgame") { __ng_go(); return; }   // (the files survive until rm_newgame pulls the trigger)
 	if (_what == "load") {
 		dlg_row = max(0, sel_row);
 		if (slot_of_row[dlg_row] == 0) dt_act_play(); else dt_act_load_auto();
@@ -321,20 +322,10 @@ dt_slot_rebirth_empty = function() {
 	ds_say("", "no rebirth backup yet.\nthe run is saved here the moment before every rebirth, so a rebirth you regret can be taken back.");
 };
 
-// ---- new-game trees (ng_mode only) ----
-
-dt_ng_over = function() {
-	ds_say("", "are you sure you want to overwrite " + dlg_col()
-		+ g.profile_name[sel_prof] + "[/color]'s save with a new game?");
-	ds_choice([
-		"[color=hred]overwrite[/color]", dt_ng_confirm,
-		"nevermind", undefined,
-	]);
-};
-
-// the same road an empty slot takes (his call: one flow for every
-// fresh save). the files survive until rm_newgame pulls the trigger
-dt_ng_confirm = function() { __ng_go(); };
+// ---- new game (ng_mode only): the overwrite asks through the CONFIRM
+// POPUP (confirm = "newgame", his call 2026-09-14 - it was a dialogue
+// tree), and this is the road every fresh save takes (his call: one
+// flow). the files survive until rm_newgame pulls the trigger ----
 __ng_go = function() {
 	g.ng_prof = sel_prof;
 	goto_room(rm_newgame);

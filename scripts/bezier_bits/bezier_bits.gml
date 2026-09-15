@@ -1,5 +1,5 @@
 /// @description bezier_bits(x, y, n, col, [tx], [ty], [tic], [amt],
-///              [swing], [spd], [lane], [depth]) - burst n
+///              [swing], [spd], [lane], [depth], [chime]) - burst n
 /// currency bits from (x, y) toward the target (the Myriad DE
 /// profit-particle framework: obj_bezier_emit paces the burst,
 /// obj_bezier_bit is the mote). tic = the burst style (round 8, the
@@ -33,8 +33,11 @@
 /// floats, as always. The tile fountain passes the board's depth + 1
 /// so its motes leave from UNDER the tiles (his ask: "pop out at a
 /// depth behind the tiles so they arent in front").
+/// THE CHIME (2026-09-14): a paced burst (tic 0+) with chime on plays
+/// DE's per-mote note as each leaves (obj_bezier_emit) - the credit
+/// core's collect cascade.
 function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
-	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit", _dep = -90) {
+	_tic = -1, _amt = 0, _swing = -1, _spd = 1, _lane = "profit", _dep = -90, _chime = false) {
 	if (!variable_global_exists("bez_n")) g.bez_n = 0;
 	if (_n <= 0) return;
 	// ⚖️ NEVER MORE MOTES THAN THE MONEY (his law, 2026-09-14: "if i make 1
@@ -60,6 +63,7 @@ function bezier_bits(_x, _y, _n, _col, _tx = undefined, _ty = undefined,
 	_e.swing  = _swing;
 	_e.spdm   = _spd;
 	_e.lane   = _lane;
+	_e.chime  = _chime;
 	_e.amt    = _amt;                                  // the whole burst
 	// one mote's cut, in WHOLE UNITS: a fractional share left the
 	// counter's held-back figure fractional mid-flight, and the

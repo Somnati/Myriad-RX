@@ -91,6 +91,7 @@ function tap_breakdown() {
 
 	// ---- crits, as the expectation they add (obj_clicker's readout law) ----
 	var _rt = clamp((g.click_crit + _ub.crit_rate) * luck_mod() / 100, 0, 1);
+	if (!abi_on("ad_critical")) _rt = 0;   // (no ability, no crits - tap_fire's gate)
 	var _mn = (g.click_critx_min + g.click_critx_max) * .5 + _ub.crit_multi;
 	_out.crit_x = 1 + _rt * max(0, _mn - 1);
 

@@ -1,4 +1,4 @@
-/// @description credit_drop(x, y, [amount], [motes]) - THE ONE SITE credits are
+/// @description credit_drop(x, y, [amount], [motes], [tic], [chime]) - THE ONE SITE credits are
 /// earned (Myriad DE's drop_credits). amount = -1 (default) PULLS from
 /// the dropper's pool: refused while the cooldown runs or the pool is
 /// at its floor; otherwise a random 1..pool, capped by credit_maxpull,
@@ -11,7 +11,10 @@
 /// left edge to receive them (obj_display_credits). Credits land the
 /// same frame; the motes are cosmetic, as in DE (drop_credits pays
 /// before emit_bezier_profit).
-function credit_drop(_x, _y, _amount = -1, _motes = 8) {
+/// tic / chime (2026-09-14): the motes' pacing (frames between motes; the
+/// tap's 1) and DE's per-mote chime - the credit core collects with
+/// tic 3 and the chime on (drop_credits(x, y, gain, 30, 3) + play_sound).
+function credit_drop(_x, _y, _amount = -1, _motes = 8, _tic = 1, _chime = false) {
 	credits_init();
 	var _n = _amount;
 
@@ -53,8 +56,8 @@ function credit_drop(_x, _y, _amount = -1, _motes = 8) {
 	var _ov = ui_overlay();
 	var _dep = (_ov != noone) ? _ov.depth - 1 : -90;
 	if (_motes > 0)
-		bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, 1, 0,
-			-1, 1, "credit", _dep);
+		bezier_bits(_x, _y, clamp(_n, 1, _motes), c_lavender, _tx, _ty, _tic, 0,
+			-1, 1, "credit", _dep, _chime);
 
 	show("[credits +" + string(_n) + "]");
 	return _n;

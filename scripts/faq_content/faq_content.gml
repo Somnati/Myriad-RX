@@ -32,7 +32,8 @@ function faq_content() {
 		"keep tapping and the charger beside the per-tap figure fills: "
 		+ "every level is another x1 on what a tap pays - x2, x3, up to "
 		+ "x5. stop, and after a moment it drains back down. the ring is "
-		+ "the charge toward the next level; the colour is the level.",
+		+ "the charge toward the next level; the colour is the level. "
+		+ "the overcharge ability in the deck switches it on.",
 		{ fn : function(_x, _y, _w, _h) {
 			var _cx = _x + _w * .5, _cy = _y + _h * .5;
 			var _c = vis_tier_color(2);

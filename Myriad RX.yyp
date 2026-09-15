@@ -617,6 +617,7 @@
     {"id":{"name":"tap_fire","path":"scripts/tap_fire/tap_fire.yy",},},
     {"id":{"name":"tap_rate","path":"scripts/tap_rate/tap_rate.yy",},},
     {"id":{"name":"tapfx_fire","path":"scripts/tapfx_fire/tapfx_fire.yy",},},
+    {"id":{"name":"tapfx_names","path":"scripts/tapfx_names/tapfx_names.yy",},},
     {"id":{"name":"ticket_config","path":"scripts/ticket_config/ticket_config.yy",},},
     {"id":{"name":"ticket_grant","path":"scripts/ticket_grant/ticket_grant.yy",},},
     {"id":{"name":"ticket_init","path":"scripts/ticket_init/ticket_init.yy",},},

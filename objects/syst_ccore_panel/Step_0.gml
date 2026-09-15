@@ -37,7 +37,9 @@ if (point_in_rectangle(mouse_x, mouse_y, _cb.x, _cb.y, _cb.x + _cb.w, _cb.y + _c
 	if (_n > 0) {
 		flash = 1;
 		float_text(disc_cx, disc_cy - disc_r - 6, "+" + string(_n) + " credits", c_lavender, fnt_outline);
-		play_sound_ext(snd_matclick2, 1.1, 1.3, .6, 1);
+		// DE's press: the heavy tap under the diamond (obj_button_install),
+		// then the motes chime out one by one (ccore_collect)
+		play_sound_ext(snd_tapheavy, .8, .9, .3, 1);
 	} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 	exit;
 }

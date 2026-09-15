@@ -7,6 +7,7 @@ function return_deck() {
 
 	// tapper
 	g.ad_title_tapper = return_ability(g.ad_title_tapper);
+	g.ad_critical = return_ability(g.ad_critical);
 	g.ad_critrate1 = return_ability(g.ad_critrate1);
 	g.ad_critrate2 = return_ability(g.ad_critrate2);
 	g.ad_critrate3 = return_ability(g.ad_critrate3);
@@ -20,6 +21,7 @@ function return_deck() {
 
 	// overcharge
 	g.ad_title_overcharge = return_ability(g.ad_title_overcharge);
+	g.ad_overtapper = return_ability(g.ad_overtapper);
 	g.ad_chargercap = return_ability(g.ad_chargercap);
 	g.ad_chargerate1 = return_ability(g.ad_chargerate1);
 

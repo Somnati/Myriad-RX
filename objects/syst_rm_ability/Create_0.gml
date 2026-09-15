@@ -105,8 +105,8 @@ view = 0;
 coll_rows = [];
 // (GENERATED from scratchpad/build_deck.py's table, 2026-09-13)
 var _secs = [
-	["tapper", ["ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2", "ad_critcut3", "ad_criticalsyphon", "ad_tappersyphon1", "ad_tappersyphon2", "ad_tappersyphon3"]],
-	["overcharge", ["ad_chargercap", "ad_chargerate1"]],
+	["tapper", ["ad_critical", "ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2", "ad_critcut3", "ad_criticalsyphon", "ad_tappersyphon1", "ad_tappersyphon2", "ad_tappersyphon3"]],
+	["overcharge", ["ad_overtapper", "ad_chargercap", "ad_chargerate1"]],
 	["dials", ["ad_patientpayload"]],
 	["tiles", ["ad_fabricator", "ad_fabricator2", "ad_fabricator3", "ad_automerger2", "ad_automerger3", "ad_duplicator", "ad_duplicator2", "ad_tiermerger1", "ad_mergecharger", "ad_raritymerger"]],
 	["puck", ["ad_th_bounce1", "ad_th_bouncegain2"]],

@@ -44,7 +44,8 @@ function handle_settings(_method) {
 	g.blur = handle("blur",g.blur);
 	g.cursor_ray = handle("cursor_ray",g.cursor_ray); // the pointer's raycast shading
 	g.motion_blur = handle("motion_blur",g.motion_blur); // per-object motion blur (the puck)
-	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (syst_tapfx's chip)
+	g.tap_fx = handle("tap_fx",g.tap_fx); // the tap effect (settings > visuals, syst_tapfx)
+	g.tap_crit_pop = handle("tap_crit_pop",g.tap_crit_pop); // DE's crit pop on top of it
 	// the tube (syst_crt): where, which seat, the knobs
 	g.crt_mode    = handle("crt_mode",g.crt_mode);
 	g.crt_over_ui = handle("crt_over_ui",g.crt_over_ui);

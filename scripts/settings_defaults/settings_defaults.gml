@@ -29,6 +29,7 @@ function settings_defaults(_section = "all") {
 		g.cursor_ray            = true;
 		g.motion_blur           = true;
 		g.tap_fx                = 2;
+		g.tap_crit_pop          = true;
 		g.scene_light           = 60;
 		g.trans_kind            = 1;    // the slice wipe
 		g.mote_arc              = 0;

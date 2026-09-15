@@ -6,7 +6,8 @@
 /// every unlock, load, and room entry passes through).
 /// (GENERATED from build_deck.py's table)
 function update_deck_titles() {
-	g.ad_title_tapper = (g.ad_critrate1 != -1
+	g.ad_title_tapper = (g.ad_critical != -1
+		|| g.ad_critrate1 != -1
 		|| g.ad_critrate2 != -1
 		|| g.ad_critrate3 != -1
 		|| g.ad_critcut1 != -1
@@ -16,7 +17,8 @@ function update_deck_titles() {
 		|| g.ad_tappersyphon1 != -1
 		|| g.ad_tappersyphon2 != -1
 		|| g.ad_tappersyphon3 != -1) ? 3 : -1;
-	g.ad_title_overcharge = (g.ad_chargercap != -1
+	g.ad_title_overcharge = (g.ad_overtapper != -1
+		|| g.ad_chargercap != -1
 		|| g.ad_chargerate1 != -1) ? 3 : -1;
 	g.ad_title_dials = (g.ad_patientpayload != -1) ? 3 : -1;
 	g.ad_title_tiles = (g.ad_fabricator != -1

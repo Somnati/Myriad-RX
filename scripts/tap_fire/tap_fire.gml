@@ -63,9 +63,10 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1)
 	var _pay  = do_multi(g.click_gps, arb(_n));
 	var _crit = false;
 	var _cx   = 1;
-	// ...once they have unfolded (his list, 2026-09-13: not on by default -
-	// the "level up your dial" objective's reward)
-	if (_rate > 0 && unfold_has("crit") && roll_perc(_rate)) {
+	// ...once the Critical Taps ability is on (his call, 2026-09-14: DE's
+	// ad_critical - crit_figures reads 0 without it, and the upgrade
+	// table's crit rows do not roll before it, but the gate is explicit)
+	if (_rate > 0 && abi_on("ad_critical") && roll_perc(_rate)) {
 		_crit = true;
 		_cx   = random_range(g.click_critx_min, g.click_critx_max) + _ub.crit_multi;
 		_pay  = do_scale(_pay, _cx);
@@ -191,8 +192,8 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1)
 	if (_crit) _bn = min(12, _bn + 4);   // a crit throws a fatter handful
 	bezier_bits(_x, _y, _bn, _col, undefined, undefined, 0, _pay);
 
-	// THE TAP EFFECT (syst_tapfx - the [fx] chip in the money room
-	// picks): only a performed tap, so it sits here
+	// THE TAP EFFECT (syst_tapfx - settings > visuals > the tap picks):
+	// only a performed tap, so it sits here
 	tapfx_fire(_x, _y, _crit, _n);
 	return _pay;   // (the puck's throw ledger reads it - see puck_pay)
 }

@@ -84,12 +84,11 @@ if (mouse_check_button_pressed(mb_left)) {
 		var _nb = __ngbtn();
 		if (point_in_rectangle(_mx, _my, _nb.x, _nb.y, _nb.x + _nb.w, _nb.y + _nb.h)) {
 			play_sound_ext(snd_matclick2, 1, 1.1, .5, 1);
-			// an occupied profile confirms the overwrite first; an
+			// an occupied profile confirms the overwrite first (the
+			// popup, his call 2026-09-14 - not the dialogue box); an
 			// empty one goes straight to rm_newgame
-			if (__phas(sel_prof)) {
-				obj_dialogue.box_col_border = g.profile_color[sel_prof];
-				obj_dialogue.dialogue_start(dt_ng_over);
-			} else __ng_go();
+			if (__phas(sel_prof)) confirm = "newgame";
+			else __ng_go();
 			exit;
 		}
 	} else {

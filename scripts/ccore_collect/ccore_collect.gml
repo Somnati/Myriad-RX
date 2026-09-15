@@ -12,7 +12,10 @@ function ccore_collect(_x, _y) {
 	var _n = floor(_c.xp);
 	if (_n < 1) return 0;
 	var _v = ccore_values();
-	credit_drop(_x, _y, _n, clamp(_n, 4, 14));
+	// DE's collect (obj_button_install): up to thirty motes, one every
+	// three frames, each with its chime - the cascade is the ceremony
+	// (his ask, 2026-09-14: "DE's was more satisfying")
+	credit_drop(_x, _y, _n, clamp(_n, 1, 30), 3, true);
 	_c.made  = (_c[$ "made"] ?? 0) + _n;    // the well's lifetime (his ask: its stats, saved)
 	_c.pulls = (_c[$ "pulls"] ?? 0) + 1;
 	_c.cool_from = lerp(50, 100, clamp(_c.xp / max(1, _v.cap), 0, 1));

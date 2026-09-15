@@ -50,14 +50,15 @@ function upgrade_config() {
 			id : "crit_rate", name : "critical chance", stat : "crit_rate",
 			band : [1, 2.5], cap : 10, cost : 9, col : c_horange,
 			help : "more taps roll a critical",
-			// no point offering it before crits exist as a concept
-			avail : function() { return variable_global_exists("click_crit"); },
+			// no point offering it before crits exist: the Critical Taps
+			// ability (his call, 2026-09-14)
+			avail : function() { return abi_on("ad_critical"); },
 		},
 		{
 			id : "crit_multi", name : "critical payout", stat : "crit_multi",
 			band : [0.15, 0.4], cap : 10, cost : 11, col : c_horange,
 			help : "criticals pay a bigger multiple",
-			avail : function() { return variable_global_exists("click_crit"); },
+			avail : function() { return abi_on("ad_critical"); },
 		},
 		{
 			id : "dial_profit", name : "dial profit", stat : "dial_profit",

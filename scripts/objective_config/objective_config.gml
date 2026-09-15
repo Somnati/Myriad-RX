@@ -14,8 +14,11 @@
 /// completes (the drawer arrives when a hundred is gathered, upgrades
 /// with the first credit) - and an objective may carry `reward`,
 /// granted when every step is done: the things that are NOT on by
-/// default (his list: critical taps, the overcharger, the dice, the
-/// puck). The chain is strictly sequential - objective_tick works only
+/// default (his list: the dice; the puck is the chain's own, see
+/// unfold_config; critical taps and the overcharger left the chain on
+/// 2026-09-14 - they are DECK ABILITIES now, DE's ad_critical /
+/// ad_overtapper, so a new game starts without them and the deck's
+/// second-rebirth arrival is what brings them). The chain is strictly sequential - objective_tick works only
 /// row g.obj.i - so nothing time-gated lives here: the battery, the
 /// bank, the gift, the sprite arrive by the game's numbers
 /// (unfold_config). Edit the chain here; the card and the panel are
@@ -41,14 +44,12 @@ function objective_config() {
 			  done : function() { return instance_exists(syst_dials) && syst_dials.stage >= 2; } },
 			{ txt : "level dial a to lv 10",
 			  done : function() { return variable_global_exists("dial") && g.dial[0].level >= 10; } },
-		  ],
-		  reward : ["crit"], reward_txt : "critical taps - one tap in twenty pays x1.5 to x5" },
+		  ] },
 		{ key : "dial2", name : "a second dial",
 		  steps : [
 			{ txt : "purchase dial b",
 			  done : function() { return variable_global_exists("dial") && g.dial[1].level > 0; } },
-		  ],
-		  reward : ["overcharge"], reward_txt : "the overcharger - tapping charges a multiplier" },
+		  ] },
 		{ key : "credit1", name : "the first credit",
 		  steps : [
 			{ txt : "earn a credit (a running dial drops them on taps)", unlocks : ["upgrades"], banner : "a credit - the menu has a use for it",

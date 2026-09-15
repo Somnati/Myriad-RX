@@ -7,6 +7,10 @@
 /// syphon reads them for the dials (update_dial) - the dials are
 /// derived BEFORE the tap, so the tap's stored copy would be stale there.
 function crit_figures() {
+	// ⚖️ CRITS ARE AN ABILITY (his call, 2026-09-14: "not enabled by default
+	// on a new game"): DE's ad_critical. Off, the rate is ZERO - the tap
+	// never rolls, the readouts say 0%, critical syphon has nothing to share
+	if (!abi_on("ad_critical")) return { rate : 0, mn : 1.5, mx : 5 };
 	var _cr = 5, _cm = 1;
 	if (abi_on("ad_critrate1")) _cr *= 2;
 	if (abi_on("ad_critrate2")) _cr *= 3;

@@ -101,7 +101,7 @@ if (o_name == "" && i_name == "") {
 	draw_text(info_x + 6, info_y + 5, "the ability deck");
 	var _schools = [
 		["tapper", "crits, syphons & the tap count"],
-		["overcharge", "the charger's cap & rate"],
+		["overcharge", "the charger, its cap & rate"],
 		["dials", "what a dial pays"],
 		["tiles", "the table, automated"],
 		["puck", "bounces & their pay"],

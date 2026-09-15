@@ -69,8 +69,6 @@ if (instance_exists(syst_dials))
 if (_ok && instance_exists(obj_puck) && unfold_has("puck") && obj_puck.held) _ok = false;
 // the objective card's press is the card's (syst_objectives)
 if (_ok && instance_exists(syst_objectives) && syst_objectives.__consumes(mouse_x, mouse_y)) _ok = false;
-// the [fx] chip's press is the chip's (syst_tapfx)
-if (_ok && instance_exists(syst_tapfx) && syst_tapfx.__consumes(mouse_x, mouse_y)) _ok = false;
 // A SPRITE'S press is the sprite's (obj_blob): a poke, never a tap
 if (_ok && instance_exists(obj_blob)) {
 	var _nb = instance_number(obj_blob);

@@ -7,6 +7,8 @@
 function deck_card_info(_key) {
 	switch (_key) {
 		// tapper
+		case "ad_critical": return { name : "Critical Taps", rarity : 0, ap : 2,
+			desc : "the tapper can land\ncritical hits" };
 		case "ad_critrate1": return { name : "Critical Rate+", rarity : 0, ap : 3,
 			desc : "the base critical chance\nis doubled" };
 		case "ad_critrate2": return { name : "Critical Rate++", rarity : 0, ap : 2,
@@ -28,6 +30,8 @@ function deck_card_info(_key) {
 		case "ad_tappersyphon3": return { name : "Tapper Syphon++", rarity : 3, ap : 15,
 			desc : "the syphon takes\nanother 50%" };
 		// overcharge
+		case "ad_overtapper": return { name : "Overcharge", rarity : 0, ap : 3,
+			desc : "keep tapping to charge a\nmultiplier on every tap -\nstop, and it drains" };
 		case "ad_chargercap": return { name : "Charger Cap+", rarity : 1, ap : 4,
 			desc : "the overcharger climbs\nfive levels further" };
 		case "ad_chargerate1": return { name : "Charge Rate+", rarity : 1, ap : 3,

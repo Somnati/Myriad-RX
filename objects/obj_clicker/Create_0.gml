@@ -72,6 +72,6 @@ tps_txt = "0";    // ...and the string itself
 // THE OVERCHARGER rides with the tap surface: one persistent instance,
 // spawned here because this Create runs exactly once, at boot
 if (!instance_exists(obj_overcharge)) create_obj(0, 0, obj_overcharge);
-// the tap effects bench and its [fx] chip (his trial, 2026-09-10)
+// the tap effects (his trial, 2026-09-10; the pick is in settings since 2026-09-14)
 if (!instance_exists(syst_tapfx)) create_obj(0, 0, syst_tapfx);
 

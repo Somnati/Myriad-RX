@@ -5,8 +5,9 @@
 /// met unfolds for good (unfold_grant). The first fold, "tap", is the
 /// veil (syst_unfold). EVERYTHING ELSE ARRIVES THROUGH THE OBJECTIVES
 /// (objective_config, his spec 2026-09-13): the drawer, upgrades,
-/// automation, tiles, abilities, the core, rebirth, and the things not
-/// on by default - critical taps, the overcharger, the dice, the puck.
+/// automation, tiles, abilities, the core, rebirth, and the dice.
+/// (critical taps and the overcharger are DECK ABILITIES since
+/// 2026-09-14 - DE's ad_critical / ad_overtapper - not unfolds at all.)
 /// Only what an absence or the clock earns lives here.
 function unfold_config() {
 	static _c = [

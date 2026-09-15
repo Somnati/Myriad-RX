@@ -45,10 +45,11 @@ for (var _i = 0; _i < array_length(fxs); _i++) {
 	case "star": {
 		// dashes flying out: each is `len` cells laid along its heading,
 		// the head at r0 + t x speed, fading with life. a0 turns the
-		// whole star: 0 puts the four-dash one on the compass (plus),
-		// 45 on the diagonals (x)
+		// whole star: 0 puts the four dashes on the compass (plus), 45
+		// on the diagonals (x). (the eight-dash starburst was cut
+		// 2026-09-14 - "the spark tap effect")
 		var _f = 1 - _e.t / 8;
-		var _len = (_e.n == 4) ? 4 : 3;
+		var _len = 4;
 		var _r0 = 2 + _e.t * 1.5;
 		for (var _k = 0; _k < _e.n; _k++) {
 			var _a = _e.a0 + _k * 360 / _e.n;
@@ -119,16 +120,17 @@ for (var _i = 0; _i < array_length(fxs); _i++) {
 	}
 }
 
-// ---- the [fx] chip ----
-var _r = __chip_r();
-draw_set_font(fnt);
-draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, _r.w, _r.h, 0, c_black, .6);
-draw_px_rect(_r.x, _r.y, _r.w, _r.h, c_white, .25);
-draw_set_halign(fa_left);
-draw_set_color(rgb(120, 130, 150));
-draw_set_alpha(.8);
-draw_text(_r.x + 4, _r.y + 2, "fx");
-draw_set_color(c_gold);
-draw_text(_r.x + 4 + string_width("fx  "), _r.y + 2, fx_names[__fx()]);
-draw_set_alpha(1);
-draw_set_color(c_white);
+// ---- DE's crit pop: the embedded frames, cell by cell, scaled up by the
+// roll (a 1.5 pop draws every cell 1.5 wide - DE's image_xscale) ----
+for (var _i = 0; _i < array_length(pops); _i++) {
+	var _p = pops[_i];
+	var _fr = clamp(floor(_p.t / 2), 0, array_length(pop_px) - 1);
+	var _cells = pop_px[_fr];
+	var _n = array_length(_cells);
+	for (var _k = 0; _k < _n; _k++) {
+		var _c = _cells[_k];
+		var _v = _c[2] * _p.shade;
+		draw_sprite_ext(spr_pixel_1x1, 0, _p.x + _c[0] * _p.s, _p.y + _c[1] * _p.s, _p.s, _p.s, 0,
+			make_colour_rgb(_v, _v, _v), 1);
+	}
+}

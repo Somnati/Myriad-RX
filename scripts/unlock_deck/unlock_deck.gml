@@ -4,6 +4,7 @@
 /// (GENERATED from build_deck.py's table)
 function unlock_deck() {
 	// tapper
+	if (abi == "ad_critical") g.ad_critical = unlock_ability("Critical Taps", 0);
 	if (abi == "ad_critrate1") g.ad_critrate1 = unlock_ability("Critical Rate+", 0);
 	if (abi == "ad_critrate2") g.ad_critrate2 = unlock_ability("Critical Rate++", 0);
 	if (abi == "ad_critrate3") g.ad_critrate3 = unlock_ability("Critical Rate+++", 1);
@@ -15,6 +16,7 @@ function unlock_deck() {
 	if (abi == "ad_tappersyphon2") g.ad_tappersyphon2 = unlock_ability("Tapper Syphon+", 2);
 	if (abi == "ad_tappersyphon3") g.ad_tappersyphon3 = unlock_ability("Tapper Syphon++", 3);
 	// overcharge
+	if (abi == "ad_overtapper") g.ad_overtapper = unlock_ability("Overcharge", 0);
 	if (abi == "ad_chargercap") g.ad_chargercap = unlock_ability("Charger Cap+", 1);
 	if (abi == "ad_chargerate1") g.ad_chargerate1 = unlock_ability("Charge Rate+", 1);
 	// dials

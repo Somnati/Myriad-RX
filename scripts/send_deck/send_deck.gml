@@ -3,19 +3,21 @@
 /// so chains discover in order. (GENERATED from build_deck.py's table)
 function send_deck() {
 	// tapper
-	send_ability("ad_critrate1", g.ad_critrate1);
+	send_ability("ad_critical", g.ad_critical);
+	send_ability("ad_critrate1", g.ad_critrate1, g.ad_critical);
 	send_ability("ad_critrate2", g.ad_critrate2, g.ad_critrate1);
 	send_ability("ad_critrate3", g.ad_critrate3, g.ad_critrate2);
-	send_ability("ad_critcut1", g.ad_critcut1);
+	send_ability("ad_critcut1", g.ad_critcut1, g.ad_critical);
 	send_ability("ad_critcut2", g.ad_critcut2, g.ad_critcut1);
 	send_ability("ad_critcut3", g.ad_critcut3, g.ad_critcut2);
-	send_ability("ad_criticalsyphon", g.ad_criticalsyphon);
+	send_ability("ad_criticalsyphon", g.ad_criticalsyphon, g.ad_critical);
 	send_ability("ad_tappersyphon1", g.ad_tappersyphon1);
 	send_ability("ad_tappersyphon2", g.ad_tappersyphon2, g.ad_tappersyphon1);
 	send_ability("ad_tappersyphon3", g.ad_tappersyphon3, g.ad_tappersyphon2);
 	// overcharge
-	send_ability("ad_chargercap", g.ad_chargercap);
-	send_ability("ad_chargerate1", g.ad_chargerate1);
+	send_ability("ad_overtapper", g.ad_overtapper);
+	send_ability("ad_chargercap", g.ad_chargercap, g.ad_overtapper);
+	send_ability("ad_chargerate1", g.ad_chargerate1, g.ad_overtapper);
 	// dials
 	send_ability("ad_patientpayload", g.ad_patientpayload);
 	// tiles

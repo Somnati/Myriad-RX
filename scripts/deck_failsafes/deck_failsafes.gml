@@ -5,12 +5,17 @@
 /// next grab_deck_ap). runs after every write-back and on load.
 /// (GENERATED from build_deck.py's table - one line per chain link)
 function deck_failsafes() {
+	if (g.ad_critical != 1 && g.ad_critrate1 == 1) g.ad_critrate1 = 0;
 	if (g.ad_critrate1 != 1 && g.ad_critrate2 == 1) g.ad_critrate2 = 0;
 	if (g.ad_critrate2 != 1 && g.ad_critrate3 == 1) g.ad_critrate3 = 0;
+	if (g.ad_critical != 1 && g.ad_critcut1 == 1) g.ad_critcut1 = 0;
 	if (g.ad_critcut1 != 1 && g.ad_critcut2 == 1) g.ad_critcut2 = 0;
 	if (g.ad_critcut2 != 1 && g.ad_critcut3 == 1) g.ad_critcut3 = 0;
+	if (g.ad_critical != 1 && g.ad_criticalsyphon == 1) g.ad_criticalsyphon = 0;
 	if (g.ad_tappersyphon1 != 1 && g.ad_tappersyphon2 == 1) g.ad_tappersyphon2 = 0;
 	if (g.ad_tappersyphon2 != 1 && g.ad_tappersyphon3 == 1) g.ad_tappersyphon3 = 0;
+	if (g.ad_overtapper != 1 && g.ad_chargercap == 1) g.ad_chargercap = 0;
+	if (g.ad_overtapper != 1 && g.ad_chargerate1 == 1) g.ad_chargerate1 = 0;
 	if (g.ad_fabricator != 1 && g.ad_fabricator2 == 1) g.ad_fabricator2 = 0;
 	if (g.ad_fabricator2 != 1 && g.ad_fabricator3 == 1) g.ad_fabricator3 = 0;
 	if (g.ad_automerger2 != 1 && g.ad_automerger3 == 1) g.ad_automerger3 = 0;

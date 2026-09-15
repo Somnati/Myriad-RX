@@ -1,25 +1,4 @@
-if (!__live()) { glows = []; shocks = []; fxs = []; exit; }
-
-// ---- the pick lands (the pillbox hands it back on this instance) ----
-if (_pselid != -1) {
-	g.tap_fx = _pselval;
-	_pselid = -1;
-	if (instance_exists(syst_handle_save)) syst_handle_save.action = sv_save;   // settings.ini
-}
-
-// ---- the chip: open the list ----
-if (input_free() && g.click_owner == noone)
-if (mouse_check_button_pressed(mb_left))
-if (__consumes(mouse_x, mouse_y)) {
-	pillbox_init();
-	var _cur = __fx();
-	for (var _i = 0; _i < array_length(fx_names); _i++)
-		set_pill(fx_names[_i], { val : _i, col : (_cur == _i) ? c_gold : sett_ink,
-		                         enabled : (_cur == _i) });
-	var _r = __chip_r();
-	do_pillbox(_r.x + _r.w + 2, _r.y + _r.h * .5);   // off the chip's right; the box clamps itself into the room
-	play_sound_ext(snd_softclick, .9, 1.1, .4, 1);
-}
+if (!__live()) { glows = []; shocks = []; fxs = []; pops = []; exit; }
 
 // ---- the effects tick ----
 for (var _i = array_length(glows) - 1; _i >= 0; _i--) {
@@ -43,4 +22,10 @@ for (var _i = array_length(fxs) - 1; _i >= 0; _i--) {
 		default:        _dead = true;
 	}
 	if (_dead) array_delete(fxs, _i, 1);
+}
+// DE's crit pop: five frames, two steps each (ani_set(image_max, 2)),
+// gone when the clock runs past the last
+for (var _i = array_length(pops) - 1; _i >= 0; _i--) {
+	pops[_i].t += delta;
+	if (pops[_i].t >= 10) array_delete(pops, _i, 1);
 }

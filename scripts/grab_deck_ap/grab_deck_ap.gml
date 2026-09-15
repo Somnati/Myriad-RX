@@ -14,6 +14,7 @@ function grab_deck_ap() {
 
 	// tapper
 	get_ap(g.ad_title_tapper);
+	get_ap(g.ad_critical, 2);
 	get_ap(g.ad_critrate1, 3);
 	get_ap(g.ad_critrate2, 2);
 	get_ap(g.ad_critrate3, 3);
@@ -27,6 +28,7 @@ function grab_deck_ap() {
 
 	// overcharge
 	get_ap(g.ad_title_overcharge);
+	get_ap(g.ad_overtapper, 3);
 	get_ap(g.ad_chargercap, 4);
 	get_ap(g.ad_chargerate1, 3);
 

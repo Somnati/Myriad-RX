@@ -9,7 +9,8 @@
 	g.blur = true;   // settings > display "menu blur"
 	g.cursor_ray = true;   // settings > visuals "raycast pointer" (sh_cursor)
 	g.motion_blur = true;  // settings > visuals "motion blur" (the puck's sweep, sh_puck)
-	g.tap_fx = 2;          // the money room's [fx] chip: 0 none / 1 glow / 2 shock mono / 3 shock chroma / 4 glow + mono / 5.. syst_tapfx's fx_names
+	g.tap_fx = 2;          // settings > visuals "tap effect": an index into tapfx_names (0 none / 1 glow / 2 shock mono / ...)
+	g.tap_crit_pop = true; // settings > visuals "crit pop": DE's dot-to-ring pop beside a crit (syst_tapfx)
 	// THE TUBE (settings > crt, syst_crt): where it runs, which seat,
 	// and the five knobs. Everything but the vignette is brightness-
 	// neutral (read sh_crt's header); the vignette is the one that

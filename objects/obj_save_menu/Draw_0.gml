@@ -245,10 +245,11 @@ if (conf_a > .01) {
 	var _q = "";
 	if (confirm == "save") _q = __phas(sel_prof) ? ("are you sure you want to overwrite\n" + _nm + "'s save?") : ("save the run here, as " + _nm + "?");
 	else if (confirm == "load") _q = (sel_row > 0) ? ("are you sure you want to load this backup?\nit replaces " + _nm + "'s main save.") : ("are you sure you want to load\n" + _nm + "'s save?");
+	else if (confirm == "newgame") _q = "are you sure you want to overwrite\n" + _nm + "'s save with a new game?";
 	draw_text(_r.x + _r.w * .5, _ry0 + 12, _q);
 	var _cb = __conf_btns();
-	var _lbl = (confirm == "save") ? "save game" : "load game";
-	var _col = (confirm == "save") ? c_gold : c_sblue;
+	var _lbl = (confirm == "save") ? "save game" : ((confirm == "newgame") ? "overwrite" : "load game");
+	var _col = (confirm == "save") ? c_gold : ((confirm == "newgame") ? c_hred : c_sblue);
 	ui_fade_set(_e);
 	draw_ui_button(_cb[0].x, _cb[0].y - _r.y + _ry0, _cb[0].w, _cb[0].h, _lbl, _col, true, true);
 	draw_ui_button(_cb[1].x, _cb[1].y - _r.y + _ry0, _cb[1].w, _cb[1].h, "cancel", rgb(170, 190, 230), true, false);

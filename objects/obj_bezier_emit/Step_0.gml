@@ -11,6 +11,15 @@ repeat (_rep) {
 	if (count <= 0) break;
 	count -= 1;
 	tic = tic_;
+	// THE CHIME (DE's obj_emit_part_bezier, verbatim: a paced burst with
+	// play_sound on rings once per mote - the diamond one time in three,
+	// the orb the rest, both quiet, both pitched at random - so a credit
+	// core's collect is a cascade, not one note. his ask, 2026-09-14:
+	// "DE's was more satisfying")
+	if (chime && tic_ >= 0) {
+		if (roll_perc(35)) play_sound_ext(snd_diamond, .7, 1.3, .1, 0);
+		else               play_sound_ext(snd_orb,     .8, 1.2, .05, 0);
+	}
 	if (g.bez_n < 48) {
 		var _o = instance_create_depth(x + random_range(-3, 3),
 			y + random_range(-3, 3), dep, obj_bezier_bit);

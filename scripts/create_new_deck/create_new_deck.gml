@@ -69,11 +69,11 @@ function create_new_deck() {
 	// list drives both init (-1 = locked) and the save section ----
 	g.abi_keys = [
 		// tapper
-		"ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1", "ad_critcut2",
-		"ad_critcut3", "ad_criticalsyphon", "ad_tappersyphon1", "ad_tappersyphon2",
-		"ad_tappersyphon3",
+		"ad_critical", "ad_critrate1", "ad_critrate2", "ad_critrate3", "ad_critcut1",
+		"ad_critcut2", "ad_critcut3", "ad_criticalsyphon", "ad_tappersyphon1",
+		"ad_tappersyphon2", "ad_tappersyphon3",
 		// overcharge
-		"ad_chargercap", "ad_chargerate1",
+		"ad_overtapper", "ad_chargercap", "ad_chargerate1",
 		// dials
 		"ad_patientpayload",
 		// tiles

@@ -253,6 +253,31 @@ function settings_content() {
 		+ "payout and price. DE's four.",
 		g.profit_color);
 
+	settings_group("the tap", c_salmon);
+
+	// THE TAP EFFECT (syst_tapfx; his call 2026-09-14: out of the money
+	// room's [fx] chip, into here). tapfx_names is the one list; the
+	// index is the saved pick
+	var _tfn = tapfx_names();
+	settings_pill("tap effect", "tapfx", _tfn[clamp(floor(g.tap_fx), 0, array_length(_tfn) - 1)],
+		function() {
+			var _l = tapfx_names();
+			var _cur = clamp(floor(g.tap_fx), 0, array_length(_l) - 1);
+			for (var _j = 0; _j < array_length(_l); _j++)
+				set_pill(_l[_j], { val : _j, col : (_cur == _j) ? c_gold : sett_ink, enabled : (_cur == _j) });
+		},
+		function(_v) { g.tap_fx = _v; },
+		"what a tap draws where it lands, on top of the float and the "
+		+ "motes: a soft glow, a one-cell shockwave (plain, or with a "
+		+ "red/blue split), a cross, an x, a square, a ring closing in, "
+		+ "a bolt - or nothing.");
+
+	settings_toggle("crit pop",
+		function() { return g.tap_crit_pop; },
+		function(_v) { g.tap_crit_pop = _v; },
+		"DE's critical: a white dot that opens into a ring beside a tap "
+		+ "that crits, on top of whichever effect is picked.");
+
 	settings_group("the motes", c_salmon);
 
 	// THE MOTES, ONE PILL A LANE (his ask, 2026-09-10). The roster is
