@@ -15,6 +15,7 @@ function exped_board_roll() {
 		var _tier = clamp(1 + irandom(max(0, _e.depth - 1)), 1, _e.depth);
 		if (_i == 2 && _e.depth > 1) _tier = _e.depth;   // one at the frontier, always
 		var _b = irandom(array_length(_bi) - 1);
+		if (_i == 0 && _e.depth <= 1) _b = 1;   // the first world on the first board is a LIVING one - blue water, green grass (his first scope, 2026-09-14)
 		var _seed = irandom($7fffffff);
 		var _keep = undefined;
 		if (_i < array_length(_old))

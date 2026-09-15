@@ -8,6 +8,10 @@
 ///           the DIARY, and while a fight is on THE COMBAT WINDOW - a
 ///           small square where it plays out a turn a second (the
 ///           crew's dots, the foe, hp bars, a flash on each hit)
+///   "map"   a world's REGION, the debug map (his ask, 2026-09-14: "so i can
+///           see what the sprites are able to explore"): the nodes by
+///           kind, the edges with their hours, the landing zone, who is
+///           out to it. [map] on a world card, [map] on a trip's page
 ///   "crew"  every sprite, a row each (his ask, 2026-09-14): name / class /
 ///           level / hp, the eight stats, what is worn; scrolls (wheel or
 ///           drag); tap a row for its sheet. [crew] in the hub
@@ -37,6 +41,7 @@ view_id = -1;        // the trip's or haul's id
 rp      = undefined; // the combat window's REPLAY of a fight that ended off screen: { i, t, r : the film }
 seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / level / gear)
+map_dest = undefined;    // the map view's world (its region: region_get)
 crew_off = 0;        // the crew list's scroll (px)
 crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
 sel_dest = -1;       // the world picked
@@ -114,6 +119,10 @@ __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : st
 __back_r = function() { return { x : land ? 14 : 4, y : list_y + 3, w : 40, h : 13 }; };
 __sheet_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 6, y : _s.y, w : 50, h : 14 }; };   // (the [crew] button now)
 crew_row_h = land ? 36 : 44;
+// the map view: the region drawn into this rect; [map] chips on a world card and the trip page
+__map_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : room_width - (land ? 28 : 8), h : room_height - 8 - 14 - (list_y + 22) }; };
+__card_map_r = function(_i) { var _c = __card_r(_i); return { x : _c.x + _c.w - 27, y : _c.y + 3, w : 24, h : 10 }; };
+__trip_map_r = function() { return { x : big_x + big_w - 34, y : big_y + 4, w : 30, h : 11 }; };
 __crew_y0 = function() { return list_y + 22; };
 __list_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };   // (the crew LIST's rows; __crew_row_r is the trip page's)
 __crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };

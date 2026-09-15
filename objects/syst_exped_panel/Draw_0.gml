@@ -136,6 +136,81 @@ if (view == "haul") {
 	exit;
 }
 
+// ======================= THE MAP (his ask, 2026-09-14: "the region debug map") =======================
+// the world's region: edges with their hours, nodes by kind with names,
+// the landing zone ringed, crews out to the world at the landing zone
+// (they do not walk the graph yet - the agent is slice three), a legend
+if (view == "map") {
+	var _d  = map_dest;
+	var _rg = region_get(_d);
+	var _kk = region_kinds();
+	var _mr = __map_r();
+	var _bb = exped_biomes()[_d.biome];
+	// the header
+	draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(_mr.x, list_y + 6, _d.name + "  -  " + _bb.name + " world");
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_mr.x + string_width(_d.name + "  -  " + _bb.name + " world") + 10, list_y + 6,
+		"recommended level " + string(_rg.lv) + "  -  " + string(array_length(_rg.nodes)) + " places, " + string(array_length(_rg.edges)) + " roads  -  debug: the player never sees this");
+	// the ground
+	draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .6);
+	draw_px_rect(_mr.x, _mr.y, _mr.w, _mr.h, _ink, .15);
+	var _px = function(_v, _mr) { return _mr.x + 8 + _v * (_mr.w - 16); };
+	var _py = function(_v, _mr) { return _mr.y + 8 + _v * (_mr.h - 16); };
+	// the roads, with their hours at the midpoint
+	for (var _e = 0; _e < array_length(_rg.edges); _e++) {
+		var _ed = _rg.edges[_e];
+		var _a = _rg.nodes[_ed.a], _b2 = _rg.nodes[_ed.b];
+		var _x1 = _px(_a.x, _mr), _y1 = _py(_a.y, _mr), _x2 = _px(_b2.x, _mr), _y2 = _py(_b2.y, _mr);
+		draw_px_line(_x1, _y1, _x2, _y2, _ink, .25);   // (the house line: a primitive would lose the shader's texcoord)
+		draw_set_alpha(.5); draw_set_color(_dim);
+		draw_set_halign(fa_center);
+		draw_text((_x1 + _x2) * .5, (_y1 + _y2) * .5 - 4, string(_ed.d) + "h");
+	}
+	// the places
+	draw_set_halign(fa_left);
+	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
+		var _nd = _rg.nodes[_i];
+		var _kd = _kk[$ _nd.kind] ?? _kk.field;
+		var _nx = _px(_nd.x, _mr), _ny = _py(_nd.y, _mr);
+		if (_nd.kind == "landing") {
+			draw_circle_colour(_nx, _ny, 5, c_white, c_white, true);
+			__dot(_nx, _ny, 2, c_white, .9);
+		} else __dot(_nx, _ny, _kd.r, _kd.col, .95);
+		draw_set_color(_kd.wild ? _dim : _kd.col); draw_set_alpha(_kd.wild ? .6 : .9);
+		draw_text(_nx + _kd.r + 3, _ny - 4, _nd.name);
+		draw_set_color(_dim); draw_set_alpha(.45);
+		draw_text(_nx + _kd.r + 3, _ny + 5, _kd.name);
+	}
+	// who is out to this world: at the landing zone, for now
+	var _ld = _rg.nodes[_rg.landing];
+	var _lx = _px(_ld.x, _mr), _ly = _py(_ld.y, _mr);
+	var _ci = 0;
+	for (var _t = 0; _t < array_length(_e.trips); _t++) {
+		var _tr2 = _e.trips[_t];
+		if (_tr2.dest.seed != _d.seed) continue;
+		for (var _k = 0; _k < array_length(_tr2.sids); _k++) {
+			__dot(_lx - 10 - (_ci mod 3) * 7, _ly + 10 + (_ci div 3) * 7, 3, _tr2.cols[_k], .95);
+			_ci += 1;
+		}
+	}
+	if (_ci > 0) { draw_set_color(_dim); draw_set_alpha(.6); draw_text(_lx - 10, _ly + 16 + (_ci div 3) * 7 + 2, "out (at the landing zone - they don't walk the map yet)"); }
+	// the legend
+	var _lgx = _mr.x, _lgy = _mr.y + _mr.h + 3;
+	var _legend = ["settlement", "village", "town", "city", "camp", "dungeon", "field", "forest", "hills", "marsh"];
+	for (var _i = 0; _i < array_length(_legend); _i++) {
+		var _kd = _kk[$ _legend[_i]];
+		__dot(_lgx + 3, _lgy + 4, 2, _kd.col, .9);
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(_lgx + 8, _lgy, _kd.name);
+		_lgx += string_width(_kd.name) + 16;
+		if (_lgx > room_width - 60) break;
+	}
+	draw_set_halign(fa_left);
+	ui_fade_set(1);
+	exit;
+}
+
 // ======================= THE CREW LIST (his ask, 2026-09-14) =======================
 // a row a sprite: the dot, the name, the class, the level, the hp; the
 // eight stats; what is worn (the rarity's colour). Scrolls; tap = the sheet
@@ -344,6 +419,8 @@ if (view == "trip") {
 	else __portrait(_d, _pcx, _pcy, _ppr);
 	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
 	ui_fade_set(_ea);
+	var _tmr = __trip_map_r();
+	draw_ui_button(_tmr.x, _tmr.y, _tmr.w, _tmr.h, "map", c_steelblue, true, false);
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
@@ -568,6 +645,15 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 		draw_set_alpha(.9);
 		draw_text(_c.x + _c.w * .5, _c.y + _c.h - 9, string(_out) + " out");
 	}
+	// [map]: the world's region (the debug map)
+	var _cm = __card_map_r(_i);
+	draw_set_halign(fa_left);
+	draw_sprite_ext(spr_pixel_1x1, 0, _cm.x, _cm.y, _cm.w, _cm.h, 0, c_black, .7);
+	draw_px_rect(_cm.x, _cm.y, _cm.w, _cm.h, c_steelblue, .6);
+	draw_set_halign(fa_center);
+	draw_set_color(c_steelblue);
+	draw_set_alpha(.9);
+	draw_text(_cm.x + _cm.w * .5, _cm.y + 2, "map");
 }
 draw_set_halign(fa_left);
 

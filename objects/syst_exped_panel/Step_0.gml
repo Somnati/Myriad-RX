@@ -45,6 +45,7 @@ if (view == "trip" && is_undefined(__trip())) {
 }
 if (view == "haul" && __haul_i() < 0) { view = "hub"; swap_pick = false; }
 if (view == "sheet" && is_undefined(__sp_by_id(sheet_id))) view = "hub";
+if (view == "map" && !is_struct(map_dest)) view = "hub";
 
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
@@ -180,6 +181,15 @@ if (view == "trip") {
 			exit;
 		}
 	}
+	// [map]: the world's region
+	if (!is_undefined(_tr)) {
+		var _mr = __trip_map_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) {
+			map_dest = _tr.dest; view = "map";
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 	// a crew row opens that sprite's sheet
 	if (!is_undefined(_tr)) {
 		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
@@ -230,6 +240,15 @@ if (array_length(g.sprites) > 0) {
 	var _shr = __sheet_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
 		view = "crew"; crew_off = 0; crew_drag = undefined;
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+}
+// a world's [map] chip (checked before the card's own tap)
+for (var _i = 0; _i < array_length(_e.board); _i++) {
+	var _cm = __card_map_r(_i);
+	if (point_in_rectangle(mouse_x, mouse_y, _cm.x, _cm.y, _cm.x + _cm.w, _cm.y + _cm.h)) {
+		map_dest = _e.board[_i]; view = "map";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
