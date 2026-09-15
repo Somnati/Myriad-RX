@@ -11,14 +11,21 @@ function exped_tick_one(_tr, _dt) {
 		_f.t += _dt;
 		while (_f.t >= EXPED_FIGHT_T && !_f.over) { _f.t -= EXPED_FIGHT_T; exped_fight_turn(_f); }
 		if (!_f.over) return false;
-		for (var _k = 0; _k < array_length(_f.party); _k++) _tr.hp[_f.party[_k].k] = _f.party[_k].hp;
+		// the hp comes back by trip index (mi); a pawn's own maxhp may have
+		// ERODED in the fight - the trip's hpmax is the sheet's, untouched
+		for (var _k = 0; _k < array_length(_f.party); _k++) _tr.hp[_f.party[_k].mi] = round(_f.party[_k].hp * 10) / 10;
 		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else _tr.routed = true;
+		// THE KILL'S XP (his law): the foe's stat total to every survivor;
+		// a level climbs the sheet and the trip's hp pool grows with it
+		if (_f.won) exped_xp_grant(_tr, _f[$ "xp"] ?? 0, "");
 		array_push(_tr.log, _f.won ? "the way is clear" : (exped_crew_txt(_tr.names) + ((array_length(_tr.names) > 1) ? " limp home" : " limps home")));
 		exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
 		// THE FILM stays on the trip for the panel's replay - a fight that
 		// ended while you were elsewhere (or away) plays back when you
 		// open the page; the panel marks it seen. Not saved.
-		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foe : { name : _f.b.name, hpmax : _f.b.hpmax },
+		var _rfoes = [];
+		for (var _j = 0; _j < array_length(_f.foes); _j++) array_push(_rfoes, { name : _f.foes[_j].name, hpmax : _f.foes[_j].hpmax, lv : _f.foes[_j][$ "lv"] ?? 1, kind : _f.foes[_j][$ "kind"] ?? "", col : _f.foes[_j][$ "col"] ?? c_hred });
+		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foes : _rfoes, foe : _rfoes[0],
 		               won : _f.won, seen : false, room : _tr.room_i };
 		_tr.fight = undefined;
 		return false;
@@ -56,6 +63,10 @@ function exped_tick_one(_tr, _dt) {
 		               txt : string(3 * _tr.dest.tier) + " credits", col : c_lavender };
 		array_insert(_tr.finds, 0, _floor);
 		array_push(_tr.log, _tr.routed ? "home, limping" : "home");
+		// THE QUEST'S XP (his law, 2026-09-14): the trip done is the quest
+		// for now - a par foe's xp at the world's level x 2..5 by the rooms
+		// cleared; a routed crew brought nothing home to be paid for
+		if (!_tr.routed) exped_xp_grant(_tr, sprite_xp_quest(exped_world_lv(_tr.dest), _tr.cleared / EXPED_ROOMS), "the trip");
 		// the diary's last word - a payoff for anything still open, or a
 		// home line - and every member's MEMORY moves on
 		exped_say(_tr, "home");

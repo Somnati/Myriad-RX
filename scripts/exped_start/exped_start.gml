@@ -31,7 +31,7 @@ function exped_start(_di, _crew) {
 		array_push(_sids, _sp.id);
 		array_push(_names, _sp.name);
 		array_push(_cols, _sp.col);
-		var _h = 10 + (_sp[$ "rar"] ?? 0) * 2;   // hp: ten, plus two a rarity rung (exped_twin)
+		var _h = sprite_pawn(_sp).maxhp;         // hp: the sheet's (class x level x gear, sprite_pawn)
 		array_push(_hp, _h);
 		array_push(_hpmax, _h);
 	}

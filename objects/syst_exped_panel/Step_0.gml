@@ -44,6 +44,7 @@ if (view == "trip" && is_undefined(__trip())) {
 	view = (__haul_i() >= 0) ? "haul" : "hub";
 }
 if (view == "haul" && __haul_i() < 0) { view = "hub"; swap_pick = false; }
+if (view == "sheet" && is_undefined(__sp_by_id(sheet_id))) view = "hub";
 
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
@@ -73,6 +74,22 @@ if (view != "hub") {
 		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 		exit;
 	}
+}
+
+// ======================= THE SHEET: browse the roster =======================
+if (view == "sheet") {
+	var _pv = __sheet_prev_r(), _nv = __sheet_next_r();
+	var _n = array_length(g.sprites);
+	var _at = -1;
+	for (var _i = 0; _i < _n; _i++) if (g.sprites[_i].id == sheet_id) _at = _i;
+	if (_n > 0 && point_in_rectangle(mouse_x, mouse_y, _pv.x, _pv.y, _pv.x + _pv.w, _pv.y + _pv.h)) {
+		sheet_id = g.sprites[(_at - 1 + _n) mod _n].id;
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+	} else if (_n > 0 && point_in_rectangle(mouse_x, mouse_y, _nv.x, _nv.y, _nv.x + _nv.w, _nv.y + _nv.h)) {
+		sheet_id = g.sprites[(_at + 1) mod _n].id;
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+	}
+	exit;
 }
 
 // ======================= THE HAUL: collect, or the recruit moment =======================
@@ -130,6 +147,17 @@ if (view == "trip") {
 			exit;
 		}
 	}
+	// a crew row opens that sprite's sheet
+	if (!is_undefined(_tr)) {
+		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
+			var _cr = __crew_row_r(_k);
+			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
+				sheet_id = _tr.sids[_k]; view = "sheet";
+				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+				exit;
+			}
+		}
+	}
 	if (!is_undefined(_tr) && !is_undefined(_tr.fight) && !_tr.fight.over) {
 		var _sr = __step_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) {
@@ -163,6 +191,16 @@ if (sel_dest >= 0 && array_length(sel_crew) > 0
 		sel_crew = [];
 	} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 	exit;
+}
+// [sheet]: the picked sprite's, or the first one's
+if (array_length(g.sprites) > 0) {
+	var _shr = __sheet_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
+		sheet_id = (array_length(sel_crew) > 0) ? sel_crew[0] : g.sprites[0].id;
+		view = "sheet";
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
 }
 // a world
 for (var _i = 0; _i < array_length(_e.board); _i++) {

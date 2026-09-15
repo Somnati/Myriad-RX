@@ -26,6 +26,14 @@ function exped_loot_roll(_tr) {
 			return { kind : "charm", rar : _rar, txt : "a charm (+1 luck)", col : c_seagreen };
 		case "chart":
 			return { kind : "chart", rar : _rar, txt : "a chart fragment", col : c_sblue };
+		case "gear": {
+			// AN ITEM (his pitch, 2026-09-14): a slot kind at random, at the
+			// world's level, the rarity rolled above; the finder handles it
+			// (exped_room -> sprite_take). txt is rewritten with the outcome
+			var _slot = choose("w1", "w2", "armor", "talis");
+			var _it = gear_gen(_slot, exped_world_lv(_d), _rar, irandom($7fffffff));
+			return { kind : "gear", rar : _rar, txt : _it.name, col : _it.col, item : _it };
+		}
 	}
 	var _cr = (2 + irandom(3)) * _d.tier * (1 + _rar);
 	return { kind : "credits", rar : _rar, n : _cr, txt : string(_cr) + " credits", col : c_lavender };

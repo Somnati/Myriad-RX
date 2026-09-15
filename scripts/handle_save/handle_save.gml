@@ -483,6 +483,9 @@ function handle_save(){
 		// the diary's memory (five fields; the planet name carries no "/" or "|")
 		var _mm = is_struct(_sp[$ "mem"]) ? _sp.mem : { trips : 0, wins : 0, routs : 0, last : "", streak : 0 };
 		_sps += "/" + string(_mm.trips) + "/" + string(_mm.wins) + "/" + string(_mm.routs) + "/" + _mm.last + "/" + string(_mm.streak);
+		// THE SHEET (2026-09-14): class / level / xp / skill seed / worn / pocket,
+		// six more fields (sprite_sheet_pack; items regenerate from their seeds)
+		_sps += "/" + sprite_sheet_pack(_sp);
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -506,6 +509,8 @@ function handle_save(){
 						? { trips : real(_f[13]), wins : real(_f[14]), routs : real(_f[15]), last : _f[16], streak : real(_f[17]) }
 						: { trips : 0, wins : 0, routs : 0, last : "", streak : 0 },
 				});
+				// the sheet, from field 18 on (a save from before: a fresh one, sprite_sheet)
+				sprite_sheet_unpack(g.sprites[array_length(g.sprites) - 1], _f, 18);
 			}
 		}
 	}

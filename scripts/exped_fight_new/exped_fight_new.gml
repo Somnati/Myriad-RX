@@ -1,21 +1,16 @@
-/// @description exped_fight_new(trip) -> a fight: the crew that is still
-/// up against one foe of the world's tier. A member's numbers come from
-/// its personality's pace; a crew of two or three also carries a little
-/// of its BONDS into the hit chance (exped_bond, up to +10). The foe's
-/// hp scales with the crew so three do not shred what one would fight.
-/// exped_fight_turn plays it; the panel's combat window shows it.
-/// ⚖️ THE NUMBERS (exped_twin, 2026-09-13): a foe's damage is a REAL
-/// (.5 + .5 x tier) paid as whole points by a weighted coin, and against
-/// a crew it swings more than once a turn (.6 more per extra member,
-/// the same coin) - integer steps alone made tier 2 a cliff for one
-/// sprite and tiers 1-3 a formality for three. Win rates now: one
-/// sprite 100 / 97 / 59 / 14 by tier, three 100 / 100 / 99 / 54.
+/// @description exped_fight_new(trip) -> a fight (cbt_fight_new)
+/// THE CREW THAT IS STILL UP, as pawns off their sheets (sprite_pawn:
+/// class, level, gear, skills - the tech demo's engine, his call
+/// 2026-09-14), against AS MANY FOES AS THEY ARE, of the world's level
+/// (foe_gen: the world's level or one above, rolled from the world, the
+/// trip and the room so a save that reloads mid-fight meets the same pack). A crew of
+/// two or three carries a little of its BONDS into every member's hit
+/// (exped_bond, up to +10). The struct is what the combat window reads;
+/// each party pawn remembers its trip index (mi) for the hp write-back.
 function exped_fight_new(_tr) {
 	var _d  = _tr.dest;
-	var _pl = sprite_personalities();
 	var _party = [];
 	var _n = array_length(_tr.sids);
-	// the crew's mean bond, for the little bonus
 	var _bsum = 0, _bn = 0;
 	for (var _a = 0; _a < _n; _a++) for (var _b = _a + 1; _b < _n; _b++) { _bsum += exped_bond(_tr.sids[_a], _tr.sids[_b]); _bn++; }
 	var _bonus = (_bn > 0) ? min(10, (_bsum / _bn) / 10) : 0;
@@ -23,25 +18,25 @@ function exped_fight_new(_tr) {
 		if (_tr.hp[_k] <= 0) continue;
 		var _sp = undefined;
 		for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _tr.sids[_k]) _sp = g.sprites[_i];
-		var _pace = 1;
-		if (_sp != undefined) _pace = _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].pace;
-		array_push(_party, { k : _k, sid : _tr.sids[_k], name : _tr.names[_k], col : _tr.cols[_k],
-		                     hp : _tr.hp[_k], hpmax : _tr.hpmax[_k],
-		                     hit : clamp(60 + 15 * _pace + _bonus, 40, 95), init : 5 + 3 * _pace, dmg : 2 });
+		if (_sp == undefined) continue;
+		var _pw = sprite_pawn(_sp, _tr.hp[_k]);
+		_pw.hit += _bonus;
+		_pw.mi = _k;
+		array_push(_party, _pw);
 	}
-	var _foes = ["a scrap crawler", "a hollow warden", "a shard mite", "a dust wraith", "a rust beetle", "a lantern moth"];
-	var _up = max(1, array_length(_party));
-	var _fhp = round((6 + 3 * _d.tier) * (1 + .7 * (_up - 1)));
-	return {
-		party : _party,
-		b : { name : _foes[irandom(array_length(_foes) - 1)],
-		      hp : _fhp, hpmax : _fhp,
-		      hit : clamp(45 + 5 * _d.tier, 30, 90), init : 4 + _d.tier,
-		      dmg : .5 + .5 * _d.tier,        // a real: paid by the coin (exped_fight_turn)
-		      swings : .6 * (_up - 1) },       // extra swings a turn against a crew, by the coin
-		turn : 0, over : false, won : false, log : [],
-		ev : [],            // every swing: { side, i, dmg, thp, fhp, txt } - the replay's film (80 kept)
-		t : 0,              // the clock toward the next turn (EXPED_FIGHT_T)
-		last : undefined,   // { side : "a" (a member, k) / "b" (the foe), dmg, at : current_time } - the window's flash
-	};
+	// A CREW OF N MEETS N FOES (the twin: three on one was a formality) -
+	// each rolled from the world, the trip, the room and its place, so a
+	// save reloading mid-fight meets the same pack; the kill pays the
+	// pack's stat total to every survivor (his law)
+	var _foes = [], _xp = 0;
+	var _nf = max(1, array_length(_party));
+	for (var _j = 0; _j < _nf; _j++) {
+		var _seed = (_d.seed ^ (_tr.id * 7919) ^ ((_tr.room_i + 1) * 104729) ^ (_j * 15485863)) & $7fffffff;
+		var _foe = foe_gen(exped_world_lv(_d) + ((_seed mod 3 == 0) ? 1 : 0), _seed);
+		array_push(_foes, _foe);
+		_xp += foe_xp(_foe);
+	}
+	var _f = cbt_fight_new(_party, _foes);
+	_f.xp = _xp;
+	return _f;
 }

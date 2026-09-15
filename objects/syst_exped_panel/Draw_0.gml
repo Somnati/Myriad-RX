@@ -136,6 +136,108 @@ if (view == "haul") {
 	exit;
 }
 
+// ======================= THE SHEET (2026-09-14, his pitch) =======================
+// one sprite's class, level and xp, the eight stats (base + gear), the
+// garnish, the four slot kinds with what is worn, the pocket, the skills
+if (view == "sheet") {
+	var _sp = __sp_by_id(sheet_id);
+	if (is_undefined(_sp)) { ui_fade_set(1); exit; }
+	var _sh = sprite_sheet(_sp);
+	var _st = sprite_stats(_sp);
+	var _c  = _st.cls;
+	var _x0 = land ? 14 : 4, _y0 = list_y + 22;
+	// the header: the dot, the name, the class, the level, the xp bar
+	__dot(_x0 + 6, _y0 + 5, 5, _sp.col, .95);
+	draw_set_color(_sp.col);
+	draw_set_alpha(.95);
+	draw_text(_x0 + 16, _y0, _sp.name);
+	var _nx = _x0 + 16 + string_width(_sp.name) + 8;
+	draw_set_color(_c.col);
+	draw_text(_nx, _y0, _c.name);
+	draw_set_color(_ink);
+	draw_set_alpha(.85);
+	draw_text(_nx + string_width(_c.name) + 8, _y0, "lv " + string(_sh.lv));
+	var _need = sprite_xp_need(_sh.lv);
+	var _xw = land ? 120 : 90, _xx = room_width - (land ? 14 : 4) - _xw - (land ? 60 : 0);
+	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _y0 + 3, _xw, 4, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _y0 + 3, _xw * clamp(_sh.xp / max(1, _need), 0, 1), 4, 0, c_gold, .9);
+	draw_set_color(_dim);
+	draw_set_alpha(.7);
+	draw_text(_xx, _y0 + 9, string(round(_sh.xp)) + " / " + string(_need) + " xp  -  " + string(SPRITE_LV_KILLS) + " par kills a level");
+	// [<] [>] browse the roster
+	var _pv = __sheet_prev_r(), _nv = __sheet_next_r();
+	draw_ui_button(_pv.x, _pv.y, _pv.w, _pv.h, "<", rgb(170, 190, 230), true, false);
+	draw_ui_button(_nv.x, _nv.y, _nv.w, _nv.h, ">", rgb(170, 190, 230), true, false);
+	// the stats, two columns of four: label, the total, the gear's share
+	var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"];
+	var _sy = _y0 + 24;
+	draw_set_color(_ink);
+	draw_set_alpha(.5);
+	draw_text(_x0, _sy - 11, "stats  -  " + string(round(_st.total)) + " points  (a kill pays its foe's)");
+	for (var _k = 0; _k < 8; _k++) {
+		var _cx = _x0 + (_k div 4) * (land ? 110 : 80), _cy = _sy + (_k mod 4) * 11;
+		draw_set_color(_dim); draw_set_alpha(.8);
+		draw_text(_cx, _cy, _keys[_k]);
+		draw_set_color(_ink); draw_set_alpha(.9);
+		draw_set_halign(fa_right);
+		draw_text(_cx + 58, _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
+		draw_set_halign(fa_left);
+		var _g = _st.gear[$ _keys[_k]];
+		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + 62, _cy, "+" + string_format(_g, 1, 1)); }
+	}
+	var _hpr = round((_st.pts.hp * cbt_balance().hp_per_point + cbt_balance().hp_flat_add) * 10) / 10;
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_x0, _sy + 46, string(_hpr) + " hp  -  crit " + string(_c.crit) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%" + (_c.magic ? "  -  casts" : ""));
+	// the gear, right: the four slot kinds
+	var _gx = land ? 250 : _x0, _gy = land ? _sy : (_sy + 60);
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_gx, _gy - 11, "gear");
+	var _rows = [];
+	array_push(_rows, { lbl : "primary",   it : _sh.w1 });
+	array_push(_rows, { lbl : "secondary", it : _sh.w2 });
+	for (var _i = 0; _i < _c.armor; _i++) array_push(_rows, { lbl : "armor",    it : (_i < array_length(_sh.armor)) ? _sh.armor[_i] : undefined });
+	for (var _i = 0; _i < _c.talis; _i++) array_push(_rows, { lbl : "talisman", it : (_i < array_length(_sh.talis)) ? _sh.talis[_i] : undefined });
+	for (var _i = 0; _i < array_length(_rows); _i++) {
+		var _rw = _rows[_i];
+		var _ry = _gy + _i * 11;
+		draw_set_color(_dim); draw_set_alpha(.8);
+		draw_text(_gx, _ry, _rw.lbl);
+		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_gx + 56, _ry, "- nothing -"); }
+		else {
+			draw_set_color(_rw.it.col); draw_set_alpha(.95);
+			draw_text(_gx + 56, _ry, _rw.it.name);
+			draw_set_color(_dim); draw_set_alpha(.6);
+			draw_text(_gx + 56 + string_width(_rw.it.name) + 6, _ry, "lv" + string(_rw.it.lv) + " " + string_format(gear_score(_sp, _rw.it), 1, 0));
+		}
+	}
+	// the pocket
+	var _py = _gy + array_length(_rows) * 11 + 6;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_gx, _py, "pocket  " + string(array_length(_sh.inv)) + " / " + string(SPRITE_INV));
+	for (var _i = 0; _i < array_length(_sh.inv); _i++) {
+		var _iy = _py + 11 + _i * 9;
+		if (_iy > room_height - 12) break;
+		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6);
+		draw_text(_gx + 4, _iy, _sh.inv[_i].name);
+	}
+	// the skills, under the stats
+	var _sk = sprite_skills(_sp);
+	var _ky = _sy + 60;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_x0, _ky, "skills");
+	for (var _i = 0; _i < array_length(_sk); _i++) {
+		var _s = _sk[_i];
+		var _ly = _ky + 11 + _i * 10;
+		draw_set_color(_s.magic ? c_hpurple : c_horange); draw_set_alpha(.9);
+		draw_text(_x0, _ly, _s.name);
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(_x0 + 90, _ly, string(_s.cost) + " mp  " + _s.targ + ((_s[$ "mult"] ?? 0) > 0 ? ("  x" + string_format(_s.mult, 1, 1)) : "") + ((_s[$ "healp"] ?? 0) > 0 ? ("  heals " + string(round(_s.healp * 100)) + "%") : ""));
+	}
+	if (_sh.lv < 20) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_x0, _ky + 11 + array_length(_sk) * 10, "next skill at level " + string((_sh.lv < 10) ? 10 : 20)); }
+	ui_fade_set(1);
+	exit;
+}
+
 // ======================= THE TRIP =======================
 if (view == "trip") {
 	var _tr = __trip();
@@ -161,7 +263,7 @@ if (view == "trip") {
 	draw_text(big_x + big_w * .5, big_y + (land ? 88 : 54), _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
 	draw_set_alpha(.8);
-	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), _b.name + " world  -  tier " + string(_d.tier));
+	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), _b.name + " world  -  tier " + string(_d.tier) + "  -  lv " + string(exped_world_lv(_d)));
 	draw_set_halign(fa_left);
 	// the crew's hp, one bar each
 	for (var _k = 0; _k < _n; _k++) {
@@ -170,7 +272,7 @@ if (view == "trip") {
 		__dot(big_x + 12, _hy + 3, 3, _tr.cols[_k], (_tr.hp[_k] > 0) ? .95 : .3);
 		draw_set_color((_tr.hp[_k] > 0) ? _ink : _dim);
 		draw_set_alpha(.8);
-		draw_text(big_x + 19, _hy - 1, _tr.names[_k]);
+		draw_text(big_x + 19, _hy - 1, _tr.names[_k] + "  lv " + string(sprite_sheet(__sp_by_id(_tr.sids[_k]) ?? { id : 0 }).lv));   // (tap the row: the sheet)
 		var _bw = big_w - 24 - 52;
 		var _hf = clamp(_tr.hp[_k] / max(1, _tr.hpmax[_k]), 0, 1);
 		draw_sprite_ext(spr_pixel_1x1, 0, big_x + big_w - 12 - _bw, _hy + 1, _bw, 4, 0, c_black, .7);
@@ -225,7 +327,15 @@ if (view == "trip") {
 				array_push(_pp, { name : _pm.name, col : _pm.col, hpmax : _pm.hpmax,
 				                  hp : (_q < array_length(_fr.php)) ? _fr.php[_q] : _pm.hp });
 			}
-			_f = { party : _pp, b : { name : rp.r.foe.name, hp : _fr.fhp, hpmax : rp.r.foe.hpmax, hit : 0, dmg : 0 },
+			var _pf = [];
+			var _rfs = rp.r[$ "foes"] ?? [ rp.r.foe ];
+			for (var _q = 0; _q < array_length(_rfs); _q++) {
+				var _rf = _rfs[_q];
+				var _fhps = _fr[$ "fhps"] ?? [ _fr.fhp ];
+				array_push(_pf, { name : _rf.name, hpmax : _rf.hpmax, lv : _rf[$ "lv"] ?? 1, kind : _rf[$ "kind"] ?? "", col : _rf[$ "col"] ?? c_hred,
+				                  hp : (_q < array_length(_fhps)) ? _fhps[_q] : _fr.fhp });
+			}
+			_f = { party : _pp, foes : _pf, b : _pf[0],
 			       turn : rp.i + 1, over : (rp.i >= array_length(rp.r.ev) - 1), won : rp.r.won,
 			       log : [ _fr.txt ], last : (_fr.dmg > 0) ? { side : _fr.side, i : _fr.i, dmg : _fr.dmg, at : current_time - rp.t * 1000 } : undefined,
 			       replay : true };
@@ -236,16 +346,23 @@ if (view == "trip") {
 		// a floor line
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + fight_s - 12, fight_s - 8, 1, 0, _ink, .2);
 		var _flash_t = (!is_undefined(_f.last)) ? clamp(1 - (current_time - _f.last.at) / 350, 0, 1) : 0;
-		// the foe
+		// the foes, a row top right (as many as the crew, exped_fight_new):
+		// a diamond each, its hp above, the one hit flashes white
+		var _fos = _f[$ "foes"] ?? [ _f.b ];
+		var _nfo = array_length(_fos);
 		var _bx = _fx + fight_s - 16, _by = _fy + 22;
-		var _bhit = (_flash_t > 0 && _f.last.side == "b");
-		var _shk = _bhit ? (irandom(2) - 1) : 0;
-		if (_f.b.hp > 0) {
-			draw_sprite_ext(spr_pixel_1x1, 0, _bx - 6 + _shk, _by - 6, 12, 12, 45, _bhit ? c_white : c_hred, .95);
-		} else draw_sprite_ext(spr_pixel_1x1, 0, _bx - 6, _by + 2, 12, 3, 0, c_hred, .5);
-		var _bf = clamp(_f.b.hp / max(1, _f.b.hpmax), 0, 1);
-		draw_sprite_ext(spr_pixel_1x1, 0, _bx - 10, _by - 14, 20, 3, 0, c_black, .8);
-		draw_sprite_ext(spr_pixel_1x1, 0, _bx - 10, _by - 14, 20 * _bf, 3, 0, c_hred, .9);
+		for (var _j = 0; _j < _nfo; _j++) {
+			var _fo = _fos[_j];
+			var _jx = _fx + fight_s - 12 - _j * 13, _jy = _fy + 22 - (_j mod 2) * 6;
+			var _jhit = (_flash_t > 0 && _f.last.side == "b" && (_f.last.i == _j || (_f.last.i < 0 && _j == 0)));
+			var _shk = _jhit ? (irandom(2) - 1) : 0;
+			var _jc = _fo[$ "col"] ?? c_hred;
+			if (_fo.hp > 0) draw_sprite_ext(spr_pixel_1x1, 0, _jx - 5 + _shk, _jy - 5, 10, 10, 45, _jhit ? c_white : _jc, .95);
+			else draw_sprite_ext(spr_pixel_1x1, 0, _jx - 5, _jy + 2, 10, 3, 0, _jc, .4);
+			var _jf = clamp(_fo.hp / max(1, _fo.hpmax), 0, 1);
+			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy - 12, 12, 2, 0, c_black, .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy - 12, 12 * _jf, 2, 0, c_hred, .9);
+		}
 		// the crew
 		for (var _k = 0; _k < array_length(_f.party); _k++) {
 			var _m = _f.party[_k];
@@ -263,7 +380,7 @@ if (view == "trip") {
 			draw_set_halign(fa_center);
 			draw_set_color(c_white);
 			draw_set_alpha(_flash_t);
-			var _dx = (_f.last.side == "b") ? _bx : (_fx + 12 + _f.last.i * 13);
+			var _dx = (_f.last.side == "b") ? (_fx + fight_s - 12 - max(0, _f.last.i) * 13) : (_fx + 12 + _f.last.i * 13);
 			var _dy = ((_f.last.side == "b") ? _by : (_fy + fight_s - 20)) - 16 - (1 - _flash_t) * 8;
 			draw_text(_dx, _dy, "-" + string(_f.last.dmg));
 			draw_set_halign(fa_left);
@@ -272,17 +389,20 @@ if (view == "trip") {
 		var _tx = _fx + fight_s + 8;
 		draw_set_color(c_hred);
 		draw_set_alpha(.95);
-		draw_text(_tx, _fy + 2, _f.b.name + "  " + string(_f.b.hp) + "/" + string(_f.b.hpmax));
+		// the pack: every foe's name, the down ones dimmed by their bracket
+		var _pk = "";
+		for (var _j = 0; _j < _nfo; _j++) _pk += ((_j > 0) ? ", " : "") + ((_fos[_j].hp > 0) ? _fos[_j].name : ("[" + _fos[_j].name + "]"));
+		draw_text_ext(_tx, _fy + 2, _pk, 9, _sw - fight_s - 8);
 		draw_set_color(_dim);
 		draw_set_alpha(.7);
 		if (_f[$ "replay"] ?? false)
 			draw_text(_tx, _fy + 12, "replay  -  room " + string(rp.r.room + 1) + "  -  tap to skip");
 		else
-			draw_text(_tx, _fy + 12, "turn " + string(_f.turn) + "  -  hit " + string(round(_f.b.hit)) + "%  dmg " + string_format(_f.b.dmg, 1, 1));
+			draw_text(_tx, _fy + 14 + ((string_width(_pk) > _sw - fight_s - 8) ? 9 : 0), "action " + string(_f.turn) + "  -  lv " + string(_f.b[$ "lv"] ?? 1) + "  -  " + string(_nfo) + ((_nfo == 1) ? " foe" : " foes"));
 		var _fl = array_length(_f.log);
 		draw_set_color(c_white);
 		draw_set_alpha(.9);
-		draw_text_ext(_tx, _fy + 24, (_fl > 0) ? _f.log[_fl - 1] : "...", 9, _sw - fight_s - 8);
+		draw_text_ext(_tx, _fy + 26 + ((string_width(_pk) > _sw - fight_s - 8) ? 9 : 0), (_fl > 0) ? _f.log[_fl - 1] : "...", 9, _sw - fight_s - 8);
 		if (!(_f[$ "replay"] ?? false)) {
 			var _st = __step_r();
 			draw_ui_button(_st.x, _st.y, _st.w, _st.h, _f.over ? "done" : "step turn", c_hred, !_f.over, !_f.over);
@@ -352,7 +472,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	draw_text(_c.x + _c.w * .5, _c.y + (land ? 42 : 32), _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
 	draw_set_alpha(.85);
-	draw_text(_c.x + _c.w * .5, _c.y + (land ? 52 : 42), land ? (_b.name + "  -  tier " + string(_d.tier)) : ("t" + string(_d.tier)));
+	draw_text(_c.x + _c.w * .5, _c.y + (land ? 52 : 42), land ? (_b.name + "  -  tier " + string(_d.tier) + "  lv " + string(exped_world_lv(_d))) : ("t" + string(_d.tier)));
 	draw_set_color(_dim);
 	draw_set_alpha(.7);
 	draw_text(_c.x + _c.w * .5, _c.y + (land ? 62 : 52), land ? (_b.hint + "  -  " + crunch_time_long(_d.dist * 60 / max(1, _e.spd))) : crunch_time_long(_d.dist * 60 / max(1, _e.spd)));
@@ -397,6 +517,11 @@ var _can = (sel_dest >= 0 && _np > 0);
 draw_ui_button(_sr.x, _sr.y, _sr.w, _sr.h,
 	_can ? ("send " + string(_np) + " to " + _e.board[sel_dest].name) : ((sel_dest < 0) ? "pick a world" : "pick a crew"),
 	_can ? c_sgreen : c_gray, true, _can);
+// [sheet]: the picked sprite's (or the first one's) class / level / gear
+if (array_length(g.sprites) > 0) {
+	var _shr = __sheet_r();
+	draw_ui_button(_shr.x, _shr.y, _shr.w, _shr.h, "sheet", c_steelblue, true, false);
+}
 
 // THE LIST: hauls waiting, then trips out
 draw_set_color(_ink);

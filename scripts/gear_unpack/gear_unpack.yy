@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"gear_unpack",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"gear_unpack",
+  "parent":{
+    "name":"gear",
+    "path":"folders/game/gear.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

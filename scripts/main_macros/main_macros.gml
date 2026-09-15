@@ -402,11 +402,25 @@ function main_macros() {
 #macro EXPED_RETURN  .15     // ...and getting back; the delve is the rest
 #macro EXPED_DIST0   90      // seconds a tier-1 world is away (x2 a tier - the mock's scale)
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
-#macro EXPED_FIGHT_T   1     // seconds a fight turn takes on the clock
+#macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)
 #macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)
 #macro EXPED_BOND_TRIP 6     // bond a pair gains for a trip together (exped_bond)...
 #macro EXPED_BOND_WIN  2     // ...and per fight won together...
 #macro EXPED_BOND_ROUT 3     // ...and loses for a rout
+// THE SPRITE SHEET (his pitch, 2026-09-14: classes, levels, gear on the tech
+// demo's combat engine). HIS XP LAW: a level is SPRITE_LV_KILLS kills of a
+// par enemy (one whose level is yours); an enemy's xp is its STAT TOTAL
+// (the eight primaries after level and gear) x SPRITE_XP_PER_PT, so an
+// armed bandit or a boss pays what it cost; a quest pays a par enemy's xp
+// x SPRITE_QUEST_XP_LO..HI by how much of it was done (sprite_xp_quest)
+#macro SPRITE_LV_KILLS   30   // par kills a level takes (his call: 30; one number, change it here)
+#macro SPRITE_LV_PTS      3   // stat points a level adds on top of the 40-point base (the class shape scales)
+#macro SPRITE_XP_PER_PT   1   // xp an enemy pays per stat point
+#macro SPRITE_QUEST_XP_LO 2   // a quest's xp in par kills: barely done...
+#macro SPRITE_QUEST_XP_HI 5   // ...to fully done (exped_tick_one pays by rooms cleared for now)
+#macro SPRITE_INV        10   // a sprite's inventory (his call): past it the worst is trashed
+#macro SPRITE_FOE_BUDGET .9   // a foe's stat budget as a share of a sprite's at the same level (the twin: at par a crew of three wins ~78%, a lone warrior 87%, a lone mage 60%)
+#macro SPRITE_LV_MAX    200   // the ladder's top (the need keeps growing; this is the sanity rail)
 #macro SPRITE_CAP     10     // the roster's size (his call): an eleventh found sprite is a swap-or-let-go moment, never an inventory
 
 // ---- THE TITLE SCREEN ----
