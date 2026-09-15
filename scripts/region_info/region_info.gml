@@ -13,6 +13,24 @@ function region_info(_d, _rg) {
 	var _pick = function(_seed, _salt, _pool) { return _pool[hash_mix(_seed, _salt) mod array_length(_pool)]; };
 	// the level and the mood (region_gen's word and rating)
 	array_push(_out, { k : "level " + string(_rg.lv), v : _rg[$ "mood"] ?? "quiet", t : _rg[$ "mood_t"] ?? 0 });
+	// BIOME (his ask, 2026-09-15): the wild kind most of the region is - the
+	// second named too when it is nearly as common; in the kind's colour
+	var _kk = region_kinds(), _cnt = {};
+	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
+		var _nk = _rg.nodes[_i].kind, _nkd = _kk[$ _nk];
+		if (!is_struct(_nkd) || !_nkd.wild) continue;
+		_cnt[$ _nk] = (_cnt[$ _nk] ?? 0) + 1;
+	}
+	var _cks = variable_struct_get_names(_cnt), _b1 = "", _b2 = "", _n1 = 0, _n2 = 0;
+	for (var _i = 0; _i < array_length(_cks); _i++) {
+		var _cn = _cnt[$ _cks[_i]];
+		if (_cn > _n1) { _b2 = _b1; _n2 = _n1; _b1 = _cks[_i]; _n1 = _cn; }
+		else if (_cn > _n2) { _b2 = _cks[_i]; _n2 = _cn; }
+	}
+	var _plu = function(_w) { if (_w == "marsh") return "marshes"; if (_w == "hills" || _w == "mountains" || _w == "tundra") return _w; return _w + "s"; };
+	var _btxt = (_b1 == "") ? "the wild" : (_plu(_b1) + ((_b2 != "" && _n2 >= _n1 * .6) ? (" and " + _plu(_b2)) : ""));
+	var _bcol = (_b1 != "" && is_struct(_kk[$ _b1])) ? _kk[$ _b1].col : c_gold;
+	array_push(_out, { k : "biome", v : _btxt, t : 0, col : _bcol });
 	// TEMPERATURE: the world's climate (0 hot .. 1 frozen) cooled toward the poles
 	var _tc = clamp(_pn.clim + abs(_rg.spot.lat) / 90 * .25 - .06, 0, 1);
 	var _tp, _tt;

@@ -53,7 +53,10 @@ function planet_bake(_pn) {
 			// peaks stand up (the tallest 20% carries half the relief)
 			_h = power(_h, 1.6);
 			var _v = floor(_h * 255);
-			draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _v, _v), 1);
+			// (green marks WATER - deep ocean, ocean, shallows - for the shader's glint, 2026-09-15)
+			var _bw = _pn.biome[_i];
+			var _wat = (_pn.kind != "gas" && (_bw == 0 || _bw == 1 || _bw == 11)) ? 255 : 0;
+			draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _wat, 0), 1);
 		}
 		gpu_set_blendmode(bm_normal);
 		surface_reset_target();

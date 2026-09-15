@@ -237,7 +237,8 @@ __geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - (
 __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w, y : room_height - 8 - 16, w : _w, h : 16 }; };
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 // region mode: the info box on the left (region_info's lines)
-__rg_banner_r = function() { return { x : land ? 14 : 4, y : list_y + 40, w : land ? 150 : 120, h : 110 }; };
+rg_box_w = 150; rg_box_h = 110;      // the info box's size, as its lines want (__info_box_size; the Draw keeps it fresh)
+__rg_banner_r = function() { return { x : land ? 14 : 4, y : list_y + 40, w : rg_box_w, h : rg_box_h }; };
 // THE HAND'S SEATS: the cards in a row across the page (portrait: two columns)
 __hand_seats = function(_n) {
 	var _out = [];
@@ -596,23 +597,41 @@ __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
 __recall_r = function() { return { x : log_x + log_w - 60, y : log_y + 18, w : 60, h : 12 }; };
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
-__map_r = function() { var _x = land ? (14 + 150 + 10) : 4; return { x : _x, y : list_y + 22, w : room_width - _x - (land ? 14 : 4), h : room_height - 8 - 14 - (list_y + 22) }; };   // (right of the info box - his ask, 2026-09-15)
-__map_box_r = function() { return { x : 14, y : list_y + 22, w : 150, h : 110 }; };   // the region's info box on the map (landscape)
+__map_r = function() { var _x = land ? (14 + rg_box_w + 10) : 4; return { x : _x, y : list_y + 22, w : room_width - _x - (land ? 14 : 4), h : room_height - 8 - 14 - (list_y + 22) }; };   // (right of the info box - his ask, 2026-09-15)
+__map_box_r = function() { return { x : 14, y : list_y + 22, w : rg_box_w, h : rg_box_h }; };   // the region's info box on the map (landscape)
+/// THE INFO BOX'S SIZE: as wide as its longest line (his ask), as tall as its lines
+__info_box_size = function(_d, _rg) {
+	var _inf = region_info(_d, _rg);
+	var _wmax = land ? 200 : 120, _wmin = 96;
+	draw_set_font(fnt_large);
+	var _w = string_width(str_cap(_rg.name)) + 16;
+	draw_set_font(fnt);
+	for (var _li = 0; _li < array_length(_inf); _li++) _w = max(_w, string_width(_inf[_li].k + " - " + _inf[_li].v) + 16);
+	_w = clamp(_w, _wmin, _wmax);
+	draw_set_font(fnt_large);
+	var _h = 5 + string_height_ext(str_cap(_rg.name), 11, _w - 14) + 3 + array_length(_inf) * 11 + 4;
+	draw_set_font(fnt);
+	rg_box_w = _w; rg_box_h = _h;
+	return { w : _w, h : _h, inf : _inf };
+};
 /// THE INFO BOX painted (region_info's lines; the region page and the map share it)
 __draw_info_box = function(_d, _rg, _bn) {
-	var _inf = region_info(_d, _rg);
+	var _bs = __info_box_size(_d, _rg);
+	var _inf = _bs.inf;
+	_bn.w = _bs.w; _bn.h = _bs.h;
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
 	draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
 	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_rg.name), 11, _bn.w - 14);
-	var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 3;
+	var _bny = _bn.y + 5 + string_height_ext(str_cap(_rg.name), 11, _bn.w - 14) + 3;
 	draw_set_font(fnt);
 	var _tc = [c_sgreen, c_gold, c_horange, c_hred];
 	for (var _li = 0; _li < array_length(_inf); _li++) {
 		var _ln = _inf[_li];
 		draw_set_color(sett_ink); draw_set_alpha(.8);
 		draw_text(_bn.x + 8, _bny, _ln.k + " - ");
-		draw_set_color(_tc[clamp(_ln.t, 0, 3)]); draw_set_alpha(.95);
+		var _lc = _ln[$ "col"];
+		draw_set_color(is_undefined(_lc) ? _tc[clamp(_ln.t, 0, 3)] : _lc); draw_set_alpha(.95);
 		draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
 		_bny += 11;
 	}

@@ -185,6 +185,7 @@ if (view == "map") {
 	var _d  = map_dest;
 	var _rg = region_get(_d, map_rgi);
 	var _kk = region_kinds();
+	if (land) __info_box_size(_d, _rg);   // (the box's width first: the map sits right of it)
 	var _mr = __map_r();
 	var _bb = exped_biomes()[_d.biome];
 	var _lkey = string(_rg.seed) + ":" + string(map_rgi) + ":" + string(_mr.w) + "x" + string(_mr.h);
@@ -373,6 +374,12 @@ if (view == "crew" || view == "sheet") {
 		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) { _hpc = floor(min(_hpr, _tt.hp[_k])); if (is_array(_tt[$ "mp"]) && _k < array_length(_tt.mp)) _mpc = round(_mpr * _tt.mp[_k]); }
 	}
 	var _by = _hy + 28, _bw = land ? 150 : (_w - 16);
+	// (the hp / mp rows and every stat are taps: what the stat does - his ask, 2026-09-15)
+	var _hlw = _bw + 20;
+	if (is_struct(it_pop) && it_pop[$ "st"] == "hp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by - 1, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by - 1, _hlw, 10, c_white, .45); }
+	if (is_struct(it_pop) && it_pop[$ "st"] == "mp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by + 9, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by + 9, _hlw, 10, c_white, .45); }
+	array_push(it_rects, { x : _hx - 2, y : _by - 1, w : _hlw, h : 10, st : "hp" });
+	array_push(it_rects, { x : _hx - 2, y : _by + 9, w : _hlw, h : 10, st : "mp" });
 	draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_hx, _by, "hp");
 	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw, 5, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 5, 0, c_hred, .8);
@@ -387,6 +394,8 @@ if (view == "crew" || view == "sheet") {
 	var _gy = _by + 26;
 	for (var _k = 0; _k < 6; _k++) {
 		var _cx = _hx + (_k mod 2) * (land ? 84 : 80), _cy = _gy + (_k div 2) * 11;
+		array_push(it_rects, { x : _cx - 2, y : _cy - 1, w : 80, h : 10, st : _keys[_k] });
+		if (is_struct(it_pop) && it_pop[$ "st"] == _keys[_k]) { draw_sprite_ext(spr_pixel_1x1, 0, _cx - 2, _cy - 1, 80, 10, 0, c_white, .1); draw_px_rect(_cx - 2, _cy - 1, 80, 10, c_white, .45); }
 		draw_set_color(_dim); draw_set_alpha(.8);
 		draw_text(_cx, _cy, _labels[_k]);
 		draw_set_halign(fa_right);
@@ -503,6 +512,23 @@ if (view == "crew" || view == "sheet") {
 			draw_set_halign(fa_right); draw_set_color(c_sgreen); draw_set_alpha(.95);
 			draw_text(_lpx + _lpw - 6, _lpy + 18 + _j * 10, "+" + string_format(_gain, 1, 1));
 			draw_set_halign(fa_left);
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "st"])) {
+		// THE STAT POPUP (his ask, 2026-09-15): what the stat does
+		var _sdl = cbt_stat_desc(it_pop.st);
+		var _sdw = 210, _sdh = 20;
+		for (var _j = 1; _j < array_length(_sdl); _j++) _sdh += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
+		var _sdx = clamp(it_pop.x, 4, room_width - _sdw - 4), _sdy = clamp(it_pop.y, list_y + 20, room_height - _sdh - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sdx + 2, _sdy + 3, _sdw, _sdh, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sdx, _sdy, _sdw, _sdh, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_sdx, _sdy, _sdw, _sdh, c_white, .6);
+		draw_set_color(c_white); draw_set_alpha(.95);
+		draw_text(_sdx + 6, _sdy + 4, _sdl[0]);
+		var _sdy2 = _sdy + 16;
+		for (var _j = 1; _j < array_length(_sdl); _j++) {
+			draw_set_color(_ink); draw_set_alpha(.9);
+			draw_text_ext(_sdx + 6, _sdy2, _sdl[_j], 9, _sdw - 12);
+			_sdy2 += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
 		}
 	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
 		// THE NOTE POPUP (his ask): what a note does to the sprite

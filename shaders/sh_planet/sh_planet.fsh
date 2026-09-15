@@ -215,6 +215,18 @@ void main()
         float dusk = smoothstep(0.25, 0.55, li) * (1.0 - smoothstep(0.55, 0.95, li));
         col += mix(vec3(0.72, 0.20, 0.46), u_atmo, 0.22) * (dusk * 0.16);
 
+        // THE SEA'S GLINT (2026-09-15, his ask): water catches the sun - a
+        // highlight where the half-vector of the sun and the eye meets the
+        // sphere, on the day side only, with a little shimmer on it (the
+        // frame's dither). The height texture's green marks water
+        float wat = texture2D(u_height, sphere_uv(t, u_tsize)).g;
+        if (wat > 0.5) {
+            vec3 hv = normalize(u_light + vec3(0.0, 0.0, 1.0));
+            float sp = pow(max(dot(n, hv), 0.0), 36.0);
+            float day = smoothstep(-0.05, 0.30, dot(n, u_light));
+            col += vec3(1.0, 0.96, 0.86) * sp * 0.85 * day * (1.0 + 0.5 * dn);
+        }
+
         float em = 1.0 - tex.a;
         if (em > 0.001) col = mix(col, tex.rgb * (1.0 + 0.3 * (1.0 - li)), em);
 

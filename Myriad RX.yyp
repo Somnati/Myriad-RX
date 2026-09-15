@@ -284,6 +284,7 @@
     {"id":{"name":"cbt_skill_desc","path":"scripts/cbt_skill_desc/cbt_skill_desc.yy",},},
     {"id":{"name":"cbt_skill_gen","path":"scripts/cbt_skill_gen/cbt_skill_gen.yy",},},
     {"id":{"name":"cbt_skills","path":"scripts/cbt_skills/cbt_skills.yy",},},
+    {"id":{"name":"cbt_stat_desc","path":"scripts/cbt_stat_desc/cbt_stat_desc.yy",},},
     {"id":{"name":"ccore_buy","path":"scripts/ccore_buy/ccore_buy.yy",},},
     {"id":{"name":"ccore_close","path":"scripts/ccore_close/ccore_close.yy",},},
     {"id":{"name":"ccore_collect","path":"scripts/ccore_collect/ccore_collect.yy",},},
