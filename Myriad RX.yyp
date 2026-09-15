@@ -437,6 +437,7 @@
     {"id":{"name":"exped_unpack","path":"scripts/exped_unpack/exped_unpack.yy",},},
     {"id":{"name":"exped_weather","path":"scripts/exped_weather/exped_weather.yy",},},
     {"id":{"name":"exped_where","path":"scripts/exped_where/exped_where.yy",},},
+    {"id":{"name":"exped_world_col","path":"scripts/exped_world_col/exped_world_col.yy",},},
     {"id":{"name":"exped_world_lv","path":"scripts/exped_world_lv/exped_world_lv.yy",},},
     {"id":{"name":"exped_xp_grant","path":"scripts/exped_xp_grant/exped_xp_grant.yy",},},
     {"id":{"name":"faq_close","path":"scripts/faq_close/faq_close.yy",},},

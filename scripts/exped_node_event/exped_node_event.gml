@@ -41,8 +41,8 @@ function exped_node_event(_tr, _again = false) {
 		return;
 	}
 	switch (_k) {
-		case "dungeon": _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : irandom_range(3, 5) }; array_push(_tr.log, "into " + _nd.name); break;
-		case "crypt":   _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : irandom_range(3, 5) }; array_push(_tr.log, "down into " + _nd.name + ". it is cold"); break;
+		case "dungeon": { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "into " + _nd.name + " (" + string(_rm) + " rooms)"); break; }   // (the dungeon's own rooms, 2026-09-15)
+		case "crypt":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "down into " + _nd.name + " (" + string(_rm) + " rooms). it is cold"); break; }
 		case "camp":    _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); break;
 		case "mine":    _tr.act = { kind : "mine",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;

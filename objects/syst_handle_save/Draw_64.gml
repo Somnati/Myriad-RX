@@ -18,6 +18,6 @@ if (variable_global_exists("font")) {
 	draw_set_font(fnt);
 	draw_set_halign(fa_right); draw_set_valign(fa_top);
 	draw_set_color(rgb(120, 130, 150)); draw_set_alpha(.7);
-	draw_text(_cx - 16, _cy - 4, (boot_phase == 0) ? "charting the galaxy" : "loading");
+	draw_text(_cx - 16, _cy - 4, (boot_phase == 0) ? "charting the galaxy" : ((action == sv_load || action == sv_save) ? "loading" : "the first world"));
 	draw_set_halign(fa_left); draw_set_alpha(1);
 }

@@ -167,6 +167,10 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	var _landings = [0];
 	if (_nodes[0].kind != "landing") _nodes[0].name = region_name(_nodes[0].kind);   // (a town with the landing zone inside it)
 	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = region_name(_nodes[_i].kind);
+	// A DUNGEON HAS ITS ROOMS (his ask, 2026-09-15: "dungeons seeded with a
+	// fixed number of rooms"): 3-6, off the seed by hash (no roll - the
+	// worlds stay the worlds they were); the delve and the clear quest read it
+	for (var _i = 0; _i < _n; _i++) if (_nodes[_i].kind == "dungeon" || _nodes[_i].kind == "crypt") _nodes[_i].rooms = 3 + (hash_mix(_seed, _i * 31 + 7) mod 4);
 	// THE ROADS: the tree's (every place to the one it grew from), then
 	// BRIDGES - a few near pairs joined where the new road crosses none,
 	// so the tree closes into loops with dead-end spurs left over (his

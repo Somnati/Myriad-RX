@@ -210,7 +210,7 @@ pv_cfade = 1;                        // ...and the clouds thinning with it
 // the trip page's world: the same render, the camera fixed on the trip's region
 tp_id = -1; tp_cam = mat3_rot(1, 0, 0, -32); tp_spin = 0;
 sky_fog_surf = -1;                   // sh_sky_fog's canvas (the page's size)
-__pv_r     = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
+__pv_r     = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };   // (from the strip down - his ask, 2026-09-15: no gap over the sky)
 __pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5 - 46 * pv_dwa, y : _r.y + _r.h * .5 + 2 }; };   // (the world slides left as the drawer opens)
 __pv_dw_w  = function() { return land ? 150 : 120; };
 __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
@@ -333,29 +333,42 @@ __hand_open = function(_kind) {
 			}
 			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj,
 			                     diff : _q.diff, diff_txt : _q.diff_txt, meta : string(_q.hours) + "h  -  " + string(_q.reward) + " cr  -  x" + string(_q.mult) + " xp",
-			                     slot : _sl[_i], fx : [0, 1, 8, 16 | 4][clamp(_q.diff, 0, 3)] });
+			                     slot : _sl[_i], si : _i, hours : _q.hours });
 		}
+		// easiest to hardest, left to right (his call); the shorter road first among equals
+		array_sort(_faces, function(_a, _b) { return (_a.diff != _b.diff) ? (_a.diff - _b.diff) : (_a.hours - _b.hours); });
 	} else {
 		var _xc = exped_explore_cards(pl_dest, rg_sel);
 		for (var _i = 0; _i < array_length(_xc); _i++) {
 			var _c = _xc[_i];
 			array_push(_faces, { title : _c.name, sub : "explore", col : c_horange, txt : _c.txt,
 			                     foot : (_c.ex == "wander") ? "until recalled" : ((_c.ex == "ramble") ? ("about " + string(_c.n) + "h") : (string(_c.n) + " places")),
-			                     meta : "xp by the hours out", card : _c, fx : [0, 1, 8][_i] });
+			                     meta : "xp by the hours out", card : _c, si : -1 });
 		}
 	}
+	// THE THROW (his ask: "thrown in from the bottom starting from the
+	// middle and quickly finding their place... snappy"): every card starts
+	// under the bottom edge at the middle, the middle seat is dealt first
+	// and the rest outward, each a few frames behind; the Step snaps them
+	// to their seats (no finishes on these - his call)
 	var _seats = __hand_seats(array_length(_faces));
+	var _mid = (array_length(_faces) - 1) * .5;
 	for (var _i = 0; _i < array_length(_faces); _i++) {
-		var _c = create_obj(_seats[_i].x, _seats[_i].y, obj_card);
+		var _c = create_obj(room_width * .5, room_height + 70, obj_card);
 		_c.depth = depth - 3;   // over the panel, under the menu's blur (-515)
 		_c.auto = false;
 		if (!land) { _c.card_w = 60; _c.card_h = 76; }
 		_c.face = _faces[_i];
 		_c.draw_front_content = method(_c, __qcard_face);
 		_c.draw_back_content  = method(_c, __qcard_back);
-		_c.rot_y = 180;
-		_c.flip_delay = 4 + _i * 5;
-		_c.fx = _faces[_i].fx;
+		_c.seat = _seats[_i];
+		_c.settled = false;
+		_c.throw_delay = abs(_i - _mid) * 4;
+		_c.visible = false;
+		_c.rot_y = 0;
+		_c.rot_x = 42;
+		_c.rot_z = -(_seats[_i].x - room_width * .5) * .12;
+		_c.fx = 0;
 		_c.invalidate_front(); _c.invalidate_back();
 		array_push(hand_ids, _c);
 	}
@@ -372,7 +385,7 @@ __hand_pick = function(_i) {
 	var _f = hand_ids[_i].face;
 	if (hand == "quests") {
 		if (_f.slot.taken != 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); return; }
-		dp_quest = _f.slot.q; dp_mode = "quest"; dp_slot = _i;
+		dp_quest = _f.slot.q; dp_mode = "quest"; dp_slot = _f.si;   // (the SLOT's index - the cards are sorted)
 	} else {
 		dp_quest = _f.card; dp_mode = "explore"; dp_slot = -1;
 	}
@@ -531,7 +544,7 @@ __log_r = function() {
 	return { x : 0, y : 0, w : 0, h : 0 };
 };
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
-__gx_r = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
+__gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
 dchip_y   = list_y + 40;
 __dchip_r = function(_k) { var _per = land ? 5 : 6; return { x : (land ? 14 : 4) + (_k mod _per) * (chip + chip_gap), y : dchip_y + (_k div _per) * (chip + 10), w : chip, h : chip }; };
@@ -687,7 +700,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	galaxy_sky_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, true);
 	galaxy_fog_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, pv_sky.light_w);
-	else __portrait(_d, _pcx, _pcy, _pr);
+	// (not built yet: the sky alone - the lite portrait that stood in "looked really bad", his report 2026-09-15; the boot builds the board's worlds)
 	if (_built && _spots != -1) {
 		draw_set_font(fnt_outline); draw_set_halign(fa_left); draw_set_valign(fa_top);
 		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));
@@ -765,7 +778,7 @@ __worlds_step = function() {
 	if (is_struct(pl_dest)) array_push(_list, pl_dest);
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		var _pn = planet_get(_list[_i].seed, exped_planet_hint(_list[_i]));
-		if (_pn.row < _pn.th) { planet_gen_step(_pn); return; }
+		if (_pn.row < _pn.th) { planet_gen_step(_pn, 6); return; }   // (six rows a frame: a fresh world in a quarter second)
 	}
 };
 /// a sprite by id (undefined when gone)

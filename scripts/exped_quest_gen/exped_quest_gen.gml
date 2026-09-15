@@ -48,6 +48,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			       txt : "travel to " + _rg.nodes[_nd].name + " and slay " + string(_n) + " " + _f + "s" };
 		} else {
 			var _n = irandom_range(3, 5);
+			var _rm = _rg.nodes[_nd][$ "rooms"]; if (!is_undefined(_rm)) _n = _rm;   // (the dungeon's own rooms, 2026-09-15; the roll stays so the rest of the stream holds)
 			_q = { kind : "clear", node : _nd, foe : "", n : _n, done : 0, mult : 4,
 			       txt : "clear " + _rg.nodes[_nd].name + " (" + string(_n) + " rooms)" };
 		}

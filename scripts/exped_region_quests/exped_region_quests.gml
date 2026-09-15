@@ -18,15 +18,9 @@ function exped_region_quests(_d, _ri = 0) {
 	if (!is_struct(_of)) {
 		// the first deal: five, their clocks staggered so they do not all turn at once
 		_of = { seed : _d.seed, ri : _ri, slots : [], next : 0, d : _d };
-		for (var _i = 0; _i < EXPED_QUESTS; _i++) {
-			array_push(_of.slots, { salt : _of.next, left : exped_quest_life() * random_range(.35, 1), taken : 0, easy : false, q : undefined });
-			_of.next += 1;
-		}
+		for (var _i = 0; _i < EXPED_QUESTS; _i++) array_push(_of.slots, { salt : 0, left : 0, taken : 0, easy : false, q : undefined });
+		for (var _i = 0; _i < EXPED_QUESTS; _i++) { exped_offer_deal(_of, _i); _of.slots[_i].left *= random_range(.35, 1); }   // (dealt one by one: distinct places, the one-easy law)
 		_e.offers[$ _k] = _of;
-		exped_offer_fill(_of);
-		var _any = false;
-		for (var _i = 0; _i < EXPED_QUESTS; _i++) if (_of.slots[_i].q.diff == 0) _any = true;
-		if (!_any) exped_offer_deal(_of, irandom(EXPED_QUESTS - 1), true);
 		save_mark_dirty();
 	}
 	_of.d = _d;

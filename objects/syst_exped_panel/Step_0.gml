@@ -157,7 +157,18 @@ if (hand != "") {
 			var _c = hand_ids[_d];
 			if (!instance_exists(_c)) continue;
 			if (hand_sec != _sec) _c.invalidate_front();   // (the clocks on the faces)
-			if (_c.flip_delay > 0) { _c.flip_delay -= delta; continue; }
+			// THE THROW: unseen until its turn, then snapped to its seat from the
+			// bottom middle (a quarter of the gap a frame), the lean and the
+			// twist settling with it
+			if (_c.throw_delay > 0) { _c.throw_delay -= delta; _c.visible = false; continue; }
+			_c.visible = true;
+			if (!_c.settled) {
+				var _k = 1 - power(.7, delta);
+				_c.x = lerp(_c.x, _c.seat.x, _k); _c.y = lerp(_c.y, _c.seat.y, _k);
+				_c.rot_x = lerp(_c.rot_x, 0, _k); _c.rot_z = lerp(_c.rot_z, 0, _k);
+				if (point_distance(_c.x, _c.y, _c.seat.x, _c.seat.y) < 1) { _c.x = _c.seat.x; _c.y = _c.seat.y; _c.rot_z = 0; _c.settled = true; }
+				continue;
+			}
 			var _hov = point_in_rectangle(mouse_x, mouse_y, _c.x - _c.card_w * .5, _c.y - _c.card_h * .5, _c.x + _c.card_w * .5, _c.y + _c.card_h * .5);
 			// hover leans the card toward the pointer; idle keeps it held (the deck's)
 			var _ty2 = _hov ? clamp((mouse_x - _c.x) * .35, -14, 14) : 4 * dsin(current_time / 900 + _d * 2);
@@ -173,7 +184,7 @@ if (hand != "") {
 				if (!instance_exists(_c2)) continue;
 				if (!point_in_rectangle(mouse_x, mouse_y, _c2.x - _c2.card_w * .5, _c2.y - _c2.card_h * .5, _c2.x + _c2.card_w * .5, _c2.y + _c2.card_h * .5)) continue;
 				_onany = true;
-				if (_c2.rot_y > 60) break;   // still flipping: not a pick
+				if (!_c2.settled) break;   // still flying in: not a pick
 				__hand_pick(_d);
 				break;
 			}

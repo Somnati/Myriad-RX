@@ -23,7 +23,15 @@ if (view == "planet" && is_struct(pl_dest)) _ttl = land ? ("expedition  -  " + p
 if (view == "depart") _ttl = land ? "expedition  -  preparation" : "preparation";
 draw_set_color(c_steelblue);
 draw_set_alpha(.95);
-draw_text(6, strip_y + 5, _ttl);
+if (view == "planet" && is_struct(pl_dest)) {
+	// (the world's name in its SEEDED colour - his ask, 2026-09-15)
+	var _t1 = land ? "expedition  -  " : "", _t3 = land ? ("  /  " + exped_biomes()[pl_dest.biome].name + " world") : "";
+	draw_text(6, strip_y + 5, _t1);
+	draw_set_color(exped_world_col(pl_dest));
+	draw_text(6 + string_width(_t1), strip_y + 5, pl_dest.name);
+	draw_set_color(c_steelblue);
+	draw_text(6 + string_width(_t1 + pl_dest.name), strip_y + 5, _t3);
+} else draw_text(6, strip_y + 5, _ttl);
 if (land) {
 	draw_set_color(_dim);
 	draw_set_alpha(.6);
@@ -182,8 +190,10 @@ if (view == "map") {
 	var _lkey = string(_rg.seed) + ":" + string(map_rgi) + ":" + string(_mr.w) + "x" + string(_mr.h);
 	var _lab = __map_labels(_rg, _mr, _lkey);
 	// the header (short: the back button sits on the right)
-	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(_mr.x, list_y + 6, _d.name + "  -  " + _rg.name);
+	draw_set_color(exped_world_col(_d)); draw_set_alpha(.95);
+	draw_text(_mr.x, list_y + 6, _d.name);
+	draw_set_color(c_white);
+	draw_text(_mr.x + string_width(_d.name), list_y + 6, "  -  " + _rg.name);
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(_mr.x + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + (_rg[$ "mood"] ?? "quiet") + "  -  " + string(array_length(_rg.nodes)) + " places");
 	// the ground, and the region's circle
@@ -592,7 +602,7 @@ if (view == "trip") {
 	var _can_abort = !(_tr[$ "aborted"] ?? false) && _tr.stage != 2;
 	draw_ui_button(_abr.x, _abr.y, _abr.w, _abr.h, (_tr[$ "aborted"] ?? false) ? "aborted" : "abort", c_hred, _can_abort, false);
 	draw_set_halign(fa_center);
-	draw_set_color(c_white);
+	draw_set_color(exped_world_col(_d));
 	draw_set_alpha(.95);
 	draw_text(big_x + big_w * .5, big_y + (land ? 88 : 54), _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
@@ -816,17 +826,17 @@ if (view == "planet") {
 	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, (pv_mode == "region") ? pl_focus : -2, pl_focus, pv_cfade);
 	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);
-	// the title (the strip row) and the facts, over the sky
-	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, _d.name);
-	// (the tier and the flight time are gone from here - his ask, 2026-09-15; the strip names the world's kind)
+	// the facts over the sky (the world's name lives in the strip now - his
+	// ask, 2026-09-15; the tier and the flight time are gone)
 	if (is_struct(pv_sky)) {
 		var _sm = starmap_get(), _hm = galaxy_home();
 		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(land ? 14 : 4, list_y + 20, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds");
+		draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds");
 	}
-	draw_set_color(_dim); draw_set_alpha(.6);
-	draw_text(land ? 14 : 4, list_y + 30, "drag to orbit  -  tap a region");
+	// the hint, bottom middle
+	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit" : "drag to orbit  -  tap a region");
+	draw_set_halign(fa_left);
 	// the left column: [galaxy] at the foot, [region map] over it in region mode, the geosync toggle on top
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
@@ -864,7 +874,7 @@ if (view == "planet") {
 		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
 		// THE HAND'S VEIL (the cards themselves are obj_card instances over the panel)
 		if (hand_a > .001) {
-			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y + 16, room_width, room_height - (list_y + 16), 0, c_black, .62 * hand_a);
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .62 * hand_a);
 			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.7 * hand_a);
 			draw_text(room_width * .5, list_y + 24, (hand == "quests") ? "quests on offer  -  tap one; off the cards to close" : "explore  -  tap a card; off the cards to close");
 			draw_set_halign(fa_left);
@@ -1270,7 +1280,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	ui_fade_set(1);
 	__world_small(_d, _c.x + 24, _c.y + 24, 18);
 	ui_fade_set(_ea);
-	draw_set_color(c_white);
+	draw_set_color(exped_world_col(_d));
 	draw_set_alpha(.95);
 	draw_text(_c.x + 48, _c.y + 6, _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
@@ -1325,7 +1335,7 @@ for (var _i = 0; _i < _rows; _i++) {
 	// the crew's faces
 	for (var _k = 0; _k < array_length(_r.sids); _k++) __dot(_rr.x + 34 + _k * 9, _rr.y + 9, 3, _r.cols[_k],
 		(_ish || _r.hp[_k] > 0) ? .95 : .3);
-	draw_set_color(c_white);
+	draw_set_color(exped_world_col(_r.dest));
 	draw_set_alpha(.95);
 	draw_text(_rr.x + 34 + array_length(_r.sids) * 9 + 3, _rr.y + 5, _r.dest.name);
 	if (_ish) {

@@ -35,7 +35,18 @@ if (_was_load) {
 }
 
 action = -1;}
-if (boot_phase == 1) boot_phase = 2;   // (the boot's load ran: the title may come)
+// THE BOARD'S WORLDS TOO (his report, 2026-09-15: "the planet looks really
+// bad then all of a sudden updates" - the lite portrait stood in while the
+// rows built): their maps are built here behind the spinner, a few rows a
+// frame, so the panel opens on the finished model
+if (boot_phase == 1) {
+	var _bdone = true;
+	if (variable_global_exists("exped")) for (var _bi = 0; _bi < array_length(g.exped.board); _bi++) {
+		var _bpn = planet_get(g.exped.board[_bi].seed, exped_planet_hint(g.exped.board[_bi]));
+		if (_bpn.row < _bpn.th) { planet_gen_step(_bpn, 8); _bdone = false; }
+	}
+	if (_bdone) boot_phase = 2;   // (the boot's load ran, the worlds are whole: the title may come)
+}
 
 // ---- playtime clock ----
 // real seconds, saved per savefile, shown by the save menu slots
