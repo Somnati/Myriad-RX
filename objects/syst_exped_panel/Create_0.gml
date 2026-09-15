@@ -115,7 +115,7 @@ __back_r = function() { return { x : land ? 14 : 4, y : list_y + 3, w : 40, h : 
 __sheet_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 6, y : _s.y, w : 50, h : 14 }; };   // (the [crew] button now)
 crew_row_h = land ? 36 : 44;
 __crew_y0 = function() { return list_y + 22; };
-__crew_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };
+__list_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };   // (the crew LIST's rows; __crew_row_r is the trip page's)
 __crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };
 __sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 22, w : 20, h : 13 }; };
 __sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };

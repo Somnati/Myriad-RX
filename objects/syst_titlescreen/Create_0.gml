@@ -359,7 +359,7 @@ __forge_step = function() {
 			array_push(_f.sparks, {
 				x : _e.x, y : _e.y,
 				wind_dir : point_direction(_e.x, _e.y, _f.x, _f.y), wind_spd : random_range(.2, .5),
-				wdc : _f.wdc, wind_trick : random(.9),
+				wdc : _f.wdc, wind_trick : max(.05, random(.9)),   // (DE's random(.9); the floor keeps the relax step finite)
 				hp : _hp, scale : 2, scale_min : random_range(.65, 1),
 				col : make_colour_hsv(c_hue(_f.c), c_sat(_f.c), 255),
 			});

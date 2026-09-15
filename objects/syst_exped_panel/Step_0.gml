@@ -74,7 +74,7 @@ if (view == "crew") {
 			// the release: a tap lands on the row under it
 			if (!crew_drag.moved)
 				for (var _k = 0; _k < array_length(g.sprites); _k++) {
-					var _cr = __crew_row_r(_k);
+					var _cr = __list_row_r(_k);
 					if (point_in_rectangle(mouse_x, mouse_y, _cr.x, max(_y0, _cr.y), _cr.x + _cr.w, _cr.y + _cr.h)) {
 						sheet_id = g.sprites[_k].id; view = "sheet";
 						play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);

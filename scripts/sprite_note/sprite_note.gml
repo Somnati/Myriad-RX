@@ -9,8 +9,8 @@
 function sprite_note(_sp, _txt, _tag = "") {
 	var _sh = sprite_sheet(_sp);
 	if (_tag != "") for (var _i = 0; _i < array_length(_sh.notes); _i++) if (_sh.notes[_i].tag == _tag) return false;
-	_txt = string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(_txt,
-		"/", " "), "|", " "), ";", " "), ",", " "), "=", " "), "^", " ");
+	_txt = string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(_txt,
+		"/", " "), "|", " "), ";", " "), ",", " "), "=", " "), "^", " "), "~", " ");
 	array_push(_sh.notes, { txt : _txt, tag : _tag });
 	while (array_length(_sh.notes) > SPRITE_NOTES) array_delete(_sh.notes, 0, 1);
 	save_mark_dirty();

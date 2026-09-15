@@ -8,7 +8,8 @@
 ///   "land" / "rest" / "find" / "home" / "levelup"   the useless kind
 /// ctx: { foe, item, planet, partner, lv }. The chance to write at all
 /// is the caller's; this only decides what.
-function sprite_note_gen(_sp, _beat, _ctx = {}) {
+function sprite_note_gen(_sp, _beat, _ctx = undefined) {
+	if (!is_struct(_ctx)) _ctx = {};
 	var _foe  = _ctx[$ "foe"];
 	var _kind = is_struct(_foe) ? (_foe[$ "kind"] ?? "it") : "it";
 	var _ks   = _kind + "s";

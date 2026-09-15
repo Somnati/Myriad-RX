@@ -145,7 +145,7 @@ if (view == "crew") {
 	var _cls = sprite_classes();
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		var _sp = g.sprites[_k];
-		var _r = __crew_row_r(_k);
+		var _r = __list_row_r(_k);
 		if (_r.y + _r.h < _y0 || _r.y > room_height - 8) continue;
 		var _sh = sprite_sheet(_sp);
 		var _st = sprite_stats(_sp);

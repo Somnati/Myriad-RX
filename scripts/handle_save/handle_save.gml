@@ -486,6 +486,9 @@ function handle_save(){
 		// THE SHEET (2026-09-14): class / level / xp / skill seed / worn / pocket,
 		// six more fields (sprite_sheet_pack; items regenerate from their seeds)
 		_sps += "/" + sprite_sheet_pack(_sp);
+		// THE ID (2026-09-14, the inspection): bonds, trips in flight and the
+		// `trip` flags are keyed by it - it must survive a load (field 25)
+		_sps += "/" + string(_sp.id);
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
@@ -496,8 +499,12 @@ function handle_save(){
 			for (var _k = 0; _k < array_length(_pp); _k++) {
 				var _f = string_split(_pp[_k], "/");
 				if (array_length(_f) < 9) continue;
+				// the id: the record's own (field 25), or - a save from before it
+				// was kept - a fresh one; sprite_seq stays the high-water mark
+				var _sid = (array_length(_f) > 25 && _f[25] != "") ? real(_f[25]) : g.sprite_seq++;
+				g.sprite_seq = max(g.sprite_seq, _sid + 1);
 				array_push(g.sprites, {
-					id : g.sprite_seq++, name : _f[0], col : real(_f[1]), pers : real(_f[2]),
+					id : _sid, name : _f[0], col : real(_f[1]), pers : real(_f[2]),
 					job : _f[3], taps : real(_f[4]), fx : real(_f[5]), fy : real(_f[6]),
 					away : real(_f[7]), asleep : (_f[8] == "1"), acc : 0,
 					// the look (2026-09-11): a sprite saved before it had one is a matte dot-eyed one

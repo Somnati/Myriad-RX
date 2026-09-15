@@ -14,16 +14,16 @@ function exped_room(_tr) {
 				// GEAR IS THE SPRITE'S (his pitch): whoever is up takes it -
 				// worn, pocketed or binned by the sheet's rules (sprite_take);
 				// the haul card shows the outcome, collect leaves it alone
-				var _up = [];
-				for (var _k = 0; _k < array_length(_tr.hp); _k++) if (_tr.hp[_k] > 0) array_push(_up, _k);
-				var _who = (array_length(_up) > 0) ? _up[irandom(array_length(_up) - 1)] : 0;
-				var _sp = undefined;
-				for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _tr.sids[_who]) _sp = g.sprites[_i];
-				if (_sp != undefined) {
-					var _tk = sprite_take(_sp, _l.item);
+				var _upf = [];
+				for (var _k = 0; _k < array_length(_tr.hp); _k++) if (_tr.hp[_k] > 0) array_push(_upf, _k);
+				var _whof = (array_length(_upf) > 0) ? _upf[irandom(array_length(_upf) - 1)] : 0;
+				var _spf = undefined;
+				for (var _if = 0; _if < array_length(g.sprites); _if++) if (g.sprites[_if].id == _tr.sids[_whof]) _spf = g.sprites[_if];
+				if (_spf != undefined) {
+					var _tk = sprite_take(_spf, _l.item);
 					_l.txt = _tk.txt;
 					array_push(_tr.log, _rm + _tk.txt);
-					if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }
+					if (_tk.worn) { _tr.hpmax[_whof] = sprite_pawn(_spf).maxhp; _tr.hp[_whof] = min(_tr.hp[_whof], _tr.hpmax[_whof]); }
 				} else array_push(_tr.log, _rm + "found " + _l.txt);
 			} else array_push(_tr.log, _rm + "found " + _l.txt);
 			array_push(_tr.finds, _l);
