@@ -867,7 +867,7 @@ if (view == "planet") {
 	var _w = _pvr.w, _h = _pvr.h;
 	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
-		wb_surf = surface_create(_w, _h);
+		wb_surf = page_surface(_w, _h);
 	}
 	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) {
 		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
@@ -1050,7 +1050,7 @@ if (view == "galaxy") {
 	}
 	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _vw || surface_get_height(wb_surf) != _vh) {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
-		wb_surf = surface_create(_vw, _vh);
+		wb_surf = page_surface(_vw, _vh);
 	}
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
@@ -1081,17 +1081,17 @@ if (view == "galaxy") {
 		var _s = _st.props.size * gx_zoom;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _s * .5, _sy - _s * .5, _s, _s, 0, _st.props.color, 1);
 	}
-	// the fog, additive over the stars (the demo's order), bilinear, dithered
+	// the fog, additive over the stars (the demo's order), bilinear; dithered
+	// here only on an 8-bit page (a float page dithers once, at its blit)
 	var _fd = _gcf.fog_depth;
 	var _ffx = (_vcx * (1 - _fd) - gx_x) * gx_zoom, _ffy = (_vcy * (1 - _fd) - gx_y) * gx_zoom;
 	var _ffs = _fd * gx_zoom * _sm.width / surface_get_width(gx_fog);
 	var _ftf = gpu_get_tex_filter();
 	gpu_set_tex_filter(true);
 	gpu_set_blendmode(bm_add);
-	shader_set(sh_fog_dither);
-	shader_set_uniform_f(shader_get_uniform(sh_fog_dither, "u_time"), (current_time mod 100000) / 1000);
+	if (!page_float()) { shader_set(sh_fog_dither); shader_set_uniform_f(shader_get_uniform(sh_fog_dither, "u_time"), (current_time mod 100000) / 1000); }
 	draw_surface_ext(gx_fog, _ffx, _ffy, _ffs, _ffs, 0, c_white, _gcf.fog_alpha);
-	shader_reset();
+	if (!page_float()) shader_reset();
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one
@@ -1127,10 +1127,12 @@ if (view == "galaxy") {
 		gx_mm_seed = _sm.seed;
 	}
 	ui_fade_set(_fa);
-	draw_surface(wb_surf, _gr.x, _gr.y);
 	// THE GLOW (his memory of the demo's glow layer, as a shader: sh_blur -
-	// the finished map at half size, two passes, laid back additively)
-	__bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75);
+	// the finished map at half size, two passes, laid back additively) -
+	// into the page on a float page, then the page to the screen through
+	// the one dither; on an 8-bit page the glow lands on the screen after
+	if (page_float()) { __bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75); page_blit(wb_surf, _gr.x, _gr.y); }
+	else { page_blit(wb_surf, _gr.x, _gr.y); __bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75); }
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
 	draw_surface(gx_mm, _mmr.x, _mmr.y);

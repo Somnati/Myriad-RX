@@ -16,6 +16,7 @@ uniform vec2  u_geom;    // room size, px
 uniform vec2  u_ctr;     // projection center (matches the star draws)
 uniform float u_seed;    // per-system noise domain offset
 uniform float u_time;    // dither slide
+uniform float u_dither;  // 1 = dither here (an 8-bit page), 0 = the page is float and dithers once at its blit (2026-09-15)
 uniform float u_amp;     // overall brightness
 uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
@@ -107,7 +108,7 @@ void main()
     ip += fract(floor(u_time * 30.0) * vec2(0.7548776, 0.5698402)) * 64.0;
     float g = fract(52.9829189 * fract(0.06711056 * ip.x + 0.00583715 * ip.y));
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
-    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0);
+    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
 
     gl_FragColor = vec4(max(rgb, vec3(0.0)), 1.0) * v_vColour;
 }

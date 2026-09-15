@@ -492,10 +492,13 @@ gx_mm = -1; gx_mm_seed = -1;         // THE MINIMAP (his ask: bring it back): th
 gx_glow_a = -1; gx_glow_b = -1;      // the bloom's two half-size passes (sh_blur)
 /// the bloom: the finished map (src, w x h) blurred at half size, two
 /// passes, laid back over the target additively at alpha a
+// THE BLOOM composites INTO the page (2026-09-15): float all the way, so
+// the halos meet 8-bit only at the page's blit (x / y are kept for the
+// 8-bit path, where it still lands on the screen)
 __bloom = function(_src, _w, _h, _x, _y, _a) {
 	var _hw = max(2, floor(_w * .5)), _hh = max(2, floor(_h * .5));
-	if (!surface_exists(gx_glow_a) || surface_get_width(gx_glow_a) != _hw || surface_get_height(gx_glow_a) != _hh) { if (surface_exists(gx_glow_a)) surface_free(gx_glow_a); gx_glow_a = surface_create(_hw, _hh); }
-	if (!surface_exists(gx_glow_b) || surface_get_width(gx_glow_b) != _hw || surface_get_height(gx_glow_b) != _hh) { if (surface_exists(gx_glow_b)) surface_free(gx_glow_b); gx_glow_b = surface_create(_hw, _hh); }
+	if (!surface_exists(gx_glow_a) || surface_get_width(gx_glow_a) != _hw || surface_get_height(gx_glow_a) != _hh) { if (surface_exists(gx_glow_a)) surface_free(gx_glow_a); gx_glow_a = page_surface(_hw, _hh); }
+	if (!surface_exists(gx_glow_b) || surface_get_width(gx_glow_b) != _hw || surface_get_height(gx_glow_b) != _hh) { if (surface_exists(gx_glow_b)) surface_free(gx_glow_b); gx_glow_b = page_surface(_hw, _hh); }
 	static _u = undefined;
 	if (is_undefined(_u)) _u = { dir : shader_get_uniform(sh_blur, "u_dir"), texel : shader_get_uniform(sh_blur, "u_texel") };
 	var _ftf = gpu_get_tex_filter();
@@ -516,7 +519,8 @@ __bloom = function(_src, _w, _h, _x, _y, _a) {
 	shader_reset();
 	surface_reset_target();
 	gpu_set_blendmode(bm_add);
-	draw_surface_ext(gx_glow_b, _x, _y, _w / _hw, _h / _hh, 0, c_white, _a);
+	if (page_float()) { surface_set_target(_src); draw_surface_ext(gx_glow_b, 0, 0, _w / _hw, _h / _hh, 0, c_white, _a); surface_reset_target(); }
+	else draw_surface_ext(gx_glow_b, _x, _y, _w / _hw, _h / _hh, 0, c_white, _a);
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 };
@@ -782,7 +786,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	_w = max(2, floor(_w)); _h = max(2, floor(_h));
 	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
-		wb_surf = surface_create(_w, _h);
+		wb_surf = page_surface(_w, _h);   // (float where the gpu allows: one quantisation, at the blit)
 	}
 	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) {
 		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
@@ -830,7 +834,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	}
 	surface_reset_target();
 	ui_fade_set(_fa);
-	draw_surface(wb_surf, _x, _y);
+	page_blit(wb_surf, _x, _y);   // (the one dither)
 	return { m : _mm, r : _mr };
 };
 /// a hollow square in 2px lines (the pixel look: no fine lines)

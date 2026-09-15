@@ -17,6 +17,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		amp  : shader_get_uniform(sh_sky_fog, "u_amp"),
 		cell : shader_get_uniform(sh_sky_fog, "u_cell"),
 		edge : shader_get_uniform(sh_sky_fog, "u_edge"),
+		dith : shader_get_uniform(sh_sky_fog, "u_dither"),
 	};
 	if (!surface_exists(_canvas)) return;
 	var _cfg = starmap_config();
@@ -32,6 +33,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	shader_set_uniform_f(_u.amp, _cfg.sky_fog_amp);
 	shader_set_uniform_f(_u.cell, planet_config().px_size);
 	shader_set_uniform_f(_u.edge, _sky.fog_edge);
+	shader_set_uniform_f(_u.dith, page_float() ? 0 : 1);   // (a float page dithers once, at its blit)
 	draw_surface(_canvas, 0, 0);
 	shader_reset();
 	gpu_set_blendmode(bm_normal);

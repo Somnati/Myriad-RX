@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"page_surface",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"page_surface",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
