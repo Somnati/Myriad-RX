@@ -7,10 +7,10 @@
 ///   scout  a far place - get there                           (mult 2)
 /// mult is the quest's xp in par kills (his law: 2..5 - the top for
 /// the long ones: +1 for every four hours out); reward = credits home.
-function exped_quest_gen(_d) {
+function exped_quest_gen(_d, _salt = 0) {
 	var _rg = region_get(_d);
 	var _old = random_get_seed();
-	random_set_seed((_d.seed ^ (g.exped.seq * 7919) ^ 1237) & $7fffffff);
+	random_set_seed((_d.seed ^ (g.exped.seq * 7919) ^ (1237 + _salt * 104729)) & $7fffffff);
 	var _dung = [], _camp = [], _wild = [];
 	var _kk = region_kinds();
 	for (var _i = 1; _i < array_length(_rg.nodes); _i++) {
@@ -57,6 +57,15 @@ function exped_quest_gen(_d) {
 	_q.hours = _h;
 	_q.mult = clamp(_q.mult + floor(_h / 4), SPRITE_QUEST_XP_LO, SPRITE_QUEST_XP_HI);
 	_q.reward = (2 + 2 * _d.tier) * _q.mult;   // credits home, done
+	// the difficulty, in a word (the departure window): by the kind, the count, the hours
+	var _df = 1;
+	if (_q.kind == "slay") _df = (_q.n >= 6) ? 2 : 1;
+	if (_q.kind == "clear") _df = 2;
+	if (_q.kind == "rout") _df = 2;
+	if (_q.kind == "scout") _df = 0;
+	if (_h >= 6) _df += 1;
+	_q.diff = _df;
+	_q.diff_txt = ["easy", "fair", "hard", "grim"][clamp(_df, 0, 3)];
 	rng_release(_old);
 	return _q;
 }

@@ -12,7 +12,8 @@
 /// spawns... a couple dungeons / a bandit camp") - then the rest by
 /// weight: settlements and camps common, villages less, a town rare, a
 /// city rarer (one at most), the wilderness from the biome's list.
-/// Edges: every node to its two nearest, then the graph is stitched
+/// Edges: every node to its nearest, to its second nearest half the
+/// time (so branches end in dead ends), then the graph is stitched
 /// connected (union-find, nearest pair across components). Medieval,
 /// all of it: the civilisation is his call.
 function region_gen(_seed, _biome, _lv) {
@@ -76,7 +77,8 @@ function region_gen(_seed, _biome, _lv) {
 			else if (_d < _b2) { _b2 = _d; _d2 = _j; }
 		}
 		if (_d1 >= 0 && !_has(_edges, _i, _d1)) array_push(_edges, { a : _i, b : _d1, d : 0 });
-		if (_d2 >= 0 && !_has(_edges, _i, _d2)) array_push(_edges, { a : _i, b : _d2, d : 0 });
+		// the second road only half the time (his ask, 2026-09-15: "branches that end in dead ends")
+		if (_d2 >= 0 && random(1) < .5 && !_has(_edges, _i, _d2)) array_push(_edges, { a : _i, b : _d2, d : 0 });
 	}
 	// stitch the components together: union-find, nearest pair across
 	var _parent = array_create(_n);

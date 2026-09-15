@@ -4,12 +4,12 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 
 var _e = g.exped;
-// the trip page's world is built a few rows a frame (planet_gen_step),
-// so it arrives in half a second without a hitch
-if (view == "trip") {
-	var _tv = __trip();
-	if (!is_undefined(_tv)) {
-		var _pn = planet_get(_tv.dest.seed, exped_planet_hint(_tv.dest));
+// the trip page's (and the planet window's) world is built a few rows a
+// frame (planet_gen_step), so it arrives in half a second without a hitch
+if (view == "trip" || view == "planet") {
+	var _pd = (view == "trip") ? (is_undefined(__trip()) ? undefined : __trip().dest) : pl_dest;
+	if (is_struct(_pd)) {
+		var _pn = planet_get(_pd.seed, exped_planet_hint(_pd));
 		if (_pn.row < _pn.th) planet_gen_step(_pn);
 	}
 }
@@ -21,7 +21,7 @@ if (view == "trip") {
 	if (!is_undefined(_tvr)) {
 		var _rr = _tvr[$ "replay"];
 		// a fight watched LIVE on this page is not replayed after
-		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr[$ "fights"] ?? 0);   // (the fight counter - room_i is the old delve's)
+		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr[$ "fights"] ?? 0);
 		if (!is_undefined(_rr) && !_rr.seen && seen_live == string(_tvr.id) + ":" + string(_rr.room)) _rr.seen = true;
 		if (is_undefined(rp) && !is_undefined(_rr) && !_rr.seen && is_undefined(_tvr.fight) && array_length(_rr.ev) > 0)
 			rp = { i : 0, t : 0, r : _rr, id : _tvr.id };
@@ -40,28 +40,40 @@ if (view == "trip") {
 	} else rp = undefined;
 } else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
-if (view == "trip" && is_undefined(__trip())) {
-	view = (__haul_i() >= 0) ? "haul" : "hub";
-}
+if (view == "trip" && is_undefined(__trip())) view = (__haul_i() >= 0) ? "haul" : "hub";
 if (view == "haul" && __haul_i() < 0) { view = "hub"; swap_pick = false; }
-if (view == "sheet" && is_undefined(__sp_by_id(sheet_id))) view = "hub";
+if (view == "sheet") view = "crew";
+if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
 if (view == "map" && !is_struct(map_dest)) view = "hub";
+if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) view = "hub";
 
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
+// ---- [back], and escape: one step up the chain (__back, the Create) ----
 if (keyboard_check_pressed(vk_escape)) {
-	if (view != "hub") { view = "hub"; swap_pick = false; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
-	else exped_close();
+	if (view != "hub") __back(); else exped_close();
 	exit;
 }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
+if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
+
+// the debug clock: x1 / x10 / x100
+for (var _k = 0; _k < 3; _k++) {
+	var _r = __spd_r(_k);
+	if (point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) {
+		_e.spd = [1, 10, 100][_k];
+		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
+		exit;
+	}
+}
+// [back] from any page (drawn on the right, syst_exped_panel's Draw)
+if (view != "hub") {
+	var _bk = __back_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { __back(); exit; }
+}
 
 // ======================= THE CREW MENU: tabs on the left =======================
-if (view == "crew" || view == "sheet") {
-	view = "crew";
-	if (!mouse_check_button_pressed(mb_left)) exit;
-	var _bk = __back_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { view = "hub"; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+if (view == "crew") {
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		var _tb = __tab_r(_k);
 		if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
@@ -73,9 +85,71 @@ if (view == "crew" || view == "sheet") {
 	exit;
 }
 
-// EVERYTHING BELOW IS A PRESS (the gate was lost in the crew menu rewrite,
-// 2026-09-14 - hovering a button clicked it; his report)
-if (!mouse_check_button_pressed(mb_left)) exit;
+// ======================= THE MAP =======================
+if (view == "map") exit;
+
+// ======================= THE PLANET: its regions =======================
+if (view == "planet") {
+	// one region a world for now: the row opens the region window
+	var _pr0 = __pl_row(0);
+	if (point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) {
+		rg_sel = 0; view = "region";
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+	exit;
+}
+
+// ======================= THE REGION: the quests, or explore =======================
+if (view == "region") {
+	var _mr0 = __rg_map_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
+		map_dest = pl_dest; map_from = "region"; view = "map";
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+	var _ql = exped_region_quests(pl_dest);
+	for (var _i = 0; _i <= array_length(_ql); _i++) {
+		var _qr = __q_row(_i);
+		if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
+		if (_i < array_length(_ql)) { dp_quest = _ql[_i]; dp_mode = "quest"; }
+		else { dp_quest = undefined; dp_mode = "explore"; }
+		view = "depart";
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+	exit;
+}
+
+// ======================= THE DEPARTURE: the crew, the brief, [depart] =======================
+if (view == "depart") {
+	var _dr = __depart_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
+		var _crew = [];
+		for (var _c = 0; _c < array_length(sel_crew); _c++) { var _sp = __sp_by_id(sel_crew[_c]); if (!is_undefined(_sp)) array_push(_crew, _sp); }
+		var _di = -1;
+		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
+		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest)) {
+			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			sel_crew = [];
+			view = "hub";
+		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+		exit;
+	}
+	// the crew: tap to add to the party, tap again to drop; up to EXPED_PARTY
+	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		var _cr = __dchip_r(_k);
+		if (!point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) continue;
+		var _sp = g.sprites[_k];
+		var _at = array_get_index(sel_crew, _sp.id);
+		if (_at >= 0) { array_delete(sel_crew, _at, 1); play_sound_ext(snd_softclick, .9, 1, .4, 1); exit; }
+		if (_sp.asleep || (_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+		array_push(sel_crew, _sp.id);
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+	exit;
+}
 
 // ======================= THE HAUL: collect, or the recruit moment =======================
 if (view == "haul") {
@@ -145,7 +219,7 @@ if (view == "trip") {
 	if (!is_undefined(_tr)) {
 		var _mr = __trip_map_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) {
-			map_dest = _tr.dest; view = "map";
+			map_dest = _tr.dest; map_from = "trip"; view = "map";
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -155,7 +229,7 @@ if (view == "trip") {
 		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 			var _cr = __crew_row_r(_k);
 			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
-				sheet_id = _tr.sids[_k]; view = "sheet";
+				sheet_id = _tr.sids[_k]; view = "crew";
 				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 				exit;
 			}
@@ -182,57 +256,21 @@ for (var _i = 0; _i < _rows; _i++) {
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
 }
-// send: [quest] or [explore] - a world, a crew, and the bill (exped_cost)
-if (array_length(_e.board) > 0) sel_dest = clamp(sel_dest, 0, array_length(_e.board) - 1);
-var _sr2 = __send_r(), _xr2 = __explore_r();
-var _hitq = point_in_rectangle(mouse_x, mouse_y, _sr2.x, _sr2.y, _sr2.x + _sr2.w, _sr2.y + _sr2.h);
-var _hitx = point_in_rectangle(mouse_x, mouse_y, _xr2.x, _xr2.y, _xr2.x + _xr2.w, _xr2.y + _xr2.h);
-if (_hitq || _hitx) {
-	var _crew = [];
-	for (var _c = 0; _c < array_length(sel_crew); _c++)
-		for (var _k = 0; _k < array_length(g.sprites); _k++) if (g.sprites[_k].id == sel_crew[_c]) array_push(_crew, g.sprites[_k]);
-	if (sel_dest >= 0 && array_length(_crew) > 0 && exped_start(sel_dest, _crew, _hitx ? "explore" : "quest")) {
-		play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-		sel_crew = [];
-	} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
-	exit;
-}
-// [crew]: the roster as a list (his ask, 2026-09-14)
+// [crew]: the roster
 if (array_length(g.sprites) > 0) {
-	var _shr = __sheet_r();
+	var _shr = __crewbtn_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
-		view = "crew"; crew_off = 0; crew_drag = undefined;
+		view = "crew";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
 }
-// a world's [map] chip (checked before the card's own tap)
-for (var _i = 0; _i < array_length(_e.board); _i++) {
-	var _cm = __card_map_r(_i);
-	if (point_in_rectangle(mouse_x, mouse_y, _cm.x, _cm.y, _cm.x + _cm.w, _cm.y + _cm.h)) {
-		map_dest = _e.board[_i]; view = "map";
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-		exit;
-	}
-}
-// a world
+// a world: its planet window
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _c = __card_r(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, _c.x, _c.y, _c.x + _c.w, _c.y + _c.h)) {
-		sel_dest = _i;
+		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; view = "planet";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
-}
-// the crew: tap to add to the party, tap again to drop; up to EXPED_PARTY
-for (var _k = 0; _k < array_length(g.sprites); _k++) {
-	var _cr = __chip_r(_k);
-	if (!point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) continue;
-	var _sp = g.sprites[_k];
-	var _at = array_get_index(sel_crew, _sp.id);
-	if (_at >= 0) { array_delete(sel_crew, _at, 1); play_sound_ext(snd_softclick, .9, 1, .4, 1); exit; }
-	if (_sp.asleep || (_sp[$ "trip"] ?? false) || array_length(sel_crew) >= EXPED_PARTY) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
-	array_push(sel_crew, _sp.id);
-	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-	exit;
 }

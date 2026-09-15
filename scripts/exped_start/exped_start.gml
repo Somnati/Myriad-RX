@@ -6,7 +6,7 @@
 /// here - refused when the purse cannot. The crew lands at the region's
 /// landing zone with the pocket and walks from there (exped_agent).
 /// Any number of trips may run at once (exped_tick walks them all).
-function exped_start(_di, _crew, _mode = "quest") {
+function exped_start(_di, _crew, _mode = "quest", _pick = undefined) {
 	exped_init();
 	var _e = g.exped;
 	if (_di < 0 || _di >= array_length(_e.board)) return false;
@@ -39,9 +39,9 @@ function exped_start(_di, _crew, _mode = "quest") {
 	}
 	var _q = undefined;
 	if (_mode == "quest") {
-		_q = is_struct(_d[$ "quest"]) ? _d.quest : exped_quest_gen(_d);
+		_q = is_struct(_pick) ? _pick : (is_struct(_d[$ "quest"]) ? _d.quest : exped_quest_gen(_d));   // (the departure window's pick, 2026-09-15)
 		// the quest is THIS crew's now: the copy walks, the board keeps its own until the re-deal
-		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0 };
+		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair" };
 	}
 	var _tr = {
 		id : _e.seq, dest : _d,

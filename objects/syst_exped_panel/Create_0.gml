@@ -42,6 +42,11 @@ rp      = undefined; // the combat window's REPLAY of a fight that ended off scr
 seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / level / gear)
 map_dest = undefined;    // the map view's world (its region: region_get)
+map_from = "hub";        // where the map returns to
+pl_dest  = undefined;    // the planet window's world
+rg_sel   = 0;            // the region picked in the planet window (one a world for now)
+dp_quest = undefined;    // the departure window's quest (undefined = an explore)
+dp_mode  = "quest";      // ...and its mode
 crew_off = 0;        // the crew list's scroll (px)
 crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
 sel_dest = 0;        // the world picked (one on the board, his call: always the first)
@@ -117,7 +122,31 @@ __explore_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 4, y 
 __list_y0 = function() { return land ? (card_y - 10) : (__send_r().y + 14 + 8); };
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
-__back_r = function() { return { x : land ? 14 : 4, y : list_y + 3, w : 40, h : 13 }; };
+__back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
+/// [back] and escape: one step up the chain - map -> where it came from;
+/// depart -> region -> planet -> hub; crew / trip / haul -> hub
+__back = function() {
+	swap_pick = false;
+	switch (view) {
+		case "map":    view = map_from; break;
+		case "depart": view = "region"; break;
+		case "region": view = "planet"; break;
+		default:       view = "hub"; break;
+	}
+	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+};
+// the planet window: the world big on the left, its facts, the regions on the right
+__pl_box  = function() { return { x : land ? 14 : 4, y : list_y + 22, w : land ? 170 : (room_width - 8), h : land ? 150 : 96 }; };
+__pl_row  = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? list_y + 44 : _b.y + _b.h + 26) + _i * 22, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 20 }; };
+// the region window: the quests, then explore
+__q_row   = function(_i) { return { x : land ? 14 : 4, y : list_y + 40 + _i * 30, w : room_width - (land ? 28 : 8), h : 27 }; };
+// the departure window: the crew chips left, the brief right, [depart] under the brief
+dchip_y   = list_y + 40;
+__dchip_r = function(_k) { var _per = land ? 5 : 6; return { x : (land ? 14 : 4) + (_k mod _per) * (chip + chip_gap), y : dchip_y + (_k div _per) * (chip + 10), w : chip, h : chip }; };
+__brief_r = function() { return { x : land ? 176 : 4, y : list_y + 22, w : land ? (room_width - 176 - 14) : (room_width - 8), h : land ? (room_height - 8 - 22 - (list_y + 22)) : 110 }; };
+__depart_r = function() { var _b = __brief_r(); return { x : _b.x, y : _b.y + _b.h + 4, w : 100, h : 16 }; };
+__crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 60, h : 14 }; };
+__rg_map_r = function() { return { x : room_width - (land ? 14 : 4) - 44 - 50, y : list_y + 3, w : 44, h : 13 }; };
 __sheet_r = function() { var _s = __explore_r(); return { x : _s.x + _s.w + 4, y : _s.y, w : 44, h : 14 }; };   // [crew]
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
@@ -135,15 +164,49 @@ __crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h
 __sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 22, w : 20, h : 13 }; };
 __sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };
 __crew_row_r = function(_k) { return { x : big_x + 8, y : big_y + (land ? 112 : 76) + _k * 11 - 2, w : big_w - 16, h : 10 }; };
+/// the diary painter: truth lines plain, "~ " lines as the crew's voice
+/// (dimmer, indented), newest at the bottom, as many whole entries as
+/// fit between y and y_end. col = the world's colour for the voice
+__draw_log = function(_log, _x, _y, _w, _y_end, _col) {
+	var _nl = array_length(_log);
+	var _hs = array_create(_nl, 0);
+	var _room = _y_end - _y;
+	var _from = _nl;
+	draw_set_font(fnt);
+	for (var _i = _nl - 1; _i >= 0; _i--) {
+		var _isv = (string_copy(_log[_i], 1, 2) == "~ ");
+		var _h = string_height_ext(_isv ? string_delete(_log[_i], 1, 2) : _log[_i], 9, _w - (_isv ? 8 : 0)) + 2;
+		if (_h > _room) break;
+		_room -= _h;
+		_hs[_i] = _h;
+		_from = _i;
+	}
+	var _yy = _y;
+	for (var _i = _from; _i < _nl; _i++) {
+		var _isv = (string_copy(_log[_i], 1, 2) == "~ ");
+		var _last = (_i == _nl - 1);
+		if (_isv) {
+			draw_set_color(_last ? merge_colour(sett_ink, c_white, .5) : merge_colour(sett_ink, _col, .35));
+			draw_set_alpha(_last ? .9 : .55);
+			draw_text_ext(_x + 8, _yy, string_delete(_log[_i], 1, 2), 9, _w - 8);
+		} else {
+			draw_set_color(_last ? c_white : sett_ink);
+			draw_set_alpha(_last ? .95 : .7);
+			draw_text_ext(_x, _yy, _log[_i], 9, _w);
+		}
+		_yy += _hs[_i];
+	}
+	draw_set_alpha(1);
+};
 /// a sprite by id (undefined when gone)
 __sp_by_id = function(_id) {
 	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _id) return g.sprites[_i];
 	return undefined;
 };
 __step_r = function() { return { x : log_x + fight_s + 8, y : room_height - 8 - 14, w : 70, h : 14 }; };
-__col_r  = function() { return { x : room_width * .5 - 45, y : room_height - 8 - 16, w : 90, h : 16 }; };
-__swap_r = function() { return { x : room_width * .5 - 96, y : room_height - 8 - 16, w : 90, h : 16 }; };
-__go_r   = function() { return { x : room_width * .5 + 6, y : room_height - 8 - 16, w : 90, h : 16 }; };
+__col_r  = function() { return { x : (land ? 14 : 4) + 67, y : room_height - 8 - 16, w : 90, h : 16 }; };   // under the haul card (left half)
+__swap_r = function() { return { x : (land ? 14 : 4) + 16, y : room_height - 8 - 16, w : 90, h : 16 }; };
+__go_r   = function() { return { x : (land ? 14 : 4) + 118, y : room_height - 8 - 16, w : 90, h : 16 }; };
 __pick_r = function(_k) { return { x : room_width * .5 - 100, y : list_y + 30 + _k * 16, w : 200, h : 15 }; };
 
 /// the trip / haul this view looks at, or undefined
