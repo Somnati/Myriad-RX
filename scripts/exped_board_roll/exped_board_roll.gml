@@ -17,6 +17,12 @@ function exped_board_roll() {
 		var _b = irandom(array_length(_bi) - 1);
 		if (_i == 0 && _e.depth <= 1) _b = 1;   // the first world on the first board is a LIVING one - blue water, green grass (his first scope, 2026-09-14)
 		var _seed = irandom($7fffffff);
+		// THE HOME WORLD (2026-09-15): the first world on the board is the
+		// planet we are on - a real star's temperate rock (galaxy_home), so
+		// the sky over it is its real neighbourhood and the star is on the
+		// map. (The roll above still runs: the deal's stream stays in step)
+		var _hname = "";
+		if (_i == 0) { var _hm = galaxy_home(); _seed = _hm.planet_seed; _hname = _hm.name; }
 		var _keep = undefined;
 		if (_i < array_length(_old))
 			for (var _t = 0; _t < array_length(_e.trips); _t++)
@@ -24,7 +30,7 @@ function exped_board_roll() {
 		if (!is_undefined(_keep)) { array_push(_e.board, _keep); continue; }
 		array_push(_e.board, {
 			seed  : _seed,
-			name  : exped_name(_seed),
+			name  : (_hname != "") ? _hname : exped_name(_seed),
 			biome : _b,
 			tier  : _tier,
 			dist  : EXPED_DIST0 * power(2, _tier - 1),

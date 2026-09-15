@@ -1,7 +1,7 @@
 {
   "$GMShader":"",
-  "%Name":"sh_fog_dither",
-  "name":"sh_fog_dither",
+  "%Name":"sh_sky_fog",
+  "name":"sh_sky_fog",
   "parent":{
     "name":"galaxy",
     "path":"folders/game/galaxy.yy",

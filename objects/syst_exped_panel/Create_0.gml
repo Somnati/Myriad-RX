@@ -156,6 +156,7 @@ __back = function() {
 	swap_pick = false;
 	switch (view) {
 		case "map":    view = map_from; break;
+		case "galaxy": view = gx_from; break;
 		case "depart": view = "region"; break;
 		case "region": view = "planet"; break;   // (the pick stays: the world keeps facing it, [view region] still there)
 		case "crew":   view = (crew_trip >= 0) ? "trip" : "hub"; crew_trip = -1; it_pop = undefined; break;
@@ -200,6 +201,57 @@ __spin_for = function(_pn, _lon, _lat) {
 	return _best;
 };
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
+// ---- THE ORBIT VIEW (the planet page, 2026-09-15: the tech demo's rm_planet in the panel) ----
+// cam = view -> world (an arcball: drag post-multiplies about the view's
+// axes, glide keeps the flick); the world spins its own tilted axis and
+// the camera RIDES it (geosync: the spot you look at stays put while the
+// daylight sweeps); the sky and the sun come from the galaxy (pv_sky)
+pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
+pv_spin  = 0;                        // the world's own-axis angle
+pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
+pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
+pv_geo   = true;
+pv_face  = -1;                       // the region the camera is turning to face (-1 = none)
+pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
+pv_sky   = undefined;                // galaxy_sky_build()
+pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
+pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
+sky_fog_surf = -1;                   // sh_sky_fog's canvas (the page's size)
+__pv_r     = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
+__pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5, y : _r.y + _r.h * .5 + 2 }; };
+__pv_dw_w  = function() { return land ? 150 : 120; };
+__pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
+__pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
+__pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
+__galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : 64, h : 16 }; };   // [galaxy], bottom left of the planet page
+__hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 64, h : 14 }; };
+/// a region's spot as a unit vector in TEXTURE space (sphere_uv's frame)
+__spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat), dcos(_lat) * dsin(_lon)]; };
+/// a press on one of the page's controls is not a grab of the world
+__pv_ui_hit = function() {
+	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
+	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
+	if (pl_focus >= 0) { var _v = __view_rg_r(); if (point_in_rectangle(mouse_x, mouse_y, _v.x, _v.y, _v.x + _v.w, _v.y + _v.h)) return true; }
+	if (mouse_x >= __pv_dw_x()) return true;   // the tab and the drawer
+	return false;
+};
+/// a region picked on the planet page (a tap on its spot, or its row): the
+/// camera turns to face it, the region window's small world too
+__pv_pick = function(_i) {
+	rg_sel = _i; pl_focus = _i; pv_face = _i;
+	var _rgs = region_get(pl_dest, _i);
+	var _pn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	pl_spin_t = __spin_for(_pn3, _rgs.spot.lon, _rgs.spot.lat);
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+};
+// ---- THE GALAXY VIEW (the star map, 2026-09-15: the tech demo's rm_starmap as a page) ----
+gx_x = 0; gx_y = 0; gx_zoom = 1; gx_init = false;   // the camera's top-left on the plane, the zoom; centred on the home star the first time
+gx_press = false; gx_px = 0; gx_py = 0; gx_cx0 = 0; gx_cy0 = 0; gx_travel = 0;
+gx_sel = -1; gx_sys = undefined;     // the tapped star and its system
+gx_from = "hub";                     // where [back] returns
+gx_fog = -1; gx_fog_seed = -1;       // the nebula fog sheet, baked once a galaxy
+gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
+__gx_r = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
 // the region window: the quests, then explore
 __q_row   = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? (list_y + 40) : (_b.y + _b.h + 26)) + _i * 30, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 27 }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief

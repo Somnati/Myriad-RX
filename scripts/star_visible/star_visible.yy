@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"star_visible",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"star_visible",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

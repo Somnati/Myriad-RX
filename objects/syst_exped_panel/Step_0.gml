@@ -59,6 +59,41 @@ if (is_struct(pl_dest)) {
 	}
 }
 
+// THE ORBIT VIEW'S CLOCK: the world spins its own axis (the universal
+// clock sets it the first time), the camera rides the spin (geosync), and
+// turns to face a picked region (pv_face) - a rotation about the view axis
+// that lifts the spot's view z toward one; the sign is tried both ways
+if (view == "planet" && is_struct(pl_dest)) {
+	var _pn4 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = ((current_time / 1000) * 60 * _pn4.spin) mod 360; pv_sky = galaxy_sky_build(); }
+	var _ds = _pn4.spin * delta;
+	pv_spin += _ds;
+	var _sax = mat3_apply(mat3_rot(0, 0, 1, _pn4.tilt), 0, 1, 0);
+	if (pv_geo) pv_cam = mat3_mul(mat3_rot(_sax[0], _sax[1], _sax[2], _ds), pv_cam);
+	if (pv_face >= 0) {
+		var _rgf = region_get(pl_dest, pv_face);
+		var _wm4 = mat3_mul(mat3_rot(0, 0, 1, _pn4.tilt), mat3_rot(0, 1, 0, pv_spin));
+		var _tf = __spot_dir(_rgf.spot.lon, _rgf.spot.lat);
+		var _nw = mat3_apply(_wm4, _tf[0], _tf[1], _tf[2]);
+		var _vf = mat3_apply(mat3_transpose(pv_cam), _nw[0], _nw[1], _nw[2]);
+		if (_vf[2] > .9995) pv_face = -1;
+		else {
+			var _ang = darccos(clamp(_vf[2], -1, 1)) * (1 - power(.88, delta));
+			var _axl = sqrt(_vf[0] * _vf[0] + _vf[1] * _vf[1]);
+			var _ax0 = (_axl < .0001) ? 0 : (_vf[1] / _axl);
+			var _ax1 = (_axl < .0001) ? 1 : (-_vf[0] / _axl);
+			var _c1 = mat3_mul(pv_cam, mat3_rot(_ax0, _ax1, 0, _ang));
+			var _c2 = mat3_mul(pv_cam, mat3_rot(_ax0, _ax1, 0, -_ang));
+			var _v1 = mat3_apply(mat3_transpose(_c1), _nw[0], _nw[1], _nw[2]);
+			var _v2 = mat3_apply(mat3_transpose(_c2), _nw[0], _nw[1], _nw[2]);
+			pv_cam = (_v1[2] >= _v2[2]) ? _c1 : _c2;
+		}
+	}
+	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
+}
+if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
+if (view != "galaxy") gx_press = false;
+
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
 // ---- THE CONFIRM POPUP owns the panel while it is up (abort) ----
@@ -88,6 +123,95 @@ if (keyboard_check_pressed(vk_escape)) {
 	exit;
 }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
+
+// ======================= THE ORBIT VIEW: the grab, the drag, the glide, the tap =======================
+// (held and released input - above the press gate)
+if (view == "planet" && is_struct(pl_dest)) {
+	var _ocf = starmap_config();
+	var _pvr = __pv_r();
+	var _pin = point_in_rectangle(mouse_x, mouse_y, _pvr.x, _pvr.y, _pvr.x + _pvr.w, _pvr.y + _pvr.h);
+	if (!pv_drag && mouse_check_button_pressed(mb_left) && _pin && !__pv_ui_hit()) { pv_drag = true; pv_px = 0; pv_dx = mouse_x; pv_dy = mouse_y; pv_vx = 0; pv_vy = 0; }
+	if (pv_drag && mouse_check_button(mb_left)) {
+		var _mx = mouse_x - pv_dx, _my = mouse_y - pv_dy;
+		pv_px += abs(_mx) + abs(_my);
+		if (pv_px > 4) pv_face = -1;   // a real drag lets go of the turn
+		// swipe = grab the world and pull it with you (the demo's sign)
+		if (_mx != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  _mx * _ocf.orbit_sens));
+		if (_my != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -_my * _ocf.orbit_sens));
+		pv_vx = lerp(pv_vx, _mx, .5); pv_vy = lerp(pv_vy, _my, .5);
+		pv_dx = mouse_x; pv_dy = mouse_y;
+	} else if (pv_drag) {
+		pv_drag = false;
+		if (pv_px <= 4) {
+			// a still tap: the region under it - planet_pick (the render run
+			// backwards) then the nearest spot within twelve degrees
+			var _pc = __pv_c();
+			var _ppn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+			var _pk = planet_pick(_ppn, mouse_x, mouse_y, _pc.x, _pc.y, _ocf.pr, pv_mat_m);
+			if (_pk.hit) {
+				var _best = -1, _bd = dcos(12);
+				for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+					var _rgp = region_get(pl_dest, _i);
+					var _tp = __spot_dir(_rgp.spot.lon, _rgp.spot.lat);
+					var _dot = _tp[0] * _pk.tx + _tp[1] * _pk.ty + _tp[2] * _pk.tz;
+					if (_dot > _bd) { _bd = _dot; _best = _i; }
+				}
+				if (_best >= 0) __pv_pick(_best);
+				else play_sound_ext(snd_matclick2, .7, .8, .3, 0);
+			}
+		}
+	}
+	if (!pv_drag) {
+		if (abs(pv_vx) > .02 || abs(pv_vy) > .02) {
+			pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  pv_vx * _ocf.orbit_sens * delta));
+			pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -pv_vy * _ocf.orbit_sens * delta));
+			var _dk = power(_ocf.orbit_glide, delta);
+			pv_vx *= _dk; pv_vy *= _dk;
+		} else { pv_vx = 0; pv_vy = 0; }
+	}
+}
+// ======================= THE GALAXY VIEW: pan, zoom, tap a star =======================
+if (view == "galaxy") {
+	var _gcf = starmap_config();
+	var _gr = __gx_r();
+	var _gin = point_in_rectangle(mouse_x, mouse_y, _gr.x, _gr.y, _gr.x + _gr.w, _gr.y + _gr.h);
+	if (_gin) {
+		var _z0 = gx_zoom;
+		if (mouse_wheel_up())   gx_zoom = min(gx_zoom * _gcf.zoom_step, _gcf.zoom_max);
+		if (mouse_wheel_down()) gx_zoom = max(gx_zoom / _gcf.zoom_step, _gcf.zoom_min);
+		if (gx_zoom != _z0) { var _vcx = gx_x + _gr.w * .5 / _z0, _vcy = gx_y + _gr.h * .5 / _z0; gx_x = _vcx - _gr.w * .5 / gx_zoom; gx_y = _vcy - _gr.h * .5 / gx_zoom; }
+	}
+	var _gbk = __back_r();
+	var _onbk = point_in_rectangle(mouse_x, mouse_y, _gbk.x, _gbk.y, _gbk.x + _gbk.w, _gbk.y + _gbk.h);
+	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
+	if (gx_press && mouse_check_button(mb_left)) {
+		gx_travel = max(gx_travel, point_distance(gx_px, gx_py, mouse_x, mouse_y));
+		gx_x = gx_cx0 - (mouse_x - gx_px) / gx_zoom;
+		gx_y = gx_cy0 - (mouse_y - gx_py) / gx_zoom;
+	} else if (gx_press) {
+		gx_press = false;
+		if (gx_travel <= _gcf.tap_max_dist) {
+			// the nearest star to the tap, on its parallax-shifted draw position
+			var _sm = starmap_get();
+			var _vis = star_visible(gx_x, gx_y, gx_zoom, _gr.w, _gr.h);
+			var _vcx2 = gx_x + _gr.w * .5 / gx_zoom, _vcy2 = gx_y + _gr.h * .5 / gx_zoom;
+			var _bi = -1, _bd = _gcf.tap_radius;
+			for (var _i = 0; _i < array_length(_vis); _i++) {
+				var _st = _sm.stars[_vis[_i]];
+				var _sx = _gr.x + ((_vcx2 + (_st.x - _vcx2) * _st.d) - gx_x) * gx_zoom;
+				var _sy = _gr.y + ((_vcy2 + (_st.y - _vcy2) * _st.d) - gx_y) * gx_zoom;
+				var _dd = point_distance(_sx, _sy, mouse_x, mouse_y);
+				if (_dd < _bd) { _bd = _dd; _bi = _vis[_i]; }
+			}
+			if (_bi >= 0 && _bi != gx_sel) { gx_sel = _bi; gx_sys = starsystem_generate(_sm.stars[_bi].seed, _sm.stars[_bi].props); play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+			else if (_bi < 0) gx_sel = -1;
+		}
+	}
+	var _gcfg = starmap_config();
+	gx_x = clamp(gx_x, -_gr.w * .5 / gx_zoom, _gcfg.plane_w - _gr.w * .5 / gx_zoom);
+	gx_y = clamp(gx_y, -_gr.h * .5 / gx_zoom, _gcfg.plane_h - _gr.h * .5 / gx_zoom);
+}
+
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
 // the debug clock: x1 / x10 / x100
@@ -133,10 +257,17 @@ if (view == "crew") {
 // ======================= THE MAP =======================
 if (view == "map") exit;
 
-// ======================= THE PLANET: its regions =======================
+// ======================= THE PLANET PAGE: its buttons, the drawer =======================
+// (the grab / drag / tap are above the press gate)
 if (view == "planet") {
-	// [view region]: the picked one's window (his ask, 2026-09-15: a pick
-	// first, the world pulls over to it, then the button)
+	// [galaxy]: the star map
+	var _gl = __galaxy_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _gl.x, _gl.y, _gl.x + _gl.w, _gl.y + _gl.h)) {
+		gx_from = "planet"; view = "galaxy";
+		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+		exit;
+	}
+	// [view region]: the picked one's window
 	if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
@@ -146,21 +277,27 @@ if (view == "planet") {
 			exit;
 		}
 	}
-	// a region row: the world turns to it (a second tap on the same row
-	// changes nothing - it stays picked)
-	for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-		var _pr0 = __pl_row(_i);
-		if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
-		if (pl_focus == _i) { play_sound_ext(snd_softclick, .95, 1.05, .3, 1); exit; }
-		rg_sel = _i;
-		var _rgs = region_get(pl_dest, _i);
-		var _pn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-		pl_focus = _i; pl_spin_t = __spin_for(_pn3, _rgs.spot.lon, _rgs.spot.lat);
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+	// the drawer's tab: open / close
+	var _tb = __pv_tab_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
+		pv_dw = !pv_dw;
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 		exit;
+	}
+	// a region row (the drawer open): the camera turns to it
+	if (pv_dwa > .5) {
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _pr0 = __pv_row_r(_i);
+			if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
+			if (pl_focus == _i && pv_face < 0) { pv_face = _i; play_sound_ext(snd_softclick, .95, 1.05, .3, 1); exit; }
+			__pv_pick(_i);
+			exit;
+		}
 	}
 	exit;
 }
+// ======================= THE GALAXY: presses do nothing here (the pan / tap are above) =======================
+if (view == "galaxy") exit;
 
 // ======================= THE REGION: the quests, or explore =======================
 if (view == "region") {
@@ -346,6 +483,13 @@ if (array_length(g.sprites) > 0) {
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
+}
+// [galaxy]: the star map (his ask, 2026-09-15)
+var _hgl = __hub_gal_r();
+if (point_in_rectangle(mouse_x, mouse_y, _hgl.x, _hgl.y, _hgl.x + _hgl.w, _hgl.y + _hgl.h)) {
+	gx_from = "hub"; view = "galaxy";
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+	exit;
 }
 // a world: its planet window
 for (var _i = 0; _i < array_length(_e.board); _i++) {

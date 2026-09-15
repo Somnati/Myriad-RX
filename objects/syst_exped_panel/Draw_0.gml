@@ -690,67 +690,88 @@ if (view == "trip") {
 	exit;
 }
 
-// ======================= THE PLANET (his ask, 2026-09-15): the world, its facts, its regions =======================
+// ======================= THE PLANET PAGE (2026-09-15): the orbit view =======================
+// the tech demo's rm_planet in the panel: the whole page is the sky (the
+// real neighbourhood, the milky way, the system's sun) with the world in
+// the middle, the camera orbiting it by drag; the regions' spots are on
+// the globe (tap one), the drawer on the right lists them
 if (view == "planet") {
 	var _d = pl_dest;
 	var _b = exped_biomes()[_d.biome];
-	var _bx = __pl_box();
-	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(_bx.x, list_y + 6, _d.name);
-	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
-	draw_text(_bx.x + string_width(_d.name) + 10, list_y + 6, _b.name + " world  -  tier " + string(_d.tier));
-	// the world, big (__draw_world_box: the spin, the zoom, the spots)
-	__draw_world_box(_d);
-	ui_fade_set(_ea);
-	// the facts, under it
-	var _fy = _bx.y + _bx.h + 4;
-	draw_set_color(_dim); draw_set_alpha(.75);
-	draw_text(_bx.x, _fy, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
-	// the wild: what the regions' terrain grows (region_gen's wild lists, the union)
-	var _wl = [];
-	for (var _wi = 0; _wi < EXPED_REGIONS; _wi++) { var _wrg = region_get(_d, _wi); var _wk = _wrg[$ "wild"] ?? []; for (var _wj = 0; _wj < array_length(_wk); _wj++) if (!array_contains(_wl, _wk[_wj])) array_push(_wl, _wk[_wj]); }
-	var _wtxt = "";
-	for (var _wi = 0; _wi < array_length(_wl); _wi++) {
-		var _wn = _wl[_wi];
-		if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s";
-		_wtxt += ((_wi > 0) ? ", " : "") + _wn;
+	var _ocf = starmap_config();
+	var _pvr = __pv_r(), _pvc = __pv_c();
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _built = (_pn.row >= _pn.th);
+	var _w = _pvr.w, _h = _pvr.h;
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
+		if (surface_exists(wb_surf)) surface_free(wb_surf);
+		wb_surf = surface_create(_w, _h);
 	}
-	var _wline = "the wild here: " + ((_wtxt == "") ? "unknown" : _wtxt);
-	draw_text_ext(_bx.x, _fy + 10, _wline, 9, _bx.w);
-	draw_text_ext(_bx.x, _fy + 10 + string_height_ext(_wline, 9, _bx.w) + 1, "medieval. settlements and camps are common, towns rare, a city rarer.", 9, _bx.w);
-	// the regions: EXPED_REGIONS a world, lv +0 / +2 / +4 - tap one and the world turns to it
-	draw_set_color(_ink); draw_set_alpha(.6);
-	var _r0 = __pl_row(0);
-	draw_text(_r0.x, _r0.y - 12, "regions  -  tap one");
-	var _kk = region_kinds();
-	for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-		var _rg = region_get(_d, _i);
-		var _rr = __pl_row(_i);
-		var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
-		for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
-			var _kd = _kk[$ _rg.nodes[_j].kind];
-			if (is_undefined(_kd)) continue;
-			if (_kd.civ) _nciv++;
-			if (_rg.nodes[_j].kind == "dungeon") _ndun++;
-			if (_rg.nodes[_j].kind == "camp") _ncmp++;
-			if (_rg.nodes[_j].kind == "landing") _nlnd++;
+	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) {
+		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
+		sky_fog_surf = surface_create(_w, _h);
+	}
+	var _lcx = _pvc.x - _pvr.x, _lcy = _pvc.y - _pvr.y;
+	var _pr = _ocf.pr;
+	// the matrices: texture-from-view for the shader and the pick, its
+	// inverse for the spots (the demo's mat_m / mat_r)
+	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
+	pv_mat_m = mat3_mul(mat3_transpose(_wm), pv_cam);
+	pv_mat_r = mat3_transpose(pv_mat_m);
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	if (is_struct(pv_sky)) {
+		galaxy_sky_draw(pv_sky, pv_cam, _lcx, _lcy, _w, _h, true);
+		galaxy_fog_draw(pv_sky, pv_cam, _lcx, _lcy, _w, _h, sky_fog_surf);
+	} else planet_sky_draw(_d.seed, 0, 0, _w, _h);
+	if (_built) planet_draw(_pn, _lcx, _lcy, _pr, pv_spin, 1, pv_cam, is_struct(pv_sky) ? pv_sky.light_w : undefined);
+	else __portrait(_d, _lcx, _lcy, _pr);
+	// the spots: a 2px square each where the globe carries it (the far side
+	// skipped), the picked one a pulsing hollow square, labels facing you
+	if (_built) {
+		draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
+		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _rg = region_get(_d, _i);
+			var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
+			var _v = mat3_apply(pv_mat_r, _t[0], _t[1], _t[2]);
+			if (_v[2] <= .1) continue;
+			var _sx = floor(_lcx) + floor(_v[0] * _pr * .5) * 2, _sy = floor(_lcy) + floor(_v[1] * _pr * .5) * 2;
+			var _on = (_i == pl_focus);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
+			if (_on) {
+				var _s = 6 + _pulse * 2;
+				draw_px_rect(_sx - _s * .5, _sy - _s * .5, _s, _s, c_gold, .95);
+				draw_px_rect(_sx - _s * .5 + 1, _sy - _s * .5 + 1, _s - 2, _s - 2, c_gold, .5);
+			}
+			if (_v[2] > .3) {
+				draw_set_color(_on ? c_gold : c_white); draw_set_alpha(_on ? .95 : .8);
+				draw_text(_sx + 6 + (_on ? 2 : 0), _sy - 4, _on ? _rg.name : ("lv " + string(_rg.lv)));
+			}
 		}
-		var _on = (pl_focus == _i);
-		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
-		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : c_steelblue, _on ? .9 : .5);
-		draw_set_color(c_white); draw_set_alpha(.95);
-		draw_text(_rr.x + 6, _rr.y + 3, _rg.name);
-		draw_set_halign(fa_right);
-		draw_set_color((_i == 0) ? c_sgreen : ((_i == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
-		draw_text(_rr.x + _rr.w - 6, _rr.y + 3, "level " + string(_rg.lv));
-		draw_set_halign(fa_left);
-		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(_rr.x + 6, _rr.y + 13, string(array_length(_rg.nodes)) + " places: " + string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon, " : " dungeons, ") + string(_ncmp) + ((_ncmp == 1) ? " camp" : " camps") + ((_nlnd > 0) ? ", 2 landing zones" : ""));
-		var _out = 0;
-		for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
-		if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 6, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
+		draw_set_alpha(1);
 	}
-	// [view region], once one is picked (bottom right)
+	surface_reset_target();
+	ui_fade_set(_fa);
+	draw_surface(wb_surf, _pvr.x, _pvr.y);
+	ui_fade_set(_ea);
+	// the title (the strip row) and the facts, over the sky
+	draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(land ? 14 : 4, list_y + 6, _d.name);
+	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
+	draw_text((land ? 14 : 4) + string_width(_d.name) + 10, list_y + 6, _b.name + " world  -  tier " + string(_d.tier) + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
+	if (is_struct(pv_sky)) {
+		var _sm = starmap_get(), _hm = galaxy_home();
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(land ? 14 : 4, list_y + 20, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds");
+	}
+	draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(land ? 14 : 4, list_y + 30, "drag to orbit  -  tap a region");
+	// [galaxy], [view region]
+	var _gl = __galaxy_r();
+	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
 	if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
 		draw_ui_button(_vr.x, _vr.y, _vr.w, _vr.h, "view region", c_gold, true, true);
@@ -759,6 +780,185 @@ if (view == "planet") {
 		draw_text(room_width - (land ? 14 : 4), room_height - 8 - 12, "pick a region to view it");
 		draw_set_halign(fa_left);
 	}
+	// THE DRAWER: the tab on the right edge, the regions when open
+	var _dwx = __pv_dw_x();
+	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - (list_y + 16), 0, c_black, .82 * pv_dwa);
+	var _tb = __pv_tab_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
+	draw_px_rect(_tb.x, _tb.y, _tb.w, _tb.h, c_steelblue, .6);
+	draw_set_color(c_steelblue); draw_set_alpha(.9);
+	draw_text(_tb.x + 2, _tb.y + _tb.h * .5 - 4, pv_dw ? ">" : "<");
+	if (pv_dwa > .3) {
+		draw_set_color(_ink); draw_set_alpha(.6 * pv_dwa);
+		draw_text(_dwx + 13, list_y + 24, "regions  -  tap one");
+		var _kk = region_kinds();
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _rg = region_get(_d, _i);
+			var _rr = __pv_row_r(_i);
+			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
+			for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
+				var _kd = _kk[$ _rg.nodes[_j].kind];
+				if (is_undefined(_kd)) continue;
+				if (_kd.civ) _nciv++;
+				if (_rg.nodes[_j].kind == "dungeon") _ndun++;
+				if (_rg.nodes[_j].kind == "camp") _ncmp++;
+				if (_rg.nodes[_j].kind == "landing") _nlnd++;
+			}
+			var _on = (pl_focus == _i);
+			draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
+			draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : c_steelblue, _on ? .9 : .5);
+			draw_set_color(c_white); draw_set_alpha(.95);
+			draw_text(_rr.x + 5, _rr.y + 3, string_copy(_rg.name, 1, land ? 18 : 14));
+			draw_set_halign(fa_right);
+			draw_set_color((_i == 0) ? c_sgreen : ((_i == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
+			draw_text(_rr.x + _rr.w - 5, _rr.y + 3, "lv " + string(_rg.lv));
+			draw_set_halign(fa_left);
+			draw_set_color(_dim); draw_set_alpha(.7);
+			draw_text(_rr.x + 5, _rr.y + 13, string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon, " : " dungeons, ") + string(_ncmp) + ((_ncmp == 1) ? " camp" : " camps") + ((_nlnd > 0) ? ", 2 lz" : ""));
+			var _out = 0;
+			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
+			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
+		}
+		// the wild, under the rows
+		var _wl = [];
+		for (var _wi = 0; _wi < EXPED_REGIONS; _wi++) { var _wrg = region_get(_d, _wi); var _wk = _wrg[$ "wild"] ?? []; for (var _wj = 0; _wj < array_length(_wk); _wj++) if (!array_contains(_wl, _wk[_wj])) array_push(_wl, _wk[_wj]); }
+		var _wtxt = "";
+		for (var _wi = 0; _wi < array_length(_wl); _wi++) {
+			var _wn = _wl[_wi];
+			if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s";
+			_wtxt += ((_wi > 0) ? ", " : "") + _wn;
+		}
+		draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa);
+		draw_text_ext(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 4, "the wild here: " + ((_wtxt == "") ? "unknown" : _wtxt) + ". medieval: settlements and camps are common, towns rare, a city rarer.", 9, __pv_dw_w() - 8);
+	}
+	ui_fade_set(1);
+	exit;
+}
+
+// ======================= THE GALAXY (2026-09-15): the star map =======================
+// the tech demo's rm_starmap as a page: the parallax backdrop, the stars
+// off the draw grid with their depth parallax, the nebula fog sheet
+// (baked once a galaxy, dithered), the home star ringed. Drag pans,
+// the wheel zooms, a tap names a star. Travel comes later
+if (view == "galaxy") {
+	var _gcf = starmap_config();
+	var _sm = starmap_get();
+	var _hm = galaxy_home();
+	var _gr = __gx_r();
+	var _vw = _gr.w, _vh = _gr.h;
+	if (!gx_init) { gx_init = true; gx_zoom = 1; gx_x = _sm.stars[_hm.star].x - _vw * .5; gx_y = _sm.stars[_hm.star].y - _vh * .5; }
+	if (array_length(gx_para) == 0) {
+		var _tw = _vw + 200, _th = _vh + 200;
+		for (var _l = 0; _l < _gcf.para_layers; _l++) {
+			var _lst = [];
+			repeat (_gcf.para_stars) array_push(_lst, { x : random(_tw), y : random(_th), col : choose(rgb(150, 160, 190), rgb(150, 160, 190), rgb(190, 170, 150)), a : .08 + .07 * _l + random(.06) });
+			array_push(gx_para, { f : .15 + .175 * _l, tw : _tw, th : _th, stars : _lst });
+		}
+	}
+	// the fog sheet: the density grid baked once, warm core to cool rim
+	if (!surface_exists(gx_fog) || gx_fog_seed != _sm.seed) {
+		if (surface_exists(gx_fog)) surface_free(gx_fog);
+		var _ngw = _sm.ngw;
+		gx_fog = surface_create(_ngw, _ngw);
+		surface_set_target(gx_fog);
+		draw_clear_alpha(c_black, 0);
+		for (var _cy = 0; _cy < _ngw; _cy++)
+		for (var _cx = 0; _cx < _ngw; _cx++) {
+			var _acc = 0, _wsm = 0;
+			for (var _oy = -1; _oy <= 1; _oy++)
+			for (var _ox = -1; _ox <= 1; _ox++) {
+				var _nx = _cx + _ox, _ny = _cy + _oy;
+				if (_nx < 0 || _ny < 0 || _nx >= _ngw || _ny >= _ngw) continue;
+				var _wt = ((_ox == 0) ? 2 : 1) * ((_oy == 0) ? 2 : 1);
+				_acc += _sm.ngrid[_nx + _ny * _ngw] * _wt;
+				_wsm += _wt;
+			}
+			var _dn = (_acc / _wsm) / _sm.nmax;
+			if (_dn <= .01) continue;
+			_dn = power(_dn, .40);
+			var _wx = (_cx + .5) * _sm.ncell, _wy = (_cy + .5) * _sm.ncell;
+			var _rd = clamp(point_distance(_wx, _wy, _sm.cx, _sm.cy) / _sm.gal_r, 0, 1);
+			var _col = merge_colour(rgb(255, 185, 125), rgb(130, 155, 255), _rd);
+			_col = merge_colour(rgb(24, 22, 30), _col, .55 + .45 * _dn);
+			draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, 1, 1, 0, _col, _dn);
+		}
+		surface_reset_target();
+		gx_fog_seed = _sm.seed;
+	}
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _vw || surface_get_height(wb_surf) != _vh) {
+		if (surface_exists(wb_surf)) surface_free(wb_surf);
+		wb_surf = surface_create(_vw, _vh);
+	}
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	draw_set_alpha(1);
+	// the parallax backdrop: wrapped tiles panning slower than the plane
+	for (var _l = 0; _l < array_length(gx_para); _l++) {
+		var _pl = gx_para[_l];
+		var _lz = lerp(1, gx_zoom, _pl.f);
+		var _twz = _pl.tw * _lz, _thz = _pl.th * _lz;
+		var _ox = gx_x * _pl.f * _lz, _oy = gx_y * _pl.f * _lz;
+		var _sx0 = (_twz - _vw) * .5, _sy0 = (_thz - _vh) * .5;
+		for (var _i = 0; _i < array_length(_pl.stars); _i++) {
+			var _ps = _pl.stars[_i];
+			var _px = (_ps.x * _lz - _ox) mod _twz; if (_px < 0) _px += _twz;
+			var _py = (_ps.y * _lz - _oy) mod _thz; if (_py < 0) _py += _thz;
+			draw_sprite_ext(spr_pixel_1x1, 0, _px - _sx0, _py - _sy0, _lz, _lz, 0, _ps.col, _ps.a);
+		}
+	}
+	// the stars, with their depth parallax about the view's centre
+	var _vcx = gx_x + _vw * .5 / gx_zoom, _vcy = gx_y + _vh * .5 / gx_zoom;
+	var _vis = star_visible(gx_x, gx_y, gx_zoom, _vw, _vh);
+	var _m = 12 * gx_zoom + 4;
+	for (var _i = 0; _i < array_length(_vis); _i++) {
+		var _st = _sm.stars[_vis[_i]];
+		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
+		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
+		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
+		var _s = _st.props.size * gx_zoom;
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _s * .5, _sy - _s * .5, _s, _s, 0, _st.props.color, 1);
+	}
+	// the fog, additive over the stars (the demo's order), bilinear, dithered
+	var _fd = _gcf.fog_depth;
+	var _ffx = (_vcx * (1 - _fd) - gx_x) * gx_zoom, _ffy = (_vcy * (1 - _fd) - gx_y) * gx_zoom;
+	var _ffs = _fd * gx_zoom * _sm.width / surface_get_width(gx_fog);
+	var _ftf = gpu_get_tex_filter();
+	gpu_set_tex_filter(true);
+	gpu_set_blendmode(bm_add);
+	shader_set(sh_fog_dither);
+	shader_set_uniform_f(shader_get_uniform(sh_fog_dither, "u_time"), (current_time mod 100000) / 1000);
+	draw_surface_ext(gx_fog, _ffx, _ffy, _ffs, _ffs, 0, c_white, _gcf.fog_alpha);
+	shader_reset();
+	gpu_set_blendmode(bm_normal);
+	gpu_set_tex_filter(_ftf);
+	// the home star: a pulsing hollow square and its name; the tapped star: a white one
+	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
+	var _marks = [ { i : _hm.star, col : c_gold, txt : star_name(_hm.star) + "  -  you are here" } ];
+	if (gx_sel >= 0 && gx_sel != _hm.star) array_push(_marks, { i : gx_sel, col : c_white, txt : star_name(gx_sel) + "  -  class " + _sm.stars[gx_sel].props.stellar_class + (is_struct(gx_sys) ? ("  -  " + string(array_length(gx_sys.planets)) + " worlds") : "") });
+	for (var _k = 0; _k < array_length(_marks); _k++) {
+		var _mk = _marks[_k];
+		var _st = _sm.stars[_mk.i];
+		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
+		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
+		var _ms = 8 + ((_mk.i == _hm.star) ? floor(1.5 + 1.5 * dsin(current_time * .25)) * 2 : 0);
+		draw_px_rect(floor(_sx - _ms * .5), floor(_sy - _ms * .5), _ms, _ms, _mk.col, .95);
+		draw_set_color(_mk.col); draw_set_alpha(.95);
+		draw_text(floor(_sx) + _ms * .5 + 4, floor(_sy) - 4, _mk.txt);
+	}
+	draw_set_alpha(1);
+	surface_reset_target();
+	ui_fade_set(_fa);
+	draw_surface(wb_surf, _gr.x, _gr.y);
+	ui_fade_set(_ea);
+	// the title
+	draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(land ? 14 : 4, list_y + 6, _sm.name);
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text((land ? 14 : 4) + string_width(_sm.name) + 10, list_y + 6, string(_sm.count) + " stars  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  x" + string_format(gx_zoom, 1, 2));
+	draw_set_alpha(.5);
+	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star");
 	ui_fade_set(1);
 	exit;
 }
@@ -995,11 +1195,13 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	}
 	draw_set_halign(fa_left);
 }
-// [crew]: the roster
+// [crew]: the roster; [galaxy]: the star map
 if (array_length(g.sprites) > 0) {
 	var _shr = __crewbtn_r();
 	draw_ui_button(_shr.x, _shr.y, _shr.w, _shr.h, "crew", c_steelblue, true, false);
 }
+var _hgl = __hub_gal_r();
+draw_ui_button(_hgl.x, _hgl.y, _hgl.w, _hgl.h, "galaxy", c_steelblue, true, false);
 
 // THE LIST: hauls waiting, then trips out
 draw_set_color(_ink);

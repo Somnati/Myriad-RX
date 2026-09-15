@@ -529,6 +529,7 @@ function handle_save(){
 
 	section = "exped";
 	exped_init();
+	g.galaxy_seed  = handle("ex_galaxy", g.galaxy_seed);   // (the galaxy: starmap_get regenerates when it changes)
 	g.exped.depth  = handle("ex_depth",  g.exped.depth);
 	g.exped.charms = handle("ex_charms", g.exped.charms);
 	g.exped.seq    = handle("ex_seq",    g.exped.seq);
@@ -585,6 +586,7 @@ function handle_save(){
 				if (array_length(_kv) == 2) g.exped.mats[$ _kv[0]] = real(_kv[1]);
 			}
 		}
+		g.galaxy_seed = max(1, floor(g.galaxy_seed));
 		exped_unpack(_xt);
 		exped_board_roll();
 	}

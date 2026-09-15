@@ -4,10 +4,12 @@
 /// lights by night, and THE MOUNTAINS - the shader marches the height
 /// texture so the peaks stand out of the silhouette as it turns (his
 /// wish from the tech demo). The sun is fixed to the upper left.
-/// Bakes the textures if they are missing. pr = the radius in px; cfade
+/// Bakes the textures if they are missing. pr = the radius in px; cam /
+/// light_w = the orbit camera and the world-space sun (undefined = the
+/// fixed view: a spinning world lit from upper left); cfade
 /// 0..1 thins the clouds (the region zoom, his ask 2026-09-15). Uniforms
 /// persist between draws, so every one is set every call.
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1) {
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined) {
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = (current_time / 1000) * 60 * _pn.spin;   // deg per step x 60 = per second
@@ -32,16 +34,22 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1) {
 		height : shader_get_sampler_index(sh_planet, "u_height"),
 	};
 	// the camera looks down -z at the world; the world turns about its
-	// tilted axis; the shader wants texture-from-view rows
-	var _cam = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+	// tilted axis; the shader wants texture-from-view rows. With a CAMERA
+	// (the orbit view, 2026-09-15: cam = view -> world, the tech demo's
+	// obj_planet) the sun is a WORLD vector (light_w: the system's star at
+	// its real bearing) rotated into view space, so orbiting behind the
+	// world puts you over its night; without one the sun sits upper left
+	if (is_undefined(_cam)) _cam = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+	var _ct = mat3_transpose(_cam);
 	var _w  = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
 	var _wc = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin * 1.16 + 31));
 	var _m  = mat3_mul(mat3_transpose(_w), _cam);
 	var _mc = mat3_mul(mat3_transpose(_wc), _cam);
-	var _lv = [-.55, -.5, .67];
-	var _ll = sqrt(_lv[0] * _lv[0] + _lv[1] * _lv[1] + _lv[2] * _lv[2]);
+	var _lv = is_array(_light_w) ? mat3_apply(_ct, _light_w[0], _light_w[1], _light_w[2]) : [-.55, -.5, .67];
+	var _ll = max(.001, sqrt(_lv[0] * _lv[0] + _lv[1] * _lv[1] + _lv[2] * _lv[2]));
 	_lv = [_lv[0] / _ll, _lv[1] / _ll, _lv[2] / _ll];
 	var _ax = mat3_apply(mat3_rot(0, 0, 1, _pn.tilt), 0, 1, 0);
+	_ax = mat3_apply(_ct, _ax[0], _ax[1], _ax[2]);
 	var _pad = _pn.ring ? 2.35 : _cfg.pad;
 	var _q = _pr * _pad;
 	shader_set(sh_planet);

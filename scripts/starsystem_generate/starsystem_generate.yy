@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"starsystem_generate",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"starsystem_generate",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

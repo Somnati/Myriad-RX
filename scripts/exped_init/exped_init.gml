@@ -17,6 +17,10 @@
 /// g.bonds (exped_bond) lives beside it: one number per pair of sprites.
 function exped_init(_force = false) {
 	if (_force || !variable_global_exists("bonds")) g.bonds = {};
+	// THE GALAXY'S SEED (2026-09-15): one galaxy a save - a new game rolls
+	// one, a save carries it (ex_galaxy); nothing = the tech demo's 1337
+	if (_force) g.galaxy_seed = irandom($7fffffff);
+	else if (!variable_global_exists("galaxy_seed")) g.galaxy_seed = 1337;
 	if (!_force && variable_global_exists("exped")) return;
 	g.exped = { board : [], trips : [], hauls : [], depth : 1, charms : 0, mats : {}, seq : 0, spd : 1,
 	            recent : [], retired : [], st : {}, seen : [] };

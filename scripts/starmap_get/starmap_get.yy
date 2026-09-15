@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"starmap_get",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"starmap_get",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
