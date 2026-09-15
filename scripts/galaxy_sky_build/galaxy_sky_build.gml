@@ -45,7 +45,7 @@ function galaxy_sky_build() {
 	}
 	// the system: where everything is NOW (the universal clock), the
 	// siblings as dots along the ecliptic, the sun at the star's bearing
-	var _now = date_current_datetime() * 86400;
+	var _now = universal_now();
 	var _sys = _hm.sys;
 	var _me3 = _sys.planets[_hm.planet];
 	var _ang1 = (_me3.ang + _me3.spd * 60 * _now) mod 360;

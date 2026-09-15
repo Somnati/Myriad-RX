@@ -6,7 +6,7 @@
 function galaxy_sun_dir() {
 	var _hm = galaxy_home();
 	var _pl = _hm.sys.planets[_hm.planet];
-	var _now = date_current_datetime() * 86400;
+	var _now = universal_now();
 	var _ang = (_pl.ang + _pl.spd * 60 * _now) mod 360;
 	var _sb = _ang + 180;
 	return [dcos(_sb), 0, dsin(_sb)];

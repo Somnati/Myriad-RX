@@ -5,7 +5,7 @@
 /// fifth, the rest wind, fog, a storm now and then.
 function exped_weather(_tr) {
 	var _rg = exped_region(_tr);
-	var _slot = floor((date_current_datetime() * 86400) / 600);
+	var _slot = floor(universal_now() / 600);
 	var _h = ((_rg.seed ^ ((_slot mod 100003) * 2654435761)) & $7fffffff);   // (the slot folded small first: a product past 2^53 loses its low bits in a double)
 	_h = ((_h * 1103515245) + 12345) & $7fffffff;
 	_h = ((_h ^ (_h >> 13)) * 1274126177) & $7fffffff;

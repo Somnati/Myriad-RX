@@ -812,6 +812,7 @@
     {"id":{"name":"unfold_init","path":"scripts/unfold_init/unfold_init.yy",},},
     {"id":{"name":"unfold_reveal_all","path":"scripts/unfold_reveal_all/unfold_reveal_all.yy",},},
     {"id":{"name":"unfold_tick","path":"scripts/unfold_tick/unfold_tick.yy",},},
+    {"id":{"name":"universal_now","path":"scripts/universal_now/universal_now.yy",},},
     {"id":{"name":"unlock_ability","path":"scripts/unlock_ability/unlock_ability.yy",},},
     {"id":{"name":"unlock_deck","path":"scripts/unlock_deck/unlock_deck.yy",},},
     {"id":{"name":"update_click","path":"scripts/update_click/update_click.yy",},},
