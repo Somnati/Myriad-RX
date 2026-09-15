@@ -97,6 +97,6 @@ if (slice_phase == 2) {
 
 // gameload trans: boot lands on the TITLE now (his ask); continue/
 // new game send the player on to rm_visualizer, the first play room
-if in_room(rm_gameload) goto_room(rm_titlescreen);
+if (in_room(rm_gameload) && (!instance_exists(syst_handle_save) || syst_handle_save.boot_phase >= 2)) goto_room(rm_titlescreen);   // (the boot's spinner first: the galaxy, then the load)
 
 

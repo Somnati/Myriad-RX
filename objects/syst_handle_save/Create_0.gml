@@ -1,6 +1,13 @@
 
 
-action = sv_load;
+// THE BOOT (2026-09-15, his ask): a black screen with a spinner while the
+// galaxy builds a pass a frame (starmap_gen_step - ten thousand stars in
+// one call was a hitch), THEN the load (its board roll finds the galaxy
+// ready), THEN the title (syst_roomtrans waits for boot_phase 2)
+action = -1;
+boot_phase = 0;       // 0 building the galaxy, 1 the load queued, 2 done
+boot_gen = undefined;
+boot_t = 0;
 
 file_to_handle = save_slot_path(0); // active profile's main save
 
@@ -53,3 +60,11 @@ if (!instance_exists(syst_sparks)) create_obj(0, 0, syst_sparks);
 if (!instance_exists(syst_timebank)) create_obj(0, 0, syst_timebank);
 // ...and DE's speed arrow, top-right of the same room while it runs
 if (!instance_exists(obj_boost_spd)) create_obj(0, 0, obj_boost_spd);
+
+// the galaxy's seed, peeked off the save before anything loads (a save
+// from before the galaxy, or no save at all, gets the tech demo's 1337; a
+// NEW game rolls its own later and builds that one in the moment)
+var _gs = 1337;
+if (file_exists(file_to_handle)) { ini_open(file_to_handle); _gs = ini_read_real("exped", "ex_galaxy", 1337); ini_close(); }
+g.galaxy_seed = max(1, floor(_gs));
+boot_gen = starmap_gen_begin(g.galaxy_seed);

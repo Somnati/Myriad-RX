@@ -1,3 +1,10 @@
+// ---- THE BOOT: the galaxy a pass a frame, then the load ----
+if (boot_phase == 0) {
+	boot_t += 1;
+	if (boot_t >= 2 && is_struct(boot_gen) && starmap_gen_step(boot_gen)) { boot_gen = undefined; boot_phase = 1; action = sv_load; }
+	exit;
+}
+
 
 
 if not file_exists(file_to_handle) {action = sv_save;}
@@ -28,6 +35,7 @@ if (_was_load) {
 }
 
 action = -1;}
+if (boot_phase == 1) boot_phase = 2;   // (the boot's load ran: the title may come)
 
 // ---- playtime clock ----
 // real seconds, saved per savefile, shown by the save menu slots
