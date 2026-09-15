@@ -191,11 +191,11 @@ if (view == "map") {
 	var _lab = __map_labels(_rg, _mr, _lkey);
 	// the header (short: the back button sits on the right)
 	draw_set_color(exped_world_col(_d)); draw_set_alpha(.95);
-	draw_text(_mr.x, list_y + 6, _d.name);
+	draw_text(land ? 14 : 4, list_y + 6, _d.name);
 	draw_set_color(c_white);
-	draw_text(_mr.x + string_width(_d.name), list_y + 6, "  -  " + _rg.name);
-	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_mr.x + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + (_rg[$ "mood"] ?? "quiet") + "  -  " + string(array_length(_rg.nodes)) + " places");
+	draw_text((land ? 14 : 4) + string_width(_d.name), list_y + 6, "  -  " + _rg.name);
+	// THE INFO BOX on the map too (his ask, 2026-09-15), the map to its right
+	if (land) __draw_info_box(_d, _rg, __map_box_r());
 	// the ground, and the region's circle
 	draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .6);
 	draw_px_rect(_mr.x, _mr.y, _mr.w, _mr.h, _ink, .15);
@@ -849,23 +849,7 @@ if (view == "planet") {
 		// farmlands", the word coloured by its threat - region_info), [region
 		// map] in the left column, [quests] over [explore] bottom right
 		var _rg = region_get(_d, rg_sel);
-		var _bn = __rg_banner_r();
-		var _inf = region_info(_d, _rg);
-		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
-		draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
-		draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
-		draw_text_ext(_bn.x + 8, _bn.y + 5, _rg.name, 11, _bn.w - 14);
-		var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 3;
-		draw_set_font(fnt);
-		var _tc = [c_sgreen, c_gold, c_horange, c_hred];
-		for (var _li = 0; _li < array_length(_inf); _li++) {
-			var _ln = _inf[_li];
-			draw_set_color(_ink); draw_set_alpha(.8);
-			draw_text(_bn.x + 8, _bny, _ln.k + " - ");
-			draw_set_color(_tc[clamp(_ln.t, 0, 3)]); draw_set_alpha(.95);
-			draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
-			_bny += 11;
-		}
+		__draw_info_box(_d, _rg, __rg_banner_r());
 		var _mr0 = __rgmap_r();
 		draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "region map", c_steelblue, true, false);
 		var _qb = __quests_r();
@@ -874,9 +858,23 @@ if (view == "planet") {
 		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
 		// THE HAND'S VEIL (the cards themselves are obj_card instances over the panel)
 		if (hand_a > .001) {
-			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .62 * hand_a);
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .85 * hand_a);   // (darker - his ask)
 			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.7 * hand_a);
 			draw_text(room_width * .5, list_y + 24, (hand == "quests") ? "quests on offer  -  tap one; off the cards to close" : "explore  -  tap a card; off the cards to close");
+			// THE CLOCK under each card (his ask): grey, reddening as the slot
+			// nears its re-deal (the last half hour); a taken one says so
+			for (var _hc = 0; _hc < array_length(hand_ids); _hc++) {
+				var _cd = hand_ids[_hc];
+				if (!instance_exists(_cd) || !_cd.visible || !_cd.settled) continue;
+				var _csl = _cd.face[$ "slot"];
+				if (!is_struct(_csl)) continue;
+				if (_csl.taken != 0) { draw_set_color(c_steelblue); draw_set_alpha(.8 * hand_a); draw_text(_cd.x, _cd.y + _cd.card_h * .5 + 4, "taken"); }
+				else {
+					var _urg = 1 - clamp(_csl.left / EXPED_QUEST_LIFE_LO, 0, 1);
+					draw_set_color(merge_colour(c_gray, c_hred, _urg)); draw_set_alpha((.7 + .3 * _urg) * hand_a);
+					draw_text(_cd.x, _cd.y + _cd.card_h * .5 + 4, "gone in " + crunch_time_long(_csl.left / max(1, g.exped.spd)));
+				}
+			}
 			draw_set_halign(fa_left);
 		}
 	} else if (pl_focus >= 0) {
@@ -889,7 +887,7 @@ if (view == "planet") {
 	}
 	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
 	var _dwx = __pv_dw_x();
-	if (pv_mode == "region") { __draw_turn(); ui_fade_set(1); exit; }
+	if (pv_mode == "region") { __draw_back(); __draw_turn(); ui_fade_set(1); exit; }
 	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
@@ -939,6 +937,7 @@ if (view == "planet") {
 		draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa);
 		draw_text_ext(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 4, "the wild here: " + ((_wtxt == "") ? "unknown" : _wtxt) + ". medieval: settlements and camps are common, towns rare, a city rarer.", 9, __pv_dw_w() - 8);
 	}
+	__draw_back();
 	ui_fade_set(1);
 	exit;
 }
@@ -1096,6 +1095,7 @@ if (view == "galaxy") {
 	draw_text((land ? 14 : 4) + string_width(_sm.name) + 10, list_y + 6, string(_sm.count) + " stars  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  x" + string_format(gx_zoom, 1, 2));
 	draw_set_alpha(.5);
 	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star");
+	__draw_back();
 	ui_fade_set(1);
 	exit;
 }
@@ -1225,7 +1225,7 @@ if (view == "depart") {
 	if (is_struct(_q)) {
 		draw_set_color(_ink); draw_set_alpha(.8);
 		draw_text(_tx, _ty, "difficulty");
-		draw_set_halign(fa_right); draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_text(_tx + _tw, _ty, _q.diff_txt + "  -  x" + string(_q.mult) + " xp, " + string(_q.reward) + " credits"); draw_set_halign(fa_left);
+		draw_set_halign(fa_right); draw_set_color(_dc[clamp(_q.diff, 0, 3)]); draw_text(_tx + _tw, _ty, _q.diff_txt + "  -  " + string(sprite_xp_quest(_q[$ "lv"] ?? _rg.lv, 1, _q.mult)) + " xp, " + string(_q.reward) + " credits"); draw_set_halign(fa_left);
 		_ty += 11;
 	}
 	draw_set_color(_ink); draw_set_alpha(.8);

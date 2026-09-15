@@ -25,7 +25,7 @@ function starsystem_generate(_seed, _star = undefined) {
 			size     : (_kind == "gas") ? random_range(5, 8) : random_range(2.5, 4.6),
 			col      : color_set_random(),
 			ang      : random(360),
-			spd      : random_range(.5, 1.6) / _r * choose(1, -1),
+			spd      : random_range(.5, 1.6) / _r * choose(1, -1) / 600,   // (a YEAR IS DAYS, 2026-09-15: it was minutes - the sun swept round faster than the day; the same rolls)
 			has_ring : (random(1) < ((_kind == "gas") ? .5 : .15)),
 			moon_n   : (_kind == "gas") ? irandom_range(2, 4) : irandom_range(0, 2),
 		});

@@ -63,7 +63,7 @@ for (var _i = 0; _i < _n; _i++) {
 		// feedback is "the fleet paid", not "dial D paid".
 		if (sfx_tic <= 0) {
 			sfx_tic = SFX_DIAL_TIC;
-			sfx_play("dial");
+			if (!instance_exists(syst_exped_panel)) sfx_play("dial");   // (silent under the expeditions - his ask, 2026-09-15)
 		}
 
 		// THE SPIT (DE's obj_dial do_spit): a completed cycle throws

@@ -42,10 +42,13 @@ function region_info(_d, _rg) {
 	var _dl = region_daylight(_d, _rg), _dl2 = region_daylight(_d, _rg, 60);
 	var _rising = (_dl2 > _dl);
 	var _hp, _ht;
-	if (_dl < -.35)      { _hp = ["night", "deep night", "the small hours", "dead of night"]; _ht = 2; }
-	else if (_dl < -.12) { _hp = _rising ? ["before dawn", "the grey hour", "late night"] : ["nightfall", "early night", "after dark"]; _ht = 2; }
-	else if (_dl < .12)  { _hp = _rising ? ["dawn", "first light", "daybreak"] : ["dusk", "sundown", "twilight"]; _ht = 1; }
-	else if (_dl < .5)   { _hp = _rising ? ["morning", "mid-morning", "forenoon"] : ["afternoon", "late day", "evening"]; _ht = 0; }
+	// (the bands follow the render's light: sh_planet's lightband runs
+	// -.22 dark to .30 full, so anything under .3 reads dusky on the world)
+	if (_dl < -.3)       { _hp = ["night", "deep night", "the small hours", "dead of night"]; _ht = 2; }
+	else if (_dl < -.1)  { _hp = _rising ? ["before dawn", "the grey hour", "late night"] : ["nightfall", "early night", "after dark"]; _ht = 2; }
+	else if (_dl < .1)   { _hp = _rising ? ["dawn", "first light", "daybreak"] : ["dusk", "sundown", "twilight"]; _ht = 1; }
+	else if (_dl < .3)   { _hp = _rising ? ["early morning", "the low sun", "morning light"] : ["evening", "the last light", "late evening"]; _ht = 1; }
+	else if (_dl < .55)  { _hp = _rising ? ["morning", "mid-morning", "forenoon"] : ["afternoon", "late day", "late afternoon"]; _ht = 0; }
 	else                 { _hp = ["midday", "noon", "high sun"]; _ht = 0; }
 	array_push(_out, { k : "time", v : _pick(_rg.seed, _slot + 7, _hp), t : _ht });
 	// FLORA: what grows, off the wild kinds the terrain gave the region

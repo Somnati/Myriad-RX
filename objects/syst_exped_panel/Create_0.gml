@@ -60,6 +60,7 @@ dp_slot  = -1;           // ...and the offer slot it came from (exped_offer_take
 // instances, the veil's ease, the second the faces were last repainted
 // (their clocks are live text)
 hand = ""; hand_ids = []; hand_a = 0; hand_sec = -1;
+hand_out = false;                    // the hand folding back into the deck (the cards fly down, the veil lifts)
 // THE PAGE TURN (his ask: "a fade in animation when i click a quest and
 // it takes me to the expedition prep room"): the view coming, the light
 // (1 = lit; it goes to black, the view turns, it comes back), the direction
@@ -158,6 +159,17 @@ __list_y0 = function() { return land ? (card_y - 10) : (crew_y + 10 + 2 * (chip 
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
+/// [back] painted (the pages that render a sky call it again AFTER the sky - the render plane covers the row)
+__draw_back = function() {
+	var _bk = __back_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _bk.x, _bk.y, _bk.w, _bk.h, 0, c_black, .8);
+	draw_px_rect(_bk.x, _bk.y, _bk.w, _bk.h, rgb(170, 190, 230), .5);
+	draw_set_halign(fa_center);
+	draw_set_color(c_white);
+	draw_set_alpha(.9);
+	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
+	draw_set_halign(fa_left);
+};
 /// [back] and escape: one step up the chain - map -> where it came from;
 /// depart -> region -> planet -> hub; crew / trip / haul -> hub
 __back = function() {
@@ -231,7 +243,7 @@ __hand_seats = function(_n) {
 	var _out = [];
 	var _pv = __pv_r();
 	if (land) {
-		var _pitch = 92, _x0 = room_width * .5 - (_n - 1) * .5 * _pitch, _y = _pv.y + _pv.h * .5 + 4;
+		var _pitch = 92, _x0 = room_width * .5 - (_n - 1) * .5 * _pitch, _y = _pv.y + _pv.h * .5 - 6;   // (a little high: the clock sits under the card)
 		for (var _i = 0; _i < _n; _i++) array_push(_out, { x : floor(_x0 + _i * _pitch), y : floor(_y) });
 	} else {
 		var _x0 = room_width * .5 - 33, _y0 = _pv.y + 42;
@@ -263,32 +275,41 @@ __qcard_face = function() {
 	// the objective
 	draw_set_color(c_white); draw_set_alpha(.92);
 	draw_text_ext(card_w * .5, _ty, face.txt, 9, card_w - 10);
-	// the difficulty and the numbers, from the foot up
+	// THE FOOT, in a black box (his ask): the difficulty (or an explore's
+	// span), then the hours / the credits (lavender) / the xp (green)
 	var _dc = [c_sgreen, c_gold, c_horange, c_hred];
-	var _fy = card_h - (_big ? 14 : 12);
-	// the state (live): taken - by whom; or the clock
+	var _fh = _big ? 30 : 26;
+	draw_sprite_ext(spr_pixel_1x1, 0, 2, card_h - 2 - _fh, card_w - 4, _fh, 0, c_black, .88);
+	draw_sprite_ext(spr_pixel_1x1, 0, 2, card_h - 2 - _fh, card_w - 4, 1, 0, _col, .5);
+	var _f1 = card_h - 2 - _fh + 3, _f2 = card_h - 2 - _fh + (_big ? 15 : 13);
 	var _sl = face[$ "slot"];
-	if (is_struct(_sl)) {
-		if (_sl.taken != 0) {
-			var _who = "returned";
-			for (var _t = 0; _t < array_length(g.exped.trips); _t++) if (g.exped.trips[_t].id == _sl.taken) _who = exped_crew_txt(g.exped.trips[_t].names);
-			draw_set_color(c_steelblue); draw_set_alpha(.95);
-			draw_text_ext(card_w * .5, _fy - 9, "taken  -  " + _who, 9, _tw);
-		} else {
-			draw_set_color(merge_colour(_col, c_white, .5)); draw_set_alpha(.6);
-			draw_text(card_w * .5, _fy, "gone in " + crunch_time_long(_sl.left / max(1, g.exped.spd)));
-		}
-	} else if (!is_undefined(face[$ "foot"])) {
-		draw_set_color(merge_colour(_col, c_white, .5)); draw_set_alpha(.6);
-		draw_text(card_w * .5, _fy, face.foot);
-	}
-	if (!is_undefined(face[$ "meta"])) {
-		draw_set_color(sett_ink); draw_set_alpha(.75);
-		draw_text(card_w * .5, _fy - 10, face.meta);
-	}
 	if (!is_undefined(face[$ "diff_txt"])) {
 		draw_set_color(_dc[clamp(face.diff, 0, 3)]); draw_set_alpha(.95);
-		draw_text(card_w * .5, _fy - 20, face.diff_txt);
+		draw_text(card_w * .5, _f1, face.diff_txt);
+	} else if (!is_undefined(face[$ "foot"])) {
+		draw_set_color(merge_colour(_col, c_white, .5)); draw_set_alpha(.8);
+		draw_text(card_w * .5, _f1, face.foot);
+	}
+	if (!is_undefined(face[$ "hrs"])) {
+		var _sep = "  -  ";
+		var _wall = string_width(face.hrs + _sep + face.cr + _sep + face.xp);
+		var _fx = card_w * .5 - _wall * .5;
+		draw_set_halign(fa_left);
+		draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_fx, _f2, face.hrs + _sep); _fx += string_width(face.hrs + _sep);
+		draw_set_color(c_lavender); draw_set_alpha(.95); draw_text(_fx, _f2, face.cr); _fx += string_width(face.cr);
+		draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_fx, _f2, _sep); _fx += string_width(_sep);
+		draw_set_color(c_sgreen); draw_set_alpha(.95); draw_text(_fx, _f2, face.xp);
+		draw_set_halign(fa_center);
+	} else if (!is_undefined(face[$ "meta"])) {
+		draw_set_color(sett_ink); draw_set_alpha(.75);
+		draw_text(card_w * .5, _f2, face.meta);
+	}
+	// taken: who is on it, over the objective
+	if (is_struct(_sl) && _sl.taken != 0) {
+		var _who = "returned";
+		for (var _t = 0; _t < array_length(g.exped.trips); _t++) if (g.exped.trips[_t].id == _sl.taken) _who = exped_crew_txt(g.exped.trips[_t].names);
+		draw_set_color(c_steelblue); draw_set_alpha(.95);
+		draw_text_ext(card_w * .5, card_h - 2 - _fh - 20, "taken  -  " + _who, 9, _tw);
 	}
 	// taken: the face goes dark under a stamp
 	if (is_struct(_sl) && _sl.taken != 0) {
@@ -332,7 +353,7 @@ __hand_open = function(_kind) {
 				case "scout": _obj = "get there, have a look, come back"; break;
 			}
 			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj,
-			                     diff : _q.diff, diff_txt : _q.diff_txt, meta : string(_q.hours) + "h  -  " + string(_q.reward) + " cr  -  x" + string(_q.mult) + " xp",
+			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
 			                     slot : _sl[_i], si : _i, hours : _q.hours });
 		}
 		// easiest to hardest, left to right (his call); the shorter road first among equals
@@ -377,7 +398,24 @@ __hand_open = function(_kind) {
 };
 __hand_close = function() {
 	for (var _i = 0; _i < array_length(hand_ids); _i++) if (instance_exists(hand_ids[_i])) instance_destroy(hand_ids[_i]);
-	hand_ids = []; hand = ""; hand_a = 0;
+	hand_ids = []; hand = ""; hand_a = 0; hand_out = false;
+};
+/// THE FOLD (his ask: "the cards go back into their deck"): every card
+/// flies back down to the bottom middle, the outer ones first, and the
+/// veil lifts with them; the Step destroys each as it leaves the screen
+__hand_fold = function() {
+	if (hand == "" || hand_out) return;
+	hand_out = true;
+	var _n = array_length(hand_ids), _mid = (_n - 1) * .5;
+	for (var _i = 0; _i < _n; _i++) {
+		var _c = hand_ids[_i];
+		if (!instance_exists(_c)) continue;
+		_c.seat = { x : room_width * .5, y : room_height + 70 };
+		_c.settled = false;
+		_c.throw_delay = (_mid - abs(_i - _mid)) * 3;
+		_c.rot_x = 0;
+	}
+	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 };
 /// a card tapped: the departure (a taken quest says no)
 __hand_pick = function(_i) {
@@ -558,7 +596,27 @@ __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
 __recall_r = function() { return { x : log_x + log_w - 60, y : log_y + 18, w : 60, h : 12 }; };
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
-__map_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : room_width - (land ? 28 : 8), h : room_height - 8 - 14 - (list_y + 22) }; };
+__map_r = function() { var _x = land ? (14 + 150 + 10) : 4; return { x : _x, y : list_y + 22, w : room_width - _x - (land ? 14 : 4), h : room_height - 8 - 14 - (list_y + 22) }; };   // (right of the info box - his ask, 2026-09-15)
+__map_box_r = function() { return { x : 14, y : list_y + 22, w : 150, h : 110 }; };   // the region's info box on the map (landscape)
+/// THE INFO BOX painted (region_info's lines; the region page and the map share it)
+__draw_info_box = function(_d, _rg, _bn) {
+	var _inf = region_info(_d, _rg);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
+	draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
+	draw_text_ext(_bn.x + 8, _bn.y + 5, _rg.name, 11, _bn.w - 14);
+	var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 3;
+	draw_set_font(fnt);
+	var _tc = [c_sgreen, c_gold, c_horange, c_hred];
+	for (var _li = 0; _li < array_length(_inf); _li++) {
+		var _ln = _inf[_li];
+		draw_set_color(sett_ink); draw_set_alpha(.8);
+		draw_text(_bn.x + 8, _bny, _ln.k + " - ");
+		draw_set_color(_tc[clamp(_ln.t, 0, 3)]); draw_set_alpha(.95);
+		draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
+		_bny += 11;
+	}
+};
 map_legend = false;                  // the legend popup (his ask: a [legend] button, the kinds listed)
 map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
 __legend_r = function() { var _m = __map_r(); return { x : _m.x, y : _m.y + _m.h + 2, w : 56, h : 13 }; };

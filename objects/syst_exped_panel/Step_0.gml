@@ -45,6 +45,10 @@ if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprit
 if (view == "map" && !is_struct(map_dest)) view = "hub";
 if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) view = "hub";
 
+// THE SUN IS LIVE (his report, 2026-09-15: "mid-morning but clearly night" -
+// the render's sun was the one at open, the words read the clock's; the
+// orbits ran a year in minutes, so they parted within it)
+if (is_struct(pv_sky) && (view == "planet" || view == "trip")) pv_sky.light_w = galaxy_sun_dir();
 // THE ORBIT VIEW'S CLOCK: the world spins its own axis (the universal
 // clock sets it the first time), the camera rides the spin (geosync), and
 // turns to face a picked region (pv_face) - a rotation about the view axis
@@ -149,14 +153,32 @@ if (pg_dir != 0) exit;    // (the page is turning)
 // ---- THE HAND (the quest / explore cards) owns the page while it is up ----
 if (hand != "") {
 	if (view != "planet" || pv_mode != "region") __hand_close();
-	else {
-		if (keyboard_check_pressed(vk_escape)) { __hand_close(); play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+	else if (hand_out) {
+		// THE FOLD: each card flies down to the deck in its turn and goes as
+		// it leaves the screen; the veil lifts; nothing takes a press
+		hand_a = move_to(hand_a, 0, 4);
+		var _left = 0;
+		for (var _d = 0; _d < array_length(hand_ids); _d++) {
+			var _c = hand_ids[_d];
+			if (!instance_exists(_c)) continue;
+			_left += 1;
+			if (_c.throw_delay > 0) { _c.throw_delay -= delta; continue; }
+			var _k = 1 - power(.7, delta);
+			_c.x = lerp(_c.x, _c.seat.x, _k); _c.y = lerp(_c.y, _c.seat.y, _k);
+			_c.rot_z = lerp(_c.rot_z, -(_c.x - room_width * .5) * .12, _k);
+			_c.rot_x = lerp(_c.rot_x, 40, _k); _c.rot_y = lerp(_c.rot_y, 0, _k);
+			if (_c.y > room_height + _c.card_h * .5 + 2) { instance_destroy(_c); _left -= 1; }
+		}
+		if (_left == 0) __hand_close();
+		exit;
+	} else {
+		if (keyboard_check_pressed(vk_escape)) { __hand_fold(); exit; }
 		hand_a = move_to(hand_a, 1, 5);
 		var _sec = floor(current_time / 1000);
 		for (var _d = 0; _d < array_length(hand_ids); _d++) {
 			var _c = hand_ids[_d];
 			if (!instance_exists(_c)) continue;
-			if (hand_sec != _sec) _c.invalidate_front();   // (the clocks on the faces)
+			if (hand_sec != _sec) _c.invalidate_front();   // (who is on it, live)
 			// THE THROW: unseen until its turn, then snapped to its seat from the
 			// bottom middle (a quarter of the gap a frame), the lean and the
 			// twist settling with it
@@ -188,7 +210,7 @@ if (hand != "") {
 				__hand_pick(_d);
 				break;
 			}
-			if (!_onany) { __hand_close(); play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
+			if (!_onany) __hand_fold();
 		}
 		exit;
 	}

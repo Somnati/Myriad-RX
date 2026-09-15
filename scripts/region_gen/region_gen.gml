@@ -224,14 +224,17 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	}
 	_n = array_length(_nodes);
 	// THE BENT ROADS (his ask: "procedural curves and corners based off the
-	// type of biome"): every road is a polyline - points along it pushed
-	// sideways by the land at its ends: mountains and hills ZIGZAG (sharp,
-	// alternating), marsh and forest wobble, fields and coasts barely bend,
-	// a boat road runs straight. The hours follow the bent length
+	// type of biome"; round two 2026-09-15: "not zig zaggy literally... more
+	// dynamic pathing"): every road is a polyline - points along it pushed
+	// sideways by the land at its ends: a BOW of one to two waves (a bend,
+	// an S, a double bend - by hash, no roll) plus a soft wobble, the
+	// amplitude by the land: mountains wind wide, hills less, marsh and
+	// forest wander, fields and coasts barely bend, a boat road runs
+	// straight. The hours follow the bent length
 	var _bend = function(_k) {
 		switch (_k) {
-			case "mountains": return { amp : .045, n : 8, zig : true };
-			case "hills":     return { amp : .03, n : 6, zig : true };
+			case "mountains": return { amp : .05, n : 10, zig : true };
+			case "hills":     return { amp : .035, n : 8, zig : true };
 			case "marsh":     return { amp : .03, n : 6, zig : false };
 			case "forest":    return { amp : .025, n : 5, zig : false };
 			case "desert": case "tundra": case "field": case "coast": return { amp : .012, n : 4, zig : false };
@@ -250,12 +253,12 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _len = point_distance(_ea.x, _ea.y, _eb.x, _eb.y);
 			var _nx = -_dy / max(.0001, _len), _ny = _dx / max(.0001, _len);
 			var _sgn = choose(1, -1), _prev = 0;
+			var _wv = 1 + (hash_mix(_seed, _e * 13 + 5) mod 3) * .5;   // 1 / 1.5 / 2 waves along the road
 			for (var _k = 1; _k < _np; _k++) {
 				var _t = _k / _np;
 				var _amp = lerp(_ba.amp, _bb.amp, _t) * sin(_t * pi);   // (pinned at both ends)
-				var _off;
-				if (_zig) { _off = _sgn * _amp * random_range(.6, 1); _sgn = -_sgn; }
-				else { _off = _prev * .55 + random_range(-1, 1) * _amp; _prev = _off; }
+				var _nz = _prev * .5 + random_range(-1, 1) * .5; _prev = _nz;   // (one roll a point, as before)
+				var _off = _sgn * _amp * (_zig ? 1.3 : .9) * sin(_t * pi * _wv) + _nz * _amp * (_zig ? .35 : .6);
 				array_push(_pts, { x : _ea.x + _dx * _t + _nx * _off, y : _ea.y + _dy * _t + _ny * _off });
 			}
 		}
