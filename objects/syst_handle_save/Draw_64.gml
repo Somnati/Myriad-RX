@@ -2,6 +2,10 @@
 /// eight pixel squares round a ring, the bright one running, "charting
 /// the galaxy" beside it - until the galaxy is built and the save is in
 if (!in_room(rm_gameload) || boot_phase >= 2) exit;
+// the gui in the WINDOW'S shape (270 tall, as wide as the window is): the
+// stub room is portrait and the window may be either, so a fixed 480x270
+// gui warped in one of them (his report, 2026-09-15: "still borked a bit")
+display_set_gui_size(max(120, round(270 * window_get_width() / max(1, window_get_height()))), 270);
 var _gw = display_get_gui_width(), _gh = display_get_gui_height();
 // the whole gui black first (the room behind is a stub of another shape)
 draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, _gw, _gh, 0, c_black, 1);

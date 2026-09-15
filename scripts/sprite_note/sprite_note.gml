@@ -9,6 +9,7 @@
 function sprite_note(_sp, _txt, _tag = "") {
 	var _sh = sprite_sheet(_sp);
 	if (_tag != "") for (var _i = 0; _i < array_length(_sh.notes); _i++) if (_sh.notes[_i].tag == _tag) return false;
+	for (var _i = 0; _i < array_length(_sh.notes); _i++) if (_sh.notes[_i].txt == _txt) return false;   // (the same line twice on one pad: no - 2026-09-15)
 	_txt = string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(_txt,
 		"/", " "), "|", " "), ";", " "), ",", " "), "=", " "), "^", " "), "~", " ");
 	array_push(_sh.notes, { txt : _txt, tag : _tag });

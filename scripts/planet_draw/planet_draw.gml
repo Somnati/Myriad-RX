@@ -52,6 +52,17 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	_ax = mat3_apply(_ct, _ax[0], _ax[1], _ax[2]);
 	var _pad = _pn.ring ? 2.35 : _cfg.pad;
 	var _q = _pr * _pad;
+	// THE QUAD ON THE PIXEL GRID (his report, 2026-09-15: "higher res while
+	// zooming, hard pixels when it settles"): the shader's cells are px_size
+	// room px anchored at the quad's corner - a fractional corner or extent
+	// slid the cells over the screen pixels every frame of the zoom, and the
+	// eye read the shimmer as detail. Whole cells, a corner on the grid
+	var _qx = _cx - _q, _qy = _cy - _q;
+	if (_cfg.px_size > 0) {
+		var _pxs = _cfg.px_size;
+		_q = max(_pxs, round(_q / _pxs) * _pxs);
+		_qx = round((_cx - _q) / _pxs) * _pxs; _qy = round((_cy - _q) / _pxs) * _pxs;
+	}
 	shader_set(sh_planet);
 	shader_set_uniform_f_array(_u.rot, _m);
 	shader_set_uniform_f_array(_u.crot, _mc);
@@ -79,7 +90,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.cityn, _ctn);
 	texture_set_stage(_u.cloud, surface_get_texture(_pn.csurf));
 	texture_set_stage(_u.height, surface_get_texture(_pn.hsurf));
-	draw_surface_ext(_pn.tsurf, _cx - _q, _cy - _q, (2 * _q) / _pn.tw, (2 * _q) / _pn.th, 0, c_white, 1);
+	draw_surface_ext(_pn.tsurf, _qx, _qy, (2 * _q) / _pn.tw, (2 * _q) / _pn.th, 0, c_white, 1);
 	shader_reset();
 	return true;
 }

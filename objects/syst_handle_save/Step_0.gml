@@ -43,7 +43,8 @@ if (boot_phase == 1) {
 	var _bdone = true;
 	if (variable_global_exists("exped")) for (var _bi = 0; _bi < array_length(g.exped.board); _bi++) {
 		var _bpn = planet_get(g.exped.board[_bi].seed, exped_planet_hint(g.exped.board[_bi]));
-		if (_bpn.row < _bpn.th) { planet_gen_step(_bpn, 8); _bdone = false; }
+		if (_bpn.row < _bpn.th) { planet_gen_step(_bpn, 12); _bdone = false; }
+		else planet_bake(_bpn);   // (the textures too, behind the spinner: 320x160 x three is a stamp storm)
 	}
 	if (_bdone) boot_phase = 2;   // (the boot's load ran, the worlds are whole: the title may come)
 }

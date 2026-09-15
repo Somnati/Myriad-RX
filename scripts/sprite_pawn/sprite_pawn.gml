@@ -10,7 +10,7 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 	var _st = sprite_stats(_sp);
 	var _c  = _st.cls;
 	var _p  = _st.pts;
-	var _maxhp = round((_p.hp * _b.hp_per_point + _b.hp_flat_add) * 10) / 10;
+	var _maxhp = floor(_p.hp * _b.hp_per_point + _b.hp_flat_add);   // (whole hp - his ask, 2026-09-15: floored at the calc)
 	var _maxmp = max(1, round(_p.mp));
 	return {
 		name : _sp.name, col : _sp.col, sid : _sp.id, cls : _c.key, lv : sprite_sheet(_sp).lv,

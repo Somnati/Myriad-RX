@@ -99,7 +99,7 @@ class Pawn:
             for k, v in it.items(): pts[k] += v
         self.name, self.team, self.lv = name, team, lv
         self.pts_total = sum(pts.values())
-        self.maxhp = round((pts["hp"] * BAL["hp_per_point"] + BAL["hp_flat_add"]) * 10) / 10
+        self.maxhp = math.floor(pts["hp"] * BAL["hp_per_point"] + BAL["hp_flat_add"])   # (whole hp, 2026-09-15 - sprite_pawn / foe_gen floor it)
         self.hp = self.maxhp
         self.maxmp = max(1, round(pts["mp"])); self.mp = math.ceil(self.maxmp * BAL["mp_start_frac"])
         self.atk, self.def_, self.mag, self.mdef, self.spd, self.hit = pts["atk"], pts["def"], pts["mag"], pts["mdef"], pts["spd"], pts["hit"]

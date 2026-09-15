@@ -266,7 +266,7 @@ __qcard_face = function() {
 	draw_set_color(_col); draw_set_alpha(1);
 	var _ty = _big ? 6 : 4;
 	var _tsep = (draw_get_font() == fnt_large) ? 12 : 9;
-	draw_text_ext(card_w * .5, _ty, face.title, _tsep, _tw);
+	draw_text_ext(card_w * .5, _ty, str_cap(face.title), _tsep, _tw);
 	_ty += string_height_ext(face.title, _tsep, _tw) + 2;
 	draw_set_font(fnt);
 	draw_set_color(merge_colour(_col, c_white, .4)); draw_set_alpha(.7);
@@ -604,7 +604,7 @@ __draw_info_box = function(_d, _rg, _bn) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
 	draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
-	draw_text_ext(_bn.x + 8, _bn.y + 5, _rg.name, 11, _bn.w - 14);
+	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_rg.name), 11, _bn.w - 14);
 	var _bny = _bn.y + 5 + string_height_ext(_rg.name, 11, _bn.w - 14) + 3;
 	draw_set_font(fnt);
 	var _tc = [c_sgreen, c_gold, c_horange, c_hred];

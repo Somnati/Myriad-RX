@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"str_cap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"str_cap",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
