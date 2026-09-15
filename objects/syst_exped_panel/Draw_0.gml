@@ -1035,42 +1035,62 @@ if (view == "depart") {
 	exit;
 }
 
-// ======================= THE HUB =======================
-// the worlds: a card each - tap for the planet window
+// ======================= THE HUB (redone 2026-09-15: "make it nicer") =======================
+// THE WORLD CARD: the world big, its name, its kind and level, then its
+// regions as rows, the flight and who is out at the foot. Tap = its page
 draw_set_color(_ink);
 draw_set_alpha(.6);
-draw_text(card_x0, card_y - 10, "worlds  -  tap one");
+draw_text(card_x0, card_y - 10, "the world  -  tap it");
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _d = _e.board[_i];
 	var _b = exped_biomes()[_d.biome];
 	var _c = __card_r(_i);
+	var _wc = exped_world_col(_d);
 	var _out = 0;
 	for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed) _out++;
-	draw_sprite_ext(spr_pixel_1x1, 0, _c.x, _c.y, _c.w, _c.h, 0, c_black, .8);
-	draw_px_rect(_c.x, _c.y, _c.w, _c.h, merge_colour(_b.col2, c_white, .2), .5);
+	draw_sprite_ext(spr_pixel_1x1, 0, _c.x, _c.y, _c.w, _c.h, 0, c_black, .85);
+	draw_px_rect(_c.x, _c.y, _c.w, _c.h, _wc, .35);
+	draw_sprite_ext(spr_pixel_1x1, 0, _c.x, _c.y, 2, _c.h, 0, _wc, .9);
+	// the world, big, at the top; its name under it
+	var _pr = land ? 26 : 22;
 	ui_fade_set(1);
-	__world_small(_d, _c.x + 24, _c.y + 24, 18);
+	__world_small(_d, _c.x + _c.w * .5, _c.y + 8 + _pr, _pr);
 	ui_fade_set(_ea);
-	draw_set_color(exped_world_col(_d));
-	draw_set_alpha(.95);
-	draw_text(_c.x + 48, _c.y + 6, _d.name);
-	draw_set_color(merge_colour(_b.col2, c_white, .3));
-	draw_set_alpha(.85);
-	draw_text(_c.x + 48, _c.y + 16, _b.name + " world  -  lv " + string(exped_world_lv(_d)));   // (no "tier" - his call, 2026-09-15)
-	draw_set_color(_dim);
-	draw_set_alpha(.7);
-	draw_text(_c.x + 48, _c.y + 26, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
-	draw_text(_c.x + 6, _c.y + 48, string(EXPED_REGIONS) + " regions  -  lv " + string(exped_world_lv(_d)) + " to " + string(exped_world_lv(_d) + 2 * (EXPED_REGIONS - 1)));
-	draw_set_color(c_gold); draw_set_alpha(.85);
-	draw_text(_c.x + 6, _c.y + 60, string(EXPED_QUESTS) + " quests a region, and explore");
-	if (_out > 0) {
-		draw_set_halign(fa_right);
-		draw_set_color(c_steelblue);
-		draw_set_alpha(.9);
-		draw_text(_c.x + _c.w - 6, _c.y + 6, string(_out) + " out");
-		draw_set_halign(fa_left);
-	}
+	draw_set_halign(fa_center);
+	draw_set_font(fnt_large);
+	draw_set_color(_wc); draw_set_alpha(.95);
+	draw_text(_c.x + _c.w * .5, _c.y + 8 + _pr * 2 + 6, str_cap(_d.name));
+	draw_set_font(fnt);
+	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.85);
+	draw_text(_c.x + _c.w * .5, _c.y + 8 + _pr * 2 + 20, _b.name + " world  -  lv " + string(exped_world_lv(_d)));
 	draw_set_halign(fa_left);
+	var _ry = _c.y + 8 + _pr * 2 + 34;
+	draw_sprite_ext(spr_pixel_1x1, 0, _c.x + 8, _ry, _c.w - 16, 1, 0, _ink, .25);
+	_ry += 6;
+	// the regions: a row each - the name, the level in its colour, the mood under
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_c.x + 8, _ry, "regions");
+	_ry += 11;
+	var _lvc = [c_sgreen, c_gold, c_hred];
+	for (var _ri = 0; _ri < EXPED_REGIONS; _ri++) {
+		if (_ry + 10 > _c.y + _c.h - 24) break;
+		var _rg = region_get(_d, _ri);
+		var _rout = 0;
+		for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _ri) _rout++;
+		draw_set_color(c_white); draw_set_alpha(.9);
+		draw_text(_c.x + 8, _ry, string_copy(str_cap(_rg.name), 1, land ? 18 : 16));
+		draw_set_halign(fa_right);
+		draw_set_color(_lvc[clamp(_ri, 0, 2)]); draw_set_alpha(.9);
+		draw_text(_c.x + _c.w - 8, _ry, "lv " + string(_rg.lv));
+		draw_set_halign(fa_left);
+		draw_set_color(_dim); draw_set_alpha(.6);
+		draw_text(_c.x + 8, _ry + 9, (_rg[$ "mood"] ?? "quiet") + ((_rout > 0) ? ("  -  " + string(_rout) + " out") : ""));
+		_ry += 20;
+	}
+	// the foot: the flight, and who is out
+	draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(_c.x + 8, _c.y + _c.h - 12, crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
+	if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_c.x + _c.w - 8, _c.y + _c.h - 12, string(_out) + " out"); draw_set_halign(fa_left); }
 }
 // [crew]: the roster; [galaxy]: the star map
 if (array_length(g.sprites) > 0) {
@@ -1080,55 +1100,79 @@ if (array_length(g.sprites) > 0) {
 var _hgl = __hub_gal_r();
 draw_ui_button(_hgl.x, _hgl.y, _hgl.w, _hgl.h, "galaxy", c_steelblue, true, false);
 
-// THE LIST: hauls waiting, then trips out
-draw_set_color(_ink);
-draw_set_alpha(.6);
+// THE LIST: hauls waiting, then trips out - an island each
 var _ly0 = __list_y0();
+var _nh = array_length(_e.hauls), _nt = array_length(_e.trips);
+draw_set_color(_ink); draw_set_alpha(.6);
 draw_text(list_x, _ly0 + 2, "expeditions");
-var _rows = array_length(_e.hauls) + array_length(_e.trips);
+if (_nh + _nt > 0) {
+	draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(list_x + string_width("expeditions") + 8, _ly0 + 2, ((_nt > 0) ? (string(_nt) + " out") : "") + ((_nt > 0 && _nh > 0) ? ", " : "") + ((_nh > 0) ? (string(_nh) + " home") : ""));
+}
+var _rows = _nh + _nt;
 if (_rows == 0) {
-	draw_set_color(_dim);
-	draw_set_alpha(.5);
-	draw_text_ext(list_x, _ly0 + 14, "none out. tap the world, pick a region and a quest, send a crew.", 9, list_w);
+	var _er = __row_r(0);
+	draw_sprite_ext(spr_pixel_1x1, 0, _er.x, _er.y, _er.w, 16, 0, c_black, .5);
+	draw_sprite_ext(spr_pixel_1x1, 0, _er.x, _er.y, 2, 16, 0, _dim, .5);
+	draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(_er.x + 8, _er.y + 4, "nothing out  -  tap the world, pick a region, a quest, a crew");
 }
 for (var _i = 0; _i < _rows; _i++) {
 	var _rr = __row_r(_i);
 	if (_rr.y + _rr.h > room_height - 4) break;
-	var _ish = (_i < array_length(_e.hauls));
-	var _r  = _ish ? _e.hauls[_i] : _e.trips[_i - array_length(_e.hauls)];
-	var _rb = exped_biomes()[_r.dest.biome];
-	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_hsv(169, 160, 7), .96);
-	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, 1, 0, c_white, .07);
-	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, 2, _rr.h, 0, _ish ? c_gold : c_steelblue, .85);
+	var _ish = (_i < _nh);
+	var _r  = _ish ? _e.hauls[_i] : _e.trips[_i - _nh];
+	var _rg2 = region_get(_r.dest, _r[$ "rgi"] ?? 0);
+	var _fight = (!_ish && !is_undefined(_r.fight));
+	var _acc = _ish ? (_r.routed ? c_horange : c_gold) : (_fight ? c_hred : c_steelblue);
+	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .8);
+	draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _acc, .25);
+	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, 2, _rr.h, 0, _acc, .9);
+	// the world, facing the region
 	ui_fade_set(1);
-	__world_small(_r.dest, _rr.x + 16, _rr.y + _rr.h * .5, 9, region_get(_r.dest, _r[$ "rgi"] ?? 0));
+	__world_small(_r.dest, _rr.x + 20, _rr.y + _rr.h * .5, 12, _rg2);
 	ui_fade_set(_ea);
-	// the crew's faces
-	for (var _k = 0; _k < array_length(_r.sids); _k++) __dot(_rr.x + 34 + _k * 9, _rr.y + 9, 3, _r.cols[_k],
-		(_ish || _r.hp[_k] > 0) ? .95 : .3);
-	draw_set_color(exped_world_col(_r.dest));
-	draw_set_alpha(.95);
-	draw_text(_rr.x + 34 + array_length(_r.sids) * 9 + 3, _rr.y + 5, _r.dest.name);
+	var _tx = _rr.x + 40, _tw = _rr.w - 48;
+	// line one: the crew's dots and names; the state on the right
+	for (var _k = 0; _k < array_length(_r.sids); _k++) __dot(_tx + 3 + _k * 8, _rr.y + 8, 3, _r.cols[_k], (_ish || _r.hp[_k] > 0) ? .95 : .3);
+	draw_set_color(c_white); draw_set_alpha(.95);
+	var _crn = str_cap(exped_crew_txt(_r.names));
+	draw_text(_tx + array_length(_r.sids) * 8 + 4, _rr.y + 4, string_copy(_crn, 1, land ? 30 : 20));
+	draw_set_halign(fa_right);
+	if (_ish) { draw_set_color(_acc); draw_set_alpha(.95); draw_text(_rr.x + _rr.w - 6, _rr.y + 4, _r.routed ? "limped home" : "home"); }
+	else {
+		var _mode = ((_r[$ "mode"] ?? "quest") == "explore") ? ((is_struct(_r[$ "ex"]) && _r.ex.kind == "ramble") ? "roaming" : ((is_struct(_r[$ "ex"]) && _r.ex.kind == "survey") ? "surveying" : "exploring")) : "on a quest";
+		draw_set_color(_fight ? c_hred : _dim); draw_set_alpha(.85);
+		draw_text(_rr.x + _rr.w - 6, _rr.y + 4, _fight ? "in a fight" : _mode);
+	}
+	draw_set_halign(fa_left);
+	// line two: the world (its colour) / the region
+	draw_set_color(exped_world_col(_r.dest)); draw_set_alpha(.95);
+	draw_text(_tx, _rr.y + 14, _r.dest.name);
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_tx + string_width(_r.dest.name), _rr.y + 14, "  /  " + _rg2.name);
 	if (_ish) {
-		draw_set_color(_r.routed ? c_horange : c_gold);
-		draw_set_alpha(.9);
-		draw_text(_rr.x + 34, _rr.y + 18, _r.routed ? "limped home  -  collect" : "back  -  collect the haul");
+		// a haul: its finds, and the ask
+		var _nf = array_length(_r.finds);
+		draw_set_color(_acc); draw_set_alpha(.9);
+		draw_text(_tx, _rr.y + 25, string(_r[$ "wins"] ?? 0) + ((_r[$ "wins"] ?? 0) == 1 ? " fight won" : " fights won") + "  -  " + string(_nf) + ((_nf == 1) ? " find" : " finds"));
+		draw_set_color(c_gold); draw_set_alpha(.7 + .25 * _br);
+		draw_text(_tx, _rr.y + 34, "tap to collect the haul");
 	} else {
-		// the progress track: the leg's fill, and where they are
-		var _tw = _rr.w - 40;
+		// line three: the leg, as a labelled bar; line four: where they are
+		var _leg = (_r.stage == 0) ? "flying out" : ((_r.stage == 2) ? "flying home" : "on the world");
 		var _tf = 0;
 		if (_r.stage == 0) _tf = clamp(_r.t / max(1, _r.dur * EXPED_TRAVEL), 0, 1);
 		else if (_r.stage == 2) _tf = clamp((_r.t - (_r[$ "leave_t"] ?? _r.t)) / max(1, _r.dur * EXPED_RETURN), 0, 1);
 		else if (is_struct(_r[$ "road"])) _tf = clamp(_r.road.t / max(1, _r.road.d * EXPED_HOUR), 0, 1);
-		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x + 34, _rr.y + 21, _tw, 4, 0, c_black, .7);
-		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x + 34, _rr.y + 21, _tw * _tf, 4, 0, c_steelblue, .9);
-		draw_set_halign(fa_right);
-		draw_set_color(!is_undefined(_r.fight) ? c_hred : _dim);
-		draw_set_alpha(.8);
-		draw_text(_rr.x + _rr.w - 6, _rr.y + 5, ((_r[$ "mode"] ?? "quest") == "explore") ? ((is_struct(_r[$ "ex"]) && _r.ex.kind == "ramble") ? "roaming" : ((is_struct(_r[$ "ex"]) && _r.ex.kind == "survey") ? "surveying" : "exploring")) : "on a quest");
-		draw_set_halign(fa_left);
 		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(_rr.x + 34, _rr.y + 27, exped_where(_r));
+		draw_text(_tx, _rr.y + 25, _leg);
+		var _bx = _tx + 54, _bw = _tw - 54;
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _rr.y + 27, _bw, 4, 0, c_black, .7);
+		draw_sprite_ext(spr_pixel_1x1, 0, _bx, _rr.y + 27, _bw * _tf, 4, 0, _acc, .9);
+		draw_px_rect(_bx, _rr.y + 27, _bw, 4, c_white, .1);
+		draw_set_color(_dim); draw_set_alpha(.6);
+		draw_text(_tx, _rr.y + 34, string_copy(exped_where(_r), 1, land ? 48 : 30));
 	}
 }
 ui_fade_set(1);

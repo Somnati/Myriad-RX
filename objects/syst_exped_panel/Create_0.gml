@@ -196,15 +196,15 @@ swap_pick = false;   // the recruit moment's roster list is up
 // ---- the hub's layout ----
 // destinations: three cards across the left; the crew under them; the
 // list of expeditions down the right (portrait: everything stacks)
-card_w = land ? 150 : (room_width - 8); card_h = land ? 96 : 84;   // ONE world: a wide card with its quest (2026-09-14)
+card_w = land ? 150 : (room_width - 8); card_h = land ? (room_height - 8 - 14 - 6 - (list_y + 22)) : 178;   // ONE world: a tall card - the world, its name, its regions (redone 2026-09-15)
 card_gap = land ? 6 : 3;
 card_x0 = land ? 14 : 4;
-card_y  = list_y + 14;                 // under the "worlds on offer" label
+card_y  = list_y + 22;                 // under the "the world" label
 crew_y  = card_y + card_h + 10;
 chip    = land ? 24 : 18; chip_gap = land ? 4 : 2;
 list_x  = land ? (card_x0 + card_w + 14) : 4;
 list_w  = land ? (room_width - list_x - 10) : (room_width - 8);
-row_h   = land ? 36 : 30;
+row_h   = land ? 44 : 40;              // a trip's island (redone 2026-09-15: four lines)
 
 // ---- the trip view ----
 big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 106 : 66;   // the world box holds the render only (2026-09-15: the banners moved under it)
@@ -268,8 +268,8 @@ __dot = function(_x, _y, _r, _col, _a) {
 
 // ---- the region law: the Step's hits and the Draw share these ----
 __card_r = function(_i) { return { x : card_x0 + _i * (card_w + card_gap), y : card_y, w : card_w, h : card_h }; };
-__list_y0 = function() { return land ? (card_y - 10) : (crew_y + 10 + 2 * (chip + 10) + 2 + 14 + 8); };   // (portrait: under where the hub's crew rows sat)
-__row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
+__list_y0 = function() { return land ? (card_y - 10) : (card_y + card_h + 8); };   // (portrait: under the card)
+__row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 4), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
 __crewstrip_r = function() { var _b = __back_r(); return { x : _b.x - 4 - 44, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
