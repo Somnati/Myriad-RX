@@ -586,6 +586,7 @@
     {"id":{"name":"planet_gen_step","path":"scripts/planet_gen_step/planet_gen_step.yy",},},
     {"id":{"name":"planet_get","path":"scripts/planet_get/planet_get.yy",},},
     {"id":{"name":"planet_pick","path":"scripts/planet_pick/planet_pick.yy",},},
+    {"id":{"name":"planet_props","path":"scripts/planet_props/planet_props.yy",},},
     {"id":{"name":"planet_sky_draw","path":"scripts/planet_sky_draw/planet_sky_draw.yy",},},
     {"id":{"name":"planet_spin_now","path":"scripts/planet_spin_now/planet_spin_now.yy",},},
     {"id":{"name":"planet_texel","path":"scripts/planet_texel/planet_texel.yy",},},

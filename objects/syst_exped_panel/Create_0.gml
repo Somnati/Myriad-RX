@@ -1138,6 +1138,40 @@ __draw_info_box = function(_d, _rg, _bn) {
 		_bny += 11;
 	}
 };
+/// THE WORLD BOX (the planet-properties pass, 2026-09-15): the info box's twin for the world itself - planet_props' lines under the
+/// world's name, on the planet page in orbit mode (it slides out to the left as the region box slides in)
+__world_box_r = function(_d) {
+	var _pp = planet_props(_d);
+	var _wmax = land ? 200 : 120, _wmin = 96;
+	draw_set_font(fnt_large);
+	var _w = string_width(str_cap(_d.name)) + 16;
+	draw_set_font(fnt);
+	for (var _li = 0; _li < array_length(_pp.lines); _li++) _w = max(_w, string_width(_pp.lines[_li].k + " - " + _pp.lines[_li].v) + 16);
+	_w = clamp(_w, _wmin, _wmax);
+	draw_set_font(fnt_large);
+	var _h = 5 + string_height_ext(str_cap(_d.name), 11, _w - 14) + 3 + array_length(_pp.lines) * 11 + 4;
+	draw_set_font(fnt);
+	return { x : (land ? 14 : 4) - rg_in * 240, y : list_y + 22, w : _w, h : _h };
+};
+__draw_world_box = function(_d) {
+	var _bn = __world_box_r(_d), _pp = planet_props(_d), _wc = exped_world_col(_d);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, _wc, .9);
+	draw_set_font(fnt_large); draw_set_color(_wc); draw_set_alpha(.95);
+	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_d.name), 11, _bn.w - 14);
+	var _bny = _bn.y + 5 + string_height_ext(str_cap(_d.name), 11, _bn.w - 14) + 3;
+	draw_set_font(fnt);
+	var _tc = [c_sgreen, c_gold, c_horange, c_hred];
+	for (var _li = 0; _li < array_length(_pp.lines); _li++) {
+		var _ln = _pp.lines[_li];
+		draw_set_color(sett_ink); draw_set_alpha(.8);
+		draw_text(_bn.x + 8, _bny, _ln.k + " - ");
+		var _lc = _ln[$ "col"];
+		draw_set_color(is_undefined(_lc) ? _tc[clamp(_ln.t, 0, 3)] : _lc); draw_set_alpha(.95);
+		draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
+		_bny += 11;
+	}
+};
 map_legend = false;                  // the legend popup (his ask: a [legend] button, the kinds listed)
 map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
 /// a road highlighted along its OWN polyline from fraction q0 of the way (arc length) to its end - the crew's route (the map)

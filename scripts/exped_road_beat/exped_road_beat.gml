@@ -21,6 +21,12 @@ function exped_road_beat(_tr) {
 	var _nm = _tr.names[_who];
 	var _other = _tr.names[(_who + 1) mod _n];
 	exped_stat("beats");
+	// A QUAKE (the planet-properties pass, 2026-09-15): a young world's ground moves now and then - half an hour, and a line
+	if (planet_props(_tr.dest).young && roll_perc(12)) {
+		_rd.t = max(0, _rd.t - EXPED_HOUR * .5);
+		array_push(_tr.log, choose("the ground shook. everyone stopped. it stopped.", "a tremor. " + _nm + " sat down, on purpose, afterwards.", "the road moved a little to the left. they followed it.", "a rumble under the road. nobody said the word. everybody thought it."));
+		return;
+	}
 	var _r = random(100);
 	if (_r < 16 && (_tr[$ "night"] ?? false)) {
 		// the night's own

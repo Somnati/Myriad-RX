@@ -646,6 +646,8 @@ if (view == "planet") {
 		draw_set_color(_dim); draw_set_alpha(.7);
 		draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds");
 	}
+	// THE WORLD BOX (2026-09-15): what the world is - out of the way as the region box comes in
+	if (rg_in < .99) __draw_world_box(_d);
 	// the hint, bottom middle
 	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit" : "drag to orbit  -  tap a region");
@@ -1134,6 +1136,14 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 		draw_set_color(_dim); draw_set_alpha(.6);
 		draw_text(_c.x + 8, _ry + 9, (_rg[$ "mood"] ?? "quiet") + ((_rout > 0) ? ("  -  " + string(_rout) + " out") : ""));
 		_ry += 20;
+	}
+	// the world's properties, three words (the planet-properties pass, 2026-09-15)
+	if (_ry + 22 <= _c.y + _c.h - 24) {
+		var _cpp = planet_props(_d);
+		draw_set_color(_ink); draw_set_alpha(.5);
+		draw_text(_c.x + 8, _ry + 2, "the world");
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text_ext(_c.x + 8, _ry + 12, _cpp.gravw + " ground  -  " + _cpp.wetw + " skies  -  " + ((_cpp.moons == 0) ? "no moon" : (_cpp.moonw + ((_cpp.moons == 1) ? " moon" : " moons"))) + "  -  " + _cpp.oddw, 9, _c.w - 16);
 	}
 	// the foot: the flight, and who is out
 	draw_set_color(_dim); draw_set_alpha(.6);

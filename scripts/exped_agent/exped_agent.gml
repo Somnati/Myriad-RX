@@ -44,7 +44,9 @@ function exped_agent(_tr, _dt) {
 	if (is_struct(_tr.road)) {
 		var _rd = _tr.road;
 		var _before = floor(_rd.t / EXPED_HOUR);
-		var _pace = (_night ? .8 : 1) * ((_wx == "storm") ? .7 : ((_wx == "snow") ? .75 : ((_wx == "wind") ? .92 : 1)));   // (the dark and the weather slow the road)
+		var _pp = planet_props(_tr.dest);
+		var _pace = _pp.grav * (_night ? .8 : 1) * ((_wx == "storm") ? .7 : ((_wx == "snow") ? .75 : ((_wx == "wind") ? .92 : 1)));   // (the world's gravity, the dark and the weather set the road's pace)
+		var _dark = (_pp.moons == 0) ? 2 : ((_pp.moons >= 2) ? .5 : 1);   // (a moonless night: twice the wrong turns; two moons: half)
 		_rd.t += _dt * _pace;
 		var _after = floor(_rd.t / EXPED_HOUR);
 		if (_after > _before && _rd.t < _rd.d * EXPED_HOUR) {
@@ -59,14 +61,14 @@ function exped_agent(_tr, _dt) {
 			// the dark: a wrong turn (another road out of the node they left -
 			// the path is thrown away, they decide afresh where they end up),
 			// or an hour lost, before anything else; fog doubles the wrong turns
-			if ((_night && roll_perc(6)) || (_wx == "fog" && roll_perc(_night ? 10 : 8))) {
+			if ((_night && roll_perc(6 * _dark)) || (_wx == "fog" && roll_perc(_night ? 10 : 8))) {
 				var _nb = region_neighbors(_rg, _rd.a);
 				if (array_length(_nb) > 1) {
 					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
 					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); exped_say(_tr, "lost", undefined, .7); return false; }
 				}
 			}
-			if (_night && roll_perc(10)) { _rd.t = max(0, _rd.t - EXPED_HOUR); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
+			if (_night && roll_perc(10 * _dark)) { _rd.t = max(0, _rd.t - EXPED_HOUR); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;

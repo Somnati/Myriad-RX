@@ -10,7 +10,7 @@ function exped_eta(_d, _q) {
 		if (_q.ex == "survey") return _fly + _q.n * 2.5 * EXPED_HOUR + 2 * EXPED_HOUR;
 		return -1;
 	}
-	var _roads = 2 * (_q[$ "hours"] ?? 0) * EXPED_HOUR;
+	var _roads = 2 * (_q[$ "hours"] ?? 0) * EXPED_HOUR / planet_props(_d).grav;   // (the world's gravity sets the pace - 2026-09-15)
 	var _do = 4;
 	switch (_q.kind) {   // (steps of the doing, by kind - the mission-type pass, 2026-09-15)
 		case "scout": case "survey": _do = 1 + _q.n; break;

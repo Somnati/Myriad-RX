@@ -38,6 +38,8 @@
 ///   lv      "low" (1-2) / "high" (6+)
 ///   more slots: {place} where they stand, {goal} the quest's last stop,
 ///   {region}, {who} the quest's merchant / cargo / lost one / boss, {wx}, {cls}
+///   THE WORLD'S GATES (planet_props): odd 0..13 (the oddity), grav "light" /
+///   "heavy", air "thin" / "thick" / "sweet", moonless true
 ///   NEW BEATS: road / night / dawn / weather / inn / poor / tavern / shop /
 ///   bought / shrine / mine / ruin / wild / camp / delve / hazard / meet /
 ///   fetch / found / deliver / boss / wave / chart / lost / levelup / skill
@@ -502,6 +504,45 @@ function exped_lines() {
 		{ b : "rest", t : "rested. {name} is whole, and has checked twice, and is being careful with it, like a full cup.", hp : "full", w : 2 },
 		{ b : "find", t : "found {item}, in the rain, which makes it a wet {item}, which {name} feels is a different and lesser thing.", wx : "rain", w : 2 },
 		{ b : "find", t : "found {item}. {partner} says it is {partner}'s. {name} found it. they are sharing it, in the sense that {name} is carrying it.", party : 2, bond : 2 },
+		// ======================= THE WORLD'S PROPERTIES (2026-09-15): its oddity, its gravity, its air, its moons =======================
+		{ b : "land", t : "the rain on {planet} falls upward, briefly, before thinking better of it. {name} has stopped looking up.", odd : 0, w : 4 },
+		{ b : "road", t : "rain, going up. {name} held out a hand and got a dry palm and a wet elbow.", odd : 0, w : 3 },
+		{ b : "land", t : "everything on {planet} casts two shadows. nobody has explained the second one and {name} has stopped asking it.", odd : 1, w : 4 },
+		{ b : "rest", t : "{name} lay down and both shadows lay down too, a little after.", odd : 1, w : 3 },
+		{ b : "land", t : "the birds on {planet} fly backwards. they seem fine about it.", odd : 2, w : 4 },
+		{ b : "road", t : "a bird went past, backwards, and looked at {name} the whole way. rude, in reverse.", odd : 2, w : 3 },
+		{ b : "land", t : "there is a hum on {planet}. it is in the ground. {name} has decided it is a friendly hum.", odd : 3, w : 4 },
+		{ b : "night", t : "{planet} hums at night. low. the whole world. {name} hummed along and was told to stop, by the world.", odd : 3, w : 3 },
+		{ b : "land", t : "{planet} has two sunsets a day, the second out of politeness. {name} intends to see both and has missed both.", odd : 4, w : 4 },
+		{ b : "night", t : "the sun set twice. {name} clapped the second one. it did not come back for a third.", odd : 4, w : 3 },
+		{ b : "land", t : "the water on {planet} runs slightly uphill. {name} followed some up a hill to be sure. it was sure.", odd : 5, w : 4 },
+		{ b : "rest", t : "the stream by the camp runs up. {name} filled a cup from the top of it.", odd : 5, w : 3 },
+		{ b : "land", t : "the trees on {planet} turn to face you when you are not looking. {name} has been looking, hard, for an hour.", odd : 6, w : 4 },
+		{ b : "road", t : "the trees have turned again. {name} turned back, sharply. one of them was mid-turn. it is pretending.", odd : 6, w : 3 },
+		{ b : "land", t : "compasses on {planet} point at the nearest sandwich. {name} has found this more useful than north.", odd : 7, w : 4 },
+		{ b : "road", t : "the compass pointed left. there was a sandwich. it was {partner}'s.", odd : 7, party : 2, w : 3 },
+		{ b : "land", t : "a square moon. {name} would like it recorded that {name} noticed first and said nothing, like a professional.", odd : 8, w : 4 },
+		{ b : "night", t : "the moon over {planet} is square. nobody mentions it. {name} has mentioned it and been looked at.", odd : 8, w : 3 },
+		{ b : "land", t : "on {planet} the echo comes back before the shout. {name} has been answered several times and has not asked yet.", odd : 9, w : 4 },
+		{ b : "delve", t : "{name} shouted into {place} and the echo had already said it. {name} is choosing to be flattered.", odd : 9, w : 3 },
+		{ b : "land", t : "the ground on {planet} is warm, like something under it is asleep. {name} is walking softly.", odd : 10, w : 4 },
+		{ b : "rest", t : "the ground is warm to lie on. {name} did not ask why and slept well, which may be the same thing.", odd : 10, w : 3 },
+		{ b : "land", t : "the stars here move. {name} has named a constellation and will have to name it again tomorrow.", odd : 11, w : 4 },
+		{ b : "night", t : "the stars over {planet} rearrange overnight. slowly. into shapes. tonight's shape is a spoon.", odd : 11, w : 3 },
+		{ b : "land", t : "the rocks on {planet} are numbered. someone has written on all of them. {name} found four hundred and is looking for three ninety-nine.", odd : 12, w : 4 },
+		{ b : "road", t : "rock two thousand and six. {name} is keeping count and the count is going the wrong way.", odd : 12, w : 3 },
+		{ b : "land", t : "the wind on {planet} smells of bread. {name} has followed it for an hour and found more wind.", odd : 13, w : 4 },
+		{ b : "rest", t : "the wind smells of bread again. {name} is hungry and cross about it, in that order.", odd : 13, w : 3 },
+		{ b : "land", t : "everything on {planet} is heavier, including the mood. {name} is walking like {name} owes the ground money.", grav : "heavy", w : 3 },
+		{ b : "road", t : "heavy ground. {name} has stopped lifting the feet and started dragging them, which is walking, technically.", grav : "heavy", w : 2 },
+		{ b : "land", t : "{planet} is light on the feet. {name} jumped, and came down a little later than expected, and has decided not to do that near an edge.", grav : "light", w : 3 },
+		{ b : "road", t : "light ground. {name} bounces a bit at each step and is pretending it is on purpose.", grav : "light", w : 2 },
+		{ b : "rest", t : "thin air. {name} slept badly and dreamt of breathing.", air : "thin", w : 2 },
+		{ b : "road", t : "the air is thin here. {name} said something and had to say it again, in instalments.", air : "thin", w : 2 },
+		{ b : "land", t : "the air on {planet} is thick. {name} is breathing it in pieces.", air : "thick", w : 2 },
+		{ b : "land", t : "the air on {planet} smells sweet. {name} has been told not to eat it and is still considering.", air : "sweet", w : 2 },
+		{ b : "night", t : "no moon. the dark is the whole dark. {name} has put a hand out in front and cannot report on it.", moonless : true, w : 3 },
+		{ b : "lost", t : "no moon to go by. {name} went by feel, and the feel was wrong.", moonless : true, w : 3 },
 	];
 	return _l;
 }
