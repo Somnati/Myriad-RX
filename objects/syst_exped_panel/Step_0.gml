@@ -73,6 +73,10 @@ if (view == "crew" || view == "sheet") {
 	exit;
 }
 
+// EVERYTHING BELOW IS A PRESS (the gate was lost in the crew menu rewrite,
+// 2026-09-14 - hovering a button clicked it; his report)
+if (!mouse_check_button_pressed(mb_left)) exit;
+
 // ======================= THE HAUL: collect, or the recruit moment =======================
 if (view == "haul") {
 	var _hi = __haul_i();
