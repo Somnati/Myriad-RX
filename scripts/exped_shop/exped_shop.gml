@@ -5,7 +5,7 @@
 /// then sprite_take handles it, dumb moment included (yes, they can buy
 /// it and bin it). Whatever is left of the pocket comes home.
 function exped_shop(_tr) {
-	var _rg = region_get(_tr.dest);
+	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];
 	var _rmax = 1;
 	switch (_nd.kind) { case "village": _rmax = 1; break; case "town": _rmax = 2; break; case "city": _rmax = 3; break; }

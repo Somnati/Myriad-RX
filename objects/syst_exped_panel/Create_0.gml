@@ -44,7 +44,16 @@ sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / 
 map_dest = undefined;    // the map view's world (its region: region_get)
 map_from = "hub";        // where the map returns to
 pl_dest  = undefined;    // the planet window's world
-rg_sel   = 0;            // the region picked in the planet window (one a world for now)
+rg_sel   = 0;            // the region picked in the planet window (EXPED_REGIONS a world)
+map_rgi  = 0;            // the map view's region
+pl_focus = -1;           // the planet window: the region the world has turned to (-1 = none, ambient spin)
+pl_spin  = 0;            // the world's spin as drawn (deg)
+pl_spin_t = 0;           // ...and where it is turning to
+pl_zoom  = 1;            // ...and how far in
+pl_spin_off = 0;         // the ambient spin's offset, so leaving a focus does not jump
+crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = everyone)
+it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
+it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
 dp_mode  = "quest";      // ...and its mode
 crew_off = 0;        // the crew list's scroll (px)
@@ -130,16 +139,46 @@ __back = function() {
 	switch (view) {
 		case "map":    view = map_from; break;
 		case "depart": view = "region"; break;
-		case "region": view = "planet"; break;
+		case "region": view = "planet"; pl_focus = -1; break;
+		case "crew":   view = (crew_trip >= 0) ? "trip" : "hub"; crew_trip = -1; it_pop = undefined; break;
 		default:       view = "hub"; break;
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 };
 // the planet window: the world big on the left, its facts, the regions on the right
 __pl_box  = function() { return { x : land ? 14 : 4, y : list_y + 22, w : land ? 170 : (room_width - 8), h : land ? 150 : 96 }; };
-__pl_row  = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? list_y + 44 : _b.y + _b.h + 26) + _i * 22, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 20 }; };
+__pl_row  = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? list_y + 44 : _b.y + _b.h + 26) + _i * 26, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 24 }; };
+/// the crew the crew menu lists: everyone, or one trip's (crew_trip)
+__crew_list = function() {
+	if (crew_trip < 0) return g.sprites;
+	var _out = [];
+	for (var _t = 0; _t < array_length(g.exped.trips); _t++) {
+		var _tr = g.exped.trips[_t];
+		if (_tr.id != crew_trip) continue;
+		for (var _k = 0; _k < array_length(_tr.sids); _k++) { var _sp = __sp_by_id(_tr.sids[_k]); if (!is_undefined(_sp)) array_push(_out, _sp); }
+	}
+	return (array_length(_out) > 0) ? _out : g.sprites;
+};
+__trip_crew_r = function() { return { x : big_x + big_w - 34 - 40, y : big_y + 4, w : 36, h : 11 }; };
+/// where a region's spot sits on the drawn world: the same matrix planet_draw
+/// hands the shader (world = rot(tilt) x rot(y, spin); a texture direction t
+/// shows at n = W t), so the marker lands where the terrain does
+__spot_view = function(_pn, _spin, _lon, _lat) {
+	var _tx = dcos(_lat) * dcos(_lon), _ty = dsin(_lat), _tz = dcos(_lat) * dsin(_lon);
+	var _w = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	return mat3_apply(_w, _tx, _ty, _tz);
+};
+/// the spin that brings a spot to the front: sampled, so no sign convention can be wrong
+__spin_for = function(_pn, _lon, _lat) {
+	var _best = 0, _bz = -2;
+	for (var _s = 0; _s < 360; _s += 3) {
+		var _n = __spot_view(_pn, _s, _lon, _lat);
+		if (_n[2] > _bz) { _bz = _n[2]; _best = _s; }
+	}
+	return _best;
+};
 // the region window: the quests, then explore
-__q_row   = function(_i) { return { x : land ? 14 : 4, y : list_y + 40 + _i * 30, w : room_width - (land ? 28 : 8), h : 27 }; };
+__q_row   = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? (list_y + 40) : (_b.y + _b.h + 26)) + _i * 30, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 27 }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
 dchip_y   = list_y + 40;
 __dchip_r = function(_k) { var _per = land ? 5 : 6; return { x : (land ? 14 : 4) + (_k mod _per) * (chip + chip_gap), y : dchip_y + (_k div _per) * (chip + 10), w : chip, h : chip }; };
@@ -196,6 +235,35 @@ __draw_log = function(_log, _x, _y, _w, _y_end, _col) {
 		}
 		_yy += _hs[_i];
 	}
+	draw_set_alpha(1);
+};
+/// the world in its box, turned by pl_spin and zoomed by pl_zoom, with the
+/// regions' spots on it (the focused one ringed); the planet and region windows
+__draw_world_box = function(_d) {
+	var _b = exped_biomes()[_d.biome];
+	var _bx = __pl_box();
+	draw_sprite_ext(spr_pixel_1x1, 0, _bx.x, _bx.y, _bx.w, _bx.h, 0, c_black, .95);
+	ui_fade_set(1);
+	planet_sky_draw(_d.seed, _bx.x + 2, _bx.y + 2, _bx.w - 4, _bx.h - 4);
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _pcx = _bx.x + _bx.w * .5, _pcy = _bx.y + _bx.h * .5, _ppr = min(_bx.w, _bx.h) * .3 * pl_zoom;
+	if (_pn.row >= _pn.th) planet_draw(_pn, _pcx, _pcy, _ppr, pl_spin);
+	else __portrait(_d, _pcx, _pcy, _ppr);
+	// the spots: a dot a region where the same matrix puts it, the focused one ringed
+	if (_pn.row >= _pn.th) {
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _rg = region_get(_d, _i);
+			var _n = __spot_view(_pn, pl_spin, _rg.spot.lon, _rg.spot.lat);
+			if (_n[2] <= .05) continue;   // the far side
+			var _sx = _pcx + _n[0] * _ppr, _sy = _pcy + _n[1] * _ppr;
+			var _a = .4 + .6 * _n[2];
+			draw_circle_colour(_sx, _sy, 2, c_white, c_white, false);
+			if (_i == pl_focus) draw_circle_colour(_sx, _sy, 5 + dsin(current_time * .3) * 1.5, c_gold, c_gold, true);
+			draw_set_color((_i == pl_focus) ? c_gold : c_white); draw_set_alpha(_a);
+			draw_text(_sx + 6, _sy - 4, (_i == pl_focus) ? _rg.name : ("lv " + string(_rg.lv)));
+		}
+	}
+	draw_px_rect(_bx.x, _bx.y, _bx.w, _bx.h, merge_colour(_b.col2, c_white, .2), .5);
 	draw_set_alpha(1);
 };
 /// a sprite by id (undefined when gone)

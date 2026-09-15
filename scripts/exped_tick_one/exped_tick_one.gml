@@ -61,9 +61,10 @@ function exped_tick_one(_tr, _dt) {
 		}
 		if (_tr.t >= _travel) {
 			_tr.stage = 1;
-			var _rg = region_get(_tr.dest);
-			_tr.pos = _rg.landing; _tr.path = []; _tr.road = undefined; _tr.act = undefined;
-			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.nodes[_rg.landing].name);
+			var _rg = exped_region(_tr);
+			_tr.pos = clamp(_tr[$ "home"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1);   // the landing zone nearest the objective (exped_start)
+			_tr.path = []; _tr.road = undefined; _tr.act = undefined;
+			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name);
 			exped_say(_tr, "land");
 			exped_note_beat(_tr, "land", .3);
 		}
@@ -95,10 +96,10 @@ function exped_tick_one(_tr, _dt) {
 			var _done = clamp(_q.done / max(1, _q.n), 0, 1);
 			if (_done >= 1) array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold });
 			// THE QUEST'S XP (his law): a par foe's xp x 2..5 by how much got done
-			if (!_tr.routed || _done > 0) exped_xp_grant(_tr, round(sprite_par_pts(exped_world_lv(_tr.dest)) * SPRITE_FOE_BUDGET * SPRITE_XP_PER_PT * lerp(SPRITE_QUEST_XP_LO, _q.mult, _done)), "the quest");
+			if (!_tr.routed || _done > 0) exped_xp_grant(_tr, round(sprite_par_pts(exped_trip_lv(_tr)) * SPRITE_FOE_BUDGET * SPRITE_XP_PER_PT * lerp(SPRITE_QUEST_XP_LO, _q.mult, _done)), "the quest");
 		} else if (!_tr.routed) {
 			// an explore's worth: the hours wandered, up to a day
-			exped_xp_grant(_tr, sprite_xp_quest(exped_world_lv(_tr.dest), clamp((_tr[$ "planet_t"] ?? 0) / (24 * EXPED_HOUR), 0, 1)), "the wandering");
+			exped_xp_grant(_tr, sprite_xp_quest(exped_trip_lv(_tr), clamp((_tr[$ "planet_t"] ?? 0) / (24 * EXPED_HOUR), 0, 1)), "the wandering");
 		}
 		array_push(_tr.log, _tr.routed ? "home, limping" : "home");
 		exped_say(_tr, "home");

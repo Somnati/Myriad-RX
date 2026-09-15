@@ -1,8 +1,8 @@
 /// @description exped_fight_new(trip, [kind], [count], [lvadd]) -> a fight (cbt_fight_new)
 /// THE CREW THAT IS STILL UP, as pawns off their sheets (sprite_pawn:
 /// class, level, gear, skills - the tech demo's engine, his call
-/// 2026-09-14), against A PACK of the world's level: as many foes as
-/// they are (count -1) or a given number, of a given kind ("" = the
+/// 2026-09-14), against A PACK of the region's level: one to three
+/// (count -1; his call: never the party's size) or a given number, of a given kind ("" = the
 /// roster's roll), lvadd levels above the world (foe_gen). A crew of two
 /// or three carries a little of its BONDS into every member's hit
 /// (exped_bond, up to +10), and the notepad's studied kinds. The struct
@@ -26,11 +26,14 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 		array_push(_party, _pw);
 	}
 	var _foes = [], _xp = 0;
-	var _nf = (_count > 0) ? _count : max(1, array_length(_party));
+	// THE PACK (his call, 2026-09-15: "not based off my party size"): a
+	// count asked for, or one to three - one 35%, two 40%, three 25%
+	var _nf = _count;
+	if (_nf <= 0) { var _pr = random(100); _nf = (_pr < 35) ? 1 : ((_pr < 75) ? 2 : 3); }
 	_tr.fights = (_tr[$ "fights"] ?? 0) + 1;
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
-		var _foe = foe_gen(exped_world_lv(_d) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _kind);
+		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _kind);
 		array_push(_foes, _foe);
 		_xp += foe_xp(_foe);
 	}

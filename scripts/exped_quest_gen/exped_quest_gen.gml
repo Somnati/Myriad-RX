@@ -1,23 +1,25 @@
-/// @description exped_quest_gen(dest) -> a quest { kind, node, foe, n, done, txt, mult, reward }
+/// @description exped_quest_gen(dest, [salt], [ri]) -> a quest { kind, node, foe, n, done, txt, mult, reward, hours, diff, diff_txt, lv }
 /// THE QUEST (his pitch: "travel to the cave of ordeals and slay 10
-/// goblins"), rolled from the world's region and the board's deal:
+/// goblins"), rolled from the region and the board's deal:
 ///   slay   n foes of a kind at a dungeon / camp / the wild   (mult 3)
 ///   clear  a dungeon, n rooms                                (mult 4)
 ///   rout   the bandits at a camp, two fights                 (mult 4)
 ///   scout  a far place - get there                           (mult 2)
 /// mult is the quest's xp in par kills (his law: 2..5 - the top for
-/// the long ones: +1 for every four hours out); reward = credits home.
-function exped_quest_gen(_d, _salt = 0) {
-	var _rg = region_get(_d);
+/// the long ones: +1 for every four hours out); reward = credits home
+/// ((2 + the region's level) x mult). hours = the roads out from the
+/// landing zone nearest the objective (that is where the crew lands).
+function exped_quest_gen(_d, _salt = 0, _ri = 0) {
+	var _rg = region_get(_d, _ri);
 	var _old = random_get_seed();
-	random_set_seed((_d.seed ^ (g.exped.seq * 7919) ^ (1237 + _salt * 104729)) & $7fffffff);
+	random_set_seed((_rg.seed ^ (g.exped.seq * 7919) ^ (1237 + _salt * 104729)) & $7fffffff);
 	var _dung = [], _camp = [], _wild = [];
 	var _kk = region_kinds();
-	for (var _i = 1; _i < array_length(_rg.nodes); _i++) {
+	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
 		var _k = _rg.nodes[_i].kind;
 		if (_k == "dungeon") array_push(_dung, _i);
 		else if (_k == "camp") array_push(_camp, _i);
-		else { var _kd = _kk[$ _k]; if (is_struct(_kd) && _kd.wild) array_push(_wild, _i); }   // (no ".field" on a ?? expression: GM1012)
+		else { var _kd = _kk[$ _k]; if (is_struct(_kd) && _kd.wild) array_push(_wild, _i); }
 	}
 	var _kinds = ["goblin", "wolf", "rat", "skeleton", "wisp", "slime"];
 	var _r = random(100);
@@ -50,13 +52,17 @@ function exped_quest_gen(_d, _salt = 0) {
 		var _nd2 = max(1, array_length(_rg.nodes) - 1);
 		_q = { kind : "scout", node : _nd2, foe : "", n : 1, done : 0, mult : 2, txt : "scout " + _rg.nodes[_nd2].name };
 	}
-	// the length: hours out to the quest, by the roads
-	var _p = region_path(_rg, _rg.landing, _q.node);
-	var _h = 0, _c = _rg.landing;
+	// the length: hours out by the roads, from the landing zone nearest the objective
+	var _home = region_nearest_landing(_rg, _q.node);
+	var _p = region_path(_rg, _home, _q.node);
+	var _h = 0, _c = _home;
 	for (var _k = 0; _k < array_length(_p); _k++) { _h += region_hours(_rg, _c, _p[_k]); _c = _p[_k]; }
 	_q.hours = _h;
+	_q.home = _home;
+	_q.ri = _ri;
+	_q.lv = _rg.lv;
 	_q.mult = clamp(_q.mult + floor(_h / 4), SPRITE_QUEST_XP_LO, SPRITE_QUEST_XP_HI);
-	_q.reward = (2 + 2 * _d.tier) * _q.mult;   // credits home, done
+	_q.reward = (2 + _rg.lv) * _q.mult;
 	// the difficulty, in a word (the departure window): by the kind, the count, the hours
 	var _df = 1;
 	if (_q.kind == "slay") _df = (_q.n >= 6) ? 2 : 1;

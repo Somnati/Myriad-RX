@@ -6,7 +6,7 @@
 /// here - refused when the purse cannot. The crew lands at the region's
 /// landing zone with the pocket and walks from there (exped_agent).
 /// Any number of trips may run at once (exped_tick walks them all).
-function exped_start(_di, _crew, _mode = "quest", _pick = undefined) {
+function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 	exped_init();
 	var _e = g.exped;
 	if (_di < 0 || _di >= array_length(_e.board)) return false;
@@ -24,7 +24,8 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined) {
 	if (!(g.credits >= arb(_cost.total))) return false;
 	g.credits = do_subtract(g.credits, arb(_cost.total));
 	if (!(g.credits >= arb(1))) g.credits = 0;
-	var _rg = region_get(_d);
+	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
+	var _rg = region_get(_d, _ri);
 	_e.seq += 1;
 	var _sids = [], _names = [], _cols = [], _hp = [], _hpmax = [];
 	for (var _i = 0; _i < array_length(_crew); _i++) {
@@ -43,6 +44,9 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined) {
 		// the quest is THIS crew's now: the copy walks, the board keeps its own until the re-deal
 		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair" };
 	}
+	// THE LANDING: a quest's crew lands at the landing zone nearest its
+	// objective (his ask); an explore at the first
+	var _home = is_struct(_q) ? region_nearest_landing(_rg, _q.node) : _rg.landing;
 	var _tr = {
 		id : _e.seq, dest : _d,
 		sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
@@ -56,10 +60,11 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined) {
 		threads : [], said_travel : false, wins : 0,
 		// THE AGENT (slice three)
 		mode : _mode, quest : _q,
-		pos : _rg.landing, path : [], road : undefined, act : undefined,
-		credits : _cost.pocket, recall : false, visited : [ _rg.landing ], planet_t : 0, bounty : undefined,
+		pos : _home, home : _home, rgi : _ri, path : [], road : undefined, act : undefined,
+		credits : _cost.pocket, recall : false, visited : [ _home ], planet_t : 0, bounty : undefined,
 	};
-	if (is_struct(_q)) array_push(_tr.log, "the quest: " + _q.txt);
+	if (is_struct(_q)) array_push(_tr.log, "the quest: " + _q.txt + "  (" + _rg.name + ")");
+	else array_push(_tr.log, "to explore " + _rg.name);
 	array_push(_e.trips, _tr);
 	exped_say(_tr, "depart");
 	save_mark_dirty();

@@ -6,7 +6,7 @@
 /// then a path by the roads, region_path). A fight opened anywhere
 /// holds the clock (exped_tick_one). Same call online and offline.
 function exped_agent(_tr, _dt) {
-	var _rg = region_get(_tr.dest);
+	var _rg = exped_region(_tr);
 	_tr.planet_t = (_tr[$ "planet_t"] ?? 0) + _dt;
 	// an activity in progress
 	if (is_struct(_tr.act)) {
@@ -39,9 +39,9 @@ function exped_agent(_tr, _dt) {
 	// deciding
 	var _want = exped_next_node(_tr, _rg);
 	if (_want == -1) return true;
-	if (_want == _tr.pos) { exped_node_event(_tr, true); if (!is_struct(_tr.act)) { _tr.path = []; return (_tr.pos == _rg.landing); } return false; }
+	if (_want == _tr.pos) { exped_node_event(_tr, true); if (!is_struct(_tr.act)) { _tr.path = []; return array_contains(_rg[$ "landings"] ?? [ _rg.landing ], _tr.pos); } return false; }
 	if (array_length(_tr.path) == 0 || _tr.path[array_length(_tr.path) - 1] != _want) _tr.path = region_path(_rg, _tr.pos, _want);
-	if (array_length(_tr.path) == 0) { array_push(_tr.log, "no road to " + _rg.nodes[_want].name + ". heading back"); return (_tr.pos == _rg.landing); }
+	if (array_length(_tr.path) == 0) { array_push(_tr.log, "no road to " + _rg.nodes[_want].name + ". heading back"); return array_contains(_rg[$ "landings"] ?? [ _rg.landing ], _tr.pos); }
 	var _nb = _tr.path[0];
 	var _h = region_hours(_rg, _tr.pos, _nb);
 	_tr.road = { a : _tr.pos, b : _nb, d : _h, t : 0 };

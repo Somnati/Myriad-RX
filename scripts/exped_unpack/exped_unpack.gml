@@ -74,17 +74,18 @@ function exped_unpack(_s) {
 				threads : (_p[7] != "") ? string_split(_p[7], ",") : [], said_travel : (_tt[6] == "1"), wins : real(_tt[5]),
 				// THE AGENT (field 8; a save from before: a quest-less walk home)
 				mode : "quest", quest : undefined, pos : 0, path : [], road : undefined, act : undefined,
-				credits : 0, recall : false, visited : [ 0 ], planet_t : 0, bounty : undefined, leave_t : real(_tt[0]), fights : 0,
+				credits : 0, recall : false, visited : [ 0 ], planet_t : 0, bounty : undefined, leave_t : real(_tt[0]), fights : 0, rgi : 0, home : 0,
 			});
 			var _trn = _e.trips[array_length(_e.trips) - 1];
 			if (array_length(_p) > 8 && _p[8] != "") {
 				var _ag = string_split(_p[8], ":");
 				if (array_length(_ag) >= 18) {
+					if (array_length(_ag) > 20) { _trn.rgi = clamp(real(_ag[19]), 0, EXPED_REGIONS - 1); _trn.home = real(_ag[20]); }
 					_trn.mode = (_ag[0] == "explore") ? "explore" : "quest";
 					_trn.pos = real(_ag[1]); _trn.credits = real(_ag[2]); _trn.recall = (_ag[3] == "1");
 					_trn.leave_t = real(_ag[4]); _trn.planet_t = real(_ag[5]);
 					if (_ag[6] != "") {
-						var _rgq = region_get(_d);
+						var _rgq = region_get(_d, _trn.rgi);
 						var _qn = clamp(real(_ag[7]), 0, array_length(_rgq.nodes) - 1);
 						_trn.quest = { kind : _ag[6], node : _qn, foe : _ag[8], n : real(_ag[9]), done : real(_ag[10]), mult : real(_ag[11]), reward : real(_ag[12]), hours : 0,
 						               txt : ((_ag[6] == "slay") ? ("slay " + _ag[9] + " " + _ag[8] + "s at ") : ((_ag[6] == "clear") ? "clear " : ((_ag[6] == "rout") ? "rout the bandits at " : "scout "))) + _rgq.nodes[_qn].name };

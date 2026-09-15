@@ -151,15 +151,15 @@ if (view == "haul") {
 // (they do not walk the graph yet - the agent is slice three), a legend
 if (view == "map") {
 	var _d  = map_dest;
-	var _rg = region_get(_d);
+	var _rg = region_get(_d, map_rgi);
 	var _kk = region_kinds();
 	var _mr = __map_r();
 	var _bb = exped_biomes()[_d.biome];
 	// the header (short: the back button sits on the right)
 	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(_mr.x, list_y + 6, _d.name);
+	draw_text(_mr.x, list_y + 6, _d.name + "  -  " + _rg.name);
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_mr.x + string_width(_d.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + string(array_length(_rg.nodes)) + " places");
+	draw_text(_mr.x + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv) + "  -  " + string(array_length(_rg.nodes)) + " places");
 	// the ground
 	draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .6);
 	draw_px_rect(_mr.x, _mr.y, _mr.w, _mr.h, _ink, .15);
@@ -244,12 +244,14 @@ if (view == "map") {
 
 // ======================= THE CREW MENU (his ask, 2026-09-14: tabs left, the sheet right) =======================
 if (view == "crew" || view == "sheet") {
-	if (is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
-	// the tabs
+	var _cl = __crew_list();
+	if (is_undefined(__sp_by_id(sheet_id)) && array_length(_cl) > 0) sheet_id = _cl[0].id;
+	it_rects = [];
+	// the tabs (a trip's crew only, when it came from a trip's page)
 	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text(land ? 14 : 4, list_y + 6, "the crew  -  " + string(array_length(g.sprites)) + " of " + string(SPRITE_CAP));
-	for (var _k = 0; _k < array_length(g.sprites); _k++) {
-		var _sp = g.sprites[_k];
+	draw_text(land ? 14 : 4, list_y + 6, (crew_trip >= 0) ? "the crew on this trip" : ("the crew  -  " + string(array_length(g.sprites)) + " of " + string(SPRITE_CAP)));
+	for (var _k = 0; _k < array_length(_cl); _k++) {
+		var _sp = _cl[_k];
 		var _tb = __tab_r(_k);
 		if (_tb.y + _tb.h > room_height - 4) break;
 		var _on = (_sp.id == sheet_id);
@@ -346,6 +348,7 @@ if (view == "crew" || view == "sheet") {
 		var _rw = _rows[_i];
 		var _ry = _ey + _i * 12;
 		draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _x1 - 8 - _ex, 11, 0, c_black, .35);
+		if (!is_undefined(_rw.it)) array_push(it_rects, { x : _ex, y : _ry - 1, w : _x1 - 8 - _ex, h : 11, it : _rw.it, worn : true });
 		draw_set_color(_dim); draw_set_alpha(.8);
 		draw_text(_ex + 3, _ry + 1, _rw.lbl);
 		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 52, _ry + 1, "(none)"); }
@@ -375,7 +378,10 @@ if (view == "crew" || view == "sheet") {
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_ex, _py, "pocket  " + string(array_length(_sh.inv)) + " / " + string(SPRITE_INV));
 	var _pn = min(array_length(_sh.inv), 4);
-	for (var _i = 0; _i < _pn; _i++) { draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6); draw_text(_ex + 4, _py + 10 + _i * 9, _sh.inv[_i].name); }
+	for (var _i = 0; _i < _pn; _i++) {
+		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6); draw_text(_ex + 4, _py + 10 + _i * 9, _sh.inv[_i].name);
+		array_push(it_rects, { x : _ex, y : _py + 9 + _i * 9, w : _x1 - 8 - _ex, h : 9, it : _sh.inv[_i], worn : false });
+	}
 	if (array_length(_sh.inv) > _pn) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 4, _py + 10 + _pn * 9, "...and " + string(array_length(_sh.inv) - _pn) + " more"); }
 	var _ny = _py + 10 + (min(array_length(_sh.inv), 4) + ((array_length(_sh.inv) > 4) ? 1 : 0)) * 9 + 4;
 	draw_set_color(_ink); draw_set_alpha(.5);
@@ -388,6 +394,57 @@ if (view == "crew" || view == "sheet") {
 		draw_text(_ex + 4, _ny + 10 + (_i - _n0) * 9, "- " + _nt.txt);
 	}
 	if (array_length(_sh.notes) == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_ex + 4, _ny + 10, "- (blank)"); }
+	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
+	// to this sprite (gear_score, the class's eye), and against what is
+	// worn in its slot - the difference per line
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp)) {
+		var _it = it_pop.it, _psp = it_pop.sp;
+		var _psh = sprite_sheet(_psp), _pcls = sprite_classes()[_psh.cls];
+		var _lines = variable_struct_get_names(_it.pts);
+		// what it would replace (the worst of a multi-slot)
+		var _cmp = undefined;
+		if (!it_pop.worn) {
+			if (_it.slot == "w1" || _it.slot == "w2") _cmp = _psh[$ _it.slot];
+			else { var _arr = _psh[$ _it.slot]; var _wsc = infinity; for (var _j = 0; _j < array_length(_arr); _j++) { var _s2 = gear_score(_psp, _arr[_j]); if (_s2 < _wsc) { _wsc = _s2; _cmp = _arr[_j]; } } }
+		}
+		var _pw = 168, _ph = 44 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12);
+		var _ppx = clamp(it_pop.x, 4, room_width - _pw - 4), _ppy = clamp(it_pop.y, list_y + 20, room_height - _ph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ppx + 2, _ppy + 3, _pw, _ph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ppx, _ppy, _pw, _ph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_ppx, _ppy, _pw, _ph, _it.col, .8);
+		draw_set_color(_it.col); draw_set_alpha(.95);
+		draw_text_ext(_ppx + 6, _ppy + 4, _it.name, 9, _pw - 12);
+		var _ty2 = _ppy + 4 + string_height_ext(_it.name, 9, _pw - 12) + 2;
+		draw_set_color(_dim); draw_set_alpha(.7);
+		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : "talisman"));
+		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv) + (it_pop.worn ? "  -  worn" : "  -  in the pocket"));
+		_ty2 += 12;
+		for (var _j = 0; _j < array_length(_lines); _j++) {
+			var _ln = _lines[_j];
+			var _v = _it.pts[$ _ln];
+			var _wv = is_undefined(_cmp) ? 0 : (_cmp.pts[$ _ln] ?? 0);
+			draw_set_color(_ink); draw_set_alpha(.9);
+			draw_text(_ppx + 6, _ty2, _ln);
+			draw_set_halign(fa_right);
+			draw_set_color(c_sgreen);
+			draw_text(_ppx + 70, _ty2, "+" + string_format(_v, 1, 1));
+			if (!is_undefined(_cmp)) {
+				var _dv = _v - _wv;
+				draw_set_color((_dv > 0) ? c_sgreen : ((_dv < 0) ? c_hred : _dim)); draw_set_alpha(.85);
+				draw_text(_ppx + _pw - 6, _ty2, ((_dv >= 0) ? "+" : "") + string_format(_dv, 1, 1) + " vs worn");
+			}
+			draw_set_halign(fa_left);
+			_ty2 += 10;
+		}
+		if (!is_undefined(_cmp)) {
+			// lines the worn one has that this one lacks
+			var _wl = variable_struct_get_names(_cmp.pts);
+			for (var _j = 0; _j < array_length(_wl); _j++) if (is_undefined(_it.pts[$ _wl[_j]])) { draw_set_color(c_hred); draw_set_alpha(.7); draw_text(_ppx + 6, _ty2, _wl[_j] + "  -" + string_format(_cmp.pts[$ _wl[_j]], 1, 1) + " vs worn"); _ty2 += 10; }
+		}
+		draw_set_color(c_gold); draw_set_alpha(.9);
+		var _sc = gear_score(_psp, _it);
+		draw_text(_ppx + 6, _ty2 + 2, "worth " + string_format(_sc, 1, 0) + " to " + _psp.name + " (" + _pcls.name + ")" + (is_undefined(_cmp) ? "" : ("  vs " + string_format(gear_score(_psp, _cmp), 1, 0))));
+	}
 	ui_fade_set(1);
 	exit;
 }
@@ -413,13 +470,15 @@ if (view == "trip") {
 	ui_fade_set(_ea);
 	var _tmr = __trip_map_r();
 	draw_ui_button(_tmr.x, _tmr.y, _tmr.w, _tmr.h, "map", c_steelblue, true, false);
+	var _tcr = __trip_crew_r();
+	draw_ui_button(_tcr.x, _tcr.y, _tcr.w, _tcr.h, "crew", c_steelblue, true, false);
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
 	draw_text(big_x + big_w * .5, big_y + (land ? 88 : 54), _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3));
 	draw_set_alpha(.8);
-	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), _b.name + " world  -  tier " + string(_d.tier) + "  -  lv " + string(exped_world_lv(_d)));
+	draw_text(big_x + big_w * .5, big_y + (land ? 98 : 64), exped_region(_tr).name + "  -  lv " + string(exped_trip_lv(_tr)));
 	draw_set_halign(fa_left);
 	// the crew's hp, one bar each
 	for (var _k = 0; _k < _n; _k++) {
@@ -618,15 +677,8 @@ if (view == "planet") {
 	draw_text(_bx.x, list_y + 6, _d.name);
 	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
 	draw_text(_bx.x + string_width(_d.name) + 10, list_y + 6, _b.name + " world  -  tier " + string(_d.tier));
-	// the world, big
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx.x, _bx.y, _bx.w, _bx.h, 0, c_black, .95);
-	ui_fade_set(1);
-	planet_sky_draw(_d.seed, _bx.x + 2, _bx.y + 2, _bx.w - 4, _bx.h - 4);
-	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	var _pcx = _bx.x + _bx.w * .5, _pcy = _bx.y + _bx.h * .5, _ppr = min(_bx.w, _bx.h) * .3;
-	if (_pn.row >= _pn.th) planet_draw(_pn, _pcx, _pcy, _ppr);
-	else __portrait(_d, _pcx, _pcy, _ppr);
-	draw_px_rect(_bx.x, _bx.y, _bx.w, _bx.h, merge_colour(_b.col2, c_white, .2), .5);
+	// the world, big (__draw_world_box: the spin, the zoom, the spots)
+	__draw_world_box(_d);
 	ui_fade_set(_ea);
 	// the facts, under it
 	var _fy = _bx.y + _bx.h + 4;
@@ -634,29 +686,38 @@ if (view == "planet") {
 	draw_text(_bx.x, _fy, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
 	draw_text(_bx.x, _fy + 10, "the wild here: " + ((_b.name == "living") ? "fields, forests, hills, marshes" : ((_b.name == "stone") ? "hills, mountains, mines, ruins, desert" : ((_b.name == "ice") ? "tundra, hills, mountains, ruins" : "ruins, marshes, forests, shrines"))));
 	draw_text(_bx.x, _fy + 20, "medieval. settlements and camps are common, towns rare, a city rarer.");
-	// the regions (one a world, for now)
-	var _rg = region_get(_d);
+	// the regions: EXPED_REGIONS a world, lv +0 / +2 / +4 - tap one and the world turns to it
 	draw_set_color(_ink); draw_set_alpha(.6);
 	var _r0 = __pl_row(0);
 	draw_text(_r0.x, _r0.y - 12, "regions  -  tap one");
-	var _nciv = 0, _ndun = 0, _ncmp = 0;
 	var _kk = region_kinds();
-	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
-		var _kd = _kk[$ _rg.nodes[_i].kind];
-		if (is_undefined(_kd)) continue;
-		if (_kd.civ) _nciv++;
-		if (_rg.nodes[_i].kind == "dungeon") _ndun++;
-		if (_rg.nodes[_i].kind == "camp") _ncmp++;
+	for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		var _rg = region_get(_d, _i);
+		var _rr = __pl_row(_i);
+		var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
+		for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
+			var _kd = _kk[$ _rg.nodes[_j].kind];
+			if (is_undefined(_kd)) continue;
+			if (_kd.civ) _nciv++;
+			if (_rg.nodes[_j].kind == "dungeon") _ndun++;
+			if (_rg.nodes[_j].kind == "camp") _ncmp++;
+			if (_rg.nodes[_j].kind == "landing") _nlnd++;
+		}
+		var _on = (pl_focus == _i);
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
+		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : c_steelblue, _on ? .9 : .5);
+		draw_set_color(c_white); draw_set_alpha(.95);
+		draw_text(_rr.x + 6, _rr.y + 3, _rg.name);
+		draw_set_halign(fa_right);
+		draw_set_color((_i == 0) ? c_sgreen : ((_i == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
+		draw_text(_rr.x + _rr.w - 6, _rr.y + 3, "level " + string(_rg.lv));
+		draw_set_halign(fa_left);
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(_rr.x + 6, _rr.y + 13, string(array_length(_rg.nodes)) + " places: " + string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon, " : " dungeons, ") + string(_ncmp) + ((_ncmp == 1) ? " camp" : " camps") + ((_nlnd > 0) ? ", 2 landing zones" : ""));
+		var _out = 0;
+		for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
+		if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 6, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 	}
-	draw_sprite_ext(spr_pixel_1x1, 0, _r0.x, _r0.y, _r0.w, _r0.h, 0, c_black, .7);
-	draw_px_rect(_r0.x, _r0.y, _r0.w, _r0.h, c_steelblue, .6);
-	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(_r0.x + 6, _r0.y + 3, "the landing reach  -  recommended level " + string(_rg.lv));
-	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_r0.x + 6, _r0.y + 12, string(array_length(_rg.nodes)) + " places: " + string(_nciv) + " settled, " + string(_ndun) + ((_ndun == 1) ? " dungeon, " : " dungeons, ") + string(_ncmp) + ((_ncmp == 1) ? " camp" : " camps"));
-	var _out = 0;
-	for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed) _out++;
-	if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_r0.x + _r0.w - 6, _r0.y + 3, string(_out) + " out"); draw_set_halign(fa_left); }
 	ui_fade_set(1);
 	exit;
 }
@@ -664,16 +725,19 @@ if (view == "planet") {
 // ======================= THE REGION: the quests on offer, or explore =======================
 if (view == "region") {
 	var _d = pl_dest;
-	var _rg = region_get(_d);
+	var _rg = region_get(_d, rg_sel);
 	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, _d.name + "  -  the landing reach");
+	draw_text(land ? 14 : 4, list_y + 6, _d.name + "  -  " + _rg.name);
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text((land ? 14 : 4) + string_width(_d.name + "  -  the landing reach") + 10, list_y + 6, "lv " + string(_rg.lv));
+	draw_text((land ? 14 : 4) + string_width(_d.name + "  -  " + _rg.name) + 10, list_y + 6, "lv " + string(_rg.lv));
+	// the world, turned to the region (his ask: it rotates and zooms in on it)
+	__draw_world_box(_d);
+	ui_fade_set(_ea);
 	var _mr0 = __rg_map_r();
 	draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "map", c_steelblue, true, false);
 	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text(land ? 14 : 4, list_y + 28, "quests on offer  -  tap one");
-	var _ql = exped_region_quests(_d);
+	draw_text(__q_row(0).x, list_y + 28, "quests on offer  -  tap one");
+	var _ql = exped_region_quests(_d, rg_sel);
 	var _dc = [c_sgreen, c_gold, c_horange, c_hred];
 	for (var _i = 0; _i <= array_length(_ql); _i++) {
 		var _qr = __q_row(_i);
@@ -702,10 +766,10 @@ if (view == "region") {
 // ======================= THE DEPARTURE: the crew, the brief, [depart] =======================
 if (view == "depart") {
 	var _d = pl_dest;
-	var _rg = region_get(_d);
+	var _rg = region_get(_d, rg_sel);
 	var _q = dp_quest;
 	draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(land ? 14 : 4, list_y + 6, (dp_mode == "explore") ? "explore the landing reach" : "the quest");
+	draw_text(land ? 14 : 4, list_y + 6, (dp_mode == "explore") ? ("explore " + _rg.name) : ("the quest  -  " + _rg.name));
 	// the crew, left
 	draw_set_color(_ink); draw_set_alpha(.6);
 	var _np = array_length(sel_crew);
@@ -749,7 +813,7 @@ if (view == "depart") {
 		draw_text_ext(_tx, _ty, _obj, 9, _tw);
 		_ty += string_height_ext(_obj, 9, _tw) + 6;
 	} else {
-		draw_text_ext(_tx, _ty, "wander the landing reach until recalled", 9, _tw);
+		draw_text_ext(_tx, _ty, "wander " + _rg.name + " until recalled", 9, _tw);
 		_ty += 12;
 		draw_set_color(_dim); draw_set_alpha(.75);
 		var _obj2 = "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
@@ -785,7 +849,7 @@ if (view == "depart") {
 	draw_text(_tx + _tw, _ty, "fuel " + string(_cost.fuel) + " + pocket " + string(_cost.pocket) + " = " + string(_cost.total) + "  (you have " + string(floor(_have)) + ")");
 	draw_set_halign(fa_left);
 	_ty += 11;
-	var _od = exped_odds(_d, _q, _crew);
+	var _od = exped_odds(_d, _q, _crew, rg_sel);
 	draw_set_color(_ink); draw_set_alpha(.8);
 	draw_text(_tx, _ty, "chance of success");
 	draw_set_halign(fa_right);
@@ -829,7 +893,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	draw_set_color(_dim);
 	draw_set_alpha(.7);
 	draw_text(_c.x + 48, _c.y + 26, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
-	draw_text(_c.x + 6, _c.y + 48, "one region  -  the landing reach");
+	draw_text(_c.x + 6, _c.y + 48, string(EXPED_REGIONS) + " regions  -  lv " + string(exped_world_lv(_d)) + " to " + string(exped_world_lv(_d) + 2 * (EXPED_REGIONS - 1)));
 	draw_set_color(c_gold); draw_set_alpha(.85);
 	draw_text(_c.x + 6, _c.y + 60, "quests on offer, and explore");
 	if (_out > 0) {

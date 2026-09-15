@@ -8,7 +8,7 @@
 /// nothing. `again` = a second pass at the same node (the quest is not
 /// done yet).
 function exped_node_event(_tr, _again = false) {
-	var _rg = region_get(_tr.dest);
+	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];
 	var _k = _nd.kind;
 	var _q = _tr[$ "quest"];

@@ -47,6 +47,23 @@ if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprit
 if (view == "map" && !is_struct(map_dest)) view = "hub";
 if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) view = "hub";
 
+// THE WORLD'S TURN (his ask, 2026-09-15): focused on a region, the spin
+// eases to the spot's and the view zooms in; unfocused, the ambient spin
+// resumes from where it was (an offset, so nothing jumps)
+if (is_struct(pl_dest)) {
+	var _pn2 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	var _amb = (current_time / 1000) * 60 * _pn2.spin + pl_spin_off;
+	if (pl_focus >= 0) {
+		var _dd = angle_difference(pl_spin_t, pl_spin);
+		pl_spin += _dd * (1 - power(.9, delta));
+		pl_zoom = lerp(pl_zoom, 1.5, 1 - power(.9, delta));
+	} else {
+		pl_spin_off = pl_spin - (current_time / 1000) * 60 * _pn2.spin;   // (keep the drawn spin continuous)
+		pl_spin = _amb;
+		pl_zoom = lerp(pl_zoom, 1, 1 - power(.9, delta));
+	}
+}
+
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
 // ---- [back], and escape: one step up the chain (__back, the Create) ----
@@ -74,10 +91,22 @@ if (view != "hub") {
 
 // ======================= THE CREW MENU: tabs on the left =======================
 if (view == "crew") {
-	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+	// a popup up: any press closes it
+	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+	var _cl = __crew_list();
+	for (var _k = 0; _k < array_length(_cl); _k++) {
 		var _tb = __tab_r(_k);
 		if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
-			sheet_id = g.sprites[_k].id;
+			sheet_id = _cl[_k].id;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
+	// an item row: its popup (the rects the Draw laid down)
+	for (var _k = 0; _k < array_length(it_rects); _k++) {
+		var _ir = it_rects[_k];
+		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
+			it_pop = { it : _ir.it, sp : __sp_by_id(sheet_id), worn : _ir.worn, x : _ir.x, y : _ir.y + _ir.h + 2 };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -90,10 +119,15 @@ if (view == "map") exit;
 
 // ======================= THE PLANET: its regions =======================
 if (view == "planet") {
-	// one region a world for now: the row opens the region window
-	var _pr0 = __pl_row(0);
-	if (point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) {
-		rg_sel = 0; view = "region";
+	// a region row: the world turns to it, and the region window opens
+	for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		var _pr0 = __pl_row(_i);
+		if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
+		rg_sel = _i;
+		var _rgs = region_get(pl_dest, _i);
+		var _pn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+		pl_focus = _i; pl_spin_t = __spin_for(_pn3, _rgs.spot.lon, _rgs.spot.lat);
+		view = "region";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
@@ -104,11 +138,11 @@ if (view == "planet") {
 if (view == "region") {
 	var _mr0 = __rg_map_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
-		map_dest = pl_dest; map_from = "region"; view = "map";
+		map_dest = pl_dest; map_rgi = rg_sel; map_from = "region"; view = "map";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
-	var _ql = exped_region_quests(pl_dest);
+	var _ql = exped_region_quests(pl_dest, rg_sel);
 	for (var _i = 0; _i <= array_length(_ql); _i++) {
 		var _qr = __q_row(_i);
 		if (!point_in_rectangle(mouse_x, mouse_y, _qr.x, _qr.y, _qr.x + _qr.w, _qr.y + _qr.h)) continue;
@@ -129,7 +163,7 @@ if (view == "depart") {
 		for (var _c = 0; _c < array_length(sel_crew); _c++) { var _sp = __sp_by_id(sel_crew[_c]); if (!is_undefined(_sp)) array_push(_crew, _sp); }
 		var _di = -1;
 		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
-		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest)) {
+		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel)) {
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			sel_crew = [];
 			view = "hub";
@@ -219,17 +253,26 @@ if (view == "trip") {
 	if (!is_undefined(_tr)) {
 		var _mr = __trip_map_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) {
-			map_dest = _tr.dest; map_from = "trip"; view = "map";
+			map_dest = _tr.dest; map_rgi = _tr[$ "rgi"] ?? 0; map_from = "trip"; view = "map";
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
 	}
-	// a crew row opens that sprite's sheet
+	// [crew]: this trip's crew, in the crew menu (his ask: only the sprites on the quest)
+	if (!is_undefined(_tr)) {
+		var _tcr = __trip_crew_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _tcr.x, _tcr.y, _tcr.x + _tcr.w, _tcr.y + _tcr.h)) {
+			crew_trip = _tr.id; sheet_id = _tr.sids[0]; view = "crew"; it_pop = undefined;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
+	// a crew row opens that sprite's sheet (this crew only)
 	if (!is_undefined(_tr)) {
 		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 			var _cr = __crew_row_r(_k);
 			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
-				sheet_id = _tr.sids[_k]; view = "crew";
+				sheet_id = _tr.sids[_k]; view = "crew"; crew_trip = _tr.id; it_pop = undefined;
 				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 				exit;
 			}
@@ -260,7 +303,7 @@ for (var _i = 0; _i < _rows; _i++) {
 if (array_length(g.sprites) > 0) {
 	var _shr = __crewbtn_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
-		view = "crew";
+		view = "crew"; crew_trip = -1; it_pop = undefined;
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
@@ -269,7 +312,7 @@ if (array_length(g.sprites) > 0) {
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _c = __card_r(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, _c.x, _c.y, _c.x + _c.w, _c.y + _c.h)) {
-		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; view = "planet";
+		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; view = "planet";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}

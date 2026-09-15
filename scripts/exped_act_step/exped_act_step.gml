@@ -6,7 +6,7 @@ function exped_act_step(_tr) {
 	var _a = _tr.act;
 	if (!is_struct(_a)) return;
 	if (_a.steps <= 0) { _tr.act = undefined; return; }   // (spent - it waited out its last fight)
-	var _rg = region_get(_tr.dest);
+	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];
 	var _n = array_length(_tr.sids);
 	var _q = _tr[$ "quest"];
@@ -71,7 +71,7 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "camp": {
-			_tr.fight = exped_fight_new(_tr, "bandit", -1, 0);
+			_tr.fight = exped_fight_new(_tr, "bandit", irandom_range(2, 3), 0);   // a camp is never one bandit
 			array_push(_tr.log, "bandits at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " of them");
 			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
 			if (_a.steps <= 1) _a.loot = true;   // the last fight's win pays the camp's chest (exped_tick_one)
@@ -99,7 +99,7 @@ function exped_act_step(_tr) {
 		}
 		case "wild": {
 			var _r = random(100);
-			if (_r < 30) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin"), -1, 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
+			if (_r < 30) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin"), irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
 			else if (_r < 50) exped_room_find(_tr, _nd.name + ": ");
 			else array_push(_tr.log, _nd.name + ": " + choose("looked at it. it is a " + _nd.kind + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
 			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "wolf", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }

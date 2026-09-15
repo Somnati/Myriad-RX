@@ -2,7 +2,7 @@
 function exped_where(_tr) {
 	if (_tr.stage == 0) return "flying to " + _tr.dest.name;
 	if (_tr.stage == 2) return _tr.routed ? "limping home" : "flying home";
-	var _rg = region_get(_tr.dest);
+	var _rg = exped_region(_tr);
 	var _here = _rg.nodes[clamp(_tr.pos, 0, array_length(_rg.nodes) - 1)].name;
 	if (!is_undefined(_tr.fight)) return "fighting at " + _here;
 	if (is_struct(_tr.act)) {

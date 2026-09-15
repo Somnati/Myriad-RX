@@ -31,7 +31,7 @@ function exped_loot_roll(_tr) {
 			// world's level, the rarity rolled above; the finder handles it
 			// (exped_room -> sprite_take). txt is rewritten with the outcome
 			var _slot = choose("w1", "w2", "armor", "talis");
-			var _it = gear_gen(_slot, exped_world_lv(_d), _rar, irandom($7fffffff));
+			var _it = gear_gen(_slot, exped_trip_lv(_tr), _rar, irandom($7fffffff));   // (the region's level)
 			return { kind : "gear", rar : _rar, txt : _it.name, col : _it.col, item : _it };
 		}
 	}

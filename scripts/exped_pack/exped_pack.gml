@@ -54,7 +54,8 @@ function exped_pack() {
 			    + ":" + string(_r[$ "leave_t"] ?? 0) + ":" + string(_r[$ "planet_t"] ?? 0)
 			    + ":" + (is_struct(_q) ? (_q.kind + ":" + string(_q.node) + ":" + _q.foe + ":" + string(_q.n) + ":" + string(_q.done) + ":" + string(_q.mult) + ":" + string(_q.reward)) : "::::::")
 			    + ":" + (is_struct(_bo) ? (string(_bo.node) + ":" + _bo.foe + ":" + string(_bo.n) + ":" + string(_bo.done) + ":" + string(_bo.pay)) : "::::")
-			    + ":" + _vis;
+			    + ":" + _vis
+			    + ":" + string(_r[$ "rgi"] ?? 0) + ":" + string(_r[$ "home"] ?? 0);   // (the region, the landing zone - 2026-09-15)
 		} else _o += "|";
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}

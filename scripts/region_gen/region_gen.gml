@@ -7,16 +7,15 @@
 ///   edges  [{ a, b, d }]  d = the walk between, in HOURS (1..~14)
 ///   landing = the landing zone's index (a node on the left edge)
 /// The roll: 12..17 nodes placed by rejection (no two closer than .17);
-/// the landing zone first; then the GUARANTEES - a settlement, two
-/// dungeons, a bandit camp (his first scope: "make sure a settlement
-/// spawns... a couple dungeons / a bandit camp") - then the rest by
-/// weight: settlements and camps common, villages less, a town rare, a
-/// city rarer (one at most), the wilderness from the biome's list.
+/// the landing zone first; then 1-3 settled places (settlement / village
+/// / town / a city at most once), 1-3 dungeons, 1-3 camps, maybe a second
+/// landing zone (his spec, 2026-09-15: "each consecutive one being
+/// rarer"), the wilderness from the biome's list for the rest.
 /// Edges: every node to its nearest, to its second nearest half the
 /// time (so branches end in dead ends), then the graph is stitched
 /// connected (union-find, nearest pair across components). Medieval,
 /// all of it: the civilisation is his call.
-function region_gen(_seed, _biome, _lv) {
+function region_gen(_seed, _biome, _lv, _ri = 0) {
 	var _old = random_get_seed();
 	random_set_seed((_seed ^ 48271) & $7fffffff);
 	var _bi = exped_biomes()[_biome].name;
@@ -41,27 +40,34 @@ function region_gen(_seed, _biome, _lv) {
 		if (_ok) array_push(_nodes, { i : array_length(_nodes), kind : "", name : "", x : _x, y : _y });
 	}
 	_n = array_length(_nodes);
-	// the kinds: the guarantees first, in random slots, then the weights
+	// THE KINDS (his spec, 2026-09-15): 1-3 settled places, 1-3 dungeons,
+	// 1-3 bandit camps, 1-2 landing zones - each next one rarer (a second
+	// at 50%, a third at 25%; a second landing at 35%) - and the rest is
+	// the wild. The first landing zone is node 0 (the left edge)
 	var _slots = [];
 	for (var _i = 1; _i < _n; _i++) array_push(_slots, _i);
 	array_shuffle_ext(_slots);
-	var _must = ["settlement", "dungeon", "dungeon", "camp"];
+	var _must = [];
+	var _nciv = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
+	var _ndun = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
+	var _ncmp = 1 + ((random(1) < .5) ? 1 : 0) + ((random(1) < .25) ? 1 : 0);
+	var _nlnd = ((random(1) < .35) ? 1 : 0);
+	var _city = false;
+	repeat (_nciv) {
+		var _r = random(100);
+		var _k = "settlement";
+		if (_r < 45) _k = "settlement"; else if (_r < 70) _k = "village"; else if (_r < 90) _k = "town"; else if (!_city) { _k = "city"; _city = true; } else _k = "town";
+		array_push(_must, _k);
+	}
+	repeat (_ndun) array_push(_must, "dungeon");
+	repeat (_ncmp) array_push(_must, "camp");
+	repeat (_nlnd) array_push(_must, "landing");
 	var _si = 0;
 	for (; _si < array_length(_must) && _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _must[_si];
-	var _city = false;
-	for (; _si < array_length(_slots); _si++) {
-		var _r = random(100);
-		var _k;
-		if      (_r < 22) _k = "settlement";
-		else if (_r < 32) _k = "village";
-		else if (_r < 38) _k = "town";
-		else if (_r < 41 && !_city) { _k = "city"; _city = true; }
-		else if (_r < 49) _k = "camp";
-		else if (_r < 60) _k = "dungeon";
-		else _k = _wild[irandom(array_length(_wild) - 1)];
-		_nodes[_slots[_si]].kind = _k;
-	}
-	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = region_name(_nodes[_i].kind);
+	for (; _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _wild[irandom(array_length(_wild) - 1)];
+	var _landings = [0];
+	for (var _i = 1; _i < _n; _i++) if (_nodes[_i].kind == "landing") array_push(_landings, _i);
+	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = (_nodes[_i].kind == "landing") ? ("the " + choose("second", "far", "high", "old", "north") + " landing") : region_name(_nodes[_i].kind);
 	// the edges: two nearest each
 	var _edges = [];
 	var _has = function(_edges, _a, _b) {
@@ -110,6 +116,11 @@ function region_gen(_seed, _biome, _lv) {
 		var _ea = _nodes[_edges[_e].a], _eb = _nodes[_edges[_e].b];
 		_edges[_e].d = max(1, round(point_distance(_ea.x, _ea.y, _eb.x, _eb.y) * 14));
 	}
+	// the region's name and its SPOT on the world (his ask: a region is a
+	// spot on the planet - lon / lat, a third of the globe apart)
+	var _rname = (_ri == 0) ? "the landing reach" : (region_name("village") + choose(" reach", " lowlands", " marches", " uplands", " fens", " holds"));
+	var _spot = { lon : _ri * 120 + random_range(-40, 40), lat : random_range(-35, 35) };
 	rng_release(_old);
-	return { seed : _seed, lv : _lv, nodes : _nodes, edges : _edges, landing : 0, biome : _bi };
+	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp };
 }

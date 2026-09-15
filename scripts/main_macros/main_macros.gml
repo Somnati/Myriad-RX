@@ -404,6 +404,7 @@ function main_macros() {
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
 // THE AGENT (slice three, 2026-09-14): a trip walks the world's REGION
 #macro EXPED_BOARD_N   1     // worlds on the board (his call: one planet for now)
+#macro EXPED_REGIONS   3     // regions a world (his call, 2026-09-15: three - lv +0 / +2 / +4 over the world's)
 #macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
 #macro EXPED_ROOM_T   10     // seconds a step at a node takes (a delve room, a shop visit)
 #macro EXPED_FUEL      2     // credits the ship burns to send a crew, x the world's tier

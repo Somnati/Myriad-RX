@@ -17,10 +17,12 @@ function exped_next_node(_tr, _rg) {
 			}
 			return _q.node;
 		}
-		return (_tr.pos == _rg.landing) ? -1 : _rg.landing;
+		// done: the nearest landing zone (the ship picks them up at any); there, leave
+		var _lz = region_nearest_landing(_rg, _tr.pos);
+		return (_tr.pos == _lz) ? -1 : _lz;
 	}
 	// explore
-	if (_tr[$ "recall"] ?? false) return (_tr.pos == _rg.landing) ? -1 : _rg.landing;
+	if (_tr[$ "recall"] ?? false) { var _lz2 = region_nearest_landing(_rg, _tr.pos); return (_tr.pos == _lz2) ? -1 : _lz2; }
 	var _bo = _tr[$ "bounty"];
 	if (is_struct(_bo) && _bo.done < _bo.n) return _bo.node;
 	if (_hurt && _tr.credits >= EXPED_INN) { var _c2 = region_nearest_civ(_rg, _tr.pos); if (_c2 >= 0 && _c2 != _tr.pos) return _c2; }
