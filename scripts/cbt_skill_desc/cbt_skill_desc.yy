@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cbt_skill_desc",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cbt_skill_desc",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

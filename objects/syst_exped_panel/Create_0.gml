@@ -266,6 +266,15 @@ gx_press = false; gx_px = 0; gx_py = 0; gx_cx0 = 0; gx_cy0 = 0; gx_travel = 0;
 gx_sel = -1; gx_sys = undefined;     // the tapped star and its system
 gx_from = "hub";                     // where [back] returns
 gx_fog = -1; gx_fog_seed = -1;       // the nebula fog sheet, baked once a galaxy
+gx_mm = -1; gx_mm_seed = -1;         // THE MINIMAP (his ask: bring it back): the star dots baked once, 80px wide
+__gx_mm_r = function() { var _sm = starmap_get(); var _w = 80; return { x : land ? 14 : 4, y : list_y + 34, w : _w, h : ceil(_sm.height * _w / _sm.width) }; };
+log_off = 0;                         // THE DIARY'S SCROLL (his ask): lines back from the newest (0 = live); the wheel over the log moves it
+/// the diary's rect on the page that shows one (the wheel's target)
+__log_r = function() {
+	if (view == "trip") return { x : log_x, y : log_y + 48, w : log_w, h : room_height - 10 - (log_y + 48) };
+	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12; return { x : _lx, y : list_y + 22, w : room_width - _lx - 14, h : room_height - 10 - (list_y + 22) }; }
+	return { x : 0, y : 0, w : 0, h : 0 };
+};
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
 __gx_r = function() { return { x : 0, y : list_y + 16, w : room_width, h : room_height - (list_y + 16) }; };
 // the region window: the quests, then explore
@@ -301,8 +310,14 @@ __crew_row_r = function(_k) { return { x : big_x, y : big_y + big_h + 22 + _k * 
 /// his ask, 2026-09-15: the fight's end in the diary), newest at the
 /// bottom, as many whole entries as fit between y and y_end. col = the
 /// world's colour for the voice
-__draw_log = function(_log, _x, _y, _w, _y_end, _col) {
-	var _nl = array_length(_log);
+__draw_log = function(_log, _x, _y, _w, _y_end, _col, _off = 0) {
+	var _nl = array_length(_log) - clamp(_off, 0, max(0, array_length(_log) - 1));
+	if (_off > 0) {
+		// scrolled: a dim line says so, and the room above it is the log's
+		draw_set_font(fnt); draw_set_color(sett_ink); draw_set_alpha(.4);
+		draw_text(_x, _y_end - 8, "- " + string(_off) + " newer below - wheel down -");
+		_y_end -= 10;
+	}
 	var _hs = array_create(_nl, 0);
 	var _room = _y_end - _y;
 	var _from = _nl;

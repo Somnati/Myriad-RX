@@ -108,6 +108,7 @@ if (view == "trip") {
 	}
 }
 if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
+if (view != "trip" && view != "haul") log_off = 0;
 if (view != "galaxy") gx_press = false;
 
 if (oa < .999 || closing) exit;
@@ -186,6 +187,17 @@ if (view == "planet" && is_struct(pl_dest)) {
 		} else { pv_vx = 0; pv_vy = 0; }
 	}
 }
+// ======================= THE DIARY'S SCROLL: the wheel over it =======================
+if (view == "trip" || view == "haul") {
+	var _lr = __log_r();
+	if (_lr.w > 0 && point_in_rectangle(mouse_x, mouse_y, _lr.x, _lr.y, _lr.x + _lr.w, _lr.y + _lr.h)) {
+		var _ln = 0;
+		if (view == "trip") { var _ltr = __trip(); if (!is_undefined(_ltr)) _ln = array_length(_ltr.log); }
+		else { var _lhi = __haul_i(); if (_lhi >= 0) _ln = array_length(_e.hauls[_lhi].log); }
+		if (mouse_wheel_up())   log_off = min(log_off + 3, max(0, _ln - 1));
+		if (mouse_wheel_down()) log_off = max(0, log_off - 3);
+	}
+}
 // ======================= THE GALAXY VIEW: pan, zoom, tap a star =======================
 if (view == "galaxy") {
 	var _gcf = starmap_config();
@@ -199,7 +211,16 @@ if (view == "galaxy") {
 	}
 	var _gbk = __back_r();
 	var _onbk = point_in_rectangle(mouse_x, mouse_y, _gbk.x, _gbk.y, _gbk.x + _gbk.w, _gbk.y + _gbk.h);
-	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
+	var _mmr = __gx_mm_r();
+	var _onmm = point_in_rectangle(mouse_x, mouse_y, _mmr.x, _mmr.y, _mmr.x + _mmr.w, _mmr.y + _mmr.h);
+	if (_onmm && mouse_check_button_pressed(mb_left)) {
+		// the minimap: a tap jumps the camera there
+		var _smm = starmap_get();
+		var _jx = (mouse_x - _mmr.x) / _mmr.w * _smm.width, _jy = (mouse_y - _mmr.y) / _mmr.h * _smm.height;
+		gx_x = _jx - _gr.w * .5 / gx_zoom; gx_y = _jy - _gr.h * .5 / gx_zoom;
+		play_sound_ext(snd_softclick, .95, 1.05, .3, 1);
+	}
+	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk && !_onmm) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
 	if (gx_press && mouse_check_button(mb_left)) {
 		gx_travel = max(gx_travel, point_distance(gx_px, gx_py, mouse_x, mouse_y));
 		gx_x = gx_cx0 - (mouse_x - gx_px) / gx_zoom;
@@ -262,7 +283,7 @@ if (view == "crew") {
 	for (var _k = 0; _k < array_length(it_rects); _k++) {
 		var _ir = it_rects[_k];
 		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
-			it_pop = { it : _ir.it, sp : __sp_by_id(sheet_id), worn : _ir.worn, x : _ir.x, y : _ir.y + _ir.h + 2 };
+			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}

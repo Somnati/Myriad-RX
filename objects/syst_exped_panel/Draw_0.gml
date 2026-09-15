@@ -143,7 +143,7 @@ if (view == "haul") {
 		draw_set_halign(fa_left);
 		draw_set_color(_ink); draw_set_alpha(.5);
 		draw_text(_lx, _cy, "the diary");
-		__draw_log(_h.log, _lx, _cy + 12, _lw, room_height - 10, exped_biomes()[_h.dest.biome].col2);
+		__draw_log(_h.log, _lx, _cy + 12, _lw, room_height - 10, exped_biomes()[_h.dest.biome].col2, log_off);
 	}
 	draw_set_halign(fa_left);
 	if (_recruit) {
@@ -383,15 +383,19 @@ if (view == "crew" || view == "sheet") {
 	var _ky = _gy + 48;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_hx, _ky, "skills");
+	var _skw = land ? 190 : (_w - 16);
 	for (var _i = 0; _i < array_length(_sk); _i++) {
 		var _s = _sk[_i];
-		var _ly = _ky + 11 + _i * 10;
+		var _ly = _ky + 11 + _i * 11;
+		// a row like the gear's (his ask): tap it for what the skill does
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _ly - 1, _skw, 10, 0, c_black, .35);
+		array_push(it_rects, { x : _hx - 3, y : _ly - 1, w : _skw, h : 10, sk : _s });
 		draw_set_color(_s.magic ? c_hpurple : c_horange); draw_set_alpha(.9);
 		draw_text(_hx, _ly, _s.name);
 		draw_set_color(_dim); draw_set_alpha(.7);
 		draw_text(_hx + 84, _ly, string(_s.cost) + "mp " + ((_s[$ "mult"] ?? 0) > 0 ? ("x" + string_format(_s.mult, 1, 1)) : "") + ((_s[$ "healp"] ?? 0) > 0 ? ("heals " + string(round(_s.healp * 100)) + "%") : ""));
 	}
-	if (_sh.lv < 20) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_hx, _ky + 11 + array_length(_sk) * 10, "next skill at level " + string((_sh.lv < 10) ? 10 : 20)); }
+	if (_sh.lv < 20) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_hx, _ky + 11 + array_length(_sk) * 11, "next skill at level " + string((_sh.lv < 10) ? 10 : 20)); }
 	var _py = _ey + array_length(_rows) * 12 + 4;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_ex, _py, "pocket  " + string(array_length(_sh.inv)) + " / " + string(SPRITE_INV));
@@ -415,7 +419,25 @@ if (view == "crew" || view == "sheet") {
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
-	if (is_struct(it_pop) && !is_undefined(it_pop.sp)) {
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "sk"])) {
+		// THE SKILL POPUP (his ask, 2026-09-15): what it does, when the ai uses it
+		var _psk = it_pop.sk;
+		var _slines = cbt_skill_desc(_psk);
+		var _spw = 210, _sph = 22;
+		for (var _j = 0; _j < array_length(_slines); _j++) _sph += string_height_ext(_slines[_j], 9, _spw - 12) + 2;
+		var _spx = clamp(it_pop.x, 4, room_width - _spw - 4), _spy = clamp(it_pop.y, list_y + 20, room_height - _sph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _spx + 2, _spy + 3, _spw, _sph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _spx, _spy, _spw, _sph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_spx, _spy, _spw, _sph, _psk.magic ? c_hpurple : c_horange, .8);
+		draw_set_color(_psk.magic ? c_hpurple : c_horange); draw_set_alpha(.95);
+		draw_text(_spx + 6, _spy + 4, _psk.name + ((_psk[$ "tmpl"] ?? -1) >= 0 ? "  -  its own" : "  -  the class's"));
+		var _ty3 = _spy + 16;
+		for (var _j = 0; _j < array_length(_slines); _j++) {
+			draw_set_color((_j == array_length(_slines) - 1) ? _dim : _ink); draw_set_alpha((_j == array_length(_slines) - 1) ? .6 : .9);
+			draw_text_ext(_spx + 6, _ty3, _slines[_j], 9, _spw - 12);
+			_ty3 += string_height_ext(_slines[_j], 9, _spw - 12) + 2;
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "it"])) {
 		var _it = it_pop.it, _psp = it_pop.sp;
 		var _psh = sprite_sheet(_psp), _pcls = sprite_classes()[_psh.cls];
 		var _lines = variable_struct_get_names(_it.pts);
@@ -666,7 +688,7 @@ if (view == "trip") {
 	// Newest at the bottom; as many whole entries as fit above it
 	var _ly = _sy + 48;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
-	__draw_log(_tr.log, _sx, _ly, _sw, _ly_end, _b.col2);
+	__draw_log(_tr.log, _sx, _ly, _sw, _ly_end, _b.col2, log_off);
 	// THE CONFIRM POPUP (abort): the save menu's box, over everything
 	if (conf_a > .01) {
 		var _cr = __conf_rect();
@@ -942,6 +964,22 @@ if (view == "galaxy") {
 		var _s = _st.props.size * gx_zoom;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _s * .5, _sy - _s * .5, _s, _s, 0, _st.props.color, 1);
 	}
+	// THE GLOW (his memory of the demo's glow layer - it was a room fx there;
+	// here the demo's own per-star bloom, additive: a stepped-circle frame
+	// by the star's screen size)
+	gpu_set_blendmode(bm_add);
+	for (var _i = 0; _i < array_length(_vis); _i++) {
+		var _st = _sm.stars[_vis[_i]];
+		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
+		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
+		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
+		var _gw2 = _st.props.size * gx_zoom * 6;
+		var _gi = 0;
+		if (_gw2 > 4) _gi = 1; if (_gw2 > 6) _gi = 2; if (_gw2 > 10) _gi = 3; if (_gw2 > 14) _gi = 4; if (_gw2 > 18) _gi = 5;
+		var _gsc = (_gw2 > 24) ? (_gw2 / 24) : 1;
+		draw_sprite_ext(spr_star_glow, _gi, _sx, _sy, _gsc, _gsc, 0, _st.props.color, .28);
+	}
+	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, dithered
 	var _fd = _gcf.fog_depth;
 	var _ffx = (_vcx * (1 - _fd) - gx_x) * gx_zoom, _ffy = (_vcy * (1 - _fd) - gx_y) * gx_zoom;
@@ -971,9 +1009,33 @@ if (view == "galaxy") {
 	}
 	draw_set_alpha(1);
 	surface_reset_target();
+	// THE MINIMAP (the demo's, his ask): the whole galaxy as dots baked once,
+	// the view's rectangle over it, the home star gold; tap it to jump
+	var _mmr = __gx_mm_r();
+	if (!surface_exists(gx_mm) || gx_mm_seed != _sm.seed) {
+		if (surface_exists(gx_mm)) surface_free(gx_mm);
+		gx_mm = surface_create(_mmr.w, _mmr.h);
+		surface_set_target(gx_mm);
+		draw_clear_alpha(c_black, 0);
+		var _msc = _mmr.w / _sm.width;
+		for (var _i = 0; _i < _sm.count; _i++) {
+			var _st = _sm.stars[_i];
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(_st.x * _msc), floor(_st.y * _msc), 1, 1, 0, _st.props.color, .22 + .3 * clamp(_st.props.size / 4, 0, 1));
+		}
+		surface_reset_target();
+		gx_mm_seed = _sm.seed;
+	}
 	ui_fade_set(_fa);
 	draw_surface(wb_surf, _gr.x, _gr.y);
 	ui_fade_set(_ea);
+	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
+	draw_surface(gx_mm, _mmr.x, _mmr.y);
+	draw_px_rect(_mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, c_steelblue, .5);
+	var _msc2 = _mmr.w / _sm.width;
+	var _vx0 = _mmr.x + gx_x * _msc2, _vy0 = _mmr.y + gx_y * _msc2, _vw0 = max(2, _vw / gx_zoom * _msc2), _vh0 = max(2, _vh / gx_zoom * _msc2);
+	draw_px_rect(floor(_vx0), floor(_vy0), ceil(_vw0), ceil(_vh0), c_white, .7);
+	var _hst = _sm.stars[_hm.star];
+	draw_sprite_ext(spr_pixel_1x1, 0, floor(_mmr.x + _hst.x * _msc2) - 1, floor(_mmr.y + _hst.y * _msc2) - 1, 2, 2, 0, c_gold, 1);
 	// the title
 	draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text(land ? 14 : 4, list_y + 6, _sm.name);
