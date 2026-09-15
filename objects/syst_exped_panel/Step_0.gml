@@ -108,7 +108,29 @@ if (view == "trip") {
 	}
 }
 if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
-if (view != "trip" && view != "haul") log_off = 0;
+// THE DIARY'S BAR: seated on the log's column while a diary shows, hidden
+// otherwise; it follows the newest line unless you scrolled up
+if (view == "trip" || view == "haul") {
+	var _lr = __log_r();
+	var _ll = __log_lines();
+	var _lmax = max(0, __log_content_h() - _lr.h);
+	if (is_array(_ll)) {
+		if (log_n != array_length(_ll)) { if (log_follow) log_scroll = _lmax; log_n = array_length(_ll); }
+		log_follow = (log_scroll >= _lmax - 4);
+	}
+	log_scroll = clamp(log_scroll, 0, _lmax);
+	if (instance_exists(sb)) {
+		sb.x = _lr.x + _lr.w - sprite_get_width(spr_scrollbar);
+		sb.y = _lr.y;
+		sb.image_yscale = _lr.h / max(1, sprite_get_height(spr_scrollbar));
+		sb.wheel_x1 = _lr.x; sb.wheel_x2 = _lr.x + _lr.w;
+		sb.visible = (oa >= .999 && !closing && _lmax > 0);
+		sb.enabled = (oa >= .999 && !closing);
+	}
+} else {
+	log_n = -1; log_follow = true; log_scroll = 0;
+	if (instance_exists(sb)) { sb.visible = false; sb.enabled = false; }
+}
 if (view != "galaxy") gx_press = false;
 
 if (oa < .999 || closing) exit;
@@ -185,17 +207,6 @@ if (view == "planet" && is_struct(pl_dest)) {
 			var _dk = power(_ocf.orbit_glide, delta);
 			pv_vx *= _dk; pv_vy *= _dk;
 		} else { pv_vx = 0; pv_vy = 0; }
-	}
-}
-// ======================= THE DIARY'S SCROLL: the wheel over it =======================
-if (view == "trip" || view == "haul") {
-	var _lr = __log_r();
-	if (_lr.w > 0 && point_in_rectangle(mouse_x, mouse_y, _lr.x, _lr.y, _lr.x + _lr.w, _lr.y + _lr.h)) {
-		var _ln = 0;
-		if (view == "trip") { var _ltr = __trip(); if (!is_undefined(_ltr)) _ln = array_length(_ltr.log); }
-		else { var _lhi = __haul_i(); if (_lhi >= 0) _ln = array_length(_e.hauls[_lhi].log); }
-		if (mouse_wheel_up())   log_off = min(log_off + 3, max(0, _ln - 1));
-		if (mouse_wheel_down()) log_off = max(0, log_off - 3);
 	}
 }
 // ======================= THE GALAXY VIEW: pan, zoom, tap a star =======================

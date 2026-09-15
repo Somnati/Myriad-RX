@@ -24,26 +24,49 @@ function exped_agent(_tr, _dt) {
 	var _was = _tr[$ "night"] ?? _night;
 	if (_night != _was) array_push(_tr.log, _night ? choose("night falls. the road goes on, darker", "dusk. the light goes and the noises start", "night. someone lights the lamp") : choose("dawn, grey then gold", "morning. everything is wet", "the sun is up. so is the crew, more or less"));
 	_tr.night = _night;
+	// THE WEATHER (his ask): the sky over the region, its changes in the diary
+	var _wx = exped_weather(_tr);
+	var _wwas = _tr[$ "weather"] ?? _wx;
+	if (_wx != _wwas) {
+		switch (_wx) {
+			case "rain":  array_push(_tr.log, choose("rain sets in", "it starts to rain. everyone pretends it is fine", "rain, the thin kind that gets everywhere")); break;
+			case "snow":  array_push(_tr.log, choose("snow. the road goes white", "it snows. " + _tr.names[0] + " catches one on the tongue")); break;
+			case "fog":   array_push(_tr.log, choose("fog comes down. the road ends ten paces ahead", "a fog, thick as bread")); break;
+			case "wind":  array_push(_tr.log, choose("the wind gets up", "a wind, in their faces, of course")); break;
+			case "storm": array_push(_tr.log, choose("a storm breaks over the road", "thunder. then the rest of it")); break;
+			default:      array_push(_tr.log, choose("the sky clears", "the weather lifts", "sun again, eventually")); break;
+		}
+	}
+	_tr.weather = _wx;
 	// on a road
 	if (is_struct(_tr.road)) {
 		var _rd = _tr.road;
 		var _before = floor(_rd.t / EXPED_HOUR);
-		_rd.t += _dt * (_night ? .8 : 1);   // (slow going in the dark)
+		var _pace = (_night ? .8 : 1) * ((_wx == "storm") ? .7 : ((_wx == "snow") ? .75 : ((_wx == "wind") ? .92 : 1)));   // (the dark and the weather slow the road)
+		_rd.t += _dt * _pace;
 		var _after = floor(_rd.t / EXPED_HOUR);
 		if (_after > _before && _rd.t < _rd.d * EXPED_HOUR) {
 			var _nl = array_length(_tr.log);
+			var _high = (_rg.nodes[_rd.a].kind == "mountains" || _rg.nodes[_rd.a].kind == "hills" || _rg.nodes[_rd.b].kind == "mountains" || _rg.nodes[_rd.b].kind == "hills");
+			// the weather's own: a slip on a wet high road, a wait under a tree in a storm
+			if ((_wx == "rain" || _wx == "snow") && _high && roll_perc(8)) {
+				var _sk = irandom(array_length(_tr.sids) - 1);
+				if (_tr.hp[_sk] > 0) { _tr.hp[_sk] = max(1, _tr.hp[_sk] - _tr.hpmax[_sk] * .08); array_push(_tr.log, _tr.names[_sk] + " slipped on the wet " + ((_rg.nodes[_rd.b].kind == "mountains") ? "scree" : "slope") + " and went down a way. bruises"); }
+			}
+			if (_wx == "storm" && roll_perc(25)) { _rd.t = max(0, _rd.t - EXPED_HOUR * .5); array_push(_tr.log, choose("waited out the worst of it under a tree", "sheltered under a rock while the sky did its thing", "the storm sat on them for half an hour")); return false; }
 			// the dark: a wrong turn (another road out of the node they left -
 			// the path is thrown away, they decide afresh where they end up),
-			// or an hour lost, before anything else
-			if (_night && roll_perc(6)) {
+			// or an hour lost, before anything else; fog doubles the wrong turns
+			if ((_night && roll_perc(6)) || (_wx == "fog" && roll_perc(_night ? 10 : 8))) {
 				var _nb = region_neighbors(_rg, _rd.a);
 				if (array_length(_nb) > 1) {
 					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
-					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; array_push(_tr.log, "took the wrong road in the dark. it goes to " + _rg.nodes[_pick].name); return false; }
+					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); return false; }
 				}
 			}
 			if (_night && roll_perc(10)) { _rd.t = max(0, _rd.t - EXPED_HOUR); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); return false; }
-			exped_encounter(_tr, _night ? 1.5 : 1);
+			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
+			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;
 			// nothing met: a little thing, maybe (exped_road_beat)
 			if (array_length(_tr.log) == _nl) exped_road_beat(_tr);

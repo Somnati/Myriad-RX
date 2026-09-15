@@ -158,6 +158,7 @@ function main_macros() {
 #macro scrl_autom 13        // the automation panel's page, row mode (fractional rows - smooth)
 #macro scrl_objectives 14   // the objectives panel's cards, pixel mode
 #macro scrl_changelog 15    // the changelog's release cards, pixel mode
+#macro scrl_exped_log 16    // the expedition panel's diary (the trip page, the haul), pixel mode
 #macro OBJ_GAP 5            // seconds between objective batches (his ask, 2026-09-13: room to breathe)
 #macro OBJ_CARD_HOLD 8      // seconds the objective card stays open before folding to its boxes (his ask, 2026-09-13)
 #macro OBJ_CARD_DELAY 5     // seconds the room must be clear (no panel, no log, no veil) before the card - and its ding - arrive (his ask, 2026-09-13)

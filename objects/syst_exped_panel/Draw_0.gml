@@ -143,7 +143,7 @@ if (view == "haul") {
 		draw_set_halign(fa_left);
 		draw_set_color(_ink); draw_set_alpha(.5);
 		draw_text(_lx, _cy, "the diary");
-		__draw_log(_h.log, _lx, _cy + 12, _lw, room_height - 10, exped_biomes()[_h.dest.biome].col2, log_off);
+		__draw_log_band(_h.log, { x : _lx, y : _cy + 12, w : _lw, h : room_height - 10 - (_cy + 12) }, exped_biomes()[_h.dest.biome].col2);
 	}
 	draw_set_halign(fa_left);
 	if (_recruit) {
@@ -633,7 +633,7 @@ if (view == "trip") {
 	draw_px_rect(_sx, _sy + 8, _sw, 6, c_steelblue, .35);
 	draw_set_color(_dim);
 	draw_set_alpha(.7);
-	draw_text(_sx, _sy + 18, _leg + ((_tr.stage == 1) ? ((_tr[$ "night"] ?? false) ? "  -  night" : "  -  day") : ""));
+	draw_text(_sx, _sy + 18, _leg + ((_tr.stage == 1) ? (((_tr[$ "night"] ?? false) ? "  -  night" : "  -  day") + (((_tr[$ "weather"] ?? "clear") != "clear") ? (", " + _tr.weather) : "")) : ""));
 	draw_set_halign(fa_right);
 	draw_set_color(c_white);
 	draw_set_alpha(.85);
@@ -760,7 +760,7 @@ if (view == "trip") {
 	// Newest at the bottom; as many whole entries as fit above it
 	var _ly = _sy + 48;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
-	__draw_log(_tr.log, _sx, _ly, _sw, _ly_end, _b.col2, log_off);
+	__draw_log_band(_tr.log, { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);
 	// THE CONFIRM POPUP (abort): the save menu's box, over everything
 	if (conf_a > .01) {
 		var _cr = __conf_rect();

@@ -427,6 +427,7 @@
     {"id":{"name":"exped_tick","path":"scripts/exped_tick/exped_tick.yy",},},
     {"id":{"name":"exped_trip_lv","path":"scripts/exped_trip_lv/exped_trip_lv.yy",},},
     {"id":{"name":"exped_unpack","path":"scripts/exped_unpack/exped_unpack.yy",},},
+    {"id":{"name":"exped_weather","path":"scripts/exped_weather/exped_weather.yy",},},
     {"id":{"name":"exped_where","path":"scripts/exped_where/exped_where.yy",},},
     {"id":{"name":"exped_world_lv","path":"scripts/exped_world_lv/exped_world_lv.yy",},},
     {"id":{"name":"exped_xp_grant","path":"scripts/exped_xp_grant/exped_xp_grant.yy",},},

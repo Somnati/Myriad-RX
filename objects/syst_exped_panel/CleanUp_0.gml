@@ -10,3 +10,6 @@ gx_mm = -1;
 if (surface_exists(gx_glow_a)) surface_free(gx_glow_a);
 if (surface_exists(gx_glow_b)) surface_free(gx_glow_b);
 gx_glow_a = -1; gx_glow_b = -1;
+if (surface_exists(log_surf)) surface_free(log_surf);
+log_surf = -1;
+if (instance_exists(sb)) instance_destroy(sb);

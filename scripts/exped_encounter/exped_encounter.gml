@@ -1,10 +1,12 @@
-/// @description exped_encounter(trip, [mult]) - something on the road (called once per road-hour crossed; mult scales the odds - night)
+/// @description exped_encounter(trip, [mult], [weather]) - something on the road (called once per road-hour crossed; mult scales the odds - night; rain lets a fight be walked round)
 /// EXPED_ENC% a road-hour: a wild fight (45), a passer-by who talks (25),
 /// a bandit sprite (15), a friendly sprite who asks to come along (15 -
 /// a "sprite" find: the haul's recruit moment decides at home).
-function exped_encounter(_tr, _mult = 1) {
+function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	if (!roll_perc(EXPED_ENC * _mult)) return;   // (x1.5 at night: the road is busier in the dark)
 	var _r = random(100);
+	// the noise of rain (his ask): a fight heard in time is a fight walked round
+	if ((_wx == "rain" || _wx == "storm") && _r < 45 && roll_perc(35)) { array_push(_tr.log, choose("heard something ahead over the rain, and went round it", "shapes in the rain. they took the long way and were not seen", "the rain covered their steps past a camp of something")); return; }
 	if (_r < 45) {
 		_tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0);
 		array_push(_tr.log, "on the road: " + _tr.fight.b.name + ((array_length(_tr.fight.foes) > 1) ? " and company" : "") + " " + choose("block the way", "come out of the trees", "were waiting", "had the same idea"));
