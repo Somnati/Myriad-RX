@@ -49,6 +49,8 @@ function exped_tick_one(_tr, _dt) {
 		}
 		// THE PACK'S DROP (his ask: "temoo acquired ..." in the diary)
 		if (_f.won) exped_fight_loot(_tr, _f);
+		// ...and now and then a trick learned in the fight (sprite_skill_learn)
+		if (_f.won) exped_skill_beat(_tr, .06);
 		// THE NOTEPAD: someone who is still up writes about a foe they met
 		exped_note_fight(_tr, _f);
 		if (_f.won) array_push(_tr.log, "the way is clear");

@@ -32,6 +32,7 @@ function exped_act_step(_tr) {
 		case "shop": exped_shop(_tr); break;
 		case "tavern": {
 			exped_stat("taverns");
+			exped_skill_beat(_tr, .12);   // (a trick off a drunk, sometimes)
 			var _r = random(100);
 			if (_r < 35) {
 				var _who = _tr.names[irandom(_n - 1)];
@@ -44,10 +45,10 @@ function exped_act_step(_tr) {
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"])) {
 				// a bounty: a nearby dungeon or camp, a few kills
 				var _cand = [];
-				for (var _i = 1; _i < array_length(_rg.nodes); _i++) if (_rg.nodes[_i].kind == "dungeon" || _rg.nodes[_i].kind == "camp") array_push(_cand, _i);
+				for (var _i = 1; _i < array_length(_rg.nodes); _i++) if (_rg.nodes[_i].kind == "dungeon" || _rg.nodes[_i].kind == "crypt" || _rg.nodes[_i].kind == "camp") array_push(_cand, _i);
 				if (array_length(_cand) > 0) {
 					var _bn = _cand[irandom(array_length(_cand) - 1)];
-					var _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : choose("goblin", "rat", "skeleton", "wolf");
+					var _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : ((_rg.nodes[_bn].kind == "crypt") ? choose("skeleton", "wisp") : choose("goblin", "rat", "skeleton", "wolf"));
 					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : 3 + 2 * _tr.dest.tier };
 					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + _bk + "s at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits");
 				}
@@ -65,7 +66,7 @@ function exped_act_step(_tr) {
 		case "delve": {
 			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds)
 			var _r = random(100);
-			if (_r < 45) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+			if (_r < 45) { _tr.fight = exped_fight_new(_tr, (_nd.kind == "crypt") ? choose("skeleton", "wisp") : "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
 			else if (_r < 75) exped_room_find(_tr, "a room of " + _nd.name + ": ");
 			else if (_r < 90) exped_room_trap(_tr, "a room of " + _nd.name + ": ");
 			else { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .25); array_push(_tr.log, "a room of " + _nd.name + ": quiet. they rested"); exped_say(_tr, "rest", undefined, .5); }
@@ -89,6 +90,7 @@ function exped_act_step(_tr) {
 		}
 		case "shrine": {
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .3);
+			exped_skill_beat(_tr, .3);   // (a shrine teaches, sometimes)
 			array_push(_tr.log, "the shrine at " + _nd.name + ": " + choose("a small blessing", "the water was cold and helped", "someone left a candle. it counted"));
 			if (roll_perc(20)) { array_push(_tr.finds, { kind : "charm", rar : 0, txt : "a charm (+1 luck)", col : c_seagreen }); array_push(_tr.log, "...and a charm, left on the step"); }
 			break;

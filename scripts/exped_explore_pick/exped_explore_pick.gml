@@ -19,7 +19,7 @@ function exped_explore_pick(_tr, _rg) {
 		var _wt = 1;
 		if (!array_contains(_tr.visited, _j)) _wt *= 3;
 		if (_kd.civ) _wt *= (_tr.credits > 0) ? 1.5 : .6;
-		if (_nd.kind == "dungeon" || _nd.kind == "camp") _wt *= 1.3;
+		if (_nd.kind == "dungeon" || _nd.kind == "crypt" || _nd.kind == "camp") _wt *= 1.3;
 		if (_nd.kind == "landing") _wt *= .2;
 		array_push(_w, _wt); _sum += _wt;
 	}

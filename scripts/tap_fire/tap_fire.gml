@@ -111,7 +111,9 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1)
 	// A HELD TAP IS SILENT OUTSIDE THE MONEY ROOM (his ask). _show is
 	// already "are we in the clicker", so this reuses it rather than
 	// asking the room a second question.
-	if (_fx && (!_hold || _show)) {
+	// ...and silent under an overlay too (his ask, 2026-09-15: "when im not
+	// directly viewing the clicker room" - a panel over it is not viewing it)
+	if (_fx && (!_hold || (_show && ui_overlay() == noone))) {
 		// both are the player's choice now (settings > audio). The crit
 		// keeps its haptic: it is the one tap you want to FEEL differently.
 		if (_crit) { sfx_play("crit", _vol); vibrate(30, 3); }

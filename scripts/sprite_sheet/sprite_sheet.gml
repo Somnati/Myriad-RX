@@ -8,7 +8,7 @@
 /// existed gets one here, level 1, empty-handed. Meta: survives rebirth
 /// with the sprite (his call).
 function sprite_sheet(_sp) {
-	if (is_struct(_sp[$ "sheet"])) { if (!is_array(_sp.sheet[$ "notes"])) _sp.sheet.notes = []; return _sp.sheet; }
+	if (is_struct(_sp[$ "sheet"])) { if (!is_array(_sp.sheet[$ "notes"])) _sp.sheet.notes = []; if (!is_array(_sp.sheet[$ "learned"])) _sp.sheet.learned = []; return _sp.sheet; }
 	var _cl = sprite_classes();
 	var _sh = {
 		cls : (_sp.id * 7 + 3) mod array_length(_cl),   // spread across the roster, stable per id
@@ -17,6 +17,7 @@ function sprite_sheet(_sp) {
 		w1 : undefined, w2 : undefined, armor : [], talis : [],
 		inv : [],
 		notes : [],   // THE NOTEPAD (his ask): { txt, tag } - tag "foe:<kind>" or "" (sprite_note)
+		learned : [],   // SKILLS LEARNED ON THE ROAD (2026-09-15): { tmpl, seed } each (cbt_skill_gen rebuilds them); the class's own skill is always first
 	};
 	_sp.sheet = _sh;
 	return _sh;

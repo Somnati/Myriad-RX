@@ -13,6 +13,7 @@ function region_kinds() {
 		city       : { name : "city",         col : rgb(255, 120, 80),    r : 5, civ : true,  wild : false },
 		camp       : { name : "bandit camp",  col : c_hred,               r : 3, civ : false, wild : false },
 		dungeon    : { name : "dungeon",      col : c_hpurple,            r : 3, civ : false, wild : false },
+		crypt      : { name : "crypt",        col : rgb(175, 155, 205),   r : 3, civ : false, wild : false },   // a dungeon of the dead (skeletons, wisps)
 		ruin       : { name : "ruin",         col : rgb(160, 160, 175),   r : 2, civ : false, wild : true },
 		shrine     : { name : "shrine",       col : c_lavender,           r : 2, civ : false, wild : true },
 		mine       : { name : "mine",         col : c_steelblue,          r : 2, civ : false, wild : true },

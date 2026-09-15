@@ -8,7 +8,8 @@
 function exped_loot_roll(_tr) {
 	var _d  = _tr.dest;
 	var _bi = exped_biomes()[_d.biome];
-	var _kind = exped_pick(_bi.loot);
+	// FOR NOW (his call, 2026-09-15): credits or gear for the sprites, nothing else
+	var _kind = (random(100) < 45) ? "gear" : "credits";
 	var _rar  = clamp(calculate_rarity(luck_rate(_d.rate), .3, .03, 800, 8), 0, 7);
 	var _ri   = upgrade_rarity_info(_rar);
 	switch (_kind) {

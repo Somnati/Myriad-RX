@@ -20,33 +20,33 @@ function cbt_skills() {
 			effect : function(_f, _u, _t) { cbt_hit(_f, _u, _t, mult, name, 0, magic); },
 		},
 		reform : {
-			name : "reform", cost : 4, targ : "self", magic : false,
+			name : "reform", cost : 4, targ : "self", magic : false, healp : .4,
 			can_use  : function(_f, _u) { return _u.hp < _u.maxhp; },
 			ai_score : function(_f, _u, _t) { return (_u.hp > _u.maxhp * .35) ? 0 : 85; },   // the emergency button
-			effect : function(_f, _u, _t) { cbt_heal(_f, _u, _u.maxhp * .4, "reform"); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _u, _u.maxhp * healp, "reform"); },
 		},
 		drain : {
-			name : "drain", cost : 3, targ : "enemy", mult : .8, magic : true,
+			name : "drain", cost : 3, targ : "enemy", mult : .8, magic : true, leech : .6,
 			can_use  : function(_f, _u) { return true; },
 			ai_score : function(_f, _u, _t) { return 40 + (1 - _u.hp / _u.maxhp) * 45; },
 			effect : function(_f, _u, _t) {
 				var _d = cbt_hit(_f, _u, _t, mult, name, 0, magic);
-				if (_d > 0) cbt_heal(_f, _u, _d * .6, "");
+				if (_d > 0) cbt_heal(_f, _u, _d * leech, "");
 			},
 		},
 		mend : {
-			name : "mend", cost : 4, targ : "ally", magic : true,
+			name : "mend", cost : 4, targ : "ally", magic : true, healp : .35,
 			can_use  : function(_f, _u) { return true; },
 			ai_score : function(_f, _u, _t) { return (1 - _t.hp / _t.maxhp) * 95; },   // triage: the score IS the missing health
-			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * .35, "mend"); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, "mend"); },
 		},
 		concuss : {
-			name : "concuss", cost : 3, targ : "enemy", mult : .7, magic : false,
+			name : "concuss", cost : 3, targ : "enemy", mult : .7, magic : false, stag : .45,
 			can_use  : function(_f, _u) { return true; },
 			ai_score : function(_f, _u, _t) { return 35 + _t.spd * 4 + (_t.tic / _f.thr) * 25; },   // tempo: best on a fast foe mid-charge
 			effect : function(_f, _u, _t) {
 				var _d = cbt_hit(_f, _u, _t, mult, name, 0, magic);
-				if (_d > 0) _t.tic -= _f.thr * .45;
+				if (_d > 0) _t.tic -= _f.thr * stag;
 			},
 		},
 		bolt : {

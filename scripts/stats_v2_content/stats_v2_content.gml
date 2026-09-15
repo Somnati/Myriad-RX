@@ -613,6 +613,7 @@ function stats_v2_content() {
 		stats_v2_line("camps raided", _xn("camps"), -1, _xc);
 		stats_v2_line("bounties done", _xn("bounties"), -1, _xc);
 		stats_v2_line("levels gained", _xn("levels"), -1, c_gold);
+		stats_v2_line("skills learned", _xn("skills"), -1, c_horange);
 		stats_v2_line("nights at inns", _xn("inns"), -1, _xc);
 		stats_v2_line("tavern visits", _xn("taverns"), -1, _xc);
 		stats_v2_line("sprites met", _xn("met"), -1, _xc);

@@ -12,9 +12,9 @@ function cbt_skill_desc(_s) {
 	if (_kind < 0) {
 		switch (_s.name) {
 			case "strike":  _kind = 0; break;
-			case "drain":   _kind = 1; _leech = .6; break;
-			case "mend":    _kind = 2; _healp = .35; break;
-			case "concuss": _kind = 3; _stag = .45; break;
+			case "drain":   _kind = 1; break;
+			case "mend":    _kind = 2; break;
+			case "concuss": _kind = 3; break;
 			case "bolt":    _kind = 4; break;
 			case "reform":  _kind = 5; break;
 		}

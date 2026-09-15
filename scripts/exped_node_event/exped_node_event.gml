@@ -40,6 +40,7 @@ function exped_node_event(_tr, _again = false) {
 	}
 	switch (_k) {
 		case "dungeon": _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : irandom_range(3, 5) }; array_push(_tr.log, "into " + _nd.name); break;
+		case "crypt":   _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : irandom_range(3, 5) }; array_push(_tr.log, "down into " + _nd.name + ". it is cold"); break;
 		case "camp":    _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); break;
 		case "mine":    _tr.act = { kind : "mine",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;

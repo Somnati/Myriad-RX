@@ -39,4 +39,18 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 			array_push(_sh.notes, { tag : _tt[0], txt : _tt[1] });
 		}
 	}
+	// the learned skills (an eighth field). A save from the old law (skills
+	// at levels 1 / 10 / 20 off the seed) keeps what it had: those rolls,
+	// as learned ones
+	_sh.learned = [];
+	if (array_length(_f) > _at + 7) {
+		if (_f[_at + 7] != "") {
+			var _ls = string_split(_f[_at + 7], ";");
+			for (var _i = 0; _i < array_length(_ls); _i++) { var _tv = string_split(_ls[_i], ":"); if (array_length(_tv) == 2) array_push(_sh.learned, { tmpl : clamp(real(_tv[0]), 0, 4), seed : real(_tv[1]) }); }
+		}
+	} else {
+		var _cl2 = sprite_classes()[_sh.cls];
+		var _nold = clamp(1 + floor(_sh.lv / 10), 1, SPRITE_SKILLS - 1);
+		for (var _i = 0; _i < _nold; _i++) array_push(_sh.learned, { tmpl : _cl2.tmpls[_i mod array_length(_cl2.tmpls)], seed : (_sh.sks + _i * 7919) & $7fffffff });
+	}
 }

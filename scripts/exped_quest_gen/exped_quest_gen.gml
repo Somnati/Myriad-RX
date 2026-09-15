@@ -17,7 +17,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0) {
 	var _kk = region_kinds();
 	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
 		var _k = _rg.nodes[_i].kind;
-		if (_k == "dungeon") array_push(_dung, _i);
+		if (_k == "dungeon" || _k == "crypt") array_push(_dung, _i);
 		else if (_k == "camp") array_push(_camp, _i);
 		else { var _kd = _kk[$ _k]; if (is_struct(_kd) && _kd.wild) array_push(_wild, _i); }
 	}
@@ -27,7 +27,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0) {
 	if (_r < 45 && array_length(_dung) > 0) {
 		var _nd = _dung[irandom(array_length(_dung) - 1)];
 		if (random(1) < .6) {
-			var _f = _kinds[irandom(array_length(_kinds) - 1)];
+			var _f = (_rg.nodes[_nd].kind == "crypt") ? choose("skeleton", "wisp") : _kinds[irandom(array_length(_kinds) - 1)];
 			var _n = irandom_range(3, 8);
 			_q = { kind : "slay", node : _nd, foe : _f, n : _n, done : 0, mult : 3,
 			       txt : "travel to " + _rg.nodes[_nd].name + " and slay " + string(_n) + " " + _f + "s" };

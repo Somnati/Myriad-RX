@@ -71,11 +71,13 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		if (array_length(_tw) > 0) {
 			array_push(_tw, "hills");   // (a floor of variety: every land has a rise somewhere)
 			// the biome family's specials keep a seat (mines, ruins, shrines)
+			// (ruins everywhere - his ask, 2026-09-15 - and each family's specials)
+			array_push(_tw, "ruin");
 			switch (_bi) {
-				case "stone":  array_push(_tw, "mine", "ruin"); break;
-				case "ruined": array_push(_tw, "ruin", "shrine", "ruin"); break;
-				case "ice":    array_push(_tw, "ruin"); break;
-				default:       if (random(1) < .5) array_push(_tw, "ruin"); break;
+				case "stone":  array_push(_tw, "mine"); break;
+				case "ruined": array_push(_tw, "ruin", "shrine"); break;
+				case "ice":    break;
+				default:       if (random(1) < .4) array_push(_tw, "shrine"); break;
 			}
 			_wild = _tw;
 		}
@@ -115,12 +117,31 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		if (_r < 45) _k = "settlement"; else if (_r < 70) _k = "village"; else if (_r < 90) _k = "town"; else if (!_city) { _k = "city"; _city = true; } else _k = "town";
 		array_push(_must, _k);
 	}
-	repeat (_ndun) array_push(_must, "dungeon");
+	repeat (_ndun) array_push(_must, (random(1) < .3) ? "crypt" : "dungeon");   // (a crypt: a dungeon of the dead, 2026-09-15)
 	repeat (_ncmp) array_push(_must, "camp");
 	repeat (_nlnd) array_push(_must, "landing");
 	var _si = 0;
 	for (; _si < array_length(_must) && _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _must[_si];
 	for (; _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _wild[irandom(array_length(_wild) - 1)];
+	// CAMPS AWAY FROM TOWNS (his ask, 2026-09-15): a camp within .22 of a
+	// settled place swaps kinds with the wild node farthest from any
+	var _civn = [];
+	for (var _i = 1; _i < _n; _i++) { var _kd0 = region_kinds()[$ _nodes[_i].kind]; if (is_struct(_kd0) && _kd0.civ) array_push(_civn, _i); }
+	for (var _i = 1; _i < _n; _i++) {
+		if (_nodes[_i].kind != "camp") continue;
+		var _near = 9;
+		for (var _j = 0; _j < array_length(_civn); _j++) _near = min(_near, point_distance(_nodes[_i].x, _nodes[_i].y, _nodes[_civn[_j]].x, _nodes[_civn[_j]].y));
+		if (_near >= .22) continue;
+		var _best = -1, _bd = -1;
+		for (var _w2 = 1; _w2 < _n; _w2++) {
+			var _kd2 = region_kinds()[$ _nodes[_w2].kind];
+			if (!is_struct(_kd2) || !_kd2.wild) continue;
+			var _dm = 9;
+			for (var _j = 0; _j < array_length(_civn); _j++) _dm = min(_dm, point_distance(_nodes[_w2].x, _nodes[_w2].y, _nodes[_civn[_j]].x, _nodes[_civn[_j]].y));
+			if (_dm > _bd) { _bd = _dm; _best = _w2; }
+		}
+		if (_best >= 0 && _bd > _near) { var _kk3 = _nodes[_best].kind; _nodes[_best].kind = "camp"; _nodes[_i].kind = _kk3; }
+	}
 	var _landings = [0];
 	for (var _i = 1; _i < _n; _i++) if (_nodes[_i].kind == "landing") array_push(_landings, _i);
 	for (var _i = 1; _i < _n; _i++) _nodes[_i].name = (_nodes[_i].kind == "landing") ? ("the " + choose("second", "far", "high", "old", "north") + " landing") : region_name(_nodes[_i].kind);
@@ -175,10 +196,32 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)
 	var _rname = (_ri == 0) ? "the landing reach" : (region_name("village") + choose(" reach", " lowlands", " marches", " uplands", " fens", " holds"));
+	// THE MOOD (his ask, 2026-09-15: "a single word... war torn, peaceful,
+	// prosperous"): read off what is here
+	var _mciv = 0, _mcmp = 0, _mdun = 0, _mruin = 0, _mcity = false;
+	for (var _i = 1; _i < _n; _i++) {
+		var _mk = _nodes[_i].kind;
+		var _mkd = region_kinds()[$ _mk];
+		if (is_struct(_mkd) && _mkd.civ) _mciv++;
+		if (_mk == "city") _mcity = true;
+		if (_mk == "camp") _mcmp++;
+		if (_mk == "dungeon" || _mk == "crypt") _mdun++;
+		if (_mk == "ruin") _mruin++;
+	}
+	var _mood = "quiet";
+	if (_mcmp >= 3) _mood = "war torn";
+	else if (_mciv >= 2 && _mcmp >= 2) _mood = "at war";
+	else if (_mcmp >= 2 && _mcmp >= _mciv) _mood = "lawless";
+	else if (_mcity && _mcmp <= 1) _mood = "prosperous";
+	else if (_mdun >= 3) _mood = "haunted";
+	else if (_mruin >= 2) _mood = "ruined";
+	else if (_mciv >= 3) _mood = "peaceful";
+	else if (_mciv == 1 && _mdun <= 1) _mood = "remote";
+	else _mood = choose("quiet", "sleepy", "untroubled");
 	// the distinct wild kinds here (the planet window lists them)
 	var _wk2 = [];
 	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);
 	rng_release(_old);
 	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
-	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2 };
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood };
 }

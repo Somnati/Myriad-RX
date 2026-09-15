@@ -451,9 +451,11 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 			if (_v[2] <= .1) continue;
 			var _sx = floor(_pcx) + floor(_v[0] * _pr * .5) * 2, _sy = floor(_pcy) + floor(_v[1] * _pr * .5) * 2;
 			var _on = (_i == _focus);
-			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
+			// an OUTLINED SQUARE (his ask): black 8x8 under a 4x4 in the colour - a 2px outline
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 4, _sy - 4, 8, 8, 0, c_black, .9);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 2, _sy - 2, 4, 4, 0, _on ? c_gold : c_white, 1);
 			if (_on) {
-				var _s = 8 + _pulse * 2;
+				var _s = 12 + _pulse * 2;
 				__px_box2(_sx - _s * .5, _sy - _s * .5, _s, c_gold, .95);
 			}
 			if (_v[2] > .3) {
@@ -549,3 +551,7 @@ __haul_i = function() {
 	for (var _i = 0; _i < array_length(_e.hauls); _i++) if (_e.hauls[_i].id == view_id) return _i;
 	return -1;
 };
+
+// THE FIRST PAGE (his call, 2026-09-15: "default to the region selection
+// screen"): the world's page, with the hub a [back] away
+if (array_length(g.exped.board) > 0) { sel_dest = 0; pl_dest = g.exped.board[0]; rg_sel = 0; pl_focus = -1; view = "planet"; pv_mode = "planet"; }
