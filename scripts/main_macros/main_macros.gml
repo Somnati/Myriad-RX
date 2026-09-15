@@ -433,7 +433,7 @@ function main_macros() {
 // enemy's xp x SPRITE_QUEST_XP_LO..HI by how much of it was done
 // (sprite_xp_quest). SPRITE_XP_LAW stamps the save: a sprite saved under an
 // older law is reset to level 1 / 0 xp on load (gear and notes kept)
-#macro SPRITE_LV_KILLS   30   // par kills a level takes (his call: 30; one number, change it here)
+#macro SPRITE_LV_KILLS   30   // par kills a level takes FOR A LONE SPRITE (his call: 30; one number, change it here). A party SPLITS every pool (exped_xp_grant): a trio at par sees ~47 fights a level each, a solo ~16
 #macro SPRITE_LV_PTS      3   // stat points a level adds on top of the 40-point base (the class shape scales)
 #macro SPRITE_XP_PER_PT   1   // xp a LEVEL-1 par enemy pays (everything scales off it)
 #macro SPRITE_XP_LAW      2   // the xp law's version, stamped in the save (handle_save resets sheets from an older one)

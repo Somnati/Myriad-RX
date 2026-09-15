@@ -301,8 +301,12 @@ def main():
     claims.append(("a full quest is worth fewer than ten par kills", xp_quest(10, 1) < 10 * foe_xp(par_pts(10) * FOE_B), "%.1f vs %.1f" % (xp_quest(10, 1), foe_xp(par_pts(10) * FOE_B))))
     # a trip's worth: ROOMS rooms, ~30% fights at par, + the quest
     fights = ROOMS * .3
-    per_trip = fights * 2 * foe_xp(par_pts(5) * FOE_B) + xp_quest(5, .8)   # (a crew of two meets two foes a fight)
-    out.append("  a tier-2 trip (level 5, a crew of two, ~%.1f fights of two, 80%% cleared) pays ~%d xp: %.1f trips a level" % (fights, per_trip, xp_need(5) / per_trip))
+    # THE SPLIT (his call, 2026-09-15): a pool is divided across the party - a
+    # pack of 1.9 foes on average (EXPED_PACK_W1 / W2), a trio takes a third each
+    pack = (35 * 1 + 40 * 2 + 25 * 3) / 100
+    per_trip = (fights * pack * foe_xp(par_pts(5) * FOE_B) + xp_quest(5, .8)) / 2
+    out.append("  a tier-2 trip (level 5, a crew of two, ~%.1f fights of ~%.1f, 80%% cleared, the xp split two ways) pays ~%.1f xp each: %.1f trips a level" % (fights, pack, per_trip, xp_need(5) / per_trip))
+    out.append("  fights a level at par: a solo ~%d, a pair ~%d each, a trio ~%d each (packs of ~%.1f, the pool split)" % (round(xp_need(1) / pack), round(xp_need(1) / pack * 2), round(xp_need(1) / pack * 3), pack))
     out.append("")
     ok = all(c[1] for c in claims)
     for c in claims: out.append("  %s  %s  (%s)" % ("HOLDS" if c[1] else "FAILS", c[0], c[2]))

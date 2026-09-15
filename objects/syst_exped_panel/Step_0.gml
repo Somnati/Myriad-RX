@@ -135,15 +135,27 @@ if (view == "map") exit;
 
 // ======================= THE PLANET: its regions =======================
 if (view == "planet") {
-	// a region row: the world turns to it, and the region window opens
+	// [view region]: the picked one's window (his ask, 2026-09-15: a pick
+	// first, the world pulls over to it, then the button)
+	if (pl_focus >= 0) {
+		var _vr = __view_rg_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
+			rg_sel = pl_focus;
+			view = "region";
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
+	// a region row: the world turns to it (a second tap on the same row
+	// changes nothing - it stays picked)
 	for (var _i = 0; _i < EXPED_REGIONS; _i++) {
 		var _pr0 = __pl_row(_i);
 		if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
+		if (pl_focus == _i) { play_sound_ext(snd_softclick, .95, 1.05, .3, 1); exit; }
 		rg_sel = _i;
 		var _rgs = region_get(pl_dest, _i);
 		var _pn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 		pl_focus = _i; pl_spin_t = __spin_for(_pn3, _rgs.spot.lon, _rgs.spot.lat);
-		view = "region";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}

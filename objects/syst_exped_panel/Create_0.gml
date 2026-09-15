@@ -155,7 +155,7 @@ __back = function() {
 	switch (view) {
 		case "map":    view = map_from; break;
 		case "depart": view = "region"; break;
-		case "region": view = "planet"; pl_focus = -1; break;
+		case "region": view = "planet"; break;   // (the pick stays: the world keeps facing it, [view region] still there)
 		case "crew":   view = (crew_trip >= 0) ? "trip" : "hub"; crew_trip = -1; it_pop = undefined; break;
 		default:       view = "hub"; break;
 	}
@@ -197,6 +197,7 @@ __spin_for = function(_pn, _lon, _lat) {
 	}
 	return _best;
 };
+__view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
 // the region window: the quests, then explore
 __q_row   = function(_i) { var _b = __pl_box(); return { x : land ? (_b.x + _b.w + 12) : _b.x, y : (land ? (list_y + 40) : (_b.y + _b.h + 26)) + _i * 30, w : land ? (room_width - (_b.x + _b.w + 12) - 14) : _b.w, h : 27 }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief

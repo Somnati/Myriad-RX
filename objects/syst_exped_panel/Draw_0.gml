@@ -723,6 +723,15 @@ if (view == "planet") {
 		for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
 		if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 6, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 	}
+	// [view region], once one is picked (bottom right)
+	if (pl_focus >= 0) {
+		var _vr = __view_rg_r();
+		draw_ui_button(_vr.x, _vr.y, _vr.w, _vr.h, "view region", c_gold, true, true);
+	} else {
+		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.5);
+		draw_text(room_width - (land ? 14 : 4), room_height - 8 - 12, "pick a region to view it");
+		draw_set_halign(fa_left);
+	}
 	ui_fade_set(1);
 	exit;
 }
