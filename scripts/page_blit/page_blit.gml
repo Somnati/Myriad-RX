@@ -1,6 +1,6 @@
 /// @description page_blit(surf, x, y) - a page surface to the screen through THE ONE DITHER (sh_page_out), under the ui fade
 /// The only quantisation a float page meets: FILM GRAIN - white noise,
-/// triangular, PAGE_GRAIN levels either way, on the render's pixel cells
+/// triangular, the intensity slider's share of PAGE_GRAIN_MAX levels either way, on the render's pixel cells
 /// (px_size room px, in window pixels), fresh every frame - exact black
 /// stays black. On an 8-bit page the layers dithered themselves; this adds a
 /// hair on top, which is harmless.
