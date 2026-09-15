@@ -279,31 +279,26 @@ __draw_trace = function() {
 //                the cell whose direction random-walks (wind_dir_change
 //                relaxing to random(-3, 3) over a random(.9) - DE's
 //                overshoot included), living 1..3 s, faster with a crowd
-//   the bands    obj_gf_titleback: three slanted 15px bands at the top
-//                sliding in from -10 (trickle 4 / 10 / 30), the name in
-//                fnt_large, the level at the right
-// The stat bars and the density bar (the cell's normal Draw) are the
-// forge's UI, not its look - left out. The whole thing draws ABOVE the
+// The bands / name / level (obj_gf_titleback), the stat bars and the
+// density bar (the cell's normal Draw) are the forge's UI, not its look -
+// left out (his call, 2026-09-15: "just the dial in the center and its
+// particle behavior"). The motes are born inside DE's 144x296 room,
+// centred on the title, so the crowd round the cell is as dense as DE's
+// (born across the whole 480-wide title they were thin). The whole thing draws ABOVE the
 // glow pass (a proxy at 48): DE lit it with its own additive halos, and
 // a bloom on top of those is a different picture ----
 fg = undefined;
 __forge_roll = function() {
-	var _cx = floor((room_width - 144) * .5), _cy = -13;   // the 144x296 panel, its centre on the title's
+	var _cx = floor((room_width - 144) * .5), _cy = floor(room_height * .5) - 144;   // DE's 144x296 room, its cell (72,144) on the title's centre
 	var _col = dial_color(irandom(12));                    // a random dial, a..m
 	fg = {
 		px : _cx, py : _cy,
 		x : _cx + 72, y : _cy + 144,       // the cell (DE: instance at 72,144)
 		c : _col,
-		name : gen_name_planet(), level : irandom_range(1, 250),
 		cycle : random(1), cycle_len : random_range(150, 300),
 		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
 		circ : 0, glow : 0, wdc : random_range(-4, 4),
 		effs : [], sparks : [],
-		// obj_gf_titleback's Create
-		a_yos : random_range(1, 0), a_diros : random_range(0, .1), a_sos : -10,
-		b_side : choose(0, 1), b_yos : random_range(-4, 2), b_diros : random_range(.5, 1.2), b_sos : -10,
-		c_yos : random_range(2, -2), c_diros : random(.6), c_sos : -10,
-		t_alpha : 0,
 	};
 };
 __forge_roll();
@@ -335,7 +330,7 @@ __forge_step = function() {
 	// the motes (dens_perc 1: roll_perc(7) a frame)
 	if (roll_perc(7)) {
 		array_push(_f.effs, {
-			x : random(room_width), y : random(room_height),
+			x : _f.px + random(144), y : _f.py + random(296),   // (born inside DE's room, not across the whole title)
 			size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
 			max_size : random(2), decay : 30, alpha : 1, spd : random(2), part_chance : 2,
 			big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
@@ -384,40 +379,11 @@ __forge_step = function() {
 		_s.hp -= (1 * delta) * (lerp(1, 4, _ns / 200));
 		if (_s.hp <= 0) array_delete(_f.sparks, _i, 1);
 	}
-	// ---- obj_gf_titleback: the bands slide in (created) ----
-	_f.a_sos = trickle(_f.a_sos, 0, 4);
-	_f.b_sos = trickle(_f.b_sos, 0, 10);
-	_f.c_sos = trickle(_f.c_sos, 0, 30);
-	_f.t_alpha = trickle(_f.t_alpha, 1, 3);
 };
 __draw_forge = function() {
 	__forge_step();
 	var _f = fg;
-	var _c = _f.c, _w = 144, _px = _f.px, _py = _f.py;
-	// ---- the bands (obj_gf_titleback's Draw Begin, normal blend, under the rest) ----
-	var _c1 = merge_colour(_c, c_black, .5), _c2 = merge_colour(_c, c_black, .9);
-	var _p = 1 - (_f.a_sos / -10); _p *= _p; _p = lerp(5, 1, _p);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.a_sos + (25 + _f.a_yos), _w, 15, (_f.a_diros * _p), _c, _c, _c, _c, .12 * _f.t_alpha);
-	_p = 1 - (_f.b_sos / -10); _p *= _p; _p = lerp(5, 0, _p);
-	if (_f.b_side == 0) draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.b_sos + (24 + _f.b_yos), _w, 15,  (1.1 + (_f.b_diros * _p)), _c1, _c2, _c2, _c1, 1 * _f.t_alpha);
-	if (_f.b_side == 1) draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.b_sos + (15 + _f.b_yos), _w, 15, -(1.1 + (_f.b_diros * _p)), _c1, _c2, _c2, _c1, 1 * _f.t_alpha);
-	_p = 1 - (_f.c_sos / -10); _p *= _p; _p = lerp(5, 0, _p);
-	draw_sprite_general(spr_pixel_1x1, 0, 0, 0, 1, 1, _px, _py + _f.c_sos + (15 + _f.c_yos), _w, 15, .6 + (_f.c_diros * _p), _c, _c2, _c2, _c, 1 * _f.t_alpha);
-	draw_set_color(merge_colour(_c, c_white, .5));
-	draw_set_halign(fa_left);
-	draw_set_valign(fa_top);
-	draw_set_alpha(_f.t_alpha);
-	draw_set_font(fnt_large);
-	draw_text(_px + 4, _py + _f.c_sos + 10 + 15 + 7, _f.name);
-	draw_set_color(c_aqua);
-	draw_set_halign(fa_right);
-	draw_text(_px + _w - 4, _py + _f.b_sos + 10 + 15 + 10 + 2, string(_f.level));
-	draw_set_color(c_gray);
-	draw_set_font(fnt);
-	draw_text(_px + _w - 4, _py + _f.a_sos + 10 + 15 + 3, "level");
-	draw_set_halign(fa_left);
-	draw_set_alpha(1);
-
+	var _c = _f.c;
 	// ---- everything par_ambi_draw drew: additive ----
 	gpu_set_blendmode(bm_add);
 	// the cell (obj_gf_slot_cell's Draw Begin, claimed: no outline, no black disc)
