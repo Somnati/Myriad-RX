@@ -410,6 +410,8 @@ function main_macros() {
 #macro EXPED_FUEL      2     // credits the ship burns to send a crew, x the world's tier
 #macro EXPED_POCKET    2     // credits each member takes along (inns, gear); what is left comes home
 #macro EXPED_INN       1     // credits a bed costs, per member
+#macro EXPED_PACK_W1  35     // a fight's pack, when nobody asked for a count: % one foe...
+#macro EXPED_PACK_W2  40     // ...% two (the rest three). Never the party's size (his call, 2026-09-15); the twin: a trio at par wins ~93% a fight, a pair ~68%, a lone warrior ~35%
 #macro EXPED_ENC      12     // % chance per road-hour of an encounter (a fight, a passer-by, a bandit, a friend)
 #macro EXPED_TICK_MAX  5     // the trip clock walks in slices this long at most (exped_tick): a room a slice, so an absence walks the whole delve, fights and all
 #macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)

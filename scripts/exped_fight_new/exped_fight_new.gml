@@ -29,7 +29,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0) {
 	// THE PACK (his call, 2026-09-15: "not based off my party size"): a
 	// count asked for, or one to three - one 35%, two 40%, three 25%
 	var _nf = _count;
-	if (_nf <= 0) { var _pr = random(100); _nf = (_pr < 35) ? 1 : ((_pr < 75) ? 2 : 3); }
+	if (_nf <= 0) { var _pr = random(100); _nf = (_pr < EXPED_PACK_W1) ? 1 : ((_pr < EXPED_PACK_W1 + EXPED_PACK_W2) ? 2 : 3); }
 	_tr.fights = (_tr[$ "fights"] ?? 0) + 1;
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
