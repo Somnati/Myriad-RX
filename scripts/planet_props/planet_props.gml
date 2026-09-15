@@ -5,7 +5,7 @@
 /// (planet_get: the day's length is its spin, the skies its wetness,
 /// the seas its sea level, the people its cities). The words are the
 /// world box's; the numbers are the mechanics':
-///   grav    the roads' pace (x1.15 light / 1 / .85 heavy - exped_agent, exped_eta)
+///   grav    the roads' pace - 1 everywhere (his call: gravity is normal on every world; the lane stays for a future ability)
 ///   wet     region_weather's bands lean on it (dry skies, stormy skies)
 ///   moons   the dark: a moonless night doubles the wrong turns, two moons halve them
 ///   young   the ground quakes now and then on the road (exped_road_beat)
@@ -19,8 +19,8 @@ function planet_props(_d) {
 	var _s = _d.seed;
 	static _h = function(_s2, _salt) { return hash_mix(_s2, 9001 + _salt) mod 100; };
 	var _dayh = 360 / max(.0001, abs(_pn.spin) * 60 * 3600);
-	var _gr = _h(_s, 1);
-	var _grav = (_gr < 20) ? 1.15 : ((_gr < 75) ? 1 : .85), _gravw = (_gr < 20) ? "light" : ((_gr < 75) ? "normal" : "heavy");
+	// gravity is the same everywhere (his call, 2026-09-15: "universally the same... normal") - the pace lane stays, at 1
+	var _grav = 1, _gravw = "normal";
 	var _ar = _h(_s, 2);
 	var _airw = (_ar < 20) ? "thin" : ((_ar < 65) ? "fair" : ((_ar < 85) ? "thick" : "sweet"));
 	var _mr = _h(_s, 3);
@@ -40,7 +40,6 @@ function planet_props(_d) {
 	var _price = (_ncity == 0) ? 1 : ((_ncity > 3) ? -1 : 0);
 	var _lines = [
 		{ k : "day",     v : string_format(_dayh, 1, 1) + " hours", t : (_dayh < 2 || _dayh > 5) ? 1 : 0 },
-		{ k : "gravity", v : _gravw, t : (_gravw == "heavy") ? 2 : 0 },
 		{ k : "air",     v : _airw, t : (_airw == "thin") ? 1 : 0 },
 		{ k : "skies",   v : _wetw, t : (_wetw == "stormy") ? 2 : ((_wetw == "wet") ? 1 : 0) },
 		{ k : "moons",   v : (_moons == 0) ? "none - dark nights" : _moonw, t : (_moons == 0) ? 1 : 0 },

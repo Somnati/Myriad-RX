@@ -1143,7 +1143,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 		draw_set_color(_ink); draw_set_alpha(.5);
 		draw_text(_c.x + 8, _ry + 2, "the world");
 		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text_ext(_c.x + 8, _ry + 12, _cpp.gravw + " ground  -  " + _cpp.wetw + " skies  -  " + ((_cpp.moons == 0) ? "no moon" : (_cpp.moonw + ((_cpp.moons == 1) ? " moon" : " moons"))) + "  -  " + _cpp.oddw, 9, _c.w - 16);
+		draw_text_ext(_c.x + 8, _ry + 12, _cpp.wetw + " skies  -  " + _cpp.agew + " ground  -  " + ((_cpp.moons == 0) ? "no moon" : (_cpp.moonw + ((_cpp.moons == 1) ? " moon" : " moons"))) + "  -  " + _cpp.oddw, 9, _c.w - 16);
 	}
 	// the foot: the flight, and who is out
 	draw_set_color(_dim); draw_set_alpha(.6);

@@ -38,8 +38,8 @@
 ///   lv      "low" (1-2) / "high" (6+)
 ///   more slots: {place} where they stand, {goal} the quest's last stop,
 ///   {region}, {who} the quest's merchant / cargo / lost one / boss, {wx}, {cls}
-///   THE WORLD'S GATES (planet_props): odd 0..13 (the oddity), grav "light" /
-///   "heavy", air "thin" / "thick" / "sweet", moonless true
+///   THE WORLD'S GATES (planet_props): odd 0..13 (the oddity), air "thin" /
+///   "thick" / "sweet", moonless true
 ///   NEW BEATS: road / night / dawn / weather / inn / poor / tavern / shop /
 ///   bought / shrine / mine / ruin / wild / camp / delve / hazard / meet /
 ///   fetch / found / deliver / boss / wave / chart / lost / levelup / skill
@@ -533,10 +533,6 @@ function exped_lines() {
 		{ b : "road", t : "rock two thousand and six. {name} is keeping count and the count is going the wrong way.", odd : 12, w : 3 },
 		{ b : "land", t : "the wind on {planet} smells of bread. {name} has followed it for an hour and found more wind.", odd : 13, w : 4 },
 		{ b : "rest", t : "the wind smells of bread again. {name} is hungry and cross about it, in that order.", odd : 13, w : 3 },
-		{ b : "land", t : "everything on {planet} is heavier, including the mood. {name} is walking like {name} owes the ground money.", grav : "heavy", w : 3 },
-		{ b : "road", t : "heavy ground. {name} has stopped lifting the feet and started dragging them, which is walking, technically.", grav : "heavy", w : 2 },
-		{ b : "land", t : "{planet} is light on the feet. {name} jumped, and came down a little later than expected, and has decided not to do that near an edge.", grav : "light", w : 3 },
-		{ b : "road", t : "light ground. {name} bounces a bit at each step and is pretending it is on purpose.", grav : "light", w : 2 },
 		{ b : "rest", t : "thin air. {name} slept badly and dreamt of breathing.", air : "thin", w : 2 },
 		{ b : "road", t : "the air is thin here. {name} said something and had to say it again, in instalments.", air : "thin", w : 2 },
 		{ b : "land", t : "the air on {planet} is thick. {name} is breathing it in pieces.", air : "thick", w : 2 },
