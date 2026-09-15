@@ -17,7 +17,7 @@ function exped_quest_gen(_d, _salt = 0) {
 		var _k = _rg.nodes[_i].kind;
 		if (_k == "dungeon") array_push(_dung, _i);
 		else if (_k == "camp") array_push(_camp, _i);
-		else if ((_kk[$ _k] ?? { wild : false }).wild) array_push(_wild, _i);
+		else { var _kd = _kk[$ _k]; if (is_struct(_kd) && _kd.wild) array_push(_wild, _i); }   // (no ".field" on a ?? expression: GM1012)
 	}
 	var _kinds = ["goblin", "wolf", "rat", "skeleton", "wisp", "slime"];
 	var _r = random(100);

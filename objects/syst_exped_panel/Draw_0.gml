@@ -428,7 +428,8 @@ if (view == "trip") {
 		__dot(big_x + 12, _hy + 3, 3, _tr.cols[_k], (_tr.hp[_k] > 0) ? .95 : .3);
 		draw_set_color((_tr.hp[_k] > 0) ? _ink : _dim);
 		draw_set_alpha(.8);
-		draw_text(big_x + 19, _hy - 1, _tr.names[_k] + "  lv " + string(sprite_sheet(__sp_by_id(_tr.sids[_k]) ?? { id : 0 }).lv));   // (tap the row: the sheet)
+		var _rsp = __sp_by_id(_tr.sids[_k]);
+		draw_text(big_x + 19, _hy - 1, _tr.names[_k] + (is_undefined(_rsp) ? "" : ("  lv " + string(sprite_sheet(_rsp).lv))));   // (tap the row: the sheet)
 		var _bw = big_w - 24 - 52;
 		var _hf = clamp(_tr.hp[_k] / max(1, _tr.hpmax[_k]), 0, 1);
 		draw_sprite_ext(spr_pixel_1x1, 0, big_x + big_w - 12 - _bw, _hy + 1, _bw, 4, 0, c_black, .7);
@@ -481,18 +482,18 @@ if (view == "trip") {
 			// its target, the party's shape from the record
 			var _fr = rp.r.ev[rp.i];
 			var _pp = [];
-			for (var _q = 0; _q < array_length(rp.r.party); _q++) {
-				var _pm = rp.r.party[_q];
+			for (var _pi = 0; _pi < array_length(rp.r.party); _pi++) {
+				var _pm = rp.r.party[_pi];
 				array_push(_pp, { name : _pm.name, col : _pm.col, hpmax : _pm.hpmax,
-				                  hp : (_q < array_length(_fr.php)) ? _fr.php[_q] : _pm.hp });
+				                  hp : (_pi < array_length(_fr.php)) ? _fr.php[_pi] : _pm.hp });
 			}
 			var _pf = [];
 			var _rfs = rp.r[$ "foes"] ?? [ rp.r.foe ];
-			for (var _q = 0; _q < array_length(_rfs); _q++) {
-				var _rf = _rfs[_q];
+			for (var _fi = 0; _fi < array_length(_rfs); _fi++) {
+				var _rf = _rfs[_fi];
 				var _fhps = _fr[$ "fhps"] ?? [ _fr.fhp ];
 				array_push(_pf, { name : _rf.name, hpmax : _rf.hpmax, lv : _rf[$ "lv"] ?? 1, kind : _rf[$ "kind"] ?? "", col : _rf[$ "col"] ?? c_hred,
-				                  hp : (_q < array_length(_fhps)) ? _fhps[_q] : _fr.fhp });
+				                  hp : (_fi < array_length(_fhps)) ? _fhps[_fi] : _fr.fhp });
 			}
 			_f = { party : _pp, foes : _pf, b : _pf[0],
 			       turn : rp.i + 1, over : (rp.i >= array_length(rp.r.ev) - 1), won : rp.r.won,
