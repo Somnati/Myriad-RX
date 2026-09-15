@@ -34,7 +34,7 @@ function exped_board_roll() {
 		if (!is_undefined(_keep)) { array_push(_e.board, _keep); continue; }
 		array_push(_e.board, {
 			seed  : _seed,
-			name  : (_hname != "") ? _hname : exped_name(_seed),
+			name  : _hname,   // (a rolled world is named after the block - exped_name seeds, and its release would scramble the deal)
 			biome : _b,
 			tier  : _tier,
 			dist  : EXPED_DIST0 * power(2, _tier - 1),
@@ -42,6 +42,7 @@ function exped_board_roll() {
 		});
 	}
 	rng_release(_rs);
+	for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].name == "") _e.board[_i].name = exped_name(_e.board[_i].seed);
 	// THE QUEST each world offers (slice three): rolled off the world and
 	// the deal, after the seeded block - a fresh one every re-deal
 	for (var _i = 0; _i < array_length(_e.board); _i++) if (!is_struct(_e.board[_i][$ "quest"])) _e.board[_i].quest = exped_quest_gen(_e.board[_i]);

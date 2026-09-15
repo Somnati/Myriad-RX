@@ -85,7 +85,11 @@ function exped_unpack(_s) {
 				if (array_length(_ag) >= 18) {
 					if (array_length(_ag) > 20) { _trn.rgi = clamp(real(_ag[19]), 0, EXPED_REGIONS - 1); _trn.home = real(_ag[20]); }
 					_trn.mode = (_ag[0] == "explore") ? "explore" : "quest";
-					_trn.pos = real(_ag[1]); _trn.credits = real(_ag[2]); _trn.recall = (_ag[3] == "1");
+					var _rgn = array_length(region_get(_d, _trn.rgi).nodes);
+					_trn.pos = clamp(real(_ag[1]), 0, _rgn - 1); _trn.home = clamp(_trn.home, 0, _rgn - 1);
+					_trn.credits = real(_ag[2]); _trn.recall = (_ag[3] == "1");
+					// a quest crew recalled is an ABORTED one (exped_abort is the only recall a quest gets; the flag itself is not saved - bug hunt 2026-09-15)
+					if (_trn.mode == "quest" && _trn.recall) _trn.aborted = true;
 					_trn.leave_t = real(_ag[4]); _trn.planet_t = real(_ag[5]);
 					if (_ag[6] != "") {
 						var _rgq = region_get(_d, _trn.rgi);
