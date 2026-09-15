@@ -44,20 +44,20 @@ sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / 
 map_dest = undefined;    // the map view's world (its region: region_get)
 crew_off = 0;        // the crew list's scroll (px)
 crew_drag = undefined;   // { y0, off0, moved } while a finger drags the list
-sel_dest = -1;       // the world picked
+sel_dest = 0;        // the world picked (one on the board, his call: always the first)
 sel_crew = [];       // sprite ids picked for the party, in order
 swap_pick = false;   // the recruit moment's roster list is up
 
 // ---- the hub's layout ----
 // destinations: three cards across the left; the crew under them; the
 // list of expeditions down the right (portrait: everything stacks)
-card_w = land ? 88 : 42; card_h = land ? 78 : 62;
+card_w = land ? 150 : (room_width - 8); card_h = land ? 96 : 84;   // ONE world: a wide card with its quest (2026-09-14)
 card_gap = land ? 6 : 3;
 card_x0 = land ? 14 : 4;
 card_y  = list_y + 14;                 // under the "worlds on offer" label
 crew_y  = card_y + card_h + 10;
 chip    = land ? 24 : 18; chip_gap = land ? 4 : 2;
-list_x  = land ? (card_x0 + 3 * card_w + 2 * card_gap + 14) : 4;
+list_x  = land ? (card_x0 + card_w + 14) : 4;
 list_w  = land ? (room_width - list_x - 10) : (room_width - 8);
 row_h   = land ? 36 : 30;
 
@@ -108,16 +108,22 @@ __dot = function(_x, _y, _r, _col, _a) {
 // ---- the region law: the Step's hits and the Draw share these ----
 __card_r = function(_i) { return { x : card_x0 + _i * (card_w + card_gap), y : card_y, w : card_w, h : card_h }; };
 __chip_r = function(_k) {
-	var _per = land ? 10 : 6;
+	var _per = land ? 5 : 6;
 	return { x : card_x0 + (_k mod _per) * (chip + chip_gap), y : crew_y + 10 + (_k div _per) * (chip + 10), w : chip, h : chip };
 };
-__crew_rows = function() { var _per = land ? 10 : 6; return max(1, ceil(array_length(g.sprites) / _per)); };
-__send_r = function() { return { x : card_x0, y : crew_y + 10 + __crew_rows() * (chip + 10) + 2, w : land ? 130 : (room_width - 8), h : 14 }; };
+__crew_rows = function() { var _per = land ? 5 : 6; return max(1, ceil(array_length(g.sprites) / _per)); };
+__send_r = function() { return { x : card_x0, y : crew_y + 10 + __crew_rows() * (chip + 10) + 2, w : land ? 74 : (room_width - 8), h : 14 }; };   // [quest]
+__explore_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 4, y : _s.y, w : land ? 74 : (room_width - 8), h : 14 }; };   // [explore]
 __list_y0 = function() { return land ? (card_y - 10) : (__send_r().y + 14 + 8); };
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 3), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : land ? 14 : 4, y : list_y + 3, w : 40, h : 13 }; };
-__sheet_r = function() { var _s = __send_r(); return { x : _s.x + _s.w + 6, y : _s.y, w : 50, h : 14 }; };   // (the [crew] button now)
+__sheet_r = function() { var _s = __explore_r(); return { x : _s.x + _s.w + 4, y : _s.y, w : 44, h : 14 }; };   // [crew]
+// the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
+tab_w = land ? 78 : 60; tab_h = 15;
+__tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
+__sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
+__recall_r = function() { return { x : log_x + log_w - 60, y : log_y + 18, w : 60, h : 12 }; };
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
 __map_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : room_width - (land ? 28 : 8), h : room_height - 8 - 14 - (list_y + 22) }; };

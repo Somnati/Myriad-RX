@@ -402,6 +402,14 @@ function main_macros() {
 #macro EXPED_RETURN  .15     // ...and getting back; the delve is the rest
 #macro EXPED_DIST0   90      // seconds a tier-1 world is away (x2 a tier - the mock's scale)
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
+// THE AGENT (slice three, 2026-09-14): a trip walks the world's REGION
+#macro EXPED_BOARD_N   1     // worlds on the board (his call: one planet for now)
+#macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
+#macro EXPED_ROOM_T   10     // seconds a step at a node takes (a delve room, a shop visit)
+#macro EXPED_FUEL      2     // credits the ship burns to send a crew, x the world's tier
+#macro EXPED_POCKET    2     // credits each member takes along (inns, gear); what is left comes home
+#macro EXPED_INN       1     // credits a bed costs, per member
+#macro EXPED_ENC      12     // % chance per road-hour of an encounter (a fight, a passer-by, a bandit, a friend)
 #macro EXPED_TICK_MAX  5     // the trip clock walks in slices this long at most (exped_tick): a room a slice, so an absence walks the whole delve, fights and all
 #macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)
 #macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)

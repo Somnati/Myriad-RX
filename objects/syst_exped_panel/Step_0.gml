@@ -56,72 +56,19 @@ if (keyboard_check_pressed(vk_escape)) {
 }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 
-// ======================= THE CREW LIST: scroll, drag, tap =======================
-if (view == "crew") {
-	var _mo = __crew_max_off();
-	if (mouse_wheel_down()) crew_off = clamp(crew_off + crew_row_h, 0, _mo);
-	if (mouse_wheel_up())   crew_off = clamp(crew_off - crew_row_h, 0, _mo);
-	var _y0 = __crew_y0();
-	if (mouse_check_button_pressed(mb_left)) {
-		var _bk = __back_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { view = "hub"; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
-		if (mouse_y >= _y0) crew_drag = { y0 : mouse_y, off0 : crew_off, moved : false };
-	}
-	if (!is_undefined(crew_drag)) {
-		if (mouse_check_button(mb_left)) {
-			if (abs(mouse_y - crew_drag.y0) > 7) crew_drag.moved = true;
-			if (crew_drag.moved) crew_off = clamp(crew_drag.off0 - (mouse_y - crew_drag.y0), 0, _mo);
-		} else {
-			// the release: a tap lands on the row under it
-			if (!crew_drag.moved)
-				for (var _k = 0; _k < array_length(g.sprites); _k++) {
-					var _cr = __list_row_r(_k);
-					if (point_in_rectangle(mouse_x, mouse_y, _cr.x, max(_y0, _cr.y), _cr.x + _cr.w, _cr.y + _cr.h)) {
-						sheet_id = g.sprites[_k].id; view = "sheet";
-						play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-						break;
-					}
-				}
-			crew_drag = undefined;
-		}
-	}
-	exit;
-}
-
-if (!mouse_check_button_pressed(mb_left)) exit;
-
-// the debug clock: x1 / x10 / x100
-for (var _k = 0; _k < 3; _k++) {
-	var _r = __spd_r(_k);
-	if (point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) {
-		_e.spd = [1, 10, 100][_k];
-		play_sound_ext(snd_softclick, 1, 1.1, .4, 1);
-		exit;
-	}
-}
-
-// [back] from a page
-if (view != "hub") {
+// ======================= THE CREW MENU: tabs on the left =======================
+if (view == "crew" || view == "sheet") {
+	view = "crew";
+	if (!mouse_check_button_pressed(mb_left)) exit;
 	var _bk = __back_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) {
-		view = "hub"; swap_pick = false;
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-		exit;
-	}
-}
-
-// ======================= THE SHEET: browse the roster =======================
-if (view == "sheet") {
-	var _pv = __sheet_prev_r(), _nv = __sheet_next_r();
-	var _n = array_length(g.sprites);
-	var _at = -1;
-	for (var _i = 0; _i < _n; _i++) if (g.sprites[_i].id == sheet_id) _at = _i;
-	if (_n > 0 && point_in_rectangle(mouse_x, mouse_y, _pv.x, _pv.y, _pv.x + _pv.w, _pv.y + _pv.h)) {
-		sheet_id = g.sprites[(_at - 1 + _n) mod _n].id;
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-	} else if (_n > 0 && point_in_rectangle(mouse_x, mouse_y, _nv.x, _nv.y, _nv.x + _nv.w, _nv.y + _nv.h)) {
-		sheet_id = g.sprites[(_at + 1) mod _n].id;
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { view = "hub"; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+	for (var _k = 0; _k < array_length(g.sprites); _k++) {
+		var _tb = __tab_r(_k);
+		if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
+			sheet_id = g.sprites[_k].id;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
 	}
 	exit;
 }
@@ -181,6 +128,15 @@ if (view == "trip") {
 			exit;
 		}
 	}
+	// [recall]: an exploring crew comes home
+	if (!is_undefined(_tr) && (_tr[$ "mode"] ?? "quest") == "explore" && !(_tr[$ "recall"] ?? false)) {
+		var _rr2 = __recall_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) {
+			exped_recall(_tr);
+			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			exit;
+		}
+	}
 	// [map]: the world's region
 	if (!is_undefined(_tr)) {
 		var _mr = __trip_map_r();
@@ -222,14 +178,16 @@ for (var _i = 0; _i < _rows; _i++) {
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
 }
-// send: a world and a crew
-var _sr2 = __send_r();
-if (sel_dest >= 0 && array_length(sel_crew) > 0
-&& point_in_rectangle(mouse_x, mouse_y, _sr2.x, _sr2.y, _sr2.x + _sr2.w, _sr2.y + _sr2.h)) {
+// send: [quest] or [explore] - a world, a crew, and the bill (exped_cost)
+if (array_length(_e.board) > 0) sel_dest = clamp(sel_dest, 0, array_length(_e.board) - 1);
+var _sr2 = __send_r(), _xr2 = __explore_r();
+var _hitq = point_in_rectangle(mouse_x, mouse_y, _sr2.x, _sr2.y, _sr2.x + _sr2.w, _sr2.y + _sr2.h);
+var _hitx = point_in_rectangle(mouse_x, mouse_y, _xr2.x, _xr2.y, _xr2.x + _xr2.w, _xr2.y + _xr2.h);
+if (_hitq || _hitx) {
 	var _crew = [];
 	for (var _c = 0; _c < array_length(sel_crew); _c++)
 		for (var _k = 0; _k < array_length(g.sprites); _k++) if (g.sprites[_k].id == sel_crew[_c]) array_push(_crew, g.sprites[_k]);
-	if (array_length(_crew) > 0 && exped_start(sel_dest, _crew)) {
+	if (sel_dest >= 0 && array_length(_crew) > 0 && exped_start(sel_dest, _crew, _hitx ? "explore" : "quest")) {
 		play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 		sel_crew = [];
 	} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);

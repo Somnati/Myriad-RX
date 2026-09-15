@@ -37,6 +37,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 					var _sp = sprite_spawn("tap");
 					_sp.asleep = true;
 					_sp.found  = _h.dest.name;
+					if (is_string(_l[$ "name"])) _sp.name = _l.name;   // (met on the road: it keeps the name it gave)
 				} else {
 					_e.charms += 1;
 					array_push(_h.log, "~ the new one left a charm and went back into the dark. politely.");

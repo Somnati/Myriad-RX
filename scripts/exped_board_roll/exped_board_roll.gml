@@ -11,9 +11,9 @@ function exped_board_roll() {
 	var _old = _e.board;
 	_e.board = [];
 	var _bi = exped_biomes();
-	for (var _i = 0; _i < 3; _i++) {
+	for (var _i = 0; _i < EXPED_BOARD_N; _i++) {   // (one world for now, his call 2026-09-14)
 		var _tier = clamp(1 + irandom(max(0, _e.depth - 1)), 1, _e.depth);
-		if (_i == 2 && _e.depth > 1) _tier = _e.depth;   // one at the frontier, always
+		if (_i == EXPED_BOARD_N - 1 && _e.depth > 1) _tier = _e.depth;   // one at the frontier, always
 		var _b = irandom(array_length(_bi) - 1);
 		if (_i == 0 && _e.depth <= 1) _b = 1;   // the first world on the first board is a LIVING one - blue water, green grass (his first scope, 2026-09-14)
 		var _seed = irandom($7fffffff);
@@ -32,4 +32,7 @@ function exped_board_roll() {
 		});
 	}
 	rng_release(_rs);
+	// THE QUEST each world offers (slice three): rolled off the world and
+	// the deal, after the seeded block - a fresh one every re-deal
+	for (var _i = 0; _i < array_length(_e.board); _i++) if (!is_struct(_e.board[_i][$ "quest"])) _e.board[_i].quest = exped_quest_gen(_e.board[_i]);
 }

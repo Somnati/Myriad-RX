@@ -44,6 +44,16 @@ function exped_pack() {
 		}
 		_o += "|" + _f;
 		_o += "|" + (_is ? string_join_ext(",", _r[$ "threads"] ?? []) : "");
+		// THE AGENT (slice three, field 8): mode:pos:credits:recall:leave_t:planet_t:qkind:qnode:qfoe:qn:qdone:qmult:qreward:bnode:bfoe:bn:bdone:bpay:visited(;)
+		// a trip reloads standing at its node (the road and the activity start over; the quest's text is rebuilt)
+		if (_is) {
+			var _q = _r[$ "quest"], _bo = _r[$ "bounty"];
+			_o += "|" + string(_r[$ "mode"] ?? "quest") + ":" + string(_r[$ "pos"] ?? 0) + ":" + string(_r[$ "credits"] ?? 0) + ":" + ((_r[$ "recall"] ?? false) ? "1" : "0")
+			    + ":" + string(_r[$ "leave_t"] ?? 0) + ":" + string(_r[$ "planet_t"] ?? 0)
+			    + ":" + (is_struct(_q) ? (_q.kind + ":" + string(_q.node) + ":" + _q.foe + ":" + string(_q.n) + ":" + string(_q.done) + ":" + string(_q.mult) + ":" + string(_q.reward)) : "::::::")
+			    + ":" + (is_struct(_bo) ? (string(_bo.node) + ":" + _bo.foe + ":" + string(_bo.n) + ":" + string(_bo.done) + ":" + string(_bo.pay)) : "::::")
+			    + ":" + string_join_ext(";", _r[$ "visited"] ?? []);
+		} else _o += "|";
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}
 	return _out;

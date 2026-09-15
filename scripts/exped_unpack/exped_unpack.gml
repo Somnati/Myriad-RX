@@ -72,7 +72,28 @@ function exped_unpack(_s) {
 				fight : undefined, routed : (_tt[4] == "1"), rout_t : real(_tt[0]),
 				finds : _finds, log : [ "on the way to " + _d.name + " (the diary's earlier pages did not survive the save)" ],
 				threads : (_p[7] != "") ? string_split(_p[7], ",") : [], said_travel : (_tt[6] == "1"), wins : real(_tt[5]),
+				// THE AGENT (field 8; a save from before: a quest-less walk home)
+				mode : "quest", quest : undefined, pos : 0, path : [], road : undefined, act : undefined,
+				credits : 0, recall : false, visited : [ 0 ], planet_t : 0, bounty : undefined, leave_t : real(_tt[0]), fights : 0,
 			});
+			var _trn = _e.trips[array_length(_e.trips) - 1];
+			if (array_length(_p) > 8 && _p[8] != "") {
+				var _ag = string_split(_p[8], ":");
+				if (array_length(_ag) >= 18) {
+					_trn.mode = (_ag[0] == "explore") ? "explore" : "quest";
+					_trn.pos = real(_ag[1]); _trn.credits = real(_ag[2]); _trn.recall = (_ag[3] == "1");
+					_trn.leave_t = real(_ag[4]); _trn.planet_t = real(_ag[5]);
+					if (_ag[6] != "") {
+						var _rgq = region_get(_d);
+						var _qn = clamp(real(_ag[7]), 0, array_length(_rgq.nodes) - 1);
+						_trn.quest = { kind : _ag[6], node : _qn, foe : _ag[8], n : real(_ag[9]), done : real(_ag[10]), mult : real(_ag[11]), reward : real(_ag[12]), hours : 0,
+						               txt : ((_ag[6] == "slay") ? ("slay " + _ag[9] + " " + _ag[8] + "s at ") : ((_ag[6] == "clear") ? "clear " : ((_ag[6] == "rout") ? "rout the bandits at " : "scout "))) + _rgq.nodes[_qn].name };
+					}
+					if (_ag[13] != "") _trn.bounty = { node : real(_ag[13]), foe : _ag[14], n : real(_ag[15]), done : real(_ag[16]), pay : real(_ag[17]) };
+					_trn.visited = [];
+					if (array_length(_ag) > 18 && _ag[18] != "") { var _vs = string_split(_ag[18], ";"); for (var _vi = 0; _vi < array_length(_vs); _vi++) if (_vs[_vi] != "") array_push(_trn.visited, real(_vs[_vi])); }
+				}
+			} else if (_trn.stage == 1) _trn.stage = 2;   // (a mock-era delve mid-way: it just comes home)
 		}
 	}
 	// the crew flags follow what loaded - nobody stays out on a lost record

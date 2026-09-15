@@ -1,4 +1,4 @@
-/// @description foe_gen(lv, seed) -> an enemy pawn at that level
+/// @description foe_gen(lv, seed, [kind]) -> an enemy pawn at that level ("" = the roster's roll)
 /// The roster: shapes on the sprites' budget (EFFECTIVE 40, the tech
 /// demo's rule - a point past six costs two), scaled by level like them
 /// (sprite_par_pts) x SPRITE_FOE_BUDGET - a foe stands a little under a
@@ -8,7 +8,7 @@
 /// level - the stat total climbs and so does their xp, his law), and
 /// one in twelve a BOSS: the name gets a title and the budget x1.4.
 /// pts_total is what the kill pays (foe_xp).
-function foe_gen(_lv, _seed) {
+function foe_gen(_lv, _seed, _kind = "") {
 	var _b = cbt_balance();
 	cbt_skills();
 	var _old = random_get_seed();
@@ -23,6 +23,7 @@ function foe_gen(_lv, _seed) {
 		{ name : "rat",      shape : { hp : 5, mp : 4, atk : 6, mag : 1, def : 4, mdef : 2, spd : 7, hit : 8 }, crit : 10, cmulti : 1.6, cnt : 12, erode : 1,  magic : false, skill : "concuss", gear : .1, col : rgb(180, 145, 110) },
 	];
 	var _r = _ros[irandom(array_length(_ros) - 1)];
+	if (_kind != "") for (var _ri = 0; _ri < array_length(_ros); _ri++) if (_ros[_ri].name == _kind) _r = _ros[_ri];   // a kind asked for (a quest's, a camp's)
 	var _boss = (random(1) < 1 / 12);
 	var _budget = sprite_par_pts(_lv) * SPRITE_FOE_BUDGET * (_boss ? 1.4 : 1);
 	var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"];
