@@ -10,7 +10,7 @@
 /// before any nested seeded section can scramble the stream).
 function galaxy_home() {
 	var _sm = starmap_get();
-	if (variable_global_exists("galaxy_home") && is_struct(g.galaxy_home) && g.galaxy_home.seed == _sm.seed) return g.galaxy_home;
+	if (variable_global_exists("galaxy_home_c") && is_struct(g.galaxy_home_c) && g.galaxy_home_c.seed == _sm.seed) return g.galaxy_home_c;
 	var _old = random_get_seed();
 	random_set_seed((_sm.seed ^ 90210) & $7fffffff);
 	var _cands = [];
@@ -34,7 +34,7 @@ function galaxy_home() {
 		for (var _p = 0; _p < array_length(_sys.planets); _p++) if (_sys.planets[_p].kind == "rock") { _pi = _p; break; }
 	}
 	var _rom = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
-	g.galaxy_home = { seed : _sm.seed, star : _pick, sys : _sys, planet : _pi, planet_seed : _sys.planets[_pi].seed,
+	g.galaxy_home_c = { seed : _sm.seed, star : _pick, sys : _sys, planet : _pi, planet_seed : _sys.planets[_pi].seed,
 	                  name : star_name(_pick) + " " + _rom[clamp(_pi, 0, 7)] };
-	return g.galaxy_home;
+	return g.galaxy_home_c;
 }
