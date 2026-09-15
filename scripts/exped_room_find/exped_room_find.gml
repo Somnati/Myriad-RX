@@ -2,7 +2,9 @@
 /// exped_loot_roll's kinds; gear goes to whoever is up (sprite_take).
 function exped_room_find(_tr, _pre) {
 	var _l = exped_loot_roll(_tr);
+	exped_stat("finds");
 	if (_l.kind == "gear") {
+		exped_stat("gear_found");
 		var _up = [];
 		for (var _k = 0; _k < array_length(_tr.hp); _k++) if (_tr.hp[_k] > 0) array_push(_up, _k);
 		var _who = (array_length(_up) > 0) ? _up[irandom(array_length(_up) - 1)] : 0;

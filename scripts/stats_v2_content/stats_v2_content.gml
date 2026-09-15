@@ -571,6 +571,56 @@ function stats_v2_content() {
 	}
 	stats_v2_folder_end();
 
+	// ---- expeditions (his ask, 2026-09-15): the ledger exped_stat keeps ----
+	if (variable_global_exists("exped"))
+	if (stats_v2_folder("expeditions", c_feat_expeditions)) {
+		// a counter, session-aware (the base's value off it); hours read as
+		// "12m" / "3.5h" / "2.1 days". (One function, reading globals only -
+		// GML closures capture no locals, so it cannot lean on _sess)
+		var _xn = function(_k, _hours = false) {
+			var _st = g.exped[$ "st"] ?? {};
+			var _v = _st[$ _k] ?? 0;
+			if (variable_global_exists("stats_mode") && g.stats_mode == 1 && is_struct(g.stats_base[$ "exped"])) _v -= (g.stats_base.exped[$ _k] ?? 0);
+			_v = max(0, _v);
+			if (!_hours) return string(round(_v));
+			return (_v < 1) ? (string(round(_v * 60)) + "m") : ((_v < 48) ? (string_format(_v, 1, 1) + "h") : (string_format(_v / 24, 1, 1) + " days"));
+		};
+		var _xc = _sess ? _sc : -1;
+		// discovered: the set is lifetime (a session view still counts it whole)
+		var _seen = g.exped[$ "seen"] ?? [];
+		var _worlds = [];
+		for (var _i = 0; _i < array_length(_seen); _i++) { var _wkp = string_split(_seen[_i], ":"); var _wk = _wkp[0]; if (!array_contains(_worlds, _wk)) array_push(_worlds, _wk); }
+		stats_v2_line("worlds discovered", string(array_length(_worlds)), -1, c_steelblue);
+		stats_v2_line("regions discovered", string(array_length(_seen)), -1, c_steelblue);
+		stats_v2_line("expeditions sent", _xn("trips"), -1, _xc);
+		stats_v2_line("hauls collected", _xn("hauls"), -1, _xc);
+		stats_v2_line("quests completed", _xn("quests"), -1, _xc);
+		stats_v2_line("missions aborted", _xn("aborted"), -1, _xc);
+		stats_v2_line("time on the road", _xn("road_h", true), -1, _xc, "hours walked between the places of a region");
+		stats_v2_line("time in flight", _xn("flight_h", true), -1, _xc);
+		stats_v2_line("time on worlds", _xn("world_h", true), -1, _xc);
+		stats_v2_line("time exploring", _xn("explore_h", true), -1, _xc, "of the time on worlds, the part spent on [explore] trips");
+		stats_v2_line("credits earned", _xn("credits"), -1, c_lavender, "credits collected from hauls: the floor, the pocket's remainder, quest rewards");
+		stats_v2_line("items bought", _xn("bought"), -1, _xc);
+		stats_v2_line("things found", _xn("finds"), -1, _xc);
+		stats_v2_line("gear found", _xn("gear_found"), -1, _xc);
+		stats_v2_line("fights won", _xn("fights_won"), -1, c_sgreen);
+		stats_v2_line("fights lost", _xn("fights_lost"), -1, c_hred);
+		stats_v2_line("enemies slain", _xn("slain"), -1, _xc);
+		stats_v2_line("times down", _xn("downs"), -1, c_hred, "a crew member knocked down in a fight (they get up when it ends)");
+		stats_v2_line("times routed", _xn("routs"), -1, c_hred, "the whole crew down: robbed and sent home");
+		stats_v2_line("dungeons cleared", _xn("delves"), -1, _xc);
+		stats_v2_line("camps raided", _xn("camps"), -1, _xc);
+		stats_v2_line("bounties done", _xn("bounties"), -1, _xc);
+		stats_v2_line("levels gained", _xn("levels"), -1, c_gold);
+		stats_v2_line("nights at inns", _xn("inns"), -1, _xc);
+		stats_v2_line("tavern visits", _xn("taverns"), -1, _xc);
+		stats_v2_line("sprites met", _xn("met"), -1, _xc);
+		stats_v2_line("sprites recruited", _xn("recruits"), -1, _xc);
+		stats_v2_line("little things on the road", _xn("beats"), -1, _xc);
+	}
+	stats_v2_folder_end();
+
 	// ---- rebirth ----
 	if (variable_global_exists("rebirth"))
 	if (stats_v2_folder("rebirth", c_feat_rebirth)) {

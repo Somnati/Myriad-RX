@@ -6,6 +6,8 @@ function region_get(_d, _ri = 0) {
 	if (!variable_global_exists("regions")) g.regions = {};
 	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
 	var _k = string(_d.seed) + ":" + string(_ri);
-	if (!is_struct(g.regions[$ _k])) g.regions[$ _k] = region_gen((_d.seed ^ (_ri * 2654435761)) & $7fffffff, _d.biome, exped_world_lv(_d) + 2 * _ri, _ri);
+	// (the world itself goes in: the region's spot lands on its terrain and
+	// the wild is what grows there - planet_get begins it, no rows sampled)
+	if (!is_struct(g.regions[$ _k])) g.regions[$ _k] = region_gen((_d.seed ^ (_ri * 2654435761)) & $7fffffff, _d.biome, exped_world_lv(_d) + 2 * _ri, _ri, planet_get(_d.seed, exped_planet_hint(_d)));
 	return g.regions[$ _k];
 }

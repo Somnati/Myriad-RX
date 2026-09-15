@@ -4,15 +4,10 @@ if (abs(oa - (closing ? 0 : 1)) < .004) oa = closing ? 0 : 1;
 if (closing && oa <= 0) { instance_destroy(); exit; }
 
 var _e = g.exped;
-// the trip page's (and the planet window's) world is built a few rows a
-// frame (planet_gen_step), so it arrives in half a second without a hitch
-if (view == "trip" || view == "planet") {
-	var _pd = (view == "trip") ? (is_undefined(__trip()) ? undefined : __trip().dest) : pl_dest;
-	if (is_struct(_pd)) {
-		var _pn = planet_get(_pd.seed, exped_planet_hint(_pd));
-		if (_pn.row < _pn.th) planet_gen_step(_pn);
-	}
-}
+// the worlds are built a few rows a frame (planet_gen_step, __worlds_step:
+// the board's, the trips', the planet window's), so every portrait is the
+// full world within a second or two, without a hitch
+__worlds_step();
 // THE REPLAY: a trip page with an unseen film (and no live fight)
 // plays it in the combat window, a swing every half second; the last
 // frame holds a moment, then it is seen. A tap on the window skips it
@@ -56,7 +51,7 @@ if (is_struct(pl_dest)) {
 	if (pl_focus >= 0) {
 		var _dd = angle_difference(pl_spin_t, pl_spin);
 		pl_spin += _dd * (1 - power(.9, delta));
-		pl_zoom = lerp(pl_zoom, 1.5, 1 - power(.9, delta));
+		pl_zoom = lerp(pl_zoom, PL_ZOOM_IN, 1 - power(.9, delta));
 	} else {
 		pl_spin_off = pl_spin - (current_time / 1000) * 60 * _pn2.spin;   // (keep the drawn spin continuous)
 		pl_spin = _amb;
@@ -66,6 +61,27 @@ if (is_struct(pl_dest)) {
 
 if (oa < .999 || closing) exit;
 if (!input_free(ui_layer_overlay)) exit;
+// ---- THE CONFIRM POPUP owns the panel while it is up (abort) ----
+if (view != "trip") confirm = "";   // (the page turned under it - a trip got home)
+conf_a = move_to(conf_a, (confirm != "") ? 1 : 0, 5);
+if (confirm != "") {
+	var _cb = __conf_btns();
+	conf_hot = 0;
+	for (var _ci = 0; _ci < 2; _ci++) {
+		var _cbb = _cb[_ci];
+		if (point_in_rectangle(mouse_x, mouse_y, _cbb.x, _cbb.y, _cbb.x + _cbb.w, _cbb.y + _cbb.h)) conf_hot = _ci + 1;
+	}
+	if (keyboard_check_pressed(vk_escape)) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); exit; }
+	if (conf_a > .9 && mouse_check_button_pressed(mb_left)) {
+		if (conf_hot == 1) {
+			if (confirm == "abort") { var _atr = __trip(); if (!is_undefined(_atr)) exped_abort(_atr); }
+			confirm = "";
+			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+		} else if (conf_hot == 2) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); }
+	}
+	exit;
+}
+if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
 // ---- [back], and escape: one step up the chain (__back, the Create) ----
 if (keyboard_check_pressed(vk_escape)) {
 	if (view != "hub") __back(); else exped_close();
@@ -264,6 +280,15 @@ if (view == "trip") {
 		if (point_in_rectangle(mouse_x, mouse_y, _tcr.x, _tcr.y, _tcr.x + _tcr.w, _tcr.y + _tcr.h)) {
 			crew_trip = _tr.id; sheet_id = _tr.sids[0]; view = "crew"; it_pop = undefined;
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
+	// [abort]: the question first (the confirm popup); the crew comes home
+	if (!is_undefined(_tr) && !(_tr[$ "aborted"] ?? false) && _tr.stage != 2) {
+		var _abr = __trip_abort_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _abr.x, _abr.y, _abr.x + _abr.w, _abr.y + _abr.h)) {
+			confirm = "abort";
+			play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 			exit;
 		}
 	}

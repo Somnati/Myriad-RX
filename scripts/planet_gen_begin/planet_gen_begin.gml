@@ -156,11 +156,13 @@ function planet_gen_begin(_seed, _hint = undefined) {
 			var _kr = sqrt(max(0, 1 - _kz * _kz));
 			array_push(_craters, { x : _kr * cos(_ka), y : _kz, z : _kr * sin(_ka), r : random_range(.05, .15) });
 		}
-		repeat (irandom_range(6, 11)) {
+		// the puffs: many and small (2026-09-15 - at the expedition page's
+		// size the old .2-.36 ones read as white continents)
+		repeat (irandom_range(10, 16)) {
 			var _cz = random_range(-.9, .9);
 			var _ca = random(2 * pi);
 			var _cr = sqrt(max(0, 1 - _cz * _cz));
-			array_push(_cbl, { x : _cr * cos(_ca), y : _cz, z : _cr * sin(_ca), r : random_range(.20, .36) });
+			array_push(_cbl, { x : _cr * cos(_ca), y : _cz, z : _cr * sin(_ca), r : random_range(.12, .24) });
 		}
 		repeat (irandom_range(1, 3)) array_push(_belts, { v : random_range(.28, .72), w : random_range(.045, .085) });
 	}

@@ -23,6 +23,7 @@ function region_kinds() {
 		desert     : { name : "desert",       col : rgb(230, 200, 130),   r : 2, civ : false, wild : true },
 		mountains  : { name : "mountains",    col : rgb(200, 200, 215),   r : 2, civ : false, wild : true },
 		tundra     : { name : "tundra",       col : rgb(200, 225, 240),   r : 2, civ : false, wild : true },
+		coast      : { name : "coast",        col : rgb(150, 200, 220),   r : 2, civ : false, wild : true },
 	};
 	return _k;
 }

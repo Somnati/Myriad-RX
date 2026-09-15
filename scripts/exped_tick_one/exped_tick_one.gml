@@ -16,6 +16,10 @@ function exped_tick_one(_tr, _dt) {
 		// ERODED in the fight - the trip's hpmax is the sheet's, untouched
 		for (var _k = 0; _k < array_length(_f.party); _k++) _tr.hp[_f.party[_k].mi] = round(_f.party[_k].hp * 10) / 10;
 		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else _tr.routed = true;
+		// THE LEDGER: the fight, the slain, the down (a party pawn was up going in)
+		exped_stat(_f.won ? "fights_won" : "fights_lost");
+		for (var _j = 0; _j < array_length(_f.foes); _j++) if (_f.foes[_j].hp <= 0) exped_stat("slain");
+		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
 		// THE KILL'S XP (his law): the pack's stat total to every survivor
 		if (_f.won) exped_xp_grant(_tr, _f[$ "xp"] ?? 0, "");
 		// the quest's and the bounty's tallies
@@ -28,15 +32,18 @@ function exped_tick_one(_tr, _dt) {
 			}
 			if (is_struct(_q) && _q.kind == "rout" && is_struct(_tr.act) && _tr.act.kind == "camp" && _q.node == _tr.pos && _q.done < _q.n) _q.done += 1;
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
-			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; array_push(_tr.log, "the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
+			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight
 			if (is_struct(_tr.act) && _tr.act.kind == "camp" && (_tr.act[$ "loot"] ?? false)) {
 				var _cr = 2 + irandom(2) + _tr.dest.tier;
 				_tr.credits += _cr;
-				array_push(_tr.log, "the camp's chest: " + string(_cr) + " credits");
+				exped_stat("camps");
+				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");
 			}
 		}
+		// THE PACK'S DROP (his ask: "temoo acquired ..." in the diary)
+		if (_f.won) exped_fight_loot(_tr, _f);
 		// THE NOTEPAD: someone who is still up writes about a foe they met
 		exped_note_fight(_tr, _f);
 		if (_f.won) array_push(_tr.log, "the way is clear");
@@ -47,10 +54,11 @@ function exped_tick_one(_tr, _dt) {
 		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foes : _rfoes, foe : _rfoes[0],
 		               won : _f.won, seen : false, room : _tr[$ "fights"] ?? 0 };   // (room = the fight's number: the panel's seen-live key)
 		_tr.fight = undefined;
-		if (_tr.routed) { exped_rout(_tr); _tr.act = undefined; _tr.road = undefined; }
+		if (_tr.routed) { exped_stat("routs"); exped_rout(_tr); _tr.act = undefined; _tr.road = undefined; }
 		return false;
 	}
 	_tr.t += _dt;
+	if (_tr.stage != 1) exped_stat("flight_h", _dt / EXPED_HOUR);
 	var _travel = _tr.dur * EXPED_TRAVEL;
 	// ---- stage 0: the flight there ----
 	if (_tr.stage == 0) {
@@ -65,6 +73,11 @@ function exped_tick_one(_tr, _dt) {
 			_tr.pos = clamp(_tr[$ "home"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1);   // the landing zone nearest the objective (exped_start)
 			_tr.path = []; _tr.road = undefined; _tr.act = undefined;
 			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name);
+			// DISCOVERED: the world and the region, once each (the ledger's set)
+			exped_stat("landings");
+			var _sk = string(_tr.dest.seed) + ":" + string(_tr[$ "rgi"] ?? 0);
+			if (!is_array(g.exped[$ "seen"])) g.exped.seen = [];
+			if (!array_contains(g.exped.seen, _sk)) array_push(g.exped.seen, _sk);
 			exped_say(_tr, "land");
 			exped_note_beat(_tr, "land", .3);
 		}
@@ -94,14 +107,15 @@ function exped_tick_one(_tr, _dt) {
 		var _q = _tr[$ "quest"];
 		if (is_struct(_q)) {
 			var _done = clamp(_q.done / max(1, _q.n), 0, 1);
-			if (_done >= 1) array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold });
+			if (_done >= 1) { exped_stat("quests"); array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold }); }
 			// THE QUEST'S XP (his law): a par foe's xp x 2..5 by how much got done
-			if (!_tr.routed || _done > 0) exped_xp_grant(_tr, round(sprite_par_pts(exped_trip_lv(_tr)) * SPRITE_FOE_BUDGET * SPRITE_XP_PER_PT * lerp(SPRITE_QUEST_XP_LO, _q.mult, _done)), "the quest");
-		} else if (!_tr.routed) {
+			// (an abort before anything was done pays nothing)
+			if (_done > 0 || (!_tr.routed && !(_tr[$ "aborted"] ?? false))) exped_xp_grant(_tr, sprite_xp_quest(exped_trip_lv(_tr), _done, _q.mult), "the quest");
+		} else if (!_tr.routed && (_tr[$ "planet_t"] ?? 0) > 0) {
 			// an explore's worth: the hours wandered, up to a day
 			exped_xp_grant(_tr, sprite_xp_quest(exped_trip_lv(_tr), clamp((_tr[$ "planet_t"] ?? 0) / (24 * EXPED_HOUR), 0, 1)), "the wandering");
 		}
-		array_push(_tr.log, _tr.routed ? "home, limping" : "home");
+		array_push(_tr.log, _tr.routed ? "home, limping" : ((_tr[$ "aborted"] ?? false) ? "home, early" : "home"));
 		exped_say(_tr, "home");
 		exped_note_beat(_tr, "home", .25);
 		for (var _si = 0; _si < array_length(g.sprites); _si++) {

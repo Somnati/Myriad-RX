@@ -10,7 +10,7 @@ function exped_next_node(_tr, _rg) {
 	_mean = (_up > 0) ? _mean / _up : 1;
 	var _hurt = (_mean < .4);
 	if (_tr.mode == "quest") {
-		if (is_struct(_q) && _q.done < _q.n) {
+		if (is_struct(_q) && _q.done < _q.n && !(_tr[$ "aborted"] ?? false)) {
 			if (_hurt && _tr.credits >= EXPED_INN) {
 				var _c = region_nearest_civ(_rg, _tr.pos);
 				if (_c >= 0 && _c != _tr.pos) return _c;

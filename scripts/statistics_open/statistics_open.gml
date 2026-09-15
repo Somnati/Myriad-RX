@@ -9,7 +9,11 @@
 /// THE ONE DOOR, so "is it already up" is answered in one place, and it
 /// refuses while another overlay is open rather than stacking two
 /// full-screen panels with one X between them.
+/// THE TAB (his ask, 2026-09-15): it opens on the folder that fits where
+/// you are - the expedition panel up = expeditions, tiles = tiles, and
+/// so on (stats_tab_here); nothing fitting = wherever it was last.
 function statistics_open() {
+	var _want = stats_tab_here();
 	// still fading out from a close? CATCH IT rather than refusing.
 	// The old guard was written when closing was instant; with an exit
 	// animation the panel is briefly both open and not, and a press in
@@ -24,5 +28,6 @@ function statistics_open() {
 	// a panel already up FOLDS (2026-09-13: the burger opens the menu over
 	// a panel now, so a menu line must be able to swap panels)
 	if (ui_overlay() != noone) ui_overlay_close();
+	g.stats_tab_want = _want;   // (syst_statistics_v2's Create reads and clears it)
 	create_obj(0, 0, syst_statistics_v2);
 }

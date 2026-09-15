@@ -24,6 +24,26 @@ function region_name(_kind) {
 		case "mine":       return "the " + _up + " mine";
 		case "landing":    return "the landing zone";
 	}
-	// the wild: "the <adj> <kind>"
-	return "the " + choose("green", "wide", "long", "dim", "wet", "high", "old", "far", "still", "windy", "lesser", "grey") + " " + _kind;
+	// THE WILD (widened 2026-09-15 - "marsh pops up a lot"): a noun of the
+	// kind's own family, and one of four shapes - "the <adj> <noun>", "<Name>
+	// <noun>", "the <noun> of <Name>", "<Name>'s <noun>"
+	var _nouns = [_kind];
+	switch (_kind) {
+		case "field":     _nouns = ["field", "fields", "meadow", "meadows", "downs", "heath", "pasture", "common", "lea", "grassland"]; break;
+		case "forest":    _nouns = ["wood", "woods", "forest", "grove", "thicket", "copse", "weald", "pines", "oaks", "wildwood"]; break;
+		case "hills":     _nouns = ["hills", "rise", "knolls", "ridge", "tor", "hollows", "barrows", "slopes"]; break;
+		case "marsh":     _nouns = ["marsh", "fen", "fens", "bog", "mire", "moor", "swamp", "wetlands", "reeds"]; break;
+		case "mountains": _nouns = ["mountains", "peaks", "crags", "heights", "pass", "spires", "cliffs", "scarp"]; break;
+		case "desert":    _nouns = ["desert", "sands", "waste", "flats", "dunes", "dust", "badlands", "scrub"]; break;
+		case "tundra":    _nouns = ["tundra", "frost", "snows", "barrens", "whites", "ice fields", "drifts"]; break;
+		case "coast":     _nouns = ["shore", "strand", "cove", "cliffs", "bay", "headland", "sands", "beach"]; break;
+	}
+	var _noun = _nouns[irandom(array_length(_nouns) - 1)];
+	var _adj = choose("green", "wide", "long", "dim", "wet", "high", "old", "far", "still", "windy", "lesser", "grey", "black", "white", "red",
+	                  "broken", "hollow", "low", "deep", "silent", "bright", "crooked", "thorny", "misty", "burnt", "lonely", "whispering", "sleeping", "bitter", "quiet");
+	var _form = random(100);
+	if (_form < 45) return "the " + _adj + " " + _noun;
+	if (_form < 75) return _up + " " + _noun;
+	if (_form < 90) return "the " + _noun + " of " + _up;
+	return _up + "'s " + _noun;
 }

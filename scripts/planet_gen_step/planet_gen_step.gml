@@ -30,8 +30,11 @@ function planet_gen_step(_pn, _rows = undefined) {
 				var _dd2 = point_distance_3d(_px, _py, _pz, _cb.x, _cb.y, _cb.z) - _cb.r;
 				if (_dd2 < _bd) _bd = _dd2;
 			}
-			if (_bd < -.06)   _a = 1;
+			if (_bd < -.05)   _a = 1;
 			else if (_bd < 0) _a = .55;
+			// the wisp: noise tears the puffs into weather (2026-09-15)
+			var _wisp = _ctx.fbm3(_px * 4.5, _py * 4.5, _pz * 4.5, _ps.o4 + 911, 2);
+			if (_a > 0) { if (_wisp < .38) _a = 0; else if (_wisp < .47) _a = min(_a, .55); }
 			var _wrp = (_ctx.fbm3(_px * 2.1, _py * 2.1, _pz * 2.1, _ps.o4, 2) - .5) * .16;
 			var _bv = 0;
 			for (var _k = 0; _k < array_length(_pn.belts); _k++) {
@@ -44,7 +47,7 @@ function planet_gen_step(_pn, _rows = undefined) {
 				else if (_bv > .27) _a = max(_a, .55);
 			}
 			if (_pn.kind == "gas") _a = min(_a, .55);
-			else if (_pn.dry)      _a = 0;
+			else if (_pn.dry)      _a = (_a > 0 && _wisp > .52) ? .55 : 0;   // a dry world keeps a few thin wisps (his ask: every world shows clouds)
 			else if (_pn.wet < .3) _a = min(_a, .55);
 			_pn.carr[_i2] = _a;
 		}

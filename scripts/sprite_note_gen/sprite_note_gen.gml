@@ -5,7 +5,7 @@
 ///            a boss - in its own dim words; tagged foe:<kind> by the
 ///            caller so it counts (SPRITE_NOTE_HIT)
 ///   "rout"   after a rout, about ctx.foe: a resolution
-///   "land" / "rest" / "find" / "home" / "levelup"   the useless kind
+///   "land" / "rest" / "find" / "home" / "levelup" / "road"   the useless kind
 /// ctx: { foe, item, planet, partner, lv }. The chance to write at all
 /// is the caller's; this only decides what.
 function sprite_note_gen(_sp, _beat, _ctx = undefined) {
@@ -45,6 +45,11 @@ function sprite_note_gen(_sp, _beat, _ctx = undefined) {
 		case "home":
 			return choose("home. the notepad survived. barely.", "back. nothing has changed. good.", "to do: nothing. done.",
 			              "the ship still smells of last time.", "arrived where we left from. the maths works.");
+		case "road":
+			return choose("the road is long. so are my legs, for some reason.", "counted 40 trees. gave up. 41.",
+			              "there was a rock that looked like " + (_ctx[$ "partner"] ?? "someone") + ".", "a bird followed us for an hour. it knows something.",
+			              "walking is just falling with confidence.", (_ctx[$ "partner"] ?? "someone") + " hums. it is always the same tune. i will find the tune.",
+			              "left, right, left. there is a pattern here.", "the sky is bigger out here. suspicious.", "my boots have opinions.");
 		case "levelup":
 			return choose("level " + string(_ctx[$ "lv"] ?? 2) + ". felt nothing.", "stronger now. same hat.",
 			              "level " + string(_ctx[$ "lv"] ?? 2) + ". wrote it bigger than the others.", "got better at it. at what, unclear.");

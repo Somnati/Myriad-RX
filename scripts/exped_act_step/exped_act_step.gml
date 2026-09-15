@@ -18,6 +18,7 @@ function exped_act_step(_tr) {
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = _tr.hpmax[_k];
+				exped_stat("inns");
 				array_push(_tr.log, "a night at the inn in " + _nd.name + " (" + string(_cost) + " credits) - everyone is whole again");
 			} else {
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .5);
@@ -29,6 +30,7 @@ function exped_act_step(_tr) {
 		}
 		case "shop": exped_shop(_tr); break;
 		case "tavern": {
+			exped_stat("taverns");
 			var _r = random(100);
 			if (_r < 35) {
 				var _who = _tr.names[irandom(_n - 1)];
@@ -112,5 +114,8 @@ function exped_act_step(_tr) {
 	// for the camp's chest and the rout quest) and looks again after
 	if (!is_undefined(_tr.fight)) { _a.left = EXPED_ROOM_T * .5; return; }
 	if (_a.steps > 0) _a.left = EXPED_ROOM_T;
-	else _tr.act = undefined;
+	else {
+		if (_a.kind == "delve") { exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light"); }
+		_tr.act = undefined;
+	}
 }

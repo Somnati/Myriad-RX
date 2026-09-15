@@ -66,6 +66,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 	if (is_struct(_q)) array_push(_tr.log, "the quest: " + _q.txt + "  (" + _rg.name + ")");
 	else array_push(_tr.log, "to explore " + _rg.name);
 	array_push(_e.trips, _tr);
+	exped_stat("trips");
 	exped_say(_tr, "depart");
 	save_mark_dirty();
 	return true;

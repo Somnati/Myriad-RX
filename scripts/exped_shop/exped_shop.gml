@@ -29,6 +29,7 @@ function exped_shop(_tr) {
 		if (gear_score(_sp, _it) > _cur && _tr.credits >= _price) {
 			_tr.credits -= _price;
 			_bought += 1;
+			exped_stat("bought");
 			var _tk = sprite_take(_sp, _it);
 			array_push(_tr.log, _sp.name + " bought " + _it.name + " for " + string(_price) + " credits" + (_tk.worn ? "" : (_tk.kept ? " - and pocketed it" : " - " + string_delete(_tk.txt, 1, string_pos(" and ", _tk.txt) + 4))));
 			if (_tk.worn) { _tr.hpmax[_k] = sprite_pawn(_sp).maxhp; _tr.hp[_k] = min(_tr.hp[_k], _tr.hpmax[_k]); }

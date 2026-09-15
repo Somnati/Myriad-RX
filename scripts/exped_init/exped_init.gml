@@ -12,11 +12,13 @@
 ///   recent  the diary's said-this-session ring (exped_say; not saved)
 ///   retired names of sprites swapped out for a recruit (exped_retire) -
 ///           the diary brings them up; names only, twelve at most
+///   st      THE LEDGER (exped_stat): the expedition statistics, a counter a key
+///   seen    "seed:ri" of every region landed on (worlds and regions discovered)
 /// g.bonds (exped_bond) lives beside it: one number per pair of sprites.
 function exped_init(_force = false) {
 	if (_force || !variable_global_exists("bonds")) g.bonds = {};
 	if (!_force && variable_global_exists("exped")) return;
 	g.exped = { board : [], trips : [], hauls : [], depth : 1, charms : 0, mats : {}, seq : 0, spd : 1,
-	            recent : [], retired : [] };
+	            recent : [], retired : [], st : {}, seen : [] };
 	exped_board_roll();
 }

@@ -492,6 +492,10 @@ function handle_save(){
 	}
 	_sps = handle("sprites", _sps);
 	g.sprite_seq = handle("sprite_seq", g.sprite_seq);
+	// THE XP LAW'S STAMP (2026-09-15): a save from an older law (or none)
+	// has levels earned under the old need - every sheet goes back to
+	// level 1 / 0 xp on load, gear and notes kept (his ask)
+	var _law = handle("sprite_xp_law", (action == sv_load) ? 1 : SPRITE_XP_LAW);
 	if (action == sv_load) {
 		g.sprites = [];
 		if (_sps != "") {
@@ -518,6 +522,7 @@ function handle_save(){
 				});
 				// the sheet, from field 18 on (a save from before: a fresh one, sprite_sheet)
 				sprite_sheet_unpack(g.sprites[array_length(g.sprites) - 1], _f, 18);
+				if (real(_law) < SPRITE_XP_LAW) { var _rsh = sprite_sheet(g.sprites[array_length(g.sprites) - 1]); _rsh.lv = 1; _rsh.xp = 0; }
 			}
 		}
 	}
@@ -540,7 +545,26 @@ function handle_save(){
 		_xb += ((_i > 0) ? "|" : "") + _bk[_i] + "=" + string(g.bonds[$ _bk[_i]]);
 	_xb = handle("ex_bonds", _xb);
 	var _xr = handle("ex_retired", string_join_ext("|", g.exped.retired));
+	// THE LEDGER (exped_stat) and the discovered set (2026-09-15)
+	var _xs = "";
+	var _stk = variable_struct_get_names(g.exped[$ "st"] ?? {});
+	for (var _i = 0; _i < array_length(_stk); _i++)
+		_xs += ((_i > 0) ? "|" : "") + _stk[_i] + "=" + string_format(g.exped.st[$ _stk[_i]], 1, 3);
+	_xs = handle("ex_stats", _xs);
+	var _xsn = "";
+	var _seen = g.exped[$ "seen"] ?? [];
+	for (var _i = 0; _i < array_length(_seen); _i++) _xsn += ((_i > 0) ? "|" : "") + _seen[_i];
+	_xsn = handle("ex_seen", _xsn);
 	if (action == sv_load) {
+		g.exped.st = {};
+		if (_xs != "") {
+			var _sl = string_split(_xs, "|");
+			for (var _i = 0; _i < array_length(_sl); _i++) {
+				var _kv = string_split(_sl[_i], "=");
+				if (array_length(_kv) == 2) g.exped.st[$ _kv[0]] = max(0, real(_kv[1]));
+			}
+		}
+		g.exped.seen = (_xsn != "") ? string_split(_xsn, "|") : [];
 		g.exped.depth  = clamp(floor(g.exped.depth), 1, 8);
 		g.exped.charms = max(0, floor(g.exped.charms));
 		g.exped.seq    = max(0, floor(g.exped.seq));

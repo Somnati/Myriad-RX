@@ -31,6 +31,7 @@ uniform vec3  u_ringcol;
 uniform vec4  u_city[6];
 uniform float u_cityn;
 uniform float u_relief;
+uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
 
 float cw_h(vec3 p)
 {
@@ -62,7 +63,7 @@ float height_at(vec3 n)
 float cloud_at(vec3 n, vec2 ts)
 {
     vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
-    return texture2D(u_cloud, sphere_uv(t, ts)).a;
+    return texture2D(u_cloud, sphere_uv(t, ts)).a * u_cfade;
 }
 
 float lightband(float d)

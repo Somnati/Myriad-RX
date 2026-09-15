@@ -24,7 +24,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
 		switch (_l.kind) {
-			case "credits": credit_drop(_x, _y, _l.n, 6); break;
+			case "credits": credit_drop(_x, _y, _l.n, 6); exped_stat("credits", _l.n); break;
 			case "sprite": {
 				if (array_length(g.sprites) >= SPRITE_CAP) {
 					if (string_pos("swap:", _choice) == 1 && !_swapped) {
@@ -35,6 +35,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 				}
 				if (array_length(g.sprites) < SPRITE_CAP) {
 					var _sp = sprite_spawn("tap");
+					exped_stat("recruits");
 					_sp.asleep = true;
 					_sp.found  = _h.dest.name;
 					if (is_string(_l[$ "name"])) _sp.name = _l.name;   // (met on the road: it keeps the name it gave)
@@ -60,6 +61,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 		}
 	}
 	array_delete(_e.hauls, _hi, 1);
+	exped_stat("hauls");
 	exped_board_roll();
 	save_mark_dirty();
 	return "ok";

@@ -1,4 +1,4 @@
-/// @description region_gen(seed, biome, lv) -> a region { seed, lv, nodes, edges, landing, name }
+/// @description region_gen(seed, biome, lv, [ri], [pn]) -> a region { seed, lv, nodes, edges, landing, name, spot, wild }
 /// THE REGION GRAPH (his pitch, 2026-09-14): a connection of nodes with
 /// distances between them. Seeded from the world's seed, so a world
 /// always has the same region, the same towns, the same names - the
@@ -15,9 +15,8 @@
 /// time (so branches end in dead ends), then the graph is stitched
 /// connected (union-find, nearest pair across components). Medieval,
 /// all of it: the civilisation is his call.
-function region_gen(_seed, _biome, _lv, _ri = 0) {
+function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	var _old = random_get_seed();
-	random_set_seed((_seed ^ 48271) & $7fffffff);
 	var _bi = exped_biomes()[_biome].name;
 	var _wild = ["field", "forest", "hills", "marsh"];   // living: blue water, green grass
 	switch (_bi) {
@@ -25,6 +24,63 @@ function region_gen(_seed, _biome, _lv, _ri = 0) {
 		case "ruined": _wild = ["ruin", "marsh", "forest", "shrine", "hills"]; break;
 		case "ice":    _wild = ["tundra", "hills", "mountains", "ruin", "field"]; break;
 	}
+	// THE SPOT (his ask, 2026-09-15: "the lv1 zone is out in the ocean... it
+	// needs to be aware of where on the planet has what type of biome"): a
+	// third of the globe a region, the first ON LAND the sampler finds
+	// (planet_texel - the texel the shader draws there: u = lon / 360 + .5,
+	// v = (90 - lat) / 180, sphere_uv's mapping), and THE WILD IS WHAT
+	// GROWS THERE - the terrain around the spot, tallied into the list the
+	// wild nodes draw from (a marsh only where there is swamp). Its own
+	// stream, so the node roll below is what it always was
+	random_set_seed((_seed ^ 7331) & $7fffffff);
+	var _spot = { lon : _ri * 120 + random_range(-40, 40), lat : random_range(-35, 35) };
+	var _tw = [];
+	if (is_struct(_pn) && is_struct(_pn[$ "smp"]) && _pn.kind == "rock") {
+		var _ps = _pn.smp;
+		var _try = 0, _found = false;
+		while (_try < 60 && !_found) {
+			_try += 1;
+			var _clon = _ri * 120 + random_range(-55, 55), _clat = random_range(-48, 48);
+			planet_texel(_ps, frac(_clon / 360 + .5 + 1), (90 - _clat) / 180);
+			var _ob = _ps.ob;
+			// water, shallows and the ice sheets are no place to land; the peaks neither
+			if (_ob == 0 || _ob == 1 || _ob == 11 || _ob == 14 || _ob == 9 || _ob == 10) continue;
+			_spot = { lon : _clon, lat : _clat };
+			_found = true;
+		}
+		// the terrain around it: sixteen samples within six degrees
+		var _map = function(_b) {
+			switch (_b) {
+				case 2: return "coast";
+				case 3: case 13: return "desert";
+				case 4: return "field";
+				case 5: case 6: return "forest";
+				case 7: case 8: case 14: return "tundra";
+				case 9: case 10: case 18: return "mountains";
+				case 12: return "marsh";
+				case 15: case 16: case 17: return "hills";
+			}
+			return "";
+		};
+		repeat (16) {
+			var _slon = _spot.lon + random_range(-6, 6), _slat = clamp(_spot.lat + random_range(-6, 6), -89, 89);
+			planet_texel(_ps, frac(_slon / 360 + .5 + 1), (90 - _slat) / 180);
+			var _wk = _map(_ps.ob);
+			if (_wk != "") array_push(_tw, _wk);
+		}
+		if (array_length(_tw) > 0) {
+			array_push(_tw, "hills");   // (a floor of variety: every land has a rise somewhere)
+			// the biome family's specials keep a seat (mines, ruins, shrines)
+			switch (_bi) {
+				case "stone":  array_push(_tw, "mine", "ruin"); break;
+				case "ruined": array_push(_tw, "ruin", "shrine", "ruin"); break;
+				case "ice":    array_push(_tw, "ruin"); break;
+				default:       if (random(1) < .5) array_push(_tw, "ruin"); break;
+			}
+			_wild = _tw;
+		}
+	}
+	random_set_seed((_seed ^ 48271) & $7fffffff);
 	var _n = irandom_range(12, 17);
 	var _nodes = [];
 	// the landing zone, on the left edge
@@ -119,8 +175,10 @@ function region_gen(_seed, _biome, _lv, _ri = 0) {
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)
 	var _rname = (_ri == 0) ? "the landing reach" : (region_name("village") + choose(" reach", " lowlands", " marches", " uplands", " fens", " holds"));
-	var _spot = { lon : _ri * 120 + random_range(-40, 40), lat : random_range(-35, 35) };
+	// the distinct wild kinds here (the planet window lists them)
+	var _wk2 = [];
+	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);
 	rng_release(_old);
 	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
-	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp };
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2 };
 }

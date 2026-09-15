@@ -4,8 +4,10 @@
 /// lights by night, and THE MOUNTAINS - the shader marches the height
 /// texture so the peaks stand out of the silhouette as it turns (his
 /// wish from the tech demo). The sun is fixed to the upper left.
-/// Bakes the textures if they are missing. pr = the radius in px.
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined) {
+/// Bakes the textures if they are missing. pr = the radius in px; cfade
+/// 0..1 thins the clouds (the region zoom, his ask 2026-09-15). Uniforms
+/// persist between draws, so every one is set every call.
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1) {
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = (current_time / 1000) * 60 * _pn.spin;   // deg per step x 60 = per second
@@ -25,6 +27,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined) {
 		city  : shader_get_uniform(sh_planet, "u_city"),
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
 		relief : shader_get_uniform(sh_planet, "u_relief"),
+		cfade : shader_get_uniform(sh_planet, "u_cfade"),
 		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
 		height : shader_get_sampler_index(sh_planet, "u_height"),
 	};
@@ -54,6 +57,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined) {
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief);
+	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
 	var _cty = array_create(24, 0);
 	var _ctn = 0;
 	if (!is_undefined(_pn.civ)) {

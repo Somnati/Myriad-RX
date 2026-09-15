@@ -97,7 +97,7 @@ if (view == "haul") {
 	draw_px_rect(_cx, _cy, _cw, _ch, _h.routed ? c_hred : c_gold, .6);
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, 1, 0, _h.routed ? c_hred : c_gold, .9);
 	ui_fade_set(1);
-	__portrait(_h.dest, _cx + 22, _cy + 22, 12);
+	__world_small(_h.dest, _cx + 22, _cy + 22, 12);
 	ui_fade_set(_ea);
 	draw_set_halign(fa_left);
 	draw_set_color(c_white);
@@ -185,9 +185,9 @@ if (view == "map") {
 			draw_circle_colour(_nx, _ny, 5, c_white, c_white, true);
 			__dot(_nx, _ny, 2, c_white, .9);
 		} else __dot(_nx, _ny, _kd.r, _kd.col, .95);
-		// names where they matter (the places people live, the dungeons, the
-		// camps, the landing zone); the wild is its kind, dim - less clutter
-		if (_kd.wild) { draw_set_color(_dim); draw_set_alpha(.45); draw_text(_nx + _kd.r + 3, _ny - 4, _nd.kind); }
+		// every place by its name (his ask, 2026-09-15: the wild's full names);
+		// the places that matter carry their kind under it, the wild is dim
+		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6); draw_text(_nx + _kd.r + 3, _ny - 4, _nd.name); }
 		else {
 			draw_set_color(_kd.col); draw_set_alpha(.9);
 			draw_text(_nx + _kd.r + 3, _ny - 4, _nd.name);
@@ -457,21 +457,22 @@ if (view == "trip") {
 	var _b  = exped_biomes()[_d.biome];
 	var _n  = array_length(_tr.sids);
 	// THE WORLD: the full planet (planet_get / planet_draw - the tech
-	// demo's raycast sphere with the mountains) over its own stars; the
-	// lite portrait holds the spot while the world is still being built
+	// demo's raycast sphere with the mountains, its ring if it has one)
+	// over its own stars, through the box's surface (__draw_world_rect:
+	// nothing spills past the box); the lite portrait holds the spot
+	// while the world is still being built
 	draw_sprite_ext(spr_pixel_1x1, 0, big_x, big_y, big_w, big_h, 0, c_black, .95);
-	ui_fade_set(1);
-	planet_sky_draw(_d.seed, big_x + 2, big_y + 2, big_w - 4, land ? 100 : 60);
-	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	var _pcx = big_x + big_w * .5, _pcy = big_y + (land ? 48 : 30), _ppr = land ? 34 : 20;
-	if (_pn.row >= _pn.th) planet_draw(_pn, _pcx, _pcy, _ppr);
-	else __portrait(_d, _pcx, _pcy, _ppr);
+	__draw_world_rect(_d, big_x + 1, big_y + 1, big_w - 2, land ? 102 : 62, (big_w - 2) * .5, land ? 47 : 29, land ? 34 : 20, 1, undefined, 1, false);
 	draw_px_rect(big_x, big_y, big_w, big_h, merge_colour(_b.col2, c_white, .2), .5);
 	ui_fade_set(_ea);
-	var _tmr = __trip_map_r();
-	draw_ui_button(_tmr.x, _tmr.y, _tmr.w, _tmr.h, "map", c_steelblue, true, false);
+	// the buttons, under the box: [crew] [map] [abort]
 	var _tcr = __trip_crew_r();
 	draw_ui_button(_tcr.x, _tcr.y, _tcr.w, _tcr.h, "crew", c_steelblue, true, false);
+	var _tmr = __trip_map_r();
+	draw_ui_button(_tmr.x, _tmr.y, _tmr.w, _tmr.h, "map", c_steelblue, true, false);
+	var _abr = __trip_abort_r();
+	var _can_abort = !(_tr[$ "aborted"] ?? false) && _tr.stage != 2;
+	draw_ui_button(_abr.x, _abr.y, _abr.w, _abr.h, (_tr[$ "aborted"] ?? false) ? "aborted" : "abort", c_hred, _can_abort, false);
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
@@ -504,7 +505,7 @@ if (view == "trip") {
 	if (_tr.stage == 0) { _tf = clamp(_tr.t / max(1, _travel), 0, 1); _leg = "the flight"; }
 	else if (_tr.stage == 2) { _tf = clamp((_tr.t - (_tr[$ "leave_t"] ?? _tr.t)) / max(1, _tr.dur * EXPED_RETURN), 0, 1); _leg = "the flight home"; }
 	else if (is_struct(_tr[$ "road"])) { _tf = clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1); _leg = "the road"; }
-	else if (is_struct(_tr[$ "act"])) { _tf = 1 - clamp(_tr.act.left / max(1, EXPED_ROOM_T), 0, 1); _leg = "at " + region_get(_tr.dest).nodes[_tr.pos].name; }
+	else if (is_struct(_tr[$ "act"])) { _tf = 1 - clamp(_tr.act.left / max(1, EXPED_ROOM_T), 0, 1); _leg = "at " + exped_region(_tr).nodes[clamp(_tr.pos, 0, array_length(exped_region(_tr).nodes) - 1)].name; }
 	else { _tf = 0; _leg = "deciding"; }
 	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy + 8, _sw, 6, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _sx, _sy + 8, _sw * _tf, 6, 0, (_tr.stage == 1) ? c_sgreen : c_steelblue, .9);
@@ -637,32 +638,26 @@ if (view == "trip") {
 	// Newest at the bottom; as many whole entries as fit above it
 	var _ly = _sy + 48;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
-	var _nl = array_length(_tr.log);
-	var _hs = array_create(_nl, 0);
-	var _room = _ly_end - _ly;
-	var _from = _nl;
-	for (var _i = _nl - 1; _i >= 0; _i--) {
-		var _isv = (string_copy(_tr.log[_i], 1, 2) == "~ ");
-		var _h = string_height_ext(_isv ? string_delete(_tr.log[_i], 1, 2) : _tr.log[_i], 9, _sw - (_isv ? 8 : 0)) + 2;
-		if (_h > _room) break;
-		_room -= _h;
-		_hs[_i] = _h;
-		_from = _i;
-	}
-	var _yy = _ly;
-	for (var _i = _from; _i < _nl; _i++) {
-		var _isv = (string_copy(_tr.log[_i], 1, 2) == "~ ");
-		var _last = (_i == _nl - 1);
-		if (_isv) {
-			draw_set_color(_last ? merge_colour(_ink, c_white, .5) : merge_colour(_ink, _b.col2, .35));
-			draw_set_alpha(_last ? .9 : .55);
-			draw_text_ext(_sx + 8, _yy, string_delete(_tr.log[_i], 1, 2), 9, _sw - 8);
-		} else {
-			draw_set_color(_last ? c_white : _ink);
-			draw_set_alpha(_last ? .95 : .7);
-			draw_text_ext(_sx, _yy, _tr.log[_i], 9, _sw);
-		}
-		_yy += _hs[_i];
+	__draw_log(_tr.log, _sx, _ly, _sw, _ly_end, _b.col2);
+	// THE CONFIRM POPUP (abort): the save menu's box, over everything
+	if (conf_a > .01) {
+		var _cr = __conf_rect();
+		var _ce = conf_a * conf_a * (3 - 2 * conf_a);
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .55 * _ce);
+		var _ry0 = _cr.y + (1 - _ce) * 8;
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + 2, _ry0 + 3, _cr.w, _cr.h, 0, c_black, .5 * _ce);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _ry0, _cr.w, _cr.h, 0, c_hsv(169, 186, 9), _ce);
+		draw_px_rect(_cr.x, _ry0, _cr.w, _cr.h, c_hred, .8 * _ce);
+		draw_set_halign(fa_center); draw_set_valign(fa_top);
+		draw_set_color(c_white); draw_set_alpha(.95 * _ce);
+		var _cq = (_tr.stage == 0) ? "turn the ship around?\n" + exped_crew_txt(_tr.names) + " will fly home without landing."
+		                          : "abort the mission?\n" + exped_crew_txt(_tr.names) + " will head for the landing zone" + (is_struct(_tr[$ "quest"]) ? " and the quest is dropped." : ".");
+		draw_text(_cr.x + _cr.w * .5, _ry0 + 12, _cq);
+		var _cb = __conf_btns();
+		ui_fade_set(_ce);
+		draw_ui_button(_cb[0].x, _cb[0].y - _cr.y + _ry0, _cb[0].w, _cb[0].h, "abort", c_hred, true, true);
+		draw_ui_button(_cb[1].x, _cb[1].y - _cr.y + _ry0, _cb[1].w, _cb[1].h, "cancel", rgb(170, 190, 230), true, false);
+		draw_set_halign(fa_left);
 	}
 	ui_fade_set(1);
 	exit;
@@ -684,8 +679,18 @@ if (view == "planet") {
 	var _fy = _bx.y + _bx.h + 4;
 	draw_set_color(_dim); draw_set_alpha(.75);
 	draw_text(_bx.x, _fy, _b.hint + "  -  " + crunch_time_long(_d.dist * EXPED_TRAVEL * 60 / max(1, _e.spd)) + " flight");
-	draw_text(_bx.x, _fy + 10, "the wild here: " + ((_b.name == "living") ? "fields, forests, hills, marshes" : ((_b.name == "stone") ? "hills, mountains, mines, ruins, desert" : ((_b.name == "ice") ? "tundra, hills, mountains, ruins" : "ruins, marshes, forests, shrines"))));
-	draw_text(_bx.x, _fy + 20, "medieval. settlements and camps are common, towns rare, a city rarer.");
+	// the wild: what the regions' terrain grows (region_gen's wild lists, the union)
+	var _wl = [];
+	for (var _wi = 0; _wi < EXPED_REGIONS; _wi++) { var _wrg = region_get(_d, _wi); var _wk = _wrg[$ "wild"] ?? []; for (var _wj = 0; _wj < array_length(_wk); _wj++) if (!array_contains(_wl, _wk[_wj])) array_push(_wl, _wk[_wj]); }
+	var _wtxt = "";
+	for (var _wi = 0; _wi < array_length(_wl); _wi++) {
+		var _wn = _wl[_wi];
+		if (_wn == "marsh") _wn = "marshes"; else if (_wn != "hills" && _wn != "mountains" && _wn != "tundra") _wn += "s";
+		_wtxt += ((_wi > 0) ? ", " : "") + _wn;
+	}
+	var _wline = "the wild here: " + ((_wtxt == "") ? "unknown" : _wtxt);
+	draw_text_ext(_bx.x, _fy + 10, _wline, 9, _bx.w);
+	draw_text_ext(_bx.x, _fy + 10 + string_height_ext(_wline, 9, _bx.w) + 1, "medieval. settlements and camps are common, towns rare, a city rarer.", 9, _bx.w);
 	// the regions: EXPED_REGIONS a world, lv +0 / +2 / +4 - tap one and the world turns to it
 	draw_set_color(_ink); draw_set_alpha(.6);
 	var _r0 = __pl_row(0);
@@ -882,7 +887,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _c.x, _c.y, _c.w, _c.h, 0, c_black, .8);
 	draw_px_rect(_c.x, _c.y, _c.w, _c.h, merge_colour(_b.col2, c_white, .2), .5);
 	ui_fade_set(1);
-	__portrait(_d, _c.x + 24, _c.y + 24, 18);
+	__world_small(_d, _c.x + 24, _c.y + 24, 18);
 	ui_fade_set(_ea);
 	draw_set_color(c_white);
 	draw_set_alpha(.95);
@@ -932,7 +937,7 @@ for (var _i = 0; _i < _rows; _i++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, 1, 0, c_white, .07);
 	draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, 2, _rr.h, 0, _ish ? c_gold : c_steelblue, .85);
 	ui_fade_set(1);
-	__portrait(_r.dest, _rr.x + 16, _rr.y + _rr.h * .5, 9);
+	__world_small(_r.dest, _rr.x + 16, _rr.y + _rr.h * .5, 9);
 	ui_fade_set(_ea);
 	// the crew's faces
 	for (var _k = 0; _k < array_length(_r.sids); _k++) __dot(_rr.x + 34 + _k * 9, _rr.y + 9, 3, _r.cols[_k],

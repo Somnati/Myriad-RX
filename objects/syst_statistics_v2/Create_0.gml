@@ -382,6 +382,18 @@ __ghost_paint = function(_r, _row, _ry) {
 
 __rebuild();
 
+// THE TAB THAT FITS (his ask, 2026-09-15): statistics_open leaves the
+// folder's name in g.stats_tab_want; found among the rail's tabs, it is
+// the one shown (and the scroll starts at the top of it)
+if (variable_global_exists("stats_tab_want") && is_string(g.stats_tab_want) && g.stats_tab_want != "") {
+	for (var _wi = 0; _wi < array_length(sections); _wi++) {
+		if (sections[_wi].name != g.stats_tab_want) continue;
+		if (g.stats_tab != _wi) { g.stats_tab = _wi; g.stats_page = 0; __slice(); }
+		break;
+	}
+	g.stats_tab_want = "";
+}
+
 // scroll memory: g.stats_page carries over between visits - just
 // clamp it in case folders closed since (shorter list now)
 g.stats_page = clamp(g.stats_page, 0, max(0, mx - full_rows));

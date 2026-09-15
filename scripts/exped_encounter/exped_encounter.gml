@@ -10,6 +10,7 @@ function exped_encounter(_tr) {
 		array_push(_tr.log, "on the road: " + _tr.fight.b.name + ((array_length(_tr.fight.foes) > 1) ? " and company" : "") + " " + choose("block the way", "come out of the trees", "were waiting", "had the same idea"));
 		exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .7);
 	} else if (_r < 70) {
+		exped_stat("met");
 		var _nm = exped_npc_name();
 		array_push(_tr.log, "met a sprite called " + _nm + " going the other way. " + choose("they talked about the weather.", "it had a hat. nobody mentioned it.", "it asked for directions. nobody knew.", "it was carrying a fish.", "they compared sticks."));
 	} else if (_r < 85) {
@@ -19,6 +20,7 @@ function exped_encounter(_tr) {
 		array_push(_tr.log, "on the road: a sprite called " + _nm + " wanted the pocket money");
 		exped_say(_tr, "fight_open", { foe : _nm }, .7);
 	} else {
+		exped_stat("met");
 		var _nm = exped_npc_name();
 		array_push(_tr.finds, { kind : "sprite", rar : 0, txt : "a sprite called " + _nm + ", who asked to come along", col : c_white, name : _nm });
 		array_push(_tr.log, "met a sprite called " + _nm + " who asked to come along. " + choose("nobody said no.", "it is carrying its own bag.", "it seems fine."));

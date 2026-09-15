@@ -13,5 +13,7 @@ function stats_session_base() {
 		merges   : variable_global_exists("tiles")    ? g.tiles.merges : 0,
 		taps     : variable_global_exists("total_taps")  ? g.total_taps  : 0,
 		crits    : variable_global_exists("total_crits") ? g.total_crits : 0,
+		// the expeditions' ledger, whole (exped_stat's keys; the folder diffs each)
+		exped    : (variable_global_exists("exped") && is_struct(g.exped[$ "st"])) ? variable_clone(g.exped.st) : {},
 	};
 }

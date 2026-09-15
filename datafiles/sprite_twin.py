@@ -57,8 +57,9 @@ for n, c in list(CLASSES.items()) + list(FOES.items()):
     assert eff(c["shape"]) == 40, (n, eff(c["shape"]))
 
 def par_pts(lv): return 40 + LV_PTS * (max(1, lv) - 1)
-def xp_need(lv): return round(LV_KILLS * par_pts(lv) * FOE_B * XP_PT)
-def xp_quest(lv, done=1): return round(par_pts(lv) * FOE_B * XP_PT * (Q_LO + (Q_HI - Q_LO) * max(0, min(1, done))))
+def foe_xp(pts): return round(pts / (par_pts(1) * FOE_B) * XP_PT * 10) / 10   # v2: a level-1 par foe pays 1
+def xp_need(lv): return max(1, round(LV_KILLS * par_pts(lv) / par_pts(1) * XP_PT))
+def xp_quest(lv, done=1): return round(par_pts(lv) / par_pts(1) * XP_PT * (Q_LO + (Q_HI - Q_LO) * max(0, min(1, done))) * 10) / 10
 
 # ---- gear_gen's points (the names do not matter here) ----
 FAM = {  # slot -> [(lines)]
@@ -286,20 +287,21 @@ def main():
     out.append("a level-5 warrior, 1v1, vs foes of other levels: win %")
     for fl in (2, 5, 8, 11):
         wr_, tn = winrate(lambda r: [sprite_pawn("warrior", 5, r)], lambda r, fl=fl: [foe_pawn(r.choice(list(FOES)), fl, r)], n=300, seed=fl)
-        out.append("  vs level %2d: %3.0f%%   pays ~%d xp a kill" % (fl, wr_ * 100, round(par_pts(fl) * FOE_B * XP_PT)))
+        out.append("  vs level %2d: %3.0f%%   pays ~%.1f xp a kill" % (fl, wr_ * 100, foe_xp(par_pts(fl) * FOE_B)))
         if fl == 11: claims.append(("six levels up, even the warrior loses more than it wins (<= 45%)", wr_ <= .45, "%.0f%%" % (wr_ * 100)))
         if fl == 2: claims.append(("three levels down is safe (>= 75%)", wr_ >= .75, "%.0f%%" % (wr_ * 100)))
     out.append("")
     # 4. the ladder
     out.append("the ladder (his law): xp a level, and what pays it")
     for lv in (1, 5, 10, 20, 50):
-        need = xp_need(lv); kill = par_pts(lv) * FOE_B * XP_PT; q = xp_quest(lv, 1)
-        out.append("  lv %2d -> %2d: %6d xp  =  %d par kills  or  %.1f full quests (%d each)" % (lv, lv + 1, need, round(need / kill), need / q, q))
-    claims.append(("a level is SPRITE_LV_KILLS par kills at every level (to a rounding)", all(abs(xp_need(l) / (par_pts(l) * FOE_B * XP_PT) - LV_KILLS) < .02 for l in (1, 7, 30, 99)), "self-similar"))
-    claims.append(("a full quest is worth fewer than ten par kills", xp_quest(10, 1) < 10 * par_pts(10) * FOE_B * XP_PT, "%d vs %d" % (xp_quest(10, 1), round(par_pts(10) * FOE_B * XP_PT))))
+        need = xp_need(lv); kill = foe_xp(par_pts(lv) * FOE_B); q = xp_quest(lv, 1)
+        out.append("  lv %2d -> %2d: %6d xp  =  %d par kills  or  %.1f full quests (%.1f each)" % (lv, lv + 1, need, round(need / kill), need / q, q))
+    claims.append(("a level is SPRITE_LV_KILLS par kills at every level (to a rounding)", all(abs(xp_need(l) / foe_xp(par_pts(l) * FOE_B) - LV_KILLS) < 1.5 for l in (1, 7, 30, 99)), "self-similar"))
+    claims.append(("a level-1 par foe pays 1 xp and level 2 is SPRITE_LV_KILLS xp away", foe_xp(par_pts(1) * FOE_B) == 1 and xp_need(1) == LV_KILLS, "%.1f xp, need %d" % (foe_xp(par_pts(1) * FOE_B), xp_need(1))))
+    claims.append(("a full quest is worth fewer than ten par kills", xp_quest(10, 1) < 10 * foe_xp(par_pts(10) * FOE_B), "%.1f vs %.1f" % (xp_quest(10, 1), foe_xp(par_pts(10) * FOE_B))))
     # a trip's worth: ROOMS rooms, ~30% fights at par, + the quest
     fights = ROOMS * .3
-    per_trip = fights * 2 * par_pts(5) * FOE_B * XP_PT + xp_quest(5, .8)   # (a crew of two meets two foes a fight)
+    per_trip = fights * 2 * foe_xp(par_pts(5) * FOE_B) + xp_quest(5, .8)   # (a crew of two meets two foes a fight)
     out.append("  a tier-2 trip (level 5, a crew of two, ~%.1f fights of two, 80%% cleared) pays ~%d xp: %.1f trips a level" % (fights, per_trip, xp_need(5) / per_trip))
     out.append("")
     ok = all(c[1] for c in claims)

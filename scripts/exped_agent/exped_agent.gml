@@ -8,6 +8,8 @@
 function exped_agent(_tr, _dt) {
 	var _rg = exped_region(_tr);
 	_tr.planet_t = (_tr[$ "planet_t"] ?? 0) + _dt;
+	exped_stat("world_h", _dt / EXPED_HOUR);
+	if ((_tr[$ "mode"] ?? "quest") == "explore") exped_stat("explore_h", _dt / EXPED_HOUR);
 	// an activity in progress
 	if (is_struct(_tr.act)) {
 		_tr.act.left -= _dt;
@@ -22,9 +24,13 @@ function exped_agent(_tr, _dt) {
 		_rd.t += _dt;
 		var _after = floor(_rd.t / EXPED_HOUR);
 		if (_after > _before && _rd.t < _rd.d * EXPED_HOUR) {
+			var _nl = array_length(_tr.log);
 			exped_encounter(_tr);
 			if (!is_undefined(_tr.fight)) return false;
+			// nothing met: a little thing, maybe (exped_road_beat)
+			if (array_length(_tr.log) == _nl) exped_road_beat(_tr);
 		}
+		exped_stat("road_h", _dt / EXPED_HOUR);
 		if (_rd.t >= _rd.d * EXPED_HOUR) {
 			_tr.pos = _rd.b;
 			_tr.road = undefined;

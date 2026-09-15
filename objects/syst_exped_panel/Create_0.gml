@@ -78,8 +78,24 @@ row_h   = land ? 36 : 30;
 // ---- the trip view ----
 big_x = land ? 14 : 4; big_y = list_y + 20; big_w = land ? 150 : (room_width - 8); big_h = land ? 150 : 96;
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
-log_y = land ? big_y : (big_y + big_h + 6);
+log_y = land ? big_y : (big_y + big_h + 24);   // (portrait: the button row under the box comes first)
 fight_s = 64;        // the combat window's side
+wb_surf = -1;        // the world box's surface (__draw_world_rect): the globe and its ring clipped at the box; freed in the CleanUp
+// THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
+confirm  = "";       // "abort" while the question is up
+conf_a   = 0;
+conf_hot = 0;
+__conf_rect = function() {
+	var _w = min(room_width - 16, 230), _h = 74;
+	return { x : floor((room_width - _w) * .5), y : floor((room_height - _h) * .5), w : _w, h : _h };
+};
+__conf_btns = function() {
+	var _r = __conf_rect();
+	var _bw = 84, _bh = 18, _g = 8;
+	var _x0 = _r.x + floor((_r.w - _bw * 2 - _g) * .5);
+	return [ { x : _x0, y : _r.y + _r.h - _bh - 8, w : _bw, h : _bh, id : "ok" },
+	         { x : _x0 + _bw + _g, y : _r.y + _r.h - _bh - 8, w : _bw, h : _bh, id : "cancel" } ];
+};
 
 // ---- the shader's handles ----
 u_quad  = shader_get_uniform(sh_planet_lite, "u_quad");
@@ -159,7 +175,11 @@ __crew_list = function() {
 	}
 	return (array_length(_out) > 0) ? _out : g.sprites;
 };
-__trip_crew_r = function() { return { x : big_x + big_w - 34 - 40, y : big_y + 4, w : 36, h : 11 }; };
+// the trip page's buttons: a row UNDER the world box (his ask, 2026-09-15:
+// "move the crew/map buttons off the world panel"): [crew] [map] [abort]
+__trip_btn_r = function(_k) { var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + big_h + 4, w : _bw - 2, h : 13 }; };
+__trip_crew_r  = function() { return __trip_btn_r(0); };
+__trip_abort_r = function() { return __trip_btn_r(2); };
 /// where a region's spot sits on the drawn world: the same matrix planet_draw
 /// hands the shader (world = rot(tilt) x rot(y, spin); a texture direction t
 /// shows at n = W t), so the marker lands where the terrain does
@@ -196,7 +216,7 @@ crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
 __map_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : room_width - (land ? 28 : 8), h : room_height - 8 - 14 - (list_y + 22) }; };
 __card_map_r = function(_i) { var _c = __card_r(_i); return { x : _c.x + _c.w - 27, y : _c.y + 3, w : 24, h : 10 }; };
-__trip_map_r = function() { return { x : big_x + big_w - 34, y : big_y + 4, w : 30, h : 11 }; };
+__trip_map_r = function() { return __trip_btn_r(1); };
 __crew_y0 = function() { return list_y + 22; };
 __list_row_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * crew_row_h - crew_off, w : room_width - (land ? 28 : 8), h : crew_row_h - 3 }; };   // (the crew LIST's rows; __crew_row_r is the trip page's)
 __crew_max_off = function() { return max(0, array_length(g.sprites) * crew_row_h - (room_height - 8 - __crew_y0())); };
@@ -204,8 +224,10 @@ __sheet_prev_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y 
 __sheet_next_r = function() { return { x : room_width - (land ? 14 : 4) - 20, y : list_y + 22, w : 20, h : 13 }; };
 __crew_row_r = function(_k) { return { x : big_x + 8, y : big_y + (land ? 112 : 76) + _k * 11 - 2, w : big_w - 16, h : 10 }; };
 /// the diary painter: truth lines plain, "~ " lines as the crew's voice
-/// (dimmer, indented), newest at the bottom, as many whole entries as
-/// fit between y and y_end. col = the world's colour for the voice
+/// (dimmer, indented), "+ " lines as REWARDS (gold: xp, drops, credits -
+/// his ask, 2026-09-15: the fight's end in the diary), newest at the
+/// bottom, as many whole entries as fit between y and y_end. col = the
+/// world's colour for the voice
 __draw_log = function(_log, _x, _y, _w, _y_end, _col) {
 	var _nl = array_length(_log);
 	var _hs = array_create(_nl, 0);
@@ -213,7 +235,8 @@ __draw_log = function(_log, _x, _y, _w, _y_end, _col) {
 	var _from = _nl;
 	draw_set_font(fnt);
 	for (var _i = _nl - 1; _i >= 0; _i--) {
-		var _isv = (string_copy(_log[_i], 1, 2) == "~ ");
+		var _pre = string_copy(_log[_i], 1, 2);
+		var _isv = (_pre == "~ ");
 		var _h = string_height_ext(_isv ? string_delete(_log[_i], 1, 2) : _log[_i], 9, _w - (_isv ? 8 : 0)) + 2;
 		if (_h > _room) break;
 		_room -= _h;
@@ -222,12 +245,17 @@ __draw_log = function(_log, _x, _y, _w, _y_end, _col) {
 	}
 	var _yy = _y;
 	for (var _i = _from; _i < _nl; _i++) {
-		var _isv = (string_copy(_log[_i], 1, 2) == "~ ");
+		var _pre = string_copy(_log[_i], 1, 2);
+		var _isv = (_pre == "~ "), _isr = (_pre == "+ ");
 		var _last = (_i == _nl - 1);
 		if (_isv) {
 			draw_set_color(_last ? merge_colour(sett_ink, c_white, .5) : merge_colour(sett_ink, _col, .35));
 			draw_set_alpha(_last ? .9 : .55);
 			draw_text_ext(_x + 8, _yy, string_delete(_log[_i], 1, 2), 9, _w - 8);
+		} else if (_isr) {
+			draw_set_color(_last ? merge_colour(c_gold, c_white, .3) : c_gold);
+			draw_set_alpha(_last ? .95 : .8);
+			draw_text_ext(_x, _yy, string_delete(_log[_i], 1, 2), 9, _w);
 		} else {
 			draw_set_color(_last ? c_white : sett_ink);
 			draw_set_alpha(_last ? .95 : .7);
@@ -237,34 +265,92 @@ __draw_log = function(_log, _x, _y, _w, _y_end, _col) {
 	}
 	draw_set_alpha(1);
 };
-/// the world in its box, turned by pl_spin and zoomed by pl_zoom, with the
-/// regions' spots on it (the focused one ringed); the planet and region windows
+/// THE WORLD IN A RECT, through a surface (wb_surf, 2026-09-15): the sky,
+/// the globe at (pcx, pcy) of the rect with radius pr x zoom, and nothing
+/// spills past the rect - a RING (the shader draws one on a ringed world;
+/// the globe shrinks so the ring fits the rect at zoom 1) or the zoom on a
+/// region is simply clipped. cfade 0..1 thins the clouds (planet_draw);
+/// spots draws the regions: a 2px square each where the same matrix the
+/// shader gets puts it, the far side skipped (z under .12), the focused
+/// one in a pulsing hollow square (his ask: pixel, not a circle). The lite
+/// portrait holds the spot while the world is still being built
+__draw_world_rect = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _zoom, _spin, _cfade, _spots) {
+	_w = max(2, floor(_w)); _h = max(2, floor(_h));
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
+		if (surface_exists(wb_surf)) surface_free(wb_surf);
+		wb_surf = surface_create(_w, _h);
+	}
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _built = (_pn.row >= _pn.th);
+	if (_built && _pn.ring) _pr = min(_pr, min(_w, _h) * .5 / 2.3);   // (the ring reaches 2.25 radii)
+	_pr *= _zoom;
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	planet_sky_draw(_d.seed, 0, 0, _w, _h);
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade);
+	else __portrait(_d, _pcx, _pcy, _pr);
+	if (_spots && _built) {
+		draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
+		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));   // 0..3, in steps
+		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _rg = region_get(_d, _i);
+			var _n = __spot_view(_pn, is_undefined(_spin) ? 0 : _spin, _rg.spot.lon, _rg.spot.lat);
+			if (_n[2] <= .12) continue;   // the far side, and the very limb
+			// on the shader's 2px cell grid
+			var _sx = floor(_pcx) + floor(_n[0] * _pr * .5) * 2, _sy = floor(_pcy) + floor(_n[1] * _pr * .5) * 2;
+			var _on = (_i == pl_focus);
+			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 1, _sy - 1, 2, 2, 0, _on ? c_gold : c_white, 1);
+			if (_on) {
+				var _s = 6 + _pulse * 2;
+				draw_px_rect(_sx - _s * .5, _sy - _s * .5, _s, _s, c_gold, .95);
+				draw_px_rect(_sx - _s * .5 + 1, _sy - _s * .5 + 1, _s - 2, _s - 2, c_gold, .5);
+			}
+			if (_n[2] > .3) {
+				draw_set_color(_on ? c_gold : c_white); draw_set_alpha(_on ? .95 : .8);
+				draw_text(_sx + 6 + (_on ? 2 : 0), _sy - 4, _on ? _rg.name : ("lv " + string(_rg.lv)));
+			}
+		}
+		draw_set_alpha(1);
+	}
+	surface_reset_target();
+	ui_fade_set(_fa);
+	draw_surface(wb_surf, _x, _y);
+};
+/// the world in its box, turned by pl_spin and zoomed by pl_zoom (the
+/// clouds fading as it comes in), with the regions' spots on it; the
+/// planet and region windows
 __draw_world_box = function(_d) {
 	var _b = exped_biomes()[_d.biome];
 	var _bx = __pl_box();
-	draw_sprite_ext(spr_pixel_1x1, 0, _bx.x, _bx.y, _bx.w, _bx.h, 0, c_black, .95);
-	ui_fade_set(1);
-	planet_sky_draw(_d.seed, _bx.x + 2, _bx.y + 2, _bx.w - 4, _bx.h - 4);
-	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	var _pcx = _bx.x + _bx.w * .5, _pcy = _bx.y + _bx.h * .5, _ppr = min(_bx.w, _bx.h) * .3 * pl_zoom;
-	if (_pn.row >= _pn.th) planet_draw(_pn, _pcx, _pcy, _ppr, pl_spin);
-	else __portrait(_d, _pcx, _pcy, _ppr);
-	// the spots: a dot a region where the same matrix puts it, the focused one ringed
-	if (_pn.row >= _pn.th) {
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-			var _rg = region_get(_d, _i);
-			var _n = __spot_view(_pn, pl_spin, _rg.spot.lon, _rg.spot.lat);
-			if (_n[2] <= .05) continue;   // the far side
-			var _sx = _pcx + _n[0] * _ppr, _sy = _pcy + _n[1] * _ppr;
-			var _a = .4 + .6 * _n[2];
-			draw_circle_colour(_sx, _sy, 2, c_white, c_white, false);
-			if (_i == pl_focus) draw_circle_colour(_sx, _sy, 5 + dsin(current_time * .3) * 1.5, c_gold, c_gold, true);
-			draw_set_color((_i == pl_focus) ? c_gold : c_white); draw_set_alpha(_a);
-			draw_text(_sx + 6, _sy - 4, (_i == pl_focus) ? _rg.name : ("lv " + string(_rg.lv)));
-		}
-	}
+	var _cf = clamp(1 - (pl_zoom - 1) / (PL_ZOOM_IN - 1), 0, 1);
+	__draw_world_rect(_d, _bx.x + 1, _bx.y + 1, _bx.w - 2, _bx.h - 2, (_bx.w - 2) * .5, (_bx.h - 2) * .5, min(_bx.w, _bx.h) * .3, pl_zoom, pl_spin, _cf, true);
 	draw_px_rect(_bx.x, _bx.y, _bx.w, _bx.h, merge_colour(_b.col2, c_white, .2), .5);
 	draw_set_alpha(1);
+};
+/// a world small (the hub's card, the list's rows, the haul's card): the
+/// FULL world once it is built - clouds and ring (the globe at .62 so the
+/// ring fits) - the lite portrait until then (his ask: every version
+/// shows clouds). The caller has the fade off (the shader replaces it)
+__world_small = function(_d, _cx, _cy, _r) {
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	if (_pn.row >= _pn.th) planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r);
+	else __portrait(_d, _cx, _cy, _r);
+};
+/// the worlds are built a few rows a frame (planet_gen_step): the board's,
+/// the trips' and the planet window's - one of them a frame, so every
+/// portrait gets its full world within a second or two
+__worlds_step = function() {
+	var _e = g.exped;
+	var _list = [];
+	for (var _i = 0; _i < array_length(_e.board); _i++) array_push(_list, _e.board[_i]);
+	for (var _i = 0; _i < array_length(_e.trips); _i++) array_push(_list, _e.trips[_i].dest);
+	if (is_struct(pl_dest)) array_push(_list, pl_dest);
+	for (var _i = 0; _i < array_length(_list); _i++) {
+		var _pn = planet_get(_list[_i].seed, exped_planet_hint(_list[_i]));
+		if (_pn.row < _pn.th) { planet_gen_step(_pn); return; }
+	}
 };
 /// a sprite by id (undefined when gone)
 __sp_by_id = function(_id) {
