@@ -206,7 +206,7 @@ if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
 if (pg_dir < 0) exit;     // (the page is turning to black; a page lighting up already takes presses - snappier)
 if (view == "depart" && (dp_dir != 0 || dp_in < 1)) exit;   // (the page is swinging)
 // ---- THE PREPARATION PAGE'S LIST: the wheel, or a drag on it (held input - above the press gate) ----
-if (view == "depart" && is_struct(pl_dest)) {
+if (view == "depart" && is_struct(pl_dest) && dp_sheet < 0) {
 	var _dl = __dp_list_r();
 	var _din = point_in_rectangle(mouse_x, mouse_y, _dl.x, _dl.y, _dl.x + _dl.w, _dl.y + _dl.h);
 	if (_din && __dp_off_max() > 0) {
@@ -290,6 +290,7 @@ if (hand != "") {
 	}
 }
 // ---- [back], and escape: one step up the chain (__back, the Create) ----
+if (keyboard_check_pressed(vk_escape) && view == "depart" && dp_sheet >= 0) { dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }   // (the sheet modal first)
 if (keyboard_check_pressed(vk_escape)) {
 	if (view != "hub") __back(); else exped_close();
 	exit;
@@ -431,15 +432,8 @@ if (view == "crew") {
 			exit;
 		}
 	}
-	// an item row: its popup (the rects the Draw laid down)
-	for (var _k = 0; _k < array_length(it_rects); _k++) {
-		var _ir = it_rects[_k];
-		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
-			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], lvup : _ir[$ "lvup"] ?? false, sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
+	// an item row: its popup (the rects the Draw laid down - __sheet_tap, the one handler)
+	__sheet_tap();
 	exit;
 }
 
@@ -519,6 +513,13 @@ if (view == "galaxy") exit;
 
 // ======================= THE DEPARTURE: [+] / [-], a banner = its sheet, [depart] =======================
 if (view == "depart") {
+	// THE SHEET MODAL owns the page while it is up: its rows and popups, or a press off it closes it
+	if (dp_sheet >= 0) {
+		if (__sheet_tap()) exit;
+		var _msr = __dp_sheet_r();
+		if (!point_in_rectangle(mouse_x, mouse_y, _msr.x, _msr.y, _msr.x + _msr.w, _msr.y + _msr.h)) { dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
+		exit;
+	}
 	var _dr = __depart_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
 		__dp_sync();
@@ -553,7 +554,8 @@ if (view == "depart") {
 		}
 		var _rr = __dp_row_r(_k);
 		if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
-			sheet_id = _sp.id; crew_trip = -1; crew_from = "depart"; it_pop = undefined; view = "crew";
+			// the sheet, as a modal over this page (his call: snappy, click off to close)
+			dp_sheet = _sp.id; sheet_id = _sp.id; it_pop = undefined; it_rects = [];
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}

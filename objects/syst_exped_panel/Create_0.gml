@@ -130,7 +130,7 @@ __dp_seat = function(_sid) {
 };
 __dp_unseat = function(_sid) { var _j = __dp_seat_of(_sid); if (_j >= 0) dp_slots[_j] = -1; __dp_sync(); play_sound_ext(snd_softclick, .9, 1, .4, 1); };
 /// the page swings out, then turns (the reverse of its entrance)
-__dp_leave = function(_next) { dp_next = _next; dp_dir = -1; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); };
+__dp_leave = function(_next) { dp_next = _next; dp_dir = -1; dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); };
 /// a banner (22 tall): the colour bar and the dot, the name and class, then hp and mp - a thin bar each with the numbers beside
 __dp_banner = function(_sp, _x, _y, _w, _a, _ghost) {
 	var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];
@@ -733,6 +733,311 @@ __log_r = function() {
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
 __gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
+/// THE SHEET (2026-09-15: one painter - the crew page draws it in its rail's shadow, the preparation page as a modal): the sprite's whole sheet from (x0, y0) to x1, the rows laid into it_rects for the taps
+__draw_sheet = function(_sp, _x0, _y0, _x1) {
+	var _ink = sett_ink, _dim = dim, _e = g.exped, _ea = g.ui_fade_a;
+	var _sh = sprite_sheet(_sp);
+	var _st = sprite_stats(_sp);
+	var _c  = _st.cls;
+	var _bal = cbt_balance();
+	var _w = _x1 - _x0;
+	// THE GROUND: black (the gradient came and went the same day - his call)
+	var _gh0 = room_height - 8 - _y0;
+	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0, _w, _gh0, 0, c_black, .92);
+	draw_px_rect(_x0, _y0, _w, _gh0, _sp.col, .35);
+	// the header: the name, the class UNDER it (his ask), the personality
+	// line further down; the level beside the xp bar (with its brothers)
+	var _hx = _x0 + 8, _hy = _y0 + 6;
+	// THE PORTRAIT: the room's blob (his ask, 2026-09-15), the name in the
+	// big font capitalised, the class under it
+	ui_fade_set(1);
+	sprite_portrait(_sp, _hx + 7, _hy + 9, 1);   // (the room's size exactly - x2 was "HUGE")
+	ui_fade_set(_ea);
+	draw_set_font(fnt_large);
+	draw_set_color(_sp.col); draw_set_alpha(.95);
+	draw_text(_hx + 18, _hy - 2, str_cap(_sp.name));
+	draw_set_font(fnt);
+	draw_set_color(_c.col); draw_set_alpha(.95);
+	draw_text(_hx + 18, _hy + 12, _c.name);
+	var _pl = sprite_personalities();
+	var _need = sprite_xp_need(_sh.lv);
+	// THE LEVEL CORNER (his ask, 2026-09-15): "level N" above the bar at its
+	// start, "next a / b" above it at its end, the bar between; no outline
+	// (the tap rect is invisible; a highlight while its popup is up)
+	var _xw = land ? 150 : 80, _xx = _x1 - 8 - _xw;
+	if (is_struct(it_pop) && (it_pop[$ "lvup"] ?? false)) { draw_sprite_ext(spr_pixel_1x1, 0, _xx - 4, _hy - 3, _xw + 8, 18, 0, c_white, .1); draw_px_rect(_xx - 4, _hy - 3, _xw + 8, 18, c_white, .45); }
+	draw_set_color(_ink); draw_set_alpha(.9);
+	draw_text(_xx, _hy - 1, "level " + string(_sh.lv));
+	draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_x1 - 8, _hy - 1, "next  " + string(round(_sh.xp)) + " / " + string(_need));
+	draw_set_halign(fa_left);
+	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw, 3, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw * clamp(_sh.xp / max(1, _need), 0, 1), 3, 0, c_gold, .9);
+	array_push(it_rects, { x : _xx - 4, y : _hy - 3, w : _xw + 8, h : 18, lvup : true });
+	// HP / MP bars (the Disgaea row): the maxima - a sprite at home is whole
+	var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add);   // (whole hp - his ask; sprite_pawn floors the same)
+	var _mpr = max(1, round(_st.pts.mp));
+	// the current hp and mp: a sprite out on a trip carries them there; at
+	// home they are what it came back with, climbing (sprites_tick)
+	var _hpc = floor(_hpr * (_sp[$ "hpf"] ?? 1)), _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
+	for (var _t = 0; _t < array_length(_e.trips); _t++) {
+		var _tt = _e.trips[_t];
+		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) { _hpc = floor(min(_hpr, _tt.hp[_k])); if (is_array(_tt[$ "mp"]) && _k < array_length(_tt.mp)) _mpc = round(_mpr * _tt.mp[_k]); }
+	}
+	var _by = _hy + 28, _bw = land ? 150 : (_w - 16);
+	// (the hp / mp rows and every stat are taps: what the stat does - his ask, 2026-09-15)
+	var _hlw = _bw + 20;
+	if (is_struct(it_pop) && it_pop[$ "st"] == "hp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by - 1, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by - 1, _hlw, 10, c_white, .45); }
+	if (is_struct(it_pop) && it_pop[$ "st"] == "mp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by + 9, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by + 9, _hlw, 10, c_white, .45); }
+	array_push(it_rects, { x : _hx - 2, y : _by - 1, w : _hlw, h : 10, st : "hp" });
+	array_push(it_rects, { x : _hx - 2, y : _by + 9, w : _hlw, h : 10, st : "mp" });
+	draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_hx, _by, "hp");
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw, 5, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 5, 0, c_hred, .8);
+	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by - 1, string(_hpc) + " / " + string(_hpr)); draw_set_halign(fa_left); draw_set_font(fnt);
+	draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_hx, _by + 10, "mp");
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw, 5, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw * clamp(_mpc / max(1, _mpr), 0, 1), 5, 0, c_sblue, .8);
+	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by + 9, string(_mpc) + " / " + string(_mpr)); draw_set_halign(fa_left); draw_set_font(fnt);
+	// the stats grid (two columns of three), base + the gear's share
+	var _keys = ["atk", "def", "mag", "mdef", "spd", "hit"];
+	var _labels = ["atk", "def", "int", "res", "spd", "hit"];
+	var _gy = _by + 26;
+	for (var _k = 0; _k < 6; _k++) {
+		var _cx = _hx + (_k mod 2) * (land ? 84 : 80), _cy = _gy + (_k div 2) * 11;
+		array_push(it_rects, { x : _cx - 2, y : _cy - 1, w : 80, h : 10, st : _keys[_k] });
+		if (is_struct(it_pop) && it_pop[$ "st"] == _keys[_k]) { draw_sprite_ext(spr_pixel_1x1, 0, _cx - 2, _cy - 1, 80, 10, 0, c_white, .1); draw_px_rect(_cx - 2, _cy - 1, 80, 10, c_white, .45); }
+		draw_set_color(_dim); draw_set_alpha(.8);
+		draw_text(_cx, _cy, _labels[_k]);
+		draw_set_halign(fa_right);
+		draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
+		draw_text(_cx + 58, _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
+		draw_set_font(fnt); draw_set_halign(fa_left);
+		var _g = _st.gear[$ _keys[_k]];
+		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + 62, _cy, "+" + string_format(_g, 1, 1)); }
+	}
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_hx, _gy + 34, "crit " + string(_c.crit) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%");   // (the basics / points line went - his ask, 2026-09-15)
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_hx, _gy + 44, "mood  -  " + _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name);
+	// the equipment (the Disgaea list): slot - item
+	var _ex = land ? (_x0 + 182) : _hx, _ey = land ? (_by) : (_gy + 48);   // (the column moved left - his ask: long names fell off the edge)
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_ex, _ey - 11, "equip");
+	var _rows = [];
+	array_push(_rows, { lbl : "weapon",  it : _sh.w1 });
+	array_push(_rows, { lbl : "offhand", it : _sh.w2 });
+	for (var _i = 0; _i < _c.armor; _i++) array_push(_rows, { lbl : "armor",    it : (_i < array_length(_sh.armor)) ? _sh.armor[_i] : undefined });
+	for (var _i = 0; _i < _c.talis; _i++) array_push(_rows, { lbl : "talisman", it : (_i < array_length(_sh.talis)) ? _sh.talis[_i] : undefined });
+	for (var _i = 0; _i < array_length(_rows); _i++) {
+		var _rw = _rows[_i];
+		var _ry = _ey + _i * 12;
+		draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _x1 - 8 - _ex, 11, 0, c_black, .35);
+		if (!is_undefined(_rw.it)) array_push(it_rects, { x : _ex, y : _ry - 1, w : _x1 - 8 - _ex, h : 11, it : _rw.it, worn : true });
+		// (the row whose popup is up wears a highlight - his ask)
+		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _x1 - 8 - _ex, 11, 0, c_white, .1); draw_px_rect(_ex, _ry - 1, _x1 - 8 - _ex, 11, c_white, .45); }
+		draw_set_color(_dim); draw_set_alpha(.8);
+		draw_text(_ex + 3, _ry + 1, _rw.lbl);
+		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 46, _ry + 1, "(none)"); }
+		else {
+			// a long name is cut with ".." to the room before the level tag (the popup says it whole)
+			var _nm = _rw.it.name, _navail = (_x1 - 11 - 20) - (_ex + 46);
+			if (string_width(_nm) > _navail) { while (string_width(_nm + "..") > _navail && string_length(_nm) > 2) _nm = string_copy(_nm, 1, string_length(_nm) - 1); _nm += ".."; }
+			draw_set_color(_rw.it.col); draw_set_alpha(.95);
+			draw_text(_ex + 46, _ry + 1, _nm);
+			draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6);
+			draw_text(_x1 - 11, _ry + 1, "lv" + string(_rw.it.lv));
+			draw_set_halign(fa_left);
+		}
+	}
+	// the skills, under the stats; the pocket and the notepad under the equipment
+	var _sk = sprite_skills(_sp);
+	var _ky = _gy + 58;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_hx, _ky, "skills");
+	var _skw = land ? 168 : (_w - 16);
+	for (var _i = 0; _i < array_length(_sk); _i++) {
+		var _s = _sk[_i];
+		var _ly = _ky + 11 + _i * 11;
+		// a row like the gear's (his ask): tap it for what the skill does
+		draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _ly - 1, _skw, 10, 0, c_black, .35);
+		array_push(it_rects, { x : _hx - 3, y : _ly - 1, w : _skw, h : 10, sk : _s });
+		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _ly - 1, _skw, 10, 0, c_white, .1); draw_px_rect(_hx - 3, _ly - 1, _skw, 10, c_white, .45); }
+		draw_set_color(_s.magic ? c_hpurple : c_horange); draw_set_alpha(.9);
+		draw_text(_hx, _ly, _s.name);
+		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85);
+		draw_text(_hx - 3 + _skw - 4, _ly, string(_s.cost) + " mp");
+		draw_set_halign(fa_left);
+	}
+	var _py = _ey + array_length(_rows) * 12 + 4;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_ex, _py, "pocket  " + string(array_length(_sh.inv)) + " / " + string(SPRITE_INV));
+	var _pn = min(array_length(_sh.inv), 4);
+	for (var _i = 0; _i < _pn; _i++) {
+		if (is_struct(it_pop) && it_pop[$ "it"] == _sh.inv[_i]) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _py + 9 + _i * 9, _x1 - 8 - _ex, 9, 0, c_white, .1); draw_px_rect(_ex, _py + 9 + _i * 9, _x1 - 8 - _ex, 9, c_white, .45); }
+		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6); draw_text(_ex + 4, _py + 10 + _i * 9, _sh.inv[_i].name);
+		array_push(it_rects, { x : _ex, y : _py + 9 + _i * 9, w : _x1 - 8 - _ex, h : 9, it : _sh.inv[_i], worn : false });
+	}
+	if (array_length(_sh.inv) > _pn) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 4, _py + 10 + _pn * 9, "...and " + string(array_length(_sh.inv) - _pn) + " more"); }
+	var _ny = _py + 10 + (min(array_length(_sh.inv), 4) + ((array_length(_sh.inv) > 4) ? 1 : 0)) * 9 + 4;
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_ex, _ny, "notepad  " + string(array_length(_sh.notes)) + " / " + string(SPRITE_NOTES));
+	// wrapped to the column (his ask), newest at the bottom, as many as fit;
+	// tap a note for what it does (the popup)
+	var _ntw = _x1 - 8 - _ex - 6;
+	var _nhs = array_create(array_length(_sh.notes), 0), _nroom = room_height - 10 - (_ny + 10), _n0 = array_length(_sh.notes);
+	for (var _i = array_length(_sh.notes) - 1; _i >= 0; _i--) {
+		var _nh = string_height_ext("- " + _sh.notes[_i].txt, 9, _ntw) + 1;
+		if (_nh > _nroom) break;
+		_nroom -= _nh; _nhs[_i] = _nh; _n0 = _i;
+	}
+	var _nyy = _ny + 10;
+	for (var _i = _n0; _i < array_length(_sh.notes); _i++) {
+		var _nt = _sh.notes[_i];
+		if (is_struct(it_pop) && it_pop[$ "nt"] == _nt) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _nyy - 1, _x1 - 8 - _ex, _nhs[_i], 0, c_white, .1); draw_px_rect(_ex, _nyy - 1, _x1 - 8 - _ex, _nhs[_i], c_white, .45); }
+		draw_set_color((_nt.tag != "") ? c_horange : _dim); draw_set_alpha((_nt.tag != "") ? .8 : .6);
+		draw_text_ext(_ex + 4, _nyy, "- " + _nt.txt, 9, _ntw);
+		array_push(it_rects, { x : _ex, y : _nyy - 1, w : _x1 - 8 - _ex, h : _nhs[_i], nt : _nt });
+		_nyy += _nhs[_i];
+	}
+	if (array_length(_sh.notes) == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_ex + 4, _ny + 10, "- (blank)"); }
+	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
+	// to this sprite (gear_score, the class's eye), and against what is
+	// worn in its slot - the difference per line
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
+		// THE NEXT LEVEL (his ask): each stat that climbs, and by how much
+		var _lpsp = it_pop.sp, _lpsh = sprite_sheet(_lpsp), _lpc = sprite_classes()[_lpsh.cls], _lpb = cbt_balance();
+		var _lkeys = ["hp", "atk", "def", "mag", "mdef", "spd", "hit", "mp"], _llab = ["hp", "atk", "def", "int", "res", "spd", "hit", "mp"];
+		var _lpw = 120, _lph = 20 + 8 * 10 + 6;
+		var _lpx = clamp(it_pop.x, 4, room_width - _lpw - 4), _lpy = clamp(it_pop.y, list_y + 20, room_height - _lph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _lpx + 2, _lpy + 3, _lpw, _lph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _lpx, _lpy, _lpw, _lph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_lpx, _lpy, _lpw, _lph, c_gold, .8);
+		draw_set_color(c_gold); draw_set_alpha(.95);
+		draw_text(_lpx + 6, _lpy + 4, "next level up");
+		for (var _j = 0; _j < 8; _j++) {
+			var _gain = _lpc.shape[$ _lkeys[_j]] * SPRITE_LV_PTS / 40;
+			if (_lkeys[_j] == "hp") _gain *= _lpb.hp_per_point;
+			draw_set_color(_ink); draw_set_alpha(.85);
+			draw_text(_lpx + 6, _lpy + 18 + _j * 10, _llab[_j]);
+			draw_set_halign(fa_right); draw_set_color(c_sgreen); draw_set_alpha(.95);
+			draw_text(_lpx + _lpw - 6, _lpy + 18 + _j * 10, "+" + string_format(_gain, 1, 1));
+			draw_set_halign(fa_left);
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "st"])) {
+		// THE STAT POPUP (his ask, 2026-09-15): what the stat does
+		var _sdl = cbt_stat_desc(it_pop.st);
+		var _sdw = 210, _sdh = 20;
+		for (var _j = 1; _j < array_length(_sdl); _j++) _sdh += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
+		var _sdx = clamp(it_pop.x, 4, room_width - _sdw - 4), _sdy = clamp(it_pop.y, list_y + 20, room_height - _sdh - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sdx + 2, _sdy + 3, _sdw, _sdh, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sdx, _sdy, _sdw, _sdh, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_sdx, _sdy, _sdw, _sdh, c_white, .6);
+		draw_set_color(c_white); draw_set_alpha(.95);
+		draw_text(_sdx + 6, _sdy + 4, _sdl[0]);
+		var _sdy2 = _sdy + 16;
+		for (var _j = 1; _j < array_length(_sdl); _j++) {
+			draw_set_color(_ink); draw_set_alpha(.9);
+			draw_text_ext(_sdx + 6, _sdy2, _sdl[_j], 9, _sdw - 12);
+			_sdy2 += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
+		// THE NOTE POPUP (his ask): what a note does to the sprite
+		var _pnt = it_pop.nt;
+		var _ntxt = (_pnt.tag != "" && string_pos("foe:", _pnt.tag) == 1)
+			? ("a STUDIED foe: +" + string(SPRITE_NOTE_HIT) + " to hit against " + string_delete(_pnt.tag, 1, 4) + "s in every fight from now on (the note counts once a kind)")
+			: "a useless note. it changes nothing. they seem to like having it.";
+		var _npw = 200, _nph = 30 + string_height_ext(_ntxt, 9, _npw - 12);
+		var _npx = clamp(it_pop.x, 4, room_width - _npw - 4), _npy = clamp(it_pop.y, list_y + 20, room_height - _nph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _npx + 2, _npy + 3, _npw, _nph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _npx, _npy, _npw, _nph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_npx, _npy, _npw, _nph, (_pnt.tag != "") ? c_horange : _dim, .8);
+		draw_set_color((_pnt.tag != "") ? c_horange : _ink); draw_set_alpha(.95);
+		draw_text_ext(_npx + 6, _npy + 4, "\"" + _pnt.txt + "\"", 9, _npw - 12);
+		draw_set_color(_ink); draw_set_alpha(.85);
+		draw_text_ext(_npx + 6, _npy + 8 + string_height_ext("\"" + _pnt.txt + "\"", 9, _npw - 12), _ntxt, 9, _npw - 12);
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "sk"])) {
+		// THE SKILL POPUP (his ask, 2026-09-15): what it does, when the ai uses it
+		var _psk = it_pop.sk;
+		var _slines = cbt_skill_desc(_psk);
+		var _spw = 210, _sph = 22;
+		for (var _j = 0; _j < array_length(_slines); _j++) _sph += string_height_ext(_slines[_j], 9, _spw - 12) + 2;
+		var _spx = clamp(it_pop.x, 4, room_width - _spw - 4), _spy = clamp(it_pop.y, list_y + 20, room_height - _sph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _spx + 2, _spy + 3, _spw, _sph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _spx, _spy, _spw, _sph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_spx, _spy, _spw, _sph, _psk.magic ? c_hpurple : c_horange, .8);
+		draw_set_color(_psk.magic ? c_hpurple : c_horange); draw_set_alpha(.95);
+		draw_text(_spx + 6, _spy + 4, _psk.name + ((_psk[$ "tmpl"] ?? -1) >= 0 ? "  -  its own" : "  -  the class's"));
+		var _ty3 = _spy + 16;
+		for (var _j = 0; _j < array_length(_slines); _j++) {
+			draw_set_color((_j == array_length(_slines) - 1) ? _dim : _ink); draw_set_alpha((_j == array_length(_slines) - 1) ? .6 : .9);
+			draw_text_ext(_spx + 6, _ty3, _slines[_j], 9, _spw - 12);
+			_ty3 += string_height_ext(_slines[_j], 9, _spw - 12) + 2;
+		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "it"])) {
+		var _it = it_pop.it, _psp = it_pop.sp;
+		var _psh = sprite_sheet(_psp), _pcls = sprite_classes()[_psh.cls];
+		var _lines = variable_struct_get_names(_it.pts);
+		// what it would replace (the worst of a multi-slot)
+		var _cmp = undefined;
+		if (!it_pop.worn) {
+			if (_it.slot == "w1" || _it.slot == "w2") _cmp = _psh[$ _it.slot];
+			else { var _arr = _psh[$ _it.slot]; var _wsc = infinity; for (var _j = 0; _j < array_length(_arr); _j++) { var _s2 = gear_score(_psp, _arr[_j]); if (_s2 < _wsc) { _wsc = _s2; _cmp = _arr[_j]; } } }
+		}
+		var _pw = 168, _ph = 44 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12);
+		var _ppx = clamp(it_pop.x, 4, room_width - _pw - 4), _ppy = clamp(it_pop.y, list_y + 20, room_height - _ph - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ppx + 2, _ppy + 3, _pw, _ph, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _ppx, _ppy, _pw, _ph, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_ppx, _ppy, _pw, _ph, _it.col, .8);
+		draw_set_color(_it.col); draw_set_alpha(.95);
+		draw_text_ext(_ppx + 6, _ppy + 4, _it.name, 9, _pw - 12);
+		var _ty2 = _ppy + 4 + string_height_ext(_it.name, 9, _pw - 12) + 2;
+		draw_set_color(_dim); draw_set_alpha(.7);
+		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : "talisman"));
+		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv) + (it_pop.worn ? "  -  worn" : "  -  in the pocket"));
+		_ty2 += 12;
+		for (var _j = 0; _j < array_length(_lines); _j++) {
+			var _ln = _lines[_j];
+			var _v = _it.pts[$ _ln];
+			var _wv = is_undefined(_cmp) ? 0 : (_cmp.pts[$ _ln] ?? 0);
+			draw_set_color(_ink); draw_set_alpha(.9);
+			draw_text(_ppx + 6, _ty2, _ln);
+			draw_set_halign(fa_right);
+			draw_set_color(c_sgreen);
+			draw_text(_ppx + 70, _ty2, "+" + string_format(_v, 1, 1));
+			if (!is_undefined(_cmp)) {
+				var _dv = _v - _wv;
+				draw_set_color((_dv > 0) ? c_sgreen : ((_dv < 0) ? c_hred : _dim)); draw_set_alpha(.85);
+				draw_text(_ppx + _pw - 6, _ty2, ((_dv >= 0) ? "+" : "") + string_format(_dv, 1, 1) + " vs worn");
+			}
+			draw_set_halign(fa_left);
+			_ty2 += 10;
+		}
+		if (!is_undefined(_cmp)) {
+			// lines the worn one has that this one lacks
+			var _wl = variable_struct_get_names(_cmp.pts);
+			for (var _j = 0; _j < array_length(_wl); _j++) if (is_undefined(_it.pts[$ _wl[_j]])) { draw_set_color(c_hred); draw_set_alpha(.7); draw_text(_ppx + 6, _ty2, _wl[_j] + "  -" + string_format(_cmp.pts[$ _wl[_j]], 1, 1) + " vs worn"); _ty2 += 10; }
+		}
+		draw_set_color(c_gold); draw_set_alpha(.9);
+		var _sc = gear_score(_psp, _it);
+		draw_text(_ppx + 6, _ty2 + 2, "worth " + string_format(_sc, 1, 0) + " to " + _psp.name + " (" + _pcls.name + ")" + (is_undefined(_cmp) ? "" : ("  vs " + string_format(gear_score(_psp, _cmp), 1, 0))));
+	}
+};
+dp_sheet = -1;   // the sheet modal on the preparation page: the sprite shown (-1 = none)
+__dp_sheet_r = function() { var _x0 = land ? 58 : 4, _x1 = room_width - (land ? 58 : 4); return { x : _x0, y : list_y + 22, w : _x1 - _x0, h : room_height - 8 - (list_y + 22) }; };
+/// a press on the sheet's rows (it_rects, laid by __draw_sheet): the popup - or a popup up closes; true when the press was the sheet's
+__sheet_tap = function() {
+	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
+	for (var _k = 0; _k < array_length(it_rects); _k++) {
+		var _ir = it_rects[_k];
+		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
+			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], lvup : _ir[$ "lvup"] ?? false, sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			return true;
+		}
+	}
+	return false;
+};
 // (the chips and the old brief rects went with the preparation page's rework, 2026-09-15 - see __dp_* above)
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 60, h : 14 }; };
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
