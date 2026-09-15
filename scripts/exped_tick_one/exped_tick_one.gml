@@ -15,9 +15,10 @@ function exped_tick_one(_tr, _dt) {
 		// the hp comes back by trip index (mi); a pawn's own maxhp may have
 		// ERODED in the fight - the trip's hpmax is the sheet's, untouched
 		for (var _k = 0; _k < array_length(_f.party); _k++) _tr.hp[_f.party[_k].mi] = round(_f.party[_k].hp * 10) / 10;
-		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else _tr.routed = true;
+		var _drawn = (_f[$ "withdrew"] ?? false);   // (the 300-action rail: nobody won, nobody is robbed)
+		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else if (!_drawn) _tr.routed = true;
 		// THE LEDGER: the fight, the slain, the down (a party pawn was up going in)
-		exped_stat(_f.won ? "fights_won" : "fights_lost");
+		if (!_drawn) exped_stat(_f.won ? "fights_won" : "fights_lost");
 		for (var _j = 0; _j < array_length(_f.foes); _j++) if (_f.foes[_j].hp <= 0) exped_stat("slain");
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
 		// THE KILL'S XP (his law): the pack's stat total to every survivor
@@ -47,12 +48,12 @@ function exped_tick_one(_tr, _dt) {
 		// THE NOTEPAD: someone who is still up writes about a foe they met
 		exped_note_fight(_tr, _f);
 		if (_f.won) array_push(_tr.log, "the way is clear");
-		exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
+		if (!_drawn) exped_say(_tr, _f.won ? "fight_won" : "fight_lost", { foe : _f.b.name });
 		// THE FILM stays on the trip for the panel's replay (not saved)
 		var _rfoes = [];
 		for (var _j = 0; _j < array_length(_f.foes); _j++) array_push(_rfoes, { name : _f.foes[_j].name, hpmax : _f.foes[_j].hpmax, lv : _f.foes[_j][$ "lv"] ?? 1, kind : _f.foes[_j][$ "kind"] ?? "", col : _f.foes[_j][$ "col"] ?? c_hred });
 		_tr.replay = { ev : _f[$ "ev"] ?? [], party : _f.party, foes : _rfoes, foe : _rfoes[0],
-		               won : _f.won, seen : false, room : _tr[$ "fights"] ?? 0 };   // (room = the fight's number: the panel's seen-live key)
+		               won : _f.won, drawn : _drawn, seen : false, room : _tr[$ "fights"] ?? 0 };   // (room = the fight's number: the panel's seen-live key)
 		_tr.fight = undefined;
 		if (_tr.routed) { exped_stat("routs"); exped_rout(_tr); _tr.act = undefined; _tr.road = undefined; }
 		return false;

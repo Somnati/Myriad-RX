@@ -10,6 +10,7 @@ function exped_note_fight(_tr, _f) {
 	var _sp = undefined;
 	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _tr.sids[_who]) _sp = g.sprites[_i];
 	if (_sp == undefined) return;
+	if (_f[$ "withdrew"] ?? false) return;
 	if (_f.won) {
 		var _seen = [];
 		for (var _j = 0; _j < array_length(_f.foes); _j++) {

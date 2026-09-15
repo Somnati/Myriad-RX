@@ -653,9 +653,10 @@ if (view == "trip") {
 			var _st = __step_r();
 			draw_ui_button(_st.x, _st.y, _st.w, _st.h, _f.over ? "done" : "step turn", c_hred, !_f.over, !_f.over);
 		} else if (_f.over) {
-			draw_set_color(_f.won ? c_sgreen : c_hred);
+			var _rdr = (rp.r[$ "drawn"] ?? false);
+			draw_set_color(_f.won ? c_sgreen : (_rdr ? _dim : c_hred));
 			draw_set_alpha(.9);
-			draw_text(_tx, _fy + fight_s - 12, _f.won ? "won" : "routed");
+			draw_text(_tx, _fy + fight_s - 12, _f.won ? "won" : (_rdr ? "withdrew" : "routed"));
 		}
 	}
 

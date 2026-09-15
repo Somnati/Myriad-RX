@@ -38,7 +38,7 @@ function exped_act_step(_tr) {
 				array_push(_tr.log, _who + " got " + choose("drunk", "very drunk", "into an argument with a chair", "a round in for everyone", "lost at cards") + " in the tavern at " + _nd.name + ((_tr.credits > 0) ? " (a credit, gone)" : ""));
 			} else if (_r < 60) {
 				_tr.fight = exped_fight_new(_tr, "bandit", 1, 0);
-				_tr.fight.foes[0].name = "a drunk";
+				_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
 				array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"])) {
 				// a bounty: a nearby dungeon or camp, a few kills

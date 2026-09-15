@@ -166,6 +166,7 @@ class Fight:
                 self.hit(t, u, b["cnt_mult"], "", cdepth + 1, False)
         return dmg
     def heal(self, t, amt):
+        if t.hp <= 0: return 0   # the down stay down (the engine's rule, 2026-09-15)
         amt = max(0, round(amt * 10) / 10)
         before = t.hp; t.hp = min(t.maxhp, t.hp + amt)
         return round((t.hp - before) * 10) / 10

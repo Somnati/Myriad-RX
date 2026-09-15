@@ -43,11 +43,19 @@ function cbt_fight_turn(_f) {
 	// ends as a withdrawal at 300 actions - attrition should get there first)
 	var _alive = [0, 0];
 	for (var _i = 0; _i < _n; _i++) if (_all[_i].hp > 0) _alive[_all[_i].team]++;
-	if (_f.turn >= 300 && _alive[0] > 0 && _alive[1] > 0) { _alive[0] = 0; cbt_log(_f, "the fight drags on - the crew withdraws"); }
+	if (_f.turn >= 300 && _alive[0] > 0 && _alive[1] > 0) {
+		// the rail: neither won nor routed - both sides walk away (bug hunt
+		// 2026-09-15: it used to count as a rout, and a rout is a robbery)
+		_f.over = true; _f.won = false; _f.withdrew = true;
+		var _t7 = "the fight drags on - both sides withdraw";
+		cbt_log(_f, _t7);
+		cbt_film(_f, undefined, 0, _t7);
+		return;
+	}
 	if (_alive[0] == 0 || _alive[1] == 0) {
 		_f.over = true;
 		_f.won  = (_alive[0] > 0);
-		var _t6 = _f.won ? (_f.b.name + " falls") : "the crew is routed";
+		var _t6 = _f.won ? ((array_length(_f.foes) > 1) ? "the last of them falls" : (_f.b.name + " falls")) : "the crew is routed";
 		cbt_log(_f, _t6);
 		cbt_film(_f, undefined, 0, _t6);
 	}
