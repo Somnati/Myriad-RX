@@ -12,15 +12,19 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 	var _p  = _st.pts;
 	var _maxhp = floor(_p.hp * _b.hp_per_point + _b.hp_flat_add);   // (whole hp - his ask, 2026-09-15: floored at the calc)
 	var _maxmp = max(1, round(_p.mp));
+	// THE GARNISH off the gear's quirks (the proc-gear pass, 2026-09-15): crit, counter, wear, the mp a fight opens with
+	var _gcrit = 0, _gcnt = 0, _gerode = 1, _gmp0 = 0;
+	for (var _w = 0; _w < array_length(_st.worn); _w++) { var _wi = _st.worn[_w]; _gcrit += _wi[$ "crit"] ?? 0; _gcnt += _wi[$ "cnt"] ?? 0; _gerode *= _wi[$ "erode"] ?? 1; _gmp0 += _wi[$ "mp0"] ?? 0; }
+	_gerode = max(.25, _gerode);
 	return {
 		name : _sp.name, col : _sp.col, sid : _sp.id, cls : _c.key, lv : sprite_sheet(_sp).lv,
 		team : 0, k : 0,
 		maxhp_real : _maxhp, maxhp : _maxhp, hpmax : _maxhp,
 		hp : is_undefined(_hp) ? _maxhp : clamp(_hp, 0, _maxhp),
-		maxmp : _maxmp, mp : is_undefined(_mpf) ? ceil(_maxmp * _b.mp_start_frac) : clamp(round(_maxmp * _mpf), 0, _maxmp),   // (a trip carries mp between fights: the fraction it had)
+		maxmp : _maxmp, mp : is_undefined(_mpf) ? ceil(_maxmp * min(1, _b.mp_start_frac + _gmp0)) : clamp(round(_maxmp * min(1, _mpf + _gmp0)), 0, _maxmp),   // (a trip carries mp between fights: the fraction it had; an eager item adds to it)
 		atk : _p.atk, def : _p.def, mag : _p.mag, mdef : _p.mdef, spd : _p.spd, hit : _p.hit,
 		eva : _p.spd * _b.spd_to_eva,
-		crit_rate : _c.crit, crit_multi : _c.cmulti, cnt : _c.cnt, erode : 1,
+		crit_rate : _c.crit + _gcrit, crit_multi : _c.cmulti, cnt : _c.cnt + _gcnt, erode : _gerode,
 		magic : _c.magic,
 		skills : sprite_skills(_sp),
 		tic : random(.3), tic_spd : _b.tic_spd_base + sqrt(max(0, _p.spd)) / _b.tic_spd_div,

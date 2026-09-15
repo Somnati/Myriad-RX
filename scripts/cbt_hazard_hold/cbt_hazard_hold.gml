@@ -4,7 +4,7 @@
 /// (sprite_stats' worn list) - nothing stored.
 function cbt_hazard_hold(_sp, _hz) {
 	var _st = sprite_stats(_sp);
-	for (var _i = 0; _i < array_length(_st.worn); _i++) if (array_contains(_hz.gear, _st.worn[_i].fam)) return { ok : true, by : _st.worn[_i].name };
+	for (var _i = 0; _i < array_length(_st.worn); _i++) if (array_contains(_hz.gear, _st.worn[_i].fam) || (_st.worn[_i][$ "holds"] ?? "") == _hz.key) return { ok : true, by : _st.worn[_i].name };   // (a family, or a quirk - the proc-gear pass)
 	if (array_contains(_hz.cls, _st.cls.key)) return { ok : true, by : "a " + _st.cls.key };
 	return { ok : false, by : "" };
 }

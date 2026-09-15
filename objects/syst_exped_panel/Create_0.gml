@@ -1011,7 +1011,21 @@ __draw_sheet = function(_sp, _x0, _y0, _x1) {
 			if (_it.slot == "w1" || _it.slot == "w2") _cmp = _psh[$ _it.slot];
 			else { var _arr = _psh[$ _it.slot]; var _wsc = infinity; for (var _j = 0; _j < array_length(_arr); _j++) { var _s2 = gear_score(_psp, _arr[_j]); if (_s2 < _wsc) { _wsc = _s2; _cmp = _arr[_j]; } } }
 		}
-		var _pw = 168, _ph = 44 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12);
+		var _pw = 168;
+		// the quirks and the line of voice (the proc-gear pass, 2026-09-15)
+		var _qks = _it[$ "quirks"] ?? [], _qros = gear_quirks(), _qrows = [];
+		for (var _qi = 0; _qi < array_length(_qks); _qi++) for (var _qj = 0; _qj < array_length(_qros); _qj++) if (_qros[_qj].key == _qks[_qi]) {
+			var _qq = _qros[_qj], _qtx = "";
+			if (!is_undefined(_qq[$ "hold"]))       _qtx = "holds the " + _qq.hold;
+			else if (!is_undefined(_qq[$ "crit"]))  _qtx = "+" + string(_qq.crit) + " crit";
+			else if (!is_undefined(_qq[$ "cnt"]))   _qtx = "+" + string(_qq.cnt) + " counter";
+			else if (!is_undefined(_qq[$ "erode"])) _qtx = "half the wear";
+			else if (!is_undefined(_qq[$ "mp0"]))   _qtx = "+" + string(round(_qq.mp0 * 100)) + "% mp to start";
+			else                                    _qtx = "more of it, one line short";
+			array_push(_qrows, { k : _qq.key, v : _qtx });
+		}
+		var _desc = gear_desc(_it), _dh = string_height_ext(_desc, 9, _pw - 12);
+		var _ph = 44 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12) + array_length(_qrows) * 10 + _dh + 4;
 		var _ppx = clamp(it_pop.x, 4, room_width - _pw - 4), _ppy = clamp(it_pop.y, list_y + 20, room_height - _ph - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _ppx + 2, _ppy + 3, _pw, _ph, 0, c_black, .5);
 		draw_sprite_ext(spr_pixel_1x1, 0, _ppx, _ppy, _pw, _ph, 0, c_hsv(169, 186, 9), .98);
@@ -1023,6 +1037,16 @@ __draw_sheet = function(_sp, _x0, _y0, _x1) {
 		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : "talisman"));
 		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv) + (it_pop.worn ? "  -  worn" : "  -  in the pocket"));
 		_ty2 += 12;
+		// the line of voice, then the quirks in green
+		draw_set_color(_dim); draw_set_alpha(.75);
+		draw_text_ext(_ppx + 6, _ty2, _desc, 9, _pw - 12);
+		_ty2 += _dh + 4;
+		for (var _qi = 0; _qi < array_length(_qrows); _qi++) {
+			draw_set_color(c_sgreen); draw_set_alpha(.9);
+			draw_text(_ppx + 6, _ty2, _qrows[_qi].k);
+			draw_set_halign(fa_right); draw_text(_ppx + _pw - 6, _ty2, _qrows[_qi].v); draw_set_halign(fa_left);
+			_ty2 += 10;
+		}
 		for (var _j = 0; _j < array_length(_lines); _j++) {
 			var _ln = _lines[_j];
 			var _v = _it.pts[$ _ln];

@@ -16,7 +16,10 @@ function exped_shop(_tr) {
 		if (is_undefined(_sp)) continue;
 		var _slot = choose("w1", "w2", "armor", "talis");
 		var _rar = irandom(_rmax);
-		var _it = gear_gen(_slot, _rg.lv, _rar, irandom($7fffffff));
+		// the shop's stock tastes of the town, or of the land around it (the proc-gear pass, 2026-09-15)
+		var _wl = _rg[$ "wild"] ?? [];
+		var _tags = (array_length(_wl) > 0 && random(1) < .5) ? _wl[irandom(array_length(_wl) - 1)] : _nd.kind;
+		var _it = gear_gen(_slot, _rg.lv, _rar, irandom($7fffffff), _tags);
 		var _price = 2 + floor(_rg.lv / 3) + 2 * _rar;
 		// what it would replace
 		var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];

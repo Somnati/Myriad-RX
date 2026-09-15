@@ -32,7 +32,8 @@ function exped_loot_roll(_tr) {
 			// world's level, the rarity rolled above; the finder handles it
 			// (exped_room -> sprite_take). txt is rewritten with the outcome
 			var _slot = choose("w1", "w2", "armor", "talis");
-			var _it = gear_gen(_slot, exped_trip_lv(_tr), _rar, irandom($7fffffff));   // (the region's level)
+			var _rgl = exped_region(_tr), _tagl = _rgl.nodes[clamp(_tr[$ "pos"] ?? 0, 0, array_length(_rgl.nodes) - 1)].kind;   // (tagged by the place - the proc-gear pass)
+			var _it = gear_gen(_slot, exped_trip_lv(_tr), _rar, irandom($7fffffff), _tagl);   // (the region's level)
 			return { kind : "gear", rar : _rar, txt : _it.name, col : _it.col, item : _it };
 		}
 	}
