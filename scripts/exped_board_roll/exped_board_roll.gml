@@ -6,6 +6,10 @@
 function exped_board_roll() {
 	exped_init();
 	var _e = g.exped;
+	// THE HOME WORLD first (2026-09-15): galaxy_home builds the galaxy on its
+	// first call - a seeded section of its own - so it runs BEFORE the deal's
+	// seeded block, or its release would scramble the deal's later rolls
+	var _hm = galaxy_home();
 	var _rs = random_get_seed();
 	random_set_seed(74123 + _e.seq * 7919);
 	var _old = _e.board;
@@ -22,7 +26,7 @@ function exped_board_roll() {
 		// the sky over it is its real neighbourhood and the star is on the
 		// map. (The roll above still runs: the deal's stream stays in step)
 		var _hname = "";
-		if (_i == 0) { var _hm = galaxy_home(); _seed = _hm.planet_seed; _hname = _hm.name; }
+		if (_i == 0) { _seed = _hm.planet_seed; _hname = _hm.name; }
 		var _keep = undefined;
 		if (_i < array_length(_old))
 			for (var _t = 0; _t < array_length(_e.trips); _t++)

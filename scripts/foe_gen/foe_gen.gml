@@ -30,24 +30,34 @@ function foe_gen(_lv, _seed, _kind = "") {
 	var _pts = {};
 	var _total = 0;
 	for (var _k = 0; _k < 8; _k++) { _pts[$ _keys[_k]] = _r.shape[$ _keys[_k]] * _budget / 40; _total += _pts[$ _keys[_k]]; }
-	// the arms: a weapon and maybe armour, at their level, common or uncommon
+	// the arms: a weapon and maybe armour, at their level, common or uncommon.
+	// EVERY ROLL FIRST, the gear after (bug hunt 2026-09-15): gear_gen is a
+	// seeded section of its own and its release re-seeds the stream, so a
+	// roll made after it would not be this foe's - the seed would not
+	// reproduce the foe
+	var _armed = (random(1) < _r.gear);
+	var _wr1 = (random(1) < .25) ? 1 : 0, _ws1 = irandom($7fffffff);
+	var _arm2 = (random(1) < .6);
+	var _wr2 = (random(1) < .25) ? 1 : 0, _ws2 = irandom($7fffffff);
+	var _armed_name = (random(1) < .6);
+	var _title = choose("chief", "elder", "king", "of unusual size", "with a hat", "the second");
+	rng_release(_old);
 	var _worn = [];
-	if (random(1) < _r.gear) {
-		array_push(_worn, gear_gen("w1", _lv, (random(1) < .25) ? 1 : 0, irandom($7fffffff)));
-		if (random(1) < .6) array_push(_worn, gear_gen("armor", _lv, (random(1) < .25) ? 1 : 0, irandom($7fffffff)));
+	if (_armed) {
+		array_push(_worn, gear_gen("w1", _lv, _wr1, _ws1));
+		if (_arm2) array_push(_worn, gear_gen("armor", _lv, _wr2, _ws2));
 	}
 	for (var _w = 0; _w < array_length(_worn); _w++) {
 		var _lk = variable_struct_get_names(_worn[_w].pts);
 		for (var _i = 0; _i < array_length(_lk); _i++) { _pts[$ _lk[_i]] += _worn[_w].pts[$ _lk[_i]]; _total += _worn[_w].pts[$ _lk[_i]]; }
 	}
 	var _name = _r.name;
-	if (array_length(_worn) > 0 && random(1) < .6) _name = "armed " + _r.name;
-	if (_boss) _name = _r.name + " " + choose("chief", "elder", "king", "of unusual size", "with a hat", "the second");
+	if (array_length(_worn) > 0 && _armed_name) _name = "armed " + _r.name;
+	if (_boss) _name = _r.name + " " + _title;
 	var _maxhp = round((_pts.hp * _b.hp_per_point + _b.hp_flat_add) * 10) / 10;
 	var _maxmp = max(1, round(_pts.mp));
 	var _sk = [];
 	if (_r.skill != "") array_push(_sk, g.cskills[$ _r.skill]);
-	rng_release(_old);
 	return {
 		name : _name, col : _r.col, kind : _r.name, lv : _lv, boss : _boss, worn : _worn,
 		team : 1, k : 0,
