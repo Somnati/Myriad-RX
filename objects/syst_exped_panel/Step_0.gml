@@ -416,8 +416,8 @@ if (view == "system" && is_struct(sy_sys)) {
 	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, 150); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }
 	var _bk0 = __back_r();
 	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
-	var _ser = __sy_enter_r();
-	var _oner = (!sy_dw && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h));
+	var _ser = __sy_enter_r(), _sgl0 = __galaxy_r();
+	var _oner = (!sy_dw && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h)) || point_in_rectangle(mouse_x, mouse_y, _sgl0.x, _sgl0.y, _sgl0.x + _sgl0.w, _sgl0.y + _sgl0.h);
 	if (!sy_drag && mouse_check_button_pressed(mb_left) && _sin && !_onbk0 && !_oner) { sy_drag = true; sy_drag_px = 0; sy_dx = mouse_x; sy_dy = mouse_y; }
 	if (sy_drag && mouse_check_button(mb_left)) {
 		var _dx = mouse_x - sy_dx, _dy = mouse_y - sy_dy;
@@ -465,6 +465,9 @@ for (var _k = 0; _k < 3; _k++) {
 // THE STAR SYSTEM's dock (2026-09-16): a row picks a world, [enter] dives into it (the swell, then its page)
 if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 	var _npl = array_length(sy_sys.planets);
+	// [galaxy] bottom left: the map (its [back] returns here)
+	var _sgl = __galaxy_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _sgl.x, _sgl.y, _sgl.x + _sgl.w, _sgl.y + _sgl.h)) { gx_from = "system"; __page_go("galaxy"); play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
 	// the drawer's tab: open / close
 	var _stb = __sy_tab_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _stb.x, _stb.y, _stb.x + _stb.w, _stb.y + _stb.h)) { sy_dw = !sy_dw; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }

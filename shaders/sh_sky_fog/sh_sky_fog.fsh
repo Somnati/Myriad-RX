@@ -22,7 +22,9 @@ uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
-uniform sampler2D u_neb; // THE NEBULA SHEET (galaxy_neb_sheet): the map's density, rgb its colour (2026-09-16)
+// THE NEBULA SHEET (galaxy_neb_sheet: the map's density, rgb its colour) is gm_BaseTexture - the quad IS the sheet,
+// stretched over the page (2026-09-16: a second sampler took stage 0 on the hlsl side, nothing else being sampled -
+// the canvas then hid the sheet and the stage's filter flag went global)
 uniform vec2  u_npos;    // this star on the sheet, uv
 uniform vec4  u_nprm;    // the march: range (uv), the slab's half-thickness (uv), brightness, the density floor
 
@@ -120,7 +122,7 @@ void main()
         vec2 sp = u_npos + vec2(w.x, -w.z) * t;   // (the map's y runs down: a bearing's sine climbs the map)
         float hgt = w.y * t / u_nprm.y;
         float wt = exp(-hgt * hgt) * (1.0 - t / u_nprm.x);
-        vec4 s = texture2D(u_neb, sp);
+        vec4 s = texture2D(gm_BaseTexture, sp);
         float sd = max(0.0, (s.a - u_nprm.w) / (1.0 - u_nprm.w));   // (under the floor is the map's haze, not a cloud)
         nrgb += s.rgb * (sd * sd) * wt;
     }

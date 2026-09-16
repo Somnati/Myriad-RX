@@ -913,14 +913,17 @@ if (view == "system") {
 	// the title
 	draw_set_halign(fa_center); draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text(sy_cx, list_y + 6, "the " + star_name(sy_star) + " system");
-	// the caption at the foot of the view: pick a planet, or the picked one's line
-	var _capy = room_height - 8 - 10;
+	// the caption at the foot of the view: pick a planet, or the picked one's line (above the buttons' row)
+	var _capy = room_height - 8 - 16 - 12;
 	if (sy_sel >= 0 && sy_sel < _np) {
 		var _gbc = galaxy_world_biome(_pls[sy_sel]);
 		draw_set_color(c_gold); draw_set_alpha(.95);
 		draw_text(sy_cx, _capy, star_name(sy_star) + " " + _romd[clamp(sy_sel, 0, 7)] + "  -  " + ((_gbc < 0) ? "gas giant  -  no landing" : (exped_biomes()[_gbc].name + " world  -  tier " + string(sy_info[sy_sel]))));
 	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, "pick a planet"); }
 	draw_set_halign(fa_left);
+	// [galaxy] bottom left (his ask, 2026-09-16): the map, from here
+	var _sgl = __galaxy_r();
+	if (sy_warp_pl < 0) draw_ui_button(_sgl.x, _sgl.y, _sgl.w, _sgl.h, "galaxy", c_steelblue, true, false);
 	// THE DOCK AS A DRAWER (his ask, 2026-09-16): the tab on the right edge, the star's numbers and the worlds when open
 	var _dkx = __sy_dock_x(), _dkw = __sy_dock_w();
 	var _stb = __sy_tab_r();
