@@ -115,8 +115,8 @@ function exped_pack() {
 		array_push(_f, "pk=" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0)));
 		array_push(_f, "stn=" + string(_r[$ "stance"] ?? "steady"));   // (the stance, 2026-09-16)
 		if (!_is && is_struct(_r[$ "best"])) {   // THE BEST MOMENT (a haul, 2026-09-16): its title and its line
-			array_push(_f, "bt=" + string_replace_all(string_replace_all(_r.best.title, "|", " "), "#", " "));
-			array_push(_f, "bm=" + string_replace_all(string_replace_all(_r.best.line, "|", " "), "#", " "));
+			array_push(_f, "bt=" + string_replace_all(string_replace_all(string_replace_all(_r.best.title, "|", " "), "#", " "), "\"", "'"));
+			array_push(_f, "bm=" + string_replace_all(string_replace_all(string_replace_all(_r.best.line, "|", " "), "#", " "), "\"", "'"));   // (a diary line may quote: the save is an ini - bug hunt 2026-09-16)
 		}
 		_out += ((_a > 0) ? "#" : "") + string_join_ext("|", _f);
 	}
