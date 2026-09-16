@@ -38,8 +38,9 @@ function sprite_take(_sp, _it) {
 			_old = _arr[_at];
 		}
 	}
+	_dumb *= max(.5, 1 - sprite_luck(_sp) * .05);   // (the lucky make fewer - luck, 2026-09-16)
 	if (_better && random(1) < _dumb) {
-		return { txt : _sp.name + " found " + _it.name + " and threw it away - " + _why, worn : false, kept : false };
+		return { txt : _sp.name + " found " + _it.name + " and threw it away - " + _why, worn : false, kept : false, dumb : true };
 	}
 	if (_better) {
 		if (_it.slot == "w1" || _it.slot == "w2") _sh[$ _it.slot] = _it;

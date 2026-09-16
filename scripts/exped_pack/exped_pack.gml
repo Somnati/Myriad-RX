@@ -65,6 +65,9 @@ function exped_pack() {
 			    + ":" + _rex.kind + ":" + string(_rex.n)   // (the explore card: kind, n - 2026-09-15)
 			    + ":" + (is_struct(_q) ? (string(_q[$ "from"] ?? -1) + ":" + string(_q[$ "at"] ?? 0) + ":" + string(_q[$ "who"] ?? "") + ":" + (is_array(_q[$ "nodes"]) ? string_join_ext(";", _q.nodes) : "")) : ":::");   // (the mission-type pass: from, at, who, the survey's nodes - 2026-09-15)
 		} else _o += "|" + string(_r[$ "rgi"] ?? 0);   // (a haul: its region - 2026-09-15)
+		// THE TALLY (field 9, 2026-09-16): slain:mist:items:xp:earned:pocket
+		var _tl = _r[$ "tl"]; if (!is_struct(_tl)) _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 };
+		_o += "|" + string(_tl.slain) + ":" + string(_tl.mist) + ":" + string(_tl.items) + ":" + string_format(_tl.xp, 1, 2) + ":" + string(_tl.earned) + ":" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0));
 		_out += ((_a > 0) ? "#" : "") + _o;
 	}
 	return _out;

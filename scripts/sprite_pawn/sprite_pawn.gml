@@ -24,8 +24,8 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 		maxmp : _maxmp, mp : is_undefined(_mpf) ? ceil(_maxmp * min(1, _b.mp_start_frac + _gmp0)) : clamp(round(_maxmp * min(1, _mpf + _gmp0)), 0, _maxmp),   // (a trip carries mp between fights: the fraction it had; an eager item adds to it)
 		atk : _p.atk, def : _p.def, mag : _p.mag, mdef : _p.mdef, spd : _p.spd, hit : _p.hit,
 		eva : _p.spd * _b.spd_to_eva,
-		crit_rate : _c.crit + _gcrit, crit_multi : _c.cmulti, cnt : _c.cnt + _gcnt, erode : _gerode,
-		magic : _c.magic,
+		crit_rate : _c.crit + _gcrit + sprite_luck(_sp) * .5, crit_multi : _c.cmulti, cnt : _c.cnt + _gcnt, erode : _gerode,   // (luck: half a point of crit a point, 2026-09-16)
+		magic : _c.magic, luck : sprite_luck(_sp),
 		skills : sprite_skills(_sp),
 		tic : random(.3), tic_spd : _b.tic_spd_base + sqrt(max(0, _p.spd)) / _b.tic_spd_div,
 		pts_total : _st.total,

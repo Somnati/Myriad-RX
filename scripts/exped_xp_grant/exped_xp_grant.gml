@@ -11,6 +11,7 @@
 /// reward line (the panel paints them gold).
 function exped_xp_grant(_tr, _xp, _why) {
 	if (_xp <= 0) return;
+	exped_tally(_tr, "xp", _xp);   // (the completion screen's "xp earned", 2026-09-16)
 	// (xp is kept to a tenth - a level-1 foe pays 1.0, a level-5 one 1.3)
 	var _xt = (frac(_xp) == 0) ? string(round(_xp)) : string_format(_xp, 1, 1);
 	// the shares: 1 up, .5 down; the pool over their sum

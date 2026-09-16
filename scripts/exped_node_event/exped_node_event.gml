@@ -56,11 +56,23 @@ function exped_node_event(_tr, _again = false) {
 	for (var _i = 0; _i < array_length(_tr.hp); _i++) if (_tr.hp[_i] > 0) { _mean += _tr.hp[_i] / max(1, _tr.hpmax[_i]); _up++; }
 	_mean = (_up > 0) ? _mean / _up : 1;
 	if (_kk.civ) {
-		// a bed at night when there is coin (his ask: the time of day tells)
+		// THE TOWN AS A PLAN OF BEATS (his asks, 2026-09-16: "events at a town
+		// popped into the log all at once"; "they might get distracted in
+		// towns"): one beat a step, each with its own hours - a look round
+		// (the papers' line), the shop opened, a look at the shelf each, the
+		// shop closed, a tavern sometimes, a linger or two, and a night at the
+		// inn when hurt or late. Four to nine hours of it (exped_act_step)
+		if (_again) { _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; return; }
+		var _plan = [];
+		array_push(_plan, { k : "arrive", t : .5 });
+		array_push(_plan, { k : "shop_open", t : .4 });
+		for (var _pi = 0; _pi < array_length(_tr.sids); _pi++) if (_tr.hp[_pi] > 0) array_push(_plan, { k : "shop_buy", i : _pi, t : .35 });
+		array_push(_plan, { k : "shop_close", t : .25 });
+		if (roll_perc((_tr.mode == "explore") ? 45 : 25)) array_push(_plan, { k : "tavern", t : 1.2 });
+		repeat (1 + (roll_perc(40) ? 1 : 0)) array_push(_plan, { k : "linger", t : random_range(.5, 1.5) });
 		var _night2 = (_tr[$ "night"] ?? false);
-		if (_mean < .6 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(55)) || (_tr.mode == "explore" && roll_perc(25))) _tr.act = { kind : "rest", left : EXPED_HOUR * .5, steps : 1 };
-		else if (_tr.mode == "explore" && roll_perc(40)) _tr.act = { kind : "tavern", left : EXPED_ROOM_T, steps : 1 };
-		else _tr.act = { kind : "shop", left : EXPED_ROOM_T, steps : 1 };
+		if (_mean < .6 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(60))) array_push(_plan, { k : "rest", t : 4 });
+		_tr.act = { kind : "town", left : 0, steps : array_length(_plan), plan : _plan, i : 0, next_t : EXPED_ROOM_T };
 		return;
 	}
 	switch (_k) {

@@ -56,13 +56,20 @@ function exped_unpack(_s) {
 					array_push(_mp, (_k < array_length(_h3) && _h3[_k] != "") ? clamp(real(_h3[_k]), 0, 1) : 1);
 				}
 			} else for (var _k = 0; _k < array_length(_sids); _k++) { array_push(_hp, 10); array_push(_hm, 10); array_push(_mp, 1); }
+			// THE TALLY (field 9, 2026-09-16; a save from before has none: zeros)
+			var _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, _pocket = 0;
+			if (array_length(_p) > 9 && _p[9] != "") {
+				var _tf = string_split(_p[9], ":");
+				if (array_length(_tf) >= 6) { _tl = { slain : real(_tf[0]), mist : real(_tf[1]), items : real(_tf[2]), xp : real(_tf[3]), earned : real(_tf[4]) }; _pocket = real(_tf[5]); }
+			}
 			if (_p[0] == "H") {
 				// a haul: the hp read above is the crew's at the end (a save from
 				// before carried none - they show whole)
 				if (array_length(_hh) < 2 || _hh[0] == "") for (var _k = 0; _k < array_length(_sids); _k++) _hp[_k] = _hm[_k];
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
 				                       finds : _finds, routed : (_tt[4] == "1"), cleared : real(_tt[3]), wins : real(_tt[5]), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp,
-				                       rgi : (array_length(_p) > 8 && _p[8] != "") ? clamp(real(_p[8]), 0, EXPED_REGIONS - 1) : 0 });
+				                       rgi : (array_length(_p) > 8 && _p[8] != "") ? clamp(real(_p[8]), 0, EXPED_REGIONS - 1) : 0,
+				                       tl : _tl, pocket : _pocket });
 				continue;
 			}
 			var _rooms = (_p[5] != "") ? string_split(_p[5], ",") : [];
@@ -83,6 +90,7 @@ function exped_unpack(_s) {
 				credits : 0, recall : false, visited : [ 0 ], planet_t : 0, bounty : undefined, leave_t : real(_tt[0]), fights : 0, rgi : 0, home : 0,
 			});
 			var _trn = _e.trips[array_length(_e.trips) - 1];
+			_trn.tl = _tl;   // (the tally, 2026-09-16)
 			if (array_length(_p) > 8 && _p[8] != "") {
 				var _ag = string_split(_p[8], ":");
 				if (array_length(_ag) >= 18) {

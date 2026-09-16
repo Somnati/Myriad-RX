@@ -55,7 +55,7 @@ function exped_agent(_tr, _dt) {
 			// the weather's own: a slip on a wet high road, a wait under a tree in a storm
 			if ((_wx == "rain" || _wx == "snow") && _high && roll_perc(8)) {
 				var _sk = irandom(array_length(_tr.sids) - 1);
-				if (_tr.hp[_sk] > 0) { _tr.hp[_sk] = max(1, _tr.hp[_sk] - _tr.hpmax[_sk] * .08); array_push(_tr.log, _tr.names[_sk] + " slipped on the wet " + ((_rg.nodes[_rd.b].kind == "mountains") ? "scree" : "slope") + " and went down a way. bruises"); }
+				if (_tr.hp[_sk] > 0) { _tr.hp[_sk] = max(1, _tr.hp[_sk] - _tr.hpmax[_sk] * .08); exped_tally(_tr, "mist"); array_push(_tr.log, _tr.names[_sk] + " slipped on the wet " + ((_rg.nodes[_rd.b].kind == "mountains") ? "scree" : "slope") + " and went down a way. bruises"); }
 			}
 			if (_wx == "storm" && roll_perc(25)) { _rd.t = max(0, _rd.t - EXPED_HOUR * .5); array_push(_tr.log, choose("waited out the worst of it under a tree", "sheltered under a rock while the sky did its thing", "the storm sat on them for half an hour")); return false; }
 			// the dark: a wrong turn (another road out of the node they left -
@@ -65,10 +65,10 @@ function exped_agent(_tr, _dt) {
 				var _nb = region_neighbors(_rg, _rd.a);
 				if (array_length(_nb) > 1) {
 					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
-					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); exped_say(_tr, "lost", undefined, .7); return false; }
+					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; exped_tally(_tr, "mist"); array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); exped_say(_tr, "lost", undefined, .7); return false; }
 				}
 			}
-			if (_night && roll_perc(10 * _dark)) { _rd.t = max(0, _rd.t - EXPED_HOUR); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
+			if (_night && roll_perc(10 * _dark)) { _rd.t = max(0, _rd.t - EXPED_HOUR); exped_tally(_tr, "mist"); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;

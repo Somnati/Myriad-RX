@@ -26,7 +26,7 @@ function exped_tick_one(_tr, _dt) {
 		for (var _j = 0; _j < array_length(_f.foes); _j++) {
 			var _bf = _f.foes[_j];
 			bestiary_note(_bf[$ "kind"] ?? "", "seen", _bf[$ "variant"] ?? "", _bf[$ "boss"] ?? false);   // THE BESTIARY (2026-09-16): every foe that stood here
-			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); }
+			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); exped_tally(_tr, "slain"); }
 		}
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
 		// THE KILL'S XP (his law): the pack's stat total to every survivor
@@ -44,11 +44,11 @@ function exped_tick_one(_tr, _dt) {
 			if (is_struct(_q) && _q.kind == "bounty" && _q.done < _q.n) for (var _j = 0; _j < array_length(_f.foes); _j++) if ((_f.foes[_j][$ "named"] ?? false) && _f.foes[_j].hp <= 0) { _q.done = _q.n; array_push(_tr.log, _q.who + " is down. " + choose("it took a while", "nobody cheered. then everybody did", "the hat is a trophy now")); }
 			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); }
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
-			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
+			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight
 			if (is_struct(_tr.act) && _tr.act.kind == "camp" && (_tr.act[$ "loot"] ?? false)) {
 				var _cr = 2 + irandom(2) + _tr.dest.tier;
-				_tr.credits += _cr;
+				_tr.credits += _cr; exped_tally(_tr, "earned", _cr);
 				exped_stat("camps");
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");
@@ -120,11 +120,12 @@ function exped_tick_one(_tr, _dt) {
 		// home: the floor of credits by distance, the pocket's remainder, the quest's reward
 		var _floor = { kind : "credits", rar : 0, n : 3 * _tr.dest.tier, txt : string(3 * _tr.dest.tier) + " credits - the trip's pay", col : c_lavender };   // ("the floor" made no sense on the card - 2026-09-15)
 		array_insert(_tr.finds, 0, _floor);
+		exped_tally(_tr, "earned", _floor.n);
 		if ((_tr[$ "credits"] ?? 0) > 0) array_push(_tr.finds, { kind : "credits", rar : 0, n : _tr.credits, txt : string(_tr.credits) + " credits - the pocket, unspent", col : c_lavender });
 		var _q = _tr[$ "quest"];
 		if (is_struct(_q)) {
 			var _done = clamp(_q.done / max(1, _q.n), 0, 1);
-			if (_done >= 1) { exped_stat("quests"); array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold }); }
+			if (_done >= 1) { exped_stat("quests"); exped_tally(_tr, "earned", _q.reward); array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold }); }
 			// THE QUEST'S XP (his law): a par foe's xp x 2..5 by how much got done
 			// (an abort before anything was done pays nothing)
 			if (_done > 0 || (!_tr.routed && !(_tr[$ "aborted"] ?? false))) exped_xp_grant(_tr, sprite_xp_quest(exped_trip_lv(_tr), _done, _q.mult), "the quest");

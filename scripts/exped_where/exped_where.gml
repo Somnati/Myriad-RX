@@ -7,7 +7,13 @@ function exped_where(_tr) {
 	if (!is_undefined(_tr.fight)) return "fighting at " + _here;
 	if (is_struct(_tr.act)) {
 		var _a = _tr.act;
-		switch (_a.kind) {
+		var _ak = _a.kind;
+		if (_ak == "town" && is_array(_a[$ "plan"]) && _a.i > 0) _ak = _a.plan[_a.i - 1].k;   // (the town's current beat)
+		switch (_ak) {
+			case "arrive": return "looking round " + _here;
+			case "shop_open": case "shop_buy": case "shop_close": return "shopping at " + _here;
+			case "linger": return "dawdling in " + _here;
+			case "town":   return "in " + _here;
 			case "rest":   return "resting at " + _here;
 			case "shop":   return "shopping at " + _here;
 			case "tavern": return "in the tavern at " + _here;

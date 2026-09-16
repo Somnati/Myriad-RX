@@ -88,7 +88,7 @@ if (view == "haul") {
 		var _fh = string_height_ext(_ftx, 9, _flw) + 2;
 		array_push(_fhs, _fh); _fsum += _fh;
 	}
-	var _ch = 40 + _nb * 12 + 4 + 11 + _fsum + (_recruit ? 52 : 40);
+	var _ch = 40 + _nb * 12 + 4 + 11 + _fsum + (_recruit ? 52 : 40) + (land ? 0 : 46);   // (portrait: the tally under the finds - 2026-09-16)
 	var _cx = land ? 14 : 4, _cy = list_y + 22;
 	_ch = max(_ch, room_height - 8 - _cy);   // (to the page's foot: the buttons and the "again:" line sit inside it - his report 2026-09-15)
 	ui_fade_set(_ea);
@@ -147,13 +147,27 @@ if (view == "haul") {
 		draw_text_ext(_cx + 56, _fy, (_l.kind == "sprite" && _recruit) ? "a sprite - wants to join" : _l.txt, 9, _flw);
 		_fy += _fhs[_i];
 	}
+	// THE TALLY (his ask, 2026-09-16): what the trip came to, in six lines
+	var _tl = _h[$ "tl"]; if (!is_struct(_tl)) _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 };
+	var _trows = [["mistakes made", string(_tl.mist)], ["enemies slain", string(_tl.slain)], ["items acquired", string(_tl.items)],
+	              ["credits earned", string(_tl.earned)], ["pocket returned", string(_h[$ "pocket"] ?? 0)], ["xp earned", (frac(_tl.xp) == 0) ? string(round(_tl.xp)) : string_format(_tl.xp, 1, 1)]];
+	var _ttx = land ? (_cx + _cw + 12) : (_cx + 10), _tty = land ? _cy : (_fy + 4), _ttw = land ? (room_width - (_cx + _cw + 12) - 14) : (_cw - 20);
+	draw_set_halign(fa_left);
+	draw_set_color(_ink); draw_set_alpha(.5);
+	draw_text(_ttx, _tty, "the tally");
+	var _tcw = floor(_ttw / 2);
+	for (var _ti = 0; _ti < 6; _ti++) {
+		var _tx = _ttx + (_ti mod 2) * _tcw, _ty = _tty + 12 + (_ti div 2) * 10;
+		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _trows[_ti][0]);
+		draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.95); draw_text(_tx + _tcw - 8, _ty, _trows[_ti][1]); draw_set_halign(fa_left);
+	}
 	// the log: newest at the bottom, as much as fits
 	if (land) {
-		var _lx = _cx + _cw + 12, _lw = room_width - _lx - 14;
+		var _lx = _cx + _cw + 12, _lw = room_width - _lx - 14, _dy0 = _cy + 12 + 30 + 6;
 		draw_set_halign(fa_left);
 		draw_set_color(_ink); draw_set_alpha(.5);
-		draw_text(_lx, _cy, "the diary");
-		__draw_log_band(_h.log, { x : _lx, y : _cy + 12, w : _lw, h : room_height - 10 - (_cy + 12) }, exped_biomes()[_h.dest.biome].col2);
+		draw_text(_lx, _dy0, "the diary");
+		__draw_log_band(_h.log, { x : _lx, y : _dy0 + 12, w : _lw, h : room_height - 10 - (_dy0 + 12) }, exped_biomes()[_h.dest.biome].col2);
 	}
 	draw_set_halign(fa_left);
 	if (_recruit) {
@@ -395,9 +409,9 @@ if (view == "bestiary") {
 			draw_set_color(_ink); draw_set_alpha(.85);
 			draw_text(_tx, _ty, "seen " + string(_bb.seen) + "  -  slain " + string(_bb.slain) + ((_bb.boss > 0) ? ("  -  bosses " + string(_bb.boss)) : "")); _ty += 12;
 			// the shape as bars (the roster's eight lines on the sprites' budget)
-			var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"], _bw = min(80, _tw - 60);
-			for (var _k = 0; _k < 8; _k++) {
-				var _v = _r.shape[$ _keys[_k]];
+			var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit", "luck"], _bw = min(80, _tw - 60);
+			for (var _k = 0; _k < 9; _k++) {
+				var _v = (_k == 8) ? (_r[$ "luck"] ?? 1) : _r.shape[$ _keys[_k]];
 				draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _keys[_k]);
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx + 26, _ty + 2, _bw, 4, 0, c_black, .7);
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx + 26, _ty + 2, _bw * clamp(_v / 13, 0, 1), 4, 0, _r.col, .85);

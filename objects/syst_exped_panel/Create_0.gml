@@ -926,10 +926,18 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _g = _st.gear[$ _keys[_k]];
 		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + (land ? 43 : 62), _cy, "+" + string_format(_g, 1, 1)); }
 	}
+	// LUCK (2026-09-16): its own row under the grid - a tap says what it does
+	var _lkx = _hx, _lky = _gy + 33, _lkw = land ? 62 : 80;
+	array_push(it_rects, { x : _lkx - 2, y : _lky - 1, w : _lkw, h : 10, st : "luck" });
+	if (is_struct(it_pop) && it_pop[$ "st"] == "luck") { draw_sprite_ext(spr_pixel_1x1, 0, _lkx - 2, _lky - 1, _lkw, 10, 0, c_white, .1); draw_px_rect(_lkx - 2, _lky - 1, _lkw, 10, c_white, .45); }
+	draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lkx, _lky, "luck");
+	draw_set_halign(fa_right); draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(_lkx + (land ? 40 : 58), _lky, string(sprite_luck(_sp)));
+	draw_set_font(fnt); draw_set_halign(fa_left);
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_hx, _gy + 34, "crit " + string(_c.crit) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%");   // (the basics / points line went - his ask, 2026-09-15)
+	draw_text(_hx, _gy + 45, "crit " + string(_c.crit + sprite_luck(_sp) * .5) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%");   // (the basics / points line went - his ask, 2026-09-15; luck's half-points in the crit)
 	draw_set_color(_dim); draw_set_alpha(.7);
-	draw_text(_hx, _gy + 44, "mood  -  " + _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name);
+	draw_text(_hx, _gy + 55, "mood  -  " + _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name);
 	// the equipment (the Disgaea list): slot - item
 	var _ex = land ? (_x0 + 140) : _hx, _ey = land ? (_by) : (_gy + 48);   // (the column moved left - his ask: long names fell off the edge)
 	draw_set_color(_ink); draw_set_alpha(.5);
@@ -961,7 +969,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	}
 	// the skills, under the stats; the pocket and the notepad under the equipment
 	var _sk = sprite_skills(_sp);
-	var _ky = _gy + 58;
+	var _ky = _gy + 69;   // (the luck row above, 2026-09-16)
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_hx, _ky, "skills");
 	var _skw = land ? 128 : (_w - 16);

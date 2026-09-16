@@ -11,6 +11,7 @@ function cbt_stat_desc(_k) {
 		case "mag":  return ["int  -  intellect", "the power behind spells and heals, the way atk is behind swings. magic is soaked by the target's res, not its def."];
 		case "mdef": return ["res  -  resistance", "soaks magic the way def soaks steel: a third of res comes off every spell that lands on you."];
 		case "spd":  return ["spd  -  speed", "how often a turn comes: " + string(_b.tic_spd_base) + " + sqrt(spd) / " + string(_b.tic_spd_div) + " a tick. and evasion is spd x " + string(_b.spd_to_eva) + " - the faster, the harder to hit. a hit also staggers the quick less."];
+		case "luck": return ["luck", "the class's point or three, one more every five levels, one for the sly and the dreamy. half a point of crit a point; the crew's luck together leans the loot ladder toward the rare; the lucky throw fewer good things away."];
 		case "hit":  return ["hit  -  accuracy", "against the target's evasion (spd x " + string(_b.spd_to_eva) + "): the chance a swing lands, and how CLEAN - one roll's margin sets the damage, the def pierced and the stagger. a studied foe (the notepad) adds to it."];
 	}
 	return [_k, "?"];

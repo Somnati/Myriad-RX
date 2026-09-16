@@ -44,7 +44,7 @@ function exped_road_beat(_tr) {
 		// a coin in the mud
 		var _c = 1 + irandom(1);
 		_tr.credits += _c;
-		exped_stat("finds");
+		exped_stat("finds"); exped_tally(_tr, "items");
 		array_push(_tr.log, "+ " + string(_c) + ((_c == 1) ? " credit" : " credits") + " " + choose("in the mud", "under a hedge", "in a ditch, with a boot", "on the road, shining", "in a puddle",
 			"in a bird's nest, of all places", "under a stone " + _nm + " turned for no reason", "in the pocket of a coat on a fence", "in the road's middle, where everyone had walked past it", "stuck in a tree, at a height " + _nm + " is not proud of reaching"));
 	} else if (_r < 30) {
