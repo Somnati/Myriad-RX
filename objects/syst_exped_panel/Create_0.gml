@@ -569,16 +569,9 @@ __draw_system = function() {
 		var _it = _items[_n];
 		var _sx = sy_wfx + (_it[2] - sy_wfx) * _s, _sy = sy_wfy + (_it[3] - sy_wfy) * _s, _k = _it[4] * _s;
 		if (_it[1] < 0) {
-			// the star: the sky's sun recipe, breathing on noise
+			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
-			var _bt = current_time / 900, _bi = floor(_bt), _bf = frac(_bt); _bf = _bf * _bf * (3 - 2 * _bf);
-			var _pu = 1 + .07 * (lerp((hash_mix(_bi mod 100000, 5) mod 1000) / 1000, (hash_mix((_bi + 1) mod 100000, 5) mod 1000) / 1000, _bf) - .5);
-			gpu_set_blendmode(bm_add);
-			draw_sprite_ext(spr_vis_glow_soft, 0, _sx, _sy, .5 * _ss * _pu, .5 * _ss * _pu, 0, _stc, .22);
-			gpu_set_blendmode(bm_normal);
-			draw_sprite_ext(spr_star_glow, 5, _sx, _sy, 2.4 * _ss, 2.4 * _ss, 0, _stc, .9);
-			draw_sprite_ext(spr_star_glow, 5, _sx, _sy, 1.2 * _ss, 1.2 * _ss, 0, merge_colour(_stc, c_white, .5), .9);
-			draw_sprite_ext(spr_star_glow, 3, _sx, _sy, max(1, _ss * .9), max(1, _ss * .9), 0, c_white, 1);
+			star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1);
 		} else {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
 			var _pw = __sy_ppos(_p);

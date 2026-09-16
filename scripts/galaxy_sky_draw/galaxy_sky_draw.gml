@@ -87,8 +87,9 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _n0 = (hash_mix(_bi mod 100000, 5) mod 1000) / 1000, _n1 = (hash_mix((_bi + 1) mod 100000, 5) mod 1000) / 1000;
 		var _pu = 1 + .07 * (lerp(_n0, _n1, _bf) - .5);
 		var _gs = (60 * _ss * _pu) / max(1, sprite_get_width(spr_vis_glow_soft));
+		// THE SUN ITSELF (2026-09-16): sh_star - the disc, its corona and prominences (star_draw); the flare rides on
+		star_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade);
 		gpu_set_blendmode(bm_add);
-		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs, _gs, 0, _sky.sun_col, .3 * _sfade);
 		// THE FLARE: an anamorphic streak (the soft glow stretched flat) and two ghosts along the line through the view's centre
 		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs * 3.2, _gs * .10, 0, merge_colour(_sky.sun_col, c_white, .4), .22 * _sfade);
 		var _gvx = _cx - _ssx, _gvy = _cy - _ssy;
@@ -97,8 +98,5 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		draw_sprite_ext(spr_vis_glow_soft, 0, _g1x, _g1y, _gg, _gg, 0, merge_colour(_sky.sun_col, rgb(120, 200, 255), .5), .10 * _sfade);
 		draw_sprite_ext(spr_vis_glow_soft, 0, _g2x, _g2y, _gg * .6, _gg * .6, 0, merge_colour(_sky.sun_col, rgb(255, 160, 200), .5), .08 * _sfade);
 		gpu_set_blendmode(bm_normal);
-		draw_sprite_ext(spr_star_glow, 5, _ssx, _ssy, 2.4 * _ss, 2.4 * _ss, 0, _sky.sun_col, .9 * _sfade);
-		draw_sprite_ext(spr_star_glow, 5, _ssx, _ssy, 1.2 * _ss, 1.2 * _ss, 0, merge_colour(_sky.sun_col, c_white, .5), .9 * _sfade);
-		draw_sprite_ext(spr_star_glow, 3, _ssx, _ssy, max(1, _ss * .9), max(1, _ss * .9), 0, c_white, _sfade);
 	}
 }
