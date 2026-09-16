@@ -83,13 +83,14 @@ if (view == "haul") {
 	var _cw = land ? 224 : (room_width - 8);
 	// THE FINDS (his ask, 2026-09-15: "remake the findings so it looks nicer
 	// and makes sense"): a label a kind, the text wrapped to the card
-	var _flw = _cw - 66, _fhs = [], _fsum = 0;
+	var _flw = _cw - 66, _fhs = [], _fsum = 0, _fcred = 0;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
+		if (_h.finds[_i].kind == "credits") { _fcred += _h.finds[_i][$ "n"] ?? 0; array_push(_fhs, 0); continue; }   // (the credit rows are the stats' now - "vague", his report 2026-09-16)
 		var _ftx = (_h.finds[_i].kind == "sprite" && _recruit) ? "a sprite - wants to join" : _h.finds[_i].txt;
 		var _fh = string_height_ext(_ftx, 9, _flw) + 2;
 		array_push(_fhs, _fh); _fsum += _fh;
 	}
-	var _ch = 40 + _nb * 12 + 4 + 11 + _fsum + (_recruit ? 52 : 40) + (land ? 0 : 46);   // (portrait: the tally under the finds - 2026-09-16)
+	var _ch = 40 + _nb * 12 + 4 + 36 + 11 + max(_fsum, 10) + (_recruit ? 52 : 40);   // (the stats on the card, 2026-09-16)
 	var _cx = land ? 14 : 4, _cy = list_y + 22;
 	_ch = max(_ch, room_height - 8 - _cy);   // (to the page's foot: the buttons and the "again:" line sit inside it - his report 2026-09-15)
 	ui_fade_set(_ea);
@@ -126,11 +127,25 @@ if (view == "haul") {
 	}
 	var _fy = _cy + 40 + _nb * 12 + 4;
 	draw_set_halign(fa_left);
+	// THE STATS of the trip on the card (his ask, 2026-09-16: the tally's rows, no label, no vague credit rows): the credits that
+	// came home are the pay, the reward and the pocket - the one sum the collect pays; the pocket is the part of it nobody spent
+	var _tl = _h[$ "tl"]; if (!is_struct(_tl)) _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 };
+	var _trows = [["enemies slain", string(_tl.slain)], ["mistakes made", string(_tl.mist)], ["items acquired", string(_tl.items)],
+	              ["xp earned", (frac(_tl.xp) == 0) ? string(round(_tl.xp)) : string_format(_tl.xp, 1, 1)], ["credits home", string(_fcred)], ["pocket unspent", string(_h[$ "pocket"] ?? 0)]];
+	var _tcw = floor((_cw - 20) / 2);
+	for (var _ti = 0; _ti < 6; _ti++) {
+		var _tx = _cx + 10 + (_ti mod 2) * _tcw, _ty = _fy + (_ti div 2) * 10;
+		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _trows[_ti][0]);
+		draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.95); draw_text(_tx + _tcw - 8, _ty, _trows[_ti][1]); draw_set_halign(fa_left);
+	}
+	_fy += 36;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_cx + 10, _fy, "brought home");
 	_fy += 11;
+	if (_fsum == 0) { draw_set_color(_dim); draw_set_alpha(.6); draw_text(_cx + 10, _fy, "the credits, and nothing else"); }
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
+		if (_l.kind == "credits") continue;
 		var _flb = "";
 		switch (_l.kind) {
 			case "credits": _flb = "credits"; break;
@@ -148,36 +163,20 @@ if (view == "haul") {
 		draw_text_ext(_cx + 56, _fy, (_l.kind == "sprite" && _recruit) ? "a sprite - wants to join" : _l.txt, 9, _flw);
 		_fy += _fhs[_i];
 	}
-	// THE TALLY (his ask, 2026-09-16): what the trip came to, in six lines
-	var _tl = _h[$ "tl"]; if (!is_struct(_tl)) _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 };
-	var _trows = [["mistakes made", string(_tl.mist)], ["enemies slain", string(_tl.slain)], ["items acquired", string(_tl.items)],
-	              ["credits earned", string(_tl.earned)], ["pocket returned", string(_h[$ "pocket"] ?? 0)], ["xp earned", (frac(_tl.xp) == 0) ? string(round(_tl.xp)) : string_format(_tl.xp, 1, 1)]];
-	var _ttx = land ? (_cx + _cw + 12) : (_cx + 10), _tty = land ? _cy : (_fy + 4), _ttw = land ? (room_width - (_cx + _cw + 12) - 14) : (_cw - 20);
-	draw_set_halign(fa_left);
-	draw_set_color(_ink); draw_set_alpha(.5);
-	draw_text(_ttx, _tty, "the tally");
-	var _tcw = floor(_ttw / 2);
-	for (var _ti = 0; _ti < 6; _ti++) {
-		var _tx = _ttx + (_ti mod 2) * _tcw, _ty = _tty + 12 + (_ti div 2) * 10;
-		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _trows[_ti][0]);
-		draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.95); draw_text(_tx + _tcw - 8, _ty, _trows[_ti][1]); draw_set_halign(fa_left);
-	}
-	// THE MOMENT (2026-09-16): the trip's title and the line you would tell someone, under the tally
-	var _hbm = _h[$ "best"];
-	if (is_struct(_hbm)) {
-		var _mmy = _tty + 12 + 3 * 10 + 4, _mmw = land ? _ttw : (_cw - 20);
-		draw_set_halign(fa_left);
-		draw_set_color(_ink); draw_set_alpha(.5); draw_text(_ttx, _mmy, "the moment");
-		draw_set_color(c_gold); draw_set_alpha(.95); draw_text(_ttx, _mmy + 10, __sheet_cut(_hbm.title, _mmw));
-		if (_hbm.line != "") { draw_set_color(_dim); draw_set_alpha(.8); draw_text_ext(_ttx, _mmy + 20, _hbm.line, 9, _mmw); }
-	}
-	// the log: newest at the bottom, as much as fits
+	// THE RIGHT COLUMN (wide): THE MOMENT, and the diary behind [read the diary] (his ask, 2026-09-16: the label and the lone "home" were out of place)
 	if (land) {
-		var _lx = _cx + _cw + 12, _lw = room_width - _lx - 14, _dy0 = __haul_dy0();   // (under the moment, when there is one)
-		draw_set_halign(fa_left);
-		draw_set_color(_ink); draw_set_alpha(.5);
-		draw_text(_lx, _dy0, "the diary");
-		__draw_log_band(__log_lines(), { x : _lx, y : _dy0 + 12, w : _lw, h : room_height - 10 - (_dy0 + 12) }, exped_biomes()[_h.dest.biome].col2);   // (the gist when toggled, 2026-09-16)
+		var _ttx = _cx + _cw + 12, _tty = _cy, _ttw = room_width - (_cx + _cw + 12) - 14;
+		var _hbm = _h[$ "best"];
+		if (!hl_open) {
+			if (is_struct(_hbm)) {
+				draw_set_halign(fa_left);
+				draw_set_color(_ink); draw_set_alpha(.5); draw_text(_ttx, _tty, "the moment");
+				draw_set_color(c_gold); draw_set_alpha(.95); draw_text(_ttx, _tty + 10, __sheet_cut(_hbm.title, _ttw));
+				if (_hbm.line != "") { draw_set_color(_dim); draw_set_alpha(.8); draw_text_ext(_ttx, _tty + 20, _hbm.line, 9, _ttw); }
+			}
+		} else __draw_log_band(__log_lines(), { x : _ttx, y : _tty, w : _ttw, h : room_height - 8 - 22 - _tty }, exped_biomes()[_h.dest.biome].col2);
+		var _hlr = __hlog_r();
+		draw_ui_button(_hlr.x, _hlr.y, _hlr.w, _hlr.h, hl_open ? "close the diary" : "read the diary", c_steelblue, true, false);
 	}
 	draw_set_halign(fa_left);
 	if (_recruit) {
@@ -915,19 +914,27 @@ if (view == "system") {
 	var _romd = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 	// the title
 	draw_set_halign(fa_center); draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(__sy_dock_x() * .5, list_y + 6, "the " + star_name(sy_star) + " system");
+	draw_text(sy_cx, list_y + 6, "the " + star_name(sy_star) + " system");
 	// the caption at the foot of the view: pick a planet, or the picked one's line
 	var _capy = room_height - 8 - 10;
 	if (sy_sel >= 0 && sy_sel < _np) {
 		var _gbc = galaxy_world_biome(_pls[sy_sel]);
 		draw_set_color(c_gold); draw_set_alpha(.95);
-		draw_text(__sy_dock_x() * .5, _capy, star_name(sy_star) + " " + _romd[clamp(sy_sel, 0, 7)] + "  -  " + ((_gbc < 0) ? "gas giant  -  no landing" : (exped_biomes()[_gbc].name + " world  -  tier " + string(sy_info[sy_sel]))));
-	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(__sy_dock_x() * .5, _capy, "pick a planet"); }
+		draw_text(sy_cx, _capy, star_name(sy_star) + " " + _romd[clamp(sy_sel, 0, 7)] + "  -  " + ((_gbc < 0) ? "gas giant  -  no landing" : (exped_biomes()[_gbc].name + " world  -  tier " + string(sy_info[sy_sel]))));
+	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, "pick a planet"); }
 	draw_set_halign(fa_left);
-	// THE DOCK: the star's numbers (the demo's card), then the worlds
+	// THE DOCK AS A DRAWER (his ask, 2026-09-16): the tab on the right edge, the star's numbers and the worlds when open
 	var _dkx = __sy_dock_x(), _dkw = __sy_dock_w();
-	draw_sprite_ext(spr_pixel_1x1, 0, _dkx, list_y + 16, _dkw, room_height - 8 - (list_y + 16), 0, c_black, .82);
-	draw_px_rect(_dkx, list_y + 16, _dkw, room_height - 8 - (list_y + 16), c_steelblue, .55);
+	var _stb = __sy_tab_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _stb.x, _stb.y, _stb.w, _stb.h, 0, c_black, .85);
+	draw_px_rect(_stb.x, _stb.y, _stb.w, _stb.h, c_steelblue, .6);
+	draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_stb.x + 2, _stb.y + _stb.h * .5 - 4, sy_dw ? ">" : "<");
+	if (!sy_dw && sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0) { var _ser = __sy_enter_r(); draw_ui_button(_ser.x, _ser.y, _ser.w, _ser.h, "enter  >", c_gold, true, true); }
+	if (sy_dwa > .01) {
+	draw_sprite_ext(spr_pixel_1x1, 0, _dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), 0, c_black, .82 * sy_dwa);
+	draw_px_rect(_dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), c_steelblue, .55 * sy_dwa);
+	}
+	if (sy_dwa > .3) {
 	var _sbx = __sy_box_r();
 	draw_px_rect(_sbx.x + 3, _sbx.y + 3, _sbx.w - 6, _sbx.h - 6, c_lavender, .5);
 	draw_set_color(c_white); draw_set_alpha(.95); draw_text(_sbx.x + 8, _sbx.y + 6, __sheet_cut(star_name(sy_star) + " system", _sbx.w - 16));
@@ -940,17 +947,18 @@ if (view == "system") {
 		var _onbd = false;
 		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pld.seed) _onbd = true;
 		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
-		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _ond ? c_gold : (_onbd ? merge_colour(c_gold, c_black, .4) : c_steelblue), _ond ? .9 : .5);
+		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _ond ? c_gold : c_steelblue, _ond ? .9 : .5);
 		__dot(_rr.x + 8, _rr.y + 11, 3, (_gbd < 0) ? _pld.col : exped_biomes()[_gbd].col2, (_gbd < 0) ? .6 : .95);
 		draw_set_color((_gbd < 0) ? _dim : c_white); draw_set_alpha(.95);
 		draw_text(_rr.x + 16, _rr.y + 2, star_name(sy_star) + " " + _romd[clamp(_i, 0, 7)]);
 		draw_set_color(_dim); draw_set_alpha(.75);
-		draw_text(_rr.x + 16, _rr.y + 12, __sheet_cut((_gbd < 0) ? "gas  -  no landing" : (exped_biomes()[_gbd].name + "  -  tier " + string(sy_info[_i]) + (_onbd ? "  -  opened" : "")), _rr.w - 20));
+		draw_text(_rr.x + 16, _rr.y + 12, __sheet_cut((_gbd < 0) ? "gas  -  no landing" : (exped_biomes()[_gbd].name + "  -  tier " + string(sy_info[_i])), _rr.w - 20));
 	}
 	var _sor = __sy_open_r();
 	var _canopen = (sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0);
 	var _selon = false; if (_canopen) for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pls[sy_sel].seed) _selon = true;
 	draw_ui_button(_sor.x, _sor.y, _sor.w, _sor.h, _canopen ? "enter  >" : "pick a world", _canopen ? c_gold : c_gray, _canopen, _canopen);
+	}
 	// the dive's veil: black by the swell's second half (the page turns behind it)
 	if (sy_warp_pl >= 0) draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, clamp((sy_warp_t - .45) / .3, 0, 1));
 	__draw_back();
@@ -964,6 +972,10 @@ if (view == "galaxy") {
 	var _hm = galaxy_home();
 	var _gr = __gx_r();
 	var _vw = _gr.w, _vh = _gr.h;
+	// AT THE WINDOW'S RESOLUTION (his ask, 2026-09-16: the demo's map is smooth; ours snapped to the room's pixels - the page was
+	// a room-sized surface): the page is drawn gs times over and blitted back down, so a star sits between the room's pixels
+	var _gs = max(1, floor(surface_get_width(application_surface) / max(1, room_width)));
+	var _vws = _vw * _gs, _vhs = _vh * _gs;
 	if (!gx_init) { gx_init = true; gx_zoom = 1; gx_x = _sm.stars[_hm.star].x - _vw * .5; gx_y = _sm.stars[_hm.star].y - _vh * .5; }
 	if (array_length(gx_para) == 0) {
 		var _tw = _vw + 200, _th = _vh + 200;
@@ -1007,9 +1019,9 @@ if (view == "galaxy") {
 		surface_reset_target();
 		gx_fog_seed = _sm.seed;
 	}
-	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _vw || surface_get_height(wb_surf) != _vh) {
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _vws || surface_get_height(wb_surf) != _vhs) {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
-		wb_surf = page_surface(_vw, _vh);
+		wb_surf = page_surface(_vws, _vhs);
 	}
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
@@ -1025,7 +1037,7 @@ if (view == "galaxy") {
 			var _ps = _pl.stars[_i];
 			var _px = (_ps.x * _lz - _ox) mod _twz; if (_px < 0) _px += _twz;
 			var _py = (_ps.y * _lz - _oy) mod _thz; if (_py < 0) _py += _thz;
-			draw_sprite_ext(spr_pixel_1x1, 0, _px - _sx0, _py - _sy0, _lz, _lz, 0, _ps.col, _ps.a);
+			draw_sprite_ext(spr_pixel_1x1, 0, (_px - _sx0) * _gs, (_py - _sy0) * _gs, _lz * _gs, _lz * _gs, 0, _ps.col, _ps.a);
 		}
 	}
 	// the stars, with their depth parallax about the view's centre
@@ -1038,10 +1050,11 @@ if (view == "galaxy") {
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
 		// (round and glowing, never under two px: the little ones - the one you are in among them - were lost as sub-pixel squares; his ask 2026-09-16)
-		var _s = max(2, _st.props.size * gx_zoom);
-		var _gsc = clamp(_s / 10, .25, 1.4);
-		draw_sprite_ext(spr_star_glow, 5, _sx, _sy, _gsc, _gsc, 0, _st.props.color, .9);
-		draw_sprite_ext(spr_star_glow, 3, _sx, _sy, max(.35, _gsc * .6), max(.35, _gsc * .6), 0, merge_colour(_st.props.color, c_white, .5), 1);
+		// (the size ladder back - his report: it was lost - a dwarf a fifth of a giant; drawn gs times over, between the room's pixels)
+		var _s = max(.8, _st.props.size * gx_zoom);
+		var _gsc = clamp(.14 + _s * .11, .2, 1.8) * _gs;
+		draw_sprite_ext(spr_star_glow, 5, _sx * _gs, _sy * _gs, _gsc, _gsc, 0, _st.props.color, .9);
+		draw_sprite_ext(spr_star_glow, 3, _sx * _gs, _sy * _gs, max(.3 * _gs, _gsc * .55), max(.3 * _gs, _gsc * .55), 0, merge_colour(_st.props.color, c_white, .5), 1);
 	}
 	// the fog, additive over the stars (the demo's order), bilinear; dithered
 	// here only on an 8-bit page (a float page dithers once, at its blit)
@@ -1052,15 +1065,14 @@ if (view == "galaxy") {
 	gpu_set_tex_filter(true);
 	gpu_set_blendmode(bm_add);
 	if (!page_float()) { shader_set(sh_fog_dither); shader_set_uniform_f(shader_get_uniform(sh_fog_dither, "u_time"), (current_time mod 100000) / 1000); }
-	draw_surface_ext(gx_fog, _ffx, _ffy, _ffs, _ffs, 0, c_white, _gcf.fog_alpha);
+	draw_surface_ext(gx_fog, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, c_white, _gcf.fog_alpha);
 	if (!page_float()) shader_reset();
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
-	// the home star: a pulsing hollow square and its name; the tapped star: a white one
+	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
+	// (no mark for the opened worlds' stars: the worlds need not know they have been - his call, 2026-09-16)
 	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
 	var _marks = [ { i : _hm.star, col : c_gold, txt : star_name(_hm.star) + "  -  you are here" } ];
-	// the worlds opened on the map: their stars marked (2026-09-16)
-	for (var _bw = 0; _bw < array_length(_e.board); _bw++) { var _bwd = _e.board[_bw]; var _bws = _bwd[$ "star"] ?? -1; if (_bws < 0 || _bws == _hm.star || _bws == gx_sel) continue; var _dupm = false; for (var _mj = 0; _mj < array_length(_marks); _mj++) if (_marks[_mj].i == _bws) _dupm = true; if (!_dupm) array_push(_marks, { i : _bws, col : c_steelblue, txt : star_name(_bws) + "  -  opened" }); }
 	if (gx_sel >= 0 && gx_sel != _hm.star) array_push(_marks, { i : gx_sel, col : c_white, txt : star_name(gx_sel) + "  -  class " + _sm.stars[gx_sel].props.stellar_class + (is_struct(gx_sys) ? ("  -  " + string(array_length(gx_sys.planets)) + " worlds") : "") });
 	for (var _k = 0; _k < array_length(_marks); _k++) {
 		var _mk = _marks[_k];
@@ -1068,9 +1080,13 @@ if (view == "galaxy") {
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		var _ms = 8 + ((_mk.i == _hm.star) ? floor(1.5 + 1.5 * dsin(current_time * .25)) * 2 : 0);
-		draw_px_rect(floor(_sx - _ms * .5), floor(_sy - _ms * .5), _ms, _ms, _mk.col, .95);
+		var _mx0 = floor((_sx - _ms * .5) * _gs), _my0 = floor((_sy - _ms * .5) * _gs), _mss = _ms * _gs;
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx0, _my0, _mss, _gs, 0, _mk.col, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx0, _my0 + _mss - _gs, _mss, _gs, 0, _mk.col, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx0, _my0 + _gs, _gs, _mss - 2 * _gs, 0, _mk.col, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _mx0 + _mss - _gs, _my0 + _gs, _gs, _mss - 2 * _gs, 0, _mk.col, .95);
 		draw_set_color(_mk.col); draw_set_alpha(.95);
-		draw_text(floor(_sx) + _ms * .5 + 4, floor(_sy) - 4, _mk.txt);
+		draw_text_transformed(floor((_sx + _ms * .5 + 4) * _gs), floor((_sy - 4) * _gs), _mk.txt, _gs, _gs, 0);
 	}
 	draw_set_alpha(1);
 	surface_reset_target();
@@ -1095,8 +1111,8 @@ if (view == "galaxy") {
 	// the finished map at half size, two passes, laid back additively) -
 	// into the page on a float page, then the page to the screen through
 	// the one dither; on an 8-bit page the glow lands on the screen after
-	if (page_float()) { __bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75); page_blit(wb_surf, _gr.x, _gr.y); }
-	else { page_blit(wb_surf, _gr.x, _gr.y); __bloom(wb_surf, _vw, _vh, _gr.x, _gr.y, .75); }
+	if (page_float()) { __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); }
+	else { page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); }
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
 	draw_surface(gx_mm, _mmr.x, _mmr.y);

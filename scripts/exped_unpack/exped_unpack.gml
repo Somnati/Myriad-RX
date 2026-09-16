@@ -77,7 +77,7 @@ function exped_unpack(_s) {
 			var _routed = ((_kv[$ "rt"] ?? "0") == "1");
 			if (_kind == "H") {
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
-				                       finds : _finds, routed : _routed, cleared : real(_kv[$ "cl"] ?? "0"), wins : real(_kv[$ "w"] ?? "0"), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp,
+				                       finds : _finds, routed : _routed, cleared : real(_kv[$ "cl"] ?? "0"), wins : real(_kv[$ "w"] ?? "0"), log : (((_kv[$ "lg"] ?? "") != "") ? string_split(_kv.lg, "^") : [ "home" ]), hp : _hp, hpmax : _hm, mp : _mp,
 				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0"), stance : exped_stance(_kv[$ "stn"] ?? "steady").key,
 				                       best : ((_kv[$ "bt"] ?? "") != "") ? { title : _kv.bt, line : _kv[$ "bm"] ?? "" } : undefined });
 				continue;

@@ -410,11 +410,14 @@ if (view == "system" && is_struct(sy_sys)) {
 		exit;
 	}
 	var _svr = __sy_view_r();
-	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h);
+	var _sdk = point_in_rectangle(mouse_x, mouse_y, __sy_dock_x(), list_y + 16, room_width, room_height - 8);   // (the drawer and its tab: no place to drag or wheel from)
+	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h) && !_sdk;
 	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, 150); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }
 	var _bk0 = __back_r();
 	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
-	if (!sy_drag && mouse_check_button_pressed(mb_left) && _sin && !_onbk0) { sy_drag = true; sy_drag_px = 0; sy_dx = mouse_x; sy_dy = mouse_y; }
+	var _ser = __sy_enter_r();
+	var _oner = (!sy_dw && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h));
+	if (!sy_drag && mouse_check_button_pressed(mb_left) && _sin && !_onbk0 && !_oner) { sy_drag = true; sy_drag_px = 0; sy_dx = mouse_x; sy_dy = mouse_y; }
 	if (sy_drag && mouse_check_button(mb_left)) {
 		var _dx = mouse_x - sy_dx, _dy = mouse_y - sy_dy;
 		sy_drag_px += abs(_dx) + abs(_dy);
@@ -445,6 +448,7 @@ if (view == "system" && is_struct(sy_sys)) {
 			sy_sel = _hit;
 		}
 	}
+	sy_dwa = move_to(sy_dwa, sy_dw ? 1 : 0, 6);   // the drawer's ease
 }
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
@@ -460,6 +464,12 @@ for (var _k = 0; _k < 3; _k++) {
 // THE STAR SYSTEM's dock (2026-09-16): a row picks a world, [enter] dives into it (the swell, then its page)
 if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 	var _npl = array_length(sy_sys.planets);
+	// the drawer's tab: open / close
+	var _stb = __sy_tab_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _stb.x, _stb.y, _stb.x + _stb.w, _stb.y + _stb.h)) { sy_dw = !sy_dw; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
+	// [enter] bottom right while the drawer is shut
+	if (!sy_dw && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
+	if (sy_dwa >= .5) {   // (the drawer open: its rows and [enter])
 	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
 	var _sor = __sy_open_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _sor.x, _sor.y, _sor.x + _sor.w, _sor.y + _sor.h)) {
@@ -467,6 +477,7 @@ if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 		sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1;
 		play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1);
 		exit;
+	}
 	}
 }
 // [back] from any page (drawn on the right, syst_exped_panel's Draw); [crew] beside it (his ask, 2026-09-15)
@@ -719,6 +730,7 @@ if (view == "depart") {
 // ======================= THE HAUL: collect, or the recruit moment =======================
 if (view == "haul") {
 	var _hi = __haul_i();
+	if (land && !swap_pick) { var _hlr = __hlog_r(); if (point_in_rectangle(mouse_x, mouse_y, _hlr.x, _hlr.y, _hlr.x + _hlr.w, _hlr.y + _hlr.h)) { hl_open = !hl_open; log_follow = true; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; } }   // (2026-09-16)
 	if (swap_pick) {
 		// the roster: tap who retires
 		for (var _k = 0; _k < array_length(g.sprites); _k++) {

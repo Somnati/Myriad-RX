@@ -19,7 +19,7 @@
 ///   tl      slain:mist:items:xp:earned           pk      the pocket (a trip: its credits now; a haul: what came home)
 ///   stn     the stance (cautious / steady / greedy - exped_stance; a haul keeps it for [send again])
 ///   qps qpn qaf   a personal card's quest (1), its note, and whether the quest's after-moment (gratitude, the follow-up) already ran
-///   qvl     the villain thread's stage on the quest     bt bm   a haul's best moment: its title, its line
+///   qvl     the villain thread's stage on the quest     bt bm   a haul's best moment: its title, its line     lg   a haul's diary, its last hundred and twenty lines (^)
 /// A fight in progress replays its room on load (room_i steps back one).
 function exped_pack() {
 	exped_init();
@@ -114,6 +114,11 @@ function exped_pack() {
 		array_push(_f, "tl=" + string(_tl.slain) + ":" + string(_tl.mist) + ":" + string(_tl.items) + ":" + string_format(_tl.xp, 1, 2) + ":" + string(_tl.earned));
 		array_push(_f, "pk=" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0)));
 		array_push(_f, "stn=" + string(_r[$ "stance"] ?? "steady"));   // (the stance, 2026-09-16)
+		if (!_is && is_array(_r[$ "log"])) {   // THE DIARY of a haul (2026-09-16: [read the diary] on the home page): its last hundred and twenty lines, ^-joined
+			var _lg = "", _l0 = max(0, array_length(_r.log) - 120);
+			for (var _li = _l0; _li < array_length(_r.log); _li++) _lg += ((_li > _l0) ? "^" : "") + string_replace_all(string_replace_all(string_replace_all(string_replace_all(_r.log[_li], "|", " "), "#", " "), "^", " "), "\"", "'");
+			array_push(_f, "lg=" + _lg);
+		}
 		if (!_is && is_struct(_r[$ "best"])) {   // THE BEST MOMENT (a haul, 2026-09-16): its title and its line
 			array_push(_f, "bt=" + string_replace_all(string_replace_all(string_replace_all(_r.best.title, "|", " "), "#", " "), "\"", "'"));
 			array_push(_f, "bm=" + string_replace_all(string_replace_all(string_replace_all(_r.best.line, "|", " "), "#", " "), "\"", "'"));   // (a diary line may quote: the save is an ini - bug hunt 2026-09-16)

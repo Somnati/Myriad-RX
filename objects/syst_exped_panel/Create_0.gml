@@ -233,7 +233,7 @@ hand_out = false;                    // the hand folding back into the deck (the
 // it takes me to the expedition prep room"): the view coming, the light
 // (1 = lit; it goes to black, the view turns, it comes back), the direction
 pg_next = ""; pg_a = 1; pg_dir = 0;
-__page_go = function(_v) { pg_next = _v; pg_dir = -1; if (_v == "map") map_pop = -1; };
+__page_go = function(_v) { pg_next = _v; pg_dir = -1; if (_v == "map") map_pop = -1; if (_v == "haul") hl_open = false; };
 /// the turn's veil over the page (under the strip), for the pages that turn
 __draw_turn = function() {
 	if (pg_a >= .999) return;
@@ -341,7 +341,7 @@ __crewstrip_r = function() { var _b = __back_r(); return { x : __back_on() ? (_b
 __mapstrip_r = function() { var _c = __crewstrip_r(); return { x : _c.x - 4 - 44, y : _c.y, w : 44, h : 13 }; };
 /// [the gist] / [all] (2026-09-16): the diary's filter, left of [map] on the trip page, in [map]'s seat on the haul's (wide only)
 __histrip_r = function() { var _m = is_undefined(__map_ctx()) ? __crewstrip_r() : __mapstrip_r(); return { x : _m.x - 4 - 44, y : _m.y, w : 44, h : 13 }; };
-__histrip_on = function() { return (view == "trip" || (view == "haul" && land)); };
+__histrip_on = function() { return (view == "trip" || (view == "haul" && land && hl_open)); };
 /// the region the page is about -> { dest, rgi }, or undefined (no [map] then)
 __map_ctx = function() {
 	switch (view) {
@@ -479,12 +479,15 @@ sy_pd = [];                          // the lite worlds, one a planet (planet_ge
 sy_moons = [];                       // ...and their moons (planet_moons)
 sy_info = [];                        // ...and their tiers (galaxy_world)
 sy_cx = 0; sy_cy = 0;                // the projection's centre on the page
+sy_dw = false; sy_dwa = 0;           // THE DOCK AS A DRAWER (his ask, 2026-09-16: the planet page's tab - the view slides left as it opens)
 __sy_dock_w = function() { return land ? 150 : 110; };
-__sy_dock_x = function() { return room_width - (land ? 14 : 4) - __sy_dock_w(); };
-__sy_box_r  = function() { return { x : __sy_dock_x(), y : list_y + 16, w : __sy_dock_w(), h : 54 }; };   // the star's numbers
-__sy_row_r  = function(_i) { return { x : __sy_dock_x() + 5, y : list_y + 16 + 58 + _i * 24, w : __sy_dock_w() - 10, h : 22 }; };
-__sy_open_r = function() { return { x : __sy_dock_x() + 5, y : room_height - 8 - 16, w : __sy_dock_w() - 10, h : 16 }; };
-__sy_view_r = function() { return { x : 0, y : list_y, w : __sy_dock_x() - 4, h : room_height - list_y }; };
+__sy_dock_x = function() { return room_width - 9 - __sy_dock_w() * sy_dwa; };   // (the drawer's left edge: its tab when shut)
+__sy_tab_r  = function() { return { x : __sy_dock_x(), y : list_y + 22, w : 9, h : 60 }; };
+__sy_enter_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // [enter] bottom right while the drawer is shut
+__sy_box_r  = function() { var _x = __sy_dock_x() + 9; return { x : _x, y : list_y + 16, w : room_width - _x, h : 54 }; };   // the star's numbers (the drawer's box runs to the edge)
+__sy_row_r  = function(_i) { var _x = __sy_dock_x() + 13; return { x : _x, y : list_y + 16 + 58 + _i * 24, w : room_width - _x - 4, h : 22 }; };
+__sy_open_r = function() { var _x = __sy_dock_x() + 13; return { x : _x, y : room_height - 8 - 16, w : room_width - _x - 4, h : 16 }; };
+__sy_view_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 /// world -> page: [sx, sy, scale, depth], or undefined when behind the camera
 __sy_proj = function(_wx, _wy, _wz) {
 	var _v = mat3_apply(mat3_transpose(sy_cam), _wx, _wy, _wz);
@@ -514,7 +517,7 @@ __sy_enter = function(_star) {
 	}
 	if (sy_sel < 0 && _star == _hm.star) sy_sel = _hm.planet;
 	sy_dest = { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };   // (a stand-in world of this star: the sky builder wants one)
-	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false;
+	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
 };
 /// the star system page painted into the page surface: the star's sky, the rings, the star and the worlds far to near
@@ -523,7 +526,7 @@ __draw_system = function() {
 	var _w = room_width, _h = room_height - list_y;
 	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) { if (surface_exists(wb_surf)) surface_free(wb_surf); wb_surf = page_surface(_w, _h); }
 	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) { if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf); sky_fog_surf = surface_create(_w, _h); }
-	sy_cx = _vr.x + _vr.w * .5; sy_cy = _vr.h * .52;   // (page space: the surface starts at list_y)
+	sy_cx = room_width * .5 - __sy_dock_w() * sy_dwa * .5; sy_cy = _vr.h * .52;   // (page space: centred, slid left as the drawer opens)
 	var _sky = __sky_for(sy_dest);
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);
@@ -585,10 +588,7 @@ __draw_system = function() {
 				var _mx = sy_wfx + (_mp[0] - sy_wfx) * _s, _my = sy_wfy + (_mp[1] - sy_wfy) * _s, _ms = max(1, _mo.size * _p.size * 2 * _mp[2] * _s);
 				draw_sprite_ext(spr_pixel_1x1, 0, _mx - _ms * .5, _my - _ms * .5, _ms, _ms, 0, _mo.col, .9);
 			}
-			// on the board: a gold corner; picked: the pulsing box
-			var _onb = false;
-			for (var _bj = 0; _bj < array_length(g.exped.board); _bj++) if (g.exped.board[_bj].seed == _p.seed) _onb = true;
-			if (_onb && sy_warp_pl < 0) draw_px_rect(floor(_sx - _rad - 3), floor(_sy - _rad - 3), ceil(_rad * 2 + 7), ceil(_rad * 2 + 7), c_gold, .55);
+			// picked: the pulsing box (no mark for the opened ones - his call, 2026-09-16: the worlds need not know they have been)
 			if (sy_sel == _i && sy_warp_pl < 0) { var _mr2 = _rad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr2, _sy - _mr2, _mr2 * 2, _mr2 * 2, c_white, .8); }
 			// "you": the world the panel stands on (the home world when nothing does)
 			var _here = is_struct(pl_dest) ? (pl_dest.seed == _p.seed) : (galaxy_home().planet_seed == _p.seed);
@@ -883,8 +883,8 @@ gx_glow_a = -1; gx_glow_b = -1;      // the bloom's two half-size passes (sh_blu
 // THE BLOOM composites INTO the page (2026-09-15): float all the way, so
 // the halos meet 8-bit only at the page's blit (x / y are kept for the
 // 8-bit path, where it still lands on the screen)
-__bloom = function(_src, _w, _h, _x, _y, _a) {
-	var _hw = max(2, floor(_w * .5)), _hh = max(2, floor(_h * .5));
+__bloom = function(_src, _w, _h, _x, _y, _a, _ds = 1) {   // (ds: the draw scale on the page - the map's surface is drawn gs times over, 2026-09-16)
+	var _hw = max(2, floor(_w * .5 * _ds)), _hh = max(2, floor(_h * .5 * _ds));   // (half the ROOM's size: a denser source blurs the same width)
 	if (!surface_exists(gx_glow_a) || surface_get_width(gx_glow_a) != _hw || surface_get_height(gx_glow_a) != _hh) { if (surface_exists(gx_glow_a)) surface_free(gx_glow_a); gx_glow_a = page_surface(_hw, _hh); }
 	if (!surface_exists(gx_glow_b) || surface_get_width(gx_glow_b) != _hw || surface_get_height(gx_glow_b) != _hh) { if (surface_exists(gx_glow_b)) surface_free(gx_glow_b); gx_glow_b = page_surface(_hw, _hh); }
 	static _u = undefined;
@@ -895,7 +895,7 @@ __bloom = function(_src, _w, _h, _x, _y, _a) {
 	surface_set_target(gx_glow_a);
 	draw_clear_alpha(c_black, 1);
 	shader_set(sh_blur);
-	shader_set_uniform_f(_u.dir, 1, 0); shader_set_uniform_f(_u.texel, 1 / _w, 1 / _h);
+	shader_set_uniform_f(_u.dir, 1, 0); shader_set_uniform_f(_u.texel, 1 / (_w * _ds), 1 / (_h * _ds));
 	draw_surface_ext(_src, 0, 0, _hw / _w, _hh / _h, 0, c_white, 1);
 	shader_reset();
 	surface_reset_target();
@@ -908,7 +908,7 @@ __bloom = function(_src, _w, _h, _x, _y, _a) {
 	surface_reset_target();
 	gpu_set_blendmode(bm_add);
 	if (page_float()) { surface_set_target(_src); draw_surface_ext(gx_glow_b, 0, 0, _w / _hw, _h / _hh, 0, c_white, _a); surface_reset_target(); }
-	else draw_surface_ext(gx_glow_b, _x, _y, _w / _hw, _h / _hh, 0, c_white, _a);
+	else draw_surface_ext(gx_glow_b, _x, _y, _w * _ds / _hw, _h * _ds / _hh, 0, c_white, _a);
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 };
@@ -923,6 +923,7 @@ log_n = -1;                          // the diary's line count last seen (a new 
 log_surf = -1;                       // the diary's band, rendered offset
 log_lay = { n : 0, w : 0, hs : [], total : 0 };   // the layout: every line's height, the total
 log_hi = false;                                    // THE GIST (2026-09-16): the diary's highlights only (exped_log_gist), the strip's toggle
+hl_open = false;                                   // THE HAUL'S DIARY (2026-09-16): behind [read the diary] on the home page
 log_gist = { n : -1, id : -1, arr : [] };         // ...the filtered lines, cached by the source's length and the page
 // THE ONE VEIL (2026-09-15): every page fades in from black on a view
 // change (view_last, the Step) - a proxy a step above the panel draws it,
@@ -1015,17 +1016,11 @@ __log_r = function() {
 		var _yend = _fighting ? (__fight_r().y - 6) : (room_height - 8 - (land ? 18 : 2));   // (over the buttons' row on a wide page)
 		return { x : log_x, y : log_y + 42, w : log_w, h : _yend - (log_y + 42) };   // (under the quest's island)
 	}
-	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12, _dy = __haul_dy0() + 12; return { x : _lx, y : _dy, w : room_width - _lx - 14, h : room_height - 10 - _dy }; }   // (the band's own y - it sat 48px above it since the tally moved the band, 2026-09-16)
+	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12, _dy = list_y + 22; return { x : _lx, y : _dy, w : room_width - _lx - 14, h : (hl_open && land) ? (room_height - 8 - 22 - _dy) : 0 }; }   // (the diary fills the column when open - 2026-09-16)   // (the band's own y - it sat 48px above it since the tally moved the band, 2026-09-16)
 	return { x : 0, y : 0, w : 0, h : 0 };
 };
-/// the haul page's "the diary" label y: under the tally, and under THE MOMENT when the haul has one (2026-09-16)
-__haul_dy0 = function() {
-	var _cy = list_y + 22, _mh = 0;
-	var _hi = __haul_i();
-	var _hb = (_hi >= 0) ? g.exped.hauls[_hi][$ "best"] : undefined;
-	if (is_struct(_hb)) { draw_set_font(fnt); _mh = 22 + ((_hb.line != "") ? (string_height_ext(_hb.line, 9, room_width - (14 + 224 + 12) - 14) + 2) : 0); }
-	return _cy + 12 + 30 + 6 + _mh;
-};
+/// [read the diary] / [close the diary] on the haul page (2026-09-16): the right column's foot
+__hlog_r = function() { var _cw = 224, _lx = 14 + _cw + 12; return { x : _lx, y : room_height - 8 - 16, w : room_width - _lx - 14, h : 16 }; };
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
 __gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
@@ -1919,10 +1914,12 @@ __world_small = function(_d, _cx, _cy, _r, _rg = undefined) {
 /// portrait gets its full world within a second or two
 __worlds_step = function() {
 	var _e = g.exped;
+	// ONLY THE WORLD ON THE PAGE builds (his report, 2026-09-16: every opened world building at once lagged the first look):
+	// the planet page's, a trip's or a haul's while its page shows - each on its first look, the boot's is the home world
 	var _list = [];
-	for (var _i = 0; _i < array_length(_e.board); _i++) array_push(_list, _e.board[_i]);
-	for (var _i = 0; _i < array_length(_e.trips); _i++) array_push(_list, _e.trips[_i].dest);
 	if (is_struct(pl_dest)) array_push(_list, pl_dest);
+	if (view == "trip") { var _wt = __trip(); if (!is_undefined(_wt)) array_push(_list, _wt.dest); }
+	if (view == "haul") { var _wh = __haul_i(); if (_wh >= 0) array_push(_list, _e.hauls[_wh].dest); }
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		var _pn = planet_get(_list[_i].seed, exped_planet_hint(_list[_i]));
 		if (_pn.row < _pn.th) { planet_gen_step(_pn, 6); return; }   // (six rows a frame: a fresh world in a quarter second)

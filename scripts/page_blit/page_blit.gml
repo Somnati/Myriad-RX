@@ -1,10 +1,10 @@
-/// @description page_blit(surf, x, y) - a page surface to the screen through THE ONE DITHER (sh_page_out), under the ui fade
+/// @description page_blit(surf, x, y, [scale]) - a page surface to the screen through THE ONE DITHER (sh_page_out), under the ui fade
 /// The only quantisation a float page meets: FILM GRAIN - white noise,
 /// triangular, the intensity slider's share of PAGE_GRAIN_MAX levels either way, on the render's pixel cells
 /// (px_size room px, in window pixels), fresh every frame - exact black
 /// stays black. On an 8-bit page the layers dithered themselves; this adds a
 /// hair on top, which is harmless.
-function page_blit(_surf, _x, _y) {
+function page_blit(_surf, _x, _y, _s = 1) {   // (_s: the draw scale - the galaxy map's page is gs times the room, drawn back down; 2026-09-16)
 	static _u = undefined;
 	if (is_undefined(_u)) _u = { time : shader_get_uniform(sh_page_out, "u_time"), cell : shader_get_uniform(sh_page_out, "u_cell"), amp : shader_get_uniform(sh_page_out, "u_amp"), mode : shader_get_uniform(sh_page_out, "u_mode") };
 	if (!surface_exists(_surf)) return;
@@ -19,7 +19,7 @@ function page_blit(_surf, _x, _y) {
 	var _pa = (variable_global_exists("page_dither_amt") ? g.page_dither_amt : 25) / 100 * PAGE_GRAIN_MAX;
 	shader_set_uniform_f(_u.amp, page_float() ? _pa : _pa * .5);
 	shader_set_uniform_f(_u.mode, (_pd == "grain") ? 0 : 1);
-	draw_surface_ext(_surf, _x, _y, 1, 1, 0, c_white, _fa);
+	draw_surface_ext(_surf, _x, _y, _s, _s, 0, c_white, _fa);
 	shader_reset();
 	ui_fade_set(_fa);
 }
