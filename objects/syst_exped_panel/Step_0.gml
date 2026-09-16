@@ -44,6 +44,7 @@ else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; 
 // the board's, the trips', the planet window's), so every portrait is the
 // full world within a second or two, without a hitch
 __worlds_step();
+if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
 // THE REPLAY: a trip page with an unseen film (and no live fight)
 // plays it in the combat window, a swing every half second; the last
 // frame holds a moment, then it is seen. A tap on the window skips it

@@ -1053,6 +1053,8 @@ if (view == "galaxy") {
 	var _ftf = gpu_get_tex_filter();
 	gpu_set_tex_filter(true);
 	gpu_set_blendmode(bm_add);
+	var _fsh_ok = shader_is_compiled(sh_galaxy_fog);   // (a shader that failed to compile draws nothing: the sheet goes plain instead, and the page says so)
+	if (_fsh_ok) {
 	shader_set(sh_galaxy_fog);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_time"), (current_time mod 100000) / 1000);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_dither"), page_float() ? 0 : 1);
@@ -1060,8 +1062,9 @@ if (view == "galaxy") {
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_freq"), _gcf[$ "fog_freq"] ?? 34);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_warp"), _gcf[$ "fog_warp"] ?? .03);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_gal"), _sm.cx / _sm.width, _sm.cy / _sm.width, _sm.gal_r / _sm.width);
-	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, c_white, _gcf.fog_alpha);
-	shader_reset();
+	}
+	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, _fsh_ok ? c_white : rgb(255, 185, 125), _fsh_ok ? _gcf.fog_alpha : _gcf.fog_alpha * .5);
+	if (_fsh_ok) shader_reset();
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
@@ -1108,6 +1111,7 @@ if (view == "galaxy") {
 	// the one dither; on an 8-bit page the glow lands on the screen after
 	if (page_float()) { __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); }
 	else { page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); }
+	if (!shader_is_compiled(sh_galaxy_fog) || !shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(_gr.x + 4, _gr.y + _gr.h - 30, (shader_is_compiled(sh_galaxy_fog) ? "" : "sh_galaxy_fog failed to compile  ") + (shader_is_compiled(sh_sky_fog) ? "" : "sh_sky_fog failed to compile")); }   // (2026-09-16: the page is the compile log)
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
 	draw_surface(gx_mm, _mmr.x, _mmr.y);

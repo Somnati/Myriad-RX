@@ -67,15 +67,13 @@ void main()
     float rd = clamp(distance(suv, u_gal.xy) / u_gal.z, 0.0, 1.0);
     vec3 tcol = mix(vec3(1.0, 0.725, 0.490), vec3(0.510, 0.608, 1.0), rd);
     tcol = mix(vec3(0.094, 0.086, 0.118), tcol, 0.55 + 0.45 * dens);
-    // the fray: the body of a cloud is never touched (a nebula stays a nebula - chopped fine, they all read as
-    // smoke; his report), its skirts tear to wisps on a threshold the density lowers; the body's knots brighten a little
-    float core = smoothstep(0.55, 0.95, dens);
-    float thr = 0.60 - 0.30 * dens;
-    float fray = smoothstep(thr - 0.22, thr + 0.22, n);
-    float k = mix(fray, 1.0, core);
-    float bright = 1.0 + 0.5 * (n - 0.5) * (0.3 + 0.7 * core);
-    // (density cubed: the weight the old premultiplied bake came to at its blit - the fog keeps its depth)
-    vec4 c = vec4(tcol * bright, dens * dens * dens * k) * v_vColour;
+    // THE TEXTURE (his reports, 2026-09-16: a fray that tore the skirts cut every cloud to smoke): the body stays
+    // whole - the noise only modulates the density a little (mottling, never holes) and lifts the knots; the
+    // domain warp above is what bends the outline off round
+    float dm = dens * (0.80 + 0.40 * n);
+    float bright = 0.85 + 0.30 * n;
+    // (density cubed: the weight the old bake came to at its blit - the same fog, bent and mottled)
+    vec4 c = vec4(tcol * bright, dm * dm * dm) * v_vColour;
 
     // temporal dither on an 8-bit page (sh_fog_dither's law: white grain re-seeded at 30hz,
     // luminance-gated amplitude, alpha-compensated so it survives the sheet's low draw alpha)

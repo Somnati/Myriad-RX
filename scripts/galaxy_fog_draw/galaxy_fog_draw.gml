@@ -31,6 +31,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	// sheet and the stage's filter flag went global; his report 2026-09-16). The canvas argument is kept, unused.
 	var _sheet = galaxy_neb_sheet();
 	if (!surface_exists(_sheet)) return;
+	if (!shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(4, _h - 12, "sh_sky_fog failed to compile"); draw_set_alpha(1); return; }   // (2026-09-16: a failed shader draws nothing - the page says so)
 	var _sm = starmap_get(), _me = _sm.stars[_sky.star];
 	var _ftf = gpu_get_tex_filter();
 	gpu_set_tex_filter(true);   // (the sheet's cells blend along the march)
