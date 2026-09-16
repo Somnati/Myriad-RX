@@ -61,7 +61,7 @@ function starmap_config() {
 		fog_alpha : .39,
 		fog_depth : .82,
 		fog_freq  : 6,    // sh_galaxy_fog (2026-09-16): noise cells across the map - the clouds' own scale (finer chopped them to smoke)
-		fog_warp  : .025, // ...how far the clouds' outlines wander, in map fraction (the circles' cure)
+		fog_warp  : .04,  // ...how far the clouds' outlines wander, in map fraction (the circles' cure)
 		// ---- the map's stars (the demo's per-star bloom: spr_star_glow's stepped frames, 2026-09-16) ----
 		star_glow_size  : 6,   // wanted glow size as a multiple of star size
 		star_glow_alpha : .3,  // the frame's strength (the page's bloom does the rest)

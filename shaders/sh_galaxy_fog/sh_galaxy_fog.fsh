@@ -70,7 +70,12 @@ void main()
     // THE TEXTURE (his reports, 2026-09-16: a fray that tore the skirts cut every cloud to smoke): the body stays
     // whole - the noise only modulates the density a little (mottling, never holes) and lifts the knots; the
     // domain warp above is what bends the outline off round
-    float dm = dens * (0.80 + 0.40 * n);
+    // the body of a cloud is mottled a little; its SKIRTS (the thin outer density) are ragged by a finer grain,
+    // so the edge of every cloud is torn and uneven while the middle stays a body (the sheet works now - his
+    // report; the look wanted more than a bend)
+    float body = smoothstep(0.35, 0.75, dens);
+    float n2 = fbm(p * 3.1 + vec2(7.7, 2.9));
+    float dm = dens * mix(0.50 + 1.0 * n2, 0.85 + 0.30 * n, body);
     float bright = 0.85 + 0.30 * n;
     // (density cubed: the weight the old bake came to at its blit - the same fog, bent and mottled)
     vec4 c = vec4(tcol * bright, dm * dm * dm) * v_vColour;
