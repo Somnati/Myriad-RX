@@ -220,8 +220,11 @@ if (view == "map") {
 	if (land) __info_box_size(_d, _rg);   // (the box's width first: the map sits right of it)
 	var _mr = __map_r();
 	var _bb = exped_biomes()[_d.biome];
-	var _lkey = string(_rg.seed) + ":" + string(map_rgi) + ":" + string(_mr.w) + "x" + string(_mr.h);
-	var _lab = __map_labels(_rg, _mr, _lkey);
+	// the names: every place but the minor biomes, and any place a crew has business at (2026-09-16)
+	var _named = __map_named(_rg, _d), _nkey = "";
+	for (var _i = 0; _i < array_length(_named); _i++) _nkey += _named[_i] ? "1" : "0";
+	var _lkey = string(_rg.seed) + ":" + string(map_rgi) + ":" + string(_mr.w) + "x" + string(_mr.h) + ":" + _nkey;
+	var _lab = __map_labels(_rg, _mr, _lkey, _named);
 	// the header (short: the back button sits on the right)
 	draw_set_color(exped_world_col(_d)); draw_set_alpha(.95);
 	draw_text(land ? 14 : 4, list_y + 6, _d.name);
@@ -259,8 +262,9 @@ if (view == "map") {
 		var _np = __map_xy(_nd, _rg, _mr);
 		var _nx = floor(_np.x), _ny = floor(_np.y);
 		var _lz = (_nd[$ "landing"] ?? false);
-		if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _nx, _ny, _kd.col);   // (a town with the landing zone inside: the house, and the flag beside it)
-		__map_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 9 : 0), _ny, _lz ? c_white : _kd.col);
+		if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _nx, _ny, _kd.col);   // (a settled place with the landing zone inside: the house, the flag ON it - the pole up the roof, his call 2026-09-16)
+		__map_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 6 : 0), _ny - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col);
+		if (!_named[_i]) continue;   // (a minor biome no crew is bound for: the dot alone)
 		var _lp = is_undefined(_lab[_i]) ? { x : _nx + 7, y : _ny - 4 } : _lab[_i];
 		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6); }
 		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.9); }
@@ -310,6 +314,8 @@ if (view == "map") {
 		draw_set_color(_tc); draw_set_alpha(.85);
 		draw_text(_cx - 6, _cy + 12, exped_crew_txt(_tr2.names) + ": " + ((_tr2.stage == 1) ? exped_where(_tr2) : ((_tr2.stage == 0) ? "on the way" : "gone home")));
 	}
+	// the place's card (tap a node), over the crews, under the legend
+	if (!map_legend && map_pop >= 0 && map_pop < array_length(_rg.nodes)) __map_node_card(_d, _rg, _mr, map_pop);
 	// [legend], and the note
 	var _lgr = __legend_r();
 	draw_ui_button(_lgr.x, _lgr.y, _lgr.w, _lgr.h, "legend", c_steelblue, true, false);

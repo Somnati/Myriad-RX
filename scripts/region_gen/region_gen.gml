@@ -172,6 +172,18 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// one up so the count holds
 	var _lz_in = (random(1) < .3);
 	if (_lz_in) { _nodes[0].kind = (random(1) < .3 && !_city) ? "city" : "town"; if (_nodes[0].kind == "city") _city = true; if (array_length(_must) > 0) array_delete(_must, 0, 1); }
+	// CIVILIZATION BY LEVEL (his call, 2026-09-16: "early regions will have
+	// settlements, then lv 3s can spawn towns, lv 10s cities... a pool bound
+	// by region level"): the rolls above stand (the stream is the same), the
+	// kind is CAPPED - a village from level 2, a town from 3, a city from 10
+	var _cap = function(_k, _lv2) {
+		if (_k == "city" && _lv2 < 10)   _k = "town";
+		if (_k == "town" && _lv2 < 3)    _k = "village";
+		if (_k == "village" && _lv2 < 2) _k = "settlement";
+		return _k;
+	};
+	for (var _mi = 0; _mi < array_length(_must); _mi++) _must[_mi] = _cap(_must[_mi], _lv);
+	if (_nodes[0].kind != "landing") _nodes[0].kind = _cap(_nodes[0].kind, _lv);
 	var _si = 0;
 	for (; _si < array_length(_must) && _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _must[_si];
 	for (; _si < array_length(_slots); _si++) _nodes[_slots[_si]].kind = _wild[irandom(array_length(_wild) - 1)];

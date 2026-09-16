@@ -6,10 +6,10 @@ function exped_quest_obj(_q, _rg, _long) {
 	var _fd = _rg.nodes[clamp((_q[$ "from"] ?? -1) >= 0 ? _q.from : _q.node, 0, _nn - 1)];
 	var _who = _q[$ "who"] ?? "";
 	switch (_q.kind) {
-		case "slay":   return _long ? ("hunt " + _pl(_q.foe) + " at " + _nd.name + " (" + _nd.kind + "), " + string(_q.n) + " of them; the crew comes home when the count is met") : ("slay " + string(_q.n) + " " + _pl(_q.foe) + " there");
+		case "slay":   return _long ? ("hunt " + _pl(_q.foe) + " at " + _nd.name + " (" + _nd.kind + "), " + string(_q.n) + " of them; the crew comes home when the count is met") : ("slay " + string(_q.n) + " " + _pl(_q.foe));
 		case "clear":  return _long ? ("go room by room through " + _nd.name + ", " + string(_q.n) + " rooms - fights, finds, traps") : ("clear it, room by room (" + string(_q.n) + ")");
 		case "rout":   return _long ? ("walk into the camp at " + _nd.name + " and win two fights against its bandits") : "rout the bandits: two fights, then their chest";
-		case "scout":  return _long ? ("get to " + _nd.name + " and come back with a look at it") : "get there, have a look, come back";
+		case "scout":  return _long ? ("get to " + _nd.name + " and come back with a look at it") : "have a look around, come back";
 		case "escort": return _long ? ("meet " + _who + " at " + _fd.name + " and walk them by the roads to " + _nd.name + "; bandits like a cart on the road") : ("walk " + _who + " to " + _nd.name);
 		case "fetch":  return _long ? ("go to " + _fd.name + " for " + _who + " and carry it to " + _nd.name + "; something may be sitting on it") : ("fetch " + _who + ", bring it to " + _nd.name);
 		case "rescue": return _long ? ("search " + _fd.name + " room by room for " + _who + " and bring them back to " + _nd.name) : ("find " + _who + " here, bring them to " + _nd.name);

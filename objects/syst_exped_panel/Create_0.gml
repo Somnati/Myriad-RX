@@ -217,7 +217,7 @@ hand_out = false;                    // the hand folding back into the deck (the
 // it takes me to the expedition prep room"): the view coming, the light
 // (1 = lit; it goes to black, the view turns, it comes back), the direction
 pg_next = ""; pg_a = 1; pg_dir = 0;
-__page_go = function(_v) { pg_next = _v; pg_dir = -1; };
+__page_go = function(_v) { pg_next = _v; pg_dir = -1; if (_v == "map") map_pop = -1; };
 /// the turn's veil over the page (under the strip), for the pages that turn
 __draw_turn = function() {
 	if (pg_a >= .999) return;
@@ -1066,7 +1066,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			array_push(_qrows, { k : _qq.key, v : _qtx });
 		}
 		var _desc = gear_desc(_it), _dh = string_height_ext(_desc, 9, _pw - 12);
-		var _ph = 44 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12) + array_length(_qrows) * 10 + _dh + 4;
+		var _ph = 54 + array_length(_lines) * 10 + (is_undefined(_cmp) ? 0 : 12) + array_length(_qrows) * 10 + _dh + 4;
 		var _ppx = clamp(it_pop.x, 4, room_width - _pw - 4), _ppy = clamp(it_pop.y, list_y + 20, room_height - _ph - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _ppx + 2, _ppy + 3, _pw, _ph, 0, c_black, .5);
 		draw_sprite_ext(spr_pixel_1x1, 0, _ppx, _ppy, _pw, _ph, 0, c_hsv(169, 186, 9), .98);
@@ -1076,7 +1076,15 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _ty2 = _ppy + 4 + string_height_ext(_it.name, 9, _pw - 12) + 2;
 		draw_set_color(_dim); draw_set_alpha(.7);
 		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : "talisman"));
-		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv) + (it_pop.worn ? "  -  worn" : "  -  in the pocket"));
+		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv));
+		_ty2 += 10;
+		// THE ODDS (his ask, 2026-09-16): "1 in N" - the rung's share of the house
+		// ladder at the base rate (rarity_odds: the very bands the loot rolls through)
+		var _go = rarity_odds(0, .3, .03, 800, 8);
+		draw_text(_ppx + 6, _ty2, it_pop.worn ? "worn" : "in the pocket");
+		draw_set_halign(fa_right); draw_set_color(_it.col); draw_set_alpha(.9);
+		draw_text(_ppx + _pw - 6, _ty2, rarity_label(_go[clamp(_it.rar, 0, 7)]));
+		draw_set_halign(fa_left);
 		_ty2 += 12;
 		// the line of voice, then the quirks in green
 		draw_set_color(_dim); draw_set_alpha(.75);
@@ -1149,7 +1157,7 @@ __info_box_size = function(_d, _rg) {
 	draw_set_font(fnt_large);
 	var _w = string_width(str_cap(_rg.name)) + 16;
 	draw_set_font(fnt);
-	for (var _li = 0; _li < array_length(_inf); _li++) _w = max(_w, string_width(_inf[_li].k + " - " + _inf[_li].v) + 16);
+	for (var _li = 0; _li < array_length(_inf); _li++) _w = max(_w, string_width(_inf[_li].k) + 12 + string_width(_inf[_li].v) + 16);   // (the name left, the value right - his ask, 2026-09-16)
 	_w = clamp(_w, _wmin, _wmax);
 	draw_set_font(fnt_large);
 	var _h = 5 + string_height_ext(str_cap(_rg.name), 11, _w - 14) + 3 + array_length(_inf) * 11 + 4;
@@ -1172,10 +1180,10 @@ __draw_info_box = function(_d, _rg, _bn) {
 	for (var _li = 0; _li < array_length(_inf); _li++) {
 		var _ln = _inf[_li];
 		draw_set_color(sett_ink); draw_set_alpha(.8);
-		draw_text(_bn.x + 8, _bny, _ln.k + " - ");
+		draw_text(_bn.x + 8, _bny, _ln.k);
 		var _lc = _ln[$ "col"];
 		draw_set_color(is_undefined(_lc) ? _tc[clamp(_ln.t, 0, 3)] : _lc); draw_set_alpha(.95);
-		draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
+		draw_set_halign(fa_right); draw_text(_bn.x + _bn.w - 8, _bny, _ln.v); draw_set_halign(fa_left);   // (the value right-aligned - his ask, 2026-09-16)
 		_bny += 11;
 	}
 };
@@ -1187,7 +1195,7 @@ __world_box_r = function(_d) {
 	draw_set_font(fnt_large);
 	var _w = string_width(str_cap(_d.name)) + 16;
 	draw_set_font(fnt);
-	for (var _li = 0; _li < array_length(_pp.lines); _li++) _w = max(_w, string_width(_pp.lines[_li].k + " - " + _pp.lines[_li].v) + 16);
+	for (var _li = 0; _li < array_length(_pp.lines); _li++) _w = max(_w, string_width(_pp.lines[_li].k) + 12 + string_width(_pp.lines[_li].v) + 16);
 	_w = clamp(_w, _wmin, _wmax);
 	draw_set_font(fnt_large);
 	var _h = 5 + string_height_ext(str_cap(_d.name), 11, _w - 14) + 3 + array_length(_pp.lines) * 11 + 4;
@@ -1206,14 +1214,115 @@ __draw_world_box = function(_d) {
 	for (var _li = 0; _li < array_length(_pp.lines); _li++) {
 		var _ln = _pp.lines[_li];
 		draw_set_color(sett_ink); draw_set_alpha(.8);
-		draw_text(_bn.x + 8, _bny, _ln.k + " - ");
+		draw_text(_bn.x + 8, _bny, _ln.k);
 		var _lc = _ln[$ "col"];
 		draw_set_color(is_undefined(_lc) ? _tc[clamp(_ln.t, 0, 3)] : _lc); draw_set_alpha(.95);
-		draw_text(_bn.x + 8 + string_width(_ln.k + " - "), _bny, _ln.v);
+		draw_set_halign(fa_right); draw_text(_bn.x + _bn.w - 8, _bny, _ln.v); draw_set_halign(fa_left);   // (the value right-aligned, the region box's way - 2026-09-16)
 		_bny += 11;
 	}
 };
 map_legend = false;                  // the legend popup (his ask: a [legend] button, the kinds listed)
+map_pop = -1;                        // the place whose card is up (his ask, 2026-09-16: tap a node for its info)
+// the minor biomes: NO NAME on the map unless a crew has business there (his call, 2026-09-16)
+__map_minor = function(_kind) { return array_contains(["field", "forest", "hills", "marsh", "desert", "mountains", "tundra", "coast", "isle"], _kind); };
+/// which places wear a name: every place that is not a minor biome, and any place a crew is
+/// at, on the road to, next on its path to, or has a quest at -> bool per node
+__map_named = function(_rg, _d) {
+	var _e = g.exped;
+	var _out = array_create(array_length(_rg.nodes), false);
+	for (var _i = 0; _i < array_length(_out); _i++) _out[_i] = !__map_minor(_rg.nodes[_i].kind);
+	for (var _t = 0; _t < array_length(_e.trips); _t++) {
+		var _tr = _e.trips[_t];
+		if (_tr.dest.seed != _d.seed || (_tr[$ "rgi"] ?? 0) != _rg.ri) continue;
+		var _mark = is_struct(_tr[$ "quest"]) ? exped_quest_places(_tr.quest) : [];
+		array_push(_mark, _tr[$ "pos"] ?? _rg.landing);
+		if (is_struct(_tr[$ "road"])) array_push(_mark, _tr.road.b);
+		var _pp = _tr[$ "path"] ?? [];
+		if (array_length(_pp) > 0) array_push(_mark, _pp[0]);
+		for (var _k = 0; _k < array_length(_mark); _k++) { var _mi = _mark[_k]; if (_mi >= 0 && _mi < array_length(_out)) _out[_mi] = true; }
+	}
+	return _out;
+};
+/// THE PLACE'S CARD (his ask, 2026-09-16: "click on a node to have a popup appear that shows info"):
+/// what it is, its hazard, its foes, the roads out with their hours, and every crew with business there
+__map_node_card = function(_d, _rg, _mr, _ni) {
+	var _nd = _rg.nodes[_ni], _kk = region_kinds(), _kd = _kk[$ _nd.kind] ?? _kk.field, _e = g.exped;
+	var _np = __map_xy(_nd, _rg, _mr);
+	var _cw = 160, _iw = _cw - 12;
+	var _what;
+	switch (_nd.kind) {
+		case "landing":    _what = "where a crew lands, and the road home"; break;
+		case "settlement": _what = "a few houses and a well - a bed for the night"; break;
+		case "village":    _what = "an inn, and a small shop"; break;
+		case "town":       _what = "an inn and a market - a shop worth a look"; break;
+		case "city":       _what = "inns and a proper market - the best stock there is"; break;
+		case "camp":       _what = "bandits - two fights, then their chest"; break;
+		case "dungeon":    _what = "rooms to clear - fights, finds, traps"; break;
+		case "crypt":      _what = "a dungeon of the dead"; break;
+		case "ruin":       _what = "old stones - something is sometimes left in them"; break;
+		case "shrine":     _what = "a blessing for a crew that stops"; break;
+		case "mine":       _what = "ore to dig, sacks to carry"; break;
+		default:           _what = "the " + _kd.name + " - the road passes through"; break;
+	}
+	var _rows = [];
+	var _hz = cbt_hazard_at(_nd.kind);
+	if (!is_undefined(_hz)) array_push(_rows, { k : "hazard", v : _hz.name, col : _hz.col });
+	if (!_kd.civ && _nd.kind != "landing" && _nd.kind != "shrine") {
+		var _fk = foe_kinds_at(_nd.kind), _ft = "";
+		for (var _fi = 0; _fi < min(3, array_length(_fk)); _fi++) _ft += ((_fi > 0) ? ", " : "") + foe_plural(_fk[_fi]);
+		array_push(_rows, { k : "foes", v : _ft, col : c_hred });
+	}
+	var _rt = "";
+	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
+		var _ed = _rg.edges[_ei];
+		var _o = (_ed.a == _ni) ? _ed.b : ((_ed.b == _ni) ? _ed.a : -1);
+		if (_o < 0) continue;
+		_rt += ((_rt != "") ? ", " : "") + _rg.nodes[_o].name + " " + string(_ed.d) + "h";
+	}
+	if (_rt != "") array_push(_rows, { k : "roads", v : _rt, col : undefined });
+	for (var _t = 0; _t < array_length(_e.trips); _t++) {
+		var _tr = _e.trips[_t];
+		if (_tr.dest.seed != _d.seed || (_tr[$ "rgi"] ?? 0) != _rg.ri || _tr.stage != 1) continue;
+		var _here = ((_tr[$ "pos"] ?? -1) == _ni && !is_struct(_tr[$ "road"]));
+		var _to = (is_struct(_tr[$ "road"]) && _tr.road.b == _ni);
+		var _on = array_contains(_tr[$ "path"] ?? [], _ni);
+		var _qh = is_struct(_tr[$ "quest"]) ? array_contains(exped_quest_places(_tr.quest), _ni) : false;
+		var _v = _here ? "here now" : (_to ? "on the road here" : (_on ? "passing through" : (_qh ? "the quest is here" : "")));
+		if (_v != "") array_push(_rows, { k : exped_crew_txt(_tr.names), v : _v, col : _tr.cols[0] });
+	}
+	// the height: the name, the kind, the line, then the rows (a value that fits sits right of its key; a long one wraps under it)
+	draw_set_font(fnt);
+	var _ch = 4 + 10 + 10 + string_height_ext(_what, 9, _iw) + 4;
+	var _fits = array_create(array_length(_rows), true);
+	for (var _ri = 0; _ri < array_length(_rows); _ri++) {
+		_fits[_ri] = (string_width(_rows[_ri].k) + 8 + string_width(_rows[_ri].v) <= _iw);
+		_ch += _fits[_ri] ? 10 : (10 + string_height_ext(_rows[_ri].v, 9, _iw));
+	}
+	_ch += 4;
+	var _cx = floor(_np.x) + 12, _cy = floor(_np.y) - 8;
+	if (_cx + _cw > _mr.x + _mr.w - 4) _cx = floor(_np.x) - 12 - _cw;
+	_cx = clamp(_cx, _mr.x + 4, _mr.x + _mr.w - _cw - 4);
+	_cy = clamp(_cy, _mr.y + 4, _mr.y + _mr.h - _ch - 4);
+	draw_sprite_ext(spr_pixel_1x1, 0, _cx + 2, _cy + 3, _cw, _ch, 0, c_black, .5);
+	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, _ch, 0, c_hsv(169, 186, 9), .98);
+	draw_px_rect(_cx, _cy, _cw, _ch, _kd.col, .8);
+	var _ty = _cy + 4;
+	draw_set_color((_nd[$ "landing"] ?? false) ? c_white : _kd.col); draw_set_alpha(.95);
+	draw_text(_cx + 6, _ty, __sheet_cut(_nd.name, _iw)); _ty += 10;
+	draw_set_color(dim); draw_set_alpha(.7);
+	draw_text(_cx + 6, _ty, _kd.name + ((_nd[$ "landing"] ?? false) && _nd.kind != "landing" ? "  -  the landing zone" : "")); _ty += 10;
+	draw_set_color(sett_ink); draw_set_alpha(.8);
+	draw_text_ext(_cx + 6, _ty, _what, 9, _iw); _ty += string_height_ext(_what, 9, _iw) + 4;
+	for (var _ri = 0; _ri < array_length(_rows); _ri++) {
+		var _rw = _rows[_ri];
+		draw_set_color(dim); draw_set_alpha(.8);
+		draw_text(_cx + 6, _ty, _rw.k);
+		draw_set_color(is_undefined(_rw.col) ? sett_ink : _rw.col); draw_set_alpha(.95);
+		if (_fits[_ri]) { draw_set_halign(fa_right); draw_text(_cx + _cw - 6, _ty, _rw.v); draw_set_halign(fa_left); _ty += 10; }
+		else { _ty += 10; draw_text_ext(_cx + 6, _ty, _rw.v, 9, _iw); _ty += string_height_ext(_rw.v, 9, _iw); }
+	}
+	draw_set_alpha(1);
+};
 map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
 /// a road highlighted along its OWN polyline from fraction q0 of the way (arc length) to its end - the crew's route (the map)
 __map_road_hl = function(_rg, _mr, _a, _b, _q0, _col, _al) {
@@ -1311,7 +1420,7 @@ __seg_rect = function(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry2) {
 };
 /// where each label goes: four sides tried, the one crossing the fewest
 /// roads (and no other label) wins; once a map (map_lab caches by key)
-__map_labels = function(_rg, _mr, _key) {
+__map_labels = function(_rg, _mr, _key, _named = undefined) {   // (named: bool per node - an unnamed place takes no label and holds no room, 2026-09-16)
 	if (is_struct(map_lab) && map_lab.key == _key) return map_lab.pos;
 	var _kk = region_kinds();
 	var _pos = array_create(array_length(_rg.nodes), undefined);
@@ -1329,6 +1438,7 @@ __map_labels = function(_rg, _mr, _key) {
 	}
 	draw_set_font(fnt);
 	for (var _i = 0; _i < array_length(_rg.nodes); _i++) {
+		if (is_array(_named) && !_named[_i]) continue;
 		var _nd = _rg.nodes[_i];
 		var _c = __map_xy(_nd, _rg, _mr);
 		var _tw = string_width(_nd.name), _th = 8;
