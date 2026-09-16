@@ -49,9 +49,14 @@ function galaxy_sky_build(_dw = undefined) {
 		// THE REAL ELEVATION (2026-09-16 - he took it for granted, and it was a hash): the neighbour's height off the plane against
 		// ours (the parallax depth read as plane px, the nebulae's law), over its distance
 		var _el = clamp(darctan2((_st.d - _me.d) * (_cfg[$ "star_height"] ?? 900), max(_d, 1)), -75, 75);
-		var _ap = _st.props.size * (90 / max(_d, 55));
+		// THE DISTANCE, EXAGGERATED (his ask, 2026-09-16: a star next door should be OBVIOUS by its size, the spikes on the near ones
+		// and gone fast beyond): the glyph's size falls off as (ref / distance) to a steep power - a middling star at the reference
+		// distance fills the biggest glyph, twice as far a mid one, four times as far a spark
+		var _nrf = _cfg[$ "sky_near_ref"] ?? 60, _npw = _cfg[$ "sky_near_pow"] ?? 2.2;
+		var _ap = (_st.props.size / 2) * power(_nrf / max(_d, 20), _npw);
+		var _apb = (_st.props.size / 2) * 3 * power(_nrf / max(_d, 20), 1.2);
 		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : dcos(_el) * dsin(_az),
-		                         col : _st.props.color, b : .4 + .6 * clamp(_ap * .8, 0, 1), s : clamp(1 + _ap * 2, 1, 9), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
+		                         col : _st.props.color, b : .2 + .8 * clamp(_apb, 0, 1), s : clamp(2 + 29 * _ap, 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
 	}
 	// the system: where everything is NOW (the universal clock), the
 	// siblings as dots along the ecliptic, the sun at the star's bearing
