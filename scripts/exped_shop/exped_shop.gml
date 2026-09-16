@@ -45,7 +45,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _stock = [], _remembered = false;
 		if (is_struct(_shm) && _shm.pay != "") {
 			var _sit = string_split(_shm.pay, ";");
-			for (var _s = 0; _s < array_length(_sit); _s++) { var _sf = string_split(_sit[_s], ":", false, 2); if (array_length(_sf) < 3) continue; var _sit2 = gear_unpack(_sf[2]); if (is_undefined(_sit2)) continue; array_push(_stock, { it : _sit2, price : max(1, real(_sf[0])), sold : (_sf[1] == "1") }); }
+			for (var _s = 0; _s < array_length(_sit); _s++) { var _sfl = string_split(_sit[_s], ":", false, 2); if (array_length(_sfl) < 3) continue; var _sit2 = gear_unpack(_sfl[2]); if (is_undefined(_sit2)) continue; array_push(_stock, { it : _sit2, price : max(1, real(_sfl[0])), sold : (_sfl[1] == "1") }); }
 			_remembered = (array_length(_stock) > 0);
 		}
 		var _wl = _rg[$ "wild"] ?? [];

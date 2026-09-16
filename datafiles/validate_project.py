@@ -531,6 +531,41 @@ check("no local named after one of its function's arguments",
 check("every .gml balances its braces, parens and brackets",
       not bal, "; ".join(bal[:3]))
 
+# --- 8f2. no `static` outside a function body in an object EVENT (GM1037:
+# "Static variables cannot be declared outside of a function" - a static
+# is a function's own; an event script is not one. Caught by his compile
+# 2026-09-16 on a static dropped into the galaxy page's Draw). Scripts
+# are functions top to bottom, so only objects/ are walked: a `static` at
+# brace depth zero of the event, or inside braces that belong to no
+# `function`, is the error.
+_evstat = []
+for _p, _s in srcs.items():
+    _pn = _p.replace("\\", "/")
+    if not (_pn.startswith("objects/") or "/objects/" in _pn):
+        continue
+    _depth = 0
+    _fn_depths = []   # the depth at which each open function body began
+    _i = 0
+    while _i < len(_s):
+        _c = _s[_i]
+        if _c == "{":
+            _pre = _s[max(0, _i - 200):_i]
+            if re.search(r"\bfunction\b[^{;]*$", _pre):
+                _fn_depths.append(_depth)
+            _depth += 1
+        elif _c == "}":
+            _depth -= 1
+            if _fn_depths and _fn_depths[-1] == _depth:
+                _fn_depths.pop()
+        elif _s.startswith("static", _i) and (_i == 0 or not (_s[_i - 1].isalnum() or _s[_i - 1] == "_")) and not _fn_depths:
+            _line = _s.count("\n", 0, _i) + 1
+            _evstat.append(f"{_p}:{_line}")
+            _i += 6
+            continue
+        _i += 1
+check("no static declared outside a function in an object event (GM1037)",
+      not _evstat, "; ".join(_evstat[:4]))
+
 # --- 8g. every asset NAME the code mentions is a registered resource.
 # A sound/sprite/room/shader/object referenced by a prefix name that
 # nothing registers is "variable not set before reading it" at the

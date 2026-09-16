@@ -1059,16 +1059,16 @@ if (view == "galaxy") {
 		draw_px_rect(_ssr.x, _ssr.y, _ssr.w, _ssr.h, c_steelblue, .5);
 		var _np = array_length(gx_sys.planets), _cw = min(60, floor((_ssr.w - 16) / max(1, _np)));
 		var _x0 = _ssr.x + _ssr.w * .5 - _np * _cw * .5;
-		static _romg = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+		var _romg = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];   // (an event has no statics - GM1037, his compile 2026-09-16)
 		for (var _pi = 0; _pi < _np; _pi++) {
 			var _gpl = gx_sys.planets[_pi], _gb = galaxy_world_biome(_gpl);
-			var _gcx = _x0 + _pi * _cw + _cw * .5, _gcy = _ssr.y + 13, _gr = clamp(_gpl.size * 1.1, 3, 8);
+			var _gcx = _x0 + _pi * _cw + _cw * .5, _gcy = _ssr.y + 13, _grd = clamp(_gpl.size * 1.1, 3, 8);   // (_grd: _gr is the page's rect)
 			var _gcol = (_gb < 0) ? _gpl.col : exped_biomes()[_gb].col2;
 			var _onb = false;
 			for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _gpl.seed) _onb = true;
-			if (_gpl[$ "has_ring"] ?? false) draw_sprite_ext(spr_pixel_1x1, 0, _gcx - _gr * 1.7, _gcy, _gr * 3.4, 1, 0, merge_colour(_gcol, c_white, .3), .6);
-			__dot(_gcx, _gcy, _gr, _gcol, (_gb < 0) ? .45 : .95);
-			if (_onb) draw_px_rect(floor(_gcx - _gr - 3), floor(_gcy - _gr - 3), ceil(_gr * 2 + 6), ceil(_gr * 2 + 6), c_gold, .9);
+			if (_gpl[$ "has_ring"] ?? false) draw_sprite_ext(spr_pixel_1x1, 0, _gcx - _grd * 1.7, _gcy, _grd * 3.4, 1, 0, merge_colour(_gcol, c_white, .3), .6);
+			__dot(_gcx, _gcy, _grd, _gcol, (_gb < 0) ? .45 : .95);
+			if (_onb) draw_px_rect(floor(_gcx - _grd - 3), floor(_gcy - _grd - 3), ceil(_grd * 2 + 6), ceil(_grd * 2 + 6), c_gold, .9);
 			draw_set_halign(fa_center);
 			draw_set_color((_gb < 0) ? _dim : c_white); draw_set_alpha((_gb < 0) ? .5 : .95);
 			draw_text(_gcx, _ssr.y + 24, _romg[clamp(_pi, 0, 7)] + ((_gb < 0) ? "  gas" : ("  " + exped_biomes()[_gb].name)));
