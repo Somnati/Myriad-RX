@@ -71,7 +71,7 @@ if (view == "trip") {
 	} else rp = undefined;
 } else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
-if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; } }   // (the haul fades in - his ask, 2026-09-15)
+if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; hl_open = false; } }   // (the haul fades in - his ask, 2026-09-15)
 if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "planet"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
 if (view == "sheet") view = "crew";
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
@@ -143,7 +143,7 @@ if (view == "trip" || view == "haul") {
 		log_scroll = _acc2 + ((_top < array_length(_lay2.hs)) ? min(_off, _lay2.hs[_top] - 1) : 0);
 		if (instance_exists(sb)) { sb.ty = log_scroll; sb.input = log_scroll; sb.ty_speed_actual = 0; }
 	}
-	var _lmax = max(0, __log_content_h() - _lr.h);
+	var _lmax = (_lr.h > 0) ? max(0, __log_content_h() - _lr.h) : 0;   // (no band, no bar: the haul's diary shut - bug hunt 2026-09-16)
 	if (is_array(_ll)) {
 		// THE FOLLOW: at the bottom, a new line pulls the band down with it;
 		// scrolled up at all, the band holds still (the bar's own ty is the
@@ -417,7 +417,7 @@ if (view == "system" && is_struct(sy_sys)) {
 	var _bk0 = __back_r();
 	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
 	var _ser = __sy_enter_r(), _sgl0 = __galaxy_r();
-	var _oner = (!sy_dw && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h)) || point_in_rectangle(mouse_x, mouse_y, _sgl0.x, _sgl0.y, _sgl0.x + _sgl0.w, _sgl0.y + _sgl0.h);
+	var _oner = (sy_dwa <= .3 && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h)) || point_in_rectangle(mouse_x, mouse_y, _sgl0.x, _sgl0.y, _sgl0.x + _sgl0.w, _sgl0.y + _sgl0.h);
 	if (!sy_drag && mouse_check_button_pressed(mb_left) && _sin && !_onbk0 && !_oner) { sy_drag = true; sy_drag_px = 0; sy_dx = mouse_x; sy_dy = mouse_y; }
 	if (sy_drag && mouse_check_button(mb_left)) {
 		var _dx = mouse_x - sy_dx, _dy = mouse_y - sy_dy;
@@ -472,7 +472,7 @@ if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 	var _stb = __sy_tab_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _stb.x, _stb.y, _stb.x + _stb.w, _stb.y + _stb.h)) { sy_dw = !sy_dw; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 	// [enter] bottom right while the drawer is shut
-	if (!sy_dw && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
+	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
 	if (sy_dwa >= .5) {   // (the drawer open: its rows and [enter])
 	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
 	var _sor = __sy_open_r();

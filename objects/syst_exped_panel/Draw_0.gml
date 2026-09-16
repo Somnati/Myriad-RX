@@ -143,9 +143,15 @@ if (view == "haul") {
 	draw_text(_cx + 10, _fy, "brought home");
 	_fy += 11;
 	if (_fsum == 0) { draw_set_color(_dim); draw_set_alpha(.6); draw_text(_cx + 10, _fy, "the credits, and nothing else"); }
+	// the buttons' caption (the "again:" line) sets where the finds must stop: the rest fold into "+n more" (bug hunt 2026-09-16)
+	var _pl = _recruit ? undefined : __again_plan(_h);
+	var _at = _recruit ? "" : (_pl.ok ? ("again: " + _pl.txt + (_pl.short ? "  -  they go as they are" : "")) : _pl.why);
+	var _ah = _recruit ? 12 : string_height_ext(_at, 9, _cw - 32);
+	var _flim = room_height - 8 - 16 - 3 - _ah - 4;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {
 		var _l = _h.finds[_i];
 		if (_l.kind == "credits") continue;
+		if (_fy + _fhs[_i] > _flim) { var _fmore = 0; for (var _j = _i; _j < array_length(_h.finds); _j++) if (_h.finds[_j].kind != "credits") _fmore += 1; draw_set_color(_dim); draw_set_alpha(.7); draw_text(_cx + 10, _fy, "+ " + string(_fmore) + " more"); break; }
 		var _flb = "";
 		switch (_l.kind) {
 			case "credits": _flb = "credits"; break;
@@ -192,11 +198,8 @@ if (view == "haul") {
 		var _cb = __col_r(), _ag = __again_r();
 		draw_ui_button(_cb.x, _cb.y, _cb.w, _cb.h, "collect", c_gold, true, true);
 		// [SEND AGAIN] (2026-09-15): the same crew, the same region, the
-		// easiest open card - what it would do, above the buttons
-		var _pl = __again_plan(_h);
+		// easiest open card - what it would do, above the buttons (_pl / _at / _ah from the finds' limit above)
 		draw_ui_button(_ag.x, _ag.y, _ag.w, _ag.h, "send again", _pl.ok ? c_sgreen : c_gray, true, false);
-		var _at = _pl.ok ? ("again: " + _pl.txt + (_pl.short ? "  -  they go as they are" : "")) : _pl.why;
-		var _ah = string_height_ext(_at, 9, _cw - 32);
 		draw_set_color(_pl.ok ? _dim : c_hred); draw_set_alpha(.75);
 		draw_text_ext(_cx + 16, _cb.y - 3 - _ah, _at, 9, _cw - 32);
 	}
@@ -930,7 +933,8 @@ if (view == "system") {
 	draw_sprite_ext(spr_pixel_1x1, 0, _stb.x, _stb.y, _stb.w, _stb.h, 0, c_black, .85);
 	draw_px_rect(_stb.x, _stb.y, _stb.w, _stb.h, c_steelblue, .6);
 	draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_stb.x + 2, _stb.y + _stb.h * .5 - 4, sy_dw ? ">" : "<");
-	if (!sy_dw && sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0) { var _ser = __sy_enter_r(); draw_ui_button(_ser.x, _ser.y, _ser.w, _ser.h, "enter  >", c_gold, true, true); }
+	// (one [enter] at a time: this one until the drawer's past .3, the drawer's own after)
+	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0) { var _ser = __sy_enter_r(); draw_ui_button(_ser.x, _ser.y, _ser.w, _ser.h, "enter  >", c_gold, true, true); }
 	if (sy_dwa > .01) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), 0, c_black, .82 * sy_dwa);
 	draw_px_rect(_dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), c_steelblue, .55 * sy_dwa);
