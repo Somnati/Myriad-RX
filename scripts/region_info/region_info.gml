@@ -79,6 +79,8 @@ function region_info(_d, _rg) {
 	}
 	var _fp, _ft;
 	if (_bi == "ice")                 { _fp = ["sparse", "lichen", "frozen scrub", "moss and ice", "stunted", "wind-bent", "a few hardy things"]; _ft = 2; }
+	else if (_bi == "ash")            { _fp = ["ash-grey scrub", "charred", "a few black thorns", "cinder moss", "nothing green", "smoke-bent"]; _ft = 3; }
+	else if (_bi == "fungal")         { _fp = ["fungal", "mushroom groves", "spore-thick", "glowing caps", "soft and purple", "toadstools the size of houses"]; _ft = 0; }
 	else if (_lush >= 2 && _dry <= 1) { _fp = ["bountiful", "lush", "verdant", "thick", "rampant", "green and deep", "overgrown", "rich"]; _ft = 0; }
 	else if (_lush >= 1)              { _fp = ["fair", "modest", "patchy", "scattered", "thin in places", "middling", "hedgerows and copses"]; _ft = 1; }
 	else if (_dry >= 1)               { _fp = ["sparse", "hardy", "scrub", "thorn and grit", "tough", "dust and thistle", "clinging"]; _ft = 2; }

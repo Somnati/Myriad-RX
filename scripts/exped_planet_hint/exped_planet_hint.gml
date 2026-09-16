@@ -14,6 +14,11 @@ function exped_planet_hint(_d) {
 		case "living": _h = { kind : "rock", clim : .50, hue : _hue, arch : "terra",  wet : .62 }; break;
 		case "ruined": _h = { kind : "rock", clim : .58, hue : _hue, arch : "terra",  wet : .28 }; break;
 		case "ice":    _h = { kind : "rock", clim : .92, hue : _hue, arch : "terra",  wet : .55 }; break;
+		// the biomes pass (2026-09-15)
+		case "ash":    _h = { kind : "rock", clim : .12, hue : _hue, arch : "lava",   wet : .05 }; break;
+		case "ocean":  _h = { kind : "rock", clim : .50, hue : _hue, arch : "terra",  wet : .96 }; break;
+		case "dust":   _h = { kind : "rock", clim : .26, hue : _hue, arch : "terra",  wet : .10 }; break;
+		case "fungal": _h = { kind : "rock", clim : .55, hue : _hue, arch : "terra",  wet : .66 }; break;
 		default:       _h = { kind : "rock", clim : .5 }; break;
 	}
 	if (variable_global_exists("galaxy_home_c") && is_struct(g.galaxy_home_c) && g.galaxy_home_c.planet_seed == _d.seed) {

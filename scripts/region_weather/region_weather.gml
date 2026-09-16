@@ -7,7 +7,7 @@
 function region_weather(_d, _rg) {
 	var _slot = floor(universal_now() / 600);
 	var _r = (hash_mix(_rg.seed, _slot) mod 1000) / 10;   // 0..100
-	var _ice = (exped_biomes()[_d.biome].name == "ice");
+	var _bn = exped_biomes()[_d.biome].name, _ice = (_bn == "ice");
 	// THE WORLD'S SKIES (the planet-properties pass, 2026-09-15): the bands
 	// lean on its wetness - a dry world is clear two thirds of the time and
 	// hardly storms; a stormy one rains a third of it

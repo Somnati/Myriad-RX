@@ -23,6 +23,11 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		case "stone":  _wild = ["hills", "mountains", "mine", "ruin", "desert"]; break;
 		case "ruined": _wild = ["ruin", "marsh", "forest", "shrine", "hills"]; break;
 		case "ice":    _wild = ["tundra", "hills", "mountains", "ruin", "field"]; break;
+		// the biomes pass (2026-09-15)
+		case "ash":    _wild = ["mountains", "hills", "desert", "mine", "ruin"]; break;
+		case "ocean":  _wild = ["coast", "isle", "marsh", "field", "hills"]; break;
+		case "dust":   _wild = ["desert", "hills", "mine", "ruin", "coast"]; break;
+		case "fungal": _wild = ["forest", "marsh", "field", "shrine", "hills"]; break;
 	}
 	// THE SPOT (his ask, 2026-09-15: "the lv1 zone is out in the ocean... it
 	// needs to be aware of where on the planet has what type of biome"): a
@@ -99,6 +104,9 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 				case "stone":  array_push(_tw, "mine"); break;
 				case "ruined": array_push(_tw, "ruin", "shrine"); break;
 				case "ice":    break;
+				case "ash":    array_push(_tw, "mine"); break;
+				case "dust":   array_push(_tw, "ruin"); break;
+				case "fungal": array_push(_tw, "shrine"); break;
 				default:       if (random(1) < .4) array_push(_tw, "shrine"); break;
 			}
 			_wild = _tw;

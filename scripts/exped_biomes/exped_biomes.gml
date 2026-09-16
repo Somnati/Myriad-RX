@@ -23,6 +23,23 @@ function exped_biomes() {
 		  col1 : rgb(120, 160, 200), col2 : rgb(220, 235, 250), col3 : rgb(250, 250, 255), sea : .55,
 		  rooms : { find : 40, rest : 20, trap : 30, fight : 10 },
 		  loot  : { mats : 32, sprite : 5, offer : 5, credits : 18, charm : 9, chart : 23, gear : 8 } },
+		// THE BIOMES PASS (2026-09-15) - APPEND ONLY: a world saves its index
+		{ name : "ash",    hint : "materials likely",
+		  col1 : rgb(38, 28, 30),   col2 : rgb(205, 85, 40),   col3 : rgb(70, 58, 58), sea : .12,
+		  rooms : { find : 35, rest : 10, trap : 35, fight : 20 },
+		  loot  : { mats : 45, sprite : 3, offer : 10, credits : 15, charm : 5, chart : 7, gear : 15 } },
+		{ name : "ocean",  hint : "charts likely",
+		  col1 : rgb(18, 48, 110),  col2 : rgb(60, 140, 200),  col3 : rgb(230, 240, 250), sea : .9,
+		  rooms : { find : 40, rest : 25, trap : 15, fight : 20 },
+		  loot  : { mats : 15, sprite : 15, offer : 8, credits : 20, charm : 10, chart : 22, gear : 10 } },
+		{ name : "dust",   hint : "offers and charms",
+		  col1 : rgb(110, 80, 50),  col2 : rgb(222, 182, 112), col3 : rgb(250, 236, 200), sea : .15,
+		  rooms : { find : 40, rest : 15, trap : 30, fight : 15 },
+		  loot  : { mats : 20, sprite : 5, offer : 25, credits : 20, charm : 12, chart : 8, gear : 10 } },
+		{ name : "fungal", hint : "sprites likely",
+		  col1 : rgb(38, 22, 58),   col2 : rgb(150, 92, 182),  col3 : rgb(200, 240, 222), sea : .45,
+		  rooms : { find : 35, rest : 25, trap : 15, fight : 25 },
+		  loot  : { mats : 20, sprite : 30, offer : 8, credits : 17, charm : 8, chart : 5, gear : 12 } },
 	];
 	return _b;
 }
