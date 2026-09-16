@@ -50,9 +50,9 @@ function exped_act_step(_tr) {
 				for (var _i = 1; _i < array_length(_rg.nodes); _i++) if (_rg.nodes[_i].kind == "dungeon" || _rg.nodes[_i].kind == "crypt" || _rg.nodes[_i].kind == "camp") array_push(_cand, _i);
 				if (array_length(_cand) > 0) {
 					var _bn = _cand[irandom(array_length(_cand) - 1)];
-					var _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : ((_rg.nodes[_bn].kind == "crypt") ? choose("skeleton", "wisp") : choose("goblin", "rat", "skeleton", "wolf"));
+					var _bkl = foe_kinds_at(_rg.nodes[_bn].kind), _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : _bkl[irandom(array_length(_bkl) - 1)];   // (the place's own kinds - the foes pass)
 					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : 3 + 2 * _tr.dest.tier };
-					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + _bk + "s at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits");
+					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits");
 				}
 			} else array_push(_tr.log, "the tavern at " + _nd.name + ": " + choose("gossip about a rock that watches", "someone sang. badly.", "the stew was a colour", "a bard was thrown out", "nothing happened, at length"));
 			break;
@@ -68,7 +68,7 @@ function exped_act_step(_tr) {
 		case "delve": {
 			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds)
 			var _r = random(100);
-			if (_r < 45) { _tr.fight = exped_fight_new(_tr, (_nd.kind == "crypt") ? choose("skeleton", "wisp") : "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+			if (_r < 45) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }   // (the place's own kinds)
 			else if (_r < 75) exped_room_find(_tr, "a room of " + _nd.name + ": ");
 			else if (_r < 90) exped_room_trap(_tr, "a room of " + _nd.name + ": ");
 			else { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .25); array_push(_tr.log, "a room of " + _nd.name + ": quiet. they rested"); exped_say(_tr, "rest", undefined, .5); }
@@ -107,7 +107,7 @@ function exped_act_step(_tr) {
 		case "fetch": {
 			// two steps: something may be sitting on it, then the thing itself
 			if (_a.steps >= 2) {
-				if (roll_perc(40)) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin", "slime"), irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " was sitting on " + (is_struct(_q) ? _q.who : "it")); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+				if (roll_perc(40)) { _tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " was sitting on " + (is_struct(_q) ? _q.who : "it")); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
 				else array_push(_tr.log, _nd.name + ": " + choose("looked around", "poked about", "asked a bird", "checked under things"));
 			} else {
 				if (is_struct(_q)) _q.at = 1;
@@ -121,7 +121,7 @@ function exped_act_step(_tr) {
 			var _last = (_a.steps <= 1), _who = is_struct(_q) ? _q.who : "them";
 			var _in = (_nd.kind == "dungeon" || _nd.kind == "crypt") ? ("a room of " + _nd.name + ": ") : ("searching " + _nd.name + ": ");
 			var _r = random(100);
-			if (_r < 35 && !_last) { _tr.fight = exped_fight_new(_tr, (_nd.kind == "crypt") ? choose("skeleton", "wisp") : "", -1, 0); array_push(_tr.log, _in + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
+			if (_r < 35 && !_last) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, _in + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }
 			else if (_last || roll_perc(35)) {
 				if (is_struct(_q)) _q.at = 1;
 				_a.steps = 1;   // (found: the search ends here)
@@ -146,9 +146,9 @@ function exped_act_step(_tr) {
 			// a wave; the villagers patch the crew up between waves
 			var _wave = is_struct(_q) ? (_q.done + 1) : 1, _nw = is_struct(_q) ? _q.n : 1;
 			if (_wave > 1) { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .15); array_push(_tr.log, "the villagers patch them up between waves"); }
-			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "wolf");
+			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "wolf", "kobold", "boar");
 			_tr.fight = exped_fight_new(_tr, _fk, irandom_range(2, 3), 0);
-			array_push(_tr.log, "wave " + string(_wave) + " of " + string(_nw) + " at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " " + _fk + "s " + choose("out of the treeline", "over the fence", "up the road, not quietly"));
+			array_push(_tr.log, "wave " + string(_wave) + " of " + string(_nw) + " at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " " + foe_plural(_fk) + " " + choose("out of the treeline", "over the fence", "up the road, not quietly"));
 			exped_say(_tr, "wave", { foe : _tr.fight.b.name }, .55);
 			break;
 		}
@@ -170,7 +170,7 @@ function exped_act_step(_tr) {
 		}
 		case "wild": {
 			var _r = random(100);
-			if (_r < 30) { _tr.fight = exped_fight_new(_tr, choose("wolf", "rat", "goblin"), irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
+			if (_r < 30) { _tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
 			else if (_r < 50) exped_room_find(_tr, _nd.name + ": ");
 			else {
 				var _isit = ((_nd.kind == "hills" || _nd.kind == "mountains") ? "they are " : ((_nd.kind == "tundra") ? "it is " : ((string_pos(string_char_at(_nd.kind, 1), "aeiou") > 0) ? "it is an " : "it is a "))) + ((_nd.kind == "isle") ? "island" : _nd.kind);

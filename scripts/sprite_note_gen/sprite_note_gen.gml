@@ -12,7 +12,7 @@ function sprite_note_gen(_sp, _beat, _ctx = undefined) {
 	if (!is_struct(_ctx)) _ctx = {};
 	var _foe  = _ctx[$ "foe"];
 	var _kind = is_struct(_foe) ? (_foe[$ "kind"] ?? "it") : "it";
-	var _ks   = _kind + "s";
+	var _ks   = foe_plural(_kind);
 	switch (_beat) {
 		case "foe": {
 			if (!is_struct(_foe)) return "";

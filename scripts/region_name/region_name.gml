@@ -35,7 +35,7 @@ function region_name(_kind) {
 			if (_f < 45) return _up + choose("'s camp", "'s hollow", "'s lot", "'s boys", "'s band", "'s den");
 			if (_f < 70) return "the " + choose("bandits'", "outlaws'", "reavers'", "cutthroats'", "robbers'") + " " + choose("camp", "hollow", "roost", "hideout", "rest");
 			if (_f < 85) return "the camp " + choose("at the ford", "under the hill", "in the thorns", "by the dead tree", "on the ridge", "at the crossroads");
-			return choose("Redhand", "Blackcoat", "Greycloak", "Longknife", "Broken Tooth", "Sixfinger") + choose(" camp", " hollow", " rest");
+			return choose("Red", "Black", "Grey", "Long", "Broken", "Six", "One", "Iron", "Crook", "Dun") + choose("hand", "coat", "cloak", "knife", "tooth", "finger", "beard", "eye", "boot", "fist") + choose(" camp", " hollow", " rest");   // (a compound, never a fixed name - his rule)
 		case "dungeon":
 			if (_f < 50) return "the " + choose("sunken", "weeping", "howling", "quiet", "black", "old", "nameless", "hungry", "dripping", "low", "forgotten", "gnawed", "burrowed", "crooked", "bottomless", "cold")
 			                        + " " + choose("cave", "hollow", "barrow", "pit", "warren", "lair", "deep", "delve", "burrow", "undercroft", "cavern", "hole");

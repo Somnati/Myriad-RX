@@ -48,7 +48,6 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			}
 		}
 	}
-	var _kinds = ["goblin", "wolf", "rat", "skeleton", "wisp", "slime"];
 	static _pick  = function(_a) { return _a[irandom(array_length(_a) - 1)]; };
 	static _other = function(_a, _not) { if (array_length(_a) <= 1) return _a[0]; var _v; do { _v = _a[irandom(array_length(_a) - 1)]; } until (_v != _not); return _v; };
 	static _hrs   = function(_rg2, _a, _b) { var _p = region_path(_rg2, _a, _b), _h = 0, _c = _a; for (var _k = 0; _k < array_length(_p); _k++) { _h += region_hours(_rg2, _c, _p[_k]); _c = _p[_k]; } return _h; };
@@ -80,12 +79,12 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 		var _r = random(max(1, _sum)), _kind = "scout";
 		for (var _i = 0; _i < array_length(_w); _i++) { if (_r < _w[_i][1]) { _kind = _w[_i][0]; break; } _r -= _w[_i][1]; }
 		switch (_kind) {
-			case "slay_d": { var _nd = _pick(_dung); var _f = (_rg.nodes[_nd].kind == "crypt") ? choose("skeleton", "wisp") : _pick(_kinds); _q = { kind : "slay", node : _nd, foe : _f, n : irandom_range(3, 8), mult : 3 }; break; }
+			case "slay_d": { var _nd = _pick(_dung); var _f = _pick(foe_kinds_at(_rg.nodes[_nd].kind)); _q = { kind : "slay", node : _nd, foe : _f, n : irandom_range(3, 8), mult : 3 }; break; }   // (the place's own kinds - the foes pass)
 			case "clear":  { var _nd = _pick(_dung); var _n = irandom_range(3, 5); var _rm = _rg.nodes[_nd][$ "rooms"]; if (!is_undefined(_rm)) _n = _rm; _q = { kind : "clear", node : _nd, foe : "", n : _n, mult : 4 }; break; }
 			case "rout":   _q = { kind : "rout", node : _pick(_camp), foe : "bandit", n : 2, mult : 4 }; break;
 			case "bounty": {
 				var _nd = _pick(array_concat(_dung, _camp, _wild)), _nk = _rg.nodes[_nd].kind;
-				var _f = (_nk == "crypt") ? choose("skeleton", "wisp") : ((_nk == "camp") ? "bandit" : _pick(_kinds));
+				var _f = (_nk == "camp") ? "bandit" : _pick(foe_kinds_at(_nk));
 				var _who = exped_npc_name() + " the " + _f + " " + choose("chief", "elder", "king", "of unusual size", "with a hat", "the second", "the unwashed", "who bites", "the loud");
 				_q = { kind : "bounty", node : _nd, foe : _f, n : 1, mult : 4, who : _who };
 				break;
@@ -107,7 +106,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 				_q = { kind : "rescue", node : _b, from : _a, foe : "", n : 1, mult : 4, who : exped_npc_name() };
 				break;
 			}
-			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "wolf", "rat"), n : irandom_range(2, 3), mult : 4 }; break;
+			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "wolf", "rat", "kobold", "boar", "hornets"), n : irandom_range(2, 3), mult : 4 }; break;
 			case "survey": {
 				// n places, then walked nearest-first from the landing zone
 				var _n = min(3, array_length(_any)), _left = array_concat(_any), _picked = [];
@@ -122,7 +121,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 				break;
 			}
 			case "gather": _q = { kind : "gather", node : _pick(_mine), foe : "", n : irandom_range(2, 4), mult : 3, who : ["ferrite", "bloom", "glass"][_d.biome mod 3] }; break;
-			case "slay_w": _q = { kind : "slay", node : _pick(_wild), foe : _pick(_kinds), n : irandom_range(2, 5), mult : 3 }; break;
+			case "slay_w": { var _nw = _pick(_wild); _q = { kind : "slay", node : _nw, foe : _pick(foe_kinds_at(_rg.nodes[_nw].kind)), n : irandom_range(2, 5), mult : 3 }; break; }
 			default:       _q = { kind : "scout", node : (array_length(_wild) > 0) ? _pick(_wild) : _pick(_any), foe : "", n : 1, mult : 2 }; break;
 		}
 	}

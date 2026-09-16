@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"foe_plural",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"foe_plural",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

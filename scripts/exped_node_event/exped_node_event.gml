@@ -16,12 +16,12 @@ function exped_node_event(_tr, _again = false) {
 	var _bo = _tr[$ "bounty"];
 	if (is_struct(_bo) && _bo.node == _tr.pos && _bo.done < _bo.n) {
 		_tr.act = { kind : "hunt", left : EXPED_ROOM_T * .5, steps : 3 };
-		if (!_again) array_push(_tr.log, "the bounty: " + _bo.foe + "s at " + _nd.name);
+		if (!_again) array_push(_tr.log, "the bounty: " + foe_plural(_bo.foe) + " at " + _nd.name);
 		return;
 	}
 	if (_qhere) {
 		switch (_q.kind) {
-			case "slay":  _tr.act = { kind : "hunt",  left : EXPED_ROOM_T * .5, steps : 3 }; if (!_again) array_push(_tr.log, "the hunt for " + _q.foe + "s begins at " + _nd.name); break;
+			case "slay":  _tr.act = { kind : "hunt",  left : EXPED_ROOM_T * .5, steps : 3 }; if (!_again) array_push(_tr.log, "the hunt for " + foe_plural(_q.foe) + " begins at " + _nd.name); break;
 			case "clear": _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) { array_push(_tr.log, "into " + _nd.name); exped_say(_tr, "delve", undefined, .6); } break;
 			case "rout":  _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) array_push(_tr.log, "the camp at " + _nd.name + " - " + exped_crew_txt(_tr.names) + " " + ((array_length(_tr.names) > 1) ? "go" : "goes") + " in"); break;
 			case "scout": _q.done = _q.n; array_push(_tr.log, "scouted " + _nd.name + ". it is there. the quest is done"); _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; break;

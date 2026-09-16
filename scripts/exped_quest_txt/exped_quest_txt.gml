@@ -2,7 +2,7 @@
 /// THE one builder: exped_quest_gen writes it, the save rebuilds it the
 /// same way (exped_unpack), so a loaded quest reads as it did.
 function exped_quest_txt(_q, _rg) {
-	static _pl = function(_f) { return (_f == "wolf") ? "wolves" : (_f + "s"); };
+	static _pl = function(_f) { return foe_plural(_f); };
 	var _nn = array_length(_rg.nodes);
 	var _nm = function(_i, _rg2, _nn2) { return _rg2.nodes[clamp(_i, 0, _nn2 - 1)].name; };
 	var _to = _nm(_q.node, _rg, _nn), _fr = _nm((_q[$ "from"] ?? -1) >= 0 ? _q.from : _q.node, _rg, _nn);

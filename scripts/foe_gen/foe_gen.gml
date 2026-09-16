@@ -14,15 +14,7 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined) {
 	cbt_skills();
 	var _old = random_get_seed();
 	random_set_seed(_seed & $7fffffff);
-	static _ros = [
-		{ name : "goblin",   shape : { hp : 5, mp : 3, atk : 6, mag : 2, def : 5, mdef : 3, spd : 7, hit : 7 }, crit : 8,  cmulti : 1.6, cnt : 8,  erode : 1,   magic : false, skill : "concuss", gear : .3, col : rgb(120, 160, 70) },
-		{ name : "bandit",   shape : { hp : 6, mp : 3, atk : 7, mag : 1, def : 6, mdef : 3, spd : 5, hit : 7 }, crit : 7,  cmulti : 1.6, cnt : 7,  erode : 1,   magic : false, skill : "strike",  gear : .8, col : rgb(170, 120, 90) },
-		{ name : "wolf",     shape : { hp : 6, mp : 2, atk : 7, mag : 1, def : 3, mdef : 2, spd : 8, hit : 7 }, crit : 10, cmulti : 1.7, cnt : 5,  erode : 1,   magic : false, skill : "",        gear : 0,  col : rgb(150, 150, 160) },
-		{ name : "slime",    shape : { hp : 8, mp : 6, atk : 3, mag : 3, def : 6, mdef : 6, spd : 2, hit : 4 }, crit : 5, cmulti : 1.5, cnt : 4,  erode : .25, magic : false, skill : "reform",  gear : 0,  col : c_seagreen },
-		{ name : "skeleton", shape : { hp : 6, mp : 4, atk : 8, mag : 1, def : 6, mdef : 4, spd : 3, hit : 6 }, crit : 8,  cmulti : 1.8, cnt : 6,  erode : 1,   magic : false, skill : "strike",  gear : .5, col : rgb(205, 205, 210) },
-		{ name : "wisp",     shape : { hp : 3, mp : 6, atk : 2, mag : 8, def : 2, mdef : 6, spd : 5, hit : 6 }, crit : 6,  cmulti : 1.8, cnt : 2,  erode : 1,   magic : true,  skill : "drain",   gear : 0,  col : rgb(150, 110, 220) },
-		{ name : "rat",      shape : { hp : 5, mp : 4, atk : 6, mag : 1, def : 4, mdef : 2, spd : 7, hit : 8 }, crit : 10, cmulti : 1.6, cnt : 12, erode : 1,  magic : false, skill : "concuss", gear : .1, col : rgb(180, 145, 110) },
-	];
+	var _ros = foe_roster();   // (the foes pass, 2026-09-15: thirty kinds, each with its lands)
 	var _r = _ros[irandom(array_length(_ros) - 1)];
 	if (_kind != "") for (var _ri = 0; _ri < array_length(_ros); _ri++) if (_ros[_ri].name == _kind) _r = _ros[_ri];   // a kind asked for (a quest's, a camp's)
 	var _boss = (random(1) < 1 / 12);

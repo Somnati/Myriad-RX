@@ -1,6 +1,6 @@
 /// @description exped_quest_obj(quest, region, long) -> what the crew will do, in words: short for the card, long for the preparation page
 function exped_quest_obj(_q, _rg, _long) {
-	static _pl = function(_f) { return (_f == "wolf") ? "wolves" : (_f + "s"); };
+	static _pl = function(_f) { return foe_plural(_f); };
 	var _nn = array_length(_rg.nodes);
 	var _nd = _rg.nodes[clamp(_q.node, 0, _nn - 1)];
 	var _fd = _rg.nodes[clamp((_q[$ "from"] ?? -1) >= 0 ? _q.from : _q.node, 0, _nn - 1)];
