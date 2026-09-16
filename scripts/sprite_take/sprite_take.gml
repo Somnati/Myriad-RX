@@ -16,7 +16,9 @@ function sprite_take(_sp, _it) {
 	var _pn = _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name;
 	var _dumb = .07;
 	switch (_pn) { case "sleepy": _dumb = .14; break; case "grumpy": _dumb = .12; break; case "curious": _dumb = .10; break;
-	               case "smug": _dumb = .09; break; case "greedy": _dumb = .03; break; case "eager": _dumb = .06; break; }
+	               case "smug": _dumb = .09; break; case "greedy": _dumb = .03; break; case "eager": _dumb = .06; break;
+	               case "brave": _dumb = .07; break; case "dreamy": _dumb = .13; break; case "nervous": _dumb = .09; break;
+	               case "proud": _dumb = .08; break; case "kind": _dumb = .06; break; case "sly": _dumb = .04; break; }
 	var _why = choose("it clashed with the hat", "it looked heavy", "it was the wrong shade of grey", "it smelled like a decision",
 	                  "it had a face on it", "too many buttons", "it was tuesday", "it made a noise", "the old one has sentimental value",
 	                  "someone might want it back", "it was slightly warm");

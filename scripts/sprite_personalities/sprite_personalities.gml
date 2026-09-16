@@ -20,6 +20,13 @@ function sprite_personalities() {
 		{ name : "cheerful", work : .70, pace : 1.10, lines : ["hi!!", "boop", "yay", "best day"] },
 		{ name : "shy",      work : .50, pace : 1.00, lines : ["...", "oh! hi", "eep", "um"] },
 		{ name : "greedy",   work : .75, pace : 1.20, lines : ["profit!", "mine", "more coins", "cha-ching"] },
+		// (the personalities pass, 2026-09-15 - APPEND ONLY: a sprite saves its index)
+		{ name : "brave",    work : .70, pace : 1.15, lines : ["charge!", "i'll go first", "not scared", "again!"] },
+		{ name : "dreamy",   work : .50, pace : .85,  lines : ["hm?", "oh, clouds", "was i...?", "pretty"] },
+		{ name : "nervous",  work : .65, pace : 1.25, lines : ["eek", "what was that", "is it safe?", "hurry hurry"] },
+		{ name : "proud",    work : .60, pace : 1.00, lines : ["naturally", "as expected", "i did that", "hmph. fine"] },
+		{ name : "kind",     work : .65, pace : 1.00, lines : ["here, take it", "you first", "are you ok?", "tea?"] },
+		{ name : "sly",      work : .55, pace : 1.10, lines : ["heh", "nobody saw", "mine now", "trust me"] },
 	];
 	return g.sprite_pers_cfg;
 }
