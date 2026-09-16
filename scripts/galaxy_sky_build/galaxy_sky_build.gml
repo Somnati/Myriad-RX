@@ -10,7 +10,7 @@
 /// orbital spot, NOW by the universal clock), the galactic core's
 /// bearing for the fog's warm side, and how far out we sit (the rim
 /// sees the band pile up one way).
-///   { stars[] {x,y,z,col,b,s}, sibs[] {x,y,z,col,s}, light_w, core_dir,
+///   { stars[] {x,y,z,col,b,s}, sibs[] {x,y,z,col,s}, nebs[] {x,y,z,ar,b,nb}, light_w, core_dir,
 ///     fog_seed, fog_edge, sun_col, sun_size, name }
 function galaxy_sky_build(_dw = undefined) {
 	var _cfg = starmap_config();
@@ -94,6 +94,21 @@ function galaxy_sky_build(_dw = undefined) {
 		                         col : merge_colour(_cc, c_white, .35), b : random_range(.08, .32) * (1 - .5 * abs(_el3) / 12), s : 1, ph : irandom(359), near : false, cl : true });   // (cl: drawn at its raw brightness - grain, not stars; bug hunt 2026-09-16)
 	}
 	rng_release(_oldsd);
+	// THE NEBULAE (2026-09-16): the galaxy's clouds within reach, at their bearings on the band - a near one wide and
+	// bright, a far one a small patch; a little off the plane by a hash, more so the nearer it is (the disc is thick)
+	_out.nebs = [];
+	var _nbs = galaxy_nebulae(), _nrng = _cfg[$ "neb_range"] ?? 1500;
+	for (var _i = 0; _i < array_length(_nbs); _i++) {
+		var _nb = _nbs[_i];
+		var _nd = point_distance(_me.x, _me.y, _nb.x, _nb.y);
+		if (_nd > _nrng + _nb.r) continue;
+		var _naz = point_direction(_me.x, _me.y, _nb.x, _nb.y);
+		var _nar = clamp(darctan(_nb.r / max(_nd, 1)), 4, 55);   // the apparent radius, degrees
+		var _nh = hash_mix(_nb.x * 7 + _nb.y * 13, 3);
+		var _nel = ((_nh mod 997) / 997 - .5) * 8 * clamp(1 - _nd / _nrng, .2, 1);
+		var _nbr = clamp(_nb.r / max(_nd, 1) * 1.4, .12, 1) * clamp((_nrng + _nb.r - _nd) / (_nrng * .35), 0, 1);   // (fading out at the edge of reach)
+		array_push(_out.nebs, { x : dcos(_nel) * dcos(_naz), y : -dsin(_nel), z : dcos(_nel) * dsin(_naz), ar : _nar, b : _nbr, nb : _nb });
+	}
 	// the fog's bearings
 	var _core_az = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
 	_out.core_dir = [dcos(_core_az), 0, dsin(_core_az)];

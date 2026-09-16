@@ -1065,6 +1065,15 @@ if (view == "galaxy") {
 	}
 	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, _fsh_ok ? c_white : rgb(255, 185, 125), _fsh_ok ? _gcf.fog_alpha : _gcf.fog_alpha * .5);
 	if (_fsh_ok) shader_reset();
+	// THE NEBULAE (2026-09-16): the galaxy's clouds (galaxy_nebulae), each its own bent body (sh_nebula), at the haze's depth
+	var _nbs = galaxy_nebulae();
+	for (var _ni = 0; _ni < array_length(_nbs); _ni++) {
+		var _nb = _nbs[_ni];
+		var _nx = ((_vcx + (_nb.x - _vcx) * _fd) - gx_x) * gx_zoom, _ny = ((_vcy + (_nb.y - _vcy) * _fd) - gx_y) * gx_zoom;
+		var _nr = _nb.r * _fd * gx_zoom;
+		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
+		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .55);
+	}
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
@@ -1111,7 +1120,7 @@ if (view == "galaxy") {
 	// the one dither; on an 8-bit page the glow lands on the screen after
 	if (page_float()) { __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); }
 	else { page_blit(wb_surf, _gr.x, _gr.y, 1 / _gs); __bloom(wb_surf, _vws, _vhs, _gr.x, _gr.y, .75, 1 / _gs); }
-	if (!shader_is_compiled(sh_galaxy_fog) || !shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(_gr.x + 4, _gr.y + _gr.h - 30, (shader_is_compiled(sh_galaxy_fog) ? "" : "sh_galaxy_fog failed to compile  ") + (shader_is_compiled(sh_sky_fog) ? "" : "sh_sky_fog failed to compile")); }   // (2026-09-16: the page is the compile log)
+	if (!shader_is_compiled(sh_galaxy_fog) || !shader_is_compiled(sh_sky_fog) || !shader_is_compiled(sh_nebula)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(_gr.x + 4, _gr.y + _gr.h - 30, (shader_is_compiled(sh_galaxy_fog) ? "" : "sh_galaxy_fog failed to compile  ") + (shader_is_compiled(sh_sky_fog) ? "" : "sh_sky_fog failed to compile  ") + (shader_is_compiled(sh_nebula) ? "" : "sh_nebula failed to compile")); }   // (2026-09-16: the page is the compile log)
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _mmr.x - 1, _mmr.y - 1, _mmr.w + 2, _mmr.h + 2, 0, c_black, .7);
 	draw_surface(gx_mm, _mmr.x, _mmr.y);

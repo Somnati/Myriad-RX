@@ -22,12 +22,7 @@ uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
-// THE NEBULA SHEET (galaxy_neb_sheet: the map's density as gray, red = density) is gm_BaseTexture - the quad IS the sheet,
-// stretched over the page (2026-09-16: a second sampler took stage 0 on the hlsl side, nothing else being sampled -
-// the canvas then hid the sheet and the stage's filter flag went global)
-uniform vec2  u_npos;    // this star on the sheet, uv
-uniform vec4  u_nprm;    // the march: range (uv), the slab's half-thickness (uv), brightness, the density floor
-uniform vec3  u_gal;     // the galaxy's centre (uv) and disc radius (uv): the clouds' colour law (the map's)
+// (the nebulae are things of their own now - galaxy_nebulae, sh_nebula - drawn by galaxy_sky_draw; 2026-09-16)
 
 // hash -> 3d value noise -> fbm. sampled on world DIRECTIONS, so the
 // fog is seamless over the whole sphere: no 2d wrap, no poles
@@ -109,30 +104,6 @@ void main()
     float bulge = pow(toward, 9.0) * exp(-w.y * w.y * 14.0);
     dens += bulge * (0.35 + 0.65 * smoothstep(0.25, 0.7, n)) * (0.5 + 0.8 * u_edge);
 
-    // THE NEBULAE (his ask, 2026-09-16: the map's real ones, where they are): the view ray marched out along the
-    // galactic plane through the density sheet - a cloud near this star fills a wide stretch of the band, a far one
-    // a small patch, both at their true bearings; the slab has a thickness, so a ray climbing off the plane leaves
-    // it (a near cloud stands taller in the sky than a far one, and a star inside one sees a faint glow all round).
-    // the march starts at a jittered offset (the dither's grain, re-seeded with it) so the steps never band
-    float sfr0 = floor(u_time * 60.0);
-    float jit = hash12(floor(v_vTexcoord * u_geom) + vec2(sfr0 * 3.0, sfr0 * 11.0));
-    vec3 nrgb = vec3(0.0);
-    float nstep = u_nprm.x / 25.0;
-    for (int si = 0; si < 24; si++) {
-        float t = (float(si) + 1.0 + jit) * nstep;   // (from the second step: the star's own cell would glow the whole sky)
-        vec2 sp = u_npos + vec2(w.x, -w.z) * t;   // (the map's y runs down: a bearing's sine climbs the map)
-        float hgt = w.y * t / u_nprm.y;
-        float wt = exp(-hgt * hgt) * (1.0 - t / u_nprm.x);
-        float sdn = texture2D(gm_BaseTexture, sp).r;
-        float sd = max(0.0, (sdn - u_nprm.w) / (1.0 - u_nprm.w));   // (under the floor is the map's haze, not a cloud)
-        float srd = clamp(distance(sp, u_gal.xy) / u_gal.z, 0.0, 1.0);
-        vec3 scol = mix(vec3(1.0, 0.725, 0.490), vec3(0.510, 0.608, 1.0), srd);
-        nrgb += scol * (sd * sd) * wt;
-    }
-    // the wisps: the finer fbm on the view direction frays the clouds as the map's shader frays the sheet
-    float nwisp = 0.45 + 0.9 * smoothstep(0.28, 0.72, fbm(w * 11.0 + u_seed * 2.1 + vec3(3.7, 8.1, 1.9)));
-    vec3 ncol = nrgb * (u_nprm.z / 24.0) * nwisp;
-
     // warm at the core bearing, cool away - agrees with the star map
     vec2 wf = w.xz;
     vec2 cf = u_core.xz;
@@ -145,7 +116,6 @@ void main()
     float bias = mix(1.0, 0.15 + 1.7 * pow(1.0 - dc, 1.8), u_edge);
 
     vec3 rgb = col * dens * u_amp * (0.55 + 0.75 * (1.0 - dc)) * bias;
-    rgb += ncol;   // (the nebulae over the band)
 
     // REMASTERED temporal dither, grain as chunky as the cells:
     // 30hz re-seed (half the shimmer) + LUMINANCE-GATED amplitude -

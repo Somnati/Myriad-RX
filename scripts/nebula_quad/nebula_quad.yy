@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"nebula_quad",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"nebula_quad",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

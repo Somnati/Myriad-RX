@@ -84,10 +84,15 @@ function starmap_config() {
 		sky_glare   : 70,  // px about the sun inside which the stars dim (x the sun's size)
 		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
-		sky_neb_range : 1400, // THE NEBULAE in the sky (2026-09-16): plane px the view ray marches through the map's sheet
-		sky_neb_thick : 70,   // ...the cloud slab's half-thickness, plane px (a near cloud stands taller in the sky)
-		sky_neb_amp   : 1.2,  // ...their brightness
-		sky_neb_floor : .4,   // ...the sheet density under which nothing shows: the map's haze stays on the map, the clouds come to the sky
+		// ---- THE NEBULAE (2026-09-16): things of the galaxy (galaxy_nebulae), on the map and in every sky in reach ----
+		neb_count     : 44,   // a galaxy
+		neb_apart     : 260,  // plane px between any two
+		neb_r_min     : 90,   // radius, plane px: this + density x neb_r_dn + up to neb_r_rand
+		neb_r_dn      : 220,
+		neb_r_rand    : 120,
+		neb_range     : 1500, // plane px: a sky shows the ones within this of its star
+		neb_alpha_map : .55,  // their strength on the map
+		neb_alpha_sky : .5,   // ...and in the sky (x a near / far factor)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px
