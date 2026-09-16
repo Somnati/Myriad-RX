@@ -90,7 +90,8 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		shader_set_uniform_f(_ui.ext, _cfg[$ "neb_in_ext"] ?? 1.4);
 		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
 		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
-		shader_set_uniform_f(_ui.dmode, (_cfg[$ "neb_in_smooth"] ?? true) ? 2 : ((((variable_global_exists("page_dither") ? g.page_dither : "ordered") == "grain") ? 0 : 1));   // (smooth by default - his call; else the settings' pattern, 2026-09-16)
+		var _dpat = variable_global_exists("page_dither") ? g.page_dither : "ordered";
+		shader_set_uniform_f(_ui.dmode, (_cfg[$ "neb_in_smooth"] ?? true) ? 2 : ((_dpat == "grain") ? 0 : 1));   // (smooth by default - his call; else the settings' pattern, 2026-09-16)
 		var _lw = _sky.light_w;
 		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
 		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
