@@ -15,6 +15,8 @@ function exped_loot_roll(_tr) {
 	// gear, a potion, an elixir (epic and up), or credits (the consumables pass, 2026-09-16)
 	var _kr = random(100), _kind = "credits";
 	if (_kr < 35) _kind = "gear"; else if (_kr < 55) _kind = "use"; else if (_kr < 61 && _rar >= 4) _kind = "elixir";
+	// THE EGGS (his ask, 2026-09-16): now and then, in the credits' lane, a warm egg - carried home, it hatches a sprite (exped_tick)
+	if (_kind == "credits" && random(100) < EXPED_EGG_CHANCE) _kind = "egg";
 	if (_kind == "use" || _kind == "elixir") {
 		// (a consumable rides the gear's lane: the finder handles it - sprite_take pockets a potion and drinks an elixir on the spot)
 		var _cit = (_kind == "elixir") ? use_gen("elixir", 1, _rgl_lv(_tr), choose("hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit", "luck"))
@@ -30,6 +32,12 @@ function exped_loot_roll(_tr) {
 		}
 		case "sprite":
 			return { kind : "sprite", rar : _rar, txt : "a sprite, asleep", col : _ri.col };
+		case "egg": {
+			// the egg's colour is the sprite's to come (the sprites' own palette law); its seed rides in tier, its colour in n (the pack's lanes)
+			var _ehue = irandom(255), _ecol = make_colour_hsv(_ehue, irandom_range(150, 220), irandom_range(225, 255)), _eseed = irandom(999999);
+			var _ew = egg_word(_ehue, _eseed);
+			return { kind : "egg", rar : max(_rar, 2), n : _ecol, fam : _ew, tier : _eseed, txt : "a " + _ew + " egg, warm", col : _ecol };
+		}
 		case "offer":
 			return { kind : "offer", rar : _rar, txt : "an upgrade offer (" + _ri.name + ")", col : _ri.col };
 		case "charm":
@@ -49,3 +57,4 @@ function exped_loot_roll(_tr) {
 	var _cr = (2 + irandom(3)) * _d.tier * (1 + _rar);
 	return { kind : "credits", rar : _rar, n : _cr, txt : string(_cr) + " credits", col : c_lavender };
 }
+#macro EXPED_EGG_CHANCE 7   // THE EGGS (2026-09-16): of the finds that would be credits, this % are a warm egg (a sprite, hatched at home)

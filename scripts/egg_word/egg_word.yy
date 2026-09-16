@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"egg_word",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"egg_word",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

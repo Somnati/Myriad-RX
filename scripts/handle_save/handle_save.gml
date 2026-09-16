@@ -557,6 +557,11 @@ function handle_save(){
 	_xww = handle("ex_worlds", _xww);
 	if (action == sv_load) { g.exped.worlds = []; if (_xww != "") { var _wl = string_split(_xww, "|"); for (var _i = 0; _i < array_length(_wl); _i++) { var _wf = string_split(_wl[_i], ":"); if (array_length(_wf) == 2) array_push(g.exped.worlds, { star : real(_wf[0]), pl : real(_wf[1]) }); } } }
 	g.exped.charms = handle("ex_charms", g.exped.charms);
+	// THE EGGS (2026-09-16): col:seed:hatch:word:from (the word and the world scrubbed of the separators)
+	var _xeg = "";
+	if (is_array(g.exped[$ "eggs"])) for (var _i = 0; _i < array_length(g.exped.eggs); _i++) { var _eg = g.exped.eggs[_i]; _xeg += ((_i > 0) ? "|" : "") + string(_eg.col) + ":" + string(_eg.seed) + ":" + string(_eg.hatch) + ":" + string_replace_all(string_replace_all(_eg.word, "|", " "), ":", " ") + ":" + string_replace_all(string_replace_all(_eg.from, "|", " "), ":", " "); }
+	_xeg = handle("ex_eggs", _xeg);
+	if (action == sv_load) { g.exped.eggs = []; if (_xeg != "") { var _egl = string_split(_xeg, "|"); for (var _i = 0; _i < array_length(_egl); _i++) { var _eq = string_split(_egl[_i], ":"); if (array_length(_eq) >= 5) array_push(g.exped.eggs, { col : real(_eq[0]), seed : real(_eq[1]), hatch : real(_eq[2]), word : _eq[3], from : _eq[4] }); } } }
 	g.exped.seq    = handle("ex_seq",    g.exped.seq);
 	var _xm = "";
 	var _xk = variable_struct_get_names(g.exped.mats);

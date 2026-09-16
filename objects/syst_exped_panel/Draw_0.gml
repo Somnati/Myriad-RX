@@ -157,6 +157,7 @@ if (view == "haul") {
 			case "credits": _flb = "credits"; break;
 			case "gear":    _flb = "gear"; break;
 			case "sprite":  _flb = "a sprite"; break;
+			case "egg":     _flb = "an egg"; break;
 			case "offer":   _flb = "an offer"; break;
 			case "charm":   _flb = "a charm"; break;
 			case "chart":   _flb = "a chart"; break;
@@ -487,6 +488,23 @@ if (view == "crew" || view == "sheet") {
 		draw_set_color(_dim); draw_set_alpha(.7);
 		draw_text(_tb.x + _tb.w - 3, _tb.y + 3, "lv" + string(sprite_sheet(_sp).lv));
 		draw_set_halign(fa_left);
+	}
+	// THE CLUTCH (2026-09-16): the eggs at home under the tabs - each its colour, and how long it has to go
+	var _eggs = g.exped[$ "eggs"];
+	if (crew_trip < 0 && is_array(_eggs) && array_length(_eggs) > 0) {
+		var _etb = __tab_r(array_length(_cl)), _ey = _etb.y + 6;
+		draw_set_color(_ink); draw_set_alpha(.5); draw_text(_etb.x, _ey, "the clutch"); _ey += 11;
+		for (var _gi = 0; _gi < array_length(_eggs); _gi++) {
+			if (_ey + 10 > room_height - 8) break;
+			var _eg = _eggs[_gi], _left = _eg.hatch - universal_now();
+			// the egg: five rows, an egg's outline, its colour
+			var _ex = _etb.x + 3;
+			draw_sprite_ext(spr_pixel_1x1, 0, _ex + 1, _ey, 3, 1, 0, _eg.col, .95); draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ey + 1, 5, 4, 0, _eg.col, .95); draw_sprite_ext(spr_pixel_1x1, 0, _ex + 1, _ey + 5, 3, 1, 0, _eg.col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _ex + 1, _ey + 1, 1, 1, 0, c_white, .5);
+			var _etx = (array_length(g.sprites) >= SPRITE_CAP && _left <= 0) ? "needs room" : ((_left <= 0) ? "any moment" : ((_left < 3600) ? "under an hour" : (string(ceil(_left / 3600)) + "h")));
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_ex + 9, _ey - 1, __sheet_cut(_eg.word + " - " + _etx, _etb.w - 12));
+			_ey += 10;
+		}
 	}
 	// the sheet
 	var _sp = __sp_by_id(sheet_id);

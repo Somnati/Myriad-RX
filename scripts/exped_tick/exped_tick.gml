@@ -17,6 +17,19 @@ function exped_tick(_secs) {
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
 	exped_mem_tick(_dt);     // the world's memories fade (2026-09-16)
 	exped_event_tick();      // ...and the regions' events roll (2026-09-16)
+	// THE EGGS (his ask, 2026-09-16): the clutch hatches on the universal clock - a sprite of the egg's colour, asleep, its first
+	// note the story; a full roster keeps an egg waiting (it does not go cold)
+	if (!is_array(_e[$ "eggs"])) _e.eggs = [];
+	for (var _gi = array_length(_e.eggs) - 1; _gi >= 0; _gi--) {
+		var _eg = _e.eggs[_gi];
+		if (universal_now() < _eg.hatch || array_length(g.sprites) >= SPRITE_CAP) continue;
+		var _hs = sprite_spawn("tap");
+		_hs.col = _eg.col; _hs.col2 = merge_colour(_eg.col, c_white, .3); _hs.asleep = true; _hs.found = "an egg from " + _eg.from;
+		sprite_note(_hs, "hatched from a " + _eg.word + " egg the crew carried home from " + _eg.from + ". " + choose("nobody saw it happen", "it was hungry first thing", "it came out already talking", "the shell is kept, for luck"), "egg");
+		exped_stat("recruits");
+		array_delete(_e.eggs, _gi, 1);
+		save_mark_dirty();
+	}
 	for (var _i = array_length(_e.trips) - 1; _i >= 0; _i--) {
 		var _tr = _e.trips[_i];
 		// A FIGHT PLAYS AT ITS OWN PACE (his ask, 2026-09-15): the debug clock

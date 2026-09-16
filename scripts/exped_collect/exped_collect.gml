@@ -54,6 +54,13 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 				}
 				break;
 			}
+			case "egg": {
+				// THE CLUTCH (2026-09-16): the egg waits at home - six to eighteen hours of wall clock (its seed says), then hatches given room
+				if (!is_array(_e[$ "eggs"])) _e.eggs = [];
+				array_push(_e.eggs, { col : _l.n, seed : _l.tier, word : _l.fam, from : _h.dest.name, hatch : universal_now() + (6 + (_l.tier mod 13)) * 3600 });
+				array_push(_h.log, "~ the " + _l.fam + " egg is set by the fire. it is warm. someone keeps checking it.");
+				break;
+			}
 			case "offer": {
 				var _slot = -1;
 				for (var _k = 0; _k < upgrade_slots(); _k++) if (!is_struct(g.upg.slot[_k])) { _slot = _k; break; }

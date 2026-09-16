@@ -50,6 +50,7 @@ function exped_unpack(_s) {
 					switch (_l.kind) {
 						case "mats":    _l.txt = string(_l.n) + " " + _l.fam + " (t" + string(_l.tier) + ")"; _l.col = _rinfo.col; break;
 						case "sprite":  _l.txt = "a sprite, asleep"; _l.col = _rinfo.col; break;
+						case "egg":     _l.txt = "a " + _l.fam + " egg, warm"; _l.col = _l.n; break;   // (n = its colour, fam = the word, tier = its seed; 2026-09-16)
 						case "offer":   _l.txt = "an upgrade offer (" + _rinfo.name + ")"; _l.col = _rinfo.col; break;
 						case "charm":   _l.txt = "a charm (+1 luck)"; _l.col = c_seagreen; break;
 						case "chart":   _l.txt = "a chart fragment"; _l.col = c_sblue; break;
