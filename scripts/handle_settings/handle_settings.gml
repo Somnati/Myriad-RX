@@ -79,8 +79,8 @@ function handle_settings(_method) {
 	g.title_bg = handle("title_bg",g.title_bg); // the title's backdrop
 	g.page_dither = handle("page_dither",g.page_dither); // the expedition pages' dither (2026-09-15)
 	g.page_dither_amt = handle("page_dither_amt",g.page_dither_amt); // ...and its intensity
-	g.hp_bar_col = handle("hp_bar_col",g.hp_bar_col); // the hp bars' colour (2026-09-16)
-	if (_method == sv_load && g.hp_bar_col != "green") g.hp_bar_col = "red";
+	g.hp_bar_hue = handle("hp_bar_col",g.hp_bar_hue); // the hp bars' colour (2026-09-16)
+	if (_method == sv_load && g.hp_bar_hue != "green") g.hp_bar_hue = "red";
 	g.planet_relief_pct = handle("planet_relief_pct",g.planet_relief_pct); // the mountains' exaggeration (2026-09-16)
 	if (_method == sv_load) g.planet_relief_pct = clamp(g.planet_relief_pct, 50, 250);
 	if (_method == sv_load) { if (g.page_dither != "grain") g.page_dither = "ordered"; g.page_dither_amt = clamp(g.page_dither_amt, 0, 100); }   // (retro / chunky went the same day)

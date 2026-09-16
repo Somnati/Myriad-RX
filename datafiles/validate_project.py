@@ -557,6 +557,22 @@ for _p, _s in srcs.items():
 check("every asset name the code mentions is registered",
       not _unres, "; ".join(_unres[:4]))
 
+# --- 8g1. A GLOBAL NAMED AFTER A SCRIPT. A script function IS a global
+# variable (`moon_tex` the function lives at global.moon_tex), so
+# `g.moon_tex = {...}` overwrites the function, and a guard like
+# `variable_global_exists("moon_tex") && is_struct(g.moon_tex)` passes on
+# the method itself and then dies on `.t` (2026-09-16: the moons' texture
+# cache, the first draw of the first moon; galaxy_home before it). Any
+# `g.NAME` / `global.NAME` where NAME is a registered script fails.
+_script_names = {n for n, pth in reg.items() if pth.startswith("scripts/")}
+_gclash = []
+for _p, _s in srcs.items():
+    for _m in re.finditer(r"(?<![\w.$])(?:g|global)\.(\w+)", _s):
+        if _m.group(1) in _script_names:
+            _gclash.append(f"{_p}: g.{_m.group(1)}")
+check("no global named after a script (g.NAME where NAME is a script function)",
+      not _gclash, "; ".join(sorted(set(_gclash))[:4]))
+
 # --- 8h. no variable named after a #macro. A macro is textual: a
 # `key = "";` where main_macros says `#macro key keyboard_check`
 # compiles as `keyboard_check = ""` and the IDE reports three errors

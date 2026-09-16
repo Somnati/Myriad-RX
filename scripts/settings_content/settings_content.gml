@@ -446,12 +446,12 @@ function settings_content() {
 		-1, undefined, true);
 	// THE HP BARS' COLOUR (his ask, 2026-09-16): the house red, or the green
 	settings_pill("hp bar colour", "hpbarcol",
-		g.hp_bar_col,
+		g.hp_bar_hue,
 		function() {
-			set_pill("red",   { val : "red",   col : c_hred,   enabled : (g.hp_bar_col == "red") });
-			set_pill("green", { val : "green", col : c_sgreen, enabled : (g.hp_bar_col == "green") });
+			set_pill("red",   { val : "red",   col : c_hred,   enabled : (g.hp_bar_hue == "red") });
+			set_pill("green", { val : "green", col : c_sgreen, enabled : (g.hp_bar_hue == "green") });
 		},
-		function(_v) { g.hp_bar_col = _v; },
+		function(_v) { g.hp_bar_hue = _v; },
 		"the colour of every hp bar - the crew's banners, the sheet, the trip page.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)

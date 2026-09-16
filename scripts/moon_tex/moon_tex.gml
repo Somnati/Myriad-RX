@@ -1,9 +1,9 @@
 /// @description moon_tex() -> { t, c, h } the moons' shared textures: a cratered gray (MOON_TEX_W x MOON_TEX_H), a blank cloud, a flat height
-/// Baked once (kept in g.moon_tex; rebuilt when the gpu loses them): every
+/// Baked once (kept in g.moon_tex_c - NOT g.moon_tex: a script function IS a global, so that name is the method itself; rebuilt when the gpu loses them): every
 /// moon wears the same rock, tinted its own colour at the draw (moon_draw),
 /// the tech demo's way. The craters are a few darker rings on value noise.
 function moon_tex() {
-	if (variable_global_exists("moon_tex") && is_struct(g.moon_tex) && surface_exists(g.moon_tex.t) && surface_exists(g.moon_tex.c) && surface_exists(g.moon_tex.h)) return g.moon_tex;
+	if (variable_global_exists("moon_tex_c") && is_struct(g.moon_tex_c) && surface_exists(g.moon_tex_c.t) && surface_exists(g.moon_tex_c.c) && surface_exists(g.moon_tex_c.h)) return g.moon_tex_c;
 	var _w = MOON_TEX_W, _h = MOON_TEX_H;
 	var _t = surface_create(_w, _h), _c = surface_create(1, 1), _hs = surface_create(1, 1);
 	var _sh = shader_current();
@@ -30,6 +30,6 @@ function moon_tex() {
 	}
 	surface_reset_target();
 	if (_sh != -1) shader_set(_sh);
-	g.moon_tex = { t : _t, c : _c, h : _hs };
-	return g.moon_tex;
+	g.moon_tex_c = { t : _t, c : _c, h : _hs };
+	return g.moon_tex_c;
 }
