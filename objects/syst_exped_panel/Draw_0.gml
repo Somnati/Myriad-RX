@@ -420,11 +420,9 @@ if (view == "trip") {
 	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw, 4, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw * _tf, 4, 0, (_tr.stage == 1) ? c_sgreen : c_steelblue, .9);
 	draw_px_rect(_lbx, _lgy + 2, _lbw, 4, c_white, .1);
-	// [crew] [map] [abort] - the island's foot (portrait), the right column's foot (wide)
+	// [crew] [abort] - the island's foot (portrait), the right column's foot (wide); [map] is in the strip (2026-09-16)
 	var _tcr = __trip_crew_r();
 	draw_ui_button(_tcr.x, _tcr.y, _tcr.w, _tcr.h, "crew", c_steelblue, true, false);
-	var _tmr = __trip_map_r();
-	draw_ui_button(_tmr.x, _tmr.y, _tmr.w, _tmr.h, "map", c_steelblue, true, false);
 	var _abr = __trip_abort_r();
 	var _can_abort = !(_tr[$ "aborted"] ?? false) && _tr.stage != 2;
 	draw_ui_button(_abr.x, _abr.y, _abr.w, _abr.h, (_tr[$ "aborted"] ?? false) ? "aborted" : "abort", c_hred, _can_abort, false);
@@ -658,7 +656,7 @@ if (view == "planet") {
 	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit" : "drag to orbit  -  tap a region");
 	draw_set_halign(fa_left);
-	// the left column: [galaxy] at the foot, [region map] over it in region mode, the geosync toggle on top
+	// the left column: [galaxy] at the foot, the geosync toggle over it ([map] is in the strip, 2026-09-16)
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
 	var _ge = __geo_r();
@@ -671,8 +669,6 @@ if (view == "planet") {
 		// map] in the left column, [quests] over [explore] bottom right
 		var _rg = region_get(_d, rg_sel);
 		__draw_info_box(_d, _rg, __rg_banner_r());
-		var _mr0 = __rgmap_r();
-		draw_ui_button(_mr0.x, _mr0.y, _mr0.w, _mr0.h, "region map", c_steelblue, true, false);
 		var _qb = __quests_r();
 		draw_ui_button(_qb.x, _qb.y, _qb.w, _qb.h, "quests", c_gold, true, true);
 		var _xb = __explore_r();

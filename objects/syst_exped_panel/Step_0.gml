@@ -415,6 +415,16 @@ if (view != "hub") {
 			exit;
 		}
 	}
+	// [map] beside it: the page's region (2026-09-16 - one button, one place)
+	var _mc = __map_ctx();
+	if (!is_undefined(_mc)) {
+		var _ms = __mapstrip_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _ms.x, _ms.y, _ms.x + _ms.w, _ms.y + _ms.h)) {
+			map_dest = _mc.dest; map_rgi = _mc.rgi; map_from = view; __page_go("map"); it_pop = undefined;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 }
 
 // ======================= THE CREW MENU: tabs on the left =======================
@@ -462,15 +472,9 @@ if (view == "planet") {
 		exit;
 	}
 	// REGION MODE (his ask: no separate window - the camera pulls in, the
-	// info box left): [region map] in the left column, [quests] / [explore]
-	// bottom right deal THE HAND (the cards pick the departure)
+	// info box left): [quests] / [explore] bottom right deal THE HAND (the
+	// cards pick the departure); [map] is in the strip (2026-09-16)
 	if (pv_mode == "region") {
-		var _mr0 = __rgmap_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
-			map_dest = pl_dest; map_rgi = rg_sel; map_from = "planet"; __page_go("map");
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
 		var _qb = __quests_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) { __hand_open("quests"); exit; }
 		var _xb = __explore_r();
@@ -647,15 +651,6 @@ if (view == "trip") {
 		if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) {
 			exped_recall(_tr);
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			exit;
-		}
-	}
-	// [map]: the world's region
-	if (!is_undefined(_tr)) {
-		var _mr = __trip_map_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) {
-			map_dest = _tr.dest; map_rgi = _tr[$ "rgi"] ?? 0; map_from = "trip"; __page_go("map");
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
 	}

@@ -317,6 +317,19 @@ __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
 __crewstrip_r = function() { var _b = __back_r(); return { x : _b.x - 4 - 44, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
+// [map] beside [crew] (his call, 2026-09-16: "move the region map button to
+// the top next to the crew button"): on every page that has a region -
+// the planet page in region mode, the preparation page, the trip page
+__mapstrip_r = function() { var _c = __crewstrip_r(); return { x : _c.x - 4 - 44, y : _c.y, w : 44, h : 13 }; };
+/// the region the page is about -> { dest, rgi }, or undefined (no [map] then)
+__map_ctx = function() {
+	switch (view) {
+		case "planet": if (pv_mode == "region" && is_struct(pl_dest)) return { dest : pl_dest, rgi : rg_sel }; break;
+		case "depart": if (is_struct(pl_dest)) return { dest : pl_dest, rgi : rg_sel }; break;
+		case "trip":   { var _mt = __trip(); if (!is_undefined(_mt)) return { dest : _mt.dest, rgi : _mt[$ "rgi"] ?? 0 }; break; }
+	}
+	return undefined;
+};
 /// [back] and [crew] painted (the pages that render a sky call it again AFTER the sky - the render plane covers the row)
 __draw_back = function() {
 	var _bk = __back_r();
@@ -332,6 +345,13 @@ __draw_back = function() {
 		draw_px_rect(_cs.x, _cs.y, _cs.w, _cs.h, c_steelblue, .5);
 		draw_set_color(c_steelblue);
 		draw_text(_cs.x + _cs.w * .5, _cs.y + 3, "crew");
+	}
+	if (!is_undefined(__map_ctx())) {
+		var _ms = __mapstrip_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _ms.x, _ms.y, _ms.w, _ms.h, 0, c_black, .8);
+		draw_px_rect(_ms.x, _ms.y, _ms.w, _ms.h, c_steelblue, .5);
+		draw_set_color(c_steelblue);
+		draw_text(_ms.x + _ms.w * .5, _ms.y + 3, "map");
 	}
 	draw_set_halign(fa_left);
 };
@@ -377,9 +397,9 @@ __crew_list = function() {
 // the trip page's buttons: a row UNDER the world box (his ask, 2026-09-15:
 // "move the crew/map buttons off the world panel"): [crew] [map] [abort]
 __trip_isle_r = function() { return { x : big_x, y : big_y, w : big_w, h : isle_h }; };
-__trip_btn_r = function(_k) { if (land) return { x : log_x + _k * 64, y : room_height - 8 - 14, w : 60, h : 14 }; var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + isle_h - 18, w : _bw - 2, h : 13 }; };   // (wide: the right column's foot - 2026-09-15)
+__trip_btn_r = function(_k) { if (land) return { x : log_x + _k * 64, y : room_height - 8 - 14, w : 60, h : 14 }; var _bw = floor((big_w - 8) / 2); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + isle_h - 18, w : _bw - 2, h : 13 }; };   // (wide: the right column's foot - 2026-09-15)
 __trip_crew_r  = function() { return __trip_btn_r(0); };
-__trip_abort_r = function() { return __trip_btn_r(2); };
+__trip_abort_r = function() { return __trip_btn_r(1); };   // ([map] left the foot for the strip, 2026-09-16)
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
 // ---- THE ORBIT VIEW (the planet page, 2026-09-15: the tech demo's rm_planet in the panel) ----
 // cam = view -> world (an arcball: drag post-multiplies about the view's
@@ -409,11 +429,11 @@ __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // 
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
 // THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
-// at the foot, [region map] over it in region mode, the geosync toggle on
-// top; bottom right in region mode - [quests] over [explore]
+// at the foot, the geosync toggle over it ([region map] sat between them in
+// region mode until 2026-09-16 - it is [map] in the strip now); bottom
+// right in region mode - [quests] over [explore]
 __galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : land ? 90 : 70, h : 16 }; };
-__rgmap_r  = function() { var _g = __galaxy_r(); return { x : _g.x - (1 - rg_in) * 140, y : _g.y - 20, w : _g.w, h : 16 }; };   // [region map] (region mode; swings in from the left)
-__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - ((pv_mode == "region") ? 40 : 20), w : _g.w, h : 16 }; };
+__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };
 __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w + (1 - rg_in) * 140, y : room_height - 8 - 16, w : _w, h : 16 }; };   // (region mode's swing: in from the right)
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 // region mode: the info box on the left (region_info's lines)
@@ -621,7 +641,6 @@ __pv_ui_hit = function() {
 	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
 	if (pv_mode == "region") {
 		var _bn = __rg_banner_r(); if (point_in_rectangle(mouse_x, mouse_y, _bn.x, _bn.y, _bn.x + _bn.w, _bn.y + _bn.h)) return true;
-		var _mr = __rgmap_r(); if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) return true;
 		var _qb = __quests_r(); if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) return true;
 		var _xb = __explore_r(); if (point_in_rectangle(mouse_x, mouse_y, _xb.x, _xb.y, _xb.x + _xb.w, _xb.y + _xb.h)) return true;
 		return false;
@@ -1329,7 +1348,6 @@ __map_labels = function(_rg, _mr, _key) {
 	map_lab = { key : _key, pos : _pos };
 	return _pos;
 };
-__trip_map_r = function() { return __trip_btn_r(1); };
 // THE CREW'S BANNERS (his ask, 2026-09-15: under the world box): a row each
 // under the button row - dot, name, level, the hp bar (live in a fight)
 __crew_row_r = function(_k) { return { x : big_x, y : big_y + isle_h + 4 + _k * (__dp_bh() + 2), w : big_w, h : __dp_bh() }; };   // the crew's banners under the island (the preparation page's) - four fit (2026-09-15)
