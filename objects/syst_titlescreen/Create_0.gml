@@ -282,11 +282,20 @@ __draw_trace = function() {
 // The bands / name / level (obj_gf_titleback), the stat bars and the
 // density bar (the cell's normal Draw) are the forge's UI, not its look -
 // left out (his call, 2026-09-15: "just the dial in the center and its
-// particle behavior"). The motes are born inside DE's 144x296 room,
-// centred on the title, so the crowd round the cell is as dense as DE's
-// (born across the whole 480-wide title they were thin). The whole thing draws ABOVE the
+// particle behavior"). The motes are born ANYWHERE on the title (his
+// call, 2026-09-16: "our game is on a larger screen... DE did it its way
+// cause its on a mobile aspect ratio"); their rates ride fg.area - the
+// title's area over DE's 144x296, ~3x - so the crowd is as dense as
+// DE's, while the big glows (room-wide streaks) keep DE's rate per
+// second. THE PIXELS (his ask, the same day: "give it a pixel shader so
+// its pixelated"): the whole forge draws into a surface FORGE_PIX times
+// smaller than the room and comes back point-sampled - one exact texel
+// per block, pixel_snap's law - so discs, halos and sparks are in chunky
+// pixels like DE's 144-wide room; 1 = the room's own grid (the fonts'),
+// which is DE's texels-per-dial exactly. The whole thing draws ABOVE the
 // glow pass (a proxy at 48): DE lit it with its own additive halos, and
 // a bloom on top of those is a different picture ----
+FORGE_PIX = 1;   // room pixels a block (2 for chunkier than the fonts)
 fg = undefined;
 __forge_roll = function() {
 	var _cx = floor((room_width - 144) * .5), _cy = floor(room_height * .5) - 144;   // DE's 144x296 room, its cell (72,144) on the title's centre
@@ -299,7 +308,8 @@ __forge_roll = function() {
 		// smoothly and the cycle's end is the burst - DE's claimed cell under
 		// prod_dials' GENFORGE block (a sawtooth here, the cycle simulated)
 		cycle : random(1), cycle_len : random_range(150, 300),
-		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
+		fill : 0, alpha : 0, size : 0, chg : 1, rec : .08, dmp : .9,   // (chg 1: DE's set_wiggle starts every spring at speed 1)
+		area : (room_width * room_height) / (144 * 296),   // the title over DE's room: the mote rates ride it, the big-glow chance divides by it
 		circ : 0, glow : 0, wdc : random_range(-4, 4), xos : 0, yos : 0,
 		effs : [], sparks : [], rings : [],
 		rt : 0, cr : random(360), ga : 0,   // THE 60 Hz TICK: the halo's angle, the disc's flicker, the jitters and the spawn rolls run on it, not every monitor frame
@@ -314,7 +324,7 @@ __forge_comp = function(_c) {
 __forge_mote = function(_x, _y, _away, _spd, _max, _decay, _big) {
 	return {
 		x : _x, y : _y, away : _away,
-		size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
+		size : 0, chg : 1, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),   // chg 1 (DE's set_wiggle): the mote POPS in - past its 0..2 px target to several px, then springs back - the spawn size he saw in DE (2026-09-16)
 		max_size : _max, decay : _decay, alpha : 1, spd : _spd, part_chance : 1,
 		big_glow : _big, glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
 		j1 : random_range(.95, 1.05), j2 : random_range(-.05, .05), j3 : random_range(-.05, .05),
@@ -353,9 +363,9 @@ __forge_step = function() {
 		// and PULLED in (obj_gf_eff's own Create: spd random(3), decay by size)
 		_f.chg += 2;
 		array_push(_f.rings, { size : 0, spd : 3.5, decay : random_range(15, 30), alpha : 1 });
-		repeat (choose(2, 3, 4, 5) * 2) {
+		repeat (round(choose(2, 3, 4, 5) * 2 * _f.area)) {
 			var _sp0 = random(1);
-			array_push(_f.effs, __forge_mote(_f.px + random(144), _f.py + random(296), false, random(3), random(2), lerp(60, 15, _sp0), roll_perc(5)));
+			array_push(_f.effs, __forge_mote(random(room_width), random(room_height), false, random(3), random(2), lerp(60, 15, _sp0), roll_perc(5 / _f.area)));
 		}
 	}
 	// ---- obj_gf_slot_cell, claimed: the fill and the alpha ride the cycle (a smooth build-up, then back down after the burst) ----
@@ -365,9 +375,9 @@ __forge_step = function() {
 	__forge_wiggle(_f, _max);
 	_f.circ = _f.size / ((30 * .75) * .5);
 	_f.xos = 0; _f.yos = 0;
-	// the motes pulled in (dens_perc 1 for a claimed cell: roll_perc(7) a frame at 60 - a tick here)
-	if (_tick && roll_perc(7)) {
-		var _m = __forge_mote(_f.px + random(144), _f.py + random(296), false, random(2), random(2), 30, roll_perc(5));
+	// the motes pulled in (dens_perc 1 for a claimed cell: roll_perc(7) a frame at 60 - a tick here; x the area, born anywhere)
+	if (_tick && roll_perc(7 * _f.area)) {
+		var _m = __forge_mote(random(room_width), random(room_height), false, random(2), random(2), 30, roll_perc(5 / _f.area));
 		_m.part_chance = 2;
 		array_push(_f.effs, _m);
 	}
@@ -426,6 +436,21 @@ __draw_forge = function() {
 	__forge_step();
 	var _f = fg;
 	var _c = _f.c;
+	// ---- THE PIXELS: everything below lands in a surface FORGE_PIX times
+	// smaller than the room (the world matrix scales the room's coordinates
+	// down into it), then comes back up point-sampled - one exact texel per
+	// block, never averaged (pixel_snap's law). The surface is volatile like
+	// every surface: checked each frame, remade at the room's size ----
+	var _cell = max(1, FORGE_PIX);
+	var _sw = ceil(room_width / _cell), _sh = ceil(room_height / _cell);
+	if (!variable_global_exists("title_forge_surf") || !surface_exists(g.title_forge_surf)
+		|| surface_get_width(g.title_forge_surf) != _sw || surface_get_height(g.title_forge_surf) != _sh) {
+		if (variable_global_exists("title_forge_surf") && surface_exists(g.title_forge_surf)) surface_free(g.title_forge_surf);
+		g.title_forge_surf = surface_create(_sw, _sh);
+	}
+	surface_set_target(g.title_forge_surf);
+	draw_clear_alpha(c_black, 0);
+	if (_cell != 1) matrix_set(matrix_world, matrix_build(0, 0, 0, 0, 0, 0, 1 / _cell, 1 / _cell, 1));
 	// ---- everything par_ambi_draw drew: additive ----
 	// (DE set draw_set_circle_precision(48) every frame - syst_roomtrans'
 	// Draw End, global gpu state - so its discs were round; GM's default 24
@@ -471,6 +496,16 @@ __draw_forge = function() {
 	gpu_set_blendmode(bm_normal);
 	draw_set_circle_precision(24);
 	draw_set_color(c_white);
+	if (_cell != 1) matrix_set(matrix_world, matrix_build_identity());
+	surface_reset_target();
+	// the light in the surface is already colour x alpha (bm_add wrote it),
+	// so it lands with (one, one): added as it is, the alpha not counted twice
+	gpu_set_blendmode_ext(bm_one, bm_one);
+	var _tf = gpu_get_tex_filter();
+	gpu_set_tex_filter(false);
+	draw_surface_ext(g.title_forge_surf, 0, 0, _cell, _cell, 0, c_white, 1);
+	gpu_set_tex_filter(_tf);
+	gpu_set_blendmode(bm_normal);
 };
 
 __draw_field = function() {
