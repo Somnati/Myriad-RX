@@ -1622,7 +1622,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	}
 	var _sky = __sky_for(_d);   // (the world's own sky, 2026-09-16)
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	var _built = (_pn.row >= _pn.th);
+	var _built = (_pn.row >= _pn.th) && ((_pn[$ "brow"] ?? 0) >= 3 * _pn.th);   // (rows AND textures: planet_draw bakes whole otherwise - __worlds_step slices it)
 	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
 	var _mm = mat3_mul(mat3_transpose(_wm), _cam);
 	var _mr = mat3_transpose(_mm);
@@ -1724,7 +1724,7 @@ __spot_yp = function(_pn, _spin, _rg) {
 /// shows clouds). The caller has the fade off (the shader replaces it)
 __world_small = function(_d, _cx, _cy, _r, _rg = undefined) {
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	if (_pn.row >= _pn.th) {
+	if (_pn.row >= _pn.th && (_pn[$ "brow"] ?? 0) >= 3 * _pn.th) {   // (built and baked - the small world too, bug hunt 2026-09-16)
 		// FACING ITS REGION when the card is about one (his ask, 2026-09-15): the
 		// spot dead on, the clock's spin under it (the terminator moves, the region holds)
 		if (is_struct(_rg)) { var _sp = planet_spin_now(_pn); planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r, _sp, 1, __cam_at(_pn, _sp, _rg), __sky_for(_d).light_w); }
@@ -1744,6 +1744,7 @@ __worlds_step = function() {
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		var _pn = planet_get(_list[_i].seed, exped_planet_hint(_list[_i]));
 		if (_pn.row < _pn.th) { planet_gen_step(_pn, 6); return; }   // (six rows a frame: a fresh world in a quarter second)
+		if ((_pn[$ "brow"] ?? 0) < 3 * _pn.th) { planet_bake(_pn, get_timer() + 4000); return; }   // (then its textures, four ms a frame - a world opened on the map baked whole on its first draw, a hitch; bug hunt 2026-09-16)
 	}
 };
 /// a sprite by id (undefined when gone)

@@ -50,6 +50,10 @@ if (boot_phase == 1) {
 	var _bdone = true, _blim = get_timer() + boot_budget * 1000;
 	var _rows_done = 0, _rows_all = 0, _bake_done = 0, _bake_all = 0;
 	if (variable_global_exists("exped")) for (var _bi = 0; _bi < array_length(g.exped.board); _bi++) {
+		// (the home world and any a crew is out to; the rest of the map's opened worlds bake on demand in the panel - bug hunt 2026-09-16)
+		var _bneed = (_bi == 0);
+		for (var _bt = 0; _bt < array_length(g.exped.trips) && !_bneed; _bt++) if (g.exped.trips[_bt].dest.seed == g.exped.board[_bi].seed) _bneed = true;
+		if (!_bneed) continue;
 		var _bpn = planet_get(g.exped.board[_bi].seed, exped_planet_hint(g.exped.board[_bi]));
 		if (_bdone) {
 			boot_world = g.exped.board[_bi].name;

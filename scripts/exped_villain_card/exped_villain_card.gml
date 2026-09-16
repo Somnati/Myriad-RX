@@ -22,8 +22,8 @@ function exped_villain_card(_d, _ri, _rg, _stage) {
 			break;
 		}
 		default: {
-			_p = { kind : "bounty", node : _v.hide, foe : _v.foe, n : 1, mult : 5, who : _v.full };
-			_note = _v.name + " is cornered at " + _hn.name + ". the last thread";
+			_p = { kind : "bounty", node : _v.hide, foe : _v.foe, n : 1, mult : 5, who : _v.name };   // (the short name: it is the boss's label in the fight window; the full title in the note - bug hunt 2026-09-16)
+			_note = _v.full + " is cornered at " + _hn.name + ". the last thread";
 			break;
 		}
 	}
