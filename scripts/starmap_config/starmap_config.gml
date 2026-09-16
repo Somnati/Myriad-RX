@@ -60,6 +60,8 @@ function starmap_config() {
 		// ---- nebula fog (the baked density sheet) ----
 		fog_alpha : .39,
 		fog_depth : .82,
+		fog_freq  : 34,   // sh_galaxy_fog (2026-09-16): noise cells across the map - the wisps' scale
+		fog_warp  : .03,  // ...how far the clouds' outlines wander, in map fraction (the circles' cure)
 		// ---- the galaxy view's camera ----
 		zoom_min     : .5,
 		zoom_max     : 4,
@@ -79,6 +81,9 @@ function starmap_config() {
 		sky_glare   : 70,  // px about the sun inside which the stars dim (x the sun's size)
 		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
+		sky_neb_range : 1400, // THE NEBULAE in the sky (2026-09-16): plane px the view ray marches through the map's sheet
+		sky_neb_thick : 90,   // ...the cloud slab's half-thickness, plane px (a near cloud stands taller in the sky)
+		sky_neb_amp   : 1,    // ...their brightness
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px

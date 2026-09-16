@@ -454,7 +454,7 @@ pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
-pv_geo   = true;
+pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
 pv_face  = -1;                       // the region the camera is turning to face (-1 = none)
 pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
 pv_dtab  = 0;                        // THE DRAWER'S TAB (his ask, 2026-09-16): 0 regions, 1 active expeditions
@@ -623,18 +623,18 @@ __pv_box_r = function() { var _x = __pv_dw_x() + 9; return { x : _x, y : list_y 
 __pv_dtab_r = function(_i) { var _w = floor((__pv_dw_w() - 8 - 3) / 2); return { x : __pv_dw_x() + 13 + _i * (_w + 3), y : list_y + 20, w : _w, h : 22 }; };   // the two tabs at the top
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
 __pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS on their own tab (2026-09-16): hauls first, then trips   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
-__best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 60, w : _g.w, h : 16 }; };   // [bestiary] over the geosync toggle (planet mode)
+__best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };   // [bestiary] over [star system] (planet mode; the geosync toggle went - his call 2026-09-16)
 __system_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };   // [star system] over [galaxy] (his ask, 2026-09-16)
 // THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
 // at the foot, the geosync toggle over it ([region map] sat between them in
 // region mode until 2026-09-16 - it is [map] in the strip now); bottom
 // right in region mode - [quests] over [explore]
 __galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : land ? 90 : 70, h : 16 }; };
-__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };
 __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w + (1 - rg_in) * 140, y : room_height - 8 - 16, w : _w, h : 16 }; };   // (region mode's swing: in from the right)
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 // region mode: the info box on the left (region_info's lines)
 rg_box_w = 150; rg_box_h = 110;      // the info box's size, as its lines want (__info_box_size; the Draw keeps it fresh)
+rg_box_open = false; rg_box_a = 0;   // THE FOLD (his ask, 2026-09-16): shut = the first lines at their own width; open = every line at the longest's; eased
 __rg_banner_r = function() { return { x : (land ? 14 : 4) - (1 - rg_in) * 220, y : list_y + 22, w : rg_box_w, h : rg_box_h }; };   // (where the world box sits: a swap in place; clear of the toggle below - 2026-09-16)   // (region mode's swing: in from the left)
 // THE HAND'S SEATS: the cards in a row across the page (portrait: two columns)
 __hand_seats = function(_n) {
@@ -852,7 +852,6 @@ __pv_ui_hit = function() {
 	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
 	var _cs = __crewstrip_r(); if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) return true;
 	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
-	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
 	if (pv_mode == "planet") { var _bsr = __best_r(); if (point_in_rectangle(mouse_x, mouse_y, _bsr.x, _bsr.y, _bsr.x + _bsr.w, _bsr.y + _bsr.h)) return true; }   // ([bestiary], 2026-09-16)
 	if (pv_mode == "region") {
 		var _bn = __rg_banner_r(); if (point_in_rectangle(mouse_x, mouse_y, _bn.x, _bn.y, _bn.x + _bn.w, _bn.y + _bn.h)) return true;
@@ -875,7 +874,6 @@ gx_x = 0; gx_y = 0; gx_zoom = 1; gx_init = false;   // the camera's top-left on 
 gx_press = false; gx_px = 0; gx_py = 0; gx_cx0 = 0; gx_cy0 = 0; gx_travel = 0;
 gx_sel = -1; gx_sys = undefined;     // the tapped star and its system
 gx_from = "planet";                  // where [back] returns
-gx_fog = -1; gx_fog_seed = -1;       // the nebula fog sheet, baked once a galaxy
 gx_mm = -1; gx_mm_seed = -1;         // THE MINIMAP (his ask: bring it back): the star dots baked once, 80px wide
 gx_glow_a = -1; gx_glow_b = -1;      // the bloom's two half-size passes (sh_blur)
 /// the bloom: the finished map (src, w x h) blurred at half size, two
@@ -1413,19 +1411,25 @@ __map_box_r = function() { return { x : 14, y : list_y + 22, w : rg_box_w, h : r
 /// THE INFO BOX'S SIZE: as wide as its longest line (his ask), as tall as its lines
 __info_box_size = function(_d, _rg) {
 	var _inf = region_info(_d, _rg);
-	var _wmax = land ? 200 : 120, _wmin = 96;
+	var _wmax = land ? 200 : 120, _wmin = 96, _nshow = 3;   // (shut: the first three lines - the level, the biome, the weather)
 	draw_set_font(fnt_large);
-	var _w = string_width(str_cap(_rg.name)) + 16;
+	var _w0 = string_width(str_cap(_rg.name)) + 28, _w1 = _w0;   // (+28: the fold glyph beside the name)
 	draw_set_font(fnt);
-	for (var _li = 0; _li < array_length(_inf); _li++) _w = max(_w, string_width(_inf[_li].k) + 12 + string_width(_inf[_li].v) + 16);   // (the name left, the value right - his ask, 2026-09-16)
-	_w = clamp(_w, _wmin, _wmax);
+	for (var _li = 0; _li < array_length(_inf); _li++) {
+		var _lw = string_width(_inf[_li].k) + 12 + string_width(_inf[_li].v) + 16;   // (the name left, the value right - his ask, 2026-09-16)
+		if (_li < _nshow) _w0 = max(_w0, _lw);
+		_w1 = max(_w1, _lw);
+	}
+	_w0 = clamp(_w0, _wmin, _wmax); _w1 = clamp(max(_w1, _w0), _wmin, _wmax);
+	var _w = round(lerp(_w0, _w1, rg_box_a));
 	draw_set_font(fnt_large);
-	var _h = 5 + string_height_ext(str_cap(_rg.name), 11, _w - 14) + 3 + array_length(_inf) * 11 + 4;
+	var _nh = string_height_ext(str_cap(_rg.name), 11, _w - 26);
 	draw_set_font(fnt);
+	var _n0 = min(_nshow, array_length(_inf)), _n1 = array_length(_inf);
+	var _h = 5 + _nh + 3 + round(lerp(_n0, _n1, rg_box_a) * 11) + 4;
 	rg_box_w = _w; rg_box_h = _h;
-	return { w : _w, h : _h, inf : _inf };
+	return { w : _w, h : _h, inf : _inf, nh : _nh };
 };
-/// THE INFO BOX painted (region_info's lines; the region page and the map share it)
 __draw_info_box = function(_d, _rg, _bn) {
 	var _bs = __info_box_size(_d, _rg);
 	var _inf = _bs.inf;
@@ -1433,17 +1437,24 @@ __draw_info_box = function(_d, _rg, _bn) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
 	draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
-	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_rg.name), 11, _bn.w - 14);
-	var _bny = _bn.y + 5 + string_height_ext(str_cap(_rg.name), 11, _bn.w - 14) + 3;
+	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_rg.name), 11, _bn.w - 26);
+	// the fold's glyph, top right (the house chip: + shut, - open); the whole box is the tap
 	draw_set_font(fnt);
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x + _bn.w - 15, _bn.y + 4, 9, 9, 0, c_black, .6);
+	draw_px_rect(_bn.x + _bn.w - 15, _bn.y + 4, 9, 9, c_gold, .5);
+	draw_set_color(c_gold); draw_set_alpha(.9); draw_set_halign(fa_center);
+	draw_text(_bn.x + _bn.w - 10, _bn.y + 4, rg_box_open ? "-" : "+");
+	draw_set_halign(fa_left);
+	var _bny = _bn.y + 5 + _bs.nh + 3;
 	var _tc = [c_sgreen, c_gold, c_horange, c_hred];
 	for (var _li = 0; _li < array_length(_inf); _li++) {
+		if (_bny + 10 > _bn.y + _bn.h - 3) break;   // (the lines the fold shows; the rest wait under it)
 		var _ln = _inf[_li];
 		draw_set_color(sett_ink); draw_set_alpha(.8);
 		draw_text(_bn.x + 8, _bny, _ln.k);
 		var _lc = _ln[$ "col"];
 		draw_set_color(is_undefined(_lc) ? _tc[clamp(_ln.t, 0, 3)] : _lc); draw_set_alpha(.95);
-		draw_set_halign(fa_right); draw_text(_bn.x + _bn.w - 8, _bny, _ln.v); draw_set_halign(fa_left);   // (the value right-aligned - his ask, 2026-09-16)
+		draw_set_halign(fa_right); draw_text(_bn.x + _bn.w - 8, _bny, __sheet_cut(_ln.v, max(20, _bn.w - 16 - string_width(_ln.k) - 8))); draw_set_halign(fa_left);   // (the value right-aligned - his ask, 2026-09-16; cut while the fold eases)
 		_bny += 11;
 	}
 };

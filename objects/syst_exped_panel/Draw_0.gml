@@ -780,13 +780,11 @@ if (view == "planet") {
 	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit" : "drag to orbit  -  tap a region");
 	draw_set_halign(fa_left);
-	// the left column: [galaxy] at the foot, the geosync toggle over it ([map] is in the strip, 2026-09-16)
+	// the left column: [galaxy] at the foot, [star system] over it ([map] is in the strip; the geosync toggle went - his call, 2026-09-16)
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
 	var _syr = __system_r();
 	draw_ui_button(_syr.x, _syr.y, _syr.w, _syr.h, "star system", c_steelblue, true, false);   // (the demo's system view, 2026-09-16)
-	var _ge = __geo_r();
-	draw_ui_button(_ge.x, _ge.y, _ge.w, _ge.h, pv_geo ? (land ? "riding the spin" : "geosync") : "free camera", pv_geo ? c_sgreen : c_gray, true, false);
 	if (pv_mode == "planet") { var _bsr = __best_r(); draw_ui_button(_bsr.x, _bsr.y, _bsr.w, _bsr.h, "bestiary", c_steelblue, true, false); }   // (the hub's button, rehomed - 2026-09-16)
 	if (pv_mode == "region") {
 		// REGION MODE: THE INFO BOX left (his shape, 2026-09-15: the name, then
@@ -989,36 +987,8 @@ if (view == "galaxy") {
 	// animation's fade shader would keep that alpha for good)
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);
-	// the fog sheet: the density grid baked once, warm core to cool rim
-	if (!surface_exists(gx_fog) || gx_fog_seed != _sm.seed) {
-		if (surface_exists(gx_fog)) surface_free(gx_fog);
-		var _ngw = _sm.ngw;
-		gx_fog = surface_create(_ngw, _ngw);
-		surface_set_target(gx_fog);
-		draw_clear_alpha(c_black, 0);
-		for (var _cy = 0; _cy < _ngw; _cy++)
-		for (var _cx = 0; _cx < _ngw; _cx++) {
-			var _acc = 0, _wsm = 0;
-			for (var _oy = -1; _oy <= 1; _oy++)
-			for (var _ox = -1; _ox <= 1; _ox++) {
-				var _nx = _cx + _ox, _ny = _cy + _oy;
-				if (_nx < 0 || _ny < 0 || _nx >= _ngw || _ny >= _ngw) continue;
-				var _wt = ((_ox == 0) ? 2 : 1) * ((_oy == 0) ? 2 : 1);
-				_acc += _sm.ngrid[_nx + _ny * _ngw] * _wt;
-				_wsm += _wt;
-			}
-			var _dn = (_acc / _wsm) / _sm.nmax;
-			if (_dn <= .01) continue;
-			_dn = power(_dn, .40);
-			var _wx = (_cx + .5) * _sm.ncell, _wy = (_cy + .5) * _sm.ncell;
-			var _rd = clamp(point_distance(_wx, _wy, _sm.cx, _sm.cy) / _sm.gal_r, 0, 1);
-			var _col = merge_colour(rgb(255, 185, 125), rgb(130, 155, 255), _rd);
-			_col = merge_colour(rgb(24, 22, 30), _col, .55 + .45 * _dn);
-			draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, 1, 1, 0, _col, _dn);
-		}
-		surface_reset_target();
-		gx_fog_seed = _sm.seed;
-	}
+	// the fog sheet: the density grid baked once a galaxy (galaxy_neb_sheet - the skies read the same sheet, 2026-09-16)
+	var _gxf = galaxy_neb_sheet();
 	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _vws || surface_get_height(wb_surf) != _vhs) {
 		if (surface_exists(wb_surf)) surface_free(wb_surf);
 		wb_surf = page_surface(_vws, _vhs);
@@ -1056,17 +1026,22 @@ if (view == "galaxy") {
 		draw_sprite_ext(spr_star_glow, 5, _sx * _gs, _sy * _gs, _gsc, _gsc, 0, _st.props.color, .9);
 		draw_sprite_ext(spr_star_glow, 3, _sx * _gs, _sy * _gs, max(.3 * _gs, _gsc * .55), max(.3 * _gs, _gsc * .55), 0, merge_colour(_st.props.color, c_white, .5), 1);
 	}
-	// the fog, additive over the stars (the demo's order), bilinear; dithered
-	// here only on an 8-bit page (a float page dithers once, at its blit)
+	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped
+	// domain, frayed to wisps - the clouds were circles; his report 2026-09-16); dithered there only on an 8-bit page
 	var _fd = _gcf.fog_depth;
 	var _ffx = (_vcx * (1 - _fd) - gx_x) * gx_zoom, _ffy = (_vcy * (1 - _fd) - gx_y) * gx_zoom;
-	var _ffs = _fd * gx_zoom * _sm.width / surface_get_width(gx_fog);
+	var _ffs = _fd * gx_zoom * _sm.width / surface_get_width(_gxf);
 	var _ftf = gpu_get_tex_filter();
 	gpu_set_tex_filter(true);
 	gpu_set_blendmode(bm_add);
-	if (!page_float()) { shader_set(sh_fog_dither); shader_set_uniform_f(shader_get_uniform(sh_fog_dither, "u_time"), (current_time mod 100000) / 1000); }
-	draw_surface_ext(gx_fog, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, c_white, _gcf.fog_alpha);
-	if (!page_float()) shader_reset();
+	shader_set(sh_galaxy_fog);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_time"), (current_time mod 100000) / 1000);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_dither"), page_float() ? 0 : 1);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_seed"), (_sm.seed mod 97) * .37, (_sm.seed mod 89) * .53);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_freq"), _gcf[$ "fog_freq"] ?? 34);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_warp"), _gcf[$ "fog_warp"] ?? .03);
+	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, c_white, _gcf.fog_alpha);
+	shader_reset();
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid

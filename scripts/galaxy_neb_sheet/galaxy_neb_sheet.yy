@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"galaxy_neb_sheet",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"galaxy_neb_sheet",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

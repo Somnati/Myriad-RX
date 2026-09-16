@@ -22,6 +22,7 @@ if (view == "depart") {
 	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") { pv_mode = "region"; view_last = view; pg_a = 1; pg_dir = 0; } else if (view == "trip") { pg_a = 0; pg_dir = 1; view_last = view; } }   // (the trip's page fades in - 2026-09-16)   // (to the region: it arrives lit and swings in - no black blink; 2026-09-16)
 	else if (dp_dir >= 0 && dp_in >= .985) dp_in = 1;
 } else if (pg_dir == 0) dp_in = 0;
+rg_box_a = move_to(rg_box_a, rg_box_open ? 1 : 0, 5);   // the info box's fold (2026-09-16)
 if (view == "planet" && pv_mode == "region") {
 	// region mode swings in - and OUT the same way (rg_leave: the info box back to the left, the buttons back to their edges), then the planet
 	if (rg_leave) { rg_in = move_to(rg_in, 0, 4); if (rg_in <= .03) { rg_in = 0; rg_leave = false; pv_mode = "planet"; } }
@@ -552,6 +553,7 @@ if (view == "crew") {
 
 // ======================= THE MAP: [legend] =======================
 if (view == "map") {
+	if (land) { var _ibx = __map_box_r(); if (point_in_rectangle(mouse_x, mouse_y, _ibx.x, _ibx.y, _ibx.x + _ibx.w, _ibx.y + _ibx.h)) { rg_box_open = !rg_box_open; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; } }   // (the info box's fold, 2026-09-16)
 	var _lgr = __legend_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _lgr.x, _lgr.y, _lgr.x + _lgr.w, _lgr.y + _lgr.h)) { map_legend = !map_legend; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 	if (map_legend) { map_legend = false; exit; }   // (any other press folds it)
@@ -588,17 +590,12 @@ if (view == "planet") {
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
-	// the geosync toggle (the demo's): the camera rides the spin, or not
-	var _ge = __geo_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) {
-		pv_geo = !pv_geo;
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-		exit;
-	}
 	// REGION MODE (his ask: no separate window - the camera pulls in, the
 	// info box left): [quests] / [explore] bottom right deal THE HAND (the
 	// cards pick the departure); [map] is in the strip (2026-09-16)
 	if (pv_mode == "region") {
+		var _ibr = __rg_banner_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _ibr.x, _ibr.y, _ibr.x + _ibr.w, _ibr.y + _ibr.h)) { rg_box_open = !rg_box_open; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }   // (the fold, 2026-09-16)
 		var _qb = __quests_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) { __hand_open("quests"); exit; }
 		var _xb = __explore_r();
