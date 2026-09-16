@@ -1,4 +1,4 @@
-/// @description galaxy_sky_build() -> the sky over the home planet, from the REAL neighbourhood
+/// @description galaxy_sky_build([dest]) -> the sky over a board world (the home planet without one), from the REAL neighbourhood of ITS star
 /// obj_planet_sky's rules, ported 2026-09-15: the map's stars within
 /// sky_range of the home star, sorted by distance, the nearest sky_max
 /// kept; bearings map 1:1 to azimuth, elevation scatter scales with
@@ -12,10 +12,10 @@
 /// sees the band pile up one way).
 ///   { stars[] {x,y,z,col,b,s}, sibs[] {x,y,z,col,s}, light_w, core_dir,
 ///     fog_seed, fog_edge, sun_col, sun_size, name }
-function galaxy_sky_build() {
+function galaxy_sky_build(_dw = undefined) {
 	var _cfg = starmap_config();
 	var _sm  = starmap_get();
-	var _hm  = galaxy_home();
+	var _hm  = is_struct(_dw) ? galaxy_world_sys(_dw) : galaxy_home();   // (the world's own star, 2026-09-16)
 	var _me  = _sm.stars[_hm.star];
 	var _out = { stars : [], sibs : [], light_w : [-.52, -.38, .77], core_dir : [1, 0, 0], fog_seed : 0, fog_edge : 0,
 	             sun_col : merge_colour(c_white, c_gold, .4), sun_size : 12, name : _hm.name, star : _hm.star };
@@ -59,7 +59,7 @@ function galaxy_sky_build() {
 		var _b   = darctan2(_p2z - _p1z, _p2x - _p1x);
 		array_push(_out.sibs, { x : dcos(_b), y : 0, z : dsin(_b), col : _sp.col, s : clamp(_sp.size * 22 / max(_dd, 12), 1.5, 6) });
 	}
-	_out.light_w = galaxy_sun_dir();   // (the one bearing the agent's daylight reads too)
+	_out.light_w = galaxy_sun_dir(0, _dw);   // (the one bearing the agent's daylight reads too)
 	_out.sun_col  = _sys.star.col;
 	_out.sun_size = _sys.star.size;
 	// the dust

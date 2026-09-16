@@ -21,8 +21,9 @@ function exped_planet_hint(_d) {
 		case "fungal": _h = { kind : "rock", clim : .55, hue : _hue, arch : "terra",  wet : .66 }; break;
 		default:       _h = { kind : "rock", clim : .5 }; break;
 	}
-	if (variable_global_exists("galaxy_home_c") && is_struct(g.galaxy_home_c) && g.galaxy_home_c.planet_seed == _d.seed) {
-		var _gp = g.galaxy_home_c.sys.planets[g.galaxy_home_c.planet];
+	var _gws = galaxy_world_sys(_d);   // (any world of the map: its ring and moons - 2026-09-16)
+	if (is_struct(_gws) && _gws.planet_seed == _d.seed) {
+		var _gp = _gws.sys.planets[_gws.planet];
 		_h.ring = _gp[$ "has_ring"] ?? false;
 		_h.moon_n = max(1, _gp[$ "moon_n"] ?? 1);   // (at least one - his ask, 2026-09-16: "give the starter planet a moon")
 	}

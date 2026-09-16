@@ -27,7 +27,9 @@ function exped_unpack(_s) {
 			// the world
 			var _dd = string_split(_kv[$ "dest"] ?? "", ":", false, 5);
 			if (array_length(_dd) < 6) continue;
-			var _d = { seed : real(_dd[0]), biome : real(_dd[1]), tier : real(_dd[2]), dist : real(_dd[3]), rate : real(_dd[4]), name : _dd[5] };
+			var _d = { seed : real(_dd[0]), biome : real(_dd[1]), tier : real(_dd[2]), dist : real(_dd[3]), rate : real(_dd[4]), name : _dd[5], star : -1, pl : -1 };
+			var _dsf = string_split(_kv[$ "dst"] ?? "", ":");
+			if (array_length(_dsf) == 2) { _d.star = real(_dsf[0]); _d.pl = real(_dsf[1]); }   // (the world's star, 2026-09-16; -1 = find it on the board by seed, else home)
 			// the crew
 			var _cc = string_split(_kv[$ "crew"] ?? "", "~");
 			if (array_length(_cc) < 3) continue;

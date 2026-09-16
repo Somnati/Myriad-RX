@@ -39,9 +39,21 @@ function exped_board_roll() {
 			tier  : _tier,
 			dist  : EXPED_DIST0 * power(2, _tier - 1),
 			rate  : 60 * _tier + 40 * (_b == 2),   // ruins roll a rung richer
+			star  : (_i == 0) ? _hm.star : -1, pl : (_i == 0) ? _hm.planet : -1,   // (the home world's star - the star map's worlds carry theirs, 2026-09-16)
 		});
 	}
 	rng_release(_rs);
+	// THE STAR MAP'S WORLDS (2026-09-16): every world opened on the map, after the home world, and it STAYS (the old struct kept where one is: its caches)
+	if (!is_array(_e[$ "worlds"])) _e.worlds = [];
+	for (var _wi = 0; _wi < array_length(_e.worlds); _wi++) {
+		var _gw = galaxy_world(_e.worlds[_wi].star, _e.worlds[_wi].pl);
+		if (is_undefined(_gw)) continue;
+		var _dup = false;
+		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _gw.seed) _dup = true;
+		if (_dup) continue;
+		for (var _oj = 0; _oj < array_length(_old); _oj++) if (_old[_oj].seed == _gw.seed) _gw = _old[_oj];
+		array_push(_e.board, _gw);
+	}
 	for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].name == "") _e.board[_i].name = exped_name(_e.board[_i].seed);
 	// THE QUEST each world offers (slice three): rolled off the world and
 	// the deal, after the seeded block - a fresh one every re-deal

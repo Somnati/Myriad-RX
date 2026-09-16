@@ -21,9 +21,9 @@ function region_season(_d, _rg) {
 	if (abs(_tilt) < 4) return { on : false, idx : 1, name : "", lean : 0, rising : false, warm : 0 };
 	// the world's axis: the pole turned by the same matrix region_daylight turns a spot by
 	var _ax = mat3_apply(mat3_rot(0, 0, 1, _tilt), 0, 1, 0);
-	var _hm = galaxy_home(), _pl = _hm.sys.planets[_hm.planet];
+	var _hm = galaxy_world_sys(_d), _pl = _hm.sys.planets[_hm.planet];   // (the world's own orbit and year, 2026-09-16)
 	var _yr = 360 / max(.000000001, abs(_pl.spd) * 60);   // the year in seconds
-	var _s0 = galaxy_sun_dir(), _s1 = galaxy_sun_dir(_yr / 48);
+	var _s0 = galaxy_sun_dir(0, _d), _s1 = galaxy_sun_dir(_yr / 48, _d);
 	var _hemi = (_rg.spot.lat >= 0) ? 1 : -1;
 	var _sc = _hemi / max(.05, dsin(abs(_tilt)));
 	var _l0 = clamp((_ax[0] * _s0[0] + _ax[1] * _s0[1] + _ax[2] * _s0[2]) * _sc, -1, 1);

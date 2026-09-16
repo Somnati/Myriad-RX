@@ -82,14 +82,14 @@ if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_
 // THE SUN IS LIVE (his report, 2026-09-15: "mid-morning but clearly night" -
 // the render's sun was the one at open, the words read the clock's; the
 // orbits ran a year in minutes, so they parted within it)
-if (is_struct(pv_sky)) pv_sky.light_w = galaxy_sun_dir();   // (every page: the small worlds on the haul card and the list rows read it too - bug hunt)
+if (is_struct(pv_sky)) pv_sky.light_w = galaxy_sun_dir(0, pl_dest);   // (every page: the small worlds on the haul card and the list rows read it too - bug hunt)
 // THE ORBIT VIEW'S CLOCK: the world spins its own axis (the universal
 // clock sets it the first time), the camera rides the spin (geosync), and
 // turns to face a picked region (pv_face) - a rotation about the view axis
 // that lifts the spot's view z toward one; the sign is tried both ways
 if (view == "planet" && is_struct(pl_dest)) {
 	var _pn4 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = planet_spin_now(_pn4); pv_sky = galaxy_sky_build(); }
+	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = planet_spin_now(_pn4); pv_sky = __sky_for(pl_dest); }   // (the world's own sky, 2026-09-16)
 	// (the clock's spin, exactly: the agent's daylight reads the same clock)
 	var _ns = planet_spin_now(_pn4);
 	var _ds = angle_difference(_ns, pv_spin);
@@ -356,7 +356,23 @@ if (view == "galaxy") {
 		gx_x = _jx - _gr.w * .5 / gx_zoom; gx_y = _jy - _gr.h * .5 / gx_zoom;
 		play_sound_ext(snd_softclick, .95, 1.05, .3, 1);
 	}
-	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk && !_onmm) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
+	// THE SYSTEM STRIP (2026-09-16): with a star tapped, its worlds along the foot - a press on one opens it on the board and goes there
+	var _gsr = __gx_strip_r();
+	var _onstrip = (gx_sel >= 0 && is_struct(gx_sys) && point_in_rectangle(mouse_x, mouse_y, _gsr.x, _gsr.y, _gsr.x + _gsr.w, _gsr.y + _gsr.h));
+	if (_onstrip && mouse_check_button_pressed(mb_left)) {
+		for (var _si = 0; _si < array_length(gx_strip); _si++) {
+			var _sr = gx_strip[_si];
+			if (!point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) continue;
+			if (!_sr.ok) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); break; }
+			var _di = exped_world_open(gx_sel, _sr.pl);
+			if (_di < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); break; }
+			sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
+			gx_from = ""; __page_go("planet");
+			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			exit;
+		}
+	}
+	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk && !_onmm && !_onstrip) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
 	if (gx_press && mouse_check_button(mb_left)) {
 		gx_travel = max(gx_travel, point_distance(gx_px, gx_py, mouse_x, mouse_y));
 		gx_x = gx_cx0 - (mouse_x - gx_px) / gx_zoom;

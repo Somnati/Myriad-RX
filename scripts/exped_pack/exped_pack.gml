@@ -36,6 +36,7 @@ function exped_pack() {
 		array_push(_f, "k=" + (_is ? "T" : "H"));
 		array_push(_f, "id=" + string(_r.id));
 		array_push(_f, "dest=" + string(_d.seed) + ":" + string(_d.biome) + ":" + string(_d.tier) + ":" + string(_d.dist) + ":" + string(_d.rate) + ":" + _d.name);
+		array_push(_f, "dst=" + string(_d[$ "star"] ?? -1) + ":" + string(_d[$ "pl"] ?? -1));   // (the world's star on the map, 2026-09-16)
 		var _si = "", _sn = "", _sc = "";
 		for (var _k = 0; _k < array_length(_r.sids); _k++) {
 			_si += ((_k > 0) ? "," : "") + string(_r.sids[_k]);

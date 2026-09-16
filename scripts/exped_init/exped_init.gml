@@ -23,6 +23,6 @@ function exped_init(_force = false) {
 	else if (!variable_global_exists("galaxy_seed")) g.galaxy_seed = 1337;
 	if (!_force && variable_global_exists("exped")) return;
 	g.exped = { board : [], trips : [], hauls : [], depth : 1, charms : 0, mats : {}, seq : 0, spd : 1,
-	            recent : [], retired : [], st : {}, seen : [] };
+	            recent : [], retired : [], st : {}, seen : [], worlds : [] };   // (worlds: the star map's, opened - exped_world_open, 2026-09-16)
 	exped_board_roll();
 }

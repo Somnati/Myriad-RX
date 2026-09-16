@@ -452,7 +452,11 @@ pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;
 pv_face  = -1;                       // the region the camera is turning to face (-1 = none)
 pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
-pv_sky   = undefined;                // galaxy_sky_build()
+pv_sky   = undefined;                // galaxy_sky_build() (the page's world's - __sky_for)
+sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
+__sky_for = function(_d) { var _k = string(_d.seed); if (!is_struct(sky_c[$ _k])) sky_c[$ _k] = galaxy_sky_build(_d); var _s = sky_c[$ _k]; _s.light_w = galaxy_sun_dir(0, _d); return _s; };
+gx_strip = [];                       // THE SYSTEM STRIP's world rects (the galaxy page: tap a world to open it)
+__gx_strip_r = function() { var _g = __gx_r(); var _w = min(_g.w - 8, 16 + 60 * 8); return { x : floor(_g.x + _g.w * .5 - _w * .5), y : room_height - 8 - 44, w : _w, h : 40 }; };
 pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
 pv_mode  = "planet";                 // "planet" (the world, the drawer) or "region" (pulled in on the pick: the banner, the quests)
@@ -1616,7 +1620,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
 		sky_fog_surf = surface_create(_w, _h);
 	}
-	if (!is_struct(pv_sky)) pv_sky = galaxy_sky_build();
+	var _sky = __sky_for(_d);   // (the world's own sky, 2026-09-16)
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
 	var _built = (_pn.row >= _pn.th);
 	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
@@ -1626,19 +1630,19 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	ui_fade_set(1);
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
-	galaxy_sky_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, true);
-	galaxy_fog_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true);
+	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
 	g.dither_off = page_float();   // (the world into a float page: no dither of its own - the blit's grain is the one)
 	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
 	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
-	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, pv_sky.light_w);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// the moons' shadow casters, and the storm regions' spots (2026-09-16)
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
-	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, pv_sky.light_w, _msh, _storms);
-	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, pv_sky.light_w);
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	g.dither_off = false;
 	// (not built yet: the sky alone - the lite portrait that stood in "looked really bad", his report 2026-09-15; the boot builds the board's worlds)
 	if (_built && _spots != -1) {
@@ -1723,7 +1727,7 @@ __world_small = function(_d, _cx, _cy, _r, _rg = undefined) {
 	if (_pn.row >= _pn.th) {
 		// FACING ITS REGION when the card is about one (his ask, 2026-09-15): the
 		// spot dead on, the clock's spin under it (the terminator moves, the region holds)
-		if (is_struct(_rg)) { var _sp = planet_spin_now(_pn); planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r, _sp, 1, __cam_at(_pn, _sp, _rg), is_struct(pv_sky) ? pv_sky.light_w : undefined); }
+		if (is_struct(_rg)) { var _sp = planet_spin_now(_pn); planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r, _sp, 1, __cam_at(_pn, _sp, _rg), __sky_for(_d).light_w); }
 		else planet_draw(_pn, _cx, _cy, _pn.ring ? (_r * .62) : _r);
 	}
 	else __portrait(_d, _cx, _cy, _r);

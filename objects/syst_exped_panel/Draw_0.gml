@@ -770,9 +770,9 @@ if (view == "planet") {
 	// the facts over the sky (the world's name lives in the strip now - his
 	// ask, 2026-09-15; the tier and the flight time are gone)
 	if (is_struct(pv_sky)) {
-		var _sm = starmap_get(), _hm = galaxy_home();
+		var _sm = starmap_get(), _hm = galaxy_world_sys(pl_dest);   // (the world's own star, 2026-09-16)
 		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds");
+		draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds" + ((_hm.star == galaxy_home().star && _hm.planet == galaxy_home().planet) ? "" : ("  -  tier " + string(pl_dest.tier))));
 	}
 	// THE WORLD BOX (2026-09-15): what the world is - out of the way as the region box comes in
 	if (rg_in < .99) __draw_world_box(_d);
@@ -996,6 +996,8 @@ if (view == "galaxy") {
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one
 	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
 	var _marks = [ { i : _hm.star, col : c_gold, txt : star_name(_hm.star) + "  -  you are here" } ];
+	// the worlds opened on the map: their stars marked (2026-09-16)
+	for (var _bw = 0; _bw < array_length(_e.board); _bw++) { var _bwd = _e.board[_bw]; var _bws = _bwd[$ "star"] ?? -1; if (_bws < 0 || _bws == _hm.star || _bws == gx_sel) continue; var _dupm = false; for (var _mj = 0; _mj < array_length(_marks); _mj++) if (_marks[_mj].i == _bws) _dupm = true; if (!_dupm) array_push(_marks, { i : _bws, col : c_steelblue, txt : star_name(_bws) + "  -  opened" }); }
 	if (gx_sel >= 0 && gx_sel != _hm.star) array_push(_marks, { i : gx_sel, col : c_white, txt : star_name(gx_sel) + "  -  class " + _sm.stars[gx_sel].props.stellar_class + (is_struct(gx_sys) ? ("  -  " + string(array_length(gx_sys.planets)) + " worlds") : "") });
 	for (var _k = 0; _k < array_length(_marks); _k++) {
 		var _mk = _marks[_k];
@@ -1047,7 +1049,36 @@ if (view == "galaxy") {
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text((land ? 14 : 4) + string_width(_sm.name) + 10, list_y + 6, string(_sm.count) + " stars  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  x" + string_format(gx_zoom, 1, 2));
 	draw_set_alpha(.5);
-	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star");
+	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star" + ((gx_sel >= 0) ? "  -  tap a world below to open it" : ""));
+	// THE SYSTEM STRIP (his ask, 2026-09-16: the demo's star map, to click another planet): the tapped star's worlds along the foot -
+	// a disc in the biome's colour (a gas world in its own, dim: no landing), the numeral, the kind and the tier; a gold ring on one that is on the board
+	gx_strip = [];
+	if (gx_sel >= 0 && is_struct(gx_sys)) {
+		var _ssr = __gx_strip_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _ssr.x, _ssr.y, _ssr.w, _ssr.h, 0, c_black, .82);
+		draw_px_rect(_ssr.x, _ssr.y, _ssr.w, _ssr.h, c_steelblue, .5);
+		var _np = array_length(gx_sys.planets), _cw = min(60, floor((_ssr.w - 16) / max(1, _np)));
+		var _x0 = _ssr.x + _ssr.w * .5 - _np * _cw * .5;
+		static _romg = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+		for (var _pi = 0; _pi < _np; _pi++) {
+			var _gpl = gx_sys.planets[_pi], _gb = galaxy_world_biome(_gpl);
+			var _gcx = _x0 + _pi * _cw + _cw * .5, _gcy = _ssr.y + 13, _gr = clamp(_gpl.size * 1.1, 3, 8);
+			var _gcol = (_gb < 0) ? _gpl.col : exped_biomes()[_gb].col2;
+			var _onb = false;
+			for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _gpl.seed) _onb = true;
+			if (_gpl[$ "has_ring"] ?? false) draw_sprite_ext(spr_pixel_1x1, 0, _gcx - _gr * 1.7, _gcy, _gr * 3.4, 1, 0, merge_colour(_gcol, c_white, .3), .6);
+			__dot(_gcx, _gcy, _gr, _gcol, (_gb < 0) ? .45 : .95);
+			if (_onb) draw_px_rect(floor(_gcx - _gr - 3), floor(_gcy - _gr - 3), ceil(_gr * 2 + 6), ceil(_gr * 2 + 6), c_gold, .9);
+			draw_set_halign(fa_center);
+			draw_set_color((_gb < 0) ? _dim : c_white); draw_set_alpha((_gb < 0) ? .5 : .95);
+			draw_text(_gcx, _ssr.y + 24, _romg[clamp(_pi, 0, 7)] + ((_gb < 0) ? "  gas" : ("  " + exped_biomes()[_gb].name)));
+			if (_gb >= 0) { var _gtw = galaxy_world(gx_sel, _pi); draw_set_color(_dim); draw_set_alpha(.7); draw_text(_gcx, _ssr.y + 32, is_struct(_gtw) ? ("tier " + string(_gtw.tier)) : ""); }
+			draw_set_halign(fa_left);
+			array_push(gx_strip, { x : _gcx - _cw * .5, y : _ssr.y, w : _cw, h : _ssr.h, pl : _pi, ok : (_gb >= 0) });
+		}
+		draw_set_color(c_white); draw_set_alpha(.9);
+		draw_text(_ssr.x + 6, _ssr.y - 11, star_name(gx_sel) + "  -  " + string(_np) + ((_np == 1) ? " world" : " worlds") + "  -  tap one to open it");
+	}
 	__draw_back();
 	ui_fade_set(1);
 	exit;

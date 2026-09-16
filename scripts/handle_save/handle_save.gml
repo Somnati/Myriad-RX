@@ -542,6 +542,11 @@ function handle_save(){
 	if (action == sv_load) g.galaxy_seed = max(1, floor(g.galaxy_seed));
 	exped_init();
 	g.exped.depth  = handle("ex_depth",  g.exped.depth);
+	// THE STAR MAP'S WORLDS (2026-09-16): star:pi|... - read before the board roll below rebuilds the board
+	var _xww = "";
+	if (is_array(g.exped[$ "worlds"])) for (var _i = 0; _i < array_length(g.exped.worlds); _i++) _xww += ((_i > 0) ? "|" : "") + string(g.exped.worlds[_i].star) + ":" + string(g.exped.worlds[_i].pl);
+	_xww = handle("ex_worlds", _xww);
+	if (action == sv_load) { g.exped.worlds = []; if (_xww != "") { var _wl = string_split(_xww, "|"); for (var _i = 0; _i < array_length(_wl); _i++) { var _wf = string_split(_wl[_i], ":"); if (array_length(_wf) == 2) array_push(g.exped.worlds, { star : real(_wf[0]), pl : real(_wf[1]) }); } } }
 	g.exped.charms = handle("ex_charms", g.exped.charms);
 	g.exped.seq    = handle("ex_seq",    g.exped.seq);
 	var _xm = "";
