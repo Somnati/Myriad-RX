@@ -334,8 +334,8 @@ __mapstrip_r = function() { var _c = __crewstrip_r(); return { x : _c.x - 4 - 44
 /// the region the page is about -> { dest, rgi }, or undefined (no [map] then)
 __map_ctx = function() {
 	switch (view) {
-		case "planet": if (pv_mode == "region" && is_struct(pl_dest)) return { dest : pl_dest, rgi : rg_sel }; break;
-		case "depart": if (is_struct(pl_dest)) return { dest : pl_dest, rgi : rg_sel }; break;
+		case "planet": if (pv_mode == "region" && !rg_leave && is_struct(pl_dest)) return { dest : pl_dest, rgi : rg_sel }; break;   // (not while region mode swings out)
+		case "depart": if (is_struct(pl_dest) && dp_dir == 0 && dp_in > .99) return { dest : pl_dest, rgi : rg_sel }; break;      // (not mid-swing)
 		case "trip":   { var _mt = __trip(); if (!is_undefined(_mt)) return { dest : _mt.dest, rgi : _mt[$ "rgi"] ?? 0 }; break; }
 	}
 	return undefined;
@@ -1268,7 +1268,9 @@ __map_named = function(_rg, _d) {
 	for (var _t = 0; _t < array_length(_e.trips); _t++) {
 		var _tr = _e.trips[_t];
 		if (_tr.dest.seed != _d.seed || (_tr[$ "rgi"] ?? 0) != _rg.ri) continue;
-		var _mark = is_struct(_tr[$ "quest"]) ? exped_quest_places(_tr.quest) : [];
+		// (a COPY of the quest's places - a survey's list is the quest's own array, and pushing into it grew the quest a stop a frame; bug hunt 2026-09-16)
+		var _qpl = is_struct(_tr[$ "quest"]) ? exped_quest_places(_tr.quest) : [], _mark = [];
+		for (var _qi = 0; _qi < array_length(_qpl); _qi++) array_push(_mark, _qpl[_qi]);
 		array_push(_mark, _tr[$ "pos"] ?? _rg.landing);
 		if (is_struct(_tr[$ "road"])) array_push(_mark, _tr.road.b);
 		var _pp = _tr[$ "path"] ?? [];
