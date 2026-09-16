@@ -16,6 +16,7 @@ boot_t = 0;
 boot_budget = 9;
 boot_prog = 0;        // 0..1, the boot's real progress (the bar under the caption)
 boot_prog_v = 0;      // the bar, easing to it
+boot_world = "";      // the world being built now (the caption names it - his ask, 2026-09-16)
 
 file_to_handle = save_slot_path(0); // active profile's main save
 

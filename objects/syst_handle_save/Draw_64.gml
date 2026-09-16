@@ -32,11 +32,11 @@ for (var _k = 0; _k < 8; _k++) {
 }
 draw_set_alpha(1);
 // THE CAPTION, left of the ring, and THE BAR under both
-var _txt = (boot_phase == 0) ? "charting the galaxy" : ((action == sv_load || action == sv_save) ? "loading" : "the first world");
+var _txt = (boot_phase == 0) ? "charting the galaxy" : ((action == sv_load || action == sv_save) ? "loading" : ((boot_world != "") ? ("building " + boot_world) : "the worlds"));
 var _bx1 = _cx + 8 * _sc, _bx0 = _bx1 - 92 * _sc;   // the bar: the longest caption's reach to the ring's right edge
 if (variable_global_exists("font")) {
 	draw_set_font(fnt);
-	_bx0 = _cx - 12 * _sc - string_width("charting the galaxy") * _sc;
+	_bx0 = _cx - 12 * _sc - max(string_width("charting the galaxy"), string_width(_txt)) * _sc;
 	draw_set_halign(fa_right); draw_set_valign(fa_top);
 	draw_set_color(rgb(120, 130, 150)); draw_set_alpha(.7);
 	draw_text_transformed(_cx - 12 * _sc, _cy - 4 * _sc, _txt, _sc, _sc, 0);

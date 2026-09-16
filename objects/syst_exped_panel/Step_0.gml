@@ -92,27 +92,16 @@ if (view == "planet" && is_struct(pl_dest)) {
 	var _ns = planet_spin_now(_pn4);
 	var _ds = angle_difference(_ns, pv_spin);
 	pv_spin = _ns;
-	var _sax = mat3_apply(mat3_rot(0, 0, 1, _pn4.tilt), 0, 1, 0);
-	if (pv_geo) pv_cam = mat3_mul(mat3_rot(_sax[0], _sax[1], _sax[2], _ds), pv_cam);
+	// THE TURNTABLE (2026-09-16): geosync = the yaw rides the spin; a snap eases
+	// the yaw (the short way round) and the pitch to the region's own
+	if (pv_geo) pv_yaw += _ds;
 	if (pv_face >= 0) {
-		var _rgf = region_get(pl_dest, pv_face);
-		var _wm4 = mat3_mul(mat3_rot(0, 0, 1, _pn4.tilt), mat3_rot(0, 1, 0, pv_spin));
-		var _tf = __spot_dir(_rgf.spot.lon, _rgf.spot.lat);
-		var _nw = mat3_apply(_wm4, _tf[0], _tf[1], _tf[2]);
-		var _vf = mat3_apply(mat3_transpose(pv_cam), _nw[0], _nw[1], _nw[2]);
-		if (_vf[2] > .9995) pv_face = -1;
-		else {
-			var _ang = darccos(clamp(_vf[2], -1, 1)) * (1 - power(.88, delta));
-			var _axl = sqrt(_vf[0] * _vf[0] + _vf[1] * _vf[1]);
-			var _ax0 = (_axl < .0001) ? 0 : (_vf[1] / _axl);
-			var _ax1 = (_axl < .0001) ? 1 : (-_vf[0] / _axl);
-			var _c1 = mat3_mul(pv_cam, mat3_rot(_ax0, _ax1, 0, _ang));
-			var _c2 = mat3_mul(pv_cam, mat3_rot(_ax0, _ax1, 0, -_ang));
-			var _v1 = mat3_apply(mat3_transpose(_c1), _nw[0], _nw[1], _nw[2]);
-			var _v2 = mat3_apply(mat3_transpose(_c2), _nw[0], _nw[1], _nw[2]);
-			pv_cam = (_v1[2] >= _v2[2]) ? _c1 : _c2;
-		}
+		var _yp = __spot_yp(_pn4, pv_spin, region_get(pl_dest, pv_face));
+		var _dy = angle_difference(_yp.yaw, pv_yaw), _dp = _yp.pitch - pv_pitch;
+		if (abs(_dy) < .05 && abs(_dp) < .05) { pv_yaw = _yp.yaw; pv_pitch = _yp.pitch; pv_face = -1; }
+		else { var _k = 1 - power(.88, delta); pv_yaw += _dy * _k; pv_pitch += _dp * _k; }
 	}
+	pv_cam = __cam_tt(_pn4, pv_yaw, pv_pitch);
 	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
 	// region mode: the pull-in, the clouds thinning (both eased)
 	pv_zoom  = lerp(pv_zoom,  (pv_mode == "region") ? PV_ZOOM_RG : 1, 1 - power(.88, delta));
@@ -306,9 +295,9 @@ if (view == "planet" && is_struct(pl_dest)) {
 		var _mx = mouse_x - pv_dx, _my = mouse_y - pv_dy;
 		pv_px += abs(_mx) + abs(_my);
 		if (pv_px > 4) pv_face = -1;   // a real drag lets go of the turn
-		// swipe = grab the world and pull it with you (the demo's sign)
-		if (_mx != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  _mx * _ocf.orbit_sens));
-		if (_my != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -_my * _ocf.orbit_sens));
+		// swipe = grab the world and pull it with you (the turntable: yaw and pitch, 2026-09-16)
+		pv_yaw   -= _mx * _ocf.orbit_sens;
+		pv_pitch  = clamp(pv_pitch + _my * _ocf.orbit_sens, -85, 85);
 		pv_vx = lerp(pv_vx, _mx, .5); pv_vy = lerp(pv_vy, _my, .5);
 		pv_dx = mouse_x; pv_dy = mouse_y;
 	} else if (pv_drag) {
@@ -334,12 +323,13 @@ if (view == "planet" && is_struct(pl_dest)) {
 	}
 	if (!pv_drag) {
 		if (abs(pv_vx) > .02 || abs(pv_vy) > .02) {
-			pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  pv_vx * _ocf.orbit_sens * delta));
-			pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -pv_vy * _ocf.orbit_sens * delta));
+			pv_yaw   -= pv_vx * _ocf.orbit_sens * delta;
+			pv_pitch  = clamp(pv_pitch + pv_vy * _ocf.orbit_sens * delta, -85, 85);
 			var _dk = power(_ocf.orbit_glide, delta);
 			pv_vx *= _dk; pv_vy *= _dk;
 		} else { pv_vx = 0; pv_vy = 0; }
 	}
+	pv_cam = __cam_tt(planet_get(pl_dest.seed, exped_planet_hint(pl_dest)), pv_yaw, pv_pitch);   // (the drag and the glide land the same frame)
 }
 // ======================= THE GALAXY VIEW: pan, zoom, tap a star =======================
 if (view == "galaxy") {

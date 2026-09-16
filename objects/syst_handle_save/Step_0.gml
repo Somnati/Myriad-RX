@@ -52,6 +52,7 @@ if (boot_phase == 1) {
 	if (variable_global_exists("exped")) for (var _bi = 0; _bi < array_length(g.exped.board); _bi++) {
 		var _bpn = planet_get(g.exped.board[_bi].seed, exped_planet_hint(g.exped.board[_bi]));
 		if (_bdone) {
+			boot_world = g.exped.board[_bi].name;
 			while (_bpn.row < _bpn.th && get_timer() < _blim) planet_gen_step(_bpn, 1);
 			if (_bpn.row < _bpn.th) _bdone = false;
 			else if (!planet_bake(_bpn, _blim)) _bdone = false;   // (the textures too, behind the spinner: 320x160 x three is a stamp storm - sliced)

@@ -420,11 +420,16 @@ __trip_crew_r  = function() { return __trip_btn_r(0); };
 __trip_abort_r = function() { return __trip_btn_r(1); };   // ([map] left the foot for the strip, 2026-09-16)
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
 // ---- THE ORBIT VIEW (the planet page, 2026-09-15: the tech demo's rm_planet in the panel) ----
-// cam = view -> world (an arcball: drag post-multiplies about the view's
-// axes, glide keeps the flick); the world spins its own tilted axis and
-// the camera RIDES it (geosync: the spot you look at stays put while the
-// daylight sweeps); the sky and the sun come from the galaxy (pv_sky)
-pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
+// cam = view -> world. THE TURNTABLE (his report, 2026-09-16: snaps between
+// regions "throw me off course" - the arcball it was rolled the world a
+// little with every turn, and a rolled world's regions stop sitting where
+// their longitude and latitude say): a YAW about the world's axis and a
+// PITCH above its plane, the axis always up the screen (__cam_tt). Drag =
+// yaw and pitch, the glide the same, geosync = yaw rides the spin, a snap
+// = the region's own longitude and latitude. The sky and the sun come from
+// the galaxy (pv_sky)
+pv_yaw   = 0; pv_pitch = 32;         // the turntable (pitch: above the plane, like the demo)
+pv_cam   = mat3_rot(1, 0, 0, -32);   // (built from the two every frame - syst_exped_panel's Step)
 pv_spin  = 0;                        // the world's own-axis angle
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
@@ -1488,21 +1493,22 @@ __px_box2 = function(_x, _y, _s, _col, _a) {
 /// a camera turned to FACE a region's spot (the face-turn run to the end):
 /// the trip page's world, fixed on where the crew is
 __cam_face = function(_pn, _spin, _rg, _cam) {
-	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	// (the turntable's, 2026-09-16: the region's longitude and latitude, north up - cam is unused, kept for the callers)
+	var _yp = __spot_yp(_pn, _spin, _rg);
+	return __cam_tt(_pn, _yp.yaw, _yp.pitch);
+};
+/// THE TURNTABLE CAMERA: yaw about the world's axis, pitch above its plane, the axis
+/// up the screen (the 180 roll at the end: view y runs down the screen) -> cam = view -> world
+__cam_tt = function(_pn, _yaw, _pitch) {
+	var _af = mat3_rot(0, 0, 1, _pn.tilt);
+	return mat3_mul(mat3_mul(_af, mat3_rot(0, 1, 0, _yaw)), mat3_mul(mat3_rot(1, 0, 0, _pitch), [-1, 0, 0, 0, -1, 0, 0, 0, 1]));
+};
+/// a region's spot as the turntable's yaw / pitch (its direction in the axis frame, the spin in;
+/// the camera's own direction there is (-sin yaw cos pitch, sin pitch, cos yaw cos pitch))
+__spot_yp = function(_pn, _spin, _rg) {
 	var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
-	var _nw = mat3_apply(_wm, _t[0], _t[1], _t[2]);
-	repeat (80) {
-		var _v = mat3_apply(mat3_transpose(_cam), _nw[0], _nw[1], _nw[2]);
-		if (_v[2] > .9999) break;
-		var _ang = darccos(clamp(_v[2], -1, 1)) * .35;
-		var _axl = sqrt(_v[0] * _v[0] + _v[1] * _v[1]);
-		var _a0 = (_axl < .0001) ? 0 : (_v[1] / _axl);
-		var _a1 = (_axl < .0001) ? 1 : (-_v[0] / _axl);
-		var _c1 = mat3_mul(_cam, mat3_rot(_a0, _a1, 0, _ang)), _c2 = mat3_mul(_cam, mat3_rot(_a0, _a1, 0, -_ang));
-		var _v1 = mat3_apply(mat3_transpose(_c1), _nw[0], _nw[1], _nw[2]), _v2 = mat3_apply(mat3_transpose(_c2), _nw[0], _nw[1], _nw[2]);
-		_cam = (_v1[2] >= _v2[2]) ? _c1 : _c2;
-	}
-	return _cam;
+	var _a = mat3_apply(mat3_rot(0, 1, 0, _spin), _t[0], _t[1], _t[2]);
+	return { yaw : darctan2(-_a[0], _a[2]), pitch : darcsin(clamp(_a[1], -1, 1)) };
 };
 /// a world small (the hub's card, the list's rows, the haul's card): the
 /// FULL world once it is built - clouds and ring (the globe at .62 so the
