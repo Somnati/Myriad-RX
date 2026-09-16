@@ -27,23 +27,8 @@ function exped_act_step(_tr) {
 		case "shop_buy":   exped_shop(_tr, "buy", _beat.i); break;
 		case "shop_close": exped_shop(_tr, "close"); exped_say(_tr, "shop", undefined, .4); break;
 		case "linger": {
-			// the distractions (his ask): a small thing that took an hour
-			var _lw = _tr.names[irandom(_n - 1)];
-			array_push(_tr.log, choose(
-				_lw + " watched a dog steal a sausage and did nothing about it",
-				"got talked at by an old man about the weather of years ago",
-				"lost " + _lw + " for an hour. found in the graveyard, reading the stones",
-				"a fair was on. " + _lw + " won a goose and gave it back",
-				"sat by the well and did nothing, gloriously",
-				"listened to an argument about a fence. took a side. changed it",
-				_lw + " bought a pie. it was mostly gravy",
-				_lw + " got a haircut. it is a haircut",
-				"watched the smith for an hour. the smith did not mind",
-				"a wedding went past. " + _lw + " cried, and denies it",
-				"somebody's child followed them the length of the street",
-				_lw + " asked directions and got three",
-				"the church bell was wrong by an hour and everyone knew it",
-				_lw + " fed the geese and regretted it"));
+			// the distractions (his ask): a small thing that took an hour - composed, not picked (exped_compose, 2026-09-16)
+			array_push(_tr.log, exped_compose("linger", _tr));
 			exped_note_beat(_tr, "rest", .1);
 			break;
 		}
@@ -90,7 +75,7 @@ function exped_act_step(_tr) {
 					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : 3 + 2 * _tr.dest.tier };
 					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits");
 				}
-			} else array_push(_tr.log, "the tavern at " + _nd.name + ": " + choose("gossip about a rock that watches", "someone sang. badly.", "the stew was a colour", "a bard was thrown out", "nothing happened, at length"));
+			} else array_push(_tr.log, exped_compose("rumour", _tr));   // (the talk, composed - 2026-09-16)
 			break;
 		}
 		case "hunt": {
@@ -209,8 +194,7 @@ function exped_act_step(_tr) {
 			if (_r < 30) { _tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0); array_push(_tr.log, _nd.name + ": " + _tr.fight.b.name + " " + choose("was not pleased", "objected", "came out of the grass")); }
 			else if (_r < 50) exped_room_find(_tr, _nd.name + ": ");
 			else {
-				var _isit = ((_nd.kind == "hills" || _nd.kind == "mountains") ? "they are " : ((_nd.kind == "tundra") ? "it is " : ((string_pos(string_char_at(_nd.kind, 1), "aeiou") > 0) ? "it is an " : "it is a "))) + ((_nd.kind == "isle") ? "island" : _nd.kind);
-				array_push(_tr.log, _nd.name + ": " + choose("looked at it. " + _isit + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
+				array_push(_tr.log, exped_compose("wild", _tr));   // (the crossing, composed - 2026-09-16)
 			}
 			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "lupus", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }
 			if (is_undefined(_tr.fight)) exped_say(_tr, "wild", undefined, .3);

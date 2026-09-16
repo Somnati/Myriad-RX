@@ -13,7 +13,7 @@ function exped_fight_loot(_tr, _f) {
 	if (!_boss && roll_perc(55)) {
 		var _c = irandom_range(1, 2) * _nf + _d.tier - 1;
 		_tr.credits += _c;
-		exped_stat("finds");
+		exped_stat("finds"); exped_tally(_tr, "earned", _c);
 		array_push(_tr.log, "+ " + string(_c) + " credits " + choose("off the bodies", "in a pouch one of them had", "scattered in the fight", "that they will not need now"));
 		return;
 	}

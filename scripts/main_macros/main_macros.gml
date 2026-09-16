@@ -413,7 +413,7 @@ function main_macros() {
 #macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
 #macro EXPED_ROOM_T   10     // seconds a step at a node takes (a delve room, a shop visit)
 #macro EXPED_FUEL      2     // credits the ship burns to send a crew, x the world's tier
-#macro EXPED_POCKET    2     // credits each member takes along (inns, gear); what is left comes home
+#macro EXPED_POCKET    3     // credits each member takes along (inns, gear); what is left comes home (3 since 2026-09-16: the credits twin had the pocket dry in a third of the towns at 2)
 #macro EXPED_INN       1     // credits a bed costs, per member
 #macro EXPED_PACK_W1  35     // a fight's pack, when nobody asked for a count: % one foe...
 #macro EXPED_PACK_W2  40     // ...% two (the rest three). Never the party's size (his call, 2026-09-15); the twin: a trio at par wins ~93% a fight, a pair ~68%, a lone warrior ~35%

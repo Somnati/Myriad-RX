@@ -44,7 +44,7 @@ function exped_road_beat(_tr) {
 		// a coin in the mud
 		var _c = 1 + irandom(1);
 		_tr.credits += _c;
-		exped_stat("finds"); exped_tally(_tr, "items");
+		exped_stat("finds"); exped_tally(_tr, "earned", _c);   // (a coin is credits earned, not an item - the tally)
 		array_push(_tr.log, "+ " + string(_c) + ((_c == 1) ? " credit" : " credits") + " " + choose("in the mud", "under a hedge", "in a ditch, with a boot", "on the road, shining", "in a puddle",
 			"in a bird's nest, of all places", "under a stone " + _nm + " turned for no reason", "in the pocket of a coat on a fence", "in the road's middle, where everyone had walked past it", "stuck in a tree, at a height " + _nm + " is not proud of reaching"));
 	} else if (_r < 30) {
@@ -89,14 +89,8 @@ function exped_road_beat(_tr) {
 			"swapped hats for a mile. swapped back. no lessons learned.", "played a game with the milestones. " + _nm + " is winning. the rules are " + _nm + "'s.",
 			"agreed about something. nobody remembers what. it felt good.", "walked in silence, the good kind, for an hour."));
 	} else if (_r < 67) {
-		// a landmark
-		array_push(_tr.log, choose("passed a standing stone with a face scratched on it.", "a signpost. it pointed at the sky.",
-			"an abandoned cart. someone took the wheels.", "a milestone: " + _to + ", it said, and a number nobody believed.",
-			"a shrine the size of a hat, with a hat in it.", "a bridge. under it, a smaller bridge.",
-			"a scarecrow. " + _nm + " waved at it.", "a well. " + _nm + " shouted into it. it shouted back, later.",
-			"a tree with a door in it. the door was locked.", "a gallows, empty, and a crow on it, full.", "a boundary stone: one side said HERE, the other said THERE.",
-			"a mill with no wheel and a wheel with no mill, a field apart.", "an old battlefield, they think. it was very flat and very quiet.",
-			"a cairn. " + _nm + " added a stone. it fell off. " + _nm + " added it again."));
+		// a landmark, or a small thing - composed (exped_compose, 2026-09-16)
+		array_push(_tr.log, exped_compose("road", _tr));
 	} else if (_r < 74) {
 		// an animal
 		array_push(_tr.log, choose("a fox watched from the hedge. the fox won the staring contest.", "a bird followed them for an hour. it knows something.",

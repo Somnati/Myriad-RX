@@ -118,7 +118,9 @@ function exped_tick_one(_tr, _dt) {
 	// ---- stage 2: the flight home ----
 	if (_tr.stage == 2 && _tr.t >= (_tr[$ "leave_t"] ?? _tr.t) + _tr.dur * EXPED_RETURN) {
 		// home: the floor of credits by distance, the pocket's remainder, the quest's reward
-		var _floor = { kind : "credits", rar : 0, n : 3 * _tr.dest.tier, txt : string(3 * _tr.dest.tier) + " credits - the trip's pay", col : c_lavender };   // ("the floor" made no sense on the card - 2026-09-15)
+		// the pay: 3 a tier, and one for every four hours on the world (the credits twin, 2026-09-16: an explore bled without it)
+		var _payn = 3 * _tr.dest.tier + floor((_tr[$ "planet_t"] ?? 0) / (4 * EXPED_HOUR));
+		var _floor = { kind : "credits", rar : 0, n : _payn, txt : string(_payn) + " credits - the trip's pay", col : c_lavender };   // ("the floor" made no sense on the card - 2026-09-15)
 		array_insert(_tr.finds, 0, _floor);
 		exped_tally(_tr, "earned", _floor.n);
 		if ((_tr[$ "credits"] ?? 0) > 0) array_push(_tr.finds, { kind : "credits", rar : 0, n : _tr.credits, txt : string(_tr.credits) + " credits - the pocket, unspent", col : c_lavender });

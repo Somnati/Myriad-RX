@@ -390,6 +390,7 @@
     {"id":{"name":"exped_bond","path":"scripts/exped_bond/exped_bond.yy",},},
     {"id":{"name":"exped_close","path":"scripts/exped_close/exped_close.yy",},},
     {"id":{"name":"exped_collect","path":"scripts/exped_collect/exped_collect.yy",},},
+    {"id":{"name":"exped_compose","path":"scripts/exped_compose/exped_compose.yy",},},
     {"id":{"name":"exped_cost","path":"scripts/exped_cost/exped_cost.yy",},},
     {"id":{"name":"exped_crew_txt","path":"scripts/exped_crew_txt/exped_crew_txt.yy",},},
     {"id":{"name":"exped_daylight","path":"scripts/exped_daylight/exped_daylight.yy",},},
