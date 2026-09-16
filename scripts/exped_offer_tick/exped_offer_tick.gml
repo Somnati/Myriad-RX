@@ -20,7 +20,7 @@ function exped_offer_tick(_dt) {
 			var _sl = _of.slots[_i];
 			_sl.left -= _dt;
 			// A RIVAL CREW takes an open card now and then (2026-09-16): taken = -(i + 1); never the easy one (the one-easy law)
-			if (_sl.taken == 0 && !_sl.easy && random(1) < _dt / 9000) { _sl.taken = -(1 + irandom(2)); save_mark_dirty(); }
+			if (_sl.taken == 0 && !_sl.easy && random(1) < min(.35, _dt / 9000)) { _sl.taken = -(1 + irandom(2)); save_mark_dirty(); }   // (capped: an absence handed the whole board to the rivals in one tick - bug hunt 2026-09-16)
 			if (_sl.left <= 0) { exped_offer_deal(_of, _i); save_mark_dirty(); }
 		}
 		// the personal card's clock: at zero it is gone, taken or not (2026-09-16)

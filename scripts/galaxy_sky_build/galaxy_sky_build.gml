@@ -91,7 +91,7 @@ function galaxy_sky_build(_dw = undefined) {
 		var _el3 = (random(1) - .5 + random(1) - .5) * 12;   // (triangular: most within a few degrees of the plane)
 		var _cc = merge_colour(rgb(255, 205, 165), rgb(150, 170, 235), _dc);
 		array_push(_out.stars, { x : dcos(_el3) * dcos(_az3), y : -dsin(_el3), z : dcos(_el3) * dsin(_az3),
-		                         col : merge_colour(_cc, c_white, .35), b : random_range(.08, .32) * (1 - .5 * abs(_el3) / 12), s : 1, ph : irandom(359), near : false });
+		                         col : merge_colour(_cc, c_white, .35), b : random_range(.08, .32) * (1 - .5 * abs(_el3) / 12), s : 1, ph : irandom(359), near : false, cl : true });   // (cl: drawn at its raw brightness - grain, not stars; bug hunt 2026-09-16)
 	}
 	rng_release(_oldsd);
 	// the fog's bearings

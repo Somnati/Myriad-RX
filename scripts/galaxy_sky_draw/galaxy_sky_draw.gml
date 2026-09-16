@@ -35,7 +35,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true) {
 		var _m = 12 + _sk.s * 4;
 		if (_sx < -_m || _sx > _w + _m || _sy < -_m || _sy > _h + _m) continue;
 		var _fade = clamp((min(_sx, _w - _sx) + _m) / _m, 0, 1) * clamp((min(_sy, _h - _sy) + _m) / _m, 0, 1) * clamp((-_dv[2] - .2) / .1, 0, 1);
-		var _a = (.3 + .7 * _sk.b) * _fade;
+		var _a = ((_sk[$ "cl"] ?? false) ? (_sk.b * 1.3) : (.3 + .7 * _sk.b)) * _fade;   // (a cloud point is grain: its raw brightness, not the stars' floor - the band stayed as he liked it)
 		// the twinkle: the small ones only, two sines that never line up, the star's own phase
 		if (_sk.s <= 2) { var _ph = _sk[$ "ph"] ?? 0; _a *= 1 - .22 * (.5 + .5 * dsin(_tt * (.11 + .0004 * _ph) + _ph) * dsin(_tt * .073 + _ph * 2.618)); }
 		// the glare: inside the sun's reach a star fades toward it
