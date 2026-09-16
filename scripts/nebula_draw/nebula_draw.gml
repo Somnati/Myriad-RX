@@ -17,7 +17,7 @@ function nebula_draw(_nb, _x, _y, _r, _a) {
 	var _q = nebula_quad();
 	// a DARK cloud (2026-09-16): the same body, but it takes light away - dest x (1 - alpha); the caller draws it after what it hides
 	var _dk = _nb[$ "dark"] ?? false;
-	if (_dk) gpu_set_blendmode_ext(bm_zero, bm_inv_src_alpha);
+	if (_dk) gpu_set_blendmode_ext_sepalpha(bm_zero, bm_inv_src_alpha, bm_zero, bm_one);   // (the page's alpha untouched: the map would thin and the room show through)
 	shader_set(sh_nebula);
 	shader_set_uniform_f(_u.seed, _nb.seed);
 	shader_set_uniform_f(_u.col, colour_get_red(_nb.col) / 255, colour_get_green(_nb.col) / 255, colour_get_blue(_nb.col) / 255);

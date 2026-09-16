@@ -40,7 +40,9 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	if (!surface_exists(_canvas)) return;
 	if (!shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(4, _h - 12, "sh_sky_fog failed to compile"); draw_set_alpha(1); return; }   // (2026-09-16: a failed shader draws nothing - the page says so)
 	draw_set_alpha(1);
-	gpu_set_blendmode_ext(bm_one, bm_src_alpha);   // (rgb added, the rest kept by the shader's alpha: the dark clouds' transmittance - 2026-09-16)
+	// (colour: rgb added, the rest kept by the shader's alpha - the dark clouds' transmittance; the page's own ALPHA untouched: the
+	// plain (one, src_alpha) thinned it too and the room showed through the sky - his screenshot, 2026-09-16)
+	gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);
 	shader_set(sh_sky_fog);
 	shader_set_uniform_f_array(_u.cam, _cam);
 	shader_set_uniform_f(_u.core, _sky.core_dir[0], _sky.core_dir[1], _sky.core_dir[2]);
@@ -97,7 +99,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
 		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
 		// ONE PASS (2026-09-16): rgb the glow, alpha the transmittance - dest = glow + dest x transmittance
-		gpu_set_blendmode_ext(bm_one, bm_src_alpha);
+		gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);   // (the page's alpha untouched)
 		draw_surface(_canvas, 0, 0);
 		shader_reset();
 	}
