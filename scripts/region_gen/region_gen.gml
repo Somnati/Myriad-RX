@@ -311,7 +311,16 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	}
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)
-	var _rname = (_ri == 0) ? "the landing reach" : (region_name("village") + choose(" reach", " lowlands", " marches", " uplands", " fens", " holds"));
+	// THE REGION'S NAME (the region-names pass, 2026-09-15): off the land it
+	// mostly is - the commonest wild kind among its places - region_title
+	var _kct = {}, _kbest = "", _kn = 0, _kkr = region_kinds();
+	for (var _i = 0; _i < array_length(_nodes); _i++) {
+		var _nk = _nodes[_i].kind, _nkd = _kkr[$ _nk];
+		if (!is_struct(_nkd) || !_nkd.wild || _nk == "ruin" || _nk == "shrine" || _nk == "mine") continue;
+		_kct[$ _nk] = (_kct[$ _nk] ?? 0) + 1;
+		if (_kct[$ _nk] > _kn) { _kn = _kct[$ _nk]; _kbest = _nk; }
+	}
+	var _rname = region_title(_kbest);
 	// THE MOOD (his ask, 2026-09-15: "a single word... war torn, peaceful,
 	// prosperous"): read off what is here
 	var _mciv = 0, _mcmp = 0, _mdun = 0, _mruin = 0, _mcity = false;
