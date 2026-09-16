@@ -62,10 +62,13 @@ void main()
     vec2 suv = clamp(v_vTexcoord + (r - 0.5) * u_warp, 0.0, 1.0);
     vec4 t = texture2D(gm_BaseTexture, suv);
     float dens = t.a;
-    // the fray: a threshold the density lowers - cores hold, edges tear to wisps; the knots brighten
-    float thr = 0.62 - 0.34 * dens;
-    float k = smoothstep(thr - 0.20, thr + 0.20, n);
-    float bright = 0.5 + 1.1 * n;
+    // the fray: the body of a cloud is never touched (a nebula stays a nebula - chopped fine, they all read as
+    // smoke; his report), its skirts tear to wisps on a threshold the density lowers; the body's knots brighten a little
+    float core = smoothstep(0.55, 0.95, dens);
+    float thr = 0.60 - 0.30 * dens;
+    float fray = smoothstep(thr - 0.22, thr + 0.22, n);
+    float k = mix(fray, 1.0, core);
+    float bright = 1.0 + 0.5 * (n - 0.5) * (0.3 + 0.7 * core);
     // (density cubed: the weight the old premultiplied bake came to at its blit - the fog keeps its depth)
     vec4 c = vec4(t.rgb * bright, dens * dens * dens * k) * v_vColour;
 

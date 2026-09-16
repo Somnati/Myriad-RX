@@ -36,7 +36,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	gpu_set_tex_filter_ext(_u.neb, true);
 	gpu_set_tex_repeat_ext(_u.neb, false);
 	shader_set_uniform_f(_u.npos, _me.x / _sm.width, _me.y / _sm.width);
-	shader_set_uniform_f(_u.nprm, (_cfg[$ "sky_neb_range"] ?? 1400) / _sm.width, (_cfg[$ "sky_neb_thick"] ?? 90) / _sm.width, _cfg[$ "sky_neb_amp"] ?? 1, 0);
+	shader_set_uniform_f(_u.nprm, (_cfg[$ "sky_neb_range"] ?? 1400) / _sm.width, (_cfg[$ "sky_neb_thick"] ?? 90) / _sm.width, _cfg[$ "sky_neb_amp"] ?? .6, _cfg[$ "sky_neb_floor"] ?? .42);
 	shader_set_uniform_f_array(_u.cam, _cam);
 	shader_set_uniform_f(_u.core, _sky.core_dir[0], _sky.core_dir[1], _sky.core_dir[2]);
 	shader_set_uniform_f(_u.geom, _w, _h);

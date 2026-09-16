@@ -1014,17 +1014,29 @@ if (view == "galaxy") {
 	var _vcx = gx_x + _vw * .5 / gx_zoom, _vcy = gx_y + _vh * .5 / gx_zoom;
 	var _vis = star_visible(gx_x, gx_y, gx_zoom, _vw, _vh);
 	var _m = 12 * gx_zoom + 4;
+	// THE DEMO'S STARS (his report, 2026-09-16: scaled glow sprites read as interpolation): a crisp square of the star's size,
+	// gs times over so it sits between the room's pixels, over a stepped glow frame at WHOLE scale (the frame by size, the
+	// demo's per-star bloom, additive, one pass) - the size ladder is the square's, a dwarf under a pixel, a giant seven
+	var _sgs = _gcf[$ "star_glow_size"] ?? 6, _sga = _gcf[$ "star_glow_alpha"] ?? .3;
+	gpu_set_blendmode(bm_add);
 	for (var _i = 0; _i < array_length(_vis); _i++) {
 		var _st = _sm.stars[_vis[_i]];
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
-		// (round and glowing, never under two px: the little ones - the one you are in among them - were lost as sub-pixel squares; his ask 2026-09-16)
-		// (the size ladder back - his report: it was lost - a dwarf a fifth of a giant; drawn gs times over, between the room's pixels)
+		var _gw = max(.8, _st.props.size * gx_zoom) * _sgs, _gi = 0;
+		if (_gw > 4) _gi = 1; if (_gw > 6) _gi = 2; if (_gw > 10) _gi = 3; if (_gw > 14) _gi = 4; if (_gw > 18) _gi = 5;
+		var _gsc = ((_gw > 24) ? ceil(_gw / 24) : 1) * _gs;
+		draw_sprite_ext(spr_star_glow, _gi, floor(_sx * _gs), floor(_sy * _gs), _gsc, _gsc, 0, _st.props.color, _sga);
+	}
+	gpu_set_blendmode(bm_normal);
+	for (var _i = 0; _i < array_length(_vis); _i++) {
+		var _st = _sm.stars[_vis[_i]];
+		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
+		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
+		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
 		var _s = max(.8, _st.props.size * gx_zoom);
-		var _gsc = clamp(.14 + _s * .11, .2, 1.8) * _gs;
-		draw_sprite_ext(spr_star_glow, 5, _sx * _gs, _sy * _gs, _gsc, _gsc, 0, _st.props.color, .9);
-		draw_sprite_ext(spr_star_glow, 3, _sx * _gs, _sy * _gs, max(.3 * _gs, _gsc * .55), max(.3 * _gs, _gsc * .55), 0, merge_colour(_st.props.color, c_white, .5), 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, (_sx - _s * .5) * _gs, (_sy - _s * .5) * _gs, _s * _gs, _s * _gs, 0, _st.props.color, 1);
 	}
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped
 	// domain, frayed to wisps - the clouds were circles; his report 2026-09-16); dithered there only on an 8-bit page
