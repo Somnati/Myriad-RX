@@ -5,6 +5,7 @@ function foe_plural(_k) {
 		case "hornets": return "hornets";
 		case "harpy": return "harpies"; case "mummy": return "mummies";
 		case "leech": return "leeches";
+		case "fly": return "flies";
 	}
 	return _k + "s";
 }

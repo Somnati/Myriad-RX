@@ -1,5 +1,5 @@
 /// @description foe_roster() -> the roster: [{ name, shape, crit, cmulti, cnt, erode, magic, skill, gear, col, lands }]
-/// THE FOES PASS (2026-09-15): thirty kinds, each with the LANDS it haunts
+/// THE FOES PASS (2026-09-15): thirty kinds (thirty-eight by 2026-09-16), each with the LANDS it haunts
 /// (region_kinds' keys; "road" = any road) - foe_kinds_at picks by the
 /// land, so the marsh has its own things and so does the desert. Shapes
 /// on the sprites' budget (eight lines summing ~36-38 - the old seven's
@@ -48,6 +48,14 @@ function foe_roster() {
 		{ name : "imp",       shape : { hp : 4, mp : 5, atk : 3, mag : 7, def : 3, mdef : 5, spd : 6, hit : 5 }, crit : 7,  cmulti : 1.7, cnt : 4,  erode : 1,   magic : true,  skill : "bolt",    gear : .1, col : rgb(190, 80, 90),   lands : ["dungeon", "ruin"] },
 		{ name : "bat",       shape : { hp : 4, mp : 2, atk : 5, mag : 2, def : 3, mdef : 3, spd : 9, hit : 8 }, crit : 8,  cmulti : 1.5, cnt : 3,  erode : 1,   magic : false, skill : "",        gear : 0,  col : rgb(90, 80, 110),   lands : ["crypt", "dungeon", "mine"] },
 		{ name : "ghoul",     shape : { hp : 7, mp : 3, atk : 7, mag : 2, def : 6, mdef : 4, spd : 4, hit : 5 }, crit : 7,  cmulti : 1.7, cnt : 5,  erode : 1,   magic : false, skill : "drain",   gear : .2, col : rgb(140, 150, 130), lands : ["crypt", "ruin"] },
+		// the small and the quick (his ask, 2026-09-16): a snake that bites hard and
+		// often, ants that hold the line and hit back, fleas and flies that are
+		// nothing but speed, bees with a sting
+		{ name : "snake",     shape : { hp : 4, mp : 2, atk : 7, mag : 1, def : 3, mdef : 3, spd : 9, hit : 8 }, crit : 12, cmulti : 1.8, cnt : 4,  erode : 1,   magic : false, skill : "strike",  gear : 0,  col : rgb(110, 150, 70),  lands : ["desert", "marsh", "field", "ruin"] },
+		{ name : "ant",       shape : { hp : 5, mp : 1, atk : 5, mag : 1, def : 7, mdef : 3, spd : 6, hit : 8 }, crit : 5,  cmulti : 1.4, cnt : 9,  erode : 1,   magic : false, skill : "strike",  gear : 0,  col : rgb(140, 60, 40),   lands : ["field", "hills", "desert", "forest"] },
+		{ name : "flea",      shape : { hp : 2, mp : 1, atk : 4, mag : 1, def : 2, mdef : 2, spd : 12, hit : 12 }, crit : 6, cmulti : 1.4, cnt : 2,  erode : 1,   magic : false, skill : "",        gear : 0,  col : rgb(90, 70, 50),    lands : ["village", "town", "city", "camp", "marsh"] },
+		{ name : "fly",       shape : { hp : 2, mp : 1, atk : 3, mag : 1, def : 2, mdef : 3, spd : 13, hit : 11 }, crit : 4, cmulti : 1.3, cnt : 2,  erode : 1,   magic : false, skill : "",        gear : 0,  col : rgb(70, 90, 110),   lands : ["marsh", "field", "camp", "ruin"] },
+		{ name : "bee",       shape : { hp : 3, mp : 2, atk : 6, mag : 1, def : 3, mdef : 3, spd : 10, hit : 9 }, crit : 10, cmulti : 1.7, cnt : 6,  erode : 1,   magic : false, skill : "concuss", gear : 0,  col : rgb(220, 180, 60),  lands : ["field", "forest", "hills"] },
 	];
 	return _ros;
 }
