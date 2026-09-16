@@ -5,18 +5,8 @@
 /// @param [job]   "tap"
 function sprite_spawn(_job = "tap") {
 	sprites_init();
-	// the name: consonant + vowel syllables from a soft set, two or
-	// three of them, doubled a third of the time
-	var _c = ["b", "m", "p", "n", "l", "d", "z", "k", "w", "t", "f", "j"];
-	var _v = ["a", "i", "o", "u", "e", "oo", "ee"];
-	var _syl = function(_c, _v) { return _c[irandom(array_length(_c) - 1)] + _v[irandom(array_length(_v) - 1)]; };
-	var _nm;
-	if (random(1) < .35) { var _s1 = _syl(_c, _v); _nm = _s1 + _s1; }
-	else {
-		_nm = _syl(_c, _v) + _syl(_c, _v);
-		if (random(1) < .3) _nm += _syl(_c, _v);
-	}
-	if (random(1) < .25) _nm += choose("t", "n", "p", "k");
+	// the name: sprite_name_gen (the one generator - the names pass, 2026-09-15)
+	var _nm = sprite_name_gen();
 	var _pl = sprite_personalities();
 	var _lk = sprite_looks();
 	// THE RARITY (his ask, 2026-09-11): the house calculator, the

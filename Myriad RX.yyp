@@ -702,6 +702,7 @@
     {"id":{"name":"sprite_inv_trim","path":"scripts/sprite_inv_trim/sprite_inv_trim.yy",},},
     {"id":{"name":"sprite_looks","path":"scripts/sprite_looks/sprite_looks.yy",},},
     {"id":{"name":"sprite_lore","path":"scripts/sprite_lore/sprite_lore.yy",},},
+    {"id":{"name":"sprite_name_gen","path":"scripts/sprite_name_gen/sprite_name_gen.yy",},},
     {"id":{"name":"sprite_note_gen","path":"scripts/sprite_note_gen/sprite_note_gen.yy",},},
     {"id":{"name":"sprite_note","path":"scripts/sprite_note/sprite_note.yy",},},
     {"id":{"name":"sprite_notes_kinds","path":"scripts/sprite_notes_kinds/sprite_notes_kinds.yy",},},
