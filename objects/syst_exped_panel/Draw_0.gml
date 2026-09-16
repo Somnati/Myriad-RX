@@ -382,7 +382,7 @@ if (view == "bestiary") {
 	draw_set_color(_ink); draw_set_alpha(.6);
 	var _bls = g.exped[$ "blands"] ?? [];
 	draw_text(land ? 14 : 4, list_y + 6, "the bestiary  -  " + string(_met) + " of " + string(_nk) + " met" + ((array_length(_bls) > 0) ? ("  -  lands complete " + string(array_length(_bls)) + " (*)") : ""));
-	// THE GRID: a cell a kind, a letter in its colour once met, a "?" until then, the slain in the corner
+	// THE GRID: a cell a kind, its creature (spr_foe, tinted) once met, a "?" until then, the slain in the corner
 	for (var _i = 0; _i < _nk; _i++) {
 		var _r = _ros[_i], _cr = __bs_cell_r(_i);
 		var _bb = __bs_met(_r.name);
@@ -392,9 +392,9 @@ if (view == "bestiary") {
 		draw_px_rect(_cr.x, _cr.y, _cr.w, _cr.h, _on ? c_white : (_known ? _r.col : _dim), _on ? .9 : (_known ? .5 : .2));
 		draw_set_halign(fa_center);
 		if (_known) {
-			draw_set_font(fnt_large); draw_set_color(_r.col); draw_set_alpha(.95);
-			draw_text(_cr.x + 12, _cr.y + 3, string_upper(string_char_at(_r.name, 1)));
-			draw_set_font(fnt);
+			var _ff = foe_sprite_frame(_r.name);
+			if (_ff >= 0) draw_sprite_ext(spr_foe, _ff, _cr.x + 12, _cr.y + 11, 1, 1, 0, _r.col, .95);   // (the creature - his ask 2026-09-16; the letter before)
+			else { draw_set_font(fnt_large); draw_set_color(_r.col); draw_set_alpha(.95); draw_text(_cr.x + 12, _cr.y + 3, string_upper(string_char_at(_r.name, 1))); draw_set_font(fnt); }
 			if (_bb.slain > 0) { draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.85); draw_text(_cr.x + _cr.w - 2, _cr.y + _cr.h - 9, string(_bb.slain)); }
 		} else { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_cr.x + 12, _cr.y + 8, "?"); }
 		draw_set_halign(fa_left);
@@ -418,6 +418,8 @@ if (view == "bestiary") {
 			draw_set_font(fnt_large); draw_set_color(_r.col); draw_set_alpha(.95); draw_text(_tx, _ty, str_cap(_r.name));
 			draw_set_font(fnt); draw_set_color(_dim); draw_set_alpha(.7);
 			draw_text(_tx + string_width(str_cap(_r.name)) * 2 + 6, _ty + 5, "(" + foe_plural(_r.name) + ")");
+			var _ffc = foe_sprite_frame(_r.name);
+			if (_ffc >= 0) { draw_set_alpha(.95); draw_sprite_ext(spr_foe, _ffc, _tx + _tw - 26, _ty + 26, 3, 3, 0, _r.col, .95); }   // (the creature, three times, top right of the card)
 			_ty += 18;
 			draw_set_color(_ink); draw_set_alpha(.85);
 			// ...and THE HUNT's rung on the same line (2026-09-16): the measure at ten, bane at fifty, scourge at two hundred and fifty (the card is full)
@@ -641,7 +643,7 @@ if (view == "trip") {
 		draw_sprite_ext(spr_pixel_1x1, 0, _fx + 4, _fy + _fs - 18, _fs - 8, 1, 0, _ink, .25);
 		draw_px_rect(_fx, _fy, _fs, _fs, (_f[$ "replay"] ?? false) ? _dim : c_hred, ((_f[$ "replay"] ?? false) ? .4 : .5) + .3 * _br);
 		var _flash_t = (!is_undefined(_f.last)) ? clamp(1 - (current_time - _f.last.at) / 350, 0, 1) : 0;
-		// the foes, a row top right: a diamond each, its hp above
+		// the foes, a row top right: each its creature (spr_foe, tinted), its hp above
 		var _fos = _f[$ "foes"] ?? [ _f.b ];
 		var _nfo = array_length(_fos);
 		for (var _j = 0; _j < _nfo; _j++) {
@@ -650,7 +652,9 @@ if (view == "trip") {
 			var _jhit = (_flash_t > 0 && _f.last.side == "b" && (_f.last.i == _j || (_f.last.i < 0 && _j == 0)));
 			var _shk = _jhit ? (irandom(2) - 1) : 0;
 			var _jc = _fo[$ "col"] ?? c_hred;
-			if (_fo.hp > 0) { draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6 + _shk, _jy - 6, 12, 12, 45, merge_colour(_jc, c_black, .35), .95); draw_sprite_ext(spr_pixel_1x1, 0, _jx - 4 + _shk, _jy - 4, 8, 8, 45, _jhit ? c_white : _jc, .95); }
+			var _jff = foe_sprite_frame(_fo[$ "kind"] ?? "");
+			if (_fo.hp > 0 && _jff >= 0) draw_sprite_ext(spr_foe, _jff, _jx + _shk, _jy, 1, 1, 0, _jhit ? c_white : _jc, .95);   // (the creature - spr_foe, tinted; the diamond before)
+			else if (_fo.hp > 0) { draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6 + _shk, _jy - 6, 12, 12, 45, merge_colour(_jc, c_black, .35), .95); draw_sprite_ext(spr_pixel_1x1, 0, _jx - 4 + _shk, _jy - 4, 8, 8, 45, _jhit ? c_white : _jc, .95); }
 			else draw_sprite_ext(spr_pixel_1x1, 0, _jx - 6, _jy + 3, 12, 3, 0, _jc, .4);
 			var _jf = clamp(_fo.hp / max(1, _fo.hpmax), 0, 1);
 			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 7, _jy - 14, 14, 2, 0, c_black, .8);
