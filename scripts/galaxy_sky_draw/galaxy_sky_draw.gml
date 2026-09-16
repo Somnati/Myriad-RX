@@ -14,6 +14,7 @@
 /// the view's centre. The sun's glow breathes on smoothed noise, not a
 /// sine (the pulse "too rhythmic", his report).
 /// sibs = draw the sibling planets (false on the star system page: they are the planets); occ = { x, y, r } a disc on the
+/// page (or a list of them; kind "moon" covers by overlap) that hides the sun; the world's disc: the sun's glow and flare fade as it goes behind it
 /// page that hides the sun (the world in the orbit view): the sun's glow and flare fade as it goes behind it (his report,
 /// 2026-09-16: the glow stayed whole until it snapped round the limb)
 function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true, _occ = undefined) {
@@ -26,8 +27,18 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 	var _ss = _sky.sun_size / 12;
 	var _sun_on = (_sv[2] < -.1), _ssx = 0, _ssy = 0, _sfade = 0;
 	if (_sun_on) { _sfade = clamp((-_sv[2] - .1) / .12, 0, 1); var _sf = 230 / -_sv[2]; _ssx = _cx + _sv[0] * _sf; _ssy = _cy + _sv[1] * _sf; }
-	// behind the disc: the sun's light fades over the first third of the way in, gone at the centre
-	if (_sun_on && is_struct(_occ)) { var _od = point_distance(_ssx, _ssy, _occ.x, _occ.y); if (_od < _occ.r) _sfade *= clamp((_od - _occ.r * .55) / (_occ.r * .45), 0, 1); }
+	// behind the disc: the sun's light fades over the first third of the way in, gone at the centre; a MOON's disc over it
+	// (occ as a list: the world first, then the moons - kind "moon") covers by the overlap - an eclipse from the camera's seat,
+	// a ring of corona left round the black (2026-09-16)
+	if (_sun_on && (is_struct(_occ) || is_array(_occ))) {
+		var _ol = is_array(_occ) ? _occ : [_occ];
+		for (var _oi = 0; _oi < array_length(_ol); _oi++) {
+			var _o = _ol[_oi];
+			var _od = point_distance(_ssx, _ssy, _o.x, _o.y);
+			if ((_o[$ "kind"] ?? "world") == "moon") { var _rs = 5.5 * _ss; var _cov = clamp((_o.r + _rs - _od) / (2 * _rs), 0, 1); _sfade *= 1 - .92 * _cov; }
+			else if (_od < _o.r) _sfade *= clamp((_od - _o.r * .55) / (_o.r * .45), 0, 1);
+		}
+	}
 	var _glr = (_cfg[$ "sky_glare"] ?? 70) * _ss;
 	var _tt = current_time;
 	// (the nebulae are painted on the sphere by the fog pass - galaxy_fog_draw / sh_sky_fog; 2026-09-16)
@@ -88,7 +99,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _pu = 1 + .07 * (lerp(_n0, _n1, _bf) - .5);
 		var _gs = (60 * _ss * _pu) / max(1, sprite_get_width(spr_vis_glow_soft));
 		// THE SUN ITSELF (2026-09-16): sh_star - the disc, its corona and prominences (star_draw); the flare rides on
-		star_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade);
+		star_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam);
 		gpu_set_blendmode(bm_add);
 		// THE FLARE: an anamorphic streak (the soft glow stretched flat) and two ghosts along the line through the view's centre
 		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs * 3.2, _gs * .10, 0, merge_colour(_sky.sun_col, c_white, .4), .22 * _sfade);

@@ -82,6 +82,9 @@ function starmap_config() {
 		dust_count  : 240, // full-sphere faint fill
 		sky_cloud   : 520, // THE STAR CLOUDS (2026-09-16): faint points packed along the band - the milky way's grain (galaxy_sky_build)
 		sky_glare   : 70,  // px about the sun inside which the stars dim (x the sun's size)
+		sun_orbit_ref : 70,  // THE SUN'S SIZE BY THE ORBIT (2026-09-16): the star's size x (this / the world's orbit), clamped...
+		sun_size_min  : .45,
+		sun_size_max  : 2.2,
 		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
 		// ---- THE RICHNESS (2026-09-16): a sky reads its neighbourhood's density (0..1) and its depth in the core (0..1) ----

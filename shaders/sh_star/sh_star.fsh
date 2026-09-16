@@ -20,6 +20,7 @@ uniform float u_time;    // seconds
 uniform float u_rad;     // the disc's radius as a fraction of the quad's half-width
 uniform float u_fade;    // 0..1 (the sun behind a world)
 uniform float u_dither;  // 1 on an 8-bit page
+uniform vec3  u_cam[3];  // view -> world rotation rows: the sphere's face and the corona's rays are the WORLD's (a billboard turned with the screen - his report 2026-09-16)
 
 float h3(vec3 p)
 {
@@ -77,8 +78,11 @@ void main()
     if (r < R) {
         vec2 dd = uv / R;
         float z = sqrt(max(1.0 - dot(dd, dd), 0.0));
+        // the point on the sphere in WORLD space (the camera's rows), then the star's own spin about the world's axis
+        vec3 vp = vec3(dd.x, dd.y, z);
+        vec3 wp = vec3(dot(u_cam[0], vp), dot(u_cam[1], vp), dot(u_cam[2], vp));
         float sa = tt * 0.35;
-        vec3 sp = vec3(dd.x * cos(sa) - z * sin(sa), dd.y, dd.x * sin(sa) + z * cos(sa));
+        vec3 sp = vec3(wp.x * cos(sa) - wp.z * sin(sa), wp.y, wp.x * sin(sa) + wp.z * cos(sa));
         float gran  = fbm(sp * 7.0 + vec3(0.0, 0.0, tt * 0.6) + u_seed);
         float cells = fbm(sp * 2.2 + vec3(5.0, 1.0, tt * 0.15) + u_seed * 0.7);
         float spot  = smoothstep(0.64, 0.72, cells);
@@ -89,8 +93,11 @@ void main()
     }
 
     // THE CORONA and THE PROMINENCES, outside the limb
+    // the limb's direction in WORLD space (the rays and loops turn with the world, not the screen)
     float ang = atan(uv.y, uv.x);
-    vec2 ca = vec2(cos(ang), sin(ang));
+    vec3 lv = vec3(cos(ang), sin(ang), 0.0);
+    vec3 lw = vec3(dot(u_cam[0], lv), dot(u_cam[1], lv), dot(u_cam[2], lv));
+    vec2 ca = lw.xz + lw.y * 0.37;   // (a 2d key that is seamless round the limb: every limb point its own)
     float rr = max(r - R, 0.0) / R;
     float streak  = fbm(vec3(ca * 3.0, tt * 0.5) + u_seed);
     float streak2 = fbm(vec3(ca * 9.0, rr * 2.5 + tt * 0.8) + u_seed * 1.3);
@@ -98,7 +105,7 @@ void main()
     float halo = exp(-rr * 0.9) * 0.16;
     float promn = fbm(vec3(ca * 6.0, tt * 0.9 + 9.0) + u_seed * 0.5);
     float prom = smoothstep(0.0, 0.03, rr) * (1.0 - smoothstep(0.06, 0.26, rr)) * smoothstep(0.52, 0.78, promn);
-    float outside = smoothstep(R * 0.96, R * 1.02, r);
+    float outside = smoothstep(R * 0.96, R * 1.02, r) * (1.0 - smoothstep(0.62, 0.98, r));   // (to nothing by the quad's edge - it showed as a square; his report)
     rgb += (u_col * (cor * 0.85 + halo) + hot * prom * 1.1) * outside;
 
     // the breath: the whole star's light on smoothed hash noise (a sine would be a metronome)
@@ -114,6 +121,6 @@ void main()
     vec2 ip = floor(gl_FragCoord.xy) + vec2(fr * 13.0, fr * 7.0);
     float g = hash12(ip);
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
-    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
+    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither * (1.0 - smoothstep(0.62, 0.98, r));
     gl_FragColor = vec4(max(rgb, vec3(0.0)), 1.0) * v_vColour;
 }

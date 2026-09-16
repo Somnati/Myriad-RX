@@ -73,6 +73,16 @@ function region_info(_d, _rg) {
 	else if (_dl < .55)  { _hp = _rising ? ["morning", "mid-morning", "forenoon", "the working morning", "late morning", "a climbing sun"] : ["afternoon", "late day", "late afternoon", "the slow afternoon", "the sinking sun", "mid-afternoon"]; _ht = 0; }
 	else                 { _hp = ["midday", "noon", "high sun", "the middle of the day", "full sun", "the top of the day"]; _ht = 0; }
 	array_push(_out, { k : "time", v : _pick(_rg.seed, _slot + 7, _hp), t : _ht });
+	// THE ECLIPSE (2026-09-16): a moon's shadow over the region by day
+	if (_dl > 0) {
+		var _ec = planet_eclipse(_d);
+		if (is_struct(_ec)) {
+			var _epn = planet_get(_d.seed, exped_planet_hint(_d));
+			var _et = [dcos(_rg.spot.lat) * dcos(_rg.spot.lon), dsin(_rg.spot.lat), dcos(_rg.spot.lat) * dsin(_rg.spot.lon)];
+			var _ew = mat3_apply(mat3_mul(mat3_rot(0, 0, 1, _epn.tilt), mat3_rot(0, 1, 0, planet_spin_now(_epn))), _et[0], _et[1], _et[2]);
+			if (_ew[0] * _ec.dir[0] + _ew[1] * _ec.dir[1] + _ew[2] * _ec.dir[2] > cos(_ec.ang * 1.6)) array_push(_out, { k : "sky", v : "eclipse", t : 1, col : c_lavender });
+		}
+	}
 	// SEASON (2026-09-16): where the region stands, the world's lean toward its sun (region_season); a world with no tilt has none
 	if (_ss.on) array_push(_out, { k : "season", v : _pick(_rg.seed, 13 + _ss.idx, _sp[_ss.idx]), t : (_ss.idx == 3) ? 2 : ((_ss.idx == 2) ? 1 : 0) });
 	// THE EVENT (2026-09-16): what is on in the region now (region_event), and THE VILLAIN and where the thread stands

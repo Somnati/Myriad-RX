@@ -25,6 +25,23 @@ function exped_agent(_tr, _dt) {
 	if (_night != _was) array_push(_tr.log, "* " + (_night ? choose("night falls. the road goes on, darker", "dusk. the light goes and the noises start", "night. someone lights the lamp") : choose("dawn, grey then gold", "morning. everything is wet", "the sun is up. so is the crew, more or less")));   // ("* ": the sky's lines, dim in the diary - 2026-09-16)
 	if (_night != _was) exped_say(_tr, _night ? "night" : "dawn", undefined, .55);   // (the voice pass, 2026-09-15)
 	_tr.night = _night;
+	// THE ECLIPSE (his pick, 2026-09-16): a moon's shadow over the crew's region by day - once per pass (the moon and the hour key it)
+	if (!_night) {
+		var _ec = planet_eclipse(_tr.dest);
+		if (is_struct(_ec)) {
+			var _erg = exped_region(_tr), _epn = planet_get(_tr.dest.seed, exped_planet_hint(_tr.dest));
+			var _et = [dcos(_erg.spot.lat) * dcos(_erg.spot.lon), dsin(_erg.spot.lat), dcos(_erg.spot.lat) * dsin(_erg.spot.lon)];
+			var _ew = mat3_apply(mat3_mul(mat3_rot(0, 0, 1, _epn.tilt), mat3_rot(0, 1, 0, planet_spin_now(_epn))), _et[0], _et[1], _et[2]);
+			var _ecos = _ew[0] * _ec.dir[0] + _ew[1] * _ec.dir[1] + _ew[2] * _ec.dir[2];
+			var _ekey = string(_ec.moon) + ":" + string(floor(universal_now() / 7200));   // (one line a pass: a shadow crosses in well under two hours)
+			if (_ecos > cos(_ec.ang * 1.6) && (_tr[$ "ecl"] ?? "") != _ekey) {
+				_tr.ecl = _ekey;
+				var _emn = ["the first", "the second", "the third", "the fourth"][clamp(_ec.moon, 0, 3)];
+				array_push(_tr.log, "* " + choose("the day goes dim. " + _emn + " moon slides over the sun and the birds stop", "an eclipse - " + _emn + " moon takes the sun for a while. nobody says much", "the light turns strange: " + _emn + " moon crosses the sun. the crew stands and watches"));
+				exped_say(_tr, "night", undefined, .4);
+			}
+		}
+	}
 	// THE WEATHER (his ask): the sky over the region, its changes in the diary
 	var _wx = exped_weather(_tr);
 	var _wwas = _tr[$ "weather"] ?? _wx;

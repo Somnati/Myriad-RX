@@ -571,7 +571,7 @@ __draw_system = function() {
 		if (_it[1] < 0) {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
-			star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1);
+			star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
 		} else {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
 			var _pw = __sy_ppos(_p);
@@ -1786,7 +1786,11 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	ui_fade_set(1);
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
-	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, { x : _pcx, y : _pcy, r : _pr });   // (the sun fades behind the world - his report 2026-09-16)
+	// the sun's occluders: the world's disc, and the moons' (the moon maths of moon_draw - an eclipse from the camera's seat, 2026-09-16)
+	var _occs = [{ x : _pcx, y : _pcy, r : _pr }];
+	var _mns0 = planet_moons(_d.seed), _nmn0 = min(4, planet_props(_d).moons);
+	for (var _mi0 = 0; _mi0 < _nmn0; _mi0++) { var _mv0 = moon_view_pos(_pn, _mns0[_mi0], _cam); var _k0 = 6 / max(6 - _mv0[2], .5); array_push(_occs, { kind : "moon", x : _pcx + _mv0[0] * _pr * _k0, y : _pcy + _mv0[1] * _pr * _k0, r : max(1, _mv0[3] * _pr * 1.02 * _k0) }); }
+	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, _occs);   // (the sun fades behind the world - his report 2026-09-16)
 	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
 	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
 	sky_met_t += delta / 60;

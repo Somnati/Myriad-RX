@@ -622,6 +622,7 @@
     {"id":{"name":"planet_bake","path":"scripts/planet_bake/planet_bake.yy",},},
     {"id":{"name":"planet_config","path":"scripts/planet_config/planet_config.yy",},},
     {"id":{"name":"planet_draw","path":"scripts/planet_draw/planet_draw.yy",},},
+    {"id":{"name":"planet_eclipse","path":"scripts/planet_eclipse/planet_eclipse.yy",},},
     {"id":{"name":"planet_gen_begin","path":"scripts/planet_gen_begin/planet_gen_begin.yy",},},
     {"id":{"name":"planet_gen_step","path":"scripts/planet_gen_step/planet_gen_step.yy",},},
     {"id":{"name":"planet_get_lite","path":"scripts/planet_get_lite/planet_get_lite.yy",},},

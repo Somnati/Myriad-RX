@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"planet_eclipse",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"planet_eclipse",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
