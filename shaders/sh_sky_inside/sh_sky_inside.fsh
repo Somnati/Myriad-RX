@@ -123,7 +123,11 @@ void main()
     vec2 wxz = w.xz;
     float a = dot(wxz, wxz);
     float b = 2.0 * dot(sxz, wxz);
-    float c = dot(sxz, sxz) - 1.0;
+    // (the bounds a third wider than the body, and SOFT: from outside, a hard cylinder cut the sky along its silhouette -
+    // his screenshot at a cloud's edge, 2026-09-16 - so the reach is weighted by how near the ray comes to the heart)
+    const float RB = 1.35;
+    const float TB = 1.6;
+    float c = dot(sxz, sxz) - RB * RB;
     float t0 = -1.0e6;
     float t1 =  1.0e6;
     bool hit = true;
@@ -135,10 +139,10 @@ void main()
     float ty0 = -1.0e6;
     float ty1 =  1.0e6;
     if (abs(w.y) > 1.0e-4) {
-        float ta = (-u_t - u_s.y) / w.y;
-        float tb = ( u_t - u_s.y) / w.y;
+        float ta = (-u_t * TB - u_s.y) / w.y;
+        float tb = ( u_t * TB - u_s.y) / w.y;
         ty0 = min(ta, tb); ty1 = max(ta, tb);
-    } else if (abs(u_s.y) > u_t) hit = false;
+    } else if (abs(u_s.y) > u_t * TB) hit = false;
     float tin  = max(max(t0, ty0), 0.0);
     float tout = min(t1, ty1);
     if (!hit || tout <= tin) {
@@ -146,6 +150,13 @@ void main()
         return;
     }
     float reach = tout - tin;
+    // the ray's nearest approach to the axis within its reach, and its nearest to the plane: the soft edge
+    float tc = (a > 1.0e-5) ? clamp(-b / (2.0 * a), tin, tout) : tin;
+    float dmr = length(sxz + wxz * tc);
+    float ya = u_s.y + w.y * tin;
+    float yb = u_s.y + w.y * tout;
+    float dmy = (ya * yb <= 0.0) ? 0.0 : min(abs(ya), abs(yb));
+    float soft = (1.0 - smoothstep(0.72, RB, dmr)) * (1.0 - smoothstep(0.8, TB, dmy / max(u_t, 0.02)));
 
     // WHERE THE STAR SITS: the map body's density there (sh_nebula's function, the same seed), once
     vec2 uv0 = vec2(u_s.x, -u_s.z);
@@ -158,7 +169,7 @@ void main()
     // THE BODY ON THE SPHERE: mottle and filaments as 3d noise on the direction - patches, never columns
     float mot = fbm3(w * 2.8 + u_seed);
     float fil = 1.0 - abs(2.0 * fbm3(w * 5.5 + u_seed * 1.3 + vec3(2.0, 5.0, 1.0)) - 1.0);
-    float dens = here * reach * (0.35 + 1.0 * mot) * (0.6 + 0.6 * fil * fil);
+    float dens = here * reach * soft * (0.35 + 1.0 * mot) * (0.6 + 0.6 * fil * fil);
     float trans = exp(-dens * u_ext);
     // the sun's patch clears: it sits near us, the cloud lies beyond it, not in front
     float sunw = u_sunon * smoothstep(0.970, 0.9986, dot(w, u_sun));
