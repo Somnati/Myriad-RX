@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_station",
+  "name":"sh_station",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}

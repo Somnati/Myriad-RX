@@ -578,6 +578,15 @@ __draw_system = function() {
 			var _rad = max(1.5, _p.size * _k * 1.2);
 			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera)
 			planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
+			// ITS STATION (2026-09-16): a dotted orbit ring about the world and the station on it - the mark of a world that keeps one
+			var _stn = (galaxy_world_biome(_p) >= 0) ? station_get(_p.seed) : undefined;
+			if (is_struct(_stn)) {
+				var _sr = _p.size * _stn.dist * 1.4;
+				for (var _sd = 0; _sd < 24; _sd++) { var _sa = _sd * 15; var _spp = __sy_proj(_pw[0] + dcos(_sa) * _sr, 0, _pw[2] + dsin(_sa) * _sr); if (is_undefined(_spp)) continue; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_spp[0] - sy_wfx) * _s), floor(sy_wfy + (_spp[1] - sy_wfy) * _s), 1, 1, 0, c_steelblue, .4); }
+				var _sta = _stn.ang + _stn.spd * 60 * universal_now();
+				var _stp = __sy_proj(_pw[0] + dcos(_sta) * _sr, 0, _pw[2] + dsin(_sta) * _sr);
+				if (!is_undefined(_stp)) draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_stp[0] - sy_wfx) * _s) - 1, floor(sy_wfy + (_stp[1] - sy_wfy) * _s) - 1, 2, 2, 0, _stn.hull, .95);
+			}
 			// its moons at their true phases, as the demo drew them: pixel dots on the plane
 			var _mns = sy_moons[_i], _mn = min(4, _p[$ "moon_n"] ?? 0);
 			for (var _m = 0; _m < _mn; _m++) {
@@ -1810,6 +1819,9 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
 	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
+	// THE STATION and its orbit ring (2026-09-16): the far half with the far moons, the near half after the world
+	var _stn = station_get(_d.seed);
+	if (_built && is_struct(_stn)) station_draw(_pn, _stn, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// the moons' shadow casters, and the storm regions' spots (2026-09-16)
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
@@ -1817,6 +1829,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
+	if (_built && is_struct(_stn)) station_draw(_pn, _stn, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
 	if (_built) {
 		var _svr = mat3_apply(mat3_transpose(_cam), _sky.light_w[0], _sky.light_w[1], _sky.light_w[2]);

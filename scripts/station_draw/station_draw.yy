@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"station_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"station_draw",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
