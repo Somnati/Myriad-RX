@@ -354,6 +354,18 @@ for p, s in srcs.items():
 check("no scientific number literals (1e9 is a GML parse error)",
       not sci, "; ".join(sci[:3]))
 
+# --- 8a1. A STRUCT FIELD NAMED AFTER A GML CONSTANT. `{ pi : x }` and
+# `_q.pi = x` are GM1031 ("the name 'pi' is an asset or constant and
+# cannot be assigned to") - the dot and the literal key are parsed as the
+# constant. The string accessor `[$ "pi"]` is fine, which is how it hid
+# (2026-09-16: the quest's card place, three sites). infinity / NaN too.
+const_field = []
+for p, s in srcs.items():
+    for m in re.finditer(r"(?:\.|[{,]\s*)(pi|infinity|NaN)\s*[:=](?!=)", s):
+        const_field.append(f"{p}: {m.group(0).strip()}")
+check("no struct field named after a GML constant (pi / infinity / NaN)",
+      not const_field, "; ".join(const_field[:3]))
+
 # --- 8a2. AN ACCESSOR ON A PARENTHESISED EXPRESSION. GML will not parse
 # `(a ?? {})[$ "k"]` - an accessor hangs off a NAME or a CALL
 # (`exped_biomes()[i]` is fine and shipped), never off a bare

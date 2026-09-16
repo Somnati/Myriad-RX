@@ -429,8 +429,8 @@ function handle_save(){
 				for (var _k = 0; _k < _an; _k++) {
 					if (!g.autom.dial[_k].on) continue;
 					_old_on = true;
-					var _pk = (_k < array_length(_op2)) ? string_digits(_op2[_k]) : "";
-					if (_pk != "") _old_pct = max(_old_pct, real(_pk));
+					var _pk2 = (_k < array_length(_op2)) ? string_digits(_op2[_k]) : "";
+					if (_pk2 != "") _old_pct = max(_old_pct, real(_pk2));
 					var _tk = (_k < array_length(_ot2)) ? string_digits(_ot2[_k]) : "";
 					if (_tk != "") _old_t = min(_old_t, real(_ot2[_k]));
 				}

@@ -181,8 +181,8 @@ if (held) {
 		// feel the same at 144 as at 60
 		hvx += (_px - gx) * PUCK_HOLD_K * delta;
 		hvy += (_py - gy) * PUCK_HOLD_K * delta;
-		var _dk = power(PUCK_HOLD_DAMP, delta);
-		hvx *= _dk; hvy *= _dk;
+		var _dmp = power(PUCK_HOLD_DAMP, delta);
+		hvx *= _dmp; hvy *= _dmp;
 		gx += hvx * delta;
 		gy += hvy * delta;
 		// the tray's walls hold a swung puck the way they hold a thrown

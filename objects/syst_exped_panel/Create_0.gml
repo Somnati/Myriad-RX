@@ -526,7 +526,7 @@ __hand_open = function(_kind) {
 		var _sl = exped_region_quests(pl_dest, rg_sel);
 		for (var _i = 0; _i < array_length(_sl); _i++) {
 			var _q = _sl[_i].q;
-			var _nd = _rg.nodes[clamp(_q[$ "pi"] ?? _q.node, 0, array_length(_rg.nodes) - 1)];   // (the card's place: the first stop, 2026-09-15)
+			var _nd = _rg.nodes[clamp(_q[$ "p0"] ?? _q.node, 0, array_length(_rg.nodes) - 1)];   // (the card's place: the first stop, 2026-09-15)
 			var _kd = _kk[$ _nd.kind];
 			var _obj = exped_quest_obj(_q, _rg, false);
 			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : cbt_hazard_at(_nd.kind),

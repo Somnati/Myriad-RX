@@ -9,16 +9,16 @@ function exped_offer_deal(_of, _i, _easy = false) {
 	// VARIETY (his ask, 2026-09-15: "maybe not repeat the same locations"):
 	// a place another slot already sends you to is passed over, up to
 	// eight salts; the last try stands when the region is too small
-	var _try = 0;
+	var _try = 0, _dup = false;
 	do {
 		_sl.salt = _of.next; _of.next += 1;
 		_sl.q = is_struct(_of[$ "d"]) ? exped_quest_gen(_of.d, _sl.salt, _of.ri, _easy) : undefined;
 		_try += 1;
-		var _dup = false;
+		_dup = false;
 		if (is_struct(_sl.q)) for (var _j = 0; _j < array_length(_of.slots); _j++) {
 			if (_j == _i) continue;
 			var _o = _of.slots[_j];
-			if (is_struct(_o.q) && (_o.q[$ "pi"] ?? _o.q.node) == (_sl.q[$ "pi"] ?? _sl.q.node)) _dup = true;   // (the card's place - the first stop, 2026-09-15)
+			if (is_struct(_o.q) && (_o.q[$ "p0"] ?? _o.q.node) == (_sl.q[$ "p0"] ?? _sl.q.node)) _dup = true;   // (the card's place - the first stop, 2026-09-15)
 		}
 	} until (!_dup || _try >= 8);
 	if (!_easy && is_struct(_sl.q)) {

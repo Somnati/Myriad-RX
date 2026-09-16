@@ -1,4 +1,4 @@
-/// @description exped_quest_gen(dest, [salt], [ri], [easy]) -> a quest { kind, node, from, at, nodes, who, foe, n, done, txt, mult, reward, hours, diff, diff_txt, lv, place, pi }
+/// @description exped_quest_gen(dest, [salt], [ri], [easy]) -> a quest { kind, node, from, at, nodes, who, foe, n, done, txt, mult, reward, hours, diff, diff_txt, lv, place, p0 }
 /// THE QUEST (his pitch: "travel to the cave of ordeals and slay 10
 /// goblins"), rolled from the region and the board's deal. ELEVEN KINDS
 /// (the mission-type pass, 2026-09-15):
@@ -14,7 +14,7 @@
 ///   survey  chart n places, nearest first                               (mult 3)
 ///   gather  n sacks of ore from a mine                                  (mult 3)
 /// The two-stop kinds carry from -> node and `at` (the first stop done);
-/// exped_quest_target says where the crew heads now. pi = the card's
+/// exped_quest_target says where the crew heads now. p0 = the card's
 /// place (the first stop). who = the merchant / the cargo / the lost one
 /// / the boss / the ore. The deal weighs every kind the region can host
 /// and ONE roll picks (the same salt deals the same quest). mult is the
@@ -132,7 +132,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 	if (is_undefined(_q[$ "from"])) _q.from = -1;
 	_q.at = 0;
 	if (is_undefined(_q[$ "who"])) _q.who = "";
-	_q.pi = (_q.from >= 0) ? _q.from : (is_array(_q[$ "nodes"]) ? _q.nodes[0] : _q.node);
+	_q.p0 = (_q.from >= 0) ? _q.from : (is_array(_q[$ "nodes"]) ? _q.nodes[0] : _q.node);
 	// the length: hours by the roads from the landing zone nearest the first stop, through every stop
 	var _stops = exped_quest_places(_q);
 	var _home = region_nearest_landing(_rg, _stops[0]);
@@ -155,7 +155,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 	if (_h >= 6) _df += 1;
 	if (_easy) _df = 0;
 	_q.diff = _df;
-	_q.place = _rg.nodes[_q.pi].name;   // (the card colours it by the place's kind)
+	_q.place = _rg.nodes[_q.p0].name;   // (the card colours it by the place's kind)
 	_q.diff_txt = ["easy", "fair", "hard", "grim"][clamp(_df, 0, 3)];
 	_q.txt = exped_quest_txt(_q, _rg);
 	rng_release(_old);

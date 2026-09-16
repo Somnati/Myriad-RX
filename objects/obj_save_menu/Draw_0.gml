@@ -231,11 +231,11 @@ if (conf_a > .01) {
 	var _r = __conf_rect();
 	var _e = conf_a * conf_a * (3 - 2 * conf_a);
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .55 * _e);
-	var _pc = g.profile_color[sel_prof];
+	var _pc2 = g.profile_color[sel_prof];
 	var _ry0 = _r.y + (1 - _e) * 8;
 	draw_sprite_ext(spr_pixel_1x1, 0, _r.x + 2, _ry0 + 3, _r.w, _r.h, 0, c_black, .5 * _e);
 	draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _ry0, _r.w, _r.h, 0, c_hsv(169, 186, 9), _e);
-	draw_px_rect(_r.x, _ry0, _r.w, _r.h, _pc, .8 * _e);
+	draw_px_rect(_r.x, _ry0, _r.w, _r.h, _pc2, .8 * _e);
 	draw_set_font(fnt);
 	draw_set_halign(fa_center);
 	draw_set_valign(fa_top);

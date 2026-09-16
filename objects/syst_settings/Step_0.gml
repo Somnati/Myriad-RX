@@ -45,11 +45,11 @@ fav_t += ((fav_show ? 1 : 0) - fav_t) * min(1, .2 * delta);
 // ---- dropdown pick lands here (the syst_fidget pattern): route it
 // to the pill row that owns the open box's kind tag ----
 if (_pselid != -1 && pill_kind != "") {
-	var _pk = pill_kind;
+	var _pkn = pill_kind;
 	var _stay = false;
 	for (var _i = 0; _i < array_length(rows); _i++) {
 		var _pr = rows[_i];
-		if (_pr.kind == sett_kind_pill && _pr.data.kind == _pk) {
+		if (_pr.kind == sett_kind_pill && _pr.data.kind == _pkn) {
 			_pr.data.pick(_pselval);
 			_stay = _pr.data.stay;
 			break;
