@@ -22,7 +22,17 @@ if (view == "depart") {
 	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") pv_mode = "region"; }
 	else if (dp_dir >= 0 && dp_in >= .985) dp_in = 1;
 } else if (pg_dir == 0) dp_in = 0;
-if (view == "planet" && pv_mode == "region") { rg_in = move_to(rg_in, 1, 4); if (rg_in >= .985) rg_in = 1; } else rg_in = 0;
+if (view == "planet" && pv_mode == "region") {
+	// region mode swings in - and OUT the same way (rg_leave: the info box back to the left, the buttons back to their edges), then the planet
+	if (rg_leave) { rg_in = move_to(rg_in, 0, 4); if (rg_in <= .03) { rg_in = 0; rg_leave = false; pv_mode = "planet"; } }
+	else { rg_in = move_to(rg_in, 1, 4); if (rg_in >= .985) rg_in = 1; }
+} else { rg_in = 0; rg_leave = false; }
+// the sheet modal's fade (dp_sheet_a; the sprite it showed stays for the fade out), the map's legend, the haul's roster list
+if (dp_sheet >= 0) dp_sheet_v = dp_sheet;
+dp_sheet_a = move_to(dp_sheet_a, (view == "depart" && dp_sheet >= 0) ? 1 : 0, 6);
+if (abs(dp_sheet_a - ((view == "depart" && dp_sheet >= 0) ? 1 : 0)) < .01) dp_sheet_a = (view == "depart" && dp_sheet >= 0) ? 1 : 0;
+leg_a = move_to(leg_a, (view == "map" && map_legend) ? 1 : 0, 5);
+swap_a = move_to(swap_a, (view == "haul" && swap_pick) ? 1 : 0, 5);
 // the banners' places: each eases toward its seat or its row (the swing between them)
 if (view == "depart" && is_struct(pl_dest)) {
 	dp_off = clamp(dp_off, 0, __dp_off_max());
@@ -73,7 +83,7 @@ if (view == "trip") {
 } else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
 if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "hub"; if (view == "haul") { pg_a = 0; pg_dir = 1; } }   // (the haul fades in - his ask, 2026-09-15)
-if (view == "haul" && __haul_i() < 0) { view = "hub"; swap_pick = false; }
+if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "hub"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
 if (view == "sheet") view = "crew";
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
 if (view == "map" && !is_struct(map_dest)) view = "hub";
@@ -412,7 +422,7 @@ if (view != "hub") {
 	if (view != "crew" && array_length(g.sprites) > 0) {
 		var _cs = __crewstrip_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) {
-			crew_from = view; view = "crew"; crew_trip = -1; it_pop = undefined;
+			crew_from = view; __page_go("crew"); crew_trip = -1; it_pop = undefined;
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -448,10 +458,11 @@ if (view == "map") {
 // ======================= THE PLANET PAGE: its buttons, the drawer =======================
 // (the grab / drag / tap are above the press gate)
 if (view == "planet") {
+	if (rg_leave) exit;   // (region mode is swinging out: nothing to press until it has)
 	// [galaxy]: the star map
 	var _gl = __galaxy_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _gl.x, _gl.y, _gl.x + _gl.w, _gl.y + _gl.h)) {
-		gx_from = "planet"; view = "galaxy";
+		gx_from = "planet"; __page_go("galaxy");
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
@@ -468,7 +479,7 @@ if (view == "planet") {
 	if (pv_mode == "region") {
 		var _mr0 = __rgmap_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _mr0.x, _mr0.y, _mr0.x + _mr0.w, _mr0.y + _mr0.h)) {
-			map_dest = pl_dest; map_rgi = rg_sel; map_from = "planet"; view = "map";
+			map_dest = pl_dest; map_rgi = rg_sel; map_from = "planet"; __page_go("map");
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -580,7 +591,7 @@ if (view == "haul") {
 				var _sid = g.sprites[_k].id;
 				exped_collect(_hi, room_width * .5, room_height * .5, "swap:" + string(_sid));
 				swap_pick = false;
-				view = "hub";
+				__page_go("hub");
 				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 				exit;
 			}
@@ -596,7 +607,7 @@ if (view == "haul") {
 		if (point_in_rectangle(mouse_x, mouse_y, _sw.x, _sw.y, _sw.x + _sw.w, _sw.y + _sw.h)) { swap_pick = true; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
 		if (point_in_rectangle(mouse_x, mouse_y, _go.x, _go.y, _go.x + _go.w, _go.y + _go.h)) {
 			exped_collect(_hi, room_width * .5, room_height * .5, "letgo");
-			view = "hub";
+			__page_go("hub");
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			exit;
 		}
@@ -604,7 +615,7 @@ if (view == "haul") {
 		var _cb = __col_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _cb.x, _cb.y, _cb.x + _cb.w, _cb.y + _cb.h)) {
 			exped_collect(_hi, room_width * .5, room_height * .5);
-			view = "hub";
+			__page_go("hub");
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			exit;
 		}
@@ -622,7 +633,7 @@ if (view == "haul") {
 				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 			save_mark_dirty();
-			view = "hub";
+			__page_go("hub");
 			exit;
 		}
 	}
@@ -654,7 +665,7 @@ if (view == "trip") {
 	if (!is_undefined(_tr)) {
 		var _mr = __trip_map_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _mr.x, _mr.y, _mr.x + _mr.w, _mr.y + _mr.h)) {
-			map_dest = _tr.dest; map_rgi = _tr[$ "rgi"] ?? 0; map_from = "trip"; view = "map";
+			map_dest = _tr.dest; map_rgi = _tr[$ "rgi"] ?? 0; map_from = "trip"; __page_go("map");
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -663,7 +674,7 @@ if (view == "trip") {
 	if (!is_undefined(_tr)) {
 		var _tcr = __trip_crew_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _tcr.x, _tcr.y, _tcr.x + _tcr.w, _tcr.y + _tcr.h)) {
-			crew_trip = _tr.id; sheet_id = _tr.sids[0]; view = "crew"; it_pop = undefined;
+			crew_trip = _tr.id; sheet_id = _tr.sids[0]; __page_go("crew"); it_pop = undefined;
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
@@ -682,7 +693,7 @@ if (view == "trip") {
 		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 			var _cr = __crew_row_r(_k);
 			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
-				sheet_id = _tr.sids[_k]; view = "crew"; crew_trip = _tr.id; it_pop = undefined;
+				sheet_id = _tr.sids[_k]; __page_go("crew"); crew_trip = _tr.id; it_pop = undefined;
 				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 				exit;
 			}
@@ -704,8 +715,8 @@ var _rows = array_length(_e.hauls) + array_length(_e.trips);
 for (var _i = 0; _i < _rows; _i++) {
 	var _rr = __row_r(_i);
 	if (!point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) continue;
-	if (_i < array_length(_e.hauls)) { view = "haul"; view_id = _e.hauls[_i].id; pg_a = 0; pg_dir = 1; }
-	else { view = "trip"; view_id = _e.trips[_i - array_length(_e.hauls)].id; }
+	if (_i < array_length(_e.hauls)) { view_id = _e.hauls[_i].id; __page_go("haul"); }
+	else { view_id = _e.trips[_i - array_length(_e.hauls)].id; __page_go("trip"); }
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
 }
@@ -713,7 +724,7 @@ for (var _i = 0; _i < _rows; _i++) {
 if (array_length(g.sprites) > 0) {
 	var _shr = __crewbtn_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _shr.x, _shr.y, _shr.x + _shr.w, _shr.y + _shr.h)) {
-		view = "crew"; crew_trip = -1; it_pop = undefined; crew_from = "hub";
+		__page_go("crew"); crew_trip = -1; it_pop = undefined; crew_from = "hub";
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}
@@ -721,7 +732,7 @@ if (array_length(g.sprites) > 0) {
 // [galaxy]: the star map (his ask, 2026-09-15)
 var _hgl = __hub_gal_r();
 if (point_in_rectangle(mouse_x, mouse_y, _hgl.x, _hgl.y, _hgl.x + _hgl.w, _hgl.y + _hgl.h)) {
-	gx_from = "hub"; view = "galaxy";
+	gx_from = "hub"; __page_go("galaxy");
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
 }
@@ -729,7 +740,7 @@ if (point_in_rectangle(mouse_x, mouse_y, _hgl.x, _hgl.y, _hgl.x + _hgl.w, _hgl.y
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _c = __card_r(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, _c.x, _c.y, _c.x + _c.w, _c.y + _c.h)) {
-		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; view = "planet"; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
+		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; __page_go("planet"); pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}

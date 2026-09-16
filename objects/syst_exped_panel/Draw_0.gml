@@ -65,39 +65,14 @@ if (view != "hub") __draw_back();
 // ======================= THE HAUL =======================
 if (view == "haul") {
 	var _hi = __haul_i();
-	if (_hi < 0) { ui_fade_set(1); exit; }
-	var _h = _e.hauls[_hi];
+	// (the card stays through the page's fade-out after a collect - haul_last stands in; 2026-09-16)
+	var _h = (_hi >= 0) ? _e.hauls[_hi] : ((pg_dir < 0) ? haul_last : undefined);
+	if (is_undefined(_h)) { ui_fade_set(1); exit; }
+	haul_last = _h;
 	var _found = 0;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) if (_h.finds[_i].kind == "sprite") _found++;
 	var _recruit = (_found > 0 && array_length(g.sprites) + _found > SPRITE_CAP);
 
-	if (swap_pick) {
-		// THE ROSTER: who makes room
-		draw_set_halign(fa_center);
-		draw_set_color(c_white);
-		draw_set_alpha(.95);
-		draw_text(room_width * .5, list_y + 12, "the roster is full - who makes room for the new one?");
-		for (var _k = 0; _k < array_length(g.sprites); _k++) {
-			var _sp = g.sprites[_k];
-			var _pr = __pick_r(_k);
-			draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
-			draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _sp.col, .4);
-			__dot(_pr.x + 10, _pr.y + 8, 5, _sp.col, .95);
-			draw_set_halign(fa_left);
-			draw_set_color(c_white);
-			draw_set_alpha(.95);
-			draw_text(_pr.x + 20, _pr.y + 4, _sp.name);
-			var _ri = upgrade_rarity_info(_sp[$ "rar"] ?? 0);
-			draw_set_halign(fa_right);
-			draw_set_color(_ri.col);
-			draw_set_alpha(.8);
-			var _mm = is_struct(_sp[$ "mem"]) ? _sp.mem : undefined;
-			draw_text(_pr.x + _pr.w - 6, _pr.y + 4, _ri.name + ((_mm != undefined && _mm.trips > 0) ? ("  -  " + string(_mm.trips) + ((_mm.trips == 1) ? " trip" : " trips")) : ""));
-		}
-		draw_set_halign(fa_left);
-		ui_fade_set(1);
-		exit;
-	}
 
 	ui_fade_set(1); shader_reset();
 	// the card on the left, the trip's log on the right (his ask, 2026-09-15:
@@ -200,6 +175,34 @@ if (view == "haul") {
 		var _ah = string_height_ext(_at, 9, _cw - 32);
 		draw_set_color(_pl.ok ? _dim : c_hred); draw_set_alpha(.75);
 		draw_text_ext(_cx + 16, _cb.y - 3 - _ah, _at, 9, _cw - 32);
+	}
+	if (swap_pick || swap_a > .01) {
+		// THE ROSTER: who makes room - over the card, under a veil, fading (swap_a - 2026-09-16)
+		ui_fade_set(_ea * swap_a);
+		draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .88);
+		draw_set_halign(fa_center);
+		draw_set_color(c_white);
+		draw_set_alpha(.95);
+		draw_text(room_width * .5, list_y + 12, "the roster is full - who makes room for the new one?");
+		for (var _k = 0; _k < array_length(g.sprites); _k++) {
+			var _sp = g.sprites[_k];
+			var _pr = __pick_r(_k);
+			draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
+			draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _sp.col, .4);
+			__dot(_pr.x + 10, _pr.y + 8, 5, _sp.col, .95);
+			draw_set_halign(fa_left);
+			draw_set_color(c_white);
+			draw_set_alpha(.95);
+			draw_text(_pr.x + 20, _pr.y + 4, _sp.name);
+			var _ri = upgrade_rarity_info(_sp[$ "rar"] ?? 0);
+			draw_set_halign(fa_right);
+			draw_set_color(_ri.col);
+			draw_set_alpha(.8);
+			var _mm = is_struct(_sp[$ "mem"]) ? _sp.mem : undefined;
+			draw_text(_pr.x + _pr.w - 6, _pr.y + 4, _ri.name + ((_mm != undefined && _mm.trips > 0) ? ("  -  " + string(_mm.trips) + ((_mm.trips == 1) ? " trip" : " trips")) : ""));
+		}
+		draw_set_halign(fa_left);
+		ui_fade_set(1);
 	}
 	ui_fade_set(1);
 	exit;

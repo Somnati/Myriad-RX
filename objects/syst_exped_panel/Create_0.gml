@@ -67,6 +67,10 @@ dp_off   = 0;                               // the list's scroll (px)
 dp_ldrag = undefined;                       // { y0, off0, moved } while a finger drags the list
 dp_in    = 0; dp_dir = 0; dp_next = "";     // THE SWING: the page slides in (0 -> 1) and out (dp_dir -1, then dp_next)
 rg_in    = 0;                               // region mode's own swing (the info box from the left, the buttons from the right)
+rg_leave = false;                           // ...and swinging back out (the back button in region mode; the planet once it is out)
+dp_sheet_a = 0; dp_sheet_v = -1;            // the sheet modal's fade, and the sprite it showed (kept for the fade out)
+leg_a = 0; swap_a = 0;                      // the map's legend and the haul's roster list, fading
+haul_last = undefined;                      // the haul the page last drew (it stands in through the fade-out after a collect)
 view_last = "";                             // the view a frame ago: a change fades the new page in (the one veil, turn_px)
 __dp_bw  = function() { return land ? 120 : (room_width - 8 - 18); };   // a banner's width
 __dp_bh  = function() { return 28; };                                    // ...and its height (the name line, the hp row, the mp row - 2026-09-15: room for four digits)
@@ -349,12 +353,12 @@ __cam_at = function(_pn, _spin, _rg) {
 __back = function() {
 	swap_pick = false;
 	switch (view) {
-		case "map":    view = map_from; break;
-		case "galaxy": view = gx_from; break;
+		case "map":    __page_go(map_from); break;
+		case "galaxy": __page_go(gx_from); break;
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
-		case "planet": if (pv_mode == "region") { pv_mode = "planet"; rg_in = 0; } else view = "hub"; break;   // region mode -> the planet, the planet -> the hub
-		case "crew":   view = (crew_trip >= 0) ? "trip" : crew_from; crew_trip = -1; it_pop = undefined; break;
-		default:       view = "hub"; break;
+		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else __page_go("hub"); break;   // region mode swings out -> the planet; the planet turns -> the hub
+		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
+		default:       __page_go("hub"); break;
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 };
