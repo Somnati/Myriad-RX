@@ -22,11 +22,12 @@ uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
-// THE NEBULA SHEET (galaxy_neb_sheet: the map's density, rgb its colour) is gm_BaseTexture - the quad IS the sheet,
+// THE NEBULA SHEET (galaxy_neb_sheet: the map's density as gray, red = density) is gm_BaseTexture - the quad IS the sheet,
 // stretched over the page (2026-09-16: a second sampler took stage 0 on the hlsl side, nothing else being sampled -
 // the canvas then hid the sheet and the stage's filter flag went global)
 uniform vec2  u_npos;    // this star on the sheet, uv
 uniform vec4  u_nprm;    // the march: range (uv), the slab's half-thickness (uv), brightness, the density floor
+uniform vec3  u_gal;     // the galaxy's centre (uv) and disc radius (uv): the clouds' colour law (the map's)
 
 // hash -> 3d value noise -> fbm. sampled on world DIRECTIONS, so the
 // fog is seamless over the whole sphere: no 2d wrap, no poles
@@ -122,9 +123,11 @@ void main()
         vec2 sp = u_npos + vec2(w.x, -w.z) * t;   // (the map's y runs down: a bearing's sine climbs the map)
         float hgt = w.y * t / u_nprm.y;
         float wt = exp(-hgt * hgt) * (1.0 - t / u_nprm.x);
-        vec4 s = texture2D(gm_BaseTexture, sp);
-        float sd = max(0.0, (s.a - u_nprm.w) / (1.0 - u_nprm.w));   // (under the floor is the map's haze, not a cloud)
-        nrgb += s.rgb * (sd * sd) * wt;
+        float sdn = texture2D(gm_BaseTexture, sp).r;
+        float sd = max(0.0, (sdn - u_nprm.w) / (1.0 - u_nprm.w));   // (under the floor is the map's haze, not a cloud)
+        float srd = clamp(distance(sp, u_gal.xy) / u_gal.z, 0.0, 1.0);
+        vec3 scol = mix(vec3(1.0, 0.725, 0.490), vec3(0.510, 0.608, 1.0), srd);
+        nrgb += scol * (sd * sd) * wt;
     }
     // the wisps: the finer fbm on the view direction frays the clouds as the map's shader frays the sheet
     float nwisp = 0.45 + 0.9 * smoothstep(0.28, 0.72, fbm(w * 11.0 + u_seed * 2.1 + vec3(3.7, 8.1, 1.9)));

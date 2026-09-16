@@ -22,6 +22,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		dith : shader_get_uniform(sh_sky_fog, "u_dither"),
 		npos : shader_get_uniform(sh_sky_fog, "u_npos"),
 		nprm : shader_get_uniform(sh_sky_fog, "u_nprm"),
+		gal  : shader_get_uniform(sh_sky_fog, "u_gal"),
 	};
 	var _cfg = starmap_config();
 	// THE NEBULAE (2026-09-16): the map's sheet and this star's place on it - the shader marches the plane from there.
@@ -37,7 +38,8 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	gpu_set_blendmode(bm_add);
 	shader_set(sh_sky_fog);
 	shader_set_uniform_f(_u.npos, _me.x / _sm.width, _me.y / _sm.width);
-	shader_set_uniform_f(_u.nprm, (_cfg[$ "sky_neb_range"] ?? 1400) / _sm.width, (_cfg[$ "sky_neb_thick"] ?? 90) / _sm.width, _cfg[$ "sky_neb_amp"] ?? .6, _cfg[$ "sky_neb_floor"] ?? .42);
+	shader_set_uniform_f(_u.gal, _sm.cx / _sm.width, _sm.cy / _sm.width, _sm.gal_r / _sm.width);
+	shader_set_uniform_f(_u.nprm, (_cfg[$ "sky_neb_range"] ?? 1400) / _sm.width, (_cfg[$ "sky_neb_thick"] ?? 90) / _sm.width, _cfg[$ "sky_neb_amp"] ?? 1.2, _cfg[$ "sky_neb_floor"] ?? .4);
 	shader_set_uniform_f_array(_u.cam, _cam);
 	shader_set_uniform_f(_u.core, _sky.core_dir[0], _sky.core_dir[1], _sky.core_dir[2]);
 	shader_set_uniform_f(_u.geom, _w, _h);

@@ -2,8 +2,8 @@
 // the galaxy map's nebula fog, PROCEDURAL (his report, 2026-09-16: the
 // nebulae came out circular - the density sheet is 64 cells of blurred
 // star counts drawn bilinear, so every cloud was a round blob). the sheet
-// (galaxy_neb_sheet) stays the WHERE: its alpha the density, its rgb the
-// warm-core / cool-rim colour. this carves the HOW: the sheet is sampled
+// (galaxy_neb_sheet, gray: red = density) stays the WHERE; the colour
+// (warm core / cool rim) is the law below. this carves the HOW: the sheet is sampled
 // through a warped domain (fbm bending fbm, iq's recipe) so the outlines
 // wander off round, then value noise frays the body into wisps - dense
 // cores keep more of themselves, thin edges tear first - and brightens
@@ -19,6 +19,7 @@ uniform float u_dither;   // 1 = dither here (an 8-bit page); 0 = the page is fl
 uniform vec2  u_seed;     // the galaxy's noise domain offset
 uniform float u_freq;     // noise cells across the sheet
 uniform float u_warp;     // the outlines' wander, in sheet uv
+uniform vec3  u_gal;      // the galaxy's centre (uv) and disc radius (uv): the colour law's frame
 
 float hash12(vec2 p)
 {
@@ -60,8 +61,12 @@ void main()
     float n = fbm(p + 3.0 * r);
     // the sheet through the wandering domain: the outlines stop being circles
     vec2 suv = clamp(v_vTexcoord + (r - 0.5) * u_warp, 0.0, 1.0);
-    vec4 t = texture2D(gm_BaseTexture, suv);
-    float dens = t.a;
+    // the sheet is gray: its red is the density (alpha 1 - the bake owes nothing to a blend mode)
+    float dens = texture2D(gm_BaseTexture, suv).r;
+    // the colour law (the old bake's): warm toward the core, cool at the rim, darker where thin
+    float rd = clamp(distance(suv, u_gal.xy) / u_gal.z, 0.0, 1.0);
+    vec3 tcol = mix(vec3(1.0, 0.725, 0.490), vec3(0.510, 0.608, 1.0), rd);
+    tcol = mix(vec3(0.094, 0.086, 0.118), tcol, 0.55 + 0.45 * dens);
     // the fray: the body of a cloud is never touched (a nebula stays a nebula - chopped fine, they all read as
     // smoke; his report), its skirts tear to wisps on a threshold the density lowers; the body's knots brighten a little
     float core = smoothstep(0.55, 0.95, dens);
@@ -70,7 +75,7 @@ void main()
     float k = mix(fray, 1.0, core);
     float bright = 1.0 + 0.5 * (n - 0.5) * (0.3 + 0.7 * core);
     // (density cubed: the weight the old premultiplied bake came to at its blit - the fog keeps its depth)
-    vec4 c = vec4(t.rgb * bright, dens * dens * dens * k) * v_vColour;
+    vec4 c = vec4(tcol * bright, dens * dens * dens * k) * v_vColour;
 
     // temporal dither on an 8-bit page (sh_fog_dither's law: white grain re-seeded at 30hz,
     // luminance-gated amplitude, alpha-compensated so it survives the sheet's low draw alpha)

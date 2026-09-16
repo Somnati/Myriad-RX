@@ -61,7 +61,7 @@ function starmap_config() {
 		fog_alpha : .39,
 		fog_depth : .82,
 		fog_freq  : 9,    // sh_galaxy_fog (2026-09-16): noise cells across the map - the clouds' own scale (finer chopped them to smoke)
-		fog_warp  : .035, // ...how far the clouds' outlines wander, in map fraction (the circles' cure)
+		fog_warp  : .02,  // ...how far the clouds' outlines wander, in map fraction (the circles' cure)
 		// ---- the map's stars (the demo's per-star bloom: spr_star_glow's stepped frames, 2026-09-16) ----
 		star_glow_size  : 6,   // wanted glow size as a multiple of star size
 		star_glow_alpha : .3,  // the frame's strength (the page's bloom does the rest)
@@ -86,8 +86,8 @@ function starmap_config() {
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
 		sky_neb_range : 1400, // THE NEBULAE in the sky (2026-09-16): plane px the view ray marches through the map's sheet
 		sky_neb_thick : 70,   // ...the cloud slab's half-thickness, plane px (a near cloud stands taller in the sky)
-		sky_neb_amp   : .6,   // ...their brightness
-		sky_neb_floor : .42,  // ...the sheet density under which nothing shows: the map's haze stays on the map, the clouds come to the sky
+		sky_neb_amp   : 1.2,  // ...their brightness
+		sky_neb_floor : .4,   // ...the sheet density under which nothing shows: the map's haze stays on the map, the clouds come to the sky
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px

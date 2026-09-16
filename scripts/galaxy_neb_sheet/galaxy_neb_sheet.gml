@@ -1,13 +1,16 @@
-/// @description galaxy_neb_sheet() -> the galaxy's nebula sheet: a surface ngw x ngw, rgb the colour, alpha the density
+/// @description galaxy_neb_sheet() -> the galaxy's nebula sheet: a surface ngw x ngw, the DENSITY as gray (r = g = b), alpha 1
 /// The map's density grid (starmap_generate: blurred star counts per
 /// cell) baked once a galaxy, warm toward the core and cool at the rim -
 /// the map's fog (sh_galaxy_fog) and every sky's nebulae (sh_sky_fog's
 /// march along the galactic plane) read this one sheet, so a cloud on the
 /// map is the cloud in the sky (his ask, 2026-09-16).
-/// Baked OVERWRITING (bm_one / bm_zero): a texel IS (colour, density). A
-/// normal-blend bake over a cleared surface squares the alpha and
-/// premultiplies the colour - the old map fog came to density cubed at
-/// its blit without anyone meaning it to; the shaders now say the curve.
+/// GRAY, ALPHA ONE (2026-09-16, after a night of nothing showing): a bake
+/// that carries the density in the alpha channel is at the mercy of the
+/// blend mode's alpha factors (a normal bake over a cleared surface squares
+/// it, an "overwrite" may or may not reach the alpha); a gray texel under
+/// alpha 1 writes the same under every mode. The colour law (warm toward
+/// the core, cool at the rim, darker where thin) lives in the shaders,
+/// which know the galaxy's centre and radius (u_gal).
 function galaxy_neb_sheet() {
 	static _surf = -1;
 	static _seed = -1;
@@ -19,8 +22,7 @@ function galaxy_neb_sheet() {
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);   // (a sheet baked under a fade shader keeps that alpha for good)
 	surface_set_target(_surf);
-	draw_clear_alpha(c_black, 0);
-	gpu_set_blendmode_ext(bm_one, bm_zero);
+	draw_clear_alpha(c_black, 1);
 	for (var _cy = 0; _cy < _ngw; _cy++)
 	for (var _cx = 0; _cx < _ngw; _cx++) {
 		var _acc = 0, _wsm = 0;
@@ -35,13 +37,9 @@ function galaxy_neb_sheet() {
 		var _dn = (_acc / _wsm) / _sm.nmax;
 		if (_dn <= .01) continue;
 		_dn = power(_dn, .40);
-		var _wx = (_cx + .5) * _sm.ncell, _wy = (_cy + .5) * _sm.ncell;
-		var _rd = clamp(point_distance(_wx, _wy, _sm.cx, _sm.cy) / _sm.gal_r, 0, 1);
-		var _col = merge_colour(rgb(255, 185, 125), rgb(130, 155, 255), _rd);
-		_col = merge_colour(rgb(24, 22, 30), _col, .55 + .45 * _dn);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, 1, 1, 0, _col, _dn);
+		var _v = clamp(round(_dn * 255), 0, 255);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, 1, 1, 0, make_colour_rgb(_v, _v, _v), 1);
 	}
-	gpu_set_blendmode(bm_normal);
 	surface_reset_target();
 	ui_fade_set(_fa);
 	_seed = _sm.seed;

@@ -1059,6 +1059,7 @@ if (view == "galaxy") {
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_seed"), (_sm.seed mod 97) * .37, (_sm.seed mod 89) * .53);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_freq"), _gcf[$ "fog_freq"] ?? 34);
 	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_warp"), _gcf[$ "fog_warp"] ?? .03);
+	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_gal"), _sm.cx / _sm.width, _sm.cy / _sm.width, _sm.gal_r / _sm.width);
 	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, c_white, _gcf.fog_alpha);
 	shader_reset();
 	gpu_set_blendmode(bm_normal);
