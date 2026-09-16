@@ -75,6 +75,9 @@ function starmap_config() {
 		sky_el_far  : 14,  // elevation scatter, far stars: hug the band
 		sky_el_near : 80,  // ...near stars: roam
 		dust_count  : 240, // full-sphere faint fill
+		sky_cloud   : 520, // THE STAR CLOUDS (2026-09-16): faint points packed along the band - the milky way's grain (galaxy_sky_build)
+		sky_glare   : 70,  // px about the sun inside which the stars dim (x the sun's size)
+		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px

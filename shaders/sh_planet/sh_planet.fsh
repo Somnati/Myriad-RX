@@ -327,7 +327,8 @@ void main()
             float alat = abs(t.y);
             float band = smoothstep(0.78, 0.88, alat) * (1.0 - smoothstep(0.965, 1.0, alat));
             float lon = atan(t.z, t.x);
-            float wave = 0.5 + 0.5 * sin(lon * 5.0 + u_time * 0.6) * sin(lon * 11.0 - u_time * 0.35 + alat * 20.0);
+            // (phase-modulated by two slow sines at irrational ratios: the curtain never repeats a beat - "too rhythmic", his report 2026-09-16)
+            float wave = 0.5 + 0.5 * sin(lon * 5.0 + u_time * 0.6 + 2.0 * sin(u_time * 0.173 + lon * 2.3)) * sin(lon * 11.0 - u_time * 0.35 + alat * 20.0 + 3.0 * sin(u_time * 0.091 + lon * 0.7));
             float curtain = smoothstep(0.30, 0.85, wave);
             float night = 1.0 - smoothstep(-0.05, 0.22, dot(n, u_light));
             col += mix(vec3(0.15, 0.95, 0.55), vec3(0.55, 0.30, 0.90), smoothstep(0.86, 0.95, alat)) * band * curtain * night * 0.6;
@@ -340,7 +341,12 @@ void main()
         float fl = 0.0;
         if (cat > 0.5 && li < 0.6) {
             vec3 cell = floor(t * 40.0);
-            float slot = floor(u_time * 3.0);
+            // each cell keeps its own clock - a slot 0.18..0.68 s long at its own phase - so the flashes never fall on one grid
+            // (three a second on the beat read as a metronome - his report 2026-09-16); a flash peaks at its own height and decays sharply
+            float per = 0.18 + 0.5 * cw_h(cell * 0.37 + 4.1);
+            float tph = per * cw_h(cell * 0.53 + 8.7);
+            float slot = floor((u_time + tph) / per);
+            float sfrac = fract((u_time + tph) / per);
             float storm = 0.0;
             for (int si = 0; si < 3; si++) {
                 if (float(si) >= u_stormn) break;
@@ -348,8 +354,12 @@ void main()
             }
             float prone = max(step(0.90, cw_h(cell * 1.7 + 0.31)), storm);
             float roll = cw_h(cell + vec3(slot * 0.173, slot * 0.071, 0.0));
-            float thr = 1.0 - 0.04 * (1.0 + 4.0 * storm);
-            if (prone > 0.5 && roll > thr) fl = 1.0 - fract(u_time * 3.0);
+            float thr = 1.0 - 0.04 * (per / 0.33) * (1.0 + 4.0 * storm);   // (the odds scale with the slot so the rate holds)
+            if (prone > 0.5 && roll > thr) {
+                float peak = 0.5 + 0.5 * cw_h(cell + vec3(slot * 0.091, 0.0, slot * 0.037));
+                fl = peak * pow(1.0 - sfrac, 2.2);
+                if (cw_h(cell * 2.1 + vec3(slot * 0.05)) > 0.6) fl += peak * 0.6 * smoothstep(0.42, 0.46, sfrac) * pow(max(0.0, 1.0 - (sfrac - 0.46) * 4.0), 2.0);   // (a second stroke, some of them)
+            }
             fl *= (1.0 - li) * cat;
         }
         col += vec3(0.80, 0.86, 1.0) * fl * 0.7;   // the ground under the cloud, lit from above

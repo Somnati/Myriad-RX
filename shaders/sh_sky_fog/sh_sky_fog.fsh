@@ -95,6 +95,31 @@ void main()
     dens -= band * 0.50 * smoothstep(0.54, 0.76, lane); // dark dust lane
     dens = max(dens, 0.0);
 
+    // THE CORE BULGE (2026-09-16): where the band meets the core's bearing it swells - taller
+    // and brighter, the centre of the galaxy on the sky; stronger the further out this star sits
+    vec2 wf0 = normalize(w.xz);
+    vec2 cf0 = normalize(u_core.xz);
+    float toward = max(dot(wf0, cf0), 0.0);
+    float bulge = pow(toward, 9.0) * exp(-w.y * w.y * 14.0);
+    dens += bulge * (0.35 + 0.65 * smoothstep(0.25, 0.7, n)) * (0.5 + 0.8 * u_edge);
+
+    // THE NEBULAE (2026-09-16): three patches a system, hashed bearings near the plane, each its own hue,
+    // a knot of the finer fbm - faint, so they read as colour in the band rather than blobs
+    float neb = 0.0;
+    vec3 ncol = vec3(0.0);
+    for (int ni = 0; ni < 3; ni++) {
+        float fi = float(ni);
+        float na = fract(sin(u_seed * 12.9898 + fi * 78.233) * 43758.5453) * 6.2831853;
+        float ne = (fract(sin(u_seed * 39.3468 + fi * 11.135) * 24634.6345) - 0.5) * 0.34;
+        vec3 nd = normalize(vec3(cos(na) * cos(ne), sin(ne), sin(na) * cos(ne)));
+        float nnear = smoothstep(0.955, 0.995, dot(w, nd));
+        float knot = smoothstep(0.35, 0.75, fbm(w * 9.0 + u_seed * 3.3 + fi * 5.1));
+        vec3 hue = (ni == 0) ? vec3(1.0, 0.45, 0.60) : ((ni == 1) ? vec3(0.35, 0.95, 0.85) : vec3(0.65, 0.45, 1.0));
+        float pn = nnear * (0.3 + 0.7 * knot);
+        neb += pn;
+        ncol += hue * pn;
+    }
+
     // warm at the core bearing, cool away - agrees with the star map
     vec2 wf = w.xz;
     vec2 cf = u_core.xz;
@@ -107,6 +132,7 @@ void main()
     float bias = mix(1.0, 0.15 + 1.7 * pow(1.0 - dc, 1.8), u_edge);
 
     vec3 rgb = col * dens * u_amp * (0.55 + 0.75 * (1.0 - dc)) * bias;
+    rgb += ncol * u_amp * 1.4;   // (the nebulae over the band)
 
     // REMASTERED temporal dither, grain as chunky as the cells:
     // 30hz re-seed (half the shimmer) + LUMINANCE-GATED amplitude -

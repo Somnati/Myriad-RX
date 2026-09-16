@@ -41,7 +41,7 @@ function galaxy_sky_build(_dw = undefined) {
 		var _el = ((_hh mod 997) / 997 - .5) * lerp(_cfg.sky_el_far, _cfg.sky_el_near, _sc);
 		var _ap = _st.props.size * (90 / max(_d, 55));
 		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : dcos(_el) * dsin(_az),
-		                         col : _st.props.color, b : .4 + .6 * clamp(_ap * .8, 0, 1), s : clamp(1 + _ap * 2, 1, 9) });
+		                         col : _st.props.color, b : .4 + .6 * clamp(_ap * .8, 0, 1), s : clamp(1 + _ap * 2, 1, 9), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
 	}
 	// the system: where everything is NOW (the universal clock), the
 	// siblings as dots along the ecliptic, the sun at the star's bearing
@@ -57,7 +57,10 @@ function galaxy_sky_build(_dw = undefined) {
 		var _p2x = dcos(_ang2) * _sp.orbit, _p2z = dsin(_ang2) * _sp.orbit;
 		var _dd  = point_distance(_p1x, _p1z, _p2x, _p2z);
 		var _b   = darctan2(_p2z - _p1z, _p2x - _p1x);
-		array_push(_out.sibs, { x : dcos(_b), y : 0, z : dsin(_b), col : _sp.col, s : clamp(_sp.size * 22 / max(_dd, 12), 1.5, 6) });
+		// THE PHASE (2026-09-16): how much of the sibling's lit half faces us - the sun from it against us from it (the system's own geometry)
+		var _sl = max(.001, point_distance(0, 0, _p2x, _p2z)), _sdx = -_p2x / _sl, _sdz = -_p2z / _sl;
+		var _ul = max(.001, _dd), _udx = (_p1x - _p2x) / _ul, _udz = (_p1z - _p2z) / _ul;
+		array_push(_out.sibs, { x : dcos(_b), y : 0, z : dsin(_b), col : _sp.col, s : clamp(_sp.size * 22 / max(_dd, 12), 1.5, 6), lit : clamp((1 + (_sdx * _udx + _sdz * _udz)) * .5, 0, 1), gas : (_sp.kind == "gas") });
 	}
 	_out.light_w = galaxy_sun_dir(0, _dw);   // (the one bearing the agent's daylight reads too)
 	_out.sun_col  = _sys.star.col;
@@ -70,7 +73,25 @@ function galaxy_sky_build(_dw = undefined) {
 		var _el2 = radtodeg(arcsin(random_range(-1, 1)));
 		array_push(_out.stars, { x : dcos(_el2) * dcos(_az2), y : -dsin(_el2), z : dcos(_el2) * dsin(_az2),
 		                         col : choose(rgb(150, 160, 190), rgb(150, 160, 190), rgb(190, 170, 150)),
-		                         b : random_range(.12, .4), s : (random(1) < .15 ? 2 : 1) });
+		                         b : random_range(.12, .4), s : (random(1) < .15 ? 2 : 1), ph : irandom(359), near : false });
+	}
+	// THE STAR CLOUDS (his pick, 2026-09-16): the milky way's grain - faint points packed along the band (a
+	// triangular scatter about the galactic plane, twelve degrees wide), warm toward the core's bearing and
+	// cool away like the fog, and on a rim world piled toward the core as the fog is (the same bias law)
+	var _core_az0 = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
+	var _edge0 = clamp(point_distance(_me.x, _me.y, _sm.cx, _sm.cy) / _cfg.gal_r, 0, 1);
+	var _ncl = _cfg[$ "sky_cloud"] ?? 520, _tries = 0;
+	while (_ncl > 0 && _tries < 6000) {
+		_tries += 1;
+		var _az3 = random(360);
+		var _dc = abs(angle_difference(_az3, _core_az0)) / 180;
+		var _bias = lerp(1, .15 + 1.7 * power(1 - _dc, 1.8), _edge0);
+		if (random(1) > clamp(_bias, 0, 1)) continue;
+		_ncl -= 1;
+		var _el3 = (random(1) - .5 + random(1) - .5) * 12;   // (triangular: most within a few degrees of the plane)
+		var _cc = merge_colour(rgb(255, 205, 165), rgb(150, 170, 235), _dc);
+		array_push(_out.stars, { x : dcos(_el3) * dcos(_az3), y : -dsin(_el3), z : dcos(_el3) * dsin(_az3),
+		                         col : merge_colour(_cc, c_white, .35), b : random_range(.08, .32) * (1 - .5 * abs(_el3) / 12), s : 1, ph : irandom(359), near : false });
 	}
 	rng_release(_oldsd);
 	// the fog's bearings

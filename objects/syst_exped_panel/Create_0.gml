@@ -454,6 +454,8 @@ pv_face  = -1;                       // the region the camera is turning to face
 pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
 pv_sky   = undefined;                // galaxy_sky_build() (the page's world's - __sky_for)
 sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
+sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy, t, life } in the orbit view's page space, one every sky_meteor seconds or so
+sky_met_t = 0;                       // ...seconds since the last
 __sky_for = function(_d) { var _k = string(_d.seed); if (!is_struct(sky_c[$ _k])) sky_c[$ _k] = galaxy_sky_build(_d); var _s = sky_c[$ _k]; _s.light_w = galaxy_sun_dir(0, _d); return _s; };
 gx_strip = [];                       // THE SYSTEM STRIP's world rects (the galaxy page: tap a world to open it)
 __gx_strip_r = function() { var _g = __gx_r(); var _w = min(_g.w - 8, 16 + 60 * 8); return { x : floor(_g.x + _g.w * .5 - _w * .5), y : room_height - 8 - 44, w : _w, h : 40 }; };
@@ -1632,6 +1634,20 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true);
 	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
+	sky_met_t += delta / 60;
+	if (is_undefined(sky_met) && sky_met_t > (starmap_config()[$ "sky_meteor"] ?? 28) * random_range(.6, 1.5)) {
+		var _ma = random(360), _ml = random_range(40, 90);
+		sky_met = { x : random_range(_w * .1, _w * .9), y : random_range(_h * .1, _h * .6), dx : dcos(_ma) * _ml, dy : -dsin(_ma) * _ml, t : 0, life : random_range(.28, .45) };
+		sky_met_t = 0;
+	}
+	if (is_struct(sky_met)) {
+		var _mt = sky_met.t / sky_met.life;
+		var _hx = sky_met.x + sky_met.dx * _mt, _hy = sky_met.y + sky_met.dy * _mt;
+		for (var _mi2 = 0; _mi2 < 7; _mi2++) { var _mf = _mi2 / 7; draw_sprite_ext(spr_pixel_1x1, 0, floor(_hx - sky_met.dx * .22 * _mf), floor(_hy - sky_met.dy * .22 * _mf), 1, 1, 0, merge_colour(c_white, rgb(200, 220, 255), _mf), (1 - _mf) * (1 - _mt * _mt) * .9); }
+		sky_met.t += delta / 60;
+		if (sky_met.t >= sky_met.life) sky_met = undefined;
+	}
 	g.dither_off = page_float();   // (the world into a float page: no dither of its own - the blit's grain is the one)
 	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
 	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
@@ -1643,6 +1659,23 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
+	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
+	if (_built) {
+		var _svr = mat3_apply(mat3_transpose(_cam), _sky.light_w[0], _sky.light_w[1], _sky.light_w[2]);
+		if (_svr[2] < -.1) {
+			var _sfr = 230 / -_svr[2], _rsx = _pcx + _svr[0] * _sfr, _rsy = _pcy + _svr[1] * _sfr;
+			var _rdd = point_distance(_rsx, _rsy, _pcx, _pcy);
+			if (_rdd < _pr * 1.25 && _rdd > .5) {
+				var _hid = clamp(1 - (_rdd - _pr * .55) / (_pr * .7), 0, 1);   // (deepest when dead behind, gone past the limb)
+				var _lx = _pcx + (_rsx - _pcx) / _rdd * _pr, _ly = _pcy + (_rsy - _pcy) / _rdd * _pr;
+				var _gsz = (_pr * 1.1) / max(1, sprite_get_width(spr_vis_glow_soft));
+				gpu_set_blendmode(bm_add);
+				draw_sprite_ext(spr_vis_glow_soft, 0, _lx, _ly, _gsz, _gsz, 0, _sky.sun_col, .28 * _hid);
+				draw_sprite_ext(spr_vis_glow_soft, 0, _lx, _ly, _gsz * .45, _gsz * .45, 0, merge_colour(_sky.sun_col, c_white, .5), .35 * _hid);
+				gpu_set_blendmode(bm_normal);
+			}
+		}
+	}
 	g.dither_off = false;
 	// (not built yet: the sky alone - the lite portrait that stood in "looked really bad", his report 2026-09-15; the boot builds the board's worlds)
 	if (_built && _spots != -1) {
