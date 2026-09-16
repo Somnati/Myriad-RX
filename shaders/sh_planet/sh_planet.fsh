@@ -31,6 +31,11 @@ uniform vec3  u_raxis;
 uniform vec3  u_ringcol;
 uniform vec4  u_city[6];
 uniform float u_cityn;
+uniform vec4  u_moonsh[4];   // MOON SHADOWS (2026-09-16): each moon's view-space position (planet radii) and its radius
+uniform float u_moonn;
+uniform vec4  u_storm[3];    // LIGHTNING: the spots (texture space) of the regions whose weather is a storm, w = on
+uniform float u_stormn;
+uniform float u_aurora;      // AURORA: 1 on the worlds that have one
 uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
@@ -120,10 +125,12 @@ void main()
     }
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
+    float duskb = smoothstep(0.25, 0.55, clib) * (1.0 - smoothstep(0.55, 0.95, clib));   // the undersides catch the sunset too (2026-09-16)
+    cbcol += mix(vec3(0.85, 0.35, 0.45), u_atmo, 0.30) * (duskb * 0.30);
     vec3 ctcol = vec3(0.97, 0.98, 1.0) * clit * emb;
     if (clit < 0.9) ctcol = mix(ctcol, vec3(0.05, 0.06, 0.13), 0.55 * (1.0 - clit));
     float duskc = smoothstep(0.25, 0.55, clit) * (1.0 - smoothstep(0.55, 0.95, clit));
-    ctcol += mix(vec3(0.80, 0.30, 0.55), u_atmo, 0.22) * (duskc * 0.24);
+    ctcol += mix(vec3(0.80, 0.30, 0.55), u_atmo, 0.22) * (duskc * 0.30);
 
     // ---- ring ----
     float ringA = 0.0;
@@ -272,17 +279,53 @@ void main()
         float em = 1.0 - tex.a;
         if (em > 0.001) col = mix(col, tex.rgb * (1.0 + 0.3 * (1.0 - li)), em);
 
-        for (int ci = 0; ci < 6; ci++) {
-            if (float(ci) >= u_cityn) break;
-            float cd = distance(t, u_city[ci].xyz);
-            float cr = u_city[ci].w;
-            if (cd < cr) {
-                float fall = 1.0 - cd / cr;
-                float spk = cw_h(floor(t * 42.0) + float(ci) * 3.7);
-                float lit = smoothstep(0.60, 0.85, spk) * fall * fall;
-                col += vec3(1.0, 0.72, 0.42) * lit * (1.0 - li) * 1.5;
+        // MOON SHADOWS (2026-09-16, the tech demo's casters): a surface point whose
+        // line to the sun passes through a moon is in eclipse - the moon's disc,
+        // soft at the edge (the sun has width)
+        float ecl = 0.0;
+        for (int mi = 0; mi < 4; mi++) {
+            if (float(mi) >= u_moonn) break;
+            vec3 dm = u_moonsh[mi].xyz - n;
+            float along = dot(dm, u_light);
+            if (along > 0.0) {
+                float dist = length(dm - u_light * along);
+                ecl = max(ecl, 1.0 - smoothstep(u_moonsh[mi].w * 0.8, u_moonsh[mi].w * 1.4, dist));
             }
         }
+        col *= 1.0 - 0.9 * ecl * li;
+
+        // AURORA (2026-09-16): a shimmering curtain at high latitudes on the
+        // night side - green at its foot, violet at its crown, waving slowly
+        if (u_aurora > 0.5) {
+            float alat = abs(t.y);
+            float band = smoothstep(0.78, 0.88, alat) * (1.0 - smoothstep(0.965, 1.0, alat));
+            float lon = atan(t.z, t.x);
+            float wave = 0.5 + 0.5 * sin(lon * 5.0 + u_time * 0.6) * sin(lon * 11.0 - u_time * 0.35 + alat * 20.0);
+            float curtain = smoothstep(0.30, 0.85, wave);
+            float night = 1.0 - smoothstep(-0.05, 0.22, dot(n, u_light));
+            col += mix(vec3(0.15, 0.95, 0.55), vec3(0.55, 0.30, 0.90), smoothstep(0.86, 0.95, alat)) * band * curtain * night * 0.6;
+        }
+
+        // LIGHTNING (2026-09-16): in dense cloud on the night side a cell
+        // flashes now and then (a hash per cell per third-of-a-second slot,
+        // decaying through the slot); near a region in a STORM every cell is
+        // storm-prone and flashes five times as often
+        float fl = 0.0;
+        if (cat > 0.5 && li < 0.6) {
+            vec3 cell = floor(t * 40.0);
+            float slot = floor(u_time * 3.0);
+            float storm = 0.0;
+            for (int si = 0; si < 3; si++) {
+                if (float(si) >= u_stormn) break;
+                storm = max(storm, smoothstep(0.90, 0.985, dot(t, u_storm[si].xyz)) * u_storm[si].w);
+            }
+            float prone = max(step(0.90, cw_h(cell * 1.7 + 0.31)), storm);
+            float roll = cw_h(cell + vec3(slot * 0.173, slot * 0.071, 0.0));
+            float thr = 1.0 - 0.04 * (1.0 + 4.0 * storm);
+            if (prone > 0.5 && roll > thr) fl = 1.0 - fract(u_time * 3.0);
+            fl *= (1.0 - li) * cat;
+        }
+        col += vec3(0.80, 0.86, 1.0) * fl * 0.7;   // the ground under the cloud, lit from above
 
         if (u_ring > 0.01) {
             float sdn = dot(u_light, u_raxis);
@@ -298,6 +341,7 @@ void main()
         if (ringA > 0.0 && ringZ > z && ringZ <= czf) col = mix(col, ringC, ringA);
         col = mix(col, cbcol, cab * 0.80);
         col = mix(col, ctcol, cat * 0.95);
+        col += vec3(0.92, 0.95, 1.0) * fl * 1.1;   // the cloud itself, lit from within
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
         float fr = pow(1.0 - clamp(z, 0.0, 1.0), 2.6);

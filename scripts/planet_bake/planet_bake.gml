@@ -8,6 +8,7 @@
 function planet_bake(_pn) {
 	if (_pn.row < _pn.th) return false;
 	if (surface_exists(_pn.tsurf) && surface_exists(_pn.csurf) && surface_exists(_pn.hsurf)) return true;
+	planet_rivers(_pn);   // (once a world, before the first bake - 2026-09-16)
 	// a bake under a shader someone left set (the ui fade) would keep its
 	// tint for good: the stamps go through the plain pipeline (bug hunt 2026-09-15)
 	var _sh = shader_current();

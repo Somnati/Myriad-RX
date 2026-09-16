@@ -9,7 +9,8 @@
 /// fixed view: a spinning world lit from upper left); cfade
 /// 0..1 thins the clouds (the region zoom, his ask 2026-09-15). Uniforms
 /// persist between draws, so every one is set every call.
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined) {
+/// msh (2026-09-16) = the moons' view-space casters [[x, y, z, size], ...] (moon_view_pos); storms = the storm regions' spots in texture space [[x, y, z], ...]
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined) {
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = planet_spin_now(_pn);   // the universal clock (the agent's day / night agrees with it)
@@ -32,6 +33,9 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		relief : shader_get_uniform(sh_planet, "u_relief"),
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"),
+		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
+		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
+		aurora : shader_get_uniform(sh_planet, "u_aurora"),
 		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
 		height : shader_get_sampler_index(sh_planet, "u_height"),
 	};
@@ -81,6 +85,16 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief * max(.4, _bump));   // (the silhouette rides the knob too, gently)
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
+	// the moons' shadows, the storms' lightning, the aurora (2026-09-16)
+	var _mshv = array_create(16, 0), _mshn = 0;
+	if (is_array(_msh)) { _mshn = min(4, array_length(_msh)); for (var _i = 0; _i < _mshn; _i++) { _mshv[_i * 4] = _msh[_i][0]; _mshv[_i * 4 + 1] = _msh[_i][1]; _mshv[_i * 4 + 2] = _msh[_i][2]; _mshv[_i * 4 + 3] = _msh[_i][3]; } }
+	shader_set_uniform_f_array(_u.moonsh, _mshv);
+	shader_set_uniform_f(_u.moonn, _mshn);
+	var _stv = array_create(12, 0), _stn = 0;
+	if (is_array(_storms)) { _stn = min(3, array_length(_storms)); for (var _i = 0; _i < _stn; _i++) { _stv[_i * 4] = _storms[_i][0]; _stv[_i * 4 + 1] = _storms[_i][1]; _stv[_i * 4 + 2] = _storms[_i][2]; _stv[_i * 4 + 3] = 1; } }
+	shader_set_uniform_f_array(_u.storm, _stv);
+	shader_set_uniform_f(_u.stormn, _stn);
+	shader_set_uniform_f(_u.aurora, (_pn.kind != "gas" && ((_pn.clim > .6) || (hash_mix(_pn.seed, 4242) mod 100 < 35))) ? 1 : 0);   // (cold worlds, and a third of the rest)
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);   // (into a float page: the page dithers once at its blit)
 	var _cty = array_create(24, 0);
 	var _ctn = 0;

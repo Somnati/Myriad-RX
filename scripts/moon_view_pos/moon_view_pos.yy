@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"moon_view_pos",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"moon_view_pos",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
