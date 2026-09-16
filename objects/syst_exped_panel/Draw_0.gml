@@ -28,6 +28,7 @@ switch (view) {
 	case "map":    if (is_struct(map_dest)) { _td = map_dest; _t3 = "  /  " + region_get(map_dest, map_rgi).name + " map"; } break;
 	case "crew":   _t1 = "expedition  -  the crew"; break;
 	case "galaxy": _t1 = "expedition  -  the galaxy"; break;
+	case "system": _t1 = "expedition  -  a star system"; break;
 	case "bestiary": _t1 = "expedition  -  the bestiary"; break;
 }
 if (is_struct(_td)) { _t1 = land ? "expedition  -  " : ""; _t2 = _td.name; if (!land) _t3 = ""; }
@@ -830,17 +831,25 @@ if (view == "planet") {
 	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
 	var _dwx = __pv_dw_x();
 	if (pv_mode == "region") { __draw_back(); ui_fade_set(1); exit; }
-	if (pv_dwa > .01) draw_sprite_ext(spr_pixel_1x1, 0, _dwx + 9, list_y + 16, room_width - (_dwx + 9), room_height - 30 - (list_y + 16), 0, c_black, .82 * pv_dwa);   // (ends above the button row)
+	if (pv_dwa > .01) { var _pbx = __pv_box_r(); draw_sprite_ext(spr_pixel_1x1, 0, _pbx.x, _pbx.y, _pbx.w, _pbx.h, 0, c_black, .82 * pv_dwa); draw_px_rect(_pbx.x, _pbx.y, _pbx.w, _pbx.h, c_steelblue, .55 * pv_dwa); }   // (ends above the button row; outlined - his ask 2026-09-16)
 	var _tb = __pv_tab_r();
 	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
 	draw_px_rect(_tb.x, _tb.y, _tb.w, _tb.h, c_steelblue, .6);
 	draw_set_color(c_steelblue); draw_set_alpha(.9);
 	draw_text(_tb.x + 2, _tb.y + _tb.h * .5 - 4, pv_dw ? ">" : "<");
 	if (pv_dwa > .3) {
-		draw_set_color(_ink); draw_set_alpha(.6 * pv_dwa);
-		draw_text(_dwx + 13, list_y + 24, "regions  -  tap one");
+		// THE TABS (his ask, 2026-09-16): [regions] and [active / expeditions] - the second on two lines
+		for (var _ti = 0; _ti < 2; _ti++) {
+			var _tr2 = __pv_dtab_r(_ti), _ton = (pv_dtab == _ti);
+			draw_sprite_ext(spr_pixel_1x1, 0, _tr2.x, _tr2.y, _tr2.w, _tr2.h, 0, _ton ? merge_colour(c_steelblue, c_black, .75) : c_black, .85 * pv_dwa);
+			draw_px_rect(_tr2.x, _tr2.y, _tr2.w, _tr2.h, _ton ? c_gold : c_steelblue, (_ton ? .9 : .45) * pv_dwa);
+			draw_set_halign(fa_center); draw_set_color(_ton ? c_white : _dim); draw_set_alpha((_ton ? .95 : .7) * pv_dwa);
+			if (_ti == 0) draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 7, "regions");
+			else { draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 2, "active"); draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 11, __sheet_cut("expeditions", _tr2.w - 4)); }
+			draw_set_halign(fa_left);
+		}
 		var _kk = region_kinds();
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
 			var _rg = region_get(_d, _i);
 			var _rr = __pv_row_r(_i);
 			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
@@ -869,12 +878,9 @@ if (view == "planet") {
 			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
 			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 		}
-		draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa);
-		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 2, "tap a row: the world turns to it");
-		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16): hauls home first, then the trips out; a row each, tap for its page
-		var _nl = array_length(_e.hauls) + array_length(_e.trips);
-		draw_set_color(_ink); draw_set_alpha(.6 * pv_dwa);
-		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 2, "");
+		if (pv_dtab == 0) { draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa); draw_text(_dwx + 13, list_y + 48 + EXPED_REGIONS * 26 + 2, "tap a row: the world turns to it"); }
+		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16; its own tab since): hauls home first, then the trips out; a row each, tap for its page
+		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
 		for (var _k = 0; _k < _nl; _k++) {
 			var _pr1 = __pv_trip_r(_k);
 			if (_pr1.y + _pr1.h > room_height - 32) break;
@@ -886,7 +892,7 @@ if (view == "planet") {
 			draw_set_color(_ish ? c_gold : c_white); draw_set_alpha(.95 * pv_dwa);
 			draw_text(_pr1.x + 12, _pr1.y + 2, __sheet_cut(exped_crew_txt(_rec.names) + (_ish ? " - home, collect" : (" - " + exped_where(_rec))), _pr1.w - 16));
 		}
-		if (_nl == 0) { draw_set_color(_dim); draw_set_alpha(.45 * pv_dwa); draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 16, "no expeditions out"); }
+		if (pv_dtab == 1 && _nl == 0) { draw_set_color(_dim); draw_set_alpha(.45 * pv_dwa); draw_text(_dwx + 13, list_y + 52, "no expeditions out"); }
 	}
 	__draw_back();
 	ui_fade_set(1);
@@ -897,6 +903,87 @@ if (view == "planet") {
 // the tech demo's rm_starmap as a page: the parallax backdrop, the stars
 // off the draw grid with their depth parallax, the nebula fog sheet
 // (baked once a galaxy, dithered), the home star ringed. Drag pans,
+// ======================= THE STAR SYSTEM (the demo's aerial view, 2026-09-16) =======================
+if (view == "system") {
+	if (sy_star < 0 || !is_struct(sy_sys)) { __draw_back(); ui_fade_set(1); exit; }
+	var _sm = starmap_get(), _hm = galaxy_home();
+	var _vr = __sy_view_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _vr.x, _vr.y, _vr.w, _vr.h, 0, c_black, .6);
+	draw_px_rect(_vr.x, _vr.y, _vr.w, _vr.h, c_steelblue, .35);
+	var _cx = _vr.x + _vr.w * .5, _cy = _vr.y + _vr.h * .52;
+	var _pls = sy_sys.planets, _np = array_length(_pls), _omax = 1;
+	for (var _i = 0; _i < _np; _i++) _omax = max(_omax, _pls[_i].orbit);
+	var _sc = min(_vr.w * .46, _vr.h * .46 / sy_tilt) / _omax * sy_zoom;
+	var _now = universal_now();
+	// the star: a glow, the class colour
+	var _stc = sy_sys.star.col, _sts = sy_sys.star.size / 12;
+	gpu_set_blendmode(bm_add);
+	draw_sprite_ext(spr_vis_glow_soft, 0, _cx, _cy, (70 * _sts) / max(1, sprite_get_width(spr_vis_glow_soft)), (70 * _sts * max(.5, sy_tilt)) / max(1, sprite_get_width(spr_vis_glow_soft)), 0, _stc, .35);
+	gpu_set_blendmode(bm_normal);
+	// the orbits: tilted rings of dots (pixel cells)
+	for (var _i = 0; _i < _np; _i++) {
+		var _orr = _pls[_i].orbit * _sc, _on = (sy_sel == _i);
+		for (var _t = 0; _t < 72; _t++) { var _ta = _t * 5 + sy_yaw; draw_sprite_ext(spr_pixel_1x1, 0, floor(_cx + dcos(_ta) * _orr), floor(_cy + dsin(_ta) * _orr * sy_tilt), 1, 1, 0, _on ? c_gold : c_steelblue, _on ? .45 : .2); }
+	}
+	// the worlds where they are now, far ones first (a nearer one draws over)
+	sy_pos = [];
+	var _ord = [];
+	for (var _i = 0; _i < _np; _i++) {
+		var _pl = _pls[_i];
+		var _ang = (_pl.ang + _pl.spd * 60 * _now + sy_yaw) mod 360;
+		var _px = _cx + dcos(_ang) * _pl.orbit * _sc, _py = _cy + dsin(_ang) * _pl.orbit * _sc * sy_tilt;
+		array_push(_ord, { i : _i, x : _px, y : _py });
+		array_push(sy_pos, { x : _px, y : _py });
+	}
+	array_sort(_ord, function(_a, _b) { return _a.y - _b.y; });
+	draw_sprite_ext(spr_star_glow, 5, _cx, _cy, 1.6 * _sts, 1.6 * _sts * max(.6, sy_tilt), 0, _stc, .95);
+	draw_sprite_ext(spr_star_glow, 3, _cx, _cy, max(1, _sts * .8), max(1, _sts * .8), 0, c_white, 1);
+	for (var _k = 0; _k < array_length(_ord); _k++) {
+		var _o = _ord[_k], _pl = _pls[_o.i], _gb = galaxy_world_biome(_pl);
+		var _pr = clamp(_pl.size * 1.15 * sqrt(sy_zoom), 2.5, 9);
+		var _col = (_gb < 0) ? _pl.col : exped_biomes()[_gb].col2;
+		var _ldx = _cx - _o.x, _ldy = _cy - _o.y, _ll = point_distance(0, 0, _ldx, _ldy); if (_ll > .001) { _ldx /= _ll; _ldy /= _ll; }
+		if (_pl[$ "has_ring"] ?? false) for (var _t = 0; _t < 24; _t++) { var _ra = _t * 15; draw_sprite_ext(spr_pixel_1x1, 0, floor(_o.x + dcos(_ra) * _pr * 1.9), floor(_o.y + dsin(_ra) * _pr * 1.9 * max(.35, sy_tilt)), 1, 1, 0, merge_colour(_col, c_white, .4), .7); }
+		__sy_disc(_o.x, _o.y, _pr, _col, _ldx, _ldy, .55, (_gb < 0) ? .75 : 1);
+		var _onb = false;
+		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pl.seed) _onb = true;
+		if (_onb) draw_px_rect(floor(_o.x - _pr - 3), floor(_o.y - _pr - 3), ceil(_pr * 2 + 7), ceil(_pr * 2 + 7), c_gold, .8);
+		if (sy_sel == _o.i) { draw_px_rect(floor(_o.x - _pr - 5), floor(_o.y - _pr - 5), ceil(_pr * 2 + 11), ceil(_pr * 2 + 11), c_white, .9); draw_set_halign(fa_center); draw_set_color(c_white); draw_set_alpha(.95); draw_text(floor(_o.x), floor(_o.y - _pr - 16), star_name(sy_star) + " " + ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][clamp(_o.i, 0, 7)]); draw_set_halign(fa_left); }
+	}
+	// the title and the hint
+	draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(sy_star) + " system");
+	draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text((land ? 14 : 4) + string_width("the " + star_name(sy_star) + " system") + 10, list_y + 6, "class " + _sm.stars[sy_star].props.stellar_class + "  -  " + string(_np) + ((_np == 1) ? " world" : " worlds") + ((sy_star == _hm.star) ? "  -  home" : ""));
+	draw_set_alpha(.5);
+	draw_text(_vr.x + 4, _vr.y + _vr.h - 10, "drag to turn  -  wheel to zoom  -  tap a world");
+	// THE DOCK: the worlds listed, the picked one gold; [open world] under them
+	var _dkx = __sy_dock_x(), _dkw = __sy_dock_w();
+	draw_sprite_ext(spr_pixel_1x1, 0, _dkx, list_y + 16, _dkw, room_height - 8 - (list_y + 16), 0, c_black, .82);
+	draw_px_rect(_dkx, list_y + 16, _dkw, room_height - 8 - (list_y + 16), c_steelblue, .55);
+	var _romd = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+	for (var _i = 0; _i < _np; _i++) {
+		var _rr = __sy_row_r(_i), _pl = _pls[_i], _gb = galaxy_world_biome(_pl), _on = (sy_sel == _i);
+		if (_rr.y + _rr.h > room_height - 8 - 20) break;
+		var _onb = false;
+		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pl.seed) _onb = true;
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
+		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : (_onb ? merge_colour(c_gold, c_black, .4) : c_steelblue), _on ? .9 : .5);
+		__dot(_rr.x + 8, _rr.y + 11, 3, (_gb < 0) ? _pl.col : exped_biomes()[_gb].col2, (_gb < 0) ? .6 : .95);
+		draw_set_color((_gb < 0) ? _dim : c_white); draw_set_alpha(.95);
+		draw_text(_rr.x + 16, _rr.y + 2, star_name(sy_star) + " " + _romd[clamp(_i, 0, 7)]);
+		draw_set_color(_dim); draw_set_alpha(.75);
+		var _gw2 = (_gb < 0) ? undefined : galaxy_world(sy_star, _i);
+		draw_text(_rr.x + 16, _rr.y + 12, (_gb < 0) ? "gas  -  no landing" : (exped_biomes()[_gb].name + "  -  tier " + string(is_struct(_gw2) ? _gw2.tier : 1) + (_onb ? "  -  on the board" : "")));
+	}
+	var _sor = __sy_open_r();
+	var _canopen = (sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0);
+	var _selon = false; if (_canopen) for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pls[sy_sel].seed) _selon = true;
+	draw_ui_button(_sor.x, _sor.y, _sor.w, _sor.h, _canopen ? (_selon ? "go to world" : "open world") : "pick a world", _canopen ? c_gold : c_gray, _canopen, _canopen);
+	__draw_back();
+	ui_fade_set(1);
+	exit;
+}
 // the wheel zooms, a tap names a star. Travel comes later
 if (view == "galaxy") {
 	var _gcf = starmap_config();
@@ -1049,36 +1136,9 @@ if (view == "galaxy") {
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text((land ? 14 : 4) + string_width(_sm.name) + 10, list_y + 6, string(_sm.count) + " stars  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  x" + string_format(gx_zoom, 1, 2));
 	draw_set_alpha(.5);
-	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star" + ((gx_sel >= 0) ? "  -  tap a world below to open it" : ""));
-	// THE SYSTEM STRIP (his ask, 2026-09-16: the demo's star map, to click another planet): the tapped star's worlds along the foot -
-	// a disc in the biome's colour (a gas world in its own, dim: no landing), the numeral, the kind and the tier; a gold ring on one that is on the board
-	gx_strip = [];
-	if (gx_sel >= 0 && is_struct(gx_sys)) {
-		var _ssr = __gx_strip_r();
-		draw_sprite_ext(spr_pixel_1x1, 0, _ssr.x, _ssr.y, _ssr.w, _ssr.h, 0, c_black, .82);
-		draw_px_rect(_ssr.x, _ssr.y, _ssr.w, _ssr.h, c_steelblue, .5);
-		var _np = array_length(gx_sys.planets), _cw = min(60, floor((_ssr.w - 16) / max(1, _np)));
-		var _x0 = _ssr.x + _ssr.w * .5 - _np * _cw * .5;
-		var _romg = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];   // (an event has no statics - GM1037, his compile 2026-09-16)
-		for (var _pi = 0; _pi < _np; _pi++) {
-			var _gpl = gx_sys.planets[_pi], _gb = galaxy_world_biome(_gpl);
-			var _gcx = _x0 + _pi * _cw + _cw * .5, _gcy = _ssr.y + 13, _grd = clamp(_gpl.size * 1.1, 3, 8);   // (_grd: _gr is the page's rect)
-			var _gcol = (_gb < 0) ? _gpl.col : exped_biomes()[_gb].col2;
-			var _onb = false;
-			for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _gpl.seed) _onb = true;
-			if (_gpl[$ "has_ring"] ?? false) draw_sprite_ext(spr_pixel_1x1, 0, _gcx - _grd * 1.7, _gcy, _grd * 3.4, 1, 0, merge_colour(_gcol, c_white, .3), .6);
-			__dot(_gcx, _gcy, _grd, _gcol, (_gb < 0) ? .45 : .95);
-			if (_onb) draw_px_rect(floor(_gcx - _grd - 3), floor(_gcy - _grd - 3), ceil(_grd * 2 + 6), ceil(_grd * 2 + 6), c_gold, .9);
-			draw_set_halign(fa_center);
-			draw_set_color((_gb < 0) ? _dim : c_white); draw_set_alpha((_gb < 0) ? .5 : .95);
-			draw_text(_gcx, _ssr.y + 24, _romg[clamp(_pi, 0, 7)] + ((_gb < 0) ? "  gas" : ("  " + exped_biomes()[_gb].name)));
-			if (_gb >= 0) { var _gtw = galaxy_world(gx_sel, _pi); draw_set_color(_dim); draw_set_alpha(.7); draw_text(_gcx, _ssr.y + 32, is_struct(_gtw) ? ("tier " + string(_gtw.tier)) : ""); }
-			draw_set_halign(fa_left);
-			array_push(gx_strip, { x : _gcx - _cw * .5, y : _ssr.y, w : _cw, h : _ssr.h, pl : _pi, ok : (_gb >= 0) });
-		}
-		draw_set_color(c_white); draw_set_alpha(.9);
-		draw_text(_ssr.x + 6, _ssr.y - 11, star_name(gx_sel) + "  -  " + string(_np) + ((_np == 1) ? " world" : " worlds") + "  -  tap one to open it");
-	}
+	draw_text(land ? 14 : 4, list_y + 20, "drag to pan  -  wheel to zoom  -  tap a star" + ((gx_sel >= 0) ? "  -  [enter] for its system" : ""));
+	// [ENTER] (his ask, 2026-09-16: the demo's star system view, back): a star tapped, the button bottom right takes you into its system
+	if (gx_sel >= 0 && is_struct(gx_sys)) { var _ger = __gx_enter_r(); draw_ui_button(_ger.x, _ger.y, _ger.w, _ger.h, "enter  >", c_gold, true, true); }
 	__draw_back();
 	ui_fade_set(1);
 	exit;

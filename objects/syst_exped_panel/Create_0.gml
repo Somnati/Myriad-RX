@@ -332,7 +332,9 @@ __list_y0 = function() { return land ? (card_y - 10) : (card_y + card_h + 8); };
 __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_h + 4), w : list_w, h : row_h }; };
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
-__crewstrip_r = function() { var _b = __back_r(); return { x : _b.x - 4 - 44, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
+/// [back] shows on every page but the planet's own (there it was [close] - redundant beside the panel's X, his ask 2026-09-16); the other strip buttons slide into its seat
+__back_on = function() { return !(view == "planet" && pv_mode != "region"); };
+__crewstrip_r = function() { var _b = __back_r(); return { x : __back_on() ? (_b.x - 4 - 44) : _b.x, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
 // [map] beside [crew] (his call, 2026-09-16: "move the region map button to
 // the top next to the crew button"): on every page that has a region -
 // the planet page in region mode, the preparation page, the trip page
@@ -352,12 +354,14 @@ __map_ctx = function() {
 /// [back] and [crew] painted (the pages that render a sky call it again AFTER the sky - the render plane covers the row)
 __draw_back = function() {
 	var _bk = __back_r();
-	draw_sprite_ext(spr_pixel_1x1, 0, _bk.x, _bk.y, _bk.w, _bk.h, 0, c_black, .8);
-	draw_px_rect(_bk.x, _bk.y, _bk.w, _bk.h, rgb(170, 190, 230), .5);
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.9);
-	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, (view == "planet" && pv_mode != "region") ? "close  >" : "back  >");   // (the planet's is the panel's close - the hub went, 2026-09-16)
+	if (__back_on()) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _bk.x, _bk.y, _bk.w, _bk.h, 0, c_black, .8);
+		draw_px_rect(_bk.x, _bk.y, _bk.w, _bk.h, rgb(170, 190, 230), .5);
+		draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
+	}   // (the planet's is the panel's close - the hub went, 2026-09-16)
 	if (view != "crew" && view != "hub" && array_length(g.sprites) > 0) {
 		var _cs = __crewstrip_r();
 		draw_sprite_ext(spr_pixel_1x1, 0, _cs.x, _cs.y, _cs.w, _cs.h, 0, c_black, .8);
@@ -409,6 +413,7 @@ __back = function() {
 	switch (view) {
 		case "map":    __page_go(map_from); break;
 		case "galaxy": __page_go(gx_from); break;
+		case "system": __page_go("galaxy"); break;   // (the system view came from the map - 2026-09-16)
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
 		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { exped_close(); return; } break;   // region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
@@ -452,13 +457,34 @@ pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;
 pv_face  = -1;                       // the region the camera is turning to face (-1 = none)
 pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
+pv_dtab  = 0;                        // THE DRAWER'S TAB (his ask, 2026-09-16): 0 regions, 1 active expeditions
 pv_sky   = undefined;                // galaxy_sky_build() (the page's world's - __sky_for)
 sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
 sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy, t, life } in the orbit view's page space, one every sky_meteor seconds or so
 sky_met_t = 0;                       // ...seconds since the last
 __sky_for = function(_d) { var _k = string(_d.seed); if (!is_struct(sky_c[$ _k])) sky_c[$ _k] = galaxy_sky_build(_d); var _s = sky_c[$ _k]; _s.light_w = galaxy_sun_dir(0, _d); return _s; };
-gx_strip = [];                       // THE SYSTEM STRIP's world rects (the galaxy page: tap a world to open it)
-__gx_strip_r = function() { var _g = __gx_r(); var _w = min(_g.w - 8, 16 + 60 * 8); return { x : floor(_g.x + _g.w * .5 - _w * .5), y : room_height - 8 - 44, w : _w, h : 40 }; };
+__gx_enter_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // [enter] the tapped star's system (bottom right, the demo's seat)
+// THE STAR SYSTEM VIEW (his ask, 2026-09-16: the demo's aerial view, back): the star at the centre, the orbits as tilted rings,
+// the worlds where they are NOW (the universal clock) as lit discs, a drag turns and tilts the view, the wheel zooms; a dock on
+// the right lists the worlds - tap one there or on the view, [open world] puts it on the board and goes to it
+sy_star = -1; sy_sys = undefined; sy_sel = -1;
+sy_yaw = 30; sy_tilt = .42; sy_zoom = 1;
+sy_press = false; sy_px = 0; sy_py = 0; sy_yaw0 = 0; sy_tilt0 = 0; sy_travel = 0;
+sy_pos = [];                         // the worlds' page positions this frame (the Step's taps)
+__sy_dock_w = function() { return land ? 150 : 110; };
+__sy_dock_x = function() { return room_width - (land ? 14 : 4) - __sy_dock_w(); };
+__sy_row_r  = function(_i) { return { x : __sy_dock_x() + 5, y : list_y + 22 + _i * 24, w : __sy_dock_w() - 10, h : 22 }; };
+__sy_open_r = function() { return { x : __sy_dock_x() + 5, y : room_height - 8 - 16, w : __sy_dock_w() - 10, h : 16 }; };
+__sy_view_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : __sy_dock_x() - 8 - (land ? 14 : 4), h : room_height - 8 - 20 - (list_y + 22) }; };
+/// a lit disc: rows of a circle, the lit part toward (ldx, ldy) on the page, cut by the lit fraction (the sky's siblings share the idea)
+__sy_disc = function(_x, _y, _r, _col, _ldx, _ldy, _lit, _a) {
+	var _dark = merge_colour(_col, c_black, .7), _x0 = floor(_x), _y0 = floor(_y), _rr = max(1, floor(_r));
+	for (var _dy = -_rr; _dy <= _rr; _dy++) {
+		var _hw = floor(sqrt(max(0, _rr * _rr - _dy * _dy)));
+		var _cut = (1 - 2 * _lit) * _hw;
+		for (var _dx = -_hw; _dx <= _hw; _dx++) { var _isl = ((_dx * _ldx + _dy * _ldy) > _cut); draw_sprite_ext(spr_pixel_1x1, 0, _x0 + _dx, _y0 + _dy, 1, 1, 0, _isl ? _col : _dark, _a); }
+	}
+};
 pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
 pv_mode  = "planet";                 // "planet" (the world, the drawer) or "region" (pulled in on the pick: the banner, the quests)
@@ -474,8 +500,10 @@ __pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5 - 46 
 __pv_dw_w  = function() { return land ? 150 : 120; };
 __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
-__pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
-__pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 40 + EXPED_REGIONS * 26 + 14 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
+__pv_box_r = function() { var _x = __pv_dw_x() + 9; return { x : _x, y : list_y + 16, w : room_width - _x, h : room_height - 30 - (list_y + 16) }; };   // the drawer's box (the outline, his ask 2026-09-16)
+__pv_dtab_r = function(_i) { var _w = floor((__pv_dw_w() - 8 - 3) / 2); return { x : __pv_dw_x() + 13 + _i * (_w + 3), y : list_y + 20, w : _w, h : 22 }; };   // the two tabs at the top
+__pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
+__pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS on their own tab (2026-09-16): hauls first, then trips   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
 __best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };   // [bestiary] over the geosync toggle (planet mode)
 // THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
 // at the foot, the geosync toggle over it ([region map] sat between them in

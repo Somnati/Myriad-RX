@@ -19,7 +19,7 @@ if (_under && hand != "") __hand_close();
 // dp_next); region mode's info box and buttons (rg_in)
 if (view == "depart") {
 	dp_in = move_to(dp_in, (dp_dir < 0) ? 0 : 1, 4);
-	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") { pv_mode = "region"; view_last = view; pg_a = 1; pg_dir = 0; } }   // (to the region: it arrives lit and swings in - no black blink; 2026-09-16)
+	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") { pv_mode = "region"; view_last = view; pg_a = 1; pg_dir = 0; } else if (view == "trip") { pg_a = 0; pg_dir = 1; view_last = view; } }   // (the trip's page fades in - 2026-09-16)   // (to the region: it arrives lit and swings in - no black blink; 2026-09-16)
 	else if (dp_dir >= 0 && dp_in >= .985) dp_in = 1;
 } else if (pg_dir == 0) dp_in = 0;
 if (view == "planet" && pv_mode == "region") {
@@ -356,21 +356,15 @@ if (view == "galaxy") {
 		gx_x = _jx - _gr.w * .5 / gx_zoom; gx_y = _jy - _gr.h * .5 / gx_zoom;
 		play_sound_ext(snd_softclick, .95, 1.05, .3, 1);
 	}
-	// THE SYSTEM STRIP (2026-09-16): with a star tapped, its worlds along the foot - a press on one opens it on the board and goes there
-	var _gsr = __gx_strip_r();
-	var _onstrip = (gx_sel >= 0 && is_struct(gx_sys) && point_in_rectangle(mouse_x, mouse_y, _gsr.x, _gsr.y, _gsr.x + _gsr.w, _gsr.y + _gsr.h));
+	// [ENTER] (2026-09-16): into the tapped star's system
+	var _ger = __gx_enter_r();
+	var _onstrip = (gx_sel >= 0 && is_struct(gx_sys) && point_in_rectangle(mouse_x, mouse_y, _ger.x, _ger.y, _ger.x + _ger.w, _ger.y + _ger.h));
 	if (_onstrip && mouse_check_button_pressed(mb_left)) {
-		for (var _si = 0; _si < array_length(gx_strip); _si++) {
-			var _sr = gx_strip[_si];
-			if (!point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) continue;
-			if (!_sr.ok) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); break; }
-			var _di = exped_world_open(gx_sel, _sr.pl);
-			if (_di < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); break; }
-			sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
-			gx_from = ""; __page_go("planet");
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			exit;
-		}
+		sy_star = gx_sel; sy_sys = gx_sys; sy_sel = -1;
+		var _hm0 = galaxy_home(); if (sy_star == _hm0.star) sy_sel = _hm0.planet;
+		__page_go("system");
+		play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+		exit;
 	}
 	if (!gx_press && mouse_check_button_pressed(mb_left) && _gin && !_onbk && !_onmm && !_onstrip) { gx_press = true; gx_px = mouse_x; gx_py = mouse_y; gx_cx0 = gx_x; gx_cy0 = gx_y; gx_travel = 0; }
 	if (gx_press && mouse_check_button(mb_left)) {
@@ -401,6 +395,26 @@ if (view == "galaxy") {
 	gx_y = clamp(gx_y, -_gr.h * .5 / gx_zoom, _gcfg.plane_h - _gr.h * .5 / gx_zoom);
 }
 
+// ======================= THE STAR SYSTEM VIEW: drag turns and tilts, the wheel zooms =======================
+if (view == "system") {
+	var _svr = __sy_view_r();
+	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h);
+	if (_sin) { if (mouse_wheel_up()) sy_zoom = min(sy_zoom * 1.15, 2.5); if (mouse_wheel_down()) sy_zoom = max(sy_zoom / 1.15, .6); }
+	if (!sy_press && mouse_check_button_pressed(mb_left) && _sin) { sy_press = true; sy_px = mouse_x; sy_py = mouse_y; sy_yaw0 = sy_yaw; sy_tilt0 = sy_tilt; sy_travel = 0; }
+	if (sy_press && mouse_check_button(mb_left)) {
+		sy_travel = max(sy_travel, point_distance(sy_px, sy_py, mouse_x, mouse_y));
+		sy_yaw = sy_yaw0 + (mouse_x - sy_px) * .6;
+		sy_tilt = clamp(sy_tilt0 + (mouse_y - sy_py) * .004, .22, .95);
+	} else if (sy_press) {
+		sy_press = false;
+		if (sy_travel <= 6) {
+			// a tap: the nearest world on the view
+			var _bi = -1, _bd = 14;
+			for (var _i = 0; _i < array_length(sy_pos); _i++) { var _dd = point_distance(sy_pos[_i].x, sy_pos[_i].y, mouse_x, mouse_y); if (_dd < _bd) { _bd = _dd; _bi = _i; } }
+			if (_bi >= 0) { sy_sel = _bi; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+		}
+	}
+}
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
 // the debug clock: x1 / x10 / x100
@@ -412,10 +426,25 @@ for (var _k = 0; _k < 3; _k++) {
 		exit;
 	}
 }
+// THE STAR SYSTEM's dock (2026-09-16): a row picks a world, [open world] puts it on the board and goes to it
+if (view == "system" && is_struct(sy_sys)) {
+	var _npl = array_length(sy_sys.planets);
+	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
+	var _sor = __sy_open_r();
+	if (point_in_rectangle(mouse_x, mouse_y, _sor.x, _sor.y, _sor.x + _sor.w, _sor.y + _sor.h)) {
+		if (sy_sel < 0 || sy_sel >= _npl || galaxy_world_biome(sy_sys.planets[sy_sel]) < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+		var _di = exped_world_open(sy_star, sy_sel);
+		if (_di < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
+		sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
+		__page_go("planet");
+		play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+		exit;
+	}
+}
 // [back] from any page (drawn on the right, syst_exped_panel's Draw); [crew] beside it (his ask, 2026-09-15)
 if (view != "hub") {
 	var _bk = __back_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { __back(); exit; }
+	if (__back_on() && point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) { __back(); exit; }
 	if (view != "crew" && array_length(g.sprites) > 0) {
 		var _cs = __crewstrip_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) {
@@ -548,7 +577,9 @@ if (view == "planet") {
 	}
 	// a region row (the drawer open): the camera turns to it
 	if (pv_dwa > .5) {
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		// the tabs (2026-09-16)
+		for (var _ti = 0; _ti < 2; _ti++) { var _tr2 = __pv_dtab_r(_ti); if (point_in_rectangle(mouse_x, mouse_y, _tr2.x, _tr2.y, _tr2.x + _tr2.w, _tr2.y + _tr2.h)) { if (pv_dtab != _ti) { pv_dtab = _ti; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); } exit; } }
+		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
 			var _pr0 = __pv_row_r(_i);
 			if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
 			if (pl_focus == _i && pv_face < 0) { pv_face = _i; play_sound_ext(snd_softclick, .95, 1.05, .3, 1); exit; }
@@ -556,7 +587,7 @@ if (view == "planet") {
 			exit;
 		}
 		// THE EXPEDITIONS in the drawer (2026-09-16): a haul's row opens the haul, a trip's the trip
-		var _nl = array_length(_e.hauls) + array_length(_e.trips);
+		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
 		for (var _k = 0; _k < _nl; _k++) {
 			var _pr1 = __pv_trip_r(_k);
 			if (_pr1.y + _pr1.h > room_height - 32) break;
@@ -610,7 +641,8 @@ if (view == "depart") {
 			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
 			dp_slot = -1;
 			sel_crew = []; dp_slots = array_create(exped_party_max(), -1); dp_pos = {};
-			__dp_leave("planet");   // (the page swings out, then the world)
+			view_id = g.exped.seq;   // (the trip that just left - its page, his ask 2026-09-16)
+			__dp_leave("trip");   // (the page swings out, then the trip's page with the diary)
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 		exit;
 	}

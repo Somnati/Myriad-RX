@@ -85,6 +85,7 @@
     {"$GMIncludedFile":"","%Name":"sprite_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"sprite_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"tiles_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"tiles_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"battery_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"battery_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"credits_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"credits_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"dial_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"dial_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"orbit_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"orbit_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"ram_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"ram_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
