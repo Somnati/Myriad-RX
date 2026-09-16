@@ -43,8 +43,13 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 	var _tt = current_time;
 	// (the nebulae are painted on the sphere by the fog pass - galaxy_fog_draw / sh_sky_fog; 2026-09-16)
 	var _stars = _sky.stars;
+	// two passes (bug hunt 2026-09-16): the points, then every glyph under ONE additive blend - a blend switch per glyph star
+	// (up to 1,270 of them, twice) broke the batch every time: a stall in a rich sky
+	for (var _pass = 0; _pass < 2; _pass++) {
+	if (_pass == 1) gpu_set_blendmode(bm_add);
 	for (var _i = 0; _i < array_length(_stars); _i++) {
 		var _sk = _stars[_i];
+		if ((_sk[$ "near"] ?? false) != (_pass == 1)) continue;
 		var _dv = mat3_apply(_ct, _sk.x, _sk.y, _sk.z);
 		if (_dv[2] > -.2) continue;
 		var _f  = 230 / -_dv[2];
@@ -59,14 +64,14 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		if (_sun_on && _sfade > 0) { var _gd = point_distance(_sx, _sy, _ssx, _ssy); if (_gd < _glr) _a *= 1 - .85 * _sfade * (1 - _gd / _glr); }
 		// a real neighbour is a GLYPH (his ask, 2026-09-16: spr_star_glyph - core, halo, spikes by its size, tinted, its core white,
 		// additive, whole scale); the grain and the dust stay points
-		if (_sk[$ "near"] ?? false) {
+		if (_pass == 1) {
 			var _gi = star_glyph_frame(_sk.s), _gx0 = floor(_sx), _gy0 = floor(_sy);
-			gpu_set_blendmode(bm_add);
 			draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, 1, 1, 0, _sk.col, _a);
 			if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8);   // (a dot stays its colour)
-			gpu_set_blendmode(bm_normal);
 		} else draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
 	}
+	}
+	gpu_set_blendmode(bm_normal);
 	for (var _i = 0; _i < (_sibs ? array_length(_sky.sibs) : 0); _i++) {
 		var _sb = _sky.sibs[_i];
 		var _dv = mat3_apply(_ct, _sb.x, _sb.y, _sb.z);

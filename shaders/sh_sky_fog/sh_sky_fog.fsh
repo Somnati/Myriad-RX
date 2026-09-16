@@ -20,6 +20,8 @@ uniform float u_dither;  // 1 = dither here (an 8-bit page), 0 = the page is flo
 uniform float u_amp;     // overall brightness
 uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_corein;  // 0 .. 1 how deep in the core's bulge this star sits: the band thickens to a glow all round (2026-09-16)
+uniform vec3  u_sun;     // the system's star's bearing: a dark cloud is far, the sun near - its patch is not dimmed (bug hunt 2026-09-16)
+uniform float u_sunon;   // 1 when the sun is on this sky
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
@@ -227,5 +229,6 @@ void main()
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
 
     // (one, src_alpha): dest = rgb + dest x darkT - the dark clouds take the sky behind them away
+    darkT = mix(darkT, 1.0, u_sunon * smoothstep(0.970, 0.9986, dot(w, u_sun)));   // (the sun's patch clear of the dust)
     gl_FragColor = vec4(max(rgb, vec3(0.0)) * darkT, darkT) * v_vColour;
 }
