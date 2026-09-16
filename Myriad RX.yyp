@@ -956,6 +956,7 @@
     {"id":{"name":"sh_planet","path":"shaders/sh_planet/sh_planet.yy",},},
     {"id":{"name":"sh_puck","path":"shaders/sh_puck/sh_puck.yy",},},
     {"id":{"name":"sh_sky_fog","path":"shaders/sh_sky_fog/sh_sky_fog.yy",},},
+    {"id":{"name":"sh_sky_inside","path":"shaders/sh_sky_inside/sh_sky_inside.yy",},},
     {"id":{"name":"sh_tile_mat","path":"shaders/sh_tile_mat/sh_tile_mat.yy",},},
     {"id":{"name":"sh_ui_fade","path":"shaders/sh_ui_fade/sh_ui_fade.yy",},},
     {"id":{"name":"snd_ability_common","path":"sounds/snd_ability_common/snd_ability_common.yy",},},

@@ -10,7 +10,7 @@
 /// orbital spot, NOW by the universal clock), the galactic core's
 /// bearing for the fog's warm side, and how far out we sit (the rim
 /// sees the band pile up one way).
-///   { stars[] {x,y,z,col,b,s}, sibs[] {x,y,z,col,s}, nebs[] {x,y,z,ar,b,nb}, light_w, core_dir,
+///   { stars[] {x,y,z,col,b,s}, sibs[] {x,y,z,col,s}, nebs[] {x,y,z,ar,b,nb}, inside {nb,s,t,edge} | undefined, light_w, core_dir,
 ///     fog_seed, fog_edge, sun_col, sun_size, name }
 function galaxy_sky_build(_dw = undefined) {
 	var _cfg = starmap_config();
@@ -119,6 +119,22 @@ function galaxy_sky_build(_dw = undefined) {
 		array_push(_out.nebs, { x : dcos(_nel) * dcos(_naz), y : -dsin(_nel), z : dcos(_nel) * dsin(_naz), ar : _nar, b : _nbr, nb : _nb });
 	}
 	array_sort(_out.nebs, function(_a, _b) { return (_b.b > _a.b) ? 1 : ((_b.b < _a.b) ? -1 : 0); });   // (the brightest first: the fog shader paints eight)
+	// INSIDE A NEBULA (his ask, 2026-09-16): a star's HEIGHT is its parallax depth read as plane px (d .85..1.15 about the
+	// plane); within a cloud's radius and its thickness about the cloud's height, the star is in it - the deepest one
+	// (least of the two edge fractions) is the sky's: sh_sky_inside washes the sky by the path out of the cloud along
+	// every ray (long along the plane, short out the thin axis) and dims what lies beyond by the same path
+	_out.inside = undefined;
+	var _hz = (_me.d - 1) * (_cfg[$ "star_height"] ?? 900), _best = 1;
+	for (var _i = 0; _i < array_length(_nbs); _i++) {
+		var _nb = _nbs[_i], _nt = _nb[$ "t"] ?? (_nb.r * .5), _nhh = _nb[$ "h"] ?? 0;
+		var _exy = point_distance(_me.x, _me.y, _nb.x, _nb.y) / _nb.r, _ev = abs(_hz - _nhh) / _nt;
+		if (_exy >= 1 || _ev >= 1) continue;
+		var _edge = max(_exy, _ev);
+		if (_edge >= _best) continue;
+		_best = _edge;
+		// the star relative to the cloud's centre in the sky's frame (x = east on the map, y down the sky, z = the map's south), in radii
+		_out.inside = { nb : _nb, s : [ (_me.x - _nb.x) / _nb.r, (_nhh - _hz) / _nb.r, (_nb.y - _me.y) / _nb.r ], t : _nt / _nb.r, edge : _edge };
+	}
 	// the fog's bearings
 	var _core_az = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
 	_out.core_dir = [dcos(_core_az), 0, dsin(_core_az)];

@@ -1,4 +1,4 @@
-/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, h, col, col2, seed, dn }] (cached a galaxy; h = height off the plane, plane px)
+/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, h, t, col, col2, seed, dn }] (cached a galaxy; h = height off the plane, t = half-thickness, plane px)
 /// THE NEBULAE ARE THINGS (2026-09-16, after his screenshots: the coloured
 /// clouds he meant were the sky's three hashed patches, round ones; the
 /// map's haze was never them). A few dozen a galaxy, bred where the stars
@@ -41,7 +41,11 @@ function galaxy_nebulae() {
 		// triangular roll - most within a third of neb_height of the plane, a few right up at it, either side
 		var _h5 = hash_mix(_c.h, 23), _h6 = hash_mix(_c.h, 29);
 		var _hgt = ((_h5 mod 1000) / 1000 + (_h6 mod 1000) / 1000 - 1) * (_cfg[$ "neb_height"] ?? 700);
-		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
+		// THE THICKNESS (his ask, 2026-09-16: a star whose height falls inside it is INSIDE the cloud): a third to three
+		// quarters of the radius either side of its height
+		var _h7 = hash_mix(_c.h, 31);
+		var _thk = _r * ((_cfg[$ "neb_thick_min"] ?? .35) + (_cfg[$ "neb_thick_rand"] ?? .4) * ((_h7 mod 1000) / 1000));
+		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, t : _thk, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
 	}
 	_list = _out; _seed = _sm.seed;
 	return _list;

@@ -27,6 +27,14 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		nebc : shader_get_uniform(sh_sky_fog, "u_nebc"),
 		nebc2 : shader_get_uniform(sh_sky_fog, "u_nebc2"),
 	};
+	static _ui = undefined;
+	if (is_undefined(_ui)) _ui = {
+		cam : shader_get_uniform(sh_sky_inside, "u_cam"), geom : shader_get_uniform(sh_sky_inside, "u_geom"), ctr : shader_get_uniform(sh_sky_inside, "u_ctr"),
+		cell : shader_get_uniform(sh_sky_inside, "u_cell"), s : shader_get_uniform(sh_sky_inside, "u_s"), t : shader_get_uniform(sh_sky_inside, "u_t"),
+		col : shader_get_uniform(sh_sky_inside, "u_col"), col2 : shader_get_uniform(sh_sky_inside, "u_col2"), seed : shader_get_uniform(sh_sky_inside, "u_seed"),
+		amp : shader_get_uniform(sh_sky_inside, "u_amp"), ext : shader_get_uniform(sh_sky_inside, "u_ext"), mode : shader_get_uniform(sh_sky_inside, "u_mode"),
+		time : shader_get_uniform(sh_sky_inside, "u_time"), dith : shader_get_uniform(sh_sky_inside, "u_dither"),
+	};
 	var _cfg = starmap_config();
 	if (!surface_exists(_canvas)) return;
 	if (!shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(4, _h - 12, "sh_sky_fog failed to compile"); draw_set_alpha(1); return; }   // (2026-09-16: a failed shader draws nothing - the page says so)
@@ -60,5 +68,33 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	shader_set_uniform_f_array(_u.nebc, _nc); shader_set_uniform_f_array(_u.nebc2, _nc2);
 	draw_surface(_canvas, 0, 0);
 	shader_reset();
+	// INSIDE A NEBULA (2026-09-16): the sky through the cloud - what lies beyond dims by the path out along each ray
+	// (a multiply pass), then the cloud's own glow by the same path (an add pass); softened toward the cloud's edge
+	var _in = _sky[$ "inside"];
+	if (is_struct(_in) && shader_is_compiled(sh_sky_inside)) {
+		var _soft = 1 - power(_in.edge, 3);   // (the edge fraction: 1 at the centre, 0 at the wall - no pop entering or leaving)
+		var _nb = _in.nb;
+		shader_set(sh_sky_inside);
+		shader_set_uniform_f_array(_ui.cam, _cam);
+		shader_set_uniform_f(_ui.geom, _w, _h);
+		shader_set_uniform_f(_ui.ctr, _cx, _cy);
+		shader_set_uniform_f(_ui.cell, planet_config().px_size);
+		shader_set_uniform_f(_ui.s, _in.s[0], _in.s[1], _in.s[2]);
+		shader_set_uniform_f(_ui.t, _in.t);
+		shader_set_uniform_f(_ui.col, colour_get_red(_nb.col) / 255, colour_get_green(_nb.col) / 255, colour_get_blue(_nb.col) / 255);
+		shader_set_uniform_f(_ui.col2, colour_get_red(_nb.col2) / 255, colour_get_green(_nb.col2) / 255, colour_get_blue(_nb.col2) / 255);
+		shader_set_uniform_f(_ui.seed, _nb.seed);
+		shader_set_uniform_f(_ui.amp, (_cfg[$ "neb_in_amp"] ?? .55) * _soft);
+		shader_set_uniform_f(_ui.ext, (_cfg[$ "neb_in_ext"] ?? 1.2) * _soft);
+		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
+		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
+		shader_set_uniform_f(_ui.mode, 0);
+		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);   // (multiply: the sky so far, dimmed by the cloud)
+		draw_surface(_canvas, 0, 0);
+		shader_set_uniform_f(_ui.mode, 1);
+		gpu_set_blendmode(bm_add);
+		draw_surface(_canvas, 0, 0);
+		shader_reset();
+	}
 	gpu_set_blendmode(bm_normal);
 }
