@@ -75,6 +75,15 @@ function region_info(_d, _rg) {
 	array_push(_out, { k : "time", v : _pick(_rg.seed, _slot + 7, _hp), t : _ht });
 	// SEASON (2026-09-16): where the region stands, the world's lean toward its sun (region_season); a world with no tilt has none
 	if (_ss.on) array_push(_out, { k : "season", v : _pick(_rg.seed, 13 + _ss.idx, _sp[_ss.idx]), t : (_ss.idx == 3) ? 2 : ((_ss.idx == 2) ? 1 : 0) });
+	// THE EVENT (2026-09-16): what is on in the region now (region_event), and THE VILLAIN and where the thread stands
+	var _ev = region_event(_d, _rg[$ "ri"] ?? 0);
+	if (is_struct(_ev)) array_push(_out, { k : "event", v : _ev.txt, t : (_ev.kind == "fair") ? 0 : ((_ev.kind == "rats") ? 1 : 2) });
+	var _vil = region_villain(_d, _rg);
+	if (is_struct(_vil)) {
+		var _vm = g.exped[$ "vil"], _vst = 0;
+		if (is_struct(_vm)) _vst = _vm[$ string(_d.seed) + ":" + string(_rg[$ "ri"] ?? 0)] ?? 0;
+		array_push(_out, { k : "villain", v : _vil.name + " - " + ["at large", "a thread cut", "cornered", "ended"][clamp(_vst, 0, 3)], t : (_vst >= 3) ? 0 : 2 });
+	}
 	// FLORA: what grows, off the wild kinds the terrain gave the region
 	var _wk = _rg[$ "wild"] ?? [], _lush = 0, _dry = 0;
 	for (var _i = 0; _i < array_length(_wk); _i++) {

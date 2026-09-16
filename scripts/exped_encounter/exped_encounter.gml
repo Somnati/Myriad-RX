@@ -3,12 +3,17 @@
 /// a bandit sprite (15), a friendly sprite who asks to come along (15 -
 /// a "sprite" find: the haul's recruit moment decides at home).
 function exped_encounter(_tr, _mult = 1, _wx = "clear") {
+	// THE REGION'S EVENT (2026-09-16): a villain ended = peace, half the encounters for a week; the lord abroad = passers-by turn out bandits
+	var _rgi_e = _tr[$ "rgi"] ?? 0;
+	if (is_struct(exped_mem_get(_tr.dest, _rgi_e, -1, "peace"))) _mult *= .5;
+	var _eve = region_event(_tr.dest, _rgi_e), _lord = (is_struct(_eve) && _eve.kind == "lord");
 	if (!roll_perc(EXPED_ENC * _mult)) return;   // (x1.5 at night: the road is busier in the dark)
 	var _r = random(100);
 	// AN ESCORT (2026-09-15): with the merchant's cart along, half the passers-by are bandits after it
 	var _eq = _tr[$ "quest"];
 	var _esc = (is_struct(_eq) && _eq.kind == "escort" && (_eq[$ "at"] ?? 0) == 1 && _eq.done < _eq.n);
 	if (_esc && _r >= 45 && _r < 70 && roll_perc(50)) _r = 75;
+	if (_lord && _r >= 45 && _r < 70 && roll_perc(50)) _r = 75;
 	// the noise of rain (his ask): a fight heard in time is a fight walked round
 	if ((_wx == "rain" || _wx == "storm") && _r < 45 && roll_perc(35)) { array_push(_tr.log, choose("heard something ahead over the rain, and went round it", "shapes in the rain. they took the long way and were not seen", "the rain covered their steps past a camp of something")); return; }
 	// THE WORLD REMEMBERS (2026-09-16): a camp routed lately - the road past it has half its bandits
@@ -20,6 +25,21 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 		_tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0);
 		array_push(_tr.log, "on the road: " + _tr.fight.b.name + ((array_length(_tr.fight.foes) > 1) ? " and company" : "") + " " + choose("block the way", "come out of the trees", "were waiting", "had the same idea"));
 		exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .7);
+	} else if (_r < 70 && roll_perc(30)) {
+		// A RIVAL CREW (2026-09-16): one of the world's three, on the road; a note swapped, sometimes
+		exped_stat("met");
+		var _rvs = exped_rivals(_tr.dest), _rc = _rvs[irandom(array_length(_rvs) - 1)], _n1 = _tr.names[0];
+		array_push(_tr.log, "met " + _rc.name + " on the road, " + choose("going the other way", "coming back from something", "arguing over a map", "carrying a door between them", "counting something and losing count") + ". " + choose(_rc.lead + " nodded. " + _n1 + " nodded back. that was the whole of it", "they compared pockets. nobody won", _rc.lead + " said they had cleared it already. they had not", "a word about the road ahead, most of it wrong", _rc.lead + " asked after the pay. " + _n1 + " lied", "they walked a mile together and said nothing"));
+		if (roll_perc(35) && is_struct(_tr[$ "road"])) {
+			var _up = [];
+			for (var _k = 0; _k < array_length(_tr.sids); _k++) if (_tr.hp[_k] > 0) array_push(_up, _k);
+			var _rgn = exped_region(_tr), _lk = _rgn.nodes[clamp(_tr.road.b, 0, array_length(_rgn.nodes) - 1)].kind, _lkd = region_kinds()[$ _lk];
+			var _nsp = (array_length(_up) > 0) ? exped_sprite(_tr.sids[_up[irandom(array_length(_up) - 1)]]) : undefined;
+			if (!is_undefined(_nsp) && is_struct(_lkd) && _lkd.wild) {
+				var _nt = "from " + _rc.lead + ": " + choose("keep to the left on the " + _lk + ". the left is drier", "the " + _lk + " is quicker by the old line", "on the " + _lk + " walk in the morning. not after", "the " + _lk + ": follow the crows. they know");
+				if (sprite_note(_nsp, _nt, "road:" + _lk)) array_push(_tr.log, _nsp.name + " writes it down: \"" + _nt + "\"");
+			}
+		}
 	} else if (_r < 70) {
 		exped_stat("met");
 		var _nm = exped_npc_name();

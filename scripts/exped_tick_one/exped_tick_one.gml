@@ -114,7 +114,9 @@ function exped_tick_one(_tr, _dt) {
 			_tr.path = []; _tr.road = undefined; _tr.act = undefined;
 			var _ssl = region_season(_tr.dest, _rg);   // THE SEASON (2026-09-16): named on landing
 			if (_ssl.on) _tr.season = _ssl.name;
-			array_push(_tr.log, "# landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name + (_ssl.on ? (". " + _ssl.name + " here") : ""));
+			var _evl = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);   // ...and the region's event
+			_tr.event = is_struct(_evl) ? _evl.kind : "";
+			array_push(_tr.log, "# landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name + (_ssl.on ? (". " + _ssl.name + " here") : "") + (is_struct(_evl) ? (". word is: " + _evl.txt) : ""));
 			// DISCOVERED: the world and the region, once each (the ledger's set)
 			exped_stat("landings");
 			var _sk = string(_tr.dest.seed) + ":" + string(_tr[$ "rgi"] ?? 0);

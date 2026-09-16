@@ -57,7 +57,7 @@ function region_node_info(_d, _rg, _ni) {
 	}
 	if (_nb == "") for (var _i = 0; _i < array_length(_rg.nodes); _i++) { if (_i == _ni) continue; var _ikd = _kk[$ _rg.nodes[_i].kind] ?? _kk.field; if (_ikd.civ) { _nb = _rg.nodes[_i].name; break; } }
 	if (_nb == "") _nb = "the landing";
-	var _rows = [], _desc = "", _lore = "";
+	var _rows = [], _desc = "", _lore = "", _facv = "", _foev = "";   // (the faction and its foe, for the region's villain - 2026-09-16)
 	var _who = ["miller", "tanner", "widow", "soldier", "priest", "thief", "shepherd", "potter", "exile", "smith", "ferryman", "midwife", "drover", "clerk"];
 	var _when = ["three generations back", "a hundred years ago", "longer ago than anyone remembers", "in the old king's time", "the year of the long frost", "before the road came", "when the river ran the other way"];
 	switch (_nd.kind) {
@@ -116,6 +116,7 @@ function region_node_info(_d, _rg, _ni) {
 			var _foe = _pick(_fk, 2, _seed, _base);
 			var _fac = "the " + str_cap(_pick(["red", "black", "hollow", "broken", "grey", "salt", "moon", "iron", "bone", "rat", "cold", "ash", "blind"], 3, _seed, _base)) + " " + str_cap(foe_plural(_foe));
 			array_push(_rows, { k : "held by", v : _fac, col : c_hred });
+			_facv = _fac; _foev = _foe;
 			array_push(_rows, { k : "depth", v : _pick(["shallow", "two levels", "three levels", "deeper than the map", "one long hall", "stairs that keep going"], 4, _seed, _base), col : undefined });
 			if (_sw) _desc = _pick(["a grate in the street", "a culvert under the wall", "a hatch behind the tannery", "an arch where the river goes in", "a manhole with a ring in it"], 5, _seed, _base) + "; " + _pick(["the smell arrives first", "warm air coming up", "a rat watching from the dark", "the town's whole weather, underneath", "water you can hear but not see"], 7, _seed, _base);
 			else if (_cr) _desc = _pick(["a slab", "a sunken door", "a barrow mouth", "a chapel floor", "an iron gate"], 5, _seed, _base) + " " + _pick(["in a field of stones", "under a yew", "at the crossroads", "beneath the old chapel", "in the side of a mound"], 6, _seed, _base) + "; " + _pick(["cold as a well", "candles nobody lit", "the dead do not lie still", "names worn off every stone", "a smell of old flowers"], 7, _seed, _base);
@@ -134,6 +135,7 @@ function region_node_info(_d, _rg, _ni) {
 		case "camp": {
 			array_push(_rows, { k : "bandits", v : _pick(["a handful", "a dozen", "a score", "more than a score", "fewer than they say"], 1, _seed, _base), col : c_hred });
 			array_push(_rows, { k : "led by", v : _n1 + " the " + _pick(["red", "quiet", "one-eyed", "tall", "smiling", "hungry", "younger", "left-handed", "bald", "kind, once"], 2, _seed, _base), col : undefined });
+			_facv = _n1 + "'s bandits"; _foev = "bandit";
 			array_push(_rows, { k : "chest", v : _pick(["light", "heavy", "rumoured full", "buried, they say", "two of them"], 3, _seed, _base), col : c_gold });
 			_desc = "tents " + _pick(["in a hollow", "under the trees", "on a spur above the road", "in a ruined steading", "behind a palisade", "in an old quarry"], 5, _seed, _base) + "; " + _pick(["a lookout on a rock", "smoke by day, fires by night", "dogs", "carts they took, stripped to the axles", "a flag that used to be a shirt", "the smell of roasting goat"], 6, _seed, _base);
 			var _lt3 = _rng(0, 4, 9, _seed, _base);
@@ -207,6 +209,6 @@ function region_node_info(_d, _rg, _ni) {
 			break;
 		}
 	}
-	_nd.card = { rows : _rows, desc : _desc, lore : _lore, folk : { elder : _n1, other : _n2, keeper : _n3, trader : _n4 }, shop : _civ ? { sign : _sign } : undefined };
+	_nd.card = { rows : _rows, desc : _desc, lore : _lore, folk : { elder : _n1, other : _n2, keeper : _n3, trader : _n4 }, shop : _civ ? { sign : _sign } : undefined, fac : _facv, foe : _foev };
 	return _nd.card;
 }

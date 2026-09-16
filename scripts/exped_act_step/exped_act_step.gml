@@ -24,6 +24,9 @@ function exped_act_step(_tr) {
 			var _rgi_a = _tr[$ "rgi"] ?? 0, _memt = "";   // (the world remembers, 2026-09-16)
 			if (is_struct(exped_mem_get(_tr.dest, _rgi_a, _tr.pos, "grateful"))) _memt += choose(". they are remembered here", ". somebody waves. they are known here", ". the word has gone round about them");
 			if (is_struct(exped_mem_get(_tr.dest, _rgi_a, _tr.pos, "barred"))) _memt += ". the tavern will not have them";
+			var _eva = region_event(_tr.dest, _rgi_a);
+			if (is_struct(_eva) && _eva.node == _tr.pos && _eva.kind == "fair") _memt += choose(". the fair is on: stalls, geese, a man on stilts", ". the fair is on. everything costs more and is worth it", ". the fair: bunting, a pig on a rope, three bands at once");
+			else if (is_struct(_eva) && _eva.node == _tr.pos && _eva.kind == "rats") _memt += choose(". rats in every gutter", ". the rats have the run of the place", ". a rat on the well-beam, watching");
 			array_push(_tr.log, _nd.name + " - " + _pp.desc + _memt);
 			break;
 		}
@@ -40,6 +43,8 @@ function exped_act_step(_tr) {
 			var _cost = 0, _beds = 0, _cheap = 0;
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _beds++; if (sprite_note_has(exped_sprite(_tr.sids[_k]), "inn")) _cheap++; }
 			_cost = max(ceil(_beds * EXPED_INN * .5), _beds * EXPED_INN - _cheap);   // (a note on inns: a bed cheaper - never below half the bill, 2026-09-16)
+			var _evr = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
+			if (is_struct(_evr) && _evr.kind == "fair" && _evr.node == _tr.pos) _cost = ceil(_cost * .5);   // (the fair's beds, 2026-09-16)
 			if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _cost = 0;   // (a grateful town: on the house - the world remembers)
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
@@ -64,14 +69,27 @@ function exped_act_step(_tr) {
 			var _r = random(100);
 			if (_r < 35 && roll_perc(55) && exped_dice(_tr)) {
 				// (a game of chance in the tavern - his pick, 2026-09-16: exped_dice said its piece)
+			} else if (_r < 35 && roll_perc(25)) {
+				// a round with a rival crew (2026-09-16): a credit, and a rumour worth less
+				var _rvs2 = exped_rivals(_tr.dest), _rc2 = _rvs2[irandom(array_length(_rvs2) - 1)], _who2 = _tr.names[irandom(_n - 1)];
+				if (_tr.credits > 0) _tr.credits -= 1;
+				array_push(_tr.log, _who2 + " stood " + _rc2.name + " a round in the tavern at " + _nd.name + ". " + choose(_rc2.lead + " told them where the chest is. it was not there", _rc2.lead + " talked for an hour about a door", "they swapped lies about the road. " + _rc2.lead + "'s were better", _rc2.lead + " drank the round and left. that was the whole of it"));
 			} else if (_r < 35) {
 				var _who = _tr.names[irandom(_n - 1)];
 				if (_tr.credits > 0) _tr.credits -= 1;
 				array_push(_tr.log, _who + " got " + choose("drunk", "very drunk", "into an argument with a chair", "a round in for everyone", "lost at cards") + " in the tavern at " + _nd.name + ((_tr.credits > 0) ? " (a credit, gone)" : ""));
 			} else if (_r < 60) {
-				_tr.fight = exped_fight_new(_tr, "bandit", 1, 0);
-				_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
-				array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
+				if (roll_perc(40)) {
+					// A RIVAL CREW (2026-09-16): a brawl with one of the world's three
+					var _rvs = exped_rivals(_tr.dest), _rc = _rvs[irandom(array_length(_rvs) - 1)];
+					_tr.fight = exped_fight_new(_tr, "bandit", 2, 0);
+					for (var _j = 0; _j < array_length(_tr.fight.foes); _j++) { _tr.fight.foes[_j].name = (_j == 0) ? _rc.lead : ("one of " + _rc.name); _tr.fight.foes[_j].kind = "drunk"; }
+					array_push(_tr.log, "a brawl with " + _rc.name + " in the tavern at " + _nd.name + ". nobody remembers who started it. " + _rc.lead + " does");
+				} else {
+					_tr.fight = exped_fight_new(_tr, "bandit", 1, 0);
+					_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
+					array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
+				}
 				if (roll_perc(50)) { exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred", 72); array_push(_tr.log, choose("the keeper says they are barred, whatever happens next", "barred from the tavern in " + _nd.name + ", for a while", "the door of the tavern in " + _nd.name + " is shut to them now")); }   // (the world remembers, 2026-09-16)
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"]) && _stn.bounty == 0) {
 				array_push(_tr.log, "a bounty on the board in " + _nd.name + ". " + choose("not this trip - cautious", "they read it twice and left it. cautious", "cautious: the board can keep it", "somebody else's, they decided. cautious"));
@@ -82,7 +100,8 @@ function exped_act_step(_tr) {
 				if (array_length(_cand) > 0) {
 					var _bn = _cand[irandom(array_length(_cand) - 1)];
 					var _bkl = foe_kinds_at(_rg.nodes[_bn].kind), _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : _bkl[irandom(array_length(_bkl) - 1)];   // (the place's own kinds - the foes pass)
-					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : 3 + 2 * _tr.dest.tier };
+					var _evb = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
+					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : ceil((3 + 2 * _tr.dest.tier) * ((is_struct(_evb) && _evb.kind == "lord") ? 1.5 : 1)) };   // (the lord abroad: half again - 2026-09-16)
 					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits" + ((_stn.bounty >= 2) ? choose(" - greedy", ". greedy: of course they did", " (greedy)") : ""));
 				}
 			} else array_push(_tr.log, exped_compose("rumour", _tr));   // (the talk, composed - 2026-09-16)
@@ -116,7 +135,8 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "camp": {
-			_tr.fight = exped_fight_new(_tr, "bandit", irandom_range(2, 3), 0);   // a camp is never one bandit
+			var _evc = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _lordc = (is_struct(_evc) && _evc.kind == "lord");
+			_tr.fight = exped_fight_new(_tr, "bandit", irandom_range(2, 3) + (_lordc ? 1 : 0), 0);   // a camp is never one bandit (one more with the lord abroad - 2026-09-16)
 			array_push(_tr.log, "bandits at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " of them");
 			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
 			if (_a.steps <= 1) _a.loot = true;   // the last fight's win pays the camp's chest (exped_tick_one)
@@ -214,7 +234,7 @@ function exped_act_step(_tr) {
 		case "bossfight": {
 			// one big fight: the bounty's named boss and whatever it keeps
 			if (_a.steps >= 2 && is_struct(_q)) {
-				_tr.fight = exped_fight_new(_tr, _q.foe, (_q.kind == "well") ? 1 : irandom_range(1, 2), 1, { boss : true, name : _q.who, variant : (_q.kind == "well") ? "giant" : "" });   // (the well: one giant thing - 2026-09-16)
+				_tr.fight = exped_fight_new(_tr, _q.foe, (_q.kind == "well") ? 1 : irandom_range(1, 2), 1, { boss : true, name : _q.who, variant : (_q.kind == "well") ? "giant" : (((_q[$ "vil"] ?? 0) > 0) ? "greater" : "") });   // (the villain: a greater one - 2026-09-16)   // (the well: one giant thing - 2026-09-16)
 				array_push(_tr.log, _q.who + " " + choose("is here, and knows it", "was waiting", "stands up. it is big", "does not run") + " - " + _nd.name);
 				exped_say(_tr, "boss", { foe : _q.who }, .9);
 			} else array_push(_tr.log, choose("nothing else moves at " + _nd.name, "the rest of them left in a hurry"));

@@ -76,7 +76,8 @@ function exped_unpack(_s) {
 			if (_kind == "H") {
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
 				                       finds : _finds, routed : _routed, cleared : real(_kv[$ "cl"] ?? "0"), wins : real(_kv[$ "w"] ?? "0"), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp,
-				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0"), stance : exped_stance(_kv[$ "stn"] ?? "steady").key });
+				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0"), stance : exped_stance(_kv[$ "stn"] ?? "steady").key,
+				                       best : ((_kv[$ "bt"] ?? "") != "") ? { title : _kv.bt, line : _kv[$ "bm"] ?? "" } : undefined });
 				continue;
 			}
 			// a trip
@@ -114,7 +115,7 @@ function exped_unpack(_s) {
 				var _qfr = real(_kv[$ "qfr"] ?? "-1");
 				_trn.quest = { kind : _kv.qk, node : _qn, foe : foe_legacy(_kv[$ "qf"] ?? ""), n : real(_kv[$ "qc"] ?? "1"), done : real(_kv[$ "qd"] ?? "0"), mult : real(_kv[$ "qm"] ?? "1"), reward : real(_kv[$ "qr"] ?? "0"), hours : 0,
 				               from : (_qfr < 0) ? -1 : clamp(_qfr, 0, array_length(_rgq.nodes) - 1), at : real(_kv[$ "qat"] ?? "0"), who : _kv[$ "qw"] ?? "", nodes : undefined, txt : "",
-				               pers : real(_kv[$ "qps"] ?? "0"), pnote : _kv[$ "qpn"] ?? "" };
+				               pers : real(_kv[$ "qps"] ?? "0"), pnote : _kv[$ "qpn"] ?? "", vil : real(_kv[$ "qvl"] ?? "0") };
 				if ((_kv[$ "qaf"] ?? "0") == "1") _trn.after_done = true;
 				var _qnsv = _kv[$ "qns"] ?? "";
 				if (_qnsv != "") { var _qns = string_split(_qnsv, ";"), _qnl = []; for (var _qi = 0; _qi < array_length(_qns); _qi++) if (_qns[_qi] != "") array_push(_qnl, clamp(real(_qns[_qi]), 0, array_length(_rgq.nodes) - 1)); if (array_length(_qnl) > 0) _trn.quest.nodes = _qnl; }

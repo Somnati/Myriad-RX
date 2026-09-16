@@ -19,6 +19,7 @@
 ///   tl      slain:mist:items:xp:earned           pk      the pocket (a trip: its credits now; a haul: what came home)
 ///   stn     the stance (cautious / steady / greedy - exped_stance; a haul keeps it for [send again])
 ///   qps qpn qaf   a personal card's quest (1), its note, and whether the quest's after-moment (gratitude, the follow-up) already ran
+///   qvl     the villain thread's stage on the quest     bt bm   a haul's best moment: its title, its line
 /// A fight in progress replays its room on load (room_i steps back one).
 function exped_pack() {
 	exped_init();
@@ -94,6 +95,7 @@ function exped_pack() {
 				array_push(_f, "qw=" + string(_q[$ "who"] ?? ""));
 				array_push(_f, "qns=" + (is_array(_q[$ "nodes"]) ? string_join_ext(";", _q.nodes) : ""));
 				array_push(_f, "qps=" + string(_q[$ "pers"] ?? 0));   // (a personal card's quest, 2026-09-16)
+				array_push(_f, "qvl=" + string(_q[$ "vil"] ?? 0));   // (the villain thread's stage, 2026-09-16)
 				array_push(_f, "qpn=" + string_replace_all(string(_q[$ "pnote"] ?? ""), "|", " "));
 				array_push(_f, "qaf=" + ((_r[$ "after_done"] ?? false) ? "1" : "0"));
 			}
@@ -111,6 +113,10 @@ function exped_pack() {
 		array_push(_f, "tl=" + string(_tl.slain) + ":" + string(_tl.mist) + ":" + string(_tl.items) + ":" + string_format(_tl.xp, 1, 2) + ":" + string(_tl.earned));
 		array_push(_f, "pk=" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0)));
 		array_push(_f, "stn=" + string(_r[$ "stance"] ?? "steady"));   // (the stance, 2026-09-16)
+		if (!_is && is_struct(_r[$ "best"])) {   // THE BEST MOMENT (a haul, 2026-09-16): its title and its line
+			array_push(_f, "bt=" + string_replace_all(string_replace_all(_r.best.title, "|", " "), "#", " "));
+			array_push(_f, "bm=" + string_replace_all(string_replace_all(_r.best.line, "|", " "), "#", " "));
+		}
 		_out += ((_a > 0) ? "#" : "") + string_join_ext("|", _f);
 	}
 	return _out;

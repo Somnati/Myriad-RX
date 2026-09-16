@@ -21,5 +21,28 @@ function exped_quest_after(_tr) {
 	}
 	var _line = exped_quest_personal(_tr, _q, _rg);
 	if (_line != "") array_push(_tr.log, _line);
+	// THE VILLAIN'S THREAD (2026-09-16): a stage done advances it; ended, the crew is titled and the region breathes;
+	// the next card deals when no follow-up just did (the board's one personal seat)
+	var _vk = string(_tr.dest.seed) + ":" + string(_ri);
+	if (!is_struct(g.exped[$ "vil"])) g.exped.vil = {};
+	var _vst = g.exped.vil[$ _vk] ?? 0;
+	var _v = region_villain(_tr.dest, _rg);
+	if ((_q[$ "vil"] ?? 0) > 0 && is_struct(_v)) {
+		_vst = max(_vst, _q.vil); g.exped.vil[$ _vk] = _vst;
+		if (_q.vil >= 3) {
+			var _crew = [];
+			for (var _k = 0; _k < array_length(_tr.sids); _k++) { if (_tr.hp[_k] <= 0) continue; var _sp = exped_sprite(_tr.sids[_k]); if (is_undefined(_sp)) continue; sprite_title(_sp, "who ended " + _v.name, 2); array_push(_crew, _sp.name); }
+			exped_mem_set(_tr.dest, _ri, -1, "peace", 168);
+			array_push(_tr.log, _v.name + " is finished. " + _v.fac + " scatter. " + _rg.name + " will be quieter for a while, and " + exped_crew_txt(_crew) + " will be talked about");
+		} else array_push(_tr.log, choose("a thread pulled. " + _v.name + " will have heard", _v.name + "'s people know this crew's names now", "one thread of " + _v.name + "'s cut. there are more"));
+	}
+	if (is_struct(_v) && _vst < 3 && _line == "" && (_vst > 0 || roll_perc(40))) {
+		var _vc = exped_villain_card(_tr.dest, _ri, _rg, _vst + 1);
+		if (is_struct(_vc)) {
+			exped_region_quests(_tr.dest, _ri);
+			var _of = g.exped.offers[$ _vk];
+			if (is_struct(_of)) { _of.pq = [ { q : _vc, salt : -1, left : exped_quest_life(), taken : 0, easy : false, pers : true } ]; array_push(_tr.log, "word gets round: " + _vc.pnote + " - a card on the board in " + _rg.name); }
+		}
+	}
 	save_mark_dirty();
 }

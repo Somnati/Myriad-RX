@@ -23,6 +23,8 @@ function region_weather(_d, _rg) {
 		var _pnw = planet_get(_d.seed, exped_planet_hint(_d));
 		if (clamp(_pnw.clim + abs(_rg.spot.lat) / 90 * .25 - .06 - _ss.warm, 0, 1) > .58) _ice = true;   // (region_info's cold, shifted by the season: cool or colder = snow)
 	}
+	var _evw = region_event(_d, _rg[$ "ri"] ?? 0);   // A HARD FROST (2026-09-16): the rain is snow, the sky greyer
+	if (is_struct(_evw) && _evw.kind == "frost") { _ice = true; _bc = max(10, _bc - 10); }
 	_r *= (_bc + _br + _bw + _bf + _bs) / 100;
 	if (_r < _bc) return "clear";
 	if (_r < _bc + _br) return _ice ? "snow" : "rain";

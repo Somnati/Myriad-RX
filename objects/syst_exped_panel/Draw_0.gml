@@ -161,9 +161,18 @@ if (view == "haul") {
 		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _trows[_ti][0]);
 		draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.95); draw_text(_tx + _tcw - 8, _ty, _trows[_ti][1]); draw_set_halign(fa_left);
 	}
+	// THE MOMENT (2026-09-16): the trip's title and the line you would tell someone, under the tally
+	var _hbm = _h[$ "best"];
+	if (is_struct(_hbm)) {
+		var _mmy = _tty + 12 + 3 * 10 + 4, _mmw = land ? _ttw : (_cw - 20);
+		draw_set_halign(fa_left);
+		draw_set_color(_ink); draw_set_alpha(.5); draw_text(_ttx, _mmy, "the moment");
+		draw_set_color(c_gold); draw_set_alpha(.95); draw_text(_ttx, _mmy + 10, __sheet_cut(_hbm.title, _mmw));
+		if (_hbm.line != "") { draw_set_color(_dim); draw_set_alpha(.8); draw_text_ext(_ttx, _mmy + 20, _hbm.line, 9, _mmw); }
+	}
 	// the log: newest at the bottom, as much as fits
 	if (land) {
-		var _lx = _cx + _cw + 12, _lw = room_width - _lx - 14, _dy0 = _cy + 12 + 30 + 6;
+		var _lx = _cx + _cw + 12, _lw = room_width - _lx - 14, _dy0 = __haul_dy0();   // (under the moment, when there is one)
 		draw_set_halign(fa_left);
 		draw_set_color(_ink); draw_set_alpha(.5);
 		draw_text(_lx, _dy0, "the diary");

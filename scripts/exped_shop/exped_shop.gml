@@ -23,6 +23,9 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 	if (_phase == "all" || _phase == "open") {
 		var _rmax = 0, _nstock = 1;
 		switch (_nd.kind) { case "village": _rmax = 1; _nstock = irandom_range(1, 2); break; case "town": _rmax = 2; _nstock = 2; break; case "city": _rmax = 3; _nstock = 3; break; }
+		// THE FAIR (region_event, 2026-09-16): the shelf twice itself and a rung up
+		var _evs = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _fair = (is_struct(_evs) && _evs.kind == "fair" && _evs.node == _tr.pos);
+		if (_fair) { _nstock *= 2; _rmax = min(3, _rmax + 1); }
 		// THE SIGN
 		var _sign;
 		var _sf = random(100);
@@ -58,7 +61,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		}
 		var _shop = { sign : _sign, keeper : _keeper, stock : _stock, bought : 0, mem_left : (is_struct(_shm) && _remembered) ? _shm.left : 0 };
 		if (is_struct(_a)) _a.shop = _shop; else { _a = { shop : _shop }; }
-		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does") + (_remembered ? choose(". the shelf is as they left it", ". the same things on the shelf, less what went", ". nothing new on the shelf yet") : ""));
+		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does") + (_remembered ? choose(". the shelf is as they left it", ". the same things on the shelf, less what went", ". nothing new on the shelf yet") : "") + ((_fair && !_remembered) ? ". the fair is on: the shelf is twice itself" : ""));
 		if (_phase == "open") return;
 	}
 	var _shop2 = is_struct(_a) ? _a[$ "shop"] : undefined;

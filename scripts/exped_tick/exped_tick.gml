@@ -16,6 +16,7 @@ function exped_tick(_secs) {
 	var _dt = _secs * _spd;
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
 	exped_mem_tick(_dt);     // the world's memories fade (2026-09-16)
+	exped_event_tick();      // ...and the regions' events roll (2026-09-16)
 	for (var _i = array_length(_e.trips) - 1; _i >= 0; _i--) {
 		var _tr = _e.trips[_i];
 		// A FIGHT PLAYS AT ITS OWN PACE (his ask, 2026-09-15): the debug clock
@@ -32,7 +33,7 @@ function exped_tick(_secs) {
 		array_push(_e.hauls, { id : _tr.id, dest : _tr.dest, sids : _tr.sids, names : _tr.names, cols : _tr.cols,
 		                       sid : _tr.sid, sname : _tr.sname, finds : _tr.finds, routed : _tr.routed,
 		                       cleared : _tr.cleared, wins : _tr.wins, log : _tr.log, hp : _tr.hp, hpmax : _tr.hpmax, mp : _tr[$ "mp"] ?? [], rgi : _tr[$ "rgi"] ?? 0,
-		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0, stance : _tr[$ "stance"] ?? "steady" });   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
+		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0, stance : _tr[$ "stance"] ?? "steady", best : exped_haul_moment(_tr) });   // (the best moment, 2026-09-16)   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
 		save_mark_dirty();
 	}
 }

@@ -65,6 +65,9 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 	var _lseas = region_season(_tr.dest, _lrg).idx;   // (the season's visitors - foe_kinds_at, 2026-09-16)
 	if (!region_season(_tr.dest, _lrg).on) _lseas = -1;
 	var _lkinds = foe_kinds_at(is_struct(_tr[$ "road"]) ? "road" : _lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind, _lseas);
+	// A PLAGUE OF RATS (region_event, 2026-09-16): rats in every fight the region rolls, three times over
+	var _lev = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
+	if (is_struct(_lev) && _lev.kind == "rats") repeat (3) array_push(_lkinds, "rat");
 	if (is_struct(_tr[$ "road"])) { var _rk = foe_kinds_at(_lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind, _lseas); for (var _q2 = 0; _q2 < array_length(_rk); _q2++) if (!array_contains(_lkinds, _rk[_q2])) array_push(_lkinds, _rk[_q2]); }   // (a road: the road's own and the land it crosses)
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;

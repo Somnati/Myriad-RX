@@ -15,12 +15,12 @@ function exped_offer_unpack(_s) {
 			if (array_length(_f) < 4) continue;
 			if (_f[0] == "P") {
 				// THE PERSONAL CARD (2026-09-16): its raw fields; exped_offer_fill finishes it once the world is known
-				var _qf = string_split(_f[3], ",");
+				var _qf = string_split(_f[3], "^");
 				if (array_length(_qf) < 9 || _qf[0] == "") continue;
 				var _nds = [];
 				if (_qf[7] != "") { var _nl = string_split(_qf[7], ";"); for (var _j = 0; _j < array_length(_nl); _j++) if (_nl[_j] != "") array_push(_nds, real(_nl[_j])); }
 				if (!is_array(_of[$ "pq"])) _of.pq = [];
-				array_push(_of.pq, { q : undefined, raw : { kind : _qf[0], node : real(_qf[1]), from : real(_qf[2]), foe : foe_legacy(_qf[3]), n : max(1, real(_qf[4])), mult : real(_qf[5]), who : _qf[6], nodes : _nds, pnote : _qf[8] },
+				array_push(_of.pq, { q : undefined, raw : { kind : _qf[0], node : real(_qf[1]), from : real(_qf[2]), foe : foe_legacy(_qf[3]), n : max(1, real(_qf[4])), mult : real(_qf[5]), who : _qf[6], nodes : _nds, pnote : _qf[8], vil : (array_length(_qf) > 9) ? real(_qf[9]) : 0 },
 				                     salt : -1, left : max(1, real(_f[1])), taken : real(_f[2]), easy : false, pers : true });
 				continue;
 			}

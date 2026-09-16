@@ -47,6 +47,11 @@ function exped_agent(_tr, _dt) {
 		if (_ss.name != _swas) array_push(_tr.log, "* the season turns. " + choose("it is " + _ss.name + " now", _ss.name + ", by the look of the trees", _ss.name + ". " + _tr.names[0] + " says so, and the sky agrees"));
 		_tr.season = _ss.name;
 	}
+	// THE REGION'S EVENT (2026-09-16): its start and its end, on the road
+	var _ev = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _evk = is_struct(_ev) ? _ev.kind : "";
+	var _evwas = _tr[$ "event"] ?? _evk;
+	if (_evk != _evwas) array_push(_tr.log, "* " + ((_evk != "") ? ("word on the road: " + _ev.txt) : choose("the " + _evwas + " is over, they say", "word on the road: the " + _evwas + " has passed")));
+	_tr.event = _evk;
 	// on a road
 	if (is_struct(_tr.road)) {
 		var _rd = _tr.road;

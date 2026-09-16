@@ -554,6 +554,7 @@ __qcard_face = function() {
 	if (is_struct(_sl) && _sl.taken != 0) {
 		var _who = "returned";
 		for (var _t = 0; _t < array_length(g.exped.trips); _t++) if (g.exped.trips[_t].id == _sl.taken) _who = exped_crew_txt(g.exped.trips[_t].names);
+		if (_sl.taken < 0 && is_struct(pl_dest)) { var _rvf = exped_rivals(pl_dest); _who = _rvf[clamp(-_sl.taken - 1, 0, array_length(_rvf) - 1)].name; }   // (a rival crew's, 2026-09-16)
 		draw_set_color(c_steelblue); draw_set_alpha(.95);
 		draw_text_ext(card_w * .5, card_h - 2 - _fh - 20, "taken  -  " + _who, 9, _tw);
 	}
@@ -860,8 +861,16 @@ __log_r = function() {
 		var _yend = _fighting ? (__fight_r().y - 6) : (room_height - 8 - (land ? 18 : 2));   // (over the buttons' row on a wide page)
 		return { x : log_x, y : log_y + 42, w : log_w, h : _yend - (log_y + 42) };   // (under the quest's island)
 	}
-	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12; return { x : _lx, y : list_y + 22 + 12, w : room_width - _lx - 14, h : room_height - 10 - (list_y + 22 + 12) }; }
+	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12, _dy = __haul_dy0() + 12; return { x : _lx, y : _dy, w : room_width - _lx - 14, h : room_height - 10 - _dy }; }   // (the band's own y - it sat 48px above it since the tally moved the band, 2026-09-16)
 	return { x : 0, y : 0, w : 0, h : 0 };
+};
+/// the haul page's "the diary" label y: under the tally, and under THE MOMENT when the haul has one (2026-09-16)
+__haul_dy0 = function() {
+	var _cy = list_y + 22, _mh = 0;
+	var _hi = __haul_i();
+	var _hb = (_hi >= 0) ? g.exped.hauls[_hi][$ "best"] : undefined;
+	if (is_struct(_hb)) { draw_set_font(fnt); _mh = 22 + ((_hb.line != "") ? (string_height_ext(_hb.line, 9, room_width - (14 + 224 + 12) - 14) + 2) : 0); }
+	return _cy + 12 + 30 + 6 + _mh;
 };
 gx_para = [];                        // the parallax backdrop's layers (built on the first draw)
 __gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };

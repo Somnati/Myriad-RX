@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_event",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_event",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -46,7 +46,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 		// the quest is THIS crew's now: the copy walks, the board keeps its own until the re-deal
 		_q = { kind : _q.kind, node : _q.node, foe : _q.foe, n : _q.n, done : 0, txt : _q.txt, mult : _q.mult, reward : _q.reward, hours : _q[$ "hours"] ?? 0, diff_txt : _q[$ "diff_txt"] ?? "fair",
 		       from : _q[$ "from"] ?? -1, at : 0, who : _q[$ "who"] ?? "", nodes : _q[$ "nodes"], p0 : _q[$ "p0"] ?? _q.node,
-		       pers : _q[$ "pers"] ?? 0, pnote : _q[$ "pnote"] ?? "" };   // (the mission-type pass, 2026-09-15; the personal card's note, 2026-09-16)
+		       pers : _q[$ "pers"] ?? 0, pnote : _q[$ "pnote"] ?? "", vil : _q[$ "vil"] ?? 0 };   // (the mission-type pass, 2026-09-15; the personal card's note, 2026-09-16)
 	}
 	// THE EXPLORE CARD (2026-09-15): wander until recalled, ramble for N
 	// hours, or survey N places - the agent turns them home when it is due
