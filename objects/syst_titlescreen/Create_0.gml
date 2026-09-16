@@ -299,6 +299,7 @@ __forge_roll = function() {
 		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
 		circ : 0, glow : 0, wdc : random_range(-4, 4),
 		effs : [], sparks : [], rings : [],
+		rt : 0, cr : random(360), ga : 0,   // THE 60 Hz TICK (2026-09-16): the halo's angle and the disc's flicker re-roll on it, not every monitor frame
 	};
 };
 __forge_roll();
@@ -318,6 +319,18 @@ __forge_wiggle = function(_s, _des) {
 };
 __forge_step = function() {
 	var _f = fg;
+	// ---- THE RANDOMS' CADENCE (2026-09-16): DE re-rolled the halo's angle, the
+	// disc's flicker and the big glows' jitter every frame at 60 fps; here
+	// they re-roll on a 60 Hz tick and hold between, so a 144 Hz monitor gets
+	// DE's slow shimmer and not a nervous one ----
+	_f.rt += delta;
+	var _tick = false;
+	while (_f.rt >= 1) { _f.rt -= 1; _tick = true; }
+	if (_tick) {
+		_f.cr = random(360);
+		_f.ga = random(lerp(1, -.5, _f.circ));
+		for (var _ti = 0; _ti < array_length(_f.effs); _ti++) { var _te = _f.effs[_ti]; _te.j1 = random_range(.95, 1.05); _te.j2 = random_range(-.05, .05); _te.j3 = random_range(-.05, .05); }
+	}
 	// ---- the dial's cycle, simulated (DE read g.cycle[s]) ----
 	_f.cycle += delta / _f.cycle_len;
 	if (_f.cycle >= 1) {
@@ -336,7 +349,7 @@ __forge_step = function() {
 				x : _f.px + random(144), y : _f.py + random(296),
 				size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
 				max_size : random(2), decay : lerp(60, 15, _sp0), alpha : 1, spd : random(3), part_chance : 1,
-				big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
+				big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0, j1 : random_range(.95, 1.05), j2 : random_range(-.05, .05), j3 : random_range(-.05, .05),
 			});
 		}
 	}
@@ -354,7 +367,7 @@ __forge_step = function() {
 			x : _f.px + random(144), y : _f.py + random(296),   // (born inside DE's room, not across the whole title)
 			size : 0, chg : 0, rec : .08 + random_range(-.02, .02), dmp : .9 + random_range(.1, -.1),
 			max_size : random(2), decay : 30, alpha : 1, spd : random(2), part_chance : 2,
-			big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0,
+			big_glow : roll_perc(5), glow_scale : random(1), rot : 0, rot_spd : random(.07), glow_alpha : 0, j1 : random_range(.95, 1.05), j2 : random_range(-.05, .05), j3 : random_range(-.05, .05),
 		});
 	}
 	_f.glow = clamp(_f.glow - .05 * delta, 0, 1);
@@ -419,11 +432,11 @@ __draw_forge = function() {
 	draw_set_circle_precision(48);
 	gpu_set_blendmode(bm_add);
 	// the cell (obj_gf_slot_cell's Draw Begin, claimed: no outline, no black disc)
-	var _cr = random(360);
+	var _cr = _f.cr;                                 // (held between 60 Hz ticks - __forge_step)
 	var _ca = _f.alpha, _cp = _f.circ;
 	draw_sprite_ext(spr_glow_sw, 0, _f.x, _f.y, _cp, _cp, _cr, _c, lerp(0, .6, _cp * (1 + _f.glow)) * _ca);
 	draw_sprite_ext(spr_glow_sw, 0, _f.x, _f.y, _cp, _cp * ((_ca * _ca) * _ca), 0, _c, lerp(0, .6, _cp * (1 + _f.glow)) * (1 - _ca));
-	var _ga = random(lerp(1, -.5, _cp));            // the flicker while small
+	var _ga = _f.ga;                                 // the flicker while small (held between ticks)
 	var _sz = _f.size * (_ca * _ca);
 	draw_set_alpha(clamp(1 - _ga, 0, 1) * _ca);
 	draw_circle_colour(_f.x - 1.5, _f.y - 1, _sz, _c, make_colour_hsv(c_hue(_c), 255, c_val(_c)), false);
@@ -444,8 +457,8 @@ __draw_forge = function() {
 		draw_circle_colour(_e.x, _e.y, _e.size, _c, _c, false);
 		draw_sprite_ext(spr_glow_sw, 0, _e.x, _e.y, .2, .2, 0, _c, .3 * _e.alpha);
 		if (_e.big_glow)
-			draw_sprite_ext(spr_glow_sw, 0, _e.x, _e.y, 20 * random_range(.95, 1.05), (.1 * _e.glow_scale) + random_range(-.05, .05), 0,
-				_comp, (.7 + random_range(-.05, .05)) * (_e.glow_alpha * _e.alpha));
+			draw_sprite_ext(spr_glow_sw, 0, _e.x, _e.y, 20 * (_e[$ "j1"] ?? 1), (.1 * _e.glow_scale) + (_e[$ "j2"] ?? 0), 0,
+				_comp, (.7 + (_e[$ "j3"] ?? 0)) * (_e.glow_alpha * _e.alpha));
 	}
 	// the sparks (obj_eff_shardspark's Draw Begin: a `scale` square on its centre)
 	for (var _i = 0; _i < array_length(_f.sparks); _i++) {
