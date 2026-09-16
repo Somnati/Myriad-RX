@@ -30,24 +30,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 	if (_sun_on && is_struct(_occ)) { var _od = point_distance(_ssx, _ssy, _occ.x, _occ.y); if (_od < _occ.r) _sfade *= clamp((_od - _occ.r * .55) / (_occ.r * .45), 0, 1); }
 	var _glr = (_cfg[$ "sky_glare"] ?? 70) * _ss;
 	var _tt = current_time;
-	// THE NEBULAE (2026-09-16): the galaxy's clouds in reach at their bearings, sized by their distance (galaxy_sky_build),
-	// each its own bent body (sh_nebula), additive, under the stars
-	var _nbs = _sky[$ "nebs"] ?? [];
-	if (array_length(_nbs) > 0) {
-		gpu_set_blendmode(bm_add);
-		for (var _i = 0; _i < array_length(_nbs); _i++) {
-			var _nn = _nbs[_i];
-			var _ndv = mat3_apply(_ct, _nn.x, _nn.y, _nn.z);
-			if (_ndv[2] > -.15) continue;
-			var _nf = 230 / -_ndv[2];
-			var _nsx = _cx + _ndv[0] * _nf, _nsy = _cy + _ndv[1] * _nf;
-			var _npr = min(_nf * dtan(_nn.ar), _w);
-			if (_nsx + _npr < 0 || _nsx - _npr > _w || _nsy + _npr < 0 || _nsy - _npr > _h) continue;
-			var _nfade = clamp((-_ndv[2] - .15) / .15, 0, 1);
-			nebula_draw(_nn.nb, _nsx, _nsy, _npr, (_cfg[$ "neb_alpha_sky"] ?? .5) * _nn.b * _nfade);
-		}
-		gpu_set_blendmode(bm_normal);
-	}
+	// (the nebulae are painted on the sphere by the fog pass - galaxy_fog_draw / sh_sky_fog; 2026-09-16)
 	var _stars = _sky.stars;
 	for (var _i = 0; _i < array_length(_stars); _i++) {
 		var _sk = _stars[_i];

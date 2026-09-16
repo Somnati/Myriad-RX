@@ -91,8 +91,8 @@ function starmap_config() {
 		neb_r_dn      : 220,
 		neb_r_rand    : 120,
 		neb_range     : 1500, // plane px: a sky shows the ones within this of its star
-		neb_alpha_map : .55,  // their strength on the map
-		neb_alpha_sky : .5,   // ...and in the sky (x a near / far factor)
+		neb_alpha_map : .3,   // their strength on the map ("very bright" at .55 - his report)
+		neb_alpha_sky : .3,   // ...and in the sky (x a near / far factor)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px

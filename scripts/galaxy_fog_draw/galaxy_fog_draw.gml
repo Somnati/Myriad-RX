@@ -4,8 +4,9 @@
 /// ray through the same projection the stars use, rotated into world
 /// space by the camera; the band is fbm density about the galactic
 /// plane, warm toward the core's bearing. The caller owns the canvas
-/// (surface_create(w, h), freed with the page). The nebulae are things
-/// of their own (galaxy_nebulae), drawn by galaxy_sky_draw (2026-09-16).
+/// (surface_create(w, h), freed with the page). The nebulae (galaxy_nebulae,
+/// the sky's nearest four) are painted here too, per pixel on the sphere
+/// (a billboard swung round the camera when one was near - 2026-09-16).
 function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	static _u = undefined;
 	if (is_undefined(_u)) _u = {
@@ -19,6 +20,11 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		cell : shader_get_uniform(sh_sky_fog, "u_cell"),
 		edge : shader_get_uniform(sh_sky_fog, "u_edge"),
 		dith : shader_get_uniform(sh_sky_fog, "u_dither"),
+		nebn : shader_get_uniform(sh_sky_fog, "u_nebn"),
+		nebd : shader_get_uniform(sh_sky_fog, "u_nebd"),
+		nebp : shader_get_uniform(sh_sky_fog, "u_nebp"),
+		nebc : shader_get_uniform(sh_sky_fog, "u_nebc"),
+		nebc2 : shader_get_uniform(sh_sky_fog, "u_nebc2"),
 	};
 	var _cfg = starmap_config();
 	if (!surface_exists(_canvas)) return;
@@ -36,6 +42,19 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	shader_set_uniform_f(_u.cell, planet_config().px_size);
 	shader_set_uniform_f(_u.edge, _sky.fog_edge);
 	shader_set_uniform_f(_u.dith, page_float() ? 0 : 1);   // (a float page dithers once, at its blit)
+	// THE NEBULAE (2026-09-16): the brightest four in reach (galaxy_sky_build's nebs, sorted there), on the sphere
+	var _nbs = _sky[$ "nebs"] ?? [], _nn = min(4, array_length(_nbs)), _nas = _cfg[$ "neb_alpha_sky"] ?? .3;
+	var _nd = array_create(12, 0), _np = array_create(16, 0), _nc = array_create(12, 0), _nc2 = array_create(12, 0);
+	for (var _i = 0; _i < _nn; _i++) {
+		var _n = _nbs[_i];
+		_nd[_i * 3] = _n.x; _nd[_i * 3 + 1] = _n.y; _nd[_i * 3 + 2] = _n.z;
+		_np[_i * 4] = dsin(_n.ar); _np[_i * 4 + 1] = dcos(_n.ar); _np[_i * 4 + 2] = _n.b * _nas; _np[_i * 4 + 3] = _n.nb.seed;
+		_nc[_i * 3] = colour_get_red(_n.nb.col) / 255; _nc[_i * 3 + 1] = colour_get_green(_n.nb.col) / 255; _nc[_i * 3 + 2] = colour_get_blue(_n.nb.col) / 255;
+		_nc2[_i * 3] = colour_get_red(_n.nb.col2) / 255; _nc2[_i * 3 + 1] = colour_get_green(_n.nb.col2) / 255; _nc2[_i * 3 + 2] = colour_get_blue(_n.nb.col2) / 255;
+	}
+	shader_set_uniform_f(_u.nebn, _nn);
+	shader_set_uniform_f_array(_u.nebd, _nd); shader_set_uniform_f_array(_u.nebp, _np);
+	shader_set_uniform_f_array(_u.nebc, _nc); shader_set_uniform_f_array(_u.nebc2, _nc2);
 	draw_surface(_canvas, 0, 0);
 	shader_reset();
 	gpu_set_blendmode(bm_normal);

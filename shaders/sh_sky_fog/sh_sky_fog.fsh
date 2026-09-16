@@ -22,7 +22,16 @@ uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
-// (the nebulae are things of their own now - galaxy_nebulae, sh_nebula - drawn by galaxy_sky_draw; 2026-09-16)
+// THE NEBULAE (2026-09-16, things of the galaxy - galaxy_nebulae): the nearest four in reach, painted here PER
+// PIXEL IN DIRECTION SPACE (a flat billboard swung round the camera when a big one was near - his report): each
+// cloud has a bearing on the sky, a tangent frame about it, and the view ray's offsets in that frame over the
+// sine of its apparent radius are the same -1..1 disc sh_nebula paints on the map - the same seed, the same
+// bent body, now fixed to the sphere
+uniform float u_nebn;      // how many of the four are live
+uniform vec3  u_nebd[4];   // their bearings (unit, world)
+uniform vec4  u_nebp[4];   // sin(apparent radius), cos(apparent radius), brightness, seed
+uniform vec3  u_nebc[4];   // colour
+uniform vec3  u_nebc2[4];  // the second colour
 
 // hash -> 3d value noise -> fbm. sampled on world DIRECTIONS, so the
 // fog is seamless over the whole sphere: no 2d wrap, no poles
@@ -72,6 +81,31 @@ float hash12(vec2 p)
     return fract((p3.x + p3.y) * p3.z);
 }
 
+// 2d value noise for the clouds' bodies (sh_nebula's, verbatim: the same seed must paint the same cloud)
+float vn2(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash12(i);
+    float b = hash12(i + vec2(1.0, 0.0));
+    float c = hash12(i + vec2(0.0, 1.0));
+    float d = hash12(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm2(vec2 p)
+{
+    float s = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+        s += a * vn2(p);
+        p = p * 2.03 + vec2(17.3, 9.1);
+        a *= 0.5;
+    }
+    return s;
+}
+
 void main()
 {
     // the same projection the star draws use: sx = cx + vx * 230 / -vz,
@@ -116,6 +150,29 @@ void main()
     float bias = mix(1.0, 0.15 + 1.7 * pow(1.0 - dc, 1.8), u_edge);
 
     vec3 rgb = col * dens * u_amp * (0.55 + 0.75 * (1.0 - dc)) * bias;
+
+    // THE NEBULAE on the sphere (see the uniforms): the ray's offsets in each cloud's tangent frame
+    for (int ni = 0; ni < 4; ni++) {
+        if (float(ni) >= u_nebn) break;
+        vec3 nd = u_nebd[ni];
+        vec4 np = u_nebp[ni];
+        float cw = dot(w, nd);
+        if (cw < np.y - 0.35) continue;   // (well outside the cone - the bend reaches past the radius, hence the margin)
+        vec3 t1 = normalize(cross(nd, vec3(0.0, 1.0, 0.0)));   // (a cloud sits on the band, never straight up)
+        vec3 t2 = cross(nd, t1);
+        vec2 nuv = vec2(dot(w, t1), dot(w, t2)) / max(np.x, 0.02);
+        if (dot(nuv, nuv) > 3.2) continue;
+        vec2 pp = nuv * 1.8 + vec2(np.w, np.w * 1.7);
+        vec2 qq = vec2(fbm2(pp), fbm2(pp + vec2(3.1, 7.3)));
+        vec2 wv = nuv + (qq - 0.5) * 1.1;
+        float nbody = 1.0 - smoothstep(0.1, 1.0, length(wv));
+        if (nbody <= 0.0) continue;
+        float nn = fbm2(pp * 2.3 + qq * 2.5 + vec2(1.7, 9.2));
+        float nf = 1.0 - abs(2.0 * fbm2(pp * 3.7 + qq * 1.5 + vec2(5.0, 2.0)) - 1.0);
+        float na = nbody * nbody * (0.25 + 0.9 * nn) * (0.5 + 0.7 * nf * nf);
+        vec3 ncol = mix(u_nebc[ni], u_nebc2[ni], smoothstep(0.25, 0.75, nn)) + vec3(0.25) * nf * nf * nbody;
+        rgb += ncol * na * np.z;
+    }
 
     // REMASTERED temporal dither, grain as chunky as the cells:
     // 30hz re-seed (half the shimmer) + LUMINANCE-GATED amplitude -

@@ -1021,11 +1021,21 @@ if (view == "galaxy") {
 	var _vcx = gx_x + _vw * .5 / gx_zoom, _vcy = gx_y + _vh * .5 / gx_zoom;
 	var _vis = star_visible(gx_x, gx_y, gx_zoom, _vw, _vh);
 	var _m = 12 * gx_zoom + 4;
+	// THE NEBULAE (2026-09-16): the galaxy's clouds (galaxy_nebulae), each its own bent body (sh_nebula), IN THE STAR PLANE
+	// (they are the clusters' own clouds: at the haze's depth they slid off their stars as the map panned - his note) and
+	// under the stars, so the stars stay crisp and pickable over them
+	var _nbs = galaxy_nebulae();
+	gpu_set_blendmode(bm_add);
+	for (var _ni = 0; _ni < array_length(_nbs); _ni++) {
+		var _nb = _nbs[_ni];
+		var _nx = (_nb.x - gx_x) * gx_zoom, _ny = (_nb.y - gx_y) * gx_zoom, _nr = _nb.r * gx_zoom;
+		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
+		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .3);
+	}
 	// THE DEMO'S STARS (his report, 2026-09-16: scaled glow sprites read as interpolation): a crisp square of the star's size,
 	// gs times over so it sits between the room's pixels, over a stepped glow frame at WHOLE scale (the frame by size, the
 	// demo's per-star bloom, additive, one pass) - the size ladder is the square's, a dwarf under a pixel, a giant seven
 	var _sgs = _gcf[$ "star_glow_size"] ?? 6, _sga = _gcf[$ "star_glow_alpha"] ?? .3;
-	gpu_set_blendmode(bm_add);
 	for (var _i = 0; _i < array_length(_vis); _i++) {
 		var _st = _sm.stars[_vis[_i]];
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
@@ -1065,15 +1075,6 @@ if (view == "galaxy") {
 	}
 	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, _fsh_ok ? c_white : rgb(255, 185, 125), _fsh_ok ? _gcf.fog_alpha : _gcf.fog_alpha * .5);
 	if (_fsh_ok) shader_reset();
-	// THE NEBULAE (2026-09-16): the galaxy's clouds (galaxy_nebulae), each its own bent body (sh_nebula), at the haze's depth
-	var _nbs = galaxy_nebulae();
-	for (var _ni = 0; _ni < array_length(_nbs); _ni++) {
-		var _nb = _nbs[_ni];
-		var _nx = ((_vcx + (_nb.x - _vcx) * _fd) - gx_x) * gx_zoom, _ny = ((_vcy + (_nb.y - _vcy) * _fd) - gx_y) * gx_zoom;
-		var _nr = _nb.r * _fd * gx_zoom;
-		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
-		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .55);
-	}
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
