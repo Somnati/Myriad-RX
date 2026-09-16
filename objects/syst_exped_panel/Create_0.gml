@@ -651,6 +651,22 @@ __hand_pick = function(_i) {
 __hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 50, h : 14 }; };
 /// a region's spot as a unit vector in TEXTURE space (sphere_uv's frame)
 __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat), dcos(_lat) * dsin(_lon)]; };
+/// THE GROUND UNDER A SPOT (his report, 2026-09-16: "the land shifts when i
+/// rotate"): the shader paints the terrain at 1 + relief x h - the mountains
+/// stand off the sphere in true parallax - so a spot projected on the unit
+/// sphere watched its land slide sideways toward the limb. This is the
+/// bake's height at the spot's texel (the same curve the shader marches:
+/// (elev - base) / (1 - base), to the 1.6) times the relief the render was
+/// given - the spot's radius, so marker and land move as one
+__spot_r = function(_pn, _lon, _lat) {
+	if (_pn.row < _pn.th || _pn.kind == "gas") return 1;
+	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;
+	var _relf = planet_config().relief * max(.4, _bump);
+	var _tx = floor(frac(_lon / 360 + .5 + 1) * _pn.tw) mod _pn.tw, _ty = clamp(floor((90 - _lat) / 180 * _pn.th), 0, _pn.th - 1);
+	var _base = max(_pn.sea, .34);
+	var _h = power(clamp((_pn.elev[_tx + _ty * _pn.tw] - _base) / max(.001, 1 - _base), 0, 1), 1.6);
+	return 1 + _relf * _h;
+};
 /// a press on one of the page's controls is not a grab of the world
 __pv_ui_hit = function() {
 	var _bk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _bk.x, _bk.y, _bk.x + _bk.w, _bk.y + _bk.h)) return true;
@@ -1437,7 +1453,8 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 			var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
 			var _v = mat3_apply(_mr, _t[0], _t[1], _t[2]);
 			if (_v[2] <= .1) continue;
-			var _sx = floor(_pcx) + floor(_v[0] * _pr * .5) * 2, _sy = floor(_pcy) + floor(_v[1] * _pr * .5) * 2;
+			var _rr = __spot_r(_pn, _rg.spot.lon, _rg.spot.lat);   // (on its own ground - the mountains' parallax, 2026-09-16)
+			var _sx = floor(_pcx) + floor(_v[0] * _rr * _pr * .5) * 2, _sy = floor(_pcy) + floor(_v[1] * _rr * _pr * .5) * 2;
 			var _on = (_i == _focus);
 			// an OUTLINED SQUARE (his ask): black 8x8 under a 4x4 in the colour - a 2px outline
 			draw_sprite_ext(spr_pixel_1x1, 0, _sx - 4, _sy - 4, 8, 8, 0, c_black, .9);
