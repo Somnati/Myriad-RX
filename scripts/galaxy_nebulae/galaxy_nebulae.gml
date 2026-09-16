@@ -40,11 +40,14 @@ function galaxy_nebulae() {
 		// THE HEIGHT off the galactic plane (his ask, 2026-09-16: all on the band, the sky's top and bottom stayed black): a
 		// triangular roll - most within a third of neb_height of the plane, a few right up at it, either side
 		var _h5 = hash_mix(_c.h, 23), _h6 = hash_mix(_c.h, 29);
-		var _hgt = ((_h5 mod 1000) / 1000 + (_h6 mod 1000) / 1000 - 1) * (_cfg[$ "neb_height"] ?? 700);
-		// THE THICKNESS (his ask, 2026-09-16: a star whose height falls inside it is INSIDE the cloud): a third to three
-		// quarters of the radius either side of its height
+		// THE THICKNESS (his ask, 2026-09-16: a star whose height falls inside it is INSIDE the cloud): a fifth to nine
+		// twentieths of the radius either side of its middle - a flat cloud, the disc's own shape
 		var _h7 = hash_mix(_c.h, 31);
-		var _thk = _r * ((_cfg[$ "neb_thick_min"] ?? .35) + (_cfg[$ "neb_thick_rand"] ?? .4) * ((_h7 mod 1000) / 1000));
+		var _thk = _r * ((_cfg[$ "neb_thick_min"] ?? .2) + (_cfg[$ "neb_thick_rand"] ?? .25) * ((_h7 mod 1000) / 1000));
+		// ...and the height never lifts it off the plane (his report: a star on a cloud's footprint found the cloud far above -
+		// the map is the truth): within four fifths of the thickness, triangular, so a cloud leans above or below the plane and
+		// a near star sees it high or low, but the plane is always inside it
+		var _hgt = ((_h5 mod 1000) / 1000 + (_h6 mod 1000) / 1000 - 1) * _thk * (_cfg[$ "neb_lean"] ?? .8);
 		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, t : _thk, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
 	}
 	_list = _out; _seed = _sm.seed;

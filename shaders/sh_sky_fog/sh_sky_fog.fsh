@@ -140,7 +140,7 @@ void main()
     float bulge = pow(toward, 9.0) * exp(-w.y * w.y * 14.0);
     dens += bulge * (0.35 + 0.65 * smoothstep(0.25, 0.7, n)) * (0.5 + 0.8 * u_edge);
     // INSIDE THE BULGE (2026-09-16): no one bearing is the core any more - the glow is all round, thickest on the plane
-    dens += u_corein * (0.45 + 0.55 * smoothstep(0.25, 0.7, n)) * exp(-w.y * w.y * mix(14.0, 1.5, u_corein));
+    dens += u_corein * (0.9 + 1.1 * smoothstep(0.25, 0.7, n)) * exp(-w.y * w.y * mix(14.0, 1.5, u_corein));   // (doubled 2026-09-16: "not as bright as i expected")
 
     // warm at the core bearing, cool away - agrees with the star map
     vec2 wf = w.xz;

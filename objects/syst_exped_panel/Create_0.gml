@@ -541,6 +541,7 @@ __draw_system = function() {
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false, false);
 	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf, false);   // (no sun on this sky: the star is drawn as itself)
+	__bloom(wb_surf, _w, _h, 0, 0, (starmap_config()[$ "sky_bloom"] ?? .55) * (1 + (_sky[$ "rich"] ?? 0)), 1, true);   // THE SKY'S GLOW (2026-09-16): the core blazes
 	var _pls = sy_sys.planets, _np = array_length(_pls), _s = sy_warp_s;
 	var _cfgp = planet_config(), _pxs = max(1, _cfgp.px_size);
 	// the dive's focus: the picked world's spot anchors the swell
@@ -881,7 +882,7 @@ gx_glow_a = -1; gx_glow_b = -1;      // the bloom's two half-size passes (sh_blu
 // THE BLOOM composites INTO the page (2026-09-15): float all the way, so
 // the halos meet 8-bit only at the page's blit (x / y are kept for the
 // 8-bit path, where it still lands on the screen)
-__bloom = function(_src, _w, _h, _x, _y, _a, _ds = 1) {   // (ds: the draw scale on the page - the map's surface is drawn gs times over, 2026-09-16)
+__bloom = function(_src, _w, _h, _x, _y, _a, _ds = 1, _into = false) {   // (_into: back into the source whatever the page - the skies, 2026-09-16)   // (ds: the draw scale on the page - the map's surface is drawn gs times over, 2026-09-16)
 	var _hw = max(2, floor(_w * .5 * _ds)), _hh = max(2, floor(_h * .5 * _ds));   // (half the ROOM's size: a denser source blurs the same width)
 	if (!surface_exists(gx_glow_a) || surface_get_width(gx_glow_a) != _hw || surface_get_height(gx_glow_a) != _hh) { if (surface_exists(gx_glow_a)) surface_free(gx_glow_a); gx_glow_a = page_surface(_hw, _hh); }
 	if (!surface_exists(gx_glow_b) || surface_get_width(gx_glow_b) != _hw || surface_get_height(gx_glow_b) != _hh) { if (surface_exists(gx_glow_b)) surface_free(gx_glow_b); gx_glow_b = page_surface(_hw, _hh); }
@@ -905,7 +906,7 @@ __bloom = function(_src, _w, _h, _x, _y, _a, _ds = 1) {   // (ds: the draw scale
 	shader_reset();
 	surface_reset_target();
 	gpu_set_blendmode(bm_add);
-	if (page_float()) { surface_set_target(_src); draw_surface_ext(gx_glow_b, 0, 0, _w / _hw, _h / _hh, 0, c_white, _a); surface_reset_target(); }
+	if (page_float() || _into) { surface_set_target(_src); draw_surface_ext(gx_glow_b, 0, 0, _w / _hw, _h / _hh, 0, c_white, _a); surface_reset_target(); }
 	else draw_surface_ext(gx_glow_b, _x, _y, _w * _ds / _hw, _h * _ds / _hh, 0, c_white, _a);
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
@@ -1792,6 +1793,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _mi0 = 0; _mi0 < _nmn0; _mi0++) { var _mv0 = moon_view_pos(_pn, _mns0[_mi0], _cam); var _k0 = 6 / max(6 - _mv0[2], .5); array_push(_occs, { kind : "moon", x : _pcx + _mv0[0] * _pr * _k0, y : _pcy + _mv0[1] * _pr * _k0, r : max(1, _mv0[3] * _pr * 1.02 * _k0) }); }
 	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, _occs);   // (the sun fades behind the world - his report 2026-09-16)
 	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	__bloom(wb_surf, _w, _h, 0, 0, (starmap_config()[$ "sky_bloom"] ?? .55) * (1 + (_sky[$ "rich"] ?? 0)), 1, true);   // THE SKY'S GLOW (2026-09-16): before the world - the sky alone blooms
 	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
 	sky_met_t += delta / 60;
 	if (is_undefined(sky_met) && sky_met_t > (starmap_config()[$ "sky_meteor"] ?? 28) * random_range(.6, 1.5)) {

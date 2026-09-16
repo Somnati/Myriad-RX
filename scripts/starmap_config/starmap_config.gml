@@ -89,7 +89,8 @@ function starmap_config() {
 		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
 		// ---- THE RICHNESS (2026-09-16): a sky reads its neighbourhood's density (0..1) and its depth in the core (0..1) ----
-		sky_rich_max   : 480, // extra stars kept at the densest cell (on sky_max)
+		sky_rich_max   : 1100, // extra stars kept at the densest cell (on sky_max)
+		sky_bloom      : .55, // THE SKY'S GLOW (2026-09-16): the galaxy page's bloom on the sky, x (1 + density) - the core blazes
 		sky_rich_cloud : 2,   // the star clouds' grain, x (1 + this x density)
 		sky_rich_fog   : .6,  // the band's brightness, + this x density...
 		sky_core_fog   : 1.6, // ...+ this x core depth (and the band fattens to a glow all round inside the bulge)
@@ -99,12 +100,12 @@ function starmap_config() {
 		neb_r_min     : 90,   // radius, plane px: this + density x neb_r_dn + up to neb_r_rand
 		neb_r_dn      : 220,
 		neb_r_rand    : 120,
-		neb_height    : 700,  // plane px: how far off the galactic plane they reach (triangular: most within a third of it)
+		neb_lean      : .8,   // a cloud's middle sits within this x its thickness off the plane (triangular): it leans, it never leaves
 		neb_range     : 1500, // plane px: a sky shows the ones within this of its star
 		neb_alpha_map : .3,   // their strength on the map ("very bright" at .55 - his report)
 		neb_alpha_sky : .3,   // ...and in the sky (x a near / far factor)
-		neb_thick_min : .35,  // half-thickness as a fraction of the radius: this + up to neb_thick_rand
-		neb_thick_rand: .4,
+		neb_thick_min : .2,   // half-thickness as a fraction of the radius: this + up to neb_thick_rand (flat clouds: the disc's shape)
+		neb_thick_rand: .25,
 		star_height   : 140,  // plane px per unit of a star's parallax depth about 1 (d .85..1.15: +-21 px) - a star's height off the plane
 		                      // (900 stood the near ones far off the band - "the star height feels weird", his report 2026-09-16: a thin disc, the
 		                      // sky's bearings the map's angles, a few degrees of lean at most)

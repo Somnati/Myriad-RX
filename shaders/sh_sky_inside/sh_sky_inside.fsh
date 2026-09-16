@@ -66,6 +66,45 @@ float fbm2(vec2 p)
     return s;
 }
 
+// 3d value noise (sh_sky_fog's): the cloud's structure along the height, so a ray climbing out of it sees
+// something other than the star's own patch stretched into a curtain (his report, 2026-09-16)
+float h3(vec3 p)
+{
+    p = fract(p * 0.3183099 + vec3(0.10, 0.17, 0.13));
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float vn3(vec3 p)
+{
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float n000 = h3(i);
+    float n100 = h3(i + vec3(1.0, 0.0, 0.0));
+    float n010 = h3(i + vec3(0.0, 1.0, 0.0));
+    float n110 = h3(i + vec3(1.0, 1.0, 0.0));
+    float n001 = h3(i + vec3(0.0, 0.0, 1.0));
+    float n101 = h3(i + vec3(1.0, 0.0, 1.0));
+    float n011 = h3(i + vec3(0.0, 1.0, 1.0));
+    float n111 = h3(i + vec3(1.0, 1.0, 1.0));
+    return mix(mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
+               mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y), f.z);
+}
+
+float fbm3(vec3 p)
+{
+    float a = 0.5;
+    float s = 0.0;
+    for (int i = 0; i < 4; i++) {
+        s += a * vn3(p);
+        p *= 2.13;
+        a *= 0.5;
+    }
+    return s;
+}
+
+
 // the interleaved gradient (jimenez): an ordered pattern that reads as a smooth tone at a glance
 float ign(vec2 p)
 {
@@ -128,7 +167,8 @@ void main()
         float n = fbm2(pp * 2.3 + q * 2.5 + vec2(1.7, 9.2));
         float f = 1.0 - abs(2.0 * fbm2(pp * 3.7 + q * 1.5 + vec2(5.0, 2.0)) - 1.0);
         float dens = body * body * (0.25 + 0.9 * n) * (0.5 + 0.7 * f * f);
-        dens *= exp(-(p.y * p.y) / (u_t * u_t) * 1.5);      // the slab's soft profile
+        dens *= exp(-(p.y * p.y) / (u_t * u_t) * 2.4);      // the slab's profile, brisk: the top of the sky clears
+        dens *= 0.45 + 1.1 * fbm3(vec3(p.x * 2.6, p.y * 5.0, p.z * 2.6) + u_seed * 2.3);   // the third axis: structure with height
         vec3 col = mix(u_col, u_col2, smoothstep(0.25, 0.75, n)) + vec3(0.25) * f * f * body;
         float ds = dens * st;
         glow += col * ds * exp(-od * u_ext);
