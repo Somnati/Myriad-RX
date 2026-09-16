@@ -123,13 +123,15 @@ function galaxy_sky_build(_dw = undefined) {
 	// plane); within a cloud's radius and its thickness about the cloud's height, the star is in it - the deepest one
 	// (least of the two edge fractions) is the sky's: sh_sky_inside washes the sky by the path out of the cloud along
 	// every ray (long along the plane, short out the thin axis) and dims what lies beyond by the same path
+	// (2026-09-16: NEAR counts too - within 1.6 radii and 1.4 thicknesses; the march clips every ray to the body's bounds, so a
+	// star just outside sees the cloud where it is and its own sky clear - it took the whole colour before, his report)
 	_out.inside = undefined;
 	var _hz = (_me.d - 1) * (_cfg[$ "star_height"] ?? 900), _best = 1;
 	for (var _i = 0; _i < array_length(_nbs); _i++) {
 		var _nb = _nbs[_i], _nt = _nb[$ "t"] ?? (_nb.r * .5), _nhh = _nb[$ "h"] ?? 0;
 		var _exy = point_distance(_me.x, _me.y, _nb.x, _nb.y) / _nb.r, _ev = abs(_hz - _nhh) / _nt;
-		if (_exy >= 1 || _ev >= 1) continue;
-		var _edge = max(_exy, _ev);
+		if (_exy >= 1.6 || _ev >= 1.4) continue;
+		var _edge = max(_exy / 1.6, _ev / 1.4);
 		if (_edge >= _best) continue;
 		_best = _edge;
 		// the star relative to the cloud's centre in the sky's frame (x = east on the map, y down the sky, z = the map's south), in radii

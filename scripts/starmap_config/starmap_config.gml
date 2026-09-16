@@ -102,8 +102,8 @@ function starmap_config() {
 		neb_thick_min : .35,  // half-thickness as a fraction of the radius: this + up to neb_thick_rand
 		neb_thick_rand: .4,
 		star_height   : 900,  // plane px per unit of a star's parallax depth about 1 (d .85..1.15: +-135 px) - a star's height
-		neb_in_amp    : .55,  // INSIDE a nebula: the glow's strength...
-		neb_in_ext    : 1.2,  // ...and the extinction per radius of path (the sky beyond dims; 2.4 radii across a cloud)
+		neb_in_amp    : .8,   // THE NEAR CLOUD (marched): the glow's strength...
+		neb_in_ext    : 1.4,  // ...and the extinction per unit of gathered density (the sky beyond dims)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px

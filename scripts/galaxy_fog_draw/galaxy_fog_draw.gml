@@ -32,7 +32,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		cam : shader_get_uniform(sh_sky_inside, "u_cam"), geom : shader_get_uniform(sh_sky_inside, "u_geom"), ctr : shader_get_uniform(sh_sky_inside, "u_ctr"),
 		cell : shader_get_uniform(sh_sky_inside, "u_cell"), s : shader_get_uniform(sh_sky_inside, "u_s"), t : shader_get_uniform(sh_sky_inside, "u_t"),
 		col : shader_get_uniform(sh_sky_inside, "u_col"), col2 : shader_get_uniform(sh_sky_inside, "u_col2"), seed : shader_get_uniform(sh_sky_inside, "u_seed"),
-		amp : shader_get_uniform(sh_sky_inside, "u_amp"), ext : shader_get_uniform(sh_sky_inside, "u_ext"), mode : shader_get_uniform(sh_sky_inside, "u_mode"),
+		amp : shader_get_uniform(sh_sky_inside, "u_amp"), ext : shader_get_uniform(sh_sky_inside, "u_ext"),
 		time : shader_get_uniform(sh_sky_inside, "u_time"), dith : shader_get_uniform(sh_sky_inside, "u_dither"),
 		sun : shader_get_uniform(sh_sky_inside, "u_sun"), sunon : shader_get_uniform(sh_sky_inside, "u_sunon"),
 	};
@@ -55,7 +55,9 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	shader_set_uniform_f(_u.dith, page_float() ? 0 : 1);   // (a float page dithers once, at its blit)
 	// THE NEBULAE (2026-09-16): the brightest eight in reach (galaxy_sky_build's nebs, sorted there), on the sphere - the
 	// shader's arrays are eight; a pixel outside a cloud's cone pays one dot product for it, no more
-	var _nbs = _sky[$ "nebs"] ?? [], _nn = min(8, array_length(_nbs)), _nas = _cfg[$ "neb_alpha_sky"] ?? .3;
+	var _nbs0 = _sky[$ "nebs"] ?? [], _nbs = [], _nas = _cfg[$ "neb_alpha_sky"] ?? .3, _inb = _sky[$ "inside"];
+	for (var _i = 0; _i < array_length(_nbs0); _i++) if (!is_struct(_inb) || _nbs0[_i].nb != _inb.nb) array_push(_nbs, _nbs0[_i]);   // (the marched cloud is not a patch as well)
+	var _nn = min(8, array_length(_nbs));
 	var _nd = array_create(24, 0), _np = array_create(32, 0), _nc = array_create(24, 0), _nc2 = array_create(24, 0);
 	for (var _i = 0; _i < _nn; _i++) {
 		var _n = _nbs[_i];
@@ -69,11 +71,10 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	shader_set_uniform_f_array(_u.nebc, _nc); shader_set_uniform_f_array(_u.nebc2, _nc2);
 	draw_surface(_canvas, 0, 0);
 	shader_reset();
-	// INSIDE A NEBULA (2026-09-16): the sky through the cloud - what lies beyond dims by the path out along each ray
-	// (a multiply pass), then the cloud's own glow by the same path (an add pass); softened toward the cloud's edge
+	// THE NEAR CLOUD (2026-09-16): the sky through it - its body marched along every ray (sh_sky_inside): what lies
+	// beyond dims by the density gathered, the cloud's own glow adds by it - strong toward its thick, nothing past it
 	var _in = _sky[$ "inside"];
 	if (is_struct(_in) && shader_is_compiled(sh_sky_inside)) {
-		var _soft = 1 - power(_in.edge, 3);   // (the edge fraction: 1 at the centre, 0 at the wall - no pop entering or leaving)
 		var _nb = _in.nb;
 		shader_set(sh_sky_inside);
 		shader_set_uniform_f_array(_ui.cam, _cam);
@@ -85,18 +86,15 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		shader_set_uniform_f(_ui.col, colour_get_red(_nb.col) / 255, colour_get_green(_nb.col) / 255, colour_get_blue(_nb.col) / 255);
 		shader_set_uniform_f(_ui.col2, colour_get_red(_nb.col2) / 255, colour_get_green(_nb.col2) / 255, colour_get_blue(_nb.col2) / 255);
 		shader_set_uniform_f(_ui.seed, _nb.seed);
-		shader_set_uniform_f(_ui.amp, (_cfg[$ "neb_in_amp"] ?? .55) * _soft);
-		shader_set_uniform_f(_ui.ext, (_cfg[$ "neb_in_ext"] ?? 1.2) * _soft);
+		shader_set_uniform_f(_ui.amp, _cfg[$ "neb_in_amp"] ?? .8);
+		shader_set_uniform_f(_ui.ext, _cfg[$ "neb_in_ext"] ?? 1.4);
 		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
 		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
 		var _lw = _sky.light_w;
 		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
 		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
-		shader_set_uniform_f(_ui.mode, 0);
-		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);   // (multiply: the sky so far, dimmed by the cloud)
-		draw_surface(_canvas, 0, 0);
-		shader_set_uniform_f(_ui.mode, 1);
-		gpu_set_blendmode(bm_add);
+		// ONE PASS (2026-09-16): rgb the glow, alpha the transmittance - dest = glow + dest x transmittance
+		gpu_set_blendmode_ext(bm_one, bm_src_alpha);
 		draw_surface(_canvas, 0, 0);
 		shader_reset();
 	}

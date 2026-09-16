@@ -1,17 +1,19 @@
 //
-// INSIDE A NEBULA (his ask, 2026-09-16: "say the nebulas have a certain
-// thickness and any stars that have depth that sits inside its thickness
-// will be inside the nebula and much of the sky takes on this look").
-// the cloud is a slab of a cylinder: radius 1 (everything here is in
-// radii), half-thickness u_t about its middle; the star sits at u_s inside
-// it. every fragment is a view ray (sh_sky_fog's projection); the ray's
-// PATH OUT of the cloud - to the cylinder's wall or the slab's face,
-// whichever comes first - is the cloud's depth that way: long along the
-// plane, short out the thin axis. mottled by 3d noise on the direction,
-// that depth is an optical depth. two passes over the same rays:
-//   u_mode 0 - TRANSMITTANCE, multiplied onto the sky (what lies beyond
-//              the cloud dims: the band, the stars, the other clouds)
-//   u_mode 1 - THE GLOW, added: the cloud's own two colours by the depth
+// THE NEAR CLOUD, MARCHED (2026-09-16, his report: a star just outside a
+// cloud's drawn body but inside its circle took the whole colour, and
+// evenly). the cloud is the map's body (sh_nebula's function, the same
+// seed: the bent disc, the mottle, the filaments) standing on the plane
+// with a soft thickness; the star sits at u_s in that frame (radii). every
+// fragment is a view ray (sh_sky_fog's projection): it is clipped to the
+// cloud's bounds (the unit cylinder, the slab |y| < u_t), then walked in
+// N steps, the body's density read at every step - so a ray toward the
+// thick of the cloud gathers much, a ray through its torn skirt little,
+// a ray past it nothing; a star in a hole of the body sees the body
+// glow around it and its own sky stay clear. the walk yields the optical
+// depth (extinction: what lies beyond dims by it) and the glow gathered
+// front to back (the cloud's two colours, the filaments whitening). ONE
+// pass: rgb = the glow, alpha = the transmittance, blended (one,
+// src_alpha): dest = glow + dest x transmittance.
 //
 varying vec2 v_vTexcoord;
 varying vec4 v_vColour;
@@ -26,55 +28,41 @@ uniform vec3  u_col;
 uniform vec3  u_col2;
 uniform float u_seed;
 uniform float u_amp;     // the glow's strength
-uniform float u_ext;     // the extinction per radius of path
-uniform float u_mode;    // 0 transmittance, 1 glow
-uniform float u_time;    // the dither's slide (glow pass)
+uniform float u_ext;     // the extinction per unit of gathered density
+uniform float u_time;    // the dither's slide, the walk's jitter
 uniform float u_dither;  // 1 on an 8-bit page
-uniform vec3  u_sun;     // the system's star's bearing (world): it is inside the cloud with us - the cloud does not dim it
+uniform vec3  u_sun;     // the system's star's bearing (world): it is near us, the cloud does not dim it
 uniform float u_sunon;   // 1 when the sun is on this sky (the orbit view), 0 on the system page
-
-float h3(vec3 p)
-{
-    p = fract(p * 0.3183099 + vec3(0.10, 0.17, 0.13));
-    p *= 17.0;
-    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
-}
-
-float vn3(vec3 p)
-{
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    float n000 = h3(i);
-    float n100 = h3(i + vec3(1.0, 0.0, 0.0));
-    float n010 = h3(i + vec3(0.0, 1.0, 0.0));
-    float n110 = h3(i + vec3(1.0, 1.0, 0.0));
-    float n001 = h3(i + vec3(0.0, 0.0, 1.0));
-    float n101 = h3(i + vec3(1.0, 0.0, 1.0));
-    float n011 = h3(i + vec3(0.0, 1.0, 1.0));
-    float n111 = h3(i + vec3(1.0, 1.0, 1.0));
-    return mix(mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
-               mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y), f.z);
-}
-
-float fbm(vec3 p)
-{
-    float a = 0.5;
-    float s = 0.0;
-    for (int i = 0; i < 4; i++) {
-        s += a * vn3(p);
-        p *= 2.13;
-        a *= 0.5;
-    }
-    return s;
-}
-
 
 float hash12(vec2 p)
 {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
     p3 += dot(p3, p3.yzx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
+}
+
+float vn2(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash12(i);
+    float b = hash12(i + vec2(1.0, 0.0));
+    float c = hash12(i + vec2(0.0, 1.0));
+    float d = hash12(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float fbm2(vec2 p)
+{
+    float s = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+        s += a * vn2(p);
+        p = p * 2.03 + vec2(17.3, 9.1);
+        a *= 0.5;
+    }
+    return s;
 }
 
 void main()
@@ -85,42 +73,68 @@ void main()
     vec3 d  = normalize(vec3(px, -230.0));
     vec3 w  = vec3(dot(u_cam[0], d), dot(u_cam[1], d), dot(u_cam[2], d));
 
-    // the path out: the slab's face this way, and the cylinder's wall
-    float ty = 1.0e6;
-    if (abs(w.y) > 1.0e-4) ty = (((w.y > 0.0) ? u_t : -u_t) - u_s.y) / w.y;
+    // the ray against the cloud's bounds: the unit cylinder about the axis, the slab across it
     vec2 sxz = u_s.xz;
     vec2 wxz = w.xz;
     float a = dot(wxz, wxz);
     float b = 2.0 * dot(sxz, wxz);
     float c = dot(sxz, sxz) - 1.0;
-    float tr = 1.0e6;
+    float t0 = -1.0e6;
+    float t1 =  1.0e6;
+    bool hit = true;
     if (a > 1.0e-5) {
-        float disc = max(b * b - 4.0 * a * c, 0.0);
-        tr = (-b + sqrt(disc)) / (2.0 * a);
-    }
-    float path = max(min(ty, tr), 0.0);
-
-    // the cloud's own mottle on the direction: some ways are thicker than others
-    float m = 0.5 + 1.0 * fbm(w * 2.6 + u_seed);
-    float od = path * m * u_ext;
-    float trans = exp(-od);
-    // the sun's patch clears: it sits inside the cloud with us, the cloud lies beyond it, not in front (bug hunt 2026-09-16)
-    float sunw = u_sunon * smoothstep(0.970, 0.9986, dot(w, u_sun));
-    trans = mix(trans, 1.0, sunw);
-
-    if (u_mode < 0.5) {
-        gl_FragColor = vec4(vec3(trans), 1.0);
+        float disc = b * b - 4.0 * a * c;
+        if (disc < 0.0) hit = false;
+        else { float sq = sqrt(disc); t0 = (-b - sq) / (2.0 * a); t1 = (-b + sq) / (2.0 * a); }
+    } else if (c > 0.0) hit = false;
+    float ty0 = -1.0e6;
+    float ty1 =  1.0e6;
+    if (abs(w.y) > 1.0e-4) {
+        float ta = (-u_t - u_s.y) / w.y;
+        float tb = ( u_t - u_s.y) / w.y;
+        ty0 = min(ta, tb); ty1 = max(ta, tb);
+    } else if (abs(u_s.y) > u_t) hit = false;
+    float tin  = max(max(t0, ty0), 0.0);
+    float tout = min(t1, ty1);
+    if (!hit || tout <= tin) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
-    float glow = 1.0 - trans;
-    float hue = smoothstep(0.3, 0.7, fbm(w * 4.1 + u_seed * 1.3 + vec3(2.0, 5.0, 1.0)));
-    vec3 rgb = mix(u_col, u_col2, hue) * glow * u_amp;
+
+    // THE WALK: the body read at every step (the map's function - the same cloud), front to back
+    float sfr = floor(u_time * 60.0);
+    float jit = hash12(floor(v_vTexcoord * u_geom) + vec2(sfr * 3.0, sfr * 11.0));
+    float st = (tout - tin) / 10.0;
+    float od = 0.0;
+    vec3 glow = vec3(0.0);
+    for (int i = 0; i < 10; i++) {
+        float t = tin + (float(i) + jit) * st;
+        vec3 p = u_s + w * t;
+        vec2 uv = vec2(p.x, -p.z);                          // (the map's frame: y down the map is the sky's -z)
+        vec2 pp = uv * 1.8 + vec2(u_seed, u_seed * 1.7);
+        vec2 q = vec2(fbm2(pp), fbm2(pp + vec2(3.1, 7.3)));
+        vec2 wv = uv + (q - 0.5) * 1.1;
+        float body = 1.0 - smoothstep(0.1, 1.0, length(wv));
+        if (body <= 0.0) continue;
+        float n = fbm2(pp * 2.3 + q * 2.5 + vec2(1.7, 9.2));
+        float f = 1.0 - abs(2.0 * fbm2(pp * 3.7 + q * 1.5 + vec2(5.0, 2.0)) - 1.0);
+        float dens = body * body * (0.25 + 0.9 * n) * (0.5 + 0.7 * f * f);
+        dens *= exp(-(p.y * p.y) / (u_t * u_t) * 1.5);      // the slab's soft profile
+        vec3 col = mix(u_col, u_col2, smoothstep(0.25, 0.75, n)) + vec3(0.25) * f * f * body;
+        float ds = dens * st;
+        glow += col * ds * exp(-od * u_ext);
+        od += ds;
+    }
+    float trans = exp(-od * u_ext);
+    // the sun's patch clears: it sits near us, the cloud lies beyond it, not in front
+    float sunw = u_sunon * smoothstep(0.970, 0.9986, dot(w, u_sun));
+    trans = mix(trans, 1.0, sunw);
+    vec3 rgb = glow * u_amp;
     // the dither (sh_sky_fog's law) on an 8-bit page: a wide smooth wash bands without it
     vec2 ip = (u_cell > 0.5) ? floor(v_vTexcoord * u_geom / u_cell) : floor(v_vTexcoord * u_geom);
-    float sfr = floor(u_time * 60.0);
     ip += vec2(sfr * 13.0, sfr * 7.0);
     float g = hash12(ip);
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
-    gl_FragColor = vec4(max(rgb, vec3(0.0)), 1.0) * v_vColour;
+    gl_FragColor = vec4(max(rgb, vec3(0.0)), trans);
 }
