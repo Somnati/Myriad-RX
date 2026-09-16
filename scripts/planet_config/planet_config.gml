@@ -10,6 +10,6 @@ function planet_config() {
 		px_size  : 2,      // room px per shader cell (0 = no pixelation)
 		relief   : .09,    // MOUNTAINS: the tallest peak, in radii (a little taller, 2026-09-16) - the
 		                   // silhouette bumps by this (sh_planet marches it)
-		keep     : 4,      // worlds the cache remembers (planet_get)
+		keep     : 8,      // worlds the cache remembers (planet_get; ~3 mb a world - four thrashed once the home world, the trips' and a viewed one were all in play, 2026-09-16)
 	};
 }
