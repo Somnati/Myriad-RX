@@ -48,6 +48,11 @@ function exped_odds(_d, _q, _crew, _ri = 0) {
 			case "defend": _fights = _q.n; break;
 			case "survey": _fights = 1; break;
 			case "gather": _fights = .5; break;
+			// the town quests (2026-09-16)
+			case "parcel": case "goat": case "count": case "nothing": _fights = .6; break;
+			case "shop": _fights = .3; break;
+			case "cellars": _fights = 2; break;
+			case "well": _fights = 1.8; break;
 		}
 		if (_q.kind == "escort") _fights += (_q[$ "hours"] ?? 0) * EXPED_ENC / 100;
 		_fights += (_q[$ "hours"] ?? 0) * EXPED_ENC / 100;

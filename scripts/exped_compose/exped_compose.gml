@@ -65,6 +65,15 @@ function exped_compose(_kind, _tr) {
 			var _art = (string_pos(string_char_at(_adj, 1), "aeiou") > 0) ? "an " : "a ";
 			return "the tavern at " + _here + ": " + choose("talk of", "a story about", "an argument over", "a song about", "a bet on", "a warning about") + " " + _art + _adj + " " + _noun + " that " + _does;
 		}
+		case "parcel": {
+			// the parcel in tow (the parcel quest): the thing itself is the subject
+			var _pq = _tr[$ "quest"];
+			var _subj = (is_struct(_pq) && (_pq[$ "who"] ?? "") != "") ? _pq.who : "the parcel";
+			var _pred = choose("got heavier", "made a noise", "was looked at by a crow", "needed carrying differently", "leaked a little", "was almost left on a wall",
+				"asked, in its way, to be put down", "drew comment from a farmer", "changed hands three times in a mile", "was warmer than before", "went quiet, which was worse",
+				"was set down at a ford and nearly went with the river", "was sniffed by a dog and the dog left", "was weighed by " + _nm + ", by feel, and found wanting", "was talked to by " + _nm2);
+			return _subj + " " + _pred + _tail;
+		}
 		case "camp": {
 			var _subj = choose(_nm, _nm2, "the crew");
 			var _pred = choose("kept the fire", "told a story everyone had heard", "burned the supper", "watched the dark", "mended a strap by firelight", "slept first",

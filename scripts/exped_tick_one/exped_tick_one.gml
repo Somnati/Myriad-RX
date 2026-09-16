@@ -36,12 +36,12 @@ function exped_tick_one(_tr, _dt) {
 			var _q = _tr[$ "quest"], _bo = _tr[$ "bounty"];
 			for (var _j = 0; _j < array_length(_f.foes); _j++) {
 				var _kd = _f.foes[_j][$ "kind"] ?? "";
-				if (is_struct(_q) && _q.kind == "slay" && _q.foe == _kd && _q.done < _q.n) _q.done += 1;
+				if (is_struct(_q) && (_q.kind == "slay" || _q.kind == "cellars") && _q.foe == _kd && _q.done < _q.n) _q.done += 1;   // (the cellars: a slay under a town, 2026-09-16)
 				if (is_struct(_bo) && _bo.foe == _kd && _bo.done < _bo.n) _bo.done += 1;
 			}
 			if (is_struct(_q) && _q.kind == "rout" && is_struct(_tr.act) && _tr.act.kind == "camp" && _q.node == _tr.pos && _q.done < _q.n) _q.done += 1;
 			// the mission-type pass (2026-09-15): the named boss down, a wave held
-			if (is_struct(_q) && _q.kind == "bounty" && _q.done < _q.n) for (var _j = 0; _j < array_length(_f.foes); _j++) if ((_f.foes[_j][$ "named"] ?? false) && _f.foes[_j].hp <= 0) { _q.done = _q.n; array_push(_tr.log, _q.who + " is down. " + choose("it took a while", "nobody cheered. then everybody did", "the hat is a trophy now")); }
+			if (is_struct(_q) && (_q.kind == "bounty" || _q.kind == "well") && _q.done < _q.n) for (var _j = 0; _j < array_length(_f.foes); _j++) if ((_f.foes[_j][$ "named"] ?? false) && _f.foes[_j].hp <= 0) { _q.done = _q.n; array_push(_tr.log, _q.who + " is down. " + choose("it took a while", "nobody cheered. then everybody did", "the hat is a trophy now")); }
 			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); }
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
 			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }

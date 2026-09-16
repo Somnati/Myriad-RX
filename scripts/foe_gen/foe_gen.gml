@@ -16,7 +16,8 @@
 /// (a caster), spectral (hard to hit), armored (a shell) - the word on the name, the colour
 /// leaning, the budget scaled and a line or two bent. kind stays: a lesser
 /// rat counts as a rat. Bosses are their own thing and stay plain.
-function foe_gen(_lv, _seed, _kind = "", _bossf = undefined) {
+/// varf (2026-09-16): a variant key forces that variant (the well's giant); the roll is still made
+function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 	static _vars = [
 		{ key : "lesser",   w : 12, mult : .72, luck : -1 },
 		{ key : "greater",  w : 7,  mult : 1.3, luck : 1 },
@@ -55,6 +56,7 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined) {
 	// THE VARIANT (last, so every roll above is what it was): a weighted pick, plain the rest of the time
 	var _vroll = random(100), _vv = undefined;
 	if (!_boss) { var _vacc = 0; for (var _vi = 0; _vi < array_length(_vars); _vi++) { _vacc += _vars[_vi].w; if (_vroll < _vacc) { _vv = _vars[_vi]; break; } } }
+	if (_varf != "") { _vv = undefined; for (var _vi = 0; _vi < array_length(_vars); _vi++) if (_vars[_vi].key == _varf) _vv = _vars[_vi]; }   // (a variant asked for)
 	rng_release(_old);
 	var _vcrit = 0, _verode = 1, _vskill = "", _vmagic = undefined, _vcol = undefined, _vluck = 0;
 	if (is_struct(_vv)) {

@@ -57,7 +57,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
 		var _fk = (_kind == "") ? _lkinds[hash_mix(_seed, 313) mod array_length(_lkinds)] : _kind;
-		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _fk, (_j == 0 && is_struct(_opts)) ? (_opts[$ "boss"] ?? undefined) : undefined);
+		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _fk, (_j == 0 && is_struct(_opts)) ? (_opts[$ "boss"] ?? undefined) : undefined, (_j == 0 && is_struct(_opts)) ? (_opts[$ "variant"] ?? "") : "");
 		if (_j == 0 && is_struct(_opts) && is_string(_opts[$ "name"])) { _foe.name = _opts.name; _foe.named = true; }
 		array_push(_foes, _foe);
 		_xp += foe_xp(_foe);

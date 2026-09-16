@@ -12,7 +12,7 @@
 /// colour everywhere.
 function cbt_hazards() {
 	static _h = [
-		{ key : "dark", name : "the dark", lane : "hit", f : .6,  kinds : ["dungeon", "crypt", "mine"], inside : true,
+		{ key : "dark", name : "the dark", lane : "hit", f : .6,  kinds : ["dungeon", "crypt", "mine", "sewer"], inside : true,
 		  gear : ["torch", "lantern"], cls : ["rogue"],
 		  hold : "a torch, a lantern, or a rogue", bite : "can barely see", col : rgb(160, 140, 210) },
 		{ key : "damp", name : "the damp", lane : "mag", f : .6,  kinds : ["marsh"], inside : false,

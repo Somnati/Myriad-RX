@@ -340,7 +340,7 @@ if (view == "map") {
 	draw_set_halign(fa_left);
 	if (map_legend) {
 		// THE LEGEND (his ask): every kind, its icon or dot, its name; two columns
-		var _lgk = ["landing", "settlement", "village", "town", "city", "camp", "dungeon", "crypt", "ruin", "shrine", "mine", "field", "forest", "hills", "marsh", "mountains", "desert", "tundra", "coast", "isle"];
+		var _lgk = ["landing", "settlement", "village", "town", "city", "camp", "dungeon", "crypt", "sewer", "ruin", "shrine", "mine", "field", "forest", "hills", "marsh", "mountains", "desert", "tundra", "coast", "isle"];
 		var _lgw = 230, _lgh = 14 + ceil(array_length(_lgk) / 2) * 12 + 6;
 		var _lgx = _mr.x + 8, _lgy = _mr.y + _mr.h - _lgh - 8;
 		draw_sprite_ext(spr_pixel_1x1, 0, _lgx + 2, _lgy + 3, _lgw, _lgh, 0, c_black, .5);

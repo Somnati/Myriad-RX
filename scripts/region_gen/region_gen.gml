@@ -264,6 +264,21 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		array_push(_nodes, { i : array_length(_nodes), kind : "isle", name : region_name("isle"), x : _ix, y : _iy, par : _i, kids : 0, landing : false, boat : true });
 		array_push(_edges, { a : _i, b : array_length(_nodes) - 1, d : 0, pts : [], boat : true });
 	}
+	// THE SEWERS (his ask, 2026-09-16): under every city, and under a town in the
+	// odd case - a place of its own a short road off the settled one, a dungeon
+	// of the town's vermin (region_kinds "sewer"; the quests that want a dungeon
+	// take it too)
+	for (var _i = _n - 1; _i >= 0; _i--) {
+		var _sk = _nodes[_i].kind;
+		if (_sk != "city" && !(_sk == "town" && random(1) < .45)) continue;
+		var _sd = random(360), _sl = random_range(.06, .09);
+		var _sx = _nodes[_i].x + lengthdir_x(_sl, _sd), _sy = _nodes[_i].y + lengthdir_y(_sl, _sd);
+		var _sok = (point_distance(_sx, _sy, _cx0, _cy0) <= _R + .02);
+		for (var _j = 0; _j < array_length(_nodes) && _sok; _j++) if (point_distance(_sx, _sy, _nodes[_j].x, _nodes[_j].y) < .05) _sok = false;
+		if (!_sok) continue;
+		array_push(_nodes, { i : array_length(_nodes), kind : "sewer", name : region_name("sewer"), x : _sx, y : _sy, par : _i, kids : 0, landing : false });
+		array_push(_edges, { a : _i, b : array_length(_nodes) - 1, d : 0, pts : [] });
+	}
 	_n = array_length(_nodes);
 	// THE BENT ROADS (his ask: "procedural curves and corners based off the
 	// type of biome"; round two 2026-09-15: "not zig zaggy literally... more

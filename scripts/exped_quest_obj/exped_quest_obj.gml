@@ -16,6 +16,13 @@ function exped_quest_obj(_q, _rg, _long) {
 		case "bounty": return _long ? (_who + " was seen at " + _nd.name + ". bring it down - one big fight; the bounty is paid at home") : ("bring down " + _who);
 		case "defend": return _long ? ("stand at " + _nd.name + " and hold it against " + string(_q.n) + " waves of " + _pl(_q.foe) + "; the villagers patch you up between") : (string(_q.n) + " waves of " + _pl(_q.foe) + " to hold off");
 		case "survey": return _long ? ("walk to each place and chart it - nothing to fight but the road; " + string(_q.n) + " places") : ("chart " + string(_q.n) + " places, this one first");
+		case "parcel":  return _long ? ("collect " + _who + " at " + _fd.name + " and carry it to " + _nd.name + "; it will do things on the road") : ("carry " + _who + " to " + _nd.name);
+		case "goat":    return _long ? ("collect " + _who + " at " + _fd.name + " and walk it to " + _nd.name + "; it wanders off in the wild") : ("walk " + _who + " to " + _nd.name);
+		case "count":   return _long ? ("go to each place and count the " + _who + "; " + string(_q.n) + " places, then the client argues") : ("count the " + _who + ", " + string(_q.n) + " places");
+		case "shop":    return _long ? ("mind " + _who + "'s shop in " + _nd.name + " for a day: three customers, and the cat") : "mind the shop: a day, three customers";
+		case "nothing": return _long ? ("go to " + _nd.name + " and stand in it for " + string(_q.n) + " hours; the client pays for exactly that") : ("stand in it, " + string(_q.n) + " hours");
+		case "cellars": return _long ? ("go under " + _nd.name + " and clear " + string(_q.n) + " " + _pl(_q.foe) + " out of the cellars; the villagers watch from the stairs") : ("clear the cellars: " + string(_q.n) + " " + _pl(_q.foe));
+		case "well":    return _long ? ("something is in the well at " + _nd.name + ". bring it out - one fight, a big one; whatever it is gets named afterwards") : "bring out what is in the well";
 		case "gather": return _long ? ("work the mine at " + _nd.name + " for " + string(_q.n) + " sacks of " + _who + "; a few hours of digging") : (string(_q.n) + " sacks of " + _who + " from the mine");
 	}
 	return _q.txt;

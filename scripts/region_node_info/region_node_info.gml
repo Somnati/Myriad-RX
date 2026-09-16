@@ -93,8 +93,8 @@ function region_node_info(_d, _rg, _ni) {
 			}
 			break;
 		}
-		case "dungeon": case "crypt": {
-			var _cr = (_nd.kind == "crypt");
+		case "dungeon": case "crypt": case "sewer": {
+			var _cr = (_nd.kind == "crypt"), _sw = (_nd.kind == "sewer");
 			array_push(_rows, { k : "rooms", v : string(_cr ? _rng(5, 12, 1, _seed, _base) : _rng(4, 9, 1, _seed, _base)), col : undefined });
 			// the faction: named off the foes that haunt it
 			var _fk = foe_kinds_at(_nd.kind);
@@ -102,7 +102,8 @@ function region_node_info(_d, _rg, _ni) {
 			var _fac = "the " + str_cap(_pick(["red", "black", "hollow", "broken", "grey", "salt", "moon", "iron", "bone", "rat", "cold", "ash", "blind"], 3, _seed, _base)) + " " + str_cap(foe_plural(_foe));
 			array_push(_rows, { k : "held by", v : _fac, col : c_hred });
 			array_push(_rows, { k : "depth", v : _pick(["shallow", "two levels", "three levels", "deeper than the map", "one long hall", "stairs that keep going"], 4, _seed, _base), col : undefined });
-			if (_cr) _desc = _pick(["a slab", "a sunken door", "a barrow mouth", "a chapel floor", "an iron gate"], 5, _seed, _base) + " " + _pick(["in a field of stones", "under a yew", "at the crossroads", "beneath the old chapel", "in the side of a mound"], 6, _seed, _base) + "; " + _pick(["cold as a well", "candles nobody lit", "the dead do not lie still", "names worn off every stone", "a smell of old flowers"], 7, _seed, _base);
+			if (_sw) _desc = _pick(["a grate in the street", "a culvert under the wall", "a hatch behind the tannery", "an arch where the river goes in", "a manhole with a ring in it"], 5, _seed, _base) + "; " + _pick(["the smell arrives first", "warm air coming up", "a rat watching from the dark", "the town's whole weather, underneath", "water you can hear but not see"], 7, _seed, _base);
+			else if (_cr) _desc = _pick(["a slab", "a sunken door", "a barrow mouth", "a chapel floor", "an iron gate"], 5, _seed, _base) + " " + _pick(["in a field of stones", "under a yew", "at the crossroads", "beneath the old chapel", "in the side of a mound"], 6, _seed, _base) + "; " + _pick(["cold as a well", "candles nobody lit", "the dead do not lie still", "names worn off every stone", "a smell of old flowers"], 7, _seed, _base);
 			else     _desc = _pick(["a doorway", "a stair", "an iron grate", "a cave mouth", "a cellar hatch", "a cleft in the rock"], 5, _seed, _base) + " " + _pick(["in a hillside", "under an old tower", "behind a waterfall", "at the back of a quarry", "under the roots of a dead oak", "in the bank of the river"], 6, _seed, _base) + "; " + _pick(["torchlight inside", "a draught that smells of iron", "bones at the threshold", "drums some nights", "scratched marks by the door", "water on the floor"], 7, _seed, _base);
 			var _lt2 = _rng(0, 5, 9, _seed, _base);
 			switch (_lt2) {

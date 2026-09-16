@@ -8,7 +8,19 @@ function exped_quest_txt(_q, _rg) {
 	var _to = _nm(_q.node, _rg, _nn), _fr = _nm((_q[$ "from"] ?? -1) >= 0 ? _q.from : _q.node, _rg, _nn);
 	var _nk = _rg.nodes[clamp(_q.node, 0, _nn - 1)].kind;
 	switch (_q.kind) {
-		case "slay":   return ((_nk == "dungeon" || _nk == "crypt") ? "travel to " : "go to ") + _to + " and slay " + string(_q.n) + " " + _pl(_q.foe);
+		case "slay":   return ((_nk == "dungeon" || _nk == "crypt" || _nk == "sewer") ? "travel to " : "go to ") + _to + " and slay " + string(_q.n) + " " + _pl(_q.foe);
+		// THE TOWN QUESTS (2026-09-16)
+		case "parcel":  return "carry " + (_q[$ "who"] ?? "a parcel") + " from " + _fr + " to " + _to;
+		case "goat":    return "walk " + (_q[$ "who"] ?? "a goat") + " from " + _fr + " to " + _to;
+		case "count": {
+			var _ns2 = _q[$ "nodes"], _l2 = [];
+			if (is_array(_ns2)) for (var _i2 = 0; _i2 < array_length(_ns2); _i2++) array_push(_l2, _nm(_ns2[_i2], _rg, _nn));
+			return "count the " + (_q[$ "who"] ?? "geese") + " at " + exped_crew_txt(_l2);
+		}
+		case "shop":    return "mind the shop in " + _to + " for a day";
+		case "nothing": return "go to " + _to + " and stand in it for " + string(_q.n) + " hours";
+		case "cellars": return "clear the cellars of " + _to + " of " + string(_q.n) + " " + _pl(_q.foe);
+		case "well":    return "see what is in the well at " + _to;
 		case "clear":  return "clear " + _to + " (" + string(_q.n) + " rooms)";
 		case "rout":   return "rout the bandits at " + _to;
 		case "scout":  return "scout " + _to + " and come back";

@@ -36,7 +36,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 		var _k = _rg.nodes[_i].kind;
 		if (_k == "landing") continue;
 		array_push(_any, _i);
-		if (_k == "dungeon" || _k == "crypt") array_push(_dung, _i);
+		if (_k == "dungeon" || _k == "crypt" || _k == "sewer") array_push(_dung, _i);   // (the sewer is a dungeon to a quest, 2026-09-16)
 		else if (_k == "camp") array_push(_camp, _i);
 		else {
 			var _kd = _kk[$ _k];
@@ -74,6 +74,14 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 		if (array_length(_any) >= 2) array_push(_w, ["survey", 8]);
 		if (array_length(_mine) > 0) array_push(_w, ["gather", 6]);
 		if (array_length(_wild) > 0) { array_push(_w, ["slay_w", 10]); array_push(_w, ["scout", 9]); }
+		// THE TOWN QUESTS (his ask, 2026-09-16: "quests that take you to towns"; the silly shapes he approved)
+		var _shopc = [];
+		for (var _ci = 0; _ci < array_length(_civ); _ci++) if (_rg.nodes[_civ[_ci]].kind != "settlement") array_push(_shopc, _civ[_ci]);
+		if (array_length(_civ) >= 2) { array_push(_w, ["parcel", 7]); array_push(_w, ["goat", 6]); }
+		if (array_length(_any) >= 3) array_push(_w, ["count", 6]);
+		if (array_length(_shopc) > 0) array_push(_w, ["shop", 7]);
+		if (array_length(_wild) > 0) array_push(_w, ["nothing", 4]);
+		if (array_length(_civ) > 0) { array_push(_w, ["cellars", 7]); array_push(_w, ["well", 6]); }
 		var _sum = 0;
 		for (var _i = 0; _i < array_length(_w); _i++) _sum += _w[_i][1];
 		var _r = random(max(1, _sum)), _kind = "scout";
@@ -124,6 +132,47 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 				break;
 			}
 			case "gather": _q = { kind : "gather", node : _pick(_mine), foe : "", n : irandom_range(2, 4), mult : 3, who : ["ferrite", "bloom", "glass"][_d.biome mod 3] }; break;
+			// THE TOWN QUESTS (2026-09-16)
+			case "parcel": {
+				// the thing is composed, never listed: an [adjective] [noun] [that does something]
+				var _a = _pick(_civ), _b = _other(_civ, _a);
+				var _thing = "a " + choose("very heavy", "very small", "ticking", "warm", "damp", "singing", "borrowed", "second-hand", "sealed", "wrapped", "polite", "restless", "blue") + " "
+				           + choose("hat", "jar", "goose", "clock", "chair", "kettle", "box", "book", "egg", "lantern", "cheese", "cage", "urn", "bell")
+				           + choose(" that thinks it is a hen", " labelled DO NOT", " that is always wrong", " with a name", " that must not get wet", " that hums", " nobody will explain", " with something in it", "", "", " that is somebody's", " that ticks louder at night");
+				_q = { kind : "parcel", node : _b, from : _a, foe : "", n : 1, mult : 3, who : _thing };
+				break;
+			}
+			case "goat": {
+				var _a = _pick(_civ), _b = _other(_civ, _a);
+				_q = { kind : "goat", node : _b, from : _a, foe : "", n : 1, mult : 3, who : "a goat called " + str_cap(sprite_name_gen()) };
+				break;
+			}
+			case "count": {
+				// three places, walked nearest-first (the survey's way), counting a thing
+				var _left = [], _picked = [];
+				for (var _i = 0; _i < array_length(_any); _i++) if (_rg.nodes[_any[_i]].kind != "camp") array_push(_left, _any[_i]);
+				if (array_length(_left) < 2) _left = array_concat(_any);
+				var _n = min(3, array_length(_left));
+				repeat (_n) { var _pi2 = irandom(array_length(_left) - 1); array_push(_picked, _left[_pi2]); array_delete(_left, _pi2, 1); }
+				var _ns = [], _c = _rg.landing;
+				while (array_length(_picked) > 0) {
+					var _bi = 0, _bh = 999999;
+					for (var _i = 0; _i < array_length(_picked); _i++) { var _hh = _hrs(_rg, _c, _picked[_i]); if (_hh < _bh) { _bh = _hh; _bi = _i; } }
+					_c = _picked[_bi]; array_push(_ns, _c); array_delete(_picked, _bi, 1);
+				}
+				_q = { kind : "count", node : _ns[array_length(_ns) - 1], nodes : _ns, foe : "", n : array_length(_ns), mult : 2,
+				       who : choose("geese", "chimneys", "crows", "stones with faces on", "dogs", "gates", "wells", "hats", "ducks", "bells", "scarecrows", "cats on walls") };
+				break;
+			}
+			case "shop": _q = { kind : "shop", node : _pick(_shopc), foe : "", n : 3, mult : 3, who : exped_npc_name() }; break;
+			case "nothing": _q = { kind : "nothing", node : _pick(_wild), foe : "", n : 4, mult : 2 }; break;
+			case "cellars": _q = { kind : "cellars", node : _pick(_civ), foe : choose("rat", "rat", "flea", "musca"), n : irandom_range(3, 5), mult : 3 }; break;
+			case "well": {
+				var _nv = _pick(_civ);
+				var _wf = _pick(foe_kinds_at((array_length(_dung) > 0) ? _rg.nodes[_pick(_dung)].kind : "marsh"));
+				_q = { kind : "well", node : _nv, foe : _wf, n : 1, mult : 4, who : "the thing in the well" };
+				break;
+			}
 			case "slay_w": { var _nw = _pick(_wild); _q = { kind : "slay", node : _nw, foe : _pick(foe_kinds_at(_rg.nodes[_nw].kind)), n : irandom_range(2, 5), mult : 3 }; break; }
 			default:       _q = { kind : "scout", node : (array_length(_wild) > 0) ? _pick(_wild) : _pick(_any), foe : "", n : 1, mult : 2 }; break;
 		}
@@ -149,8 +198,9 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 	switch (_q.kind) {
 		case "slay":  _df = (_q.n >= 6) ? 2 : ((_q.n <= 3) ? 0 : 1); break;   // (a small slay is easy - 2026-09-15)
 		case "clear": case "rout": case "rescue": case "bounty": case "defend": _df = 2; break;
-		case "scout": _df = 0; break;
-		default:      _df = 1; break;   // escort, fetch, survey, gather
+		case "scout": case "count": case "shop": case "nothing": _df = 0; break;
+		case "well": _df = 2; break;
+		default:      _df = 1; break;   // escort, fetch, survey, gather, parcel, goat, cellars
 	}
 	if (_h >= 6) _df += 1;
 	if (_easy) _df = 0;

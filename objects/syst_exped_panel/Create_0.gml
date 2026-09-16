@@ -1457,6 +1457,14 @@ __map_icon = function(_kind, _lz, _x, _y, _col) {
 			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 4, 6, 0, c_black, .85);
 			return;
 		}
+		case "sewer": {
+			// the grate: a dark square with three bars (2026-09-16)
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 7, 0, c_black, .9);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 1, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 3, 8, 1, 0, _col, .95);
+			for (var _gb = -3; _gb <= 3; _gb += 3) draw_sprite_ext(spr_pixel_1x1, 0, _x + _gb - 1, _y - 2, 1, 5, 0, _col, .95);
+			return;
+		}
 	}
 	__dot(_x, _y, 2, _col, .95);
 };

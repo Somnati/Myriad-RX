@@ -80,6 +80,11 @@ function region_name(_kind) {
 		case "tundra":    _nouns = ["tundra", "frost", "snows", "barrens", "whites", "ice fields", "drifts", "floe", "cold", "white"]; break;
 		case "coast":     _nouns = ["shore", "strand", "cove", "cliffs", "bay", "headland", "sands", "beach", "point", "spit", "ness", "sound"]; break;
 		case "isle":      _nouns = ["isle", "island", "skerry", "holm", "rock", "key", "reef", "eyot", "sandbank"]; break;
+		case "sewer":
+			// the drains under a settled place (2026-09-16)
+			if (_f < 55) return "the " + choose("old", "deep", "lower", "black", "dripping", "long", "great", "forgotten", "west", "wet") + " " + choose("drains", "sewers", "sump", "undercroft", "cisterns", "culverts", "vaults", "conduits");
+			if (_f < 80) return _up + "'s " + choose("drains", "sewer", "culvert", "cellars");
+			return "the " + choose("drains", "sewers", "cisterns") + " under " + _up;
 	}
 	var _noun = _nouns[irandom(array_length(_nouns) - 1)];
 	var _adj = choose("green", "wide", "long", "dim", "wet", "high", "old", "far", "still", "windy", "lesser", "grey", "black", "white", "red",

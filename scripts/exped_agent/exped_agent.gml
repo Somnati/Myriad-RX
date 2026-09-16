@@ -72,8 +72,10 @@ function exped_agent(_tr, _dt) {
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;
-			// nothing met: a little thing, maybe (exped_road_beat)
-			if (array_length(_tr.log) == _nl) exped_road_beat(_tr);
+			// nothing met: a little thing, maybe (exped_road_beat); with a parcel in tow, the parcel does things (2026-09-16)
+			var _pq = _tr[$ "quest"];
+			if (is_struct(_pq) && _pq.kind == "parcel" && (_pq[$ "at"] ?? 0) == 1 && _pq.done < _pq.n && roll_perc(22)) array_push(_tr.log, exped_compose("parcel", _tr));
+			else if (array_length(_tr.log) == _nl) exped_road_beat(_tr);
 		}
 		exped_stat("road_h", _dt / EXPED_HOUR);
 		if (_rd.t >= _rd.d * EXPED_HOUR) {

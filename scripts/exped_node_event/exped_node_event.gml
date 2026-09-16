@@ -8,6 +8,7 @@
 /// nothing. `again` = a second pass at the same node (the quest is not
 /// done yet).
 function exped_node_event(_tr, _again = false) {
+	static _kk_civ_count = function(_k) { var _kd = region_kinds()[$ _k]; return is_struct(_kd) && _kd.civ; };   // (the count quest: a settled place has more of everything)
 	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];
 	var _k = _nd.kind;
@@ -48,10 +49,40 @@ function exped_node_event(_tr, _again = false) {
 				break;
 			}
 			case "gather": _tr.act = { kind : "gather", left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) array_push(_tr.log, "the mine at " + _nd.name + ": sacks out, " + string(_q.n) + " to fill"); break;
+			// THE TOWN QUESTS (2026-09-16)
+			case "parcel":
+				if ((_q[$ "at"] ?? 0) == 0) { _tr.act = { kind : "pickup", left : EXPED_ROOM_T * .5, steps : 1 }; if (!_again) array_push(_tr.log, "asking after " + _q.who + " in " + _nd.name); }
+				else { _q.done = _q.n; array_push(_tr.log, "handed " + _q.who + " over in " + _nd.name + ". " + choose("it was the wrong one, but they kept it", "nobody said thank you", "they weighed it and said nothing", "it was opened at once and not shown to anyone", "the client cried a little", "it had got heavier") + ". the quest is done"); exped_say(_tr, "deliver", undefined, .8); _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; }
+				break;
+			case "goat":
+				if ((_q[$ "at"] ?? 0) == 0) { _tr.act = { kind : "goatmeet", left : EXPED_ROOM_T * .5, steps : 1 }; if (!_again) array_push(_tr.log, "collecting " + _q.who + " in " + _nd.name); }
+				else { _q.done = _q.n; array_push(_tr.log, _q.who + " delivered to " + _nd.name + ". it went " + choose("straight for the cabbages", "for the washing", "up the church steps", "into the inn", "back the way it came, briefly") + ". the quest is done"); exped_say(_tr, "deliver", undefined, .8); _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; }
+				break;
+			case "count": {
+				// a place counted: a number of the thing (the sum rides q.at; the client disputes it at the end)
+				var _cn = irandom_range(0, 9) + ((_kk_civ_count(_nd.kind)) ? irandom_range(2, 12) : 0);
+				_q.at = (_q[$ "at"] ?? 0) + _cn;
+				_q.done = min(_q.n, _q.done + 1);
+				array_push(_tr.log, "counted " + string(_cn) + " " + _q.who + " at " + _nd.name + " (" + string(_q.done) + " of " + string(_q.n) + " places)"
+					+ ((_q.done >= _q.n) ? (". reported " + string(_q.at) + " " + _q.who + " in all. the client says " + string(_q.at + choose(-2, -1, 1, 1, 2, 3)) + ". the quest is done") : ""));
+				_tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 };
+				break;
+			}
+			case "shop":    _tr.act = { kind : "mind", left : EXPED_ROOM_T * .5, steps : 4 }; if (!_again) array_push(_tr.log, _q.who + " hands over the keys to the shop in " + _nd.name + " and goes. " + choose("the cat stays", "the shelf is half full", "there is a bell over the door", "the till does not lock")); break;
+			case "nothing": _tr.act = { kind : "stand", left : EXPED_ROOM_T * .5, steps : _q.n }; if (!_again) array_push(_tr.log, _nd.name + ". the crew stands in it, as asked"); break;
+			case "cellars": _tr.act = { kind : "hunt", left : EXPED_ROOM_T * .5, steps : 3 }; if (!_again) array_push(_tr.log, "down the cellar steps in " + _nd.name + ". " + choose("something skitters", "the villagers wait on the stairs", "a lamp is handed down", "the smell of turnips and worse")); break;
+			case "well":    _tr.act = { kind : "bossfight", left : EXPED_ROOM_T * .5, steps : 2 }; if (!_again) array_push(_tr.log, "the well at " + _nd.name + ". " + choose("the rope goes down a long way", "the water is the wrong colour", "somebody lowers a lantern and pulls it up fast", "nobody has drawn from it in a month")); break;
 		}
 		return;
 	}
 	var _kk = region_kinds()[$ _k] ?? { civ : false, wild : true };
+	// THE GOAT (2026-09-16): with the goat in tow, a wild place is where it wanders off - an hour, and a mistake
+	if (!_again && is_struct(_q) && _q.kind == "goat" && (_q[$ "at"] ?? 0) == 1 && _kk.wild && _k != "mine" && _k != "shrine" && roll_perc(35)) {
+		_tr.act = { kind : "goatlost", left : EXPED_HOUR, steps : 1 };
+		exped_tally(_tr, "mist");
+		array_push(_tr.log, _q.who + " wandered off in " + _nd.name + ". " + choose("everyone went a different way", "it was not far. it was not near, either", _tr.names[irandom(array_length(_tr.names) - 1)] + " has the rope. the rope has nothing", "a goat is faster than it looks"));
+		return;
+	}
 	var _hurt = false, _mean = 0, _up = 0;
 	for (var _i = 0; _i < array_length(_tr.hp); _i++) if (_tr.hp[_i] > 0) { _mean += _tr.hp[_i] / max(1, _tr.hpmax[_i]); _up++; }
 	_mean = (_up > 0) ? _mean / _up : 1;
@@ -78,6 +109,7 @@ function exped_node_event(_tr, _again = false) {
 	switch (_k) {
 		case "dungeon": { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "into " + _nd.name + " (" + string(_rm) + " rooms)"); exped_say(_tr, "delve", undefined, .6); break; }   // (the dungeon's own rooms, 2026-09-15)
 		case "crypt":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "down into " + _nd.name + " (" + string(_rm) + " rooms). it is cold"); exped_say(_tr, "delve", undefined, .6); break; }
+		case "sewer":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "down the grate into " + _nd.name + " (" + string(_rm) + " rooms). " + choose("the smell arrives first", "somebody's boot is never the same", "it is warmer than it should be", "there are things in the water")); exped_say(_tr, "delve", undefined, .6); break; }
 		case "camp":    _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); exped_say(_tr, "camp", undefined, .5); break;
 		case "mine":    _tr.act = { kind : "mine",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;

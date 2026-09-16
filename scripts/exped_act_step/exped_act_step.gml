@@ -117,6 +117,44 @@ function exped_act_step(_tr) {
 			break;
 		}
 		// ---- THE MISSION-TYPE PASS (2026-09-15) ----
+		// THE TOWN QUESTS' ACTS (2026-09-16)
+		case "pickup": {
+			if (is_struct(_q)) _q.at = 1;
+			array_push(_tr.log, "collected " + (is_struct(_q) ? _q.who : "the parcel") + " in " + _nd.name + ". " + choose("it is heavier than it looks", "it was wrapped twice", "the client would not meet anyone's eye", "it came with instructions, in a hand nobody could read", "it was warm", "it rattled"));
+			exped_say(_tr, "fetch", undefined, .7);
+			break;
+		}
+		case "goatmeet": {
+			if (is_struct(_q)) _q.at = 1;
+			array_push(_tr.log, "collected " + (is_struct(_q) ? _q.who : "the goat") + " in " + _nd.name + ". " + choose("it has opinions", "it ate the receipt", "it looked at " + _tr.names[0] + " and decided something", "it is on a rope. the rope is a formality", "it is bigger than a goat should be"));
+			exped_say(_tr, "meet", undefined, .7);
+			break;
+		}
+		case "goatlost": {
+			array_push(_tr.log, "found " + (is_struct(_q) ? _q.who : "the goat") + " " + choose("eating a hedge", "on a roof, somehow", "in a ditch, pleased", "standing exactly where it had been left, looking innocent", "with another goat. the other goat stays") + ". an hour gone");
+			break;
+		}
+		case "mind": {
+			// a customer a step; the last is the cat. the takings go in the pocket
+			if (_a.steps >= 2) {
+				var _buyer = exped_npc_name();
+				var _take = 1 + irandom(2) + floor(_rg.lv / 3);
+				_tr.credits += _take; exped_tally(_tr, "earned", _take);
+				array_push(_tr.log, _buyer + " came in and bought " + choose("a spoon", "the wrong nails", "two of something", "a hat off the peg", "a length of string, measured twice", "an onion, after a speech", "the good ladder, on credit", "a lantern and the oil for it", "nothing, at length, then a candle") + " (" + string(_take) + " credits in the till)");
+				if (roll_perc(25)) array_push(_tr.log, choose(_tr.names[irandom(_n - 1)] + " gave the wrong change and was thanked for it", "the bell over the door rang with nobody there", "a child came in for the cat. the cat declined", "somebody asked for " + (is_struct(_q) ? _q.who : "the keeper") + " by name and left when told"));
+			} else {
+				if (is_struct(_q)) _q.done = _q.n;
+				array_push(_tr.log, "somebody bought the cat. " + (is_struct(_q) ? _q.who : "the keeper") + " came back, counted the till, and said nothing about the cat. the quest is done");
+			}
+			break;
+		}
+		case "stand": {
+			// an hour of standing in it, composed
+			var _sw = _tr.names[irandom(_n - 1)];
+			array_push(_tr.log, choose(_sw + " stood in " + _nd.name, "stood in " + _nd.name + ", as asked", _sw + " sat down and was told to stand", "the crew stood. " + _nd.name + " did not mind", _sw + " counted clouds", "a farmer asked what they were doing. they said. the farmer left") + choose("", ". nothing happened", ". then it rained a little", ". " + _sw + " found a stone", ". the wind changed", ". somebody sang, quietly, and stopped"));
+			if (is_struct(_q) && _a.steps <= 1) { _q.done = _q.n; array_push(_tr.log, "the hours are up. the quest is done. nobody can say what it was for"); }
+			break;
+		}
 		case "meet": {
 			// the escort's merchant, met; the cart rides with the crew from here (exped_encounter: bandits like it)
 			if (is_struct(_q)) _q.at = 1;
@@ -157,7 +195,7 @@ function exped_act_step(_tr) {
 		case "bossfight": {
 			// one big fight: the bounty's named boss and whatever it keeps
 			if (_a.steps >= 2 && is_struct(_q)) {
-				_tr.fight = exped_fight_new(_tr, _q.foe, irandom_range(1, 2), 1, { boss : true, name : _q.who });
+				_tr.fight = exped_fight_new(_tr, _q.foe, (_q.kind == "well") ? 1 : irandom_range(1, 2), 1, { boss : true, name : _q.who, variant : (_q.kind == "well") ? "giant" : "" });   // (the well: one giant thing - 2026-09-16)
 				array_push(_tr.log, _q.who + " " + choose("is here, and knows it", "was waiting", "stands up. it is big", "does not run") + " - " + _nd.name);
 				exped_say(_tr, "boss", { foe : _q.who }, .9);
 			} else array_push(_tr.log, choose("nothing else moves at " + _nd.name, "the rest of them left in a hurry"));
@@ -206,7 +244,7 @@ function exped_act_step(_tr) {
 	// a fight opened: the activity waits for it (exped_tick_one reads act.kind
 	// for the camp's chest and the rout quest) and looks again after
 	if (!is_undefined(_tr.fight)) { _a.left = EXPED_ROOM_T * .5; return; }
-	if (_a.steps > 0) _a.left = (_a.kind == "town") ? (_a[$ "next_t"] ?? EXPED_ROOM_T) : EXPED_ROOM_T;   // (a town's beat: its own hours)
+	if (_a.steps > 0) _a.left = (_a.kind == "town") ? (_a[$ "next_t"] ?? EXPED_ROOM_T) : ((_a.kind == "stand") ? EXPED_HOUR : EXPED_ROOM_T);   // (a town's beat: its own hours; standing in a field: an hour a step)
 	else {
 		if (_a.kind == "delve") { exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light"); }
 		_tr.act = undefined;

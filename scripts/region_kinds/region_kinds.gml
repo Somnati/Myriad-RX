@@ -14,6 +14,7 @@ function region_kinds() {
 		camp       : { name : "bandit camp",  col : c_hred,               r : 3, civ : false, wild : false },
 		dungeon    : { name : "dungeon",      col : c_hpurple,            r : 3, civ : false, wild : false },
 		crypt      : { name : "crypt",        col : rgb(175, 155, 205),   r : 3, civ : false, wild : false },   // a dungeon of the dead (skeletons, wisps)
+		sewer      : { name : "sewer",        col : rgb(110, 140, 95),    r : 3, civ : false, wild : false },   // under a city (and a town, sometimes): the drains, a dungeon of vermin (his ask, 2026-09-16)
 		ruin       : { name : "ruin",         col : rgb(160, 160, 175),   r : 2, civ : false, wild : true },
 		shrine     : { name : "shrine",       col : c_lavender,           r : 2, civ : false, wild : true },
 		mine       : { name : "mine",         col : c_steelblue,          r : 2, civ : false, wild : true },
