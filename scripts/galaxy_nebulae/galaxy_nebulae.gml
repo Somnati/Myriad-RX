@@ -1,4 +1,4 @@
-/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, h, t, col, col2, seed, dn }] (cached a galaxy; h = height off the plane, t = half-thickness, plane px)
+/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, h, t, col, col2, seed, dn, dark }] (cached a galaxy; h = height off the plane, t = half-thickness, plane px; dark = dust, not light)
 /// THE NEBULAE ARE THINGS (2026-09-16, after his screenshots: the coloured
 /// clouds he meant were the sky's three hashed patches, round ones; the
 /// map's haze was never them). A few dozen a galaxy, bred where the stars
@@ -48,7 +48,10 @@ function galaxy_nebulae() {
 		// the map is the truth): within four fifths of the thickness, triangular, so a cloud leans above or below the plane and
 		// a near star sees it high or low, but the plane is always inside it
 		var _hgt = ((_h5 mod 1000) / 1000 + (_h6 mod 1000) / 1000 - 1) * _thk * (_cfg[$ "neb_lean"] ?? .8);
-		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, t : _thk, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
+		// DARK NEBULAE (his pick, 2026-09-16): a share of them are dust - they hide what lies behind instead of glowing (the map
+		// darkens under them, a sky's stars and band go out behind them, a star inside one sits in a starless patch)
+		var _dark = ((hash_mix(_c.h, 37) mod 1000) / 1000) < (_cfg[$ "neb_dark_frac"] ?? .3);
+		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, t : _thk, col : _dark ? rgb(28, 22, 34) : _pal[_pi], col2 : _dark ? rgb(48, 36, 40) : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn, dark : _dark });
 	}
 	_list = _out; _seed = _sm.seed;
 	return _list;

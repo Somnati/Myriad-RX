@@ -40,7 +40,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	if (!surface_exists(_canvas)) return;
 	if (!shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(4, _h - 12, "sh_sky_fog failed to compile"); draw_set_alpha(1); return; }   // (2026-09-16: a failed shader draws nothing - the page says so)
 	draw_set_alpha(1);
-	gpu_set_blendmode(bm_add);
+	gpu_set_blendmode_ext(bm_one, bm_src_alpha);   // (rgb added, the rest kept by the shader's alpha: the dark clouds' transmittance - 2026-09-16)
 	shader_set(sh_sky_fog);
 	shader_set_uniform_f_array(_u.cam, _cam);
 	shader_set_uniform_f(_u.core, _sky.core_dir[0], _sky.core_dir[1], _sky.core_dir[2]);
@@ -62,7 +62,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	for (var _i = 0; _i < _nn; _i++) {
 		var _n = _nbs[_i];
 		_nd[_i * 3] = _n.x; _nd[_i * 3 + 1] = _n.y; _nd[_i * 3 + 2] = _n.z;
-		_np[_i * 4] = dsin(_n.ar); _np[_i * 4 + 1] = dcos(_n.ar); _np[_i * 4 + 2] = _n.b * _nas; _np[_i * 4 + 3] = _n.nb.seed;
+		_np[_i * 4] = dsin(_n.ar); _np[_i * 4 + 1] = dcos(_n.ar); _np[_i * 4 + 2] = _n.b * ((_n.nb[$ "dark"] ?? false) ? -(_cfg[$ "neb_dark_sky"] ?? 1.6) : _nas);   // (below zero: a dark cloud's extinction) _np[_i * 4 + 3] = _n.nb.seed;
 		_nc[_i * 3] = colour_get_red(_n.nb.col) / 255; _nc[_i * 3 + 1] = colour_get_green(_n.nb.col) / 255; _nc[_i * 3 + 2] = colour_get_blue(_n.nb.col) / 255;
 		_nc2[_i * 3] = colour_get_red(_n.nb.col2) / 255; _nc2[_i * 3 + 1] = colour_get_green(_n.nb.col2) / 255; _nc2[_i * 3 + 2] = colour_get_blue(_n.nb.col2) / 255;
 	}
@@ -86,8 +86,9 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		shader_set_uniform_f(_ui.col, colour_get_red(_nb.col) / 255, colour_get_green(_nb.col) / 255, colour_get_blue(_nb.col) / 255);
 		shader_set_uniform_f(_ui.col2, colour_get_red(_nb.col2) / 255, colour_get_green(_nb.col2) / 255, colour_get_blue(_nb.col2) / 255);
 		shader_set_uniform_f(_ui.seed, _nb.seed);
-		shader_set_uniform_f(_ui.amp, _cfg[$ "neb_in_amp"] ?? .8);
-		shader_set_uniform_f(_ui.ext, _cfg[$ "neb_in_ext"] ?? 1.4);
+		var _indk = _nb[$ "dark"] ?? false;   // (inside a dark cloud: no glow, the sky goes out toward its heart)
+		shader_set_uniform_f(_ui.amp, _indk ? 0 : (_cfg[$ "neb_in_amp"] ?? .8));
+		shader_set_uniform_f(_ui.ext, (_cfg[$ "neb_in_ext"] ?? 1.4) * (_indk ? 1.8 : 1));
 		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
 		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
 		var _dpat = variable_global_exists("page_dither") ? g.page_dither : "ordered";

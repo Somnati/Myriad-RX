@@ -155,6 +155,7 @@ void main()
     float bias = mix(1.0, 0.15 + 1.7 * pow(1.0 - dc, 1.8), u_edge);
 
     vec3 rgb = col * dens * u_amp * (0.55 + 0.75 * (1.0 - dc)) * bias;
+    float darkT = 1.0;   // what the DARK clouds let through (2026-09-16): the band, and everything drawn before this pass, dims by it
 
     // THE NEBULAE on the sphere (see the uniforms): the ray's offsets in each cloud's tangent frame
     for (int ni = 0; ni < 8; ni++) {
@@ -176,7 +177,8 @@ void main()
         float nf = 1.0 - abs(2.0 * fbm2(pp * 3.7 + qq * 1.5 + vec2(5.0, 2.0)) - 1.0);
         float na = nbody * nbody * (0.25 + 0.9 * nn) * (0.5 + 0.7 * nf * nf);
         vec3 ncol = mix(u_nebc[ni], u_nebc2[ni], smoothstep(0.25, 0.75, nn)) + vec3(0.25) * nf * nf * nbody;
-        rgb += ncol * na * np.z;
+        if (np.z < 0.0) darkT *= 1.0 - clamp(na * -np.z, 0.0, 1.0);   // (a dark cloud: brightness below zero is its extinction)
+        else rgb += ncol * na * np.z;
     }
 
     // REMASTERED temporal dither, grain as chunky as the cells:
@@ -192,5 +194,6 @@ void main()
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
 
-    gl_FragColor = vec4(max(rgb, vec3(0.0)), 1.0) * v_vColour;
+    // (one, src_alpha): dest = rgb + dest x darkT - the dark clouds take the sky behind them away
+    gl_FragColor = vec4(max(rgb, vec3(0.0)) * darkT, darkT) * v_vColour;
 }

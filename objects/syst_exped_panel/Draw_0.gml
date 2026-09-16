@@ -1030,6 +1030,7 @@ if (view == "galaxy") {
 		var _nb = _nbs[_ni];
 		var _nx = (_nb.x - gx_x) * gx_zoom, _ny = (_nb.y - gx_y) * gx_zoom, _nr = _nb.r * gx_zoom;
 		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
+		if (_nb[$ "dark"] ?? false) continue;   // (the dark ones come after the stars and the haze: they hide them)
 		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .3);
 	}
 	// THE STAR GLYPHS (his ask, 2026-09-16: "a nicer looking star image"): spr_star_glyph - ten sizes from a pixel, core + halo (+ spikes on the biggest three),
@@ -1068,6 +1069,14 @@ if (view == "galaxy") {
 	}
 	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, _fsh_ok ? c_white : rgb(255, 185, 125), _fsh_ok ? _gcf.fog_alpha : _gcf.fog_alpha * .5);
 	if (_fsh_ok) shader_reset();
+	// THE DARK NEBULAE (2026-09-16): over the stars and the haze - dust hides what lies under it
+	for (var _ni = 0; _ni < array_length(_nbs); _ni++) {
+		var _nb = _nbs[_ni];
+		if (!(_nb[$ "dark"] ?? false)) continue;
+		var _nx = (_nb.x - gx_x) * gx_zoom, _ny = (_nb.y - gx_y) * gx_zoom, _nr = _nb.r * gx_zoom;
+		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
+		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_dark_map"] ?? .7);
+	}
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
