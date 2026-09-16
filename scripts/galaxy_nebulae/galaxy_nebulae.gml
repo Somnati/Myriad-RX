@@ -1,4 +1,4 @@
-/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, col, col2, seed, dn }] (cached a galaxy)
+/// @description galaxy_nebulae() -> the galaxy's nebulae, [{ x, y, r, h, col, col2, seed, dn }] (cached a galaxy; h = height off the plane, plane px)
 /// THE NEBULAE ARE THINGS (2026-09-16, after his screenshots: the coloured
 /// clouds he meant were the sky's three hashed patches, round ones; the
 /// map's haze was never them). A few dozen a galaxy, bred where the stars
@@ -37,7 +37,11 @@ function galaxy_nebulae() {
 		if (_near) continue;
 		var _r = (_cfg[$ "neb_r_min"] ?? 90) + _c.dn * (_cfg[$ "neb_r_dn"] ?? 220) + ((_h4 mod 1000) / 1000) * (_cfg[$ "neb_r_rand"] ?? 120);
 		var _np = array_length(_pal), _pi = _h2 mod _np, _pj = (_pi + 1 + (_h3 mod (_np - 1))) mod _np;
-		array_push(_out, { x : _x, y : _y, r : _r, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
+		// THE HEIGHT off the galactic plane (his ask, 2026-09-16: all on the band, the sky's top and bottom stayed black): a
+		// triangular roll - most within a third of neb_height of the plane, a few right up at it, either side
+		var _h5 = hash_mix(_c.h, 23), _h6 = hash_mix(_c.h, 29);
+		var _hgt = ((_h5 mod 1000) / 1000 + (_h6 mod 1000) / 1000 - 1) * (_cfg[$ "neb_height"] ?? 700);
+		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, col : _pal[_pi], col2 : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn });
 	}
 	_list = _out; _seed = _sm.seed;
 	return _list;
