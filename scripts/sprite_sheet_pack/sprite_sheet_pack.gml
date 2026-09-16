@@ -17,5 +17,8 @@ function sprite_sheet_pack(_sp) {
 	// the learned skills: "tmpl:seed;tmpl:seed" (an eighth field, 2026-09-15)
 	var _l = "";
 	for (var _i = 0; _i < array_length(_sh.learned); _i++) _l += ((_i > 0) ? ";" : "") + string(_sh.learned[_i].tmpl) + ":" + string(_sh.learned[_i].seed);
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l;
+	// the elixirs: "line:n;line:n" (a ninth field, 2026-09-16)
+	var _x = "";
+	if (is_struct(_sh[$ "elix"])) { var _xk = variable_struct_get_names(_sh.elix); for (var _i = 0; _i < array_length(_xk); _i++) _x += ((_i > 0) ? ";" : "") + _xk[_i] + ":" + string(_sh.elix[$ _xk[_i]]); }
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x;
 }

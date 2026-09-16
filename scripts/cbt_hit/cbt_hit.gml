@@ -31,7 +31,11 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	_hc = clamp(_hc * _lm, 1, 99);
 	// THE NOTEPAD'S BITE: a foe kind the attacker has a note on is a little
 	// easier to hit ("goblins are quick. swing early." - sprite_note)
-	if (is_array(_u[$ "studied"]) && is_string(_t[$ "kind"]) && array_contains(_u.studied, _t.kind)) _hc = clamp(_hc + SPRITE_NOTE_HIT, 1, 99);
+	// THE NOTES' FACETS (2026-09-16): what was noticed is what helps - hit / crit / damage on the attacker's side, evasion / defence on the target's
+	var _tk = is_string(_t[$ "kind"]) ? _t.kind : "", _uk = is_string(_u[$ "kind"]) ? _u.kind : "";
+	var _nu = is_array(_u[$ "studied"]) ? _u.studied : [], _nt = is_array(_t[$ "studied"]) ? _t.studied : [];
+	if (_tk != "" && array_contains(_nu, _tk + ":hit")) _hc = clamp(_hc + SPRITE_NOTE_HIT, 1, 99);
+	if (_uk != "" && array_contains(_nt, _uk + ":eva")) _hc = clamp(_hc - 6, 1, 99);
 	var _roll = random(100);
 
 	// ---- miss ----
@@ -47,7 +51,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 
 	// ---- hit: quality = how far under the curve the roll landed ----
 	var _q = (_hc - _roll) / _hc;   // 0 graze .. 1 perfect
-	var _crit = (random(100) < _u.crit_rate * _lm);
+	var _crit = (random(100) < (_u.crit_rate + ((_tk != "" && array_contains(_nu, _tk + ":crit")) ? 5 : 0)) * _lm);
 
 	var _dmg = _apow * _mult;
 	_dmg -= (_dpow * lerp(1, _b.def_lerp_low, _q)) / _b.def_div;
@@ -55,6 +59,8 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	else          _dmg = lerp(_dmg * _b.dmg_lerp_low, _dmg * _b.perf_lerp_high, _q);
 	if (_crit) _dmg *= 1 + lerp((_u.crit_multi - 1) * _b.crit_lerp_low, (_u.crit_multi - 1) * _b.crit_lerp_high, _q);
 	_dmg *= _b.ttk_multi;
+	if (_tk != "" && array_contains(_nu, _tk + ":dmg")) _dmg *= 1.1;                       // (a note on a tank: where to hit it)
+	if (_uk != "" && array_contains(_nt, _uk + (_magic ? ":mdef" : ":def"))) _dmg *= (_magic ? .85 : .9);   // (a note on what it does: not being where it lands)
 	_dmg = max(.1, round(_dmg * 10) / 10);
 
 	// stagger: quality (and crits) knock the target's ATB backward
@@ -80,7 +86,10 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	var _th = _u.name + _vb + _t.name + " for " + string(_dmg);
 	cbt_log(_f, _th);
 	cbt_film(_f, _t, _dmg, _th);
-	if (_t.hp <= 0) { cbt_log(_f, _t.name + " is down"); cbt_film(_f, undefined, 0, _t.name + " is down"); }
+	if (_t.hp <= 0) {
+		cbt_log(_f, _t.name + " is down"); cbt_film(_f, undefined, 0, _t.name + " is down");
+		if (_t.team == 0 && is_struct(_f[$ "tr"])) exped_drink(_f.tr, _t, _f, true);   // THE TOTEM (2026-09-16): a carrier stands up
+	}
 
 	// ---- the mp economy: landed BASIC attacks (not skills, not counters) ----
 	if (_label == "" && _cdepth == 0) {

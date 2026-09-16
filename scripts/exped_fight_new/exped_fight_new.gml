@@ -32,7 +32,17 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		_pw.studied = sprite_notes_kinds(_sp);
 		if (is_struct(_hz)) {
 			var _ho = cbt_hazard_hold(_sp, _hz);
+			// no hold: a TONIC in the pocket is drunk at the door (2026-09-16); a NOTE on the hazard halves the bite
+			if (!_ho.ok) {
+				var _shz = sprite_sheet(_sp);
+				for (var _tj = 0; _tj < array_length(_shz.inv); _tj++) if ((_shz.inv[_tj][$ "slot"] ?? "") == "use" && _shz.inv[_tj].kind == "tonic") { array_delete(_shz.inv, _tj, 1); _ho = { ok : true, by : "a tonic" }; array_push(_tr.log, _sp.name + " drank a tonic at the door. " + _hz.name + " will not bite"); save_mark_dirty(); break; }
+			}
 			if (_ho.ok) array_push(_held, _sp.name + " (" + _ho.by + ")");
+			else if (sprite_note_has(_sp, "haz:" + _hz.key)) {
+				_pw[$ _hz.lane] *= sqrt(_hz.f);
+				if (_hz.lane == "spd") { _pw.eva = _pw.spd * _bal.spd_to_eva; _pw.tic_spd = _bal.tic_spd_base + sqrt(max(0, _pw.spd)) / _bal.tic_spd_div; }
+				array_push(_held, _sp.name + " (a note, half)");
+			}
 			else {
 				_pw[$ _hz.lane] *= _hz.f;
 				if (_hz.lane == "spd") { _pw.eva = _pw.spd * _bal.spd_to_eva; _pw.tic_spd = _bal.tic_spd_base + sqrt(max(0, _pw.spd)) / _bal.tic_spd_div; }   // (the derived pair follows)
@@ -63,6 +73,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		_xp += foe_xp(_foe);
 	}
 	var _f = cbt_fight_new(_party, _foes);
+	_f.tr = _tr;   // (the trip, for the pocket: exped_drink at a turn's start, the totem when one falls - 2026-09-16; a fight is never saved)
 	_f.xp = _xp;
 	// the hazard on the fight, and the diary's word on it (once a place: the
 	// crew notices it going in, not every room)

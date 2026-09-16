@@ -33,8 +33,14 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _stock = [];
 		var _wl = _rg[$ "wild"] ?? [];
 		for (var _s = 0; _s < _nstock; _s++) {
-			var _slot = choose("w1", "w2", "armor", "talis");
 			var _rar = irandom(_rmax);
+			// A POTION on the shelf (2026-09-16): a settlement's one thing more often than not; a big one where the rung allows
+			if (random(1) < ((_nd.kind == "settlement") ? .6 : .3)) {
+				var _pk = choose("hp", "hp", "hp", "mp", "tonic"), _psz = (_rar > 0 && random(1) < .5) ? 2 : 1;
+				array_push(_stock, { it : use_gen(_pk, _psz, _rg.lv), price : 1 + _psz + ((_pk == "tonic") ? 1 : 0), sold : false });
+				continue;
+			}
+			var _slot = choose("w1", "w2", "armor", "talis");
 			var _tags = (array_length(_wl) > 0 && random(1) < .5) ? _wl[irandom(array_length(_wl) - 1)] : _nd.kind;
 			array_push(_stock, { it : gear_gen(_slot, _rg.lv, _rar, irandom($7fffffff), _tags), price : 2 + floor(_rg.lv / 3) + 2 * _rar, sold : false });
 		}
@@ -54,11 +60,13 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		if (is_undefined(_sp)) continue;
 		var _pn = _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name;
 		var _hag = (_pn == "greedy" || _pn == "sly") ? -1 : ((_pn == "kind") ? 1 : 0);
+		if (sprite_note_has(_sp, "shop")) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
 		// the best thing on the shelf for this one, by its own eye
 		var _best = -1, _bgain = 0;
 		for (var _s = 0; _s < array_length(_stock2); _s++) {
 			if (_stock2[_s].sold) continue;
 			var _it = _stock2[_s].it, _slot = _it.slot;
+			if (_slot == "use") continue;   // (the potions: below, once the gear has been looked at)
 			var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];
 			var _cur = 0;
 			if (_slot == "w1" || _slot == "w2") _cur = gear_score(_sp, _sh[$ _slot]);
@@ -68,6 +76,16 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			}
 			var _gain = gear_score(_sp, _it) - _cur;
 			if (_gain > _bgain) { _bgain = _gain; _best = _s; }
+		}
+		// A POTION (2026-09-16): wanted when the pocket holds fewer than two of its kind, seven times in ten
+		if (_best < 0) {
+			var _shp = sprite_sheet(_sp);
+			for (var _s = 0; _s < array_length(_stock2) && _best < 0; _s++) {
+				if (_stock2[_s].sold || _stock2[_s].it.slot != "use") continue;
+				var _have = 0;
+				for (var _j = 0; _j < array_length(_shp.inv); _j++) if ((_shp.inv[_j][$ "slot"] ?? "") == "use" && _shp.inv[_j].kind == _stock2[_s].it.kind) _have++;
+				if (_have < 2 && roll_perc(70)) { _best = _s; _bgain = 1; }
+			}
 		}
 		if (_best < 0) { if (roll_perc(30)) array_push(_tr.log, _sp.name + " " + choose("looked the shelf over and left it as it was", "picked things up and put them down in a different order", "asked the price of everything and bought the silence", "found nothing better than what is already on", "haggled over a thing and then did not want it")); continue; }
 		var _st = _stock2[_best], _it2 = _st.it, _price = max(1, _st.price + _hag);

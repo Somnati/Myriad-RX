@@ -42,6 +42,12 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 	// the learned skills (an eighth field). A save from the old law (skills
 	// at levels 1 / 10 / 20 off the seed) keeps what it had: those rolls,
 	// as learned ones
+	// the elixirs (a ninth field, 2026-09-16)
+	_sh.elix = {};
+	if (array_length(_f) > _at + 8 && _f[_at + 8] != "") {
+		var _xs = string_split(_f[_at + 8], ";");
+		for (var _i = 0; _i < array_length(_xs); _i++) { var _xv = string_split(_xs[_i], ":"); if (array_length(_xv) == 2 && _xv[0] != "") _sh.elix[$ _xv[0]] = max(0, real(_xv[1])); }
+	}
 	_sh.learned = [];
 	if (array_length(_f) > _at + 7) {
 		if (_f[_at + 7] != "") {

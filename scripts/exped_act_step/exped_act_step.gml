@@ -25,7 +25,7 @@ function exped_act_step(_tr) {
 		}
 		case "shop_open":  exped_shop(_tr, "open"); break;
 		case "shop_buy":   exped_shop(_tr, "buy", _beat.i); break;
-		case "shop_close": exped_shop(_tr, "close"); exped_say(_tr, "shop", undefined, .4); break;
+		case "shop_close": exped_shop(_tr, "close"); exped_say(_tr, "shop", undefined, .4); exped_note_beat(_tr, "shop", .12); break;
 		case "linger": {
 			// the distractions (his ask): a small thing that took an hour - composed, not picked (exped_compose, 2026-09-16)
 			array_push(_tr.log, exped_compose("linger", _tr));
@@ -33,9 +33,9 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "rest": {
-			var _cost = 0, _beds = 0;
-			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _beds++;
-			_cost = _beds * EXPED_INN;
+			var _cost = 0, _beds = 0, _cheap = 0;
+			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _beds++; if (sprite_note_has(exped_sprite(_tr.sids[_k]), "inn")) _cheap++; }
+			_cost = max(ceil(_beds * EXPED_INN * .5), _beds * EXPED_INN - _cheap);   // (a note on inns: a bed cheaper - never below half the bill, 2026-09-16)
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = _tr.hpmax[_k];
@@ -212,6 +212,12 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "shrine": {
+			// a tonic in the bowl, one time in four (2026-09-16)
+			if (roll_perc(25)) {
+				var _tsp = exped_sprite(_tr.sids[irandom(_n - 1)]);
+				if (!is_undefined(_tsp)) { var _ttk = sprite_take(_tsp, use_gen("tonic", 1, _rg.lv)); exped_tally(_tr, "items"); array_push(_tr.log, "in the bowl at the shrine, a tonic. " + _ttk.txt); }
+			}
+
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .3);
 			exped_skill_beat(_tr, .3);   // (a shrine teaches, sometimes)
 			array_push(_tr.log, "the shrine at " + _nd.name + ": " + choose("a small blessing", "the water was cold and helped", "someone left a candle. it counted"));

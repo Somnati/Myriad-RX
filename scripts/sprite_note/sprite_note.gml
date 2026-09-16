@@ -8,7 +8,11 @@
 /// text is scrubbed of the save's separators.
 function sprite_note(_sp, _txt, _tag = "") {
 	var _sh = sprite_sheet(_sp);
-	if (_tag != "") for (var _i = 0; _i < array_length(_sh.notes); _i++) if (_sh.notes[_i].tag == _tag) return false;
+	if (_tag != "") for (var _i = 0; _i < array_length(_sh.notes); _i++) {
+		if (_sh.notes[_i].tag == _tag) return false;
+		// (a foe is one note a kind whatever the facet - "foe:<kind>:<facet>", 2026-09-16)
+		if (string_pos("foe:", _tag) == 1 && string_pos("foe:", _sh.notes[_i].tag) == 1) { var _ta = string_split(_tag, ":"), _tb = string_split(_sh.notes[_i].tag, ":"); if (array_length(_ta) > 1 && array_length(_tb) > 1 && _ta[1] == _tb[1]) return false; }
+	}
 	for (var _i = 0; _i < array_length(_sh.notes); _i++) if (_sh.notes[_i].txt == _txt) return false;   // (the same line twice on one pad: no - 2026-09-15)
 	_txt = string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(string_replace_all(_txt,
 		"/", " "), "|", " "), ";", " "), ",", " "), "=", " "), "^", " "), "~", " ");

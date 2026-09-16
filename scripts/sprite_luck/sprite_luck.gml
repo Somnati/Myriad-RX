@@ -10,5 +10,6 @@ function sprite_luck(_sp) {
 	var _pl = sprite_personalities();
 	var _pn = _pl[clamp(_sp[$ "pers"] ?? 0, 0, array_length(_pl) - 1)].name;
 	if (_pn == "sly" || _pn == "dreamy") _l += 1;
+	if (is_struct(_sh[$ "elix"])) _l += _sh.elix[$ "luck"] ?? 0;   // (an elixir of luck, 2026-09-16)
 	return _l;
 }

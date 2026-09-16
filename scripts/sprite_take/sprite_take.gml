@@ -8,6 +8,15 @@
 /// personality-sized chance the sprite bins an upgrade with a reason.
 /// txt is the diary's truth line about it.
 function sprite_take(_sp, _it) {
+	// A CONSUMABLE (2026-09-16): an elixir is drunk on the spot; the rest go in the pocket, no dumb moment about it
+	if ((_it[$ "slot"] ?? "") == "use") {
+		if (_it.kind == "elixir") return { txt : sprite_elixir(_sp, _it.line), worn : false, kept : false, elixir : true };
+		var _shu = sprite_sheet(_sp);
+		array_push(_shu.inv, _it);
+		var _dru = sprite_inv_trim(_sp);
+		save_mark_dirty();
+		return { txt : _sp.name + " pocketed the " + _it.name + ((_dru != "") ? (", dropping " + _dru) : ""), worn : false, kept : true };
+	}
 	var _sh = sprite_sheet(_sp);
 	var _c  = sprite_classes()[_sh.cls];
 	var _sc = gear_score(_sp, _it);

@@ -1,5 +1,15 @@
 /// @description gear_desc(item) -> the popup's line of voice: where it is from, what its quirks do, or a word on its rarity
 function gear_desc(_it) {
+	if ((_it[$ "slot"] ?? "") == "use") {
+		switch (_it.kind) {
+			case "hp":    return (_it.size >= 2) ? "a big red potion: eight tenths of the hp back. drunk when it is bad, by whoever carries it." : "a red potion: four tenths of the hp back. drunk when low - the nervous early, the brave late, the greedy at the last moment, the dreamy when they remember.";
+			case "mp":    return (_it.size >= 2) ? "a big blue potion: all the mp back, drunk in a fight when the mp is short of a skill." : "a blue potion: half the mp back, drunk in a fight when the mp is short of a skill.";
+			case "tonic": return "a tonic: drunk at the door of a fight under a hazard the carrier has nothing else against. holds the hazard for that fight.";
+			case "totem": return "the totem of don't die. a carrier who falls stands up at half hp, and the totem cracks. one use. keep it in the pocket.";
+			case "elixir": return "an elixir: drunk on the spot. +1 to a line, for good.";
+		}
+		return "a bottle of something.";
+	}
 	var _s = "";
 	var _tg = gear_tags()[$ (_it[$ "tag"] ?? "")];
 	if (is_struct(_tg)) _s += _tg.origin + ". ";

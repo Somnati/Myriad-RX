@@ -19,8 +19,9 @@ function exped_note_fight(_tr, _f) {
 			if (_kd == "" || array_contains(_seen, _kd)) continue;
 			array_push(_seen, _kd);
 			if (!roll_perc(50)) continue;
-			var _txt = sprite_note_gen(_sp, "foe", { foe : _fo });
-			if (_txt != "" && sprite_note(_sp, _txt, "foe:" + _kd))
+			var _ctxf = { foe : _fo, facet : "hit" };
+			var _txt = sprite_note_gen(_sp, "foe", _ctxf);
+			if (_txt != "" && sprite_note(_sp, _txt, "foe:" + _kd + ":" + _ctxf.facet))
 				array_push(_tr.log, _sp.name + " writes: \"" + _txt + "\"");
 		}
 	} else if (roll_perc(60)) {

@@ -1067,9 +1067,28 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
 		// THE NOTE POPUP (his ask): what a note does to the sprite
 		var _pnt = it_pop.nt;
-		var _ntxt = (_pnt.tag != "" && string_pos("foe:", _pnt.tag) == 1)
-			? ("a STUDIED foe: +" + string(SPRITE_NOTE_HIT) + " to hit against " + string_delete(_pnt.tag, 1, 4) + "s in every fight from now on (the note counts once a kind)")
-			: "a useless note. it changes nothing. they seem to like having it.";
+		// (what a note does, by its tag - the notes pass, 2026-09-16)
+		var _ntxt = "a useless note. it changes nothing. they seem to like having it.";
+		if (_pnt.tag != "") {
+			var _tp = string_split(_pnt.tag, ":");
+			if (_tp[0] == "foe" && array_length(_tp) >= 2) {
+				var _fct = (array_length(_tp) >= 3) ? _tp[2] : "hit", _fks = foe_plural(_tp[1]);
+				switch (_fct) {
+					case "crit": _ntxt = "a STUDIED foe: +5 crit against " + _fks + " (where the gaps are)"; break;
+					case "dmg":  _ntxt = "a STUDIED foe: a tenth more damage to " + _fks + " (where to push)"; break;
+					case "mdef": _ntxt = "a STUDIED foe: their magic bites " + _fks + "' target 15% less (not standing in it)"; break;
+					case "def":  _ntxt = "a STUDIED foe: " + _fks + " hit this sprite a tenth softer (not being where it lands)"; break;
+					case "eva":  _ntxt = "a STUDIED foe: " + _fks + " miss this sprite 6 more in a hundred"; break;
+					default:     _ntxt = "a STUDIED foe: +" + string(SPRITE_NOTE_HIT) + " to hit against " + _fks + " in every fight from now on (one note a kind)"; break;
+				}
+			}
+			else if (_tp[0] == "road") _ntxt = "the going: a tenth quicker on any road that touches " + ((array_length(_tp) > 1) ? _tp[1] : "that land") + " while this sprite is up";
+			else if (_tp[0] == "wx")   _ntxt = "the weather: no slips and no wrong turns in " + ((array_length(_tp) > 1) ? _tp[1] : "it") + " while this sprite is up";
+			else if (_tp[0] == "night") _ntxt = "the dark: half the lost hours and wrong turns at night while this sprite is up";
+			else if (_tp[0] == "haz")  _ntxt = "a hazard studied: " + ((array_length(_tp) > 1) ? ("the " + _tp[1]) : "it") + " bites this sprite half as hard when nothing else holds it";
+			else if (_tp[0] == "inn")  _ntxt = "inns: this sprite's bed is a credit cheaper (the bill never under half)";
+			else if (_tp[0] == "shop") _ntxt = "shops: this sprite haggles a credit off everything";
+		}
 		var _npw = 200, _nph = 30 + string_height_ext(_ntxt, 9, _npw - 12);
 		var _npx = clamp(it_pop.x, 4, room_width - _npw - 4), _npy = clamp(it_pop.y, list_y + 20, room_height - _nph - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _npx + 2, _npy + 3, _npw, _nph, 0, c_black, .5);
@@ -1103,7 +1122,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _lines = variable_struct_get_names(_it.pts);
 		// what it would replace (the worst of a multi-slot)
 		var _cmp = undefined;
-		if (!it_pop.worn) {
+		if (!it_pop.worn && _it.slot != "use") {   // (a consumable compares with nothing - 2026-09-16)
 			if (_it.slot == "w1" || _it.slot == "w2") _cmp = _psh[$ _it.slot];
 			else { var _arr = _psh[$ _it.slot]; var _wsc = infinity; for (var _j = 0; _j < array_length(_arr); _j++) { var _s2 = gear_score(_psp, _arr[_j]); if (_s2 < _wsc) { _wsc = _s2; _cmp = _arr[_j]; } } }
 		}

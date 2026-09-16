@@ -16,19 +16,23 @@ function sprite_note_gen(_sp, _beat, _ctx = undefined) {
 	switch (_beat) {
 		case "foe": {
 			if (!is_struct(_foe)) return "";
+			// THE FACET (2026-09-16): what was noticed is what the note does - ctx.facet carries it to the tag
+			// (quick: hit / armoured: crit / a tank: dmg / a caster: mdef / hits hard: def / misses: eva / the rest: hit)
 			var _opts = [];
-			if (_foe[$ "boss"] ?? false) array_push(_opts, "the " + _foe.name + " exists. avoid.", "met the " + _foe.name + ". it has a title. we do not.");
-			if (array_length(_foe[$ "worn"] ?? []) > 0) array_push(_opts, "one of the " + _ks + " had a " + _foe.worn[0].name + ". rude.", _ks + " carry things. they are not for sharing.");
-			if (_foe.spd >= 6.5 * (_foe.pts_total / 40)) array_push(_opts, _ks + " are quick. swing early.", _ks + " move before you have decided to.");
-			if (_foe.def >= 5.5 * (_foe.pts_total / 40)) array_push(_opts, _ks + " wear things. aim for the gaps.", "hitting a " + _kind + " is like hitting a door.");
-			if (_foe.maxhp_real >= 30 * (_foe.pts_total / 40)) array_push(_opts, _ks + " take ages. bring snacks.", "a " + _kind + " does not go down. it goes sideways, slowly.");
-			if (_foe[$ "magic"] ?? false) array_push(_opts, _ks + " do the glowy thing. do not stand in it.", "a " + _kind + " hums before it hurts. the hum is the warning.");
-			if (_foe.atk >= 6.5 * (_foe.pts_total / 40)) array_push(_opts, _ks + " hit hard. do not be where the hit is.", "a " + _kind + " swings like it means it.");
-			if (_foe.hit <= 4.5 * (_foe.pts_total / 40)) array_push(_opts, _ks + " miss a lot. stand still and look confident.");
-			array_push(_opts, _kind + ": hits back. noted.", "a " + _kind + " is a " + _kind + ". writing it down anyway.",
-			           _ks + " smell like " + _ks + ". you will know.", "met a " + _kind + ". it did not want to be met.", _ks + ": count them first. then count again. then leave.",
-			           "a " + _kind + " has a front and a back. the back is better.", _ks + " are not friendly. checked.");
-			return _opts[irandom(array_length(_opts) - 1)];
+			if (_foe[$ "boss"] ?? false) array_push(_opts, { t : "the " + _foe.name + " exists. avoid.", f : "hit" }, { t : "met the " + _foe.name + ". it has a title. we do not.", f : "hit" });
+			if (array_length(_foe[$ "worn"] ?? []) > 0) array_push(_opts, { t : "one of the " + _ks + " had a " + _foe.worn[0].name + ". rude.", f : "hit" }, { t : _ks + " carry things. they are not for sharing.", f : "hit" });
+			if (_foe.spd >= 6.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " are quick. swing early.", f : "hit" }, { t : _ks + " move before you have decided to.", f : "hit" });
+			if (_foe.def >= 5.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " wear things. aim for the gaps.", f : "crit" }, { t : "hitting a " + _kind + " is like hitting a door. doors have hinges.", f : "crit" });
+			if (_foe.maxhp_real >= 30 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " take ages. bring snacks.", f : "dmg" }, { t : "a " + _kind + " does not go down. it goes sideways, slowly. push sideways.", f : "dmg" });
+			if (_foe[$ "magic"] ?? false) array_push(_opts, { t : _ks + " do the glowy thing. do not stand in it.", f : "mdef" }, { t : "a " + _kind + " hums before it hurts. the hum is the warning.", f : "mdef" });
+			if (_foe.atk >= 6.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " hit hard. do not be where the hit is.", f : "def" }, { t : "a " + _kind + " swings like it means it. lean back.", f : "def" });
+			if (_foe.hit <= 4.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " miss a lot. stand still and look confident.", f : "eva" }, { t : "a " + _kind + " swings where you were. be somewhere else.", f : "eva" });
+			array_push(_opts, { t : _kind + ": hits back. noted.", f : "hit" }, { t : "a " + _kind + " is a " + _kind + ". writing it down anyway.", f : "hit" },
+			           { t : _ks + " smell like " + _ks + ". you will know.", f : "hit" }, { t : "met a " + _kind + ". it did not want to be met.", f : "hit" }, { t : _ks + ": count them first. then count again. then leave.", f : "hit" },
+			           { t : "a " + _kind + " has a front and a back. the back is better.", f : "crit" }, { t : _ks + " are not friendly. checked.", f : "hit" });
+			var _pick = _opts[irandom(array_length(_opts) - 1)];
+			_ctx.facet = _pick.f;
+			return _pick.t;
 		}
 		case "rout":
 			return choose(_ks + ": no. just no.", "do not go near " + _ks + " again. underline this.", _ks + ". the bad kind.", "lost to a " + _kind + ". the notepad was not helpful.",

@@ -8,6 +8,7 @@
 /// nothing. `again` = a second pass at the same node (the quest is not
 /// done yet).
 function exped_node_event(_tr, _again = false) {
+	if (!_again) exped_drink(_tr);   // (arriving: the pocket, for whoever is low - 2026-09-16)
 	static _kk_civ_count = function(_k) { var _kd = region_kinds()[$ _k]; return is_struct(_kd) && _kd.civ; };   // (the count quest: a settled place has more of everything)
 	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];

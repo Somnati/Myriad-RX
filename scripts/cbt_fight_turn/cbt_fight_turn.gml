@@ -33,6 +33,7 @@ function cbt_fight_turn(_f) {
 	if (array_length(_ready) == 0) return;
 	var _actor = _ready[irandom(array_length(_ready) - 1)];
 	_f.turn += 1;
+	if (_actor.team == 0 && is_struct(_f[$ "tr"])) exped_drink(_f.tr, _actor, _f);   // the pocket first: a potion when low, a free action (2026-09-16)
 	var _plan = cbt_ai(_f, _actor);
 	if (!is_undefined(_plan) && _actor.hp > 0 && _plan.target.hp > 0) {
 		if (is_undefined(_plan.skill)) cbt_hit(_f, _actor, _plan.target, 1, "", 0, _actor.magic);

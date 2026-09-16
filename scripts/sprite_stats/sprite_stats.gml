@@ -21,6 +21,7 @@ function sprite_stats(_sp) {
 		var _b = _c.shape[$ _key] * _budget / 40;
 		var _g = 0;
 		for (var _w = 0; _w < array_length(_worn); _w++) _g += _worn[_w].pts[$ _key] ?? 0;
+		if (is_struct(_sh[$ "elix"])) _g += _sh.elix[$ _key] ?? 0;   // THE ELIXIRS (2026-09-16): +1 a line each, for good - shown with the gear's green
 		_base[$ _key] = _b;
 		_gear[$ _key] = _g;
 		_pts[$ _key]  = _b + _g;

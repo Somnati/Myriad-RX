@@ -46,6 +46,13 @@ function exped_agent(_tr, _dt) {
 		var _before = floor(_rd.t / EXPED_HOUR);
 		var _pp = planet_props(_tr.dest);
 		var _pace = _pp.grav * (_night ? .8 : 1) * ((_wx == "storm") ? .7 : ((_wx == "snow") ? .75 : ((_wx == "wind") ? .92 : 1)));   // (the world's gravity, the dark and the weather set the road's pace)
+		// THE NOTES (2026-09-16): a note on the land at either end of the road quickens the pace; a note on the weather, the night, keeps them out of trouble below
+		var _n_road = false, _n_wx = false, _n_night = false;
+		for (var _nk = 0; _nk < array_length(_tr.sids); _nk++) { if (_tr.hp[_nk] <= 0) continue; var _nsp = exped_sprite(_tr.sids[_nk]); if (is_undefined(_nsp)) continue;
+			if (sprite_note_has(_nsp, "road:" + _rg.nodes[_rd.a].kind) || sprite_note_has(_nsp, "road:" + _rg.nodes[_rd.b].kind)) _n_road = true;
+			if (sprite_note_has(_nsp, "wx:" + _wx)) _n_wx = true;
+			if (sprite_note_has(_nsp, "night")) _n_night = true; }
+		if (_n_road) _pace *= 1.1;
 		var _dark = (_pp.moons == 0) ? 2 : ((_pp.moons >= 2) ? .5 : 1);   // (a moonless night: twice the wrong turns; two moons: half)
 		_rd.t += _dt * _pace;
 		var _after = floor(_rd.t / EXPED_HOUR);
@@ -53,7 +60,7 @@ function exped_agent(_tr, _dt) {
 			var _nl = array_length(_tr.log);
 			var _high = (_rg.nodes[_rd.a].kind == "mountains" || _rg.nodes[_rd.a].kind == "hills" || _rg.nodes[_rd.b].kind == "mountains" || _rg.nodes[_rd.b].kind == "hills");
 			// the weather's own: a slip on a wet high road, a wait under a tree in a storm
-			if ((_wx == "rain" || _wx == "snow") && _high && roll_perc(8)) {
+			if ((_wx == "rain" || _wx == "snow") && _high && !_n_wx && roll_perc(8)) {
 				var _sk = irandom(array_length(_tr.sids) - 1);
 				if (_tr.hp[_sk] > 0) { _tr.hp[_sk] = max(1, _tr.hp[_sk] - _tr.hpmax[_sk] * .08); exped_tally(_tr, "mist"); array_push(_tr.log, _tr.names[_sk] + " slipped on the wet " + ((_rg.nodes[_rd.b].kind == "mountains") ? "scree" : "slope") + " and went down a way. bruises"); }
 			}
@@ -61,14 +68,14 @@ function exped_agent(_tr, _dt) {
 			// the dark: a wrong turn (another road out of the node they left -
 			// the path is thrown away, they decide afresh where they end up),
 			// or an hour lost, before anything else; fog doubles the wrong turns
-			if ((_night && roll_perc(6 * _dark)) || (_wx == "fog" && roll_perc(_night ? 10 : 8))) {
+			if ((_night && roll_perc(6 * _dark * (_n_night ? .5 : 1))) || (_wx == "fog" && !_n_wx && roll_perc(_night ? 10 : 8))) {
 				var _nb = region_neighbors(_rg, _rd.a);
 				if (array_length(_nb) > 1) {
 					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
 					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; exped_tally(_tr, "mist"); array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); exped_say(_tr, "lost", undefined, .7); return false; }
 				}
 			}
-			if (_night && roll_perc(10 * _dark)) { _rd.t = max(0, _rd.t - EXPED_HOUR); exped_tally(_tr, "mist"); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
+			if (_night && roll_perc(10 * _dark * (_n_night ? .5 : 1))) { _rd.t = max(0, _rd.t - EXPED_HOUR); exped_tally(_tr, "mist"); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;
