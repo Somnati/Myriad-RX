@@ -34,6 +34,7 @@ uniform vec3  u_nebd[8];   // their bearings (unit, world)
 uniform vec4  u_nebp[8];   // sin(apparent radius), cos(apparent radius), brightness, seed
 uniform vec3  u_nebc[8];   // colour
 uniform vec3  u_nebc2[8];  // the second colour
+uniform float u_nebk[8];   // the kind (neb_body)
 
 // hash -> 3d value noise -> fbm. sampled on world DIRECTIONS, so the
 // fog is seamless over the whole sphere: no 2d wrap, no poles
@@ -108,6 +109,39 @@ float fbm2(vec2 p)
     return s;
 }
 
+// THE BODY OF A CLOUD BY ITS KIND (2026-09-16): uv -1..1 across its disc, the cloud's seed, its kind -> (density, mottle, filaments).
+// 0 DIFFUSE: the soft disc, bent, mottled, shot with filaments. 1 SHELL (a remnant): a hollow ring, thin and bright at the
+// rim, near nothing inside. 2 PILLARS: stretched along an axis the seed turns, torn into streaks. 3 VEIL: huge and faint,
+// the wisps alone. the same function paints the map, the sky's far patches and the star's own cloud - one cloud everywhere.
+vec3 neb_body(vec2 uv0, float seed, float kind)
+{
+    float ra = seed * 2.7;
+    vec2 uv = vec2(uv0.x * cos(ra) - uv0.y * sin(ra), uv0.x * sin(ra) + uv0.y * cos(ra));
+    vec2 p = uv * 1.8 + vec2(seed, seed * 1.7);
+    vec2 q = vec2(fbm2(p), fbm2(p + vec2(3.1, 7.3)));
+    vec2 wv = uv + (q - 0.5) * 1.1;
+    float d = length(wv);
+    float n = fbm2(p * 2.3 + q * 2.5 + vec2(1.7, 9.2));
+    float f = 1.0 - abs(2.0 * fbm2(p * 3.7 + q * 1.5 + vec2(5.0, 2.0)) - 1.0);
+    float body;
+    if (kind < 0.5) {
+        body = 1.0 - smoothstep(0.1, 1.0, d);
+        body = body * body;
+    } else if (kind < 1.5) {
+        float ring = 1.0 - smoothstep(0.0, 0.2, abs(d - 0.7));
+        float inner = (1.0 - smoothstep(0.0, 0.7, d)) * 0.15;
+        body = (ring * (0.55 + 0.7 * f) + inner) * (1.0 - smoothstep(0.85, 1.0, d));
+    } else if (kind < 2.5) {
+        vec2 sv = vec2(wv.x * 2.3, wv.y * 0.7);
+        float streak = 0.5 + 0.5 * fbm2(vec2(wv.x * 9.0, wv.y * 1.6) + seed);
+        body = (1.0 - smoothstep(0.1, 1.0, length(sv))) * (0.35 + 0.9 * streak);
+        body = body * body;
+    } else {
+        body = (1.0 - smoothstep(0.3, 1.0, d)) * f * f * 0.9;
+    }
+    return vec3(body, n, f);
+}
+
 void main()
 {
     // the same projection the star draws use: sx = cx + vx * 230 / -vz,
@@ -168,14 +202,12 @@ void main()
         vec3 t2 = cross(nd, t1);
         vec2 nuv = vec2(dot(w, t1), dot(w, t2)) / max(np.x, 0.02);
         if (dot(nuv, nuv) > 3.2) continue;
-        vec2 pp = nuv * 1.8 + vec2(np.w, np.w * 1.7);
-        vec2 qq = vec2(fbm2(pp), fbm2(pp + vec2(3.1, 7.3)));
-        vec2 wv = nuv + (qq - 0.5) * 1.1;
-        float nbody = 1.0 - smoothstep(0.1, 1.0, length(wv));
+        vec3 nbd = neb_body(nuv, np.w, u_nebk[ni]);
+        float nbody = nbd.x;
         if (nbody <= 0.0) continue;
-        float nn = fbm2(pp * 2.3 + qq * 2.5 + vec2(1.7, 9.2));
-        float nf = 1.0 - abs(2.0 * fbm2(pp * 3.7 + qq * 1.5 + vec2(5.0, 2.0)) - 1.0);
-        float na = nbody * nbody * (0.25 + 0.9 * nn) * (0.5 + 0.7 * nf * nf);
+        float nn = nbd.y;
+        float nf = nbd.z;
+        float na = nbody * (0.25 + 0.9 * nn) * (0.5 + 0.7 * nf * nf);
         vec3 ncol = mix(u_nebc[ni], u_nebc2[ni], smoothstep(0.25, 0.75, nn)) + vec3(0.25) * nf * nf * nbody;
         if (np.z < 0.0) darkT *= 1.0 - clamp(na * -np.z, 0.0, 1.0);   // (a dark cloud: brightness below zero is its extinction)
         else rgb += ncol * na * np.z;
