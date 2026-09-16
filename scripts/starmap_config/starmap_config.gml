@@ -110,6 +110,7 @@ function starmap_config() {
 		                      // sky's bearings the map's angles, a few degrees of lean at most)
 		neb_in_amp    : .8,   // THE NEAR CLOUD (marched): the glow's strength...
 		neb_in_ext    : 1.4,  // ...and the extinction per unit of gathered density (the sky beyond dims)
+		neb_in_smooth : true, // no jitter and no grain of its own in the march (twenty even steps; the page's blit still dithers) - his call 2026-09-16
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px

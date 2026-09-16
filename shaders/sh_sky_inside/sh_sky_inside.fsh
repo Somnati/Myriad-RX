@@ -31,7 +31,7 @@ uniform float u_amp;     // the glow's strength
 uniform float u_ext;     // the extinction per unit of gathered density
 uniform float u_time;    // the dither's slide, the walk's jitter
 uniform float u_dither;  // 1 on an 8-bit page
-uniform float u_dmode;   // the settings' pattern (settings > visuals): 1 ordered - a fixed interleaved gradient; 0 grain - white, re-seeded at 30 hz
+uniform float u_dmode;   // 0 grain (white, re-seeded at 30 hz), 1 ordered (a fixed interleaved gradient), 2 SMOOTH (no jitter, no grain of its own)
 uniform vec3  u_sun;     // the system's star's bearing (world): it is near us, the cloud does not dim it
 uniform float u_sunon;   // 1 when the sun is on this sky (the orbit view), 0 on the system page
 
@@ -151,11 +151,12 @@ void main()
     // (the steps' offset per pixel: the settings' pattern - white grain danced as noise, his report 2026-09-16; ordered holds still)
     float sfr = floor(u_time * 60.0);
     vec2 pix = floor(v_vTexcoord * u_geom);
-    float jit = (u_dmode > 0.5) ? ign(pix) : hash12(pix + vec2(sfr * 3.0, sfr * 11.0));
-    float st = (tout - tin) / 14.0;
+    // (u_dmode 2 = SMOOTH, his call 2026-09-16: no jitter, no grain of its own - twenty even steps, the page's blit dithers)
+    float jit = (u_dmode > 1.5) ? 0.5 : ((u_dmode > 0.5) ? ign(pix) : hash12(pix + vec2(sfr * 3.0, sfr * 11.0)));
+    float st = (tout - tin) / 20.0;
     float od = 0.0;
     vec3 glow = vec3(0.0);
-    for (int i = 0; i < 14; i++) {
+    for (int i = 0; i < 20; i++) {
         float t = tin + (float(i) + jit) * st;
         vec3 p = u_s + w * t;
         vec2 uv = vec2(p.x, -p.z);                          // (the map's frame: y down the map is the sky's -z)
@@ -183,6 +184,6 @@ void main()
     vec2 ip = (u_cell > 0.5) ? floor(v_vTexcoord * u_geom / u_cell) : floor(v_vTexcoord * u_geom);
     float g = (u_dmode > 0.5) ? ign(ip) : hash12(ip + vec2(sfr * 13.0, sfr * 7.0));
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
-    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither;
+    rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither * ((u_dmode > 1.5) ? 0.0 : 1.0);
     gl_FragColor = vec4(max(rgb, vec3(0.0)), trans);
 }
