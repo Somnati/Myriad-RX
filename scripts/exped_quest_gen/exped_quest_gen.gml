@@ -60,7 +60,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			if (_wh < _neh) { _neh = _wh; _ne = _wild[_wi]; }
 		}
 		if (random(1) < .5) _q = { kind : "scout", node : _ne, foe : "", n : 1, mult : 2 };
-		else _q = { kind : "slay", node : _ne, foe : choose("rat", "slime"), n : irandom_range(2, 3), mult : 3 };
+		else _q = { kind : "slay", node : _ne, foe : _pick(foe_kinds_at(_rg.nodes[_ne].kind)), n : irandom_range(2, 3), mult : 3 };   // (the place's own kinds - bug hunt 2026-09-15: a slime in a field)
 	} else {
 		// THE DEAL: every kind the region can host, weighted; one roll picks
 		var _w = [];
@@ -109,7 +109,10 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "wolf", "rat", "kobold", "boar", "hornets"), n : irandom_range(2, 3), mult : 4 }; break;
 			case "survey": {
 				// n places, then walked nearest-first from the landing zone
-				var _n = min(3, array_length(_any)), _left = array_concat(_any), _picked = [];
+				var _left = [], _picked = [];
+				for (var _i = 0; _i < array_length(_any); _i++) if (_rg.nodes[_any[_i]].kind != "camp") array_push(_left, _any[_i]);   // (a camp is not charted, it is raided - bug hunt 2026-09-15)
+				if (array_length(_left) < 2) _left = array_concat(_any);
+				var _n = min(3, array_length(_left));
 				repeat (_n) { var _pi2 = irandom(array_length(_left) - 1); array_push(_picked, _left[_pi2]); array_delete(_left, _pi2, 1); }
 				var _ns = [], _c = _rg.landing;
 				while (array_length(_picked) > 0) {
