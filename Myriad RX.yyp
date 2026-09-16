@@ -252,6 +252,8 @@
     {"id":{"name":"battery_rate","path":"scripts/battery_rate/battery_rate.yy",},},
     {"id":{"name":"battery_tick","path":"scripts/battery_tick/battery_tick.yy",},},
     {"id":{"name":"battery_upg","path":"scripts/battery_upg/battery_upg.yy",},},
+    {"id":{"name":"bestiary_lore","path":"scripts/bestiary_lore/bestiary_lore.yy",},},
+    {"id":{"name":"bestiary_note","path":"scripts/bestiary_note/bestiary_note.yy",},},
     {"id":{"name":"bezier_approach","path":"scripts/bezier_approach/bezier_approach.yy",},},
     {"id":{"name":"bezier_bits","path":"scripts/bezier_bits/bezier_bits.yy",},},
     {"id":{"name":"bezier_create","path":"scripts/bezier_create/bezier_create.yy",},},

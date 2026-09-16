@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bestiary_lore",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bestiary_lore",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

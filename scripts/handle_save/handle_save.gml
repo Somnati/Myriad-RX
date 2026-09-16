@@ -567,6 +567,14 @@ function handle_save(){
 	var _seen = g.exped[$ "seen"] ?? [];
 	for (var _i = 0; _i < array_length(_seen); _i++) _xsn += ((_i > 0) ? "|" : "") + _seen[_i];
 	_xsn = handle("ex_seen", _xsn);
+	// THE BESTIARY (2026-09-16): kind=seen:slain:vars,vars:boss|...
+	var _xbt = "";
+	var _bst = g.exped[$ "best"];
+	if (is_struct(_bst)) {
+		var _bkn = variable_struct_get_names(_bst);
+		for (var _i = 0; _i < array_length(_bkn); _i++) { var _bv = _bst[$ _bkn[_i]]; _xbt += ((_i > 0) ? "|" : "") + _bkn[_i] + "=" + string(_bv.seen) + ":" + string(_bv.slain) + ":" + string_join_ext(",", _bv.vars) + ":" + string(_bv.boss); }
+	}
+	_xbt = handle("ex_best", _xbt);
 	var _xof = handle("ex_offer", exped_offer_pack());   // THE QUEST BOARDS (2026-09-15)
 	if (action == sv_load) {
 		exped_offer_unpack(_xof);
@@ -579,6 +587,16 @@ function handle_save(){
 			}
 		}
 		g.exped.seen = (_xsn != "") ? string_split(_xsn, "|") : [];
+		g.exped.best = {};
+		if (_xbt != "") {
+			var _bl2 = string_split(_xbt, "|");
+			for (var _i = 0; _i < array_length(_bl2); _i++) {
+				var _kv = string_split(_bl2[_i], "=");
+				if (array_length(_kv) != 2) continue;
+				var _fv = string_split(_kv[1], ":");
+				if (array_length(_fv) >= 4) g.exped.best[$ foe_legacy(_kv[0])] = { seen : max(0, real(_fv[0])), slain : max(0, real(_fv[1])), vars : (_fv[2] != "") ? string_split(_fv[2], ",") : [], boss : max(0, real(_fv[3])) };
+			}
+		}
 		g.exped.depth  = clamp(floor(g.exped.depth), 1, 8);
 		g.exped.charms = max(0, floor(g.exped.charms));
 		g.exped.seq    = max(0, floor(g.exped.seq));

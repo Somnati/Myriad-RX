@@ -28,6 +28,7 @@ switch (view) {
 	case "map":    if (is_struct(map_dest)) { _td = map_dest; _t3 = "  /  " + region_get(map_dest, map_rgi).name + " map"; } break;
 	case "crew":   _t1 = "expedition  -  the crew"; break;
 	case "galaxy": _t1 = "expedition  -  the galaxy"; break;
+	case "bestiary": _t1 = "expedition  -  the bestiary"; break;
 }
 if (is_struct(_td)) { _t1 = land ? "expedition  -  " : ""; _t2 = _td.name; if (!land) _t3 = ""; }
 var _ttl = _t1 + _t2 + _t3;
@@ -348,6 +349,86 @@ if (view == "map") {
 }
 
 // ======================= THE CREW MENU (his ask, 2026-09-14: tabs left, the sheet right) =======================
+// ======================= THE BESTIARY (his ask, 2026-09-16: grid based) =======================
+if (view == "bestiary") {
+	var _ros = foe_roster(), _nk = array_length(_ros), _met = 0;
+	for (var _i = 0; _i < _nk; _i++) { var _mb = __bs_met(_ros[_i].name); if (is_struct(_mb) && _mb.seen > 0) _met++; }
+	draw_set_color(_ink); draw_set_alpha(.6);
+	draw_text(land ? 14 : 4, list_y + 6, "the bestiary  -  " + string(_met) + " of " + string(_nk) + " met");
+	// THE GRID: a cell a kind, a letter in its colour once met, a "?" until then, the slain in the corner
+	for (var _i = 0; _i < _nk; _i++) {
+		var _r = _ros[_i], _cr = __bs_cell_r(_i);
+		var _bb = __bs_met(_r.name);
+		var _known = is_struct(_bb) && _bb.seen > 0;
+		var _on = (bs_sel == _i);
+		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, _known ? merge_colour(_r.col, c_black, .8) : c_black, _on ? .95 : .7);
+		draw_px_rect(_cr.x, _cr.y, _cr.w, _cr.h, _on ? c_white : (_known ? _r.col : _dim), _on ? .9 : (_known ? .5 : .2));
+		draw_set_halign(fa_center);
+		if (_known) {
+			draw_set_font(fnt_large); draw_set_color(_r.col); draw_set_alpha(.95);
+			draw_text(_cr.x + 12, _cr.y + 3, string_upper(string_char_at(_r.name, 1)));
+			draw_set_font(fnt);
+			if (_bb.slain > 0) { draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.85); draw_text(_cr.x + _cr.w - 2, _cr.y + _cr.h - 9, string(_bb.slain)); }
+		} else { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_cr.x + 12, _cr.y + 8, "?"); }
+		draw_set_halign(fa_left);
+	}
+	// THE CARD: the one picked
+	var _cd = __bs_card_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _cd.x, _cd.y, _cd.w, _cd.h, 0, c_black, .6);
+	draw_px_rect(_cd.x, _cd.y, _cd.w, _cd.h, _ink, .15);
+	var _tx = _cd.x + 8, _ty = _cd.y + 6, _tw = _cd.w - 16;
+	if (bs_sel < 0 || bs_sel >= _nk) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_tx, _ty, "tap a cell"); }
+	else {
+		var _r = _ros[bs_sel], _bb = __bs_met(_r.name);
+		var _known = is_struct(_bb) && _bb.seen > 0;
+		if (!_known) {
+			draw_set_font(fnt_large); draw_set_color(_dim); draw_set_alpha(.7); draw_text(_tx, _ty, "?"); draw_set_font(fnt); _ty += 16;
+			draw_set_color(_dim); draw_set_alpha(.7); draw_text(_tx, _ty, "not yet met"); _ty += 12;
+			var _lnd = "";
+			for (var _li = 0; _li < array_length(_r.lands); _li++) if (_r.lands[_li] != "road") _lnd += ((_lnd != "") ? ", " : "") + _r.lands[_li];
+			draw_set_alpha(.55); draw_text_ext(_tx, _ty, "something haunts the " + _lnd + "; a crew that fights it fills this page", 9, _tw);
+		} else {
+			draw_set_font(fnt_large); draw_set_color(_r.col); draw_set_alpha(.95); draw_text(_tx, _ty, str_cap(_r.name));
+			draw_set_font(fnt); draw_set_color(_dim); draw_set_alpha(.7);
+			draw_text(_tx + string_width(str_cap(_r.name)) * 2 + 6, _ty + 5, "(" + foe_plural(_r.name) + ")");
+			_ty += 18;
+			draw_set_color(_ink); draw_set_alpha(.85);
+			draw_text(_tx, _ty, "seen " + string(_bb.seen) + "  -  slain " + string(_bb.slain) + ((_bb.boss > 0) ? ("  -  bosses " + string(_bb.boss)) : "")); _ty += 12;
+			// the shape as bars (the roster's eight lines on the sprites' budget)
+			var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"], _bw = min(80, _tw - 60);
+			for (var _k = 0; _k < 8; _k++) {
+				var _v = _r.shape[$ _keys[_k]];
+				draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, _keys[_k]);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx + 26, _ty + 2, _bw, 4, 0, c_black, .7);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx + 26, _ty + 2, _bw * clamp(_v / 13, 0, 1), 4, 0, _r.col, .85);
+				draw_set_color(_ink); draw_set_alpha(.85); draw_text(_tx + 30 + _bw, _ty, string(_v));
+				_ty += 9;
+			}
+			_ty += 3;
+			var _lnd2 = "";
+			for (var _li = 0; _li < array_length(_r.lands); _li++) _lnd2 += ((_lnd2 != "") ? ", " : "") + _r.lands[_li];
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "lands");
+			draw_set_color(_ink); draw_set_alpha(.85); draw_text_ext(_tx + 40, _ty, _lnd2, 9, _tw - 40); _ty += string_height_ext(_lnd2, 9, _tw - 40) + 2;
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "skill");
+			draw_set_color(_r.magic ? c_hpurple : c_horange); draw_set_alpha(.9); draw_text(_tx + 40, _ty, (_r.skill != "") ? _r.skill : "-"); _ty += 10;
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "crit");
+			draw_set_color(_ink); draw_set_alpha(.85); draw_text(_tx + 40, _ty, string(_r.crit) + "% x" + string(_r.cmulti) + "  -  counter " + string(_r.cnt) + "%"); _ty += 10;
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "met as");
+			var _vs = "";
+			for (var _vi = 0; _vi < array_length(_bb.vars); _vi++) _vs += ((_vs != "") ? ", " : "") + _bb.vars[_vi];
+			draw_set_color(_ink); draw_set_alpha(.85); draw_text_ext(_tx + 40, _ty, (_vs != "") ? _vs : "the plain kind only", 9, _tw - 40); _ty += string_height_ext((_vs != "") ? _vs : "x", 9, _tw - 40) + 4;
+			// the natural history
+			var _lo = bestiary_lore(_r.name);
+			draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, _tw, 1, 0, _r.col, .25); _ty += 4;
+			draw_set_color(merge_colour(c_lavender, _dim, .35)); draw_set_alpha(.8);
+			draw_text_ext(_tx, _ty, "\"" + _lo + "\"", 9, _tw);
+		}
+	}
+	draw_set_alpha(1);
+	ui_fade_set(1);
+	exit;
+}
+
 if (view == "crew" || view == "sheet") {
 	var _cl = __crew_list();
 	if (is_undefined(__sp_by_id(sheet_id)) && array_length(_cl) > 0) sheet_id = _cl[0].id;
@@ -1154,6 +1235,8 @@ if (array_length(g.sprites) > 0) {
 }
 var _hgl = __hub_gal_r();
 draw_ui_button(_hgl.x, _hgl.y, _hgl.w, _hgl.h, "galaxy", c_steelblue, true, false);
+var _hbs = __hub_best_r();
+draw_ui_button(_hbs.x, _hbs.y, _hbs.w, _hbs.h, "bestiary", c_steelblue, true, false);
 
 // THE LIST: hauls waiting, then trips out - an island each
 var _ly0 = __list_y0();

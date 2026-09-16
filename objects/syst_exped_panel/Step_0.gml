@@ -415,6 +415,15 @@ if (view != "hub") {
 			exit;
 		}
 	}
+	// [bestiary] in the crew page's slot (2026-09-16)
+	if (view == "crew") {
+		var _cs2 = __crewstrip_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _cs2.x, _cs2.y, _cs2.x + _cs2.w, _cs2.y + _cs2.h)) {
+			bs_from = "crew"; __page_go("bestiary"); it_pop = undefined;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 	// [map] beside it: the page's region (2026-09-16 - one button, one place)
 	var _mc = __map_ctx();
 	if (!is_undefined(_mc)) {
@@ -428,6 +437,16 @@ if (view != "hub") {
 }
 
 // ======================= THE CREW MENU: tabs on the left =======================
+// ======================= THE BESTIARY: a cell =======================
+if (view == "bestiary") {
+	var _nk = array_length(foe_roster());
+	for (var _i = 0; _i < _nk; _i++) {
+		var _cr = __bs_cell_r(_i);
+		if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) { bs_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
+	}
+	exit;
+}
+
 if (view == "crew") {
 	// a popup up: any press closes it
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
@@ -729,6 +748,12 @@ if (array_length(g.sprites) > 0) {
 var _hgl = __hub_gal_r();
 if (point_in_rectangle(mouse_x, mouse_y, _hgl.x, _hgl.y, _hgl.x + _hgl.w, _hgl.y + _hgl.h)) {
 	gx_from = "hub"; __page_go("galaxy");
+	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+	exit;
+}
+var _hbs = __hub_best_r();
+if (point_in_rectangle(mouse_x, mouse_y, _hbs.x, _hbs.y, _hbs.x + _hbs.w, _hbs.y + _hbs.h)) {
+	bs_from = "hub"; __page_go("bestiary");
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 	exit;
 }

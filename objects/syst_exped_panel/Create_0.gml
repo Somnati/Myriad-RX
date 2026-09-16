@@ -49,6 +49,16 @@ map_rgi  = 0;            // the map view's region
 pl_focus = -1;           // the planet window: the region the world has turned to (-1 = none, ambient spin)
 crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = everyone)
 crew_from = "hub";       // where the crew menu returns to (the strip's [crew] is on every page - his ask, 2026-09-15)
+// ---- THE BESTIARY (his ask, 2026-09-16, grid based): the roster in cells, a card for the one picked ----
+bs_sel  = -1;            // the roster index picked (-1 none)
+bs_from = "hub";         // where [back] returns to
+__bs_cols   = function() { return land ? 8 : 5; };
+__bs_grid_r = function() { var _c = __bs_cols(); return { x : land ? 14 : 4, y : list_y + 22, w : _c * 26 - 2, h : ceil(array_length(foe_roster()) / _c) * 26 - 2 }; };
+__bs_cell_r = function(_i) { var _g = __bs_grid_r(), _c = __bs_cols(); return { x : _g.x + (_i mod _c) * 26, y : _g.y + (_i div _c) * 26, w : 24, h : 24 }; };
+__bs_card_r = function() { var _g = __bs_grid_r(); if (land) return { x : _g.x + _g.w + 12, y : _g.y, w : room_width - 14 - (_g.x + _g.w + 12), h : room_height - 8 - _g.y }; return { x : 4, y : _g.y + _g.h + 8, w : room_width - 8, h : room_height - 8 - (_g.y + _g.h + 8) }; };
+/// the ledger's entry for a kind ({ seen, slain, vars, boss }), or undefined
+__bs_met = function(_kind) { var _bb = g.exped[$ "best"]; if (!is_struct(_bb)) return undefined; return _bb[$ _kind]; };
+__hub_best_r = function() { var _g = __hub_gal_r(); return { x : _g.x + _g.w + 4, y : _g.y, w : 58, h : 14 }; };
 it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
@@ -345,6 +355,13 @@ __draw_back = function() {
 		draw_px_rect(_cs.x, _cs.y, _cs.w, _cs.h, c_steelblue, .5);
 		draw_set_color(c_steelblue);
 		draw_text(_cs.x + _cs.w * .5, _cs.y + 3, "crew");
+	} else if (view == "crew") {
+		// (the crew's own page: its slot holds [bestiary] - 2026-09-16)
+		var _cs2 = __crewstrip_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _cs2.x, _cs2.y, _cs2.w, _cs2.h, 0, c_black, .8);
+		draw_px_rect(_cs2.x, _cs2.y, _cs2.w, _cs2.h, c_steelblue, .5);
+		draw_set_color(c_steelblue);
+		draw_text(_cs2.x + _cs2.w * .5, _cs2.y + 3, "bestiary");
 	}
 	if (!is_undefined(__map_ctx())) {
 		var _ms = __mapstrip_r();
@@ -379,6 +396,7 @@ __back = function() {
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
 		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else __page_go("hub"); break;   // region mode swings out -> the planet; the planet turns -> the hub
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
+		case "bestiary": __page_go(bs_from); break;
 		default:       __page_go("hub"); break;
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
@@ -630,7 +648,7 @@ __hand_pick = function(_i) {
 	__page_go("depart");
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 };
-__hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 64, h : 14 }; };
+__hub_gal_r = function() { var _c = __crewbtn_r(); return { x : _c.x + ((array_length(g.sprites) > 0) ? (_c.w + 4) : 0), y : _c.y, w : 50, h : 14 }; };
 /// a region's spot as a unit vector in TEXTURE space (sphere_uv's frame)
 __spot_dir = function(_lon, _lat) { return [dcos(_lat) * dcos(_lon), dsin(_lat), dcos(_lat) * dsin(_lon)]; };
 /// a press on one of the page's controls is not a grab of the world
@@ -1139,7 +1157,7 @@ __sheet_tap = function() {
 	return false;
 };
 // (the chips and the old brief rects went with the preparation page's rework, 2026-09-15 - see __dp_* above)
-__crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 60, h : 14 }; };
+__crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 44, h : 14 }; };   // (narrower, 2026-09-16: three buttons fit under the card - [crew] [galaxy] [bestiary])
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
@@ -1255,8 +1273,10 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 	var _rows = [];
 	for (var _ri = 0; _ri < array_length(_pp.rows); _ri++) array_push(_rows, _pp.rows[_ri]);
 	if (!_kd.civ && _nd.kind != "landing" && _nd.kind != "shrine" && _nd.kind != "mine") {
-		var _fk = foe_kinds_at(_nd.kind), _ft = "";
-		for (var _fi = 0; _fi < min(3, array_length(_fk)); _fi++) _ft += ((_fi > 0) ? ", " : "") + foe_plural(_fk[_fi]);
+		// (only the foes you have MET are named - the bestiary's ledger; the rest is "unmet", 2026-09-16)
+		var _fk = foe_kinds_at(_nd.kind), _ft = "", _unk = 0;
+		for (var _fi = 0; _fi < min(3, array_length(_fk)); _fi++) { var _fb = __bs_met(_fk[_fi]); if (is_struct(_fb) && _fb.seen > 0) _ft += ((_ft != "") ? ", " : "") + foe_plural(_fk[_fi]); else _unk++; }
+		if (_unk > 0) _ft += ((_ft != "") ? ", " : "") + ((_unk == 1) ? "something unmet" : (string(_unk) + " unmet"));
 		array_push(_rows, { k : "foes", v : _ft, col : c_hred });
 	}
 	var _hz = cbt_hazard_at(_nd.kind);
