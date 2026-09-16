@@ -7,7 +7,7 @@
 /// (surface_create(w, h), freed with the page). The nebulae (galaxy_nebulae,
 /// the sky's brightest eight) are painted here too, per pixel on the sphere
 /// (a billboard swung round the camera when one was near - 2026-09-16).
-function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
+function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {   // (_sun: the system's star is on this sky - the inside pass spares it; false on the system page)
 	static _u = undefined;
 	if (is_undefined(_u)) _u = {
 		cam  : shader_get_uniform(sh_sky_fog, "u_cam"),
@@ -34,6 +34,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		col : shader_get_uniform(sh_sky_inside, "u_col"), col2 : shader_get_uniform(sh_sky_inside, "u_col2"), seed : shader_get_uniform(sh_sky_inside, "u_seed"),
 		amp : shader_get_uniform(sh_sky_inside, "u_amp"), ext : shader_get_uniform(sh_sky_inside, "u_ext"), mode : shader_get_uniform(sh_sky_inside, "u_mode"),
 		time : shader_get_uniform(sh_sky_inside, "u_time"), dith : shader_get_uniform(sh_sky_inside, "u_dither"),
+		sun : shader_get_uniform(sh_sky_inside, "u_sun"), sunon : shader_get_uniform(sh_sky_inside, "u_sunon"),
 	};
 	var _cfg = starmap_config();
 	if (!surface_exists(_canvas)) return;
@@ -88,6 +89,9 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		shader_set_uniform_f(_ui.ext, (_cfg[$ "neb_in_ext"] ?? 1.2) * _soft);
 		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
 		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
+		var _lw = _sky.light_w;
+		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
+		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
 		shader_set_uniform_f(_ui.mode, 0);
 		gpu_set_blendmode_ext(bm_dest_colour, bm_zero);   // (multiply: the sky so far, dimmed by the cloud)
 		draw_surface(_canvas, 0, 0);

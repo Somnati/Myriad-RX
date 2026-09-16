@@ -462,7 +462,14 @@ pv_sky   = undefined;                // galaxy_sky_build() (the page's world's -
 sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
 sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy, t, life } in the orbit view's page space, one every sky_meteor seconds or so
 sky_met_t = 0;                       // ...seconds since the last
-__sky_for = function(_d) { var _k = string(_d.seed); if (!is_struct(sky_c[$ _k])) sky_c[$ _k] = galaxy_sky_build(_d); var _s = sky_c[$ _k]; _s.light_w = galaxy_sun_dir(0, _d); return _s; };
+__sky_for = function(_d) {
+	// (a sky is rebuilt after ten minutes: the siblings' spots are where they were WHEN IT WAS BUILT - cached for a session
+	// they stood still while the system view's planets moved on; bug hunt 2026-09-16. The dust and the clouds are seeded: the same)
+	var _k = string(_d.seed), _c = sky_c[$ _k];
+	if (!is_struct(_c) || (current_time - (_c[$ "built"] ?? 0)) > 600000) { _c = galaxy_sky_build(_d); _c.built = current_time; sky_c[$ _k] = _c; }
+	_c.light_w = galaxy_sun_dir(0, _d);
+	return _c;
+};
 __gx_enter_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // [enter] the tapped star's system (bottom right, the demo's seat)
 // THE STAR SYSTEM VIEW (his ask, 2026-09-16: the tech demo's, ported whole): orbits in the GALACTIC plane (world y = 0,
 // the plane the sky's milky way lives in), a camera that orbits the star like the orbit view's orbits the world (drag +
@@ -533,7 +540,7 @@ __draw_system = function() {
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false, false);
-	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf);
+	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf, false);   // (no sun on this sky: the star is drawn as itself)
 	var _pls = sy_sys.planets, _np = array_length(_pls), _s = sy_warp_s;
 	var _cfgp = planet_config(), _pxs = max(1, _cfgp.px_size);
 	// the dive's focus: the picked world's spot anchors the swell

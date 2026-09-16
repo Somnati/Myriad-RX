@@ -30,6 +30,8 @@ uniform float u_ext;     // the extinction per radius of path
 uniform float u_mode;    // 0 transmittance, 1 glow
 uniform float u_time;    // the dither's slide (glow pass)
 uniform float u_dither;  // 1 on an 8-bit page
+uniform vec3  u_sun;     // the system's star's bearing (world): it is inside the cloud with us - the cloud does not dim it
+uniform float u_sunon;   // 1 when the sun is on this sky (the orbit view), 0 on the system page
 
 float h3(vec3 p)
 {
@@ -102,6 +104,9 @@ void main()
     float m = 0.5 + 1.0 * fbm(w * 2.6 + u_seed);
     float od = path * m * u_ext;
     float trans = exp(-od);
+    // the sun's patch clears: it sits inside the cloud with us, the cloud lies beyond it, not in front (bug hunt 2026-09-16)
+    float sunw = u_sunon * smoothstep(0.970, 0.9986, dot(w, u_sun));
+    trans = mix(trans, 1.0, sunw);
 
     if (u_mode < 0.5) {
         gl_FragColor = vec4(vec3(trans), 1.0);
