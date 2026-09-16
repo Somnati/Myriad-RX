@@ -1365,6 +1365,103 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 	}
 	draw_set_alpha(1);
 };
+map_lab = undefined;                 // the labels' placement, computed once a map: { key, pos[] }
+/// a road highlighted along its OWN polyline from fraction q0 of the way (arc length) to its end - the crew's route (the map)
+__map_road_hl = function(_rg, _mr, _a, _b, _q0, _col, _al) {
+	var _pts = undefined, _rev = false;
+	for (var _e = 0; _e < array_length(_rg.edges); _e++) {
+		var _ed = _rg.edges[_e];
+		if (_ed.a == _a && _ed.b == _b) { _pts = _ed[$ "pts"]; break; }
+		if (_ed.a == _b && _ed.b == _a) { _pts = _ed[$ "pts"]; _rev = true; break; }
+	}
+	if (!is_array(_pts) || array_length(_pts) < 2) {
+		var _s1 = region_road_point(_rg, _a, _b, _q0), _s2 = _rg.nodes[clamp(_b, 0, array_length(_rg.nodes) - 1)];
+		var _m1 = __map_xy(_s1, _rg, _mr), _m2 = __map_xy(_s2, _rg, _mr);
+		draw_px_line(_m1.x, _m1.y, _m2.x, _m2.y, _col, _al);
+		return;
+	}
+	// walk the polyline from a to b (reversed when stored the other way)
+	var _n = array_length(_pts);
+	var _seq = [];
+	for (var _k = 0; _k < _n; _k++) array_push(_seq, _rev ? _pts[_n - 1 - _k] : _pts[_k]);
+	var _len = 0;
+	for (var _k = 1; _k < _n; _k++) _len += point_distance(_seq[_k - 1].x, _seq[_k - 1].y, _seq[_k].x, _seq[_k].y);
+	var _want = clamp(_q0, 0, 1) * _len, _acc = 0;
+	for (var _k = 1; _k < _n; _k++) {
+		var _sl = point_distance(_seq[_k - 1].x, _seq[_k - 1].y, _seq[_k].x, _seq[_k].y);
+		if (_acc + _sl <= _want) { _acc += _sl; continue; }
+		var _f = (_sl > 0) ? clamp((_want - _acc) / _sl, 0, 1) : 0;
+		var _p1 = { x : lerp(_seq[_k - 1].x, _seq[_k].x, _f), y : lerp(_seq[_k - 1].y, _seq[_k].y, _f) };
+		var _m1 = __map_xy(_p1, _rg, _mr), _m2 = __map_xy(_seq[_k], _rg, _mr);
+		draw_px_line(_m1.x, _m1.y, _m2.x, _m2.y, _col, _al);
+		_acc += _sl; _want = -1;   // (the rest whole)
+	}
+};
+__legend_r = function() { var _m = __map_r(); return { x : _m.x, y : _m.y + _m.h + 2, w : 56, h : 13 }; };
+/// a node's place on the map rect: the region's circle fills the rect's
+/// shorter side (his ask: bounded by a radius, not the rectangle)
+__map_xy = function(_nd, _rg, _mr) {
+	var _rad = _rg[$ "radius"] ?? .46, _ccx = _rg[$ "cx"] ?? .5, _ccy = _rg[$ "cy"] ?? .5;
+	var _sc = (min(_mr.w, _mr.h) * .5 - 10) / _rad;
+	return { x : _mr.x + _mr.w * .5 + (_nd.x - _ccx) * _sc, y : _mr.y + _mr.h * .5 + (_nd.y - _ccy) * _sc };
+};
+/// the pixel icons (his ask): a flag for the landing zone, a house for a
+/// settled place, a tent for a camp, a doorway for a dungeon or crypt
+__map_icon = function(_kind, _lz, _x, _y, _col) {
+	if (_lz) {
+		// the flag: a pole and a pennant, white
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 7, 1, 10, 0, c_white, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 7, 5, 2, 0, c_white, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 5, 3, 1, 0, c_white, .95);
+		return;
+	}
+	switch (_kind) {
+		case "settlement": case "village": case "town": case "city": {
+			// the house: a roof stepping in, a body, a door
+			var _big = (_kind == "town" || _kind == "city") ? 1 : 0;
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4 - _big, _y - 1, 8 + _big * 2, 5 + _big, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3 - _big, _y - 3, 6 + _big * 2, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5 - _big, 2, 2 + _big, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y + 2, 2, 2 + _big, 0, c_black, .8);
+			if (_kind == "city") draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y - 6, 2, 4, 0, _col, .95);
+			return;
+		}
+		case "camp": {
+			// the tent: rows widening down, a dark flap
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5, 2, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 3, 4, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 1, 6, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 1, 8, 2, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y, 2, 3, 0, c_black, .8);
+			return;
+		}
+		case "dungeon": case "crypt": {
+			// the doorway: a dark arch in a block
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 4, 8, 8, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 4, 6, 0, c_black, .85);
+			return;
+		}
+	}
+	__dot(_x, _y, 2, _col, .95);
+};
+/// does a segment touch a rectangle? (an end inside, or a crossing of one of its sides)
+__seg_rect = function(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry2) {
+	if (point_in_rectangle(_x1, _y1, _rx1, _ry1, _rx2, _ry2) || point_in_rectangle(_x2, _y2, _rx1, _ry1, _rx2, _ry2)) return true;
+	var _cr = function(_ax, _ay, _bx, _by, _cx, _cy, _dx, _dy) {
+		var _d = (_bx - _ax) * (_dy - _cy) - (_by - _ay) * (_dx - _cx);
+		if (abs(_d) < .000001) return false;
+		var _t = ((_cx - _ax) * (_dy - _cy) - (_cy - _ay) * (_dx - _cx)) / _d;
+		var _u = ((_cx - _ax) * (_by - _ay) - (_cy - _ay) * (_bx - _ax)) / _d;
+		return (_t >= 0 && _t <= 1 && _u >= 0 && _u <= 1);
+	};
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry1)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry2, _rx2, _ry2)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx1, _ry2)) return true;
+	if (_cr(_x1, _y1, _x2, _y2, _rx2, _ry1, _rx2, _ry2)) return true;
+	return false;
+};
+/// where each label goes: four sides tried, the one crossing the fewest
+/// roads (and no other label) wins; once a map (map_lab caches by key)
 __map_labels = function(_rg, _mr, _key, _named = undefined) {   // (named: bool per node - an unnamed place takes no label and holds no room, 2026-09-16)
 	if (is_struct(map_lab) && map_lab.key == _key) return map_lab.pos;
 	var _kk = region_kinds();

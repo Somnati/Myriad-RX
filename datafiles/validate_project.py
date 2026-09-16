@@ -573,6 +573,31 @@ for _p, _s in srcs.items():
 check("no global named after a script (g.NAME where NAME is a script function)",
       not _gclash, "; ".join(sorted(set(_gclash))[:4]))
 
+# --- 8g2. AN OBJECT'S OWN METHOD CALLED BUT NOT DEFINED. The house style
+# hangs helpers on the instance as `__name = function(...)` in the Create
+# and calls them from any event; a rewrite that replaces a range of the
+# Create can swallow the neighbours (2026-09-16: the map's card took
+# __map_xy / __map_icon / __seg_rect / __legend_r / __map_road_hl with it,
+# and the map crashed on its first draw). Every `__name(` an object calls
+# must be a `__name = function` in one of that object's events, or a script.
+_mcalls = []
+for _od in sorted(glob.glob("objects/*/")):
+    _ev = [_p for _p in srcs if _p.replace("\\", "/").startswith(_od.replace("\\", "/"))]
+    if not _ev:
+        continue
+    _defs = set()
+    for _p in _ev:
+        _defs.update(re.findall(r"\b(__\w+)\s*=\s*function\b", srcs[_p]))
+    for _p in _ev:
+        for _m in re.finditer(r"(?<![\w.$])(__\w+)\s*\(", srcs[_p]):
+            _nm = _m.group(1)
+            if _nm in _defs or _nm in reg or _nm in _defined:
+                continue
+            _mcalls.append(f"{_p}: {_nm}")
+_mcalls = sorted(set(_mcalls))
+check("every object method called (__name) is defined in that object or a script",
+      not _mcalls, "; ".join(_mcalls[:4]))
+
 # --- 8h. no variable named after a #macro. A macro is textual: a
 # `key = "";` where main_macros says `#macro key keyboard_check`
 # compiles as `keyboard_check = ""` and the IDE reports three errors
