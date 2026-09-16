@@ -167,7 +167,7 @@ if (view == "haul") {
 		draw_set_halign(fa_left);
 		draw_set_color(_ink); draw_set_alpha(.5);
 		draw_text(_lx, _dy0, "the diary");
-		__draw_log_band(_h.log, { x : _lx, y : _dy0 + 12, w : _lw, h : room_height - 10 - (_dy0 + 12) }, exped_biomes()[_h.dest.biome].col2);
+		__draw_log_band(__log_lines(), { x : _lx, y : _dy0 + 12, w : _lw, h : room_height - 10 - (_dy0 + 12) }, exped_biomes()[_h.dest.biome].col2);   // (the gist when toggled, 2026-09-16)
 	}
 	draw_set_halign(fa_left);
 	if (_recruit) {
@@ -700,7 +700,7 @@ if (view == "trip") {
 	// bottom, on the scrollbar (it follows the newest line while you sit there) ----
 	var _ly = _sy + 42;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
-	__draw_log_band(_tr.log, { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);
+	__draw_log_band(__log_lines(), { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);   // (the gist when toggled, 2026-09-16)
 	// THE SHEET AS A MODAL (a tap on a banner - his ask, 2026-09-16): the crew page's painter over the log column
 	var _tsp = __sp_by_id(tp_sheet);
 	if (!is_undefined(_tsp)) {
@@ -1098,7 +1098,10 @@ if (view == "depart") {
 			var _obj = exped_quest_obj(_q, _rg, true);   // (the one builder, 2026-09-15)
 			draw_set_color(_dim); draw_set_alpha(.75);
 			draw_text_ext(_tx, _ty, _obj, 9, _tw);
-			_ty += string_height_ext(_obj, 9, _tw) + 6;
+			_ty += string_height_ext(_obj, 9, _tw);
+			// a personal card's note (the follow-ups, 2026-09-16), in gold
+			if ((_q[$ "pnote"] ?? "") != "") { _ty += 4; draw_set_color(c_gold); draw_set_alpha(.85); draw_text_ext(_tx, _ty, _q.pnote, 9, _tw); _ty += string_height_ext(_q.pnote, 9, _tw); }
+			_ty += 6;
 		}
 	} else {
 		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"exped_mem_clear",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"exped_mem_clear",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

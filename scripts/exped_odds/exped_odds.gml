@@ -20,7 +20,7 @@ function exped_odds(_d, _q, _crew, _ri = 0) {
 	if (is_struct(_q)) {
 		// the first hazard on any of the quest's stops (the two-stop kinds, 2026-09-15)
 		var _rg = region_get(_d, _ri), _pls = exped_quest_places(_q);
-		for (var _pi = 0; _pi < array_length(_pls) && is_undefined(_hz); _pi++) _hz = cbt_hazard_at(_rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);
+		for (var _pi = 0; _pi < array_length(_pls) && is_undefined(_hz); _pi++) _hz = region_hazard_at(_d, _rg, _rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);   // (the season's too, 2026-09-16)
 	}
 	var _mine = 0;
 	for (var _i = 0; _i < _n; _i++) {

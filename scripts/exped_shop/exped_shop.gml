@@ -35,9 +35,16 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _keeper = is_struct(_ppk[$ "folk"]) ? _ppk.folk.keeper : exped_npc_name();
 		if (is_struct(_ppk[$ "shop"])) _sign = _ppk.shop.sign;
 		// THE STOCK, laid out once: every member sees the same shelf
-		var _stock = [];
+		// THE SHELF REMEMBERED (the world remembers, 2026-09-16): as it was left last time, sold gaps and all, until the restock
+		var _shm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "shelf");
+		var _stock = [], _remembered = false;
+		if (is_struct(_shm) && _shm.pay != "") {
+			var _sit = string_split(_shm.pay, ";");
+			for (var _s = 0; _s < array_length(_sit); _s++) { var _sf = string_split(_sit[_s], ":", false, 2); if (array_length(_sf) < 3) continue; var _sit2 = gear_unpack(_sf[2]); if (is_undefined(_sit2)) continue; array_push(_stock, { it : _sit2, price : max(1, real(_sf[0])), sold : (_sf[1] == "1") }); }
+			_remembered = (array_length(_stock) > 0);
+		}
 		var _wl = _rg[$ "wild"] ?? [];
-		for (var _s = 0; _s < _nstock; _s++) {
+		if (!_remembered) for (var _s = 0; _s < _nstock; _s++) {
 			var _rar = irandom(_rmax);
 			// A POTION on the shelf (2026-09-16): a settlement's one thing more often than not; a big one where the rung allows
 			if (random(1) < ((_nd.kind == "settlement") ? .6 : .3)) {
@@ -49,9 +56,9 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			var _tags = (array_length(_wl) > 0 && random(1) < .5) ? _wl[irandom(array_length(_wl) - 1)] : _nd.kind;
 			array_push(_stock, { it : gear_gen(_slot, _rg.lv, _rar, irandom($7fffffff), _tags), price : 2 + floor(_rg.lv / 3) + 2 * _rar, sold : false });
 		}
-		var _shop = { sign : _sign, keeper : _keeper, stock : _stock, bought : 0 };
+		var _shop = { sign : _sign, keeper : _keeper, stock : _stock, bought : 0, mem_left : (is_struct(_shm) && _remembered) ? _shm.left : 0 };
 		if (is_struct(_a)) _a.shop = _shop; else { _a = { shop : _shop }; }
-		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does"));
+		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does") + (_remembered ? choose(". the shelf is as they left it", ". the same things on the shelf, less what went", ". nothing new on the shelf yet") : ""));
 		if (_phase == "open") return;
 	}
 	var _shop2 = is_struct(_a) ? _a[$ "shop"] : undefined;
@@ -66,6 +73,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _pn = _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name;
 		var _hag = (_pn == "greedy" || _pn == "sly") ? -1 : ((_pn == "kind") ? 1 : 0);
 		if (sprite_note_has(_sp, "shop")) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
+		if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _hag -= 1;   // (a grateful town: a credit off - the world remembers)
 		// the best thing on the shelf for this one, by its own eye
 		var _best = -1, _bgain = 0;
 		for (var _s = 0; _s < array_length(_stock2); _s++) {
@@ -154,6 +162,11 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 				_jn + " held up a credit and said \"how much\". " + _keeper2 + " did not answer. the look answered"));
 		}
 	}
+	// ...and the shelf remembered until the restock (the world remembers, 2026-09-16): two days from the first look
+	var _spay = "";
+	for (var _s = 0; _s < array_length(_stock2); _s++) _spay += ((_s > 0) ? ";" : "") + string(_stock2[_s].price) + ":" + (_stock2[_s].sold ? "1" : "0") + ":" + gear_pack(_stock2[_s].it);
+	var _sleft = _shop2[$ "mem_left"] ?? 0;
+	if (_spay != "") exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "shelf", (_sleft > 0) ? (_sleft / EXPED_HOUR) : 48, _spay);
 	if (_shop2.bought == 0 && roll_perc(50)) array_push(_tr.log, choose("the shops of " + _nd.name + " had nothing worth the walk", _sign2 + " had nothing for them, and " + _keeper2 + " said so", "nothing bought in " + _nd.name + ". " + _keeper2 + " watched them go", "the shelf was looked at. the shelf was left", "the shop's best thing was the cat, which was not for sale"));
 	else if (_shop2.bought > 0 && roll_perc(30)) array_push(_tr.log, _keeper2 + " " + choose("wrapped it in paper that had been used before", "said it was the last one. it was not", "threw in a piece of string", "bit the coin, out of habit", "said \"come back\", in a voice that did not care either way"));
 }

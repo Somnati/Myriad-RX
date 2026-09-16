@@ -25,5 +25,7 @@ function exped_region_quests(_d, _ri = 0) {
 	}
 	_of.d = _d;
 	exped_offer_fill(_of);
+	// THE PERSONAL CARD (2026-09-16) rides after the five: the same structs, so a take through the index lands on it
+	if (is_array(_of[$ "pq"]) && array_length(_of.pq) > 0) return array_concat(_of.slots, _of.pq);
 	return _of.slots;
 }

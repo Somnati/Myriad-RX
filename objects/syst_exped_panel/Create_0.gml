@@ -113,7 +113,8 @@ __dp_layout = function() {
 	var _obj = is_struct(_q) ? exped_quest_obj(_q, _rg, true) : (is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home");
 	var _nrows = (is_struct(_q) ? 5 : 4) + __dp_haz_rows() + 2;   // (+2: the stance's pills and its blurb, 2026-09-16)
 	var _seats_h = 14 + _srows * (__dp_seat_h() + 2) + 4;
-	var _th = string_height_ext(_ask, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 10 * _nrows;
+	var _pnt = (is_struct(_q) && (_q[$ "pnote"] ?? "") != "") ? (string_height_ext(_q.pnote, 9, _tw) + 4) : 0;   // (a personal card's note, 2026-09-16)
+	var _th = string_height_ext(_ask, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + _pnt + 6 + 10 * _nrows;
 	var _para_on = true;
 	if (_y + 6 + _th + _seats_h > room_height - 8) { _para_on = false; _th = string_height_ext(_ask, 9, _tw) + 4 + 10 * _nrows; }
 	var _sy0 = _y + 6 + _th + 14;
@@ -130,14 +131,14 @@ __dp_hazards = function() {
 		// every stop's hazard, each once (the two-stop kinds, 2026-09-15)
 		var _pls = exped_quest_places(dp_quest);
 		for (var _pi = 0; _pi < array_length(_pls); _pi++) {
-			var _h1 = cbt_hazard_at(_rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);
+			var _h1 = region_hazard_at(pl_dest, _rg, _rg.nodes[clamp(_pls[_pi], 0, array_length(_rg.nodes) - 1)].kind);   // (the season's too, 2026-09-16)
 			if (!is_struct(_h1)) continue;
 			var _dup = false;
 			for (var _hj = 0; _hj < array_length(_hzs); _hj++) if (_hzs[_hj].key == _h1.key) _dup = true;
 			if (!_dup) array_push(_hzs, _h1);
 		}
 	}
-	else _hzs = region_hazards(_rg);
+	else _hzs = region_hazards(_rg, pl_dest);
 	for (var _i = 0; _i < array_length(_hzs); _i++) {
 		var _hz = _hzs[_i], _held = [], _bare = [];
 		for (var _j = 0; _j < array_length(dp_slots); _j++) {
@@ -336,6 +337,9 @@ __crewstrip_r = function() { var _b = __back_r(); return { x : _b.x - 4 - 44, y 
 // the top next to the crew button"): on every page that has a region -
 // the planet page in region mode, the preparation page, the trip page
 __mapstrip_r = function() { var _c = __crewstrip_r(); return { x : _c.x - 4 - 44, y : _c.y, w : 44, h : 13 }; };
+/// [the gist] / [all] (2026-09-16): the diary's filter, left of [map] on the trip page, in [map]'s seat on the haul's (wide only)
+__histrip_r = function() { var _m = is_undefined(__map_ctx()) ? __crewstrip_r() : __mapstrip_r(); return { x : _m.x - 4 - 44, y : _m.y, w : 44, h : 13 }; };
+__histrip_on = function() { return (view == "trip" || (view == "haul" && land)); };
 /// the region the page is about -> { dest, rgi }, or undefined (no [map] then)
 __map_ctx = function() {
 	switch (view) {
@@ -374,6 +378,13 @@ __draw_back = function() {
 		draw_px_rect(_ms.x, _ms.y, _ms.w, _ms.h, c_steelblue, .5);
 		draw_set_color(c_steelblue);
 		draw_text(_ms.x + _ms.w * .5, _ms.y + 3, "map");
+	}
+	if (__histrip_on()) {
+		var _hs = __histrip_r();
+		draw_sprite_ext(spr_pixel_1x1, 0, _hs.x, _hs.y, _hs.w, _hs.h, 0, c_black, .8);
+		draw_px_rect(_hs.x, _hs.y, _hs.w, _hs.h, log_hi ? c_gold : c_steelblue, .5);
+		draw_set_color(log_hi ? c_gold : c_steelblue);
+		draw_text(_hs.x + _hs.w * .5, _hs.y + 3, log_hi ? "the gist" : "all");
 	}
 	draw_set_halign(fa_left);
 };
@@ -476,7 +487,7 @@ __hand_seats = function(_n) {
 	var _out = [];
 	var _pv = __pv_r();
 	if (land) {
-		var _pitch = 92, _x0 = room_width * .5 - (_n - 1) * .5 * _pitch, _y = _pv.y + _pv.h * .5 - 6;   // (a little high: the clock sits under the card)
+		var _pitch = min(92, floor((room_width - 24 - 84) / max(1, _n - 1))), _x0 = room_width * .5 - (_n - 1) * .5 * _pitch, _y = _pv.y + _pv.h * .5 - 6;   // (a little high: the clock sits under the card; six fit closer - the personal card, 2026-09-16)
 		for (var _i = 0; _i < _n; _i++) array_push(_out, { x : floor(_x0 + _i * _pitch), y : floor(_y) });
 	} else {
 		var _x0 = room_width * .5 - 33, _y0 = _pv.y + 42;
@@ -581,7 +592,7 @@ __hand_open = function(_kind) {
 			var _nd = _rg.nodes[clamp(_q[$ "p0"] ?? _q.node, 0, array_length(_rg.nodes) - 1)];   // (the card's place: the first stop, 2026-09-15)
 			var _kd = _kk[$ _nd.kind];
 			var _obj = exped_quest_obj(_q, _rg, false);
-			array_push(_faces, { title : _nd.name, sub : is_struct(_kd) ? _kd.name : _nd.kind, col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : cbt_hazard_at(_nd.kind),
+			array_push(_faces, { title : _nd.name, sub : (((_sl[_i][$ "pers"] ?? false) ? "personal  -  " : "") + (is_struct(_kd) ? _kd.name : _nd.kind)), col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : region_hazard_at(pl_dest, _rg, _nd.kind),   // (a personal card says so; the season's hazard - 2026-09-16)
 			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
 			                     slot : _sl[_i], si : _i, hours : _q.hours, salt0 : _sl[_i].salt });
 		}
@@ -756,6 +767,8 @@ log_follow = true;
 log_n = -1;                          // the diary's line count last seen (a new line = follow)
 log_surf = -1;                       // the diary's band, rendered offset
 log_lay = { n : 0, w : 0, hs : [], total : 0 };   // the layout: every line's height, the total
+log_hi = false;                                    // THE GIST (2026-09-16): the diary's highlights only (exped_log_gist), the strip's toggle
+log_gist = { n : -1, id : -1, arr : [] };         // ...the filtered lines, cached by the source's length and the page
 // THE ONE VEIL (2026-09-15): every page fades in from black on a view
 // change (view_last, the Step) - a proxy a step above the panel draws it,
 // so no branch has to remember to (__draw_turn)
@@ -772,9 +785,17 @@ sb.col = c_steelblue;
 sb.visible = false; sb.enabled = false;
 /// the diary this page shows (the trip's or the haul's), or undefined
 __log_lines = function() {
-	if (view == "trip") { var _t = __trip(); return is_undefined(_t) ? undefined : _t.log; }
-	if (view == "haul") { var _h = __haul_i(); return (_h < 0) ? undefined : g.exped.hauls[_h].log; }
-	return undefined;
+	var _src = undefined;
+	if (view == "trip") { var _t = __trip(); _src = is_undefined(_t) ? undefined : _t.log; }
+	else if (view == "haul") { var _h = __haul_i(); _src = (_h < 0) ? undefined : g.exped.hauls[_h].log; }
+	if (!is_array(_src) || !log_hi) return _src;
+	// THE GIST (2026-09-16): the highlights only (exped_log_gist), the first line always; cached by the source's length and the page
+	if (log_gist.n != array_length(_src) || log_gist.id != view_id) {
+		var _arr = [];
+		for (var _i = 0; _i < array_length(_src); _i++) if (_i == 0 || exped_log_gist(_src[_i])) array_push(_arr, _src[_i]);
+		log_gist = { n : array_length(_src), id : view_id, arr : _arr };
+	}
+	return log_gist.arr;
 };
 __log_band_h = function() { var _r = __log_r(); return max(1, _r.h); };
 /// the layout: each line's height at the column's width, the total (once
@@ -786,8 +807,8 @@ __log_layout = function(_log, _w) {
 		draw_set_font(fnt);
 		for (var _i = 0; _i < array_length(_log); _i++) {
 			var _pre = string_copy(_log[_i], 1, 2);
-			var _isv = (_pre == "~ ");
-			var _h = string_height_ext(_isv ? string_delete(_log[_i], 1, 2) : ((_pre == "+ ") ? string_delete(_log[_i], 1, 2) : _log[_i]), 9, _w - (_isv ? 8 : 0)) + 2;
+			var _isv = (_pre == "~ "), _ish = (_pre == "# "), _isk = (_pre == "* ");   // (the voice, a place header, the sky - 2026-09-16)
+			var _h = string_height_ext((_isv || _ish || _isk || _pre == "+ ") ? string_delete(_log[_i], 1, 2) : _log[_i], 9, _w - (_isv ? 8 : 0)) + 2 + (_ish ? 6 : 0);
 			array_push(_hs, _h); _tot += _h;
 		}
 	}
@@ -810,14 +831,17 @@ __draw_log_band = function(_log, _r, _col) {
 	draw_clear_alpha(c_black, 0);
 	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
 	var _yy = -log_scroll;
-	var _nl = array_length(_log);
+	var _nl = is_array(_log) ? array_length(_log) : 0;
 	for (var _i = 0; _i < _nl; _i++) {
 		var _lh = _lay.hs[_i];
 		if (_yy + _lh >= 0 && _yy <= _h) {
 			var _pre = string_copy(_log[_i], 1, 2);
-			var _isv = (_pre == "~ "), _isr = (_pre == "+ ");
+			var _isv = (_pre == "~ "), _isr = (_pre == "+ "), _ish = (_pre == "# "), _isk = (_pre == "* ");
 			var _last = (_i == _nl - 1);
-			if (_isv) { draw_set_color(_last ? merge_colour(sett_ink, c_white, .5) : merge_colour(sett_ink, _col, .35)); draw_set_alpha(_last ? .9 : .55); draw_text_ext(8, _yy, string_delete(_log[_i], 1, 2), 9, _w - 8); }
+			// a place header (2026-09-16): a rule, then the line in the world's colour; the sky's lines dim
+			if (_ish) { draw_sprite_ext(spr_pixel_1x1, 0, 0, _yy + 2, _w, 1, 0, _col, .35); draw_set_color(merge_colour(_col, c_white, .55)); draw_set_alpha(_last ? .95 : .9); draw_text_ext(0, _yy + 6, string_delete(_log[_i], 1, 2), 9, _w); }
+			else if (_isk) { draw_set_color(merge_colour(sett_ink, _col, .5)); draw_set_alpha(_last ? .8 : .5); draw_text_ext(0, _yy, string_delete(_log[_i], 1, 2), 9, _w); }
+			else if (_isv) { draw_set_color(_last ? merge_colour(sett_ink, c_white, .5) : merge_colour(sett_ink, _col, .35)); draw_set_alpha(_last ? .9 : .55); draw_text_ext(8, _yy, string_delete(_log[_i], 1, 2), 9, _w - 8); }
 			else if (_isr) { draw_set_color(_last ? merge_colour(c_gold, c_white, .3) : c_gold); draw_set_alpha(_last ? .95 : .8); draw_text_ext(0, _yy, string_delete(_log[_i], 1, 2), 9, _w); }
 			else { draw_set_color(_last ? c_white : sett_ink); draw_set_alpha(_last ? .95 : .7); draw_text_ext(0, _yy, _log[_i], 9, _w); }
 		}
@@ -1341,8 +1365,11 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 		if (_unk > 0) _ft += ((_ft != "") ? ", " : "") + ((_unk == 1) ? "something unmet" : (string(_unk) + " unmet"));
 		array_push(_rows, { k : "foes", v : _ft, col : c_hred });
 	}
-	var _hz = cbt_hazard_at(_nd.kind);
+	var _hz = region_hazard_at(_d, _rg, _nd.kind);   // (the season's too, 2026-09-16)
 	if (!is_undefined(_hz)) array_push(_rows, { k : "hazard", v : _hz.name, col : _hz.col });
+	// THE WORLD REMEMBERS (2026-09-16): what the crews left here, and for how long
+	var _mks = [["quiet", "cleared - quiet for "], ["routed", "routed - ashes for "], ["grateful", "grateful - a bed on the house for "], ["barred", "barred from the tavern for "], ["shelf", "the shelf restocks in "]];
+	for (var _mi = 0; _mi < array_length(_mks); _mi++) { var _mm = exped_mem_get(_d, map_rgi, _ni, _mks[_mi][0]); if (is_struct(_mm)) array_push(_rows, { k : "memory", v : _mks[_mi][1] + string(ceil(_mm.left / EXPED_HOUR)) + "h", col : c_gold }); }
 	// the roads out, by name
 	var _rt = "";
 	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {

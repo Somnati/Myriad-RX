@@ -56,9 +56,13 @@ function exped_tick_one(_tr, _dt) {
 				_tr.credits += _cr; exped_tally(_tr, "earned", _cr);
 				exped_stat("camps");
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
+				// THE WORLD REMEMBERS (2026-09-16): the camp is ashes for four days - nobody home, the road past it quieter
+				exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed", 96);
+				array_push(_tr.log, "the camp burns. " + choose("the road past it will be quieter for a while", "nobody will be home there for a while", "the crows have it now"));
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");
 			}
 		}
+		exped_quest_after(_tr);   // (a quest just done: gratitude, and the follow-up card - 2026-09-16)
 		// THE PACK'S DROP (his ask: "temoo acquired ..." in the diary)
 		if (_f.won) exped_fight_loot(_tr, _f);
 		exped_drink(_tr);   // (the pocket, after: a red potion for whoever is low - 2026-09-16)
@@ -110,7 +114,7 @@ function exped_tick_one(_tr, _dt) {
 			_tr.path = []; _tr.road = undefined; _tr.act = undefined;
 			var _ssl = region_season(_tr.dest, _rg);   // THE SEASON (2026-09-16): named on landing
 			if (_ssl.on) _tr.season = _ssl.name;
-			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name + (_ssl.on ? (". " + _ssl.name + " here") : ""));
+			array_push(_tr.log, "# landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name + (_ssl.on ? (". " + _ssl.name + " here") : ""));
 			// DISCOVERED: the world and the region, once each (the ledger's set)
 			exped_stat("landings");
 			var _sk = string(_tr.dest.seed) + ":" + string(_tr[$ "rgi"] ?? 0);

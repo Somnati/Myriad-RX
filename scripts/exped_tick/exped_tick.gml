@@ -15,6 +15,7 @@ function exped_tick(_secs) {
 	var _spd = max(1, _e.spd);
 	var _dt = _secs * _spd;
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
+	exped_mem_tick(_dt);     // the world's memories fade (2026-09-16)
 	for (var _i = array_length(_e.trips) - 1; _i >= 0; _i--) {
 		var _tr = _e.trips[_i];
 		// A FIGHT PLAYS AT ITS OWN PACE (his ask, 2026-09-15): the debug clock

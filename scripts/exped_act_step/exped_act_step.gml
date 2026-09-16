@@ -21,7 +21,10 @@ function exped_act_step(_tr) {
 		case "arrive": {
 			// a look round: the place's papers (region_node_info), in the diary
 			var _pp = region_node_info(_tr.dest, _rg, _tr.pos);
-			array_push(_tr.log, _nd.name + " - " + _pp.desc);
+			var _rgi_a = _tr[$ "rgi"] ?? 0, _memt = "";   // (the world remembers, 2026-09-16)
+			if (is_struct(exped_mem_get(_tr.dest, _rgi_a, _tr.pos, "grateful"))) _memt += choose(". they are remembered here", ". somebody waves. they are known here", ". the word has gone round about them");
+			if (is_struct(exped_mem_get(_tr.dest, _rgi_a, _tr.pos, "barred"))) _memt += ". the tavern will not have them";
+			array_push(_tr.log, _nd.name + " - " + _pp.desc + _memt);
 			break;
 		}
 		case "shop_open":  exped_shop(_tr, "open"); break;
@@ -37,12 +40,13 @@ function exped_act_step(_tr) {
 			var _cost = 0, _beds = 0, _cheap = 0;
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _beds++; if (sprite_note_has(exped_sprite(_tr.sids[_k]), "inn")) _cheap++; }
 			_cost = max(ceil(_beds * EXPED_INN * .5), _beds * EXPED_INN - _cheap);   // (a note on inns: a bed cheaper - never below half the bill, 2026-09-16)
+			if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _cost = 0;   // (a grateful town: on the house - the world remembers)
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = _tr.hpmax[_k];
 				if (is_array(_tr[$ "mp"])) for (var _k = 0; _k < array_length(_tr.mp); _k++) _tr.mp[_k] = 1;
 				exped_stat("inns");
-				array_push(_tr.log, "a night at the inn in " + _nd.name + " (" + string(_cost) + " credits) - everyone is whole again");
+				array_push(_tr.log, "a night at the inn in " + _nd.name + ((_cost == 0) ? " - on the house. they remember" : (" (" + string(_cost) + " credits)")) + " - everyone is whole again");
 				exped_say(_tr, "inn", undefined, .7);
 			} else {
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .5);
@@ -58,7 +62,9 @@ function exped_act_step(_tr) {
 			exped_say(_tr, "tavern", undefined, .5);
 			exped_skill_beat(_tr, .12);   // (a trick off a drunk, sometimes)
 			var _r = random(100);
-			if (_r < 35) {
+			if (_r < 35 && roll_perc(55) && exped_dice(_tr)) {
+				// (a game of chance in the tavern - his pick, 2026-09-16: exped_dice said its piece)
+			} else if (_r < 35) {
 				var _who = _tr.names[irandom(_n - 1)];
 				if (_tr.credits > 0) _tr.credits -= 1;
 				array_push(_tr.log, _who + " got " + choose("drunk", "very drunk", "into an argument with a chair", "a round in for everyone", "lost at cards") + " in the tavern at " + _nd.name + ((_tr.credits > 0) ? " (a credit, gone)" : ""));
@@ -66,6 +72,7 @@ function exped_act_step(_tr) {
 				_tr.fight = exped_fight_new(_tr, "bandit", 1, 0);
 				_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
 				array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
+				if (roll_perc(50)) { exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred", 72); array_push(_tr.log, choose("the keeper says they are barred, whatever happens next", "barred from the tavern in " + _nd.name + ", for a while", "the door of the tavern in " + _nd.name + " is shut to them now")); }   // (the world remembers, 2026-09-16)
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"]) && _stn.bounty == 0) {
 				array_push(_tr.log, "a bounty on the board in " + _nd.name + ". " + choose("not this trip - cautious", "they read it twice and left it. cautious", "cautious: the board can keep it", "somebody else's, they decided. cautious"));
 			} else if ((_r < 85 || _stn.bounty >= 2) && !is_struct(_tr[$ "bounty"])) {
@@ -96,11 +103,13 @@ function exped_act_step(_tr) {
 				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _mh += _tr.hp[_k] / max(1, _tr.hpmax[_k]); _mu++; }
 				if (_mu > 0 && _mh / _mu < _stn.hurt) { array_push(_tr.log, choose("a door in " + _nd.name + ". cautious: they do not open it", _nd.name + ": a stair going down. cautious, they go back up instead", "cautious: enough of " + _nd.name + " for one day")); exped_stat("delves"); _tr.act = undefined; return; }
 			}
-			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds)
+			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds) - a dungeon cleared lately (the world remembers) fights back less
+			var _qt = (_a[$ "quiet"] ?? false);
+			if (_qt && !(_a[$ "said_quiet"] ?? false)) { _a.said_quiet = true; array_push(_tr.log, choose("quiet since they cleared it. the doors stand open", "their own boot prints, going in. nothing has come back yet", "the place is empty of most things. the smell stays")); }
 			var _r = random(100);
-			if (_r < 45) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }   // (the place's own kinds)
-			else if (_r < 75) exped_room_find(_tr, "a room of " + _nd.name + ": ");
-			else if (_r < 90) exped_room_trap(_tr, "a room of " + _nd.name + ": ");
+			if (_r < (_qt ? 20 : 45)) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }   // (the place's own kinds)
+			else if (_r < (_qt ? 45 : 75)) exped_room_find(_tr, "a room of " + _nd.name + ": ");
+			else if (_r < (_qt ? 60 : 90)) exped_room_trap(_tr, "a room of " + _nd.name + ": ");
 			else { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .25); array_push(_tr.log, "a room of " + _nd.name + ": quiet. they rested"); exped_say(_tr, "rest", undefined, .5); }
 			if (is_struct(_q) && _q.kind == "clear" && _q.node == _tr.pos) { _q.done = min(_q.n, _q.done + 1); if (_q.done >= _q.n) array_push(_tr.log, _nd.name + " is cleared. the quest is done"); }
 			_tr.cleared += 1;
@@ -257,6 +266,7 @@ function exped_act_step(_tr) {
 		case "look": break;
 	}
 	_a.steps -= 1;
+	exped_quest_after(_tr);   // (a quest just done: gratitude, and the follow-up card - 2026-09-16)
 	// a fight opened: the activity waits for it (exped_tick_one reads act.kind
 	// for the camp's chest and the rout quest) and looks again after
 	if (!is_undefined(_tr.fight)) { _a.left = EXPED_ROOM_T * .5; return; }
@@ -264,7 +274,11 @@ function exped_act_step(_tr) {
 	else {
 		// greedy: one room more at the end, sometimes (a room nobody mapped)
 		if (_a.kind == "delve" && _stn.press > 0 && !(_a[$ "more"] ?? false) && roll_perc(40)) { _a.more = true; _a.steps = 1; _a.left = EXPED_ROOM_T; array_push(_tr.log, choose(_tr.names[irandom(_n - 1)] + " said one more room. greedy. one more room", "greedy: a door nobody mapped. they open it", "one more room, for the chest that might be there. greedy")); return; }
-		if (_a.kind == "delve") { exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light"); }
+		if (_a.kind == "delve") {
+			exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light");
+			// THE WORLD REMEMBERS (2026-09-16): delved to its end, the place is quiet for three days
+			if ((_nd.kind == "dungeon" || _nd.kind == "crypt" || _nd.kind == "sewer") && !(_a[$ "quiet"] ?? false)) exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "quiet", 72);
+		}
 		_tr.act = undefined;
 	}
 }

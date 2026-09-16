@@ -578,8 +578,10 @@ function handle_save(){
 	var _xbl = string_join_ext("|", g.exped[$ "blands"] ?? []);   // THE LANDS COMPLETE (bestiary_payout, 2026-09-16)
 	_xbl = handle("ex_blands", _xbl);
 	var _xof = handle("ex_offer", exped_offer_pack());   // THE QUEST BOARDS (2026-09-15)
+	var _xmm = handle("ex_mem", exped_mem_pack());       // THE WORLD REMEMBERS (2026-09-16)
 	if (action == sv_load) {
 		exped_offer_unpack(_xof);
+		exped_mem_unpack(_xmm);
 		g.exped.st = {};
 		if (_xs != "") {
 			var _sl = string_split(_xs, "|");

@@ -25,7 +25,7 @@ function exped_node_event(_tr, _again = false) {
 		switch (_q.kind) {
 			case "slay":  _tr.act = { kind : "hunt",  left : EXPED_ROOM_T * .5, steps : 3 }; if (!_again) array_push(_tr.log, "the hunt for " + foe_plural(_q.foe) + " begins at " + _nd.name); break;
 			case "clear": _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) { array_push(_tr.log, "into " + _nd.name); exped_say(_tr, "delve", undefined, .6); } break;
-			case "rout":  _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) array_push(_tr.log, "the camp at " + _nd.name + " - " + exped_crew_txt(_tr.names) + " " + ((array_length(_tr.names) > 1) ? "go" : "goes") + " in"); break;
+			case "rout":  exped_mem_clear(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed"); _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : max(1, _q.n - _q.done) }; if (!_again) array_push(_tr.log, "the camp at " + _nd.name + " - " + exped_crew_txt(_tr.names) + " " + ((array_length(_tr.names) > 1) ? "go" : "goes") + " in"); break;
 			case "scout": _q.done = _q.n; array_push(_tr.log, "scouted " + _nd.name + ". it is there. the quest is done"); _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; break;
 			// THE MISSION-TYPE PASS (2026-09-15): the two-stop kinds at their first stop, then their delivery; the rest at their place
 			case "escort":
@@ -100,7 +100,7 @@ function exped_node_event(_tr, _again = false) {
 		array_push(_plan, { k : "shop_open", t : .4 });
 		for (var _pi = 0; _pi < array_length(_tr.sids); _pi++) if (_tr.hp[_pi] > 0) array_push(_plan, { k : "shop_buy", i : _pi, t : .35 });
 		array_push(_plan, { k : "shop_close", t : .25 });
-		if (roll_perc(((_tr.mode == "explore") ? 45 : 25) * _stn.tavern)) array_push(_plan, { k : "tavern", t : 1.2 });
+		if (roll_perc(((_tr.mode == "explore") ? 45 : 25) * _stn.tavern) && is_undefined(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred"))) array_push(_plan, { k : "tavern", t : 1.2 });   // (not while barred - the world remembers)
 		repeat (1 + (roll_perc(40) ? 1 : 0)) array_push(_plan, { k : "linger", t : random_range(.5, 1.5) });
 		var _night2 = (_tr[$ "night"] ?? false);
 		if (_mean < _stn.hurt + .2 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(60))) array_push(_plan, { k : "rest", t : 4 });   // (cautious books a bed at three quarters, greedy under half)
@@ -108,10 +108,15 @@ function exped_node_event(_tr, _again = false) {
 		return;
 	}
 	switch (_k) {
-		case "dungeon": { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "into " + _nd.name + " (" + string(_rm) + " rooms)"); exped_say(_tr, "delve", undefined, .6); break; }   // (the dungeon's own rooms, 2026-09-15)
-		case "crypt":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "down into " + _nd.name + " (" + string(_rm) + " rooms). it is cold"); exped_say(_tr, "delve", undefined, .6); break; }
-		case "sewer":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm }; array_push(_tr.log, "down the grate into " + _nd.name + " (" + string(_rm) + " rooms). " + choose("the smell arrives first", "somebody's boot is never the same", "it is warmer than it should be", "there are things in the water")); exped_say(_tr, "delve", undefined, .6); break; }
-		case "camp":    _tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); exped_say(_tr, "camp", undefined, .5); break;
+		case "dungeon": { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); var _qm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "quiet"); if (is_struct(_qm)) _rm = max(1, floor(_rm * .5)); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm, quiet : is_struct(_qm) }; array_push(_tr.log, "into " + _nd.name + " (" + string(_rm) + " rooms)"); exped_say(_tr, "delve", undefined, .6); break; }   // (the dungeon's own rooms, 2026-09-15)
+		case "crypt":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); var _qm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "quiet"); if (is_struct(_qm)) _rm = max(1, floor(_rm * .5)); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm, quiet : is_struct(_qm) }; array_push(_tr.log, "down into " + _nd.name + " (" + string(_rm) + " rooms). it is cold"); exped_say(_tr, "delve", undefined, .6); break; }
+		case "sewer":   { var _rm = _nd[$ "rooms"]; if (is_undefined(_rm)) _rm = irandom_range(3, 5); var _qm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "quiet"); if (is_struct(_qm)) _rm = max(1, floor(_rm * .5)); _tr.act = { kind : "delve", left : EXPED_ROOM_T * .5, steps : _rm, quiet : is_struct(_qm) }; array_push(_tr.log, "down the grate into " + _nd.name + " (" + string(_rm) + " rooms). " + choose("the smell arrives first", "somebody's boot is never the same", "it is warmer than it should be", "there are things in the water")); exped_say(_tr, "delve", undefined, .6); break; }
+		case "camp": {
+			// THE WORLD REMEMBERS (2026-09-16): a camp routed lately is ashes - nobody home
+			var _rmm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed");
+			if (is_struct(_rmm)) { _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; array_push(_tr.log, "the camp at " + _nd.name + ": " + choose("cold ashes and a boot. nobody home", "burnt poles, a pot, no bandits", "empty since they burned it. a crow has it now")); break; }
+			_tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); exped_say(_tr, "camp", undefined, .5); break;
+		}
 		case "mine":    _tr.act = { kind : "mine",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;
 		case "ruin":    _tr.act = { kind : "ruin",  left : EXPED_ROOM_T, steps : 1 }; break;

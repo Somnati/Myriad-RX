@@ -417,6 +417,15 @@ if (view != "hub") {
 			exit;
 		}
 	}
+	// [the gist] / [all] (2026-09-16): the diary's filter
+	if (__histrip_on()) {
+		var _hs = __histrip_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _hs.x, _hs.y, _hs.x + _hs.w, _hs.y + _hs.h)) {
+			log_hi = !log_hi; log_follow = true;
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
 	// [map] beside it: the page's region (2026-09-16 - one button, one place)
 	var _mc = __map_ctx();
 	if (!is_undefined(_mc)) {

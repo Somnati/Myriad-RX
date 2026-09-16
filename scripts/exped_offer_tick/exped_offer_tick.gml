@@ -21,5 +21,7 @@ function exped_offer_tick(_dt) {
 			_sl.left -= _dt;
 			if (_sl.left <= 0) { exped_offer_deal(_of, _i); save_mark_dirty(); }
 		}
+		// the personal card's clock: at zero it is gone, taken or not (2026-09-16)
+		if (is_array(_of[$ "pq"])) for (var _i = array_length(_of.pq) - 1; _i >= 0; _i--) { _of.pq[_i].left -= _dt; if (_of.pq[_i].left <= 0) { array_delete(_of.pq, _i, 1); save_mark_dirty(); } }
 	}
 }

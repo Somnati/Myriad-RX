@@ -219,7 +219,11 @@ __rows = function() {
 				       : ((_a.stage == 0) ? ("travelling to " + _a.planet) : ((_a.stage == 1) ? (_a.planet + ": " + (_a[$ "where"] ?? "on the world")) : ("heading home from " + _a.planet)));
 				_push(_out, "row", RH_ROW, { l : _a.name, v : _v, col : (_a.home && _a.routed) ? c_horange : c_steelblue });
 				var _nl = min(array_length(_a.lines), _dbg ? 99 : 2);
-				for (var _k = 0; _k < _nl; _k++) _push(_out, "sub", RH_SUB, { l : "", v : _a.lines[_k], col : sett_ink });
+				for (var _k = 0; _k < _nl; _k++) {
+					var _lv = _a.lines[_k], _lp = string_copy(_lv, 1, 2);   // (the diary's prefixes - a header, the sky, the voice, a reward - are the panel's, not the report's; 2026-09-16)
+					if (_lp == "# " || _lp == "* " || _lp == "~ " || _lp == "+ ") _lv = string_delete(_lv, 1, 2);
+					_push(_out, "sub", RH_SUB, { l : "", v : _lv, col : sett_ink });
+				}
 			}
 			if (_dbg) _push(_out, "sub", RH_SUB, { l : "out before > after / home", v : string(_x.before.n) + " > " + string(_x.after.n) + " / " + string(_x.after.homes), col : dim });
 		}

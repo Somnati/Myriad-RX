@@ -24,7 +24,7 @@ function exped_note_beat(_tr, _beat, _chance, _item = "") {
 		var _utag = "", _utxt = "";
 		switch (_beat) {
 			case "land": case "road": {
-				var _hz = cbt_hazard_at(_nd.kind);
+				var _hz = region_hazard_at(_tr.dest, _rg, _nd.kind);
 				if (is_struct(_hz) && roll_perc(40)) { _utag = "haz:" + _hz.key; _utxt = choose(_hz.name + ": " + _hz.hold + ". bring one. brought one.", _hz.name + " is a thing. it is less of a thing if you expect it.", "note on " + _hz.name + ": " + choose("breathe through the nose", "count to three first", "keep the good hand free", "walk like you have been here")); }
 				else if (_wx != "calm" && roll_perc(45)) { _utag = "wx:" + _wx; _utxt = choose(_wx + ": walk in it. it is only " + _wx + ".", _wx + " again. the trick is not to notice.", "in " + _wx + ", small steps. wrote it down. small.", _wx + ": the road is still there under it."); }
 				else if ((_tr[$ "night"] ?? false) && roll_perc(40)) { _utag = "night"; _utxt = choose("night: count the steps. four hundred to the bend.", "the dark: keep the hedge on the left. the hedge knows.", "at night the road hums. follow the hum.", "night walking: look at the sky-line, not the feet."); }

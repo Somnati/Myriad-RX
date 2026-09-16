@@ -11,6 +11,11 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	if (_esc && _r >= 45 && _r < 70 && roll_perc(50)) _r = 75;
 	// the noise of rain (his ask): a fight heard in time is a fight walked round
 	if ((_wx == "rain" || _wx == "storm") && _r < 45 && roll_perc(35)) { array_push(_tr.log, choose("heard something ahead over the rain, and went round it", "shapes in the rain. they took the long way and were not seen", "the rain covered their steps past a camp of something")); return; }
+	// THE WORLD REMEMBERS (2026-09-16): a camp routed lately - the road past it has half its bandits
+	if (_r >= 70 && _r < 85 && is_struct(_tr[$ "road"]) && roll_perc(50)) {
+		var _rgi0 = _tr[$ "rgi"] ?? 0;
+		if (is_struct(exped_mem_get(_tr.dest, _rgi0, _tr.road.a, "routed")) || is_struct(exped_mem_get(_tr.dest, _rgi0, _tr.road.b, "routed"))) { array_push(_tr.log, choose("the road is quiet since the camp burned", "nobody on the road. the camp's ashes are still warm", "a bandit's boot in the ditch, and no bandit")); return; }
+	}
 	if (_r < 45) {
 		_tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0);
 		array_push(_tr.log, "on the road: " + _tr.fight.b.name + ((array_length(_tr.fight.foes) > 1) ? " and company" : "") + " " + choose("block the way", "come out of the trees", "were waiting", "had the same idea"));

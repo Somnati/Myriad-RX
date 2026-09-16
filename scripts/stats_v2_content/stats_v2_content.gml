@@ -603,6 +603,7 @@ function stats_v2_content() {
 		stats_v2_line("credits earned", _xn("credits"), -1, c_lavender, "credits collected from hauls: the floor, the pocket's remainder, quest rewards");
 		stats_v2_line("items bought", _xn("bought"), -1, _xc);
 		stats_v2_line("items sold", _xn("sold"), -1, _xc, "the pocket's worst, sold at the shop's close for half the shelf's price");
+		stats_v2_line("games of chance", _xn("dice"), -1, _xc, "the tavern's dice: a stake by the stance, the odds bent by luck");
 		stats_v2_line("things found", _xn("finds"), -1, _xc);
 		stats_v2_line("gear found", _xn("gear_found"), -1, _xc);
 		stats_v2_line("fights won", _xn("fights_won"), -1, c_sgreen);

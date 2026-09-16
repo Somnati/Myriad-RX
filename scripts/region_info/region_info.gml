@@ -96,7 +96,7 @@ function region_info(_d, _rg) {
 	var _ap = [["passive", "timid", "docile", "shy", "meek", "harmless", "grazing", "sleepy"], ["restless", "wary", "hungry", "prowling", "skittish", "watchful", "nosing about", "unsettled"], ["hostile", "savage", "aggressive", "vicious", "snarling", "territorial", "sharp-toothed", "spoiling for it"], ["feral", "monstrous", "ravenous", "deadly", "murderous", "red in tooth", "man-eating", "bloody-minded"]][_fa];
 	array_push(_out, { k : "fauna", v : _pick(_rg.seed, 17, _ap), t : _fa });
 	// HAZARDS (2026-09-15): what its places do to a bare crew (cbt_hazards)
-	var _rh = region_hazards(_rg), _rht = "";
+	var _rh = region_hazards(_rg, _d), _rht = "";   // (the season's hazards too, 2026-09-16)
 	for (var _i = 0; _i < array_length(_rh); _i++) _rht += ((_i > 0) ? ", " : "") + _rh[_i].name;
 	array_push(_out, { k : "hazards", v : (_rht == "") ? "none" : _rht, t : min(2, array_length(_rh)), col : (array_length(_rh) > 0) ? _rh[0].col : undefined });
 	// CIVILIZATION: the biggest place there is

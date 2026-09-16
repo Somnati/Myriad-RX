@@ -62,8 +62,10 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 	// the pack is one of the kinds that haunt the place the crew stands on
 	// (or the road's far end) - picked by the foe's seed, so the pack replays
 	var _lrg = exped_region(_tr), _lni = exped_hazard(_tr).ni;
-	var _lkinds = foe_kinds_at(is_struct(_tr[$ "road"]) ? "road" : _lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind);
-	if (is_struct(_tr[$ "road"])) { var _rk = foe_kinds_at(_lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind); for (var _q2 = 0; _q2 < array_length(_rk); _q2++) if (!array_contains(_lkinds, _rk[_q2])) array_push(_lkinds, _rk[_q2]); }   // (a road: the road's own and the land it crosses)
+	var _lseas = region_season(_tr.dest, _lrg).idx;   // (the season's visitors - foe_kinds_at, 2026-09-16)
+	if (!region_season(_tr.dest, _lrg).on) _lseas = -1;
+	var _lkinds = foe_kinds_at(is_struct(_tr[$ "road"]) ? "road" : _lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind, _lseas);
+	if (is_struct(_tr[$ "road"])) { var _rk = foe_kinds_at(_lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind, _lseas); for (var _q2 = 0; _q2 < array_length(_rk); _q2++) if (!array_contains(_lkinds, _rk[_q2])) array_push(_lkinds, _rk[_q2]); }   // (a road: the road's own and the land it crosses)
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
 		var _fk = (_kind == "") ? _lkinds[hash_mix(_seed, 313) mod array_length(_lkinds)] : _kind;

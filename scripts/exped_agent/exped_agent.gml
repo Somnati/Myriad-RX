@@ -22,7 +22,7 @@ function exped_agent(_tr, _dt) {
 	var _dl = exped_daylight(_tr);
 	var _night = (_dl < -.12);
 	var _was = _tr[$ "night"] ?? _night;
-	if (_night != _was) array_push(_tr.log, _night ? choose("night falls. the road goes on, darker", "dusk. the light goes and the noises start", "night. someone lights the lamp") : choose("dawn, grey then gold", "morning. everything is wet", "the sun is up. so is the crew, more or less"));
+	if (_night != _was) array_push(_tr.log, "* " + (_night ? choose("night falls. the road goes on, darker", "dusk. the light goes and the noises start", "night. someone lights the lamp") : choose("dawn, grey then gold", "morning. everything is wet", "the sun is up. so is the crew, more or less")));   // ("* ": the sky's lines, dim in the diary - 2026-09-16)
 	if (_night != _was) exped_say(_tr, _night ? "night" : "dawn", undefined, .55);   // (the voice pass, 2026-09-15)
 	_tr.night = _night;
 	// THE WEATHER (his ask): the sky over the region, its changes in the diary
@@ -30,12 +30,12 @@ function exped_agent(_tr, _dt) {
 	var _wwas = _tr[$ "weather"] ?? _wx;
 	if (_wx != _wwas) {
 		switch (_wx) {
-			case "rain":  array_push(_tr.log, choose("rain sets in", "it starts to rain. everyone pretends it is fine", "rain, the thin kind that gets everywhere")); break;
-			case "snow":  array_push(_tr.log, choose("snow. the road goes white", "it snows. " + _tr.names[0] + " catches one on the tongue")); break;
-			case "fog":   array_push(_tr.log, choose("fog comes down. the road ends ten paces ahead", "a fog, thick as bread")); break;
-			case "wind":  array_push(_tr.log, choose("the wind gets up", "a wind, in their faces, of course")); break;
-			case "storm": array_push(_tr.log, choose("a storm breaks over the road", "thunder. then the rest of it")); break;
-			default:      array_push(_tr.log, choose("the sky clears", "the weather lifts", "sun again, eventually")); break;
+			case "rain":  array_push(_tr.log, "* " + choose("rain sets in", "it starts to rain. everyone pretends it is fine", "rain, the thin kind that gets everywhere")); break;
+			case "snow":  array_push(_tr.log, "* " + choose("snow. the road goes white", "it snows. " + _tr.names[0] + " catches one on the tongue")); break;
+			case "fog":   array_push(_tr.log, "* " + choose("fog comes down. the road ends ten paces ahead", "a fog, thick as bread")); break;
+			case "wind":  array_push(_tr.log, "* " + choose("the wind gets up", "a wind, in their faces, of course")); break;
+			case "storm": array_push(_tr.log, "* " + choose("a storm breaks over the road", "thunder. then the rest of it")); break;
+			default:      array_push(_tr.log, "* " + choose("the sky clears", "the weather lifts", "sun again, eventually")); break;
 		}
 	}
 	if (_wx != _wwas) exped_say(_tr, "weather", undefined, .5);
@@ -44,7 +44,7 @@ function exped_agent(_tr, _dt) {
 	var _ss = region_season(_tr.dest, _rg);
 	if (_ss.on) {
 		var _swas = _tr[$ "season"] ?? _ss.name;
-		if (_ss.name != _swas) array_push(_tr.log, "the season turns. " + choose("it is " + _ss.name + " now", _ss.name + ", by the look of the trees", _ss.name + ". " + _tr.names[0] + " says so, and the sky agrees"));
+		if (_ss.name != _swas) array_push(_tr.log, "* the season turns. " + choose("it is " + _ss.name + " now", _ss.name + ", by the look of the trees", _ss.name + ". " + _tr.names[0] + " says so, and the sky agrees"));
 		_tr.season = _ss.name;
 	}
 	// on a road
@@ -97,7 +97,7 @@ function exped_agent(_tr, _dt) {
 			_tr.road = undefined;
 			if (array_length(_tr.path) > 0 && _tr.path[0] == _tr.pos) array_delete(_tr.path, 0, 1);
 			if (!array_contains(_tr.visited, _tr.pos)) array_push(_tr.visited, _tr.pos);
-			array_push(_tr.log, "reached " + _rg.nodes[_tr.pos].name);
+			array_push(_tr.log, "# reached " + _rg.nodes[_tr.pos].name);   // ("# ": a place header in the diary - 2026-09-16)
 			exped_note_beat(_tr, "land", .12);
 			exped_node_event(_tr);
 		}

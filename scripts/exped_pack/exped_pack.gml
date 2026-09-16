@@ -18,6 +18,7 @@
 ///   bn bf bc bd bp   the bounty: node, foe, n, done, pay
 ///   tl      slain:mist:items:xp:earned           pk      the pocket (a trip: its credits now; a haul: what came home)
 ///   stn     the stance (cautious / steady / greedy - exped_stance; a haul keeps it for [send again])
+///   qps qpn qaf   a personal card's quest (1), its note, and whether the quest's after-moment (gratitude, the follow-up) already ran
 /// A fight in progress replays its room on load (room_i steps back one).
 function exped_pack() {
 	exped_init();
@@ -92,6 +93,9 @@ function exped_pack() {
 				array_push(_f, "qat=" + string(_q[$ "at"] ?? 0));
 				array_push(_f, "qw=" + string(_q[$ "who"] ?? ""));
 				array_push(_f, "qns=" + (is_array(_q[$ "nodes"]) ? string_join_ext(";", _q.nodes) : ""));
+				array_push(_f, "qps=" + string(_q[$ "pers"] ?? 0));   // (a personal card's quest, 2026-09-16)
+				array_push(_f, "qpn=" + string_replace_all(string(_q[$ "pnote"] ?? ""), "|", " "));
+				array_push(_f, "qaf=" + ((_r[$ "after_done"] ?? false) ? "1" : "0"));
 			}
 			var _bo = _r[$ "bounty"];
 			if (is_struct(_bo)) {
