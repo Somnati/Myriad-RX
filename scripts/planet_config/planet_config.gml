@@ -8,7 +8,7 @@ function planet_config() {
 		                   // bake is spread so the page never hitches)
 		pad      : 1.6,    // quad extent in radii: room for the halo
 		px_size  : 2,      // room px per shader cell (0 = no pixelation)
-		relief   : .07,    // MOUNTAINS: the tallest peak, in radii - the
+		relief   : .09,    // MOUNTAINS: the tallest peak, in radii (a little taller, 2026-09-16) - the
 		                   // silhouette bumps by this (sh_planet marches it)
 		keep     : 4,      // worlds the cache remembers (planet_get)
 	};

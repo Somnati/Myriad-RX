@@ -62,6 +62,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.raxis, 0, 1, 0);
 	shader_set_uniform_f(_u.rcol, 0, 0, 0);
 	shader_set_uniform_f(_u.relief, 0);
+	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_bump"), 0);
 	shader_set_uniform_f(_u.cfade, 0);
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);
 	shader_set_uniform_f_array(_u.city, array_create(24, 0));

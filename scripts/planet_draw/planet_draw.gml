@@ -30,6 +30,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		city  : shader_get_uniform(sh_planet, "u_city"),
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
 		relief : shader_get_uniform(sh_planet, "u_relief"),
+		bump  : shader_get_uniform(sh_planet, "u_bump"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"),
 		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
 		height : shader_get_sampler_index(sh_planet, "u_height"),
@@ -76,7 +77,9 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.ring, _pn.ring ? .85 : 0);
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
-	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief);
+	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;   // settings > visuals: mountain relief
+	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief * max(.4, _bump));   // (the silhouette rides the knob too, gently)
+	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);   // (into a float page: the page dithers once at its blit)
 	var _cty = array_create(24, 0);

@@ -83,6 +83,7 @@ g.title_bg = "starfield";   // the title's backdrop: starfield / blocks
 g.page_dither = "ordered";  // the expedition pages' dither: ordered / grain (settings > visuals)
 g.page_dither_amt = 25;     // ...and its intensity, % of PAGE_GRAIN_MAX levels
 g.hp_bar_col = "red";       // the hp bars' colour: red / green (settings > visuals, 2026-09-16)
+g.planet_relief_pct = 140;  // the mountains' exaggeration, % (settings > visuals, 2026-09-16)
 g.puck_mat = "random";   // the puck's, off the same roster ("random" = black rubber)
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.

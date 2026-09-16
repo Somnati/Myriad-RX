@@ -32,6 +32,7 @@ uniform vec3  u_ringcol;
 uniform vec4  u_city[6];
 uniform float u_cityn;
 uniform float u_relief;
+uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
 
 float cw_h(vec3 p)
@@ -208,23 +209,50 @@ void main()
         vec4 tex = texture2D(gm_BaseTexture, sphere_uv(t, u_tsize));
         vec3 col = tex.rgb;
 
-        // the slope: the height gradient bends the normal, so ridges
-        // catch the sun on one face and shade on the other
+        // THE MOUNTAINS' SHADING (2026-09-16, his ask: "more noticeably
+        // mountains... exaggerated"): the height gradient bends the normal
+        // (a bump map, sharper now: one texel, k = relief x 22); the bump's
+        // OWN light delta lifts lit faces and darkens shaded ones over the
+        // band, so ridges read on the day side where the band saturates; a
+        // snow line lightens the highest ground; and a peak throws a
+        // SELF-SHADOW toward the dark side - five steps along the sun over
+        // the height field. u_bump scales all of it (settings > visuals)
         vec3 nn = n;
-        if (u_relief > 0.0005) {
-            float e = 2.0 / max(u_tsize.x, 8.0);
+        float h0 = 0.0;
+        float bumpl = 0.0;
+        float shadow = 0.0;
+        if (u_relief > 0.0005 && u_bump > 0.001) {
+            h0 = height_at(n);
+            float e = 1.0 / max(u_tsize.x, 8.0);
             vec3 txr = cross(vec3(0.0, 1.0, 0.0), n);
             vec3 tx = (length(txr) < 0.001) ? vec3(1.0, 0.0, 0.0) : normalize(txr);
             vec3 ty = normalize(cross(n, tx));
             float hx = height_at(normalize(n + tx * e)) - height_at(normalize(n - tx * e));
             float hy = height_at(normalize(n + ty * e)) - height_at(normalize(n - ty * e));
-            float k = u_relief * 9.0;
+            float k = u_relief * 22.0 * u_bump;
             nn = normalize(n - tx * hx * k - ty * hy * k);
+            bumpl = dot(nn, u_light) - dot(n, u_light);
+            // the self-shadow: the sun's rise per unit of ground, against the ground ahead
+            float el = dot(n, u_light);
+            if (el > 0.02) {
+                float cs = sqrt(max(0.0, 1.0 - el * el));
+                float rise = el / max(cs, 0.08);
+                for (int i = 1; i <= 5; i++) {
+                    float sd = e * float(i) * 1.7;
+                    vec3 sp = normalize(n + u_light * sd);
+                    float hr = h0 + (sd / u_relief) * rise;
+                    float ht = height_at(sp);
+                    shadow = max(shadow, clamp((ht - hr) * 6.0, 0.0, 1.0));
+                }
+            }
         }
 
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.10), u_tsize) * 0.28;
         float li = lightband(dot(nn, u_light));
         col *= li;
+        col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45);                       // the slope's own light, over the band
+        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(0.62, 0.95, h0) * min(1.0, u_bump));   // the snow line
+        col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
         if (li < 0.9) col = mix(col, vec3(0.03, 0.04, 0.10), 0.5 * (1.0 - li));
         float dusk = smoothstep(0.25, 0.55, li) * (1.0 - smoothstep(0.55, 0.95, li));
         col += mix(vec3(0.72, 0.20, 0.46), u_atmo, 0.22) * (dusk * 0.16);

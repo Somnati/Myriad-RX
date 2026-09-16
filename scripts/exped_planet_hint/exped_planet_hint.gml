@@ -24,7 +24,7 @@ function exped_planet_hint(_d) {
 	if (variable_global_exists("galaxy_home_c") && is_struct(g.galaxy_home_c) && g.galaxy_home_c.planet_seed == _d.seed) {
 		var _gp = g.galaxy_home_c.sys.planets[g.galaxy_home_c.planet];
 		_h.ring = _gp[$ "has_ring"] ?? false;
-		_h.moon_n = _gp[$ "moon_n"] ?? 1;
+		_h.moon_n = max(1, _gp[$ "moon_n"] ?? 1);   // (at least one - his ask, 2026-09-16: "give the starter planet a moon")
 	}
 	return _h;
 }

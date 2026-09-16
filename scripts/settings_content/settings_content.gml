@@ -434,6 +434,16 @@ function settings_content() {
 		+ "more and the pattern (or the grain) becomes part of the look. hold the knob and the "
 		+ "settings fade so the expedition page shows it as you drag.",
 		-1, undefined, true);
+	// THE MOUNTAINS (his ask, 2026-09-16): the bump shading, the self-shadow, the
+	// snow line and the silhouette's relief, on one knob - live, like the dither
+	settings_slider("mountain relief", 50, 250,
+		function() { return g.planet_relief_pct; },
+		function(_v) { g.planet_relief_pct = _v; },
+		"%", 10,
+		"how much the mountains stand out on a world: the ridges' light and shade, the shadows "
+		+ "the peaks throw toward the dark, the snow on the highest ground, and how far the peaks "
+		+ "poke out of the edge. hold the knob and the settings fade so the world shows it.",
+		-1, undefined, true);
 	// THE HP BARS' COLOUR (his ask, 2026-09-16): the house red, or the green
 	settings_pill("hp bar colour", "hpbarcol",
 		g.hp_bar_col,
