@@ -939,15 +939,15 @@ if (view == "system") {
 	draw_sprite_ext(spr_star_glow, 5, _cx, _cy, 1.6 * _sts, 1.6 * _sts * max(.6, sy_tilt), 0, _stc, .95);
 	draw_sprite_ext(spr_star_glow, 3, _cx, _cy, max(1, _sts * .8), max(1, _sts * .8), 0, c_white, 1);
 	for (var _k = 0; _k < array_length(_ord); _k++) {
-		var _o = _ord[_k], _pl = _pls[_o.i], _gb = galaxy_world_biome(_pl);
-		var _pr = clamp(_pl.size * 1.15 * sqrt(sy_zoom), 2.5, 9);
-		var _col = (_gb < 0) ? _pl.col : exped_biomes()[_gb].col2;
+		var _o = _ord[_k], _plo = _pls[_o.i], _gbo = galaxy_world_biome(_plo);
+		var _pr = clamp(_plo.size * 1.15 * sqrt(sy_zoom), 2.5, 9);
+		var _col = (_gbo < 0) ? _plo.col : exped_biomes()[_gbo].col2;
 		var _ldx = _cx - _o.x, _ldy = _cy - _o.y, _ll = point_distance(0, 0, _ldx, _ldy); if (_ll > .001) { _ldx /= _ll; _ldy /= _ll; }
-		if (_pl[$ "has_ring"] ?? false) for (var _t = 0; _t < 24; _t++) { var _ra = _t * 15; draw_sprite_ext(spr_pixel_1x1, 0, floor(_o.x + dcos(_ra) * _pr * 1.9), floor(_o.y + dsin(_ra) * _pr * 1.9 * max(.35, sy_tilt)), 1, 1, 0, merge_colour(_col, c_white, .4), .7); }
-		__sy_disc(_o.x, _o.y, _pr, _col, _ldx, _ldy, .55, (_gb < 0) ? .75 : 1);
-		var _onb = false;
-		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pl.seed) _onb = true;
-		if (_onb) draw_px_rect(floor(_o.x - _pr - 3), floor(_o.y - _pr - 3), ceil(_pr * 2 + 7), ceil(_pr * 2 + 7), c_gold, .8);
+		if (_plo[$ "has_ring"] ?? false) for (var _t = 0; _t < 24; _t++) { var _ra = _t * 15; draw_sprite_ext(spr_pixel_1x1, 0, floor(_o.x + dcos(_ra) * _pr * 1.9), floor(_o.y + dsin(_ra) * _pr * 1.9 * max(.35, sy_tilt)), 1, 1, 0, merge_colour(_col, c_white, .4), .7); }
+		__sy_disc(_o.x, _o.y, _pr, _col, _ldx, _ldy, .55, (_gbo < 0) ? .75 : 1);
+		var _onbo = false;
+		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _plo.seed) _onbo = true;
+		if (_onbo) draw_px_rect(floor(_o.x - _pr - 3), floor(_o.y - _pr - 3), ceil(_pr * 2 + 7), ceil(_pr * 2 + 7), c_gold, .8);
 		if (sy_sel == _o.i) { draw_px_rect(floor(_o.x - _pr - 5), floor(_o.y - _pr - 5), ceil(_pr * 2 + 11), ceil(_pr * 2 + 11), c_white, .9); draw_set_halign(fa_center); draw_set_color(c_white); draw_set_alpha(.95); draw_text(floor(_o.x), floor(_o.y - _pr - 16), star_name(sy_star) + " " + ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][clamp(_o.i, 0, 7)]); draw_set_halign(fa_left); }
 	}
 	// the title and the hint
@@ -963,18 +963,17 @@ if (view == "system") {
 	draw_px_rect(_dkx, list_y + 16, _dkw, room_height - 8 - (list_y + 16), c_steelblue, .55);
 	var _romd = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 	for (var _i = 0; _i < _np; _i++) {
-		var _rr = __sy_row_r(_i), _pl = _pls[_i], _gb = galaxy_world_biome(_pl), _on = (sy_sel == _i);
+		var _rr = __sy_row_r(_i), _pld = _pls[_i], _gbd = galaxy_world_biome(_pld), _ond = (sy_sel == _i);
 		if (_rr.y + _rr.h > room_height - 8 - 20) break;
-		var _onb = false;
-		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pl.seed) _onb = true;
+		var _onbd = false;
+		for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pld.seed) _onbd = true;
 		draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
-		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : (_onb ? merge_colour(c_gold, c_black, .4) : c_steelblue), _on ? .9 : .5);
-		__dot(_rr.x + 8, _rr.y + 11, 3, (_gb < 0) ? _pl.col : exped_biomes()[_gb].col2, (_gb < 0) ? .6 : .95);
-		draw_set_color((_gb < 0) ? _dim : c_white); draw_set_alpha(.95);
+		draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _ond ? c_gold : (_onbd ? merge_colour(c_gold, c_black, .4) : c_steelblue), _ond ? .9 : .5);
+		__dot(_rr.x + 8, _rr.y + 11, 3, (_gbd < 0) ? _pld.col : exped_biomes()[_gbd].col2, (_gbd < 0) ? .6 : .95);
+		draw_set_color((_gbd < 0) ? _dim : c_white); draw_set_alpha(.95);
 		draw_text(_rr.x + 16, _rr.y + 2, star_name(sy_star) + " " + _romd[clamp(_i, 0, 7)]);
 		draw_set_color(_dim); draw_set_alpha(.75);
-		var _gw2 = (_gb < 0) ? undefined : galaxy_world(sy_star, _i);
-		draw_text(_rr.x + 16, _rr.y + 12, (_gb < 0) ? "gas  -  no landing" : (exped_biomes()[_gb].name + "  -  tier " + string(is_struct(_gw2) ? _gw2.tier : 1) + (_onb ? "  -  on the board" : "")));
+		draw_text(_rr.x + 16, _rr.y + 12, (_gbd < 0) ? "gas  -  no landing" : (exped_biomes()[_gbd].name + "  -  tier " + string((_i < array_length(sy_info)) ? sy_info[_i] : 1) + (_onbd ? "  -  on the board" : "")));   // (sy_info: the tiers, once at [enter])
 	}
 	var _sor = __sy_open_r();
 	var _canopen = (sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0);

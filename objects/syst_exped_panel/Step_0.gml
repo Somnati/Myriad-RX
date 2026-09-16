@@ -361,6 +361,7 @@ if (view == "galaxy") {
 	var _onstrip = (gx_sel >= 0 && is_struct(gx_sys) && point_in_rectangle(mouse_x, mouse_y, _ger.x, _ger.y, _ger.x + _ger.w, _ger.y + _ger.h));
 	if (_onstrip && mouse_check_button_pressed(mb_left)) {
 		sy_star = gx_sel; sy_sys = gx_sys; sy_sel = -1;
+		sy_info = []; for (var _pi = 0; _pi < array_length(gx_sys.planets); _pi++) { var _gwi = galaxy_world(gx_sel, _pi); array_push(sy_info, is_struct(_gwi) ? _gwi.tier : 1); }   // (the tiers once, not a system gen a row a frame)
 		var _hm0 = galaxy_home(); if (sy_star == _hm0.star) sy_sel = _hm0.planet;
 		__page_go("system");
 		play_sound_ext(snd_apply, 1, 1.2, .5, 1);

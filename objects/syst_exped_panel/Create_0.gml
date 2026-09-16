@@ -471,6 +471,7 @@ sy_star = -1; sy_sys = undefined; sy_sel = -1;
 sy_yaw = 30; sy_tilt = .42; sy_zoom = 1;
 sy_press = false; sy_px = 0; sy_py = 0; sy_yaw0 = 0; sy_tilt0 = 0; sy_travel = 0;
 sy_pos = [];                         // the worlds' page positions this frame (the Step's taps)
+sy_info = [];                        // the worlds' tiers, computed at [enter]
 __sy_dock_w = function() { return land ? 150 : 110; };
 __sy_dock_x = function() { return room_width - (land ? 14 : 4) - __sy_dock_w(); };
 __sy_row_r  = function(_i) { return { x : __sy_dock_x() + 5, y : list_y + 22 + _i * 24, w : __sy_dock_w() - 10, h : 22 }; };
