@@ -105,7 +105,9 @@ function starmap_config() {
 		neb_alpha_sky : .3,   // ...and in the sky (x a near / far factor)
 		neb_thick_min : .35,  // half-thickness as a fraction of the radius: this + up to neb_thick_rand
 		neb_thick_rand: .4,
-		star_height   : 900,  // plane px per unit of a star's parallax depth about 1 (d .85..1.15: +-135 px) - a star's height
+		star_height   : 140,  // plane px per unit of a star's parallax depth about 1 (d .85..1.15: +-21 px) - a star's height off the plane
+		                      // (900 stood the near ones far off the band - "the star height feels weird", his report 2026-09-16: a thin disc, the
+		                      // sky's bearings the map's angles, a few degrees of lean at most)
 		neb_in_amp    : .8,   // THE NEAR CLOUD (marched): the glow's strength...
 		neb_in_ext    : 1.4,  // ...and the extinction per unit of gathered density (the sky beyond dims)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----

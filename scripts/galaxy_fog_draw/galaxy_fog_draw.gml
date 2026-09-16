@@ -34,7 +34,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		col : shader_get_uniform(sh_sky_inside, "u_col"), col2 : shader_get_uniform(sh_sky_inside, "u_col2"), seed : shader_get_uniform(sh_sky_inside, "u_seed"),
 		amp : shader_get_uniform(sh_sky_inside, "u_amp"), ext : shader_get_uniform(sh_sky_inside, "u_ext"),
 		time : shader_get_uniform(sh_sky_inside, "u_time"), dith : shader_get_uniform(sh_sky_inside, "u_dither"),
-		sun : shader_get_uniform(sh_sky_inside, "u_sun"), sunon : shader_get_uniform(sh_sky_inside, "u_sunon"),
+		sun : shader_get_uniform(sh_sky_inside, "u_sun"), sunon : shader_get_uniform(sh_sky_inside, "u_sunon"), dmode : shader_get_uniform(sh_sky_inside, "u_dmode"),
 	};
 	var _cfg = starmap_config();
 	if (!surface_exists(_canvas)) return;
@@ -90,6 +90,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		shader_set_uniform_f(_ui.ext, _cfg[$ "neb_in_ext"] ?? 1.4);
 		shader_set_uniform_f(_ui.time, (current_time mod 100000) / 1000);
 		shader_set_uniform_f(_ui.dith, page_float() ? 0 : 1);
+		shader_set_uniform_f(_ui.dmode, ((variable_global_exists("page_dither") ? g.page_dither : "ordered") == "grain") ? 0 : 1);   // (the settings' pattern, 2026-09-16)
 		var _lw = _sky.light_w;
 		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
 		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
