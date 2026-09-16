@@ -90,7 +90,6 @@ function starmap_config() {
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
 		// ---- THE RICHNESS (2026-09-16): a sky reads its neighbourhood's density (0..1) and its depth in the core (0..1) ----
 		sky_rich_max   : 1100, // extra stars kept at the densest cell (on sky_max)
-		sky_bloom      : .55, // THE SKY'S GLOW (2026-09-16): the galaxy page's bloom on the sky, x (1 + density) - the core blazes
 		sky_rich_cloud : 2,   // the star clouds' grain, x (1 + this x density)
 		sky_rich_fog   : .6,  // the band's brightness, + this x density...
 		sky_core_fog   : 1.6, // ...+ this x core depth (and the band fattens to a glow all round inside the bulge)

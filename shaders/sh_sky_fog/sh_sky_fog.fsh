@@ -134,7 +134,7 @@ void main()
 
     // THE CORE BULGE (2026-09-16): where the band meets the core's bearing it swells - taller
     // and brighter, the centre of the galaxy on the sky; stronger the further out this star sits
-    vec2 wf0 = normalize(w.xz);
+    vec2 wf0 = normalize(w.xz + vec2(1.0e-5, 0.0));   // (a ray straight up has no plane direction - NaN otherwise, and a NaN spreads; 2026-09-16)
     vec2 cf0 = normalize(u_core.xz);
     float toward = max(dot(wf0, cf0), 0.0);
     float bulge = pow(toward, 9.0) * exp(-w.y * w.y * 14.0);
@@ -145,7 +145,7 @@ void main()
     // warm at the core bearing, cool away - agrees with the star map
     vec2 wf = w.xz;
     vec2 cf = u_core.xz;
-    float dc = acos(clamp(dot(normalize(wf), normalize(cf)), -1.0, 1.0)) / 3.14159265;
+    float dc = acos(clamp(dot(normalize(wf + vec2(1.0e-5, 0.0)), normalize(cf + vec2(1.0e-5, 0.0))), -1.0, 1.0)) / 3.14159265;
     vec3 col = mix(vec3(1.0, 0.765, 0.549), vec3(0.470, 0.569, 0.922), dc);
     col = mix(col, vec3(1.0, 0.82, 0.62), u_corein);   // (warm every way from inside)
 
