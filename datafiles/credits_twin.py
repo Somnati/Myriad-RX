@@ -1,6 +1,6 @@
 """credits_twin.py - the expedition ECONOMY, simulated.
 
-The house pattern (sprite_twin, exped_twin): model the shipped maths in
+The house pattern (sprite_twin; exped_twin retired 2026-09-16 - stale since the cbt engine): model the shipped maths in
 Python, state the invariants out loud, print HOLDS or FAILS. Tune here,
 port the numbers back - never the other way round.
 
