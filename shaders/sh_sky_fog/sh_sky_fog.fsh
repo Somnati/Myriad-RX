@@ -19,6 +19,7 @@ uniform float u_time;    // dither slide
 uniform float u_dither;  // 1 = dither here (an 8-bit page), 0 = the page is float and dithers once at its blit (2026-09-15)
 uniform float u_amp;     // overall brightness
 uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
+uniform float u_corein;  // 0 .. 1 how deep in the core's bulge this star sits: the band thickens to a glow all round (2026-09-16)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
@@ -121,7 +122,7 @@ void main()
 
     // gaussian falloff off the galactic plane; fbm SQUASHED vertically
     // so the structure streaks along the band instead of clumping
-    float band = exp(-w.y * w.y * 42.0);
+    float band = exp(-w.y * w.y * mix(42.0, 7.0, u_corein));   // (a fat band from inside the bulge)
     vec3 q = w * 3.4;
     q.y *= 2.6;
     float n    = fbm(q + u_seed);
@@ -138,12 +139,15 @@ void main()
     float toward = max(dot(wf0, cf0), 0.0);
     float bulge = pow(toward, 9.0) * exp(-w.y * w.y * 14.0);
     dens += bulge * (0.35 + 0.65 * smoothstep(0.25, 0.7, n)) * (0.5 + 0.8 * u_edge);
+    // INSIDE THE BULGE (2026-09-16): no one bearing is the core any more - the glow is all round, thickest on the plane
+    dens += u_corein * (0.45 + 0.55 * smoothstep(0.25, 0.7, n)) * exp(-w.y * w.y * mix(14.0, 1.5, u_corein));
 
     // warm at the core bearing, cool away - agrees with the star map
     vec2 wf = w.xz;
     vec2 cf = u_core.xz;
     float dc = acos(clamp(dot(normalize(wf), normalize(cf)), -1.0, 1.0)) / 3.14159265;
     vec3 col = mix(vec3(1.0, 0.765, 0.549), vec3(0.470, 0.569, 0.922), dc);
+    col = mix(col, vec3(1.0, 0.82, 0.62), u_corein);   // (warm every way from inside)
 
     // rim stars see the galaxy on one side of the sky: the band gains
     // toward the core bearing and starves away from it, scaled by how

@@ -19,6 +19,14 @@ function galaxy_sky_build(_dw = undefined) {
 	var _me  = _sm.stars[_hm.star];
 	var _out = { stars : [], sibs : [], light_w : [-.52, -.38, .77], core_dir : [1, 0, 0], fog_seed : 0, fog_edge : 0,
 	             sun_col : merge_colour(c_white, c_gold, .4), sun_size : 12, name : _hm.name, star : _hm.star };
+	// THE RICHNESS (2026-09-16): the local density off the map's grid (0..1 of the galaxy's densest cell) and how deep
+	// in the core this star sits (0..1 over the inner third of the disc) - the star count, the clouds and the band all
+	// scale with them (his report: the centre's brightest spot had a sky like any other)
+	var _lcx = clamp(floor(_me.x / _sm.ncell), 0, _sm.ngw - 1), _lcy = clamp(floor(_me.y / _sm.ncell), 0, _sm.ngw - 1);
+	var _ld = clamp(_sm.ngrid[_lcx + _lcy * _sm.ngw] / max(1, _sm.nmax), 0, 1);
+	var _cd = clamp(1 - point_distance(_me.x, _me.y, _sm.cx, _sm.cy) / (_cfg.gal_r * .33), 0, 1);
+	_out.rich = _ld; _out.core_in = _cd;
+	_out.fog_boost = 1 + (_cfg[$ "sky_core_fog"] ?? 1.6) * _cd + (_cfg[$ "sky_rich_fog"] ?? .6) * _ld;
 	// the neighbourhood
 	var _rng = _cfg.sky_range;
 	var _cand = star_visible(_me.x - _rng, _me.y - _rng, 1, _rng * 2, _rng * 2);
@@ -31,7 +39,7 @@ function galaxy_sky_build(_dw = undefined) {
 		array_push(_near, { st : _st, d : _d });
 	}
 	array_sort(_near, function(_a, _b) { return _a.d - _b.d; });
-	var _n = min(array_length(_near), _cfg.sky_max);
+	var _n = min(array_length(_near), _cfg.sky_max + round((_cfg[$ "sky_rich_max"] ?? 480) * _ld));   // (a rich neighbourhood keeps more of its stars)
 	for (var _i = 0; _i < _n; _i++) {
 		var _st = _near[_i].st, _d = _near[_i].d;
 		var _az = point_direction(_me.x, _me.y, _st.x, _st.y);
@@ -80,8 +88,8 @@ function galaxy_sky_build(_dw = undefined) {
 	// cool away like the fog, and on a rim world piled toward the core as the fog is (the same bias law)
 	var _core_az0 = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
 	var _edge0 = clamp(point_distance(_me.x, _me.y, _sm.cx, _sm.cy) / _cfg.gal_r, 0, 1);
-	var _ncl = _cfg[$ "sky_cloud"] ?? 520, _tries = 0;
-	while (_ncl > 0 && _tries < 6000) {
+	var _ncl = round((_cfg[$ "sky_cloud"] ?? 520) * (1 + (_cfg[$ "sky_rich_cloud"] ?? 2) * _ld)), _tries = 0;   // (the grain thickens with the neighbourhood)
+	while (_ncl > 0 && _tries < 20000) {
 		_tries += 1;
 		var _az3 = random(360);
 		var _dc = abs(angle_difference(_az3, _core_az0)) / 180;

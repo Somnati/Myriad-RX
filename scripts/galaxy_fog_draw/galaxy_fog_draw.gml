@@ -19,6 +19,7 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 		amp  : shader_get_uniform(sh_sky_fog, "u_amp"),
 		cell : shader_get_uniform(sh_sky_fog, "u_cell"),
 		edge : shader_get_uniform(sh_sky_fog, "u_edge"),
+		corein : shader_get_uniform(sh_sky_fog, "u_corein"),
 		dith : shader_get_uniform(sh_sky_fog, "u_dither"),
 		nebn : shader_get_uniform(sh_sky_fog, "u_nebn"),
 		nebd : shader_get_uniform(sh_sky_fog, "u_nebd"),
@@ -38,7 +39,8 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	shader_set_uniform_f(_u.ctr, _cx, _cy);
 	shader_set_uniform_f(_u.seed, _sky.fog_seed);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
-	shader_set_uniform_f(_u.amp, _cfg.sky_fog_amp);
+	shader_set_uniform_f(_u.amp, _cfg.sky_fog_amp * (_sky[$ "fog_boost"] ?? 1));   // (brighter in a rich neighbourhood, brightest in the core - 2026-09-16)
+	shader_set_uniform_f(_u.corein, _sky[$ "core_in"] ?? 0);
 	shader_set_uniform_f(_u.cell, planet_config().px_size);
 	shader_set_uniform_f(_u.edge, _sky.fog_edge);
 	shader_set_uniform_f(_u.dith, page_float() ? 0 : 1);   // (a float page dithers once, at its blit)
