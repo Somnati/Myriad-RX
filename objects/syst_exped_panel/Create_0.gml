@@ -82,28 +82,28 @@ __dp_off_max = function() { var _l = __dp_list_r(); return max(0, array_length(g
 /// THE MISSION BOX's layout: the text and the numbers, then the seats; the box grows to fit
 __dp_layout = function() {
 	var _o = (1 - dp_in) * 340;
-	var _x = land ? (160 + _o) : (4 + _o), _y = list_y + 4;   // (higher - 2026-09-15: room for four seats and the taller banners)
+	var _x = land ? (160 + _o) : (4 + _o), _y = list_y + 18;   // (just under the strip's [crew] [back] - 2026-09-16)
 	var _w = land ? (room_width - 160 - 14) : (room_width - 8);
 	var _tw = _w - 16;
 	var _rg = region_get(pl_dest, rg_sel);
 	var _q  = (dp_mode == "quest") ? dp_quest : undefined;
 	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;
 	draw_set_font(fnt);
-	var _th = 0;
-	if (is_struct(_q)) {
-		var _obj = exped_quest_obj(_q, _rg, true);   // (the one builder, 2026-09-15)
-		_th = string_height_ext(_q.txt, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 11 * (5 + __dp_haz_rows());
-	} else {
-		var _xt = is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled");
-		var _obj2 = is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home";
-		_th = string_height_ext(_xt, 9, _tw) + 4 + string_height_ext(_obj2, 9, _tw) + 6 + 11 * (4 + __dp_haz_rows());
-	}
 	var _ns = exped_party_max();
+	var _cols = land ? 2 : 1, _srows = ceil(_ns / _cols);   // THE SEATS in two columns on a wide page (2026-09-15: four seats, taller banners - the box stays on the page)
+	// the text's height: the ask, the objective paragraph, the number rows (10px
+	// each) - and the paragraph DROPS when the box would run off the page
+	// (2026-09-16: a long ask, a long objective and two hazard rows did)
+	var _ask = is_struct(_q) ? _q.txt : (is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled"));
+	var _obj = is_struct(_q) ? exped_quest_obj(_q, _rg, true) : (is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home");
+	var _nrows = (is_struct(_q) ? 5 : 4) + __dp_haz_rows();
+	var _seats_h = 14 + _srows * (__dp_bh() + 4) + 4;
+	var _th = string_height_ext(_ask, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 10 * _nrows;
+	var _para_on = true;
+	if (_y + 6 + _th + _seats_h > room_height - 8) { _para_on = false; _th = string_height_ext(_ask, 9, _tw) + 4 + 10 * _nrows; }
 	var _sy0 = _y + 6 + _th + 14;
-	// THE SEATS in two columns on a wide page (2026-09-15: four seats, taller banners - the box stays on the page)
-	var _cols = land ? 2 : 1, _srows = ceil(_ns / _cols);
-	var _h = 6 + _th + 14 + _srows * (__dp_bh() + 4) + 4;
-	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns, cols : _cols };
+	var _h = 6 + _th + _seats_h;
+	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns, cols : _cols, para_on : _para_on };
 };
 __brief_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : _l.h }; };
 /// THE HAZARDS of the mission (2026-09-15): a quest's place, or every one an explore's region carries; who in the seats holds each, who is bare
@@ -249,10 +249,10 @@ row_h   = land ? 44 : 40;              // a trip's island (redone 2026-09-15: fo
 // render, the name, the region, the leg, the buttons), the crew's banners
 // under it; the quest's island and the diary on the right; the combat
 // window in the right column's bottom-right corner
-big_x = land ? 14 : 4; big_y = land ? (list_y + 4) : (list_y + 22); big_w = land ? 150 : (room_width - 8); big_h = land ? 52 : 62;   // the render's box (the island runs on below it) - UP and tighter on a wide page (2026-09-15: four banners under it)
-isle_h = land ? (big_h + 36) : (big_h + 66);                          // the island: the render, the name, the region and the sky, the leg (wide: the buttons live in the right column's foot)
+big_x = land ? 14 : 4; big_y = land ? (list_y + 4) : (list_y + 22); big_w = land ? 150 : (room_width - 8); big_h = land ? 48 : 62;   // the render's box (the island runs on below it) - UP and tighter on a wide page (2026-09-15: four banners under it)
+isle_h = land ? (big_h + 40) : (big_h + 66);                          // the island: the render, the name, the region and the sky, the leg (wide: the buttons live in the right column's foot)
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
-log_y = land ? big_y : (big_y + isle_h + 6 + exped_party_max() * (__dp_bh() + 2) + 4);    // (portrait: the island and the banners come first)
+log_y = land ? (list_y + 22) : (big_y + isle_h + 6 + exped_party_max() * (__dp_bh() + 2) + 4);   // (wide: under the strip's [crew] [back] - the island on the left may sit higher)    // (portrait: the island and the banners come first)
 fight_s = 80;        // the combat window's side (grown from 64 - his ask; the right column's bottom-right corner)
 wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothing spills past a rect; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
@@ -417,7 +417,7 @@ __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (l
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 // region mode: the info box on the left (region_info's lines)
 rg_box_w = 150; rg_box_h = 110;      // the info box's size, as its lines want (__info_box_size; the Draw keeps it fresh)
-__rg_banner_r = function() { return { x : (land ? 14 : 4) - (1 - rg_in) * 220, y : list_y + 40, w : rg_box_w, h : rg_box_h }; };   // (region mode's swing: in from the left)
+__rg_banner_r = function() { return { x : (land ? 14 : 4) - (1 - rg_in) * 220, y : list_y + 22, w : rg_box_w, h : rg_box_h }; };   // (where the world box sits: a swap in place; clear of the toggle below - 2026-09-16)   // (region mode's swing: in from the left)
 // THE HAND'S SEATS: the cards in a row across the page (portrait: two columns)
 __hand_seats = function(_n) {
 	var _out = [];

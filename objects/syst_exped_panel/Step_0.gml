@@ -19,7 +19,7 @@ if (_under && hand != "") __hand_close();
 // dp_next); region mode's info box and buttons (rg_in)
 if (view == "depart") {
 	dp_in = move_to(dp_in, (dp_dir < 0) ? 0 : 1, 4);
-	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") pv_mode = "region"; }
+	if (dp_dir < 0 && dp_in <= .03) { dp_in = 0; dp_dir = 0; view = dp_next; dp_look = -1; if (view == "planet") { pv_mode = "region"; view_last = view; pg_a = 1; pg_dir = 0; } }   // (to the region: it arrives lit and swings in - no black blink; 2026-09-16)
 	else if (dp_dir >= 0 && dp_in >= .985) dp_in = 1;
 } else if (pg_dir == 0) dp_in = 0;
 if (view == "planet" && pv_mode == "region") {
