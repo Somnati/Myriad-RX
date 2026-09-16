@@ -2,6 +2,6 @@
 function foe_kinds_at(_land) {
 	var _ros = foe_roster(), _out = [];
 	for (var _i = 0; _i < array_length(_ros); _i++) if (array_contains(_ros[_i].lands, _land)) array_push(_out, _ros[_i].name);
-	if (array_length(_out) == 0) _out = ["goblin", "bandit", "wolf", "rat"];
+	if (array_length(_out) == 0) _out = ["goblin", "bandit", "lupus", "rat"];
 	return _out;
 }

@@ -99,7 +99,7 @@ function exped_unpack(_s) {
 					if (_ag[6] != "") {
 						var _rgq = region_get(_d, _trn.rgi);
 						var _qn = clamp(real(_ag[7]), 0, array_length(_rgq.nodes) - 1);
-						_trn.quest = { kind : _ag[6], node : _qn, foe : _ag[8], n : real(_ag[9]), done : real(_ag[10]), mult : real(_ag[11]), reward : real(_ag[12]), hours : 0,
+						_trn.quest = { kind : _ag[6], node : _qn, foe : foe_legacy(_ag[8]), n : real(_ag[9]), done : real(_ag[10]), mult : real(_ag[11]), reward : real(_ag[12]), hours : 0,
 						               from : -1, at : 0, who : "", nodes : undefined, txt : "" };
 						// the mission-type pass (2026-09-15): the two-stop kinds' first stop and whether it is done, the name, the survey's nodes
 						if (array_length(_ag) > 26) {
@@ -111,7 +111,7 @@ function exped_unpack(_s) {
 						_trn.quest.p0 = (_trn.quest.from >= 0) ? _trn.quest.from : (is_array(_trn.quest.nodes) ? _trn.quest.nodes[0] : _qn);
 						_trn.quest.txt = exped_quest_txt(_trn.quest, _rgq);   // (the one builder - the line reads as it did)
 					}
-					if (_ag[13] != "") _trn.bounty = { node : real(_ag[13]), foe : _ag[14], n : real(_ag[15]), done : real(_ag[16]), pay : real(_ag[17]) };
+					if (_ag[13] != "") _trn.bounty = { node : real(_ag[13]), foe : foe_legacy(_ag[14]), n : real(_ag[15]), done : real(_ag[16]), pay : real(_ag[17]) };
 					_trn.visited = [];
 					if (array_length(_ag) > 18 && _ag[18] != "") { var _vs = string_split(_ag[18], ";"); for (var _vi = 0; _vi < array_length(_vs); _vi++) if (_vs[_vi] != "") array_push(_trn.visited, real(_vs[_vi])); }
 				}

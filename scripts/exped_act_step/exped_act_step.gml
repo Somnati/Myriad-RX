@@ -146,7 +146,7 @@ function exped_act_step(_tr) {
 			// a wave; the villagers patch the crew up between waves
 			var _wave = is_struct(_q) ? (_q.done + 1) : 1, _nw = is_struct(_q) ? _q.n : 1;
 			if (_wave > 1) { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .15); array_push(_tr.log, "the villagers patch them up between waves"); }
-			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "wolf", "kobold", "boar");
+			var _fk = is_struct(_q) ? _q.foe : choose("goblin", "lupus", "kobold", "apero");
 			_tr.fight = exped_fight_new(_tr, _fk, irandom_range(2, 3), 0);
 			array_push(_tr.log, "wave " + string(_wave) + " of " + string(_nw) + " at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " " + foe_plural(_fk) + " " + choose("out of the treeline", "over the fence", "up the road, not quietly"));
 			exped_say(_tr, "wave", { foe : _tr.fight.b.name }, .55);
@@ -176,7 +176,7 @@ function exped_act_step(_tr) {
 				var _isit = ((_nd.kind == "hills" || _nd.kind == "mountains") ? "they are " : ((_nd.kind == "tundra") ? "it is " : ((string_pos(string_char_at(_nd.kind, 1), "aeiou") > 0) ? "it is an " : "it is a "))) + ((_nd.kind == "isle") ? "island" : _nd.kind);
 				array_push(_tr.log, _nd.name + ": " + choose("looked at it. " + _isit + ".", "walked through. nothing in it.", "a good place for a sit. they sat.", "wind."));
 			}
-			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "wolf", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }
+			if (_tr.mode == "explore" && _nd.kind == "forest" && roll_perc(30) && is_undefined(_tr.fight)) { _tr.fight = exped_fight_new(_tr, "lupus", -1, 0); array_push(_tr.log, "went hunting in " + _nd.name); }
 			if (is_undefined(_tr.fight)) exped_say(_tr, "wild", undefined, .3);
 			break;
 		}

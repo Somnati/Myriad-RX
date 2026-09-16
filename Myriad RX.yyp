@@ -461,6 +461,7 @@
     {"id":{"name":"float_text","path":"scripts/float_text/float_text.yy",},},
     {"id":{"name":"foe_gen","path":"scripts/foe_gen/foe_gen.yy",},},
     {"id":{"name":"foe_kinds_at","path":"scripts/foe_kinds_at/foe_kinds_at.yy",},},
+    {"id":{"name":"foe_legacy","path":"scripts/foe_legacy/foe_legacy.yy",},},
     {"id":{"name":"foe_plural","path":"scripts/foe_plural/foe_plural.yy",},},
     {"id":{"name":"foe_roster","path":"scripts/foe_roster/foe_roster.yy",},},
     {"id":{"name":"foe_xp","path":"scripts/foe_xp/foe_xp.yy",},},

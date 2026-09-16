@@ -106,7 +106,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 				_q = { kind : "rescue", node : _b, from : _a, foe : "", n : 1, mult : 4, who : exped_npc_name() };
 				break;
 			}
-			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "wolf", "rat", "kobold", "boar", "hornets"), n : irandom_range(2, 3), mult : 4 }; break;
+			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "lupus", "rat", "kobold", "apero", "vespae"), n : irandom_range(2, 3), mult : 4 }; break;
 			case "survey": {
 				// n places, then walked nearest-first from the landing zone
 				var _left = [], _picked = [];
