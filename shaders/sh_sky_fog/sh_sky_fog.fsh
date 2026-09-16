@@ -22,16 +22,17 @@ uniform float u_cell;    // pixelation: screen px per ray cell (0 = off)
 uniform float u_edge;    // 0 galactic center .. 1 rim: at the rim the
                          // band piles up toward the core bearing and
                          // thins away from it; at the center it wraps
-// THE NEBULAE (2026-09-16, things of the galaxy - galaxy_nebulae): the nearest four in reach, painted here PER
+// THE NEBULAE (2026-09-16, things of the galaxy - galaxy_nebulae): the brightest EIGHT in reach (four cut a disc
+// star's sky to a third of them - his question), painted here PER
 // PIXEL IN DIRECTION SPACE (a flat billboard swung round the camera when a big one was near - his report): each
 // cloud has a bearing on the sky, a tangent frame about it, and the view ray's offsets in that frame over the
 // sine of its apparent radius are the same -1..1 disc sh_nebula paints on the map - the same seed, the same
 // bent body, now fixed to the sphere
-uniform float u_nebn;      // how many of the four are live
-uniform vec3  u_nebd[4];   // their bearings (unit, world)
-uniform vec4  u_nebp[4];   // sin(apparent radius), cos(apparent radius), brightness, seed
-uniform vec3  u_nebc[4];   // colour
-uniform vec3  u_nebc2[4];  // the second colour
+uniform float u_nebn;      // how many of the eight are live
+uniform vec3  u_nebd[8];   // their bearings (unit, world)
+uniform vec4  u_nebp[8];   // sin(apparent radius), cos(apparent radius), brightness, seed
+uniform vec3  u_nebc[8];   // colour
+uniform vec3  u_nebc2[8];  // the second colour
 
 // hash -> 3d value noise -> fbm. sampled on world DIRECTIONS, so the
 // fog is seamless over the whole sphere: no 2d wrap, no poles
@@ -152,7 +153,7 @@ void main()
     vec3 rgb = col * dens * u_amp * (0.55 + 0.75 * (1.0 - dc)) * bias;
 
     // THE NEBULAE on the sphere (see the uniforms): the ray's offsets in each cloud's tangent frame
-    for (int ni = 0; ni < 4; ni++) {
+    for (int ni = 0; ni < 8; ni++) {
         if (float(ni) >= u_nebn) break;
         vec3 nd = u_nebd[ni];
         vec4 np = u_nebp[ni];

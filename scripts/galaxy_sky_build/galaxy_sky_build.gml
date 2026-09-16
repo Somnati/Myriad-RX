@@ -110,7 +110,7 @@ function galaxy_sky_build(_dw = undefined) {
 		var _nbr = clamp(_nb.r / max(_nd, 1) * 1.4, .12, 1) * clamp((_nrng + _nb.r - _nd) / (_nrng * .35), 0, 1);   // (fading out at the edge of reach)
 		array_push(_out.nebs, { x : dcos(_nel) * dcos(_naz), y : -dsin(_nel), z : dcos(_nel) * dsin(_naz), ar : _nar, b : _nbr, nb : _nb });
 	}
-	array_sort(_out.nebs, function(_a, _b) { return (_b.b > _a.b) ? 1 : ((_b.b < _a.b) ? -1 : 0); });   // (the brightest first: the fog shader paints four)
+	array_sort(_out.nebs, function(_a, _b) { return (_b.b > _a.b) ? 1 : ((_b.b < _a.b) ? -1 : 0); });   // (the brightest first: the fog shader paints eight)
 	// the fog's bearings
 	var _core_az = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
 	_out.core_dir = [dcos(_core_az), 0, dsin(_core_az)];

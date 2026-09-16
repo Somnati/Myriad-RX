@@ -5,7 +5,7 @@
 /// space by the camera; the band is fbm density about the galactic
 /// plane, warm toward the core's bearing. The caller owns the canvas
 /// (surface_create(w, h), freed with the page). The nebulae (galaxy_nebulae,
-/// the sky's nearest four) are painted here too, per pixel on the sphere
+/// the sky's brightest eight) are painted here too, per pixel on the sphere
 /// (a billboard swung round the camera when one was near - 2026-09-16).
 function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	static _u = undefined;
@@ -42,9 +42,10 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas) {
 	shader_set_uniform_f(_u.cell, planet_config().px_size);
 	shader_set_uniform_f(_u.edge, _sky.fog_edge);
 	shader_set_uniform_f(_u.dith, page_float() ? 0 : 1);   // (a float page dithers once, at its blit)
-	// THE NEBULAE (2026-09-16): the brightest four in reach (galaxy_sky_build's nebs, sorted there), on the sphere
-	var _nbs = _sky[$ "nebs"] ?? [], _nn = min(4, array_length(_nbs)), _nas = _cfg[$ "neb_alpha_sky"] ?? .3;
-	var _nd = array_create(12, 0), _np = array_create(16, 0), _nc = array_create(12, 0), _nc2 = array_create(12, 0);
+	// THE NEBULAE (2026-09-16): the brightest eight in reach (galaxy_sky_build's nebs, sorted there), on the sphere - the
+	// shader's arrays are eight; a pixel outside a cloud's cone pays one dot product for it, no more
+	var _nbs = _sky[$ "nebs"] ?? [], _nn = min(8, array_length(_nbs)), _nas = _cfg[$ "neb_alpha_sky"] ?? .3;
+	var _nd = array_create(24, 0), _np = array_create(32, 0), _nc = array_create(24, 0), _nc2 = array_create(24, 0);
 	for (var _i = 0; _i < _nn; _i++) {
 		var _n = _nbs[_i];
 		_nd[_i * 3] = _n.x; _nd[_i * 3 + 1] = _n.y; _nd[_i * 3 + 2] = _n.z;
