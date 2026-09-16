@@ -1,4 +1,4 @@
-/// @description sprite_sheet_pack(sprite) -> "cls/lv/xp/sks/worn/inv/notes/learned" (the save's tail)
+/// @description sprite_sheet_pack(sprite) -> "cls/lv/xp/sks/worn/inv/notes/learned/elixirs/title" (the save's tail)
 /// worn = "w1=item;w2=item;a=item;t=item" and inv = "item;item", an item
 /// being gear_pack's "slot,lv,rar,seed". No "/" or "|" anywhere (the
 /// sprite record's separators).
@@ -20,5 +20,7 @@ function sprite_sheet_pack(_sp) {
 	// the elixirs: "line:n;line:n" (a ninth field, 2026-09-16)
 	var _x = "";
 	if (is_struct(_sh[$ "elix"])) { var _xk = variable_struct_get_names(_sh.elix); for (var _i = 0; _i < array_length(_xk); _i++) _x += ((_i > 0) ? ";" : "") + _xk[_i] + ":" + string(_sh.elix[$ _xk[_i]]); }
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x;
+	// the title (a tenth field, 2026-09-16): rank:text
+	var _t = string(_sh[$ "trank"] ?? 0) + ":" + (_sh[$ "title"] ?? "");
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t;
 }

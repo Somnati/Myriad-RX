@@ -95,15 +95,15 @@ function exped_node_event(_tr, _again = false) {
 		// shop closed, a tavern sometimes, a linger or two, and a night at the
 		// inn when hurt or late. Four to nine hours of it (exped_act_step)
 		if (_again) { _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; return; }
-		var _plan = [];
+		var _plan = [], _stn = exped_stance(_tr);   // (the stance leans the tavern and the inn, 2026-09-16)
 		array_push(_plan, { k : "arrive", t : .5 });
 		array_push(_plan, { k : "shop_open", t : .4 });
 		for (var _pi = 0; _pi < array_length(_tr.sids); _pi++) if (_tr.hp[_pi] > 0) array_push(_plan, { k : "shop_buy", i : _pi, t : .35 });
 		array_push(_plan, { k : "shop_close", t : .25 });
-		if (roll_perc((_tr.mode == "explore") ? 45 : 25)) array_push(_plan, { k : "tavern", t : 1.2 });
+		if (roll_perc(((_tr.mode == "explore") ? 45 : 25) * _stn.tavern)) array_push(_plan, { k : "tavern", t : 1.2 });
 		repeat (1 + (roll_perc(40) ? 1 : 0)) array_push(_plan, { k : "linger", t : random_range(.5, 1.5) });
 		var _night2 = (_tr[$ "night"] ?? false);
-		if (_mean < .6 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(60))) array_push(_plan, { k : "rest", t : 4 });
+		if (_mean < _stn.hurt + .2 || (_night2 && _tr.credits >= EXPED_INN && roll_perc(60))) array_push(_plan, { k : "rest", t : 4 });   // (cautious books a bed at three quarters, greedy under half)
 		_tr.act = { kind : "town", left : 0, steps : array_length(_plan), plan : _plan, i : 0, next_t : EXPED_ROOM_T };
 		return;
 	}

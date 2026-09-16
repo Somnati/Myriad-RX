@@ -11,6 +11,9 @@ function region_info(_d, _rg) {
 	var _bi = exped_biomes()[_d.biome].name;
 	var _out = [];
 	static _pick = function(_seed, _salt, _pool) { return _pool[hash_mix(_seed, _salt) mod array_length(_pool)]; };   // (static: no closure built a call - twice a frame)
+	static _sp = [["spring", "early spring", "the thaw", "a green spring", "lambing time", "a wet spring"], ["summer", "high summer", "midsummer", "the long days", "haymaking", "a dry summer"],
+	              ["autumn", "the fall of the leaf", "harvest", "late autumn", "the first frosts", "a golden autumn"], ["winter", "deep winter", "midwinter", "the dead of winter", "the short days", "a hard winter"]];
+	var _ss = region_season(_d, _rg);   // THE SEASON (2026-09-16): the temperature feels it, and it has a row of its own
 	// the level and the mood (region_gen's word and rating)
 	array_push(_out, { k : "level " + string(_rg.lv), v : _rg[$ "mood"] ?? "quiet", t : _rg[$ "mood_t"] ?? 0 });
 	// BIOME (his ask, 2026-09-15): the wild kind most of the region is - the
@@ -32,7 +35,7 @@ function region_info(_d, _rg) {
 	var _bcol = (_b1 != "" && is_struct(_kk[$ _b1])) ? _kk[$ _b1].col : c_gold;
 	array_push(_out, { k : "biome", v : _btxt, t : 0, col : _bcol });
 	// TEMPERATURE: the world's climate (0 hot .. 1 frozen) cooled toward the poles
-	var _tc = clamp(_pn.clim + abs(_rg.spot.lat) / 90 * .25 - .06, 0, 1);
+	var _tc = clamp(_pn.clim + abs(_rg.spot.lat) / 90 * .25 - .06 - _ss.warm, 0, 1);   // (the season's shift: summer warmer, winter colder - more on a world tilted far)
 	var _tp, _tt;
 	// (the pools grown 2026-09-15 - his ask: more words for the properties there are)
 	if (_tc < .18)      { _tp = ["scorching", "blistering", "searing", "sun-hammered", "a furnace", "white-hot", "airless heat"]; _tt = 3; }
@@ -70,6 +73,8 @@ function region_info(_d, _rg) {
 	else if (_dl < .55)  { _hp = _rising ? ["morning", "mid-morning", "forenoon", "the working morning", "late morning", "a climbing sun"] : ["afternoon", "late day", "late afternoon", "the slow afternoon", "the sinking sun", "mid-afternoon"]; _ht = 0; }
 	else                 { _hp = ["midday", "noon", "high sun", "the middle of the day", "full sun", "the top of the day"]; _ht = 0; }
 	array_push(_out, { k : "time", v : _pick(_rg.seed, _slot + 7, _hp), t : _ht });
+	// SEASON (2026-09-16): where the region stands, the world's lean toward its sun (region_season); a world with no tilt has none
+	if (_ss.on) array_push(_out, { k : "season", v : _pick(_rg.seed, 13 + _ss.idx, _sp[_ss.idx]), t : (_ss.idx == 3) ? 2 : ((_ss.idx == 2) ? 1 : 0) });
 	// FLORA: what grows, off the wild kinds the terrain gave the region
 	var _wk = _rg[$ "wild"] ?? [], _lush = 0, _dry = 0;
 	for (var _i = 0; _i < array_length(_wk); _i++) {

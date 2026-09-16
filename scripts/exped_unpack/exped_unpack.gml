@@ -76,7 +76,7 @@ function exped_unpack(_s) {
 			if (_kind == "H") {
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
 				                       finds : _finds, routed : _routed, cleared : real(_kv[$ "cl"] ?? "0"), wins : real(_kv[$ "w"] ?? "0"), log : [ "home" ], hp : _hp, hpmax : _hm, mp : _mp,
-				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0") });
+				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0"), stance : exped_stance(_kv[$ "stn"] ?? "steady").key });
 				continue;
 			}
 			// a trip
@@ -99,7 +99,7 @@ function exped_unpack(_s) {
 				pos : clamp(real(_kv[$ "pos"] ?? "0"), 0, _rgn - 1), path : [], road : undefined, act : undefined,
 				credits : real(_kv[$ "cr"] ?? "0"), recall : ((_kv[$ "rc"] ?? "0") == "1"), visited : [], planet_t : real(_kv[$ "pt"] ?? "0"), bounty : undefined,
 				leave_t : real(_kv[$ "lt"] ?? string(_t0)), fights : 0, rgi : _rgi, home : clamp(real(_kv[$ "home"] ?? "0"), 0, _rgn - 1),
-				ex : { kind : "wander", n : 0 }, tl : _tl,
+				ex : { kind : "wander", n : 0 }, tl : _tl, stance : exped_stance(_kv[$ "stn"] ?? "steady").key,
 			};
 			if (_trn.mode == "quest" && _trn.recall) _trn.aborted = true;   // (a quest crew recalled is an aborted one - the flag itself is not saved)
 			var _exs = string_split(_kv[$ "ex"] ?? "", ":");

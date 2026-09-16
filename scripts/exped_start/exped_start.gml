@@ -6,7 +6,7 @@
 /// here - refused when the purse cannot. The crew lands at the region's
 /// landing zone with the pocket and walks from there (exped_agent).
 /// Any number of trips may run at once (exped_tick walks them all).
-function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
+function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _stance = "steady") {   // (stance: cautious / steady / greedy - exped_stance, 2026-09-16)
 	exped_init();
 	var _e = g.exped;
 	if (_di < 0 || _di >= array_length(_e.board)) return false;
@@ -70,11 +70,14 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0) {
 		pos : _home, home : _home, rgi : _ri, path : [], road : undefined, act : undefined,
 		credits : _cost.pocket, recall : false, visited : [ _home ], planet_t : 0, bounty : undefined,
 		ex : _ex,
+		stance : exped_stance(_stance).key,   // THE STANCE (2026-09-16)
 	};
 	if (is_struct(_q)) array_push(_tr.log, "the quest: " + _q.txt + "  (" + _rg.name + ")");
 	else if (_ex.kind == "ramble") array_push(_tr.log, "to roam " + _rg.name + " for about " + string(_ex.n) + " hours");
 	else if (_ex.kind == "survey") array_push(_tr.log, "to see " + string(_ex.n) + " places in " + _rg.name);
 	else array_push(_tr.log, "to explore " + _rg.name);
+	var _stn = exped_stance(_stance);
+	if (_stn.key != "steady") array_push(_tr.log, "the word is " + _stn.name + ": " + _stn.blurb);
 	array_push(_e.trips, _tr);
 	exped_stat("trips");
 	exped_say(_tr, "depart");

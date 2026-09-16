@@ -10,6 +10,7 @@ function exped_act_step(_tr) {
 	var _nd = _rg.nodes[_tr.pos];
 	var _n = array_length(_tr.sids);
 	var _q = _tr[$ "quest"];
+	var _stn = exped_stance(_tr);   // THE STANCE (2026-09-16): the tavern's board, the delve's doors
 	// THE TOWN (2026-09-16): a visit is a PLAN of beats, one a step, each with its own hours
 	var _kind = _a.kind, _beat = undefined;
 	if (_kind == "town") {
@@ -65,15 +66,17 @@ function exped_act_step(_tr) {
 				_tr.fight = exped_fight_new(_tr, "bandit", 1, 0);
 				_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
 				array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
-			} else if (_r < 85 && !is_struct(_tr[$ "bounty"])) {
-				// a bounty: a nearby dungeon or camp, a few kills
+			} else if (_r < 85 && !is_struct(_tr[$ "bounty"]) && _stn.bounty == 0) {
+				array_push(_tr.log, "a bounty on the board in " + _nd.name + ". " + choose("not this trip - cautious", "they read it twice and left it. cautious", "cautious: the board can keep it", "somebody else's, they decided. cautious"));
+			} else if ((_r < 85 || _stn.bounty >= 2) && !is_struct(_tr[$ "bounty"])) {
+				// a bounty: a nearby dungeon or camp, a few kills (a greedy crew takes one whenever the board has one)
 				var _cand = [];
 				for (var _i = 1; _i < array_length(_rg.nodes); _i++) if (_rg.nodes[_i].kind == "dungeon" || _rg.nodes[_i].kind == "crypt" || _rg.nodes[_i].kind == "camp") array_push(_cand, _i);
 				if (array_length(_cand) > 0) {
 					var _bn = _cand[irandom(array_length(_cand) - 1)];
 					var _bkl = foe_kinds_at(_rg.nodes[_bn].kind), _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : _bkl[irandom(array_length(_bkl) - 1)];   // (the place's own kinds - the foes pass)
 					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : 3 + 2 * _tr.dest.tier };
-					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits");
+					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits" + ((_stn.bounty >= 2) ? choose(" - greedy", ". greedy: of course they did", " (greedy)") : ""));
 				}
 			} else array_push(_tr.log, exped_compose("rumour", _tr));   // (the talk, composed - 2026-09-16)
 			break;
@@ -87,6 +90,12 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "delve": {
+			// THE STANCE (2026-09-16): a cautious crew turns back at the next door once it is hurt
+			if (_stn.press < 0) {
+				var _mh = 0, _mu = 0;
+				for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _mh += _tr.hp[_k] / max(1, _tr.hpmax[_k]); _mu++; }
+				if (_mu > 0 && _mh / _mu < _stn.hurt) { array_push(_tr.log, choose("a door in " + _nd.name + ". cautious: they do not open it", _nd.name + ": a stair going down. cautious, they go back up instead", "cautious: enough of " + _nd.name + " for one day")); exped_stat("delves"); _tr.act = undefined; return; }
+			}
 			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds)
 			var _r = random(100);
 			if (_r < 45) { _tr.fight = exped_fight_new(_tr, "", -1, 0); array_push(_tr.log, "a room of " + _nd.name + ": " + _tr.fight.b.name + " blocks the way"); exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6); }   // (the place's own kinds)
@@ -137,7 +146,8 @@ function exped_act_step(_tr) {
 		case "mind": {
 			// a customer a step; the last is the cat. the takings go in the pocket
 			if (_a.steps >= 2) {
-				var _buyer = exped_npc_name();
+				var _ppm = region_node_info(_tr.dest, _rg, _tr.pos);   // (the place's own elder, one customer in three - the recurring folk, 2026-09-16)
+				var _buyer = (is_struct(_ppm[$ "folk"]) && roll_perc(30)) ? (_ppm.folk.elder + " the elder") : exped_npc_name();
 				var _take = 1 + irandom(2) + floor(_rg.lv / 3);
 				_tr.credits += _take; exped_tally(_tr, "earned", _take);
 				array_push(_tr.log, _buyer + " came in and bought " + choose("a spoon", "the wrong nails", "two of something", "a hat off the peg", "a length of string, measured twice", "an onion, after a speech", "the good ladder, on credit", "a lantern and the oil for it", "nothing, at length, then a candle") + " (" + string(_take) + " credits in the till)");
@@ -252,6 +262,8 @@ function exped_act_step(_tr) {
 	if (!is_undefined(_tr.fight)) { _a.left = EXPED_ROOM_T * .5; return; }
 	if (_a.steps > 0) _a.left = (_a.kind == "town") ? (_a[$ "next_t"] ?? EXPED_ROOM_T) : ((_a.kind == "stand") ? EXPED_HOUR : EXPED_ROOM_T);   // (a town's beat: its own hours; standing in a field: an hour a step)
 	else {
+		// greedy: one room more at the end, sometimes (a room nobody mapped)
+		if (_a.kind == "delve" && _stn.press > 0 && !(_a[$ "more"] ?? false) && roll_perc(40)) { _a.more = true; _a.steps = 1; _a.left = EXPED_ROOM_T; array_push(_tr.log, choose(_tr.names[irandom(_n - 1)] + " said one more room. greedy. one more room", "greedy: a door nobody mapped. they open it", "one more room, for the chest that might be there. greedy")); return; }
 		if (_a.kind == "delve") { exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light"); }
 		_tr.act = undefined;
 	}

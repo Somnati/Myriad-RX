@@ -40,6 +40,13 @@ function exped_agent(_tr, _dt) {
 	}
 	if (_wx != _wwas) exped_say(_tr, "weather", undefined, .5);
 	_tr.weather = _wx;
+	// THE SEASON (2026-09-16): named on landing (exped_tick_one); its turn, when a trip is long enough to see one, in the diary
+	var _ss = region_season(_tr.dest, _rg);
+	if (_ss.on) {
+		var _swas = _tr[$ "season"] ?? _ss.name;
+		if (_ss.name != _swas) array_push(_tr.log, "the season turns. " + choose("it is " + _ss.name + " now", _ss.name + ", by the look of the trees", _ss.name + ". " + _tr.names[0] + " says so, and the sky agrees"));
+		_tr.season = _ss.name;
+	}
 	// on a road
 	if (is_struct(_tr.road)) {
 		var _rd = _tr.road;

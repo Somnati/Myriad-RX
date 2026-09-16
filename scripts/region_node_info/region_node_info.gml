@@ -16,6 +16,11 @@
 ///   the wild  the going, what is found, its foes
 /// and a LORE line for every one. Cached as node.card (the region is
 /// cached itself - region_get - so this is once a session a node).
+/// THE FOLK (2026-09-16): card.folk = { elder, other, keeper, trader } - four
+/// names of the node's own, and card.shop = { sign } on a settled place; the
+/// shop, the quests and the town's acts name THESE, so the same people turn
+/// up trip after trip. (region_papers_all warms every node before a seeded
+/// deal reads them - the name roll leaves through rng_release.)
 function region_node_info(_d, _rg, _ni) {
 	var _nd = _rg.nodes[_ni];
 	if (is_struct(_nd[$ "card"])) return _nd.card;
@@ -29,7 +34,16 @@ function region_node_info(_d, _rg, _ni) {
 	var _rs = random_get_seed();
 	random_set_seed(hash_mix(_seed, _base + 77));
 	var _n1 = str_cap(sprite_name_gen()), _n2 = str_cap(sprite_name_gen());
+	// ...a keeper and a trader of its own (THE RECURRING FOLK, 2026-09-16: the shop, the escort's merchant, the lost one, the minded shop
+	// all name these), and the shop's SIGN, rolled here under the node's seed so it reads the same on every visit (the pools were exped_shop's)
+	var _n3 = str_cap(sprite_name_gen()), _n4 = str_cap(sprite_name_gen());
+	var _sign, _sf = random(100);
+	if (_sf < 40) _sign = "the " + choose("crooked", "bent", "dented", "rusty", "golden", "leaning", "quiet", "loud", "blue", "red", "old", "honest", "second", "little") + " " + choose("kettle", "nail", "spoon", "anvil", "boot", "hat", "goose", "pig", "lantern", "bucket", "bell", "crow", "wheel", "door");
+	else if (_sf < 65) _sign = "the " + choose("three", "two", "seven", "nine", "twelve") + " " + choose("pigs", "spoons", "hats", "bells", "crows", "boots", "kettles", "geese");
+	else if (_sf < 85) _sign = _n3 + "'s " + choose("ironmongery", "emporium", "stall", "shop", "goods", "odds and ends", "outfitters", "bits", "warehouse (small)");
+	else _sign = choose("goods", "wares", "things", "sundries", "everything", "bits and pieces") + " " + choose("and more", "of quality", "for sale", "and such", "at prices");
 	rng_release(_rs);
+	var _civ = is_struct(_kk[$ _nd.kind]) && _kk[$ _nd.kind].civ;
 	// the land the roads reach, and the settled neighbour (the lore leans on them)
 	var _land = [], _nb = "";
 	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
@@ -72,6 +86,7 @@ function region_node_info(_d, _rg, _ni) {
 				default:           _tone = _pick(["steady", "busy", "prosperous", "rich", "fat on trade"], 4, _seed, _base); break;
 			}
 			array_push(_rows, { k : "economy", v : _trade + ", " + _tone, col : undefined });
+			array_push(_rows, { k : "shop", v : _sign + " (" + _n3 + ")", col : undefined });   // (the sign and its keeper - the recurring folk, 2026-09-16)
 			// the description: where it sits, what you notice
 			var _verb  = _pick(["sits", "huddles", "stands", "spreads", "crouches", "clings on"], 5, _seed, _base);
 			var _where = _pick(["at a bend in the road", "at a crossroads", "at a ford", "at the foot of a hill", "along a long green", "by an old stone bridge", "on a dry rise", "at the edge of the woods", "on a slow river", "inside a walled yard", "in a ring of old stones", "where two streams meet"], 6, _seed, _base);
@@ -192,6 +207,6 @@ function region_node_info(_d, _rg, _ni) {
 			break;
 		}
 	}
-	_nd.card = { rows : _rows, desc : _desc, lore : _lore };
+	_nd.card = { rows : _rows, desc : _desc, lore : _lore, folk : { elder : _n1, other : _n2, keeper : _n3, trader : _n4 }, shop : _civ ? { sign : _sign } : undefined };
 	return _nd.card;
 }

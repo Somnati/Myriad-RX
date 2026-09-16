@@ -580,13 +580,20 @@ if (view == "depart") {
 		for (var _c = 0; _c < array_length(sel_crew); _c++) { var _sp = __sp_by_id(sel_crew[_c]); if (!is_undefined(_sp)) array_push(_crew, _sp); }
 		var _di = -1;
 		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
-		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel)) {
+		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel, dp_stance)) {   // (the stance rides along, 2026-09-16)
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
 			dp_slot = -1;
 			sel_crew = []; dp_slots = array_create(exped_party_max(), -1); dp_pos = {};
 			__dp_leave("planet");   // (the page swings out, then the world)
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+		exit;
+	}
+	// THE STANCE pills (2026-09-16): a press picks the word
+	for (var _si = 0; _si < array_length(dp_stance_rects); _si++) {
+		var _sr2 = dp_stance_rects[_si];
+		if (!point_in_rectangle(mouse_x, mouse_y, _sr2.x, _sr2.y, _sr2.x + _sr2.w, _sr2.y + _sr2.h)) continue;
+		if (dp_stance != _sr2.key) { dp_stance = _sr2.key; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
 		exit;
 	}
 	// a seat row: a press unseats it
@@ -665,7 +672,7 @@ if (view == "haul") {
 			var _rgi2 = _h[$ "rgi"] ?? 0, _dest2 = _h.dest;
 			exped_collect(_hi, room_width * .5, room_height * .5);
 			for (var _c = 0; _c < array_length(_pl.crew); _c++) { var _csp = _pl.crew[_c]; if (_csp.asleep) { _csp.asleep = false; _csp.hurt = 0; } }
-			if (exped_start(_pl.di, _pl.crew, _pl.mode, _pl.pick, _rgi2)) {
+			if (exped_start(_pl.di, _pl.crew, _pl.mode, _pl.pick, _rgi2, _h[$ "stance"] ?? "steady")) {   // (the haul's stance again)
 				if (_pl.mode == "quest" && _pl.slot >= 0) exped_offer_take(_dest2, _rgi2, _pl.slot, g.exped.seq, _pl.pick);
 				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);

@@ -65,6 +65,8 @@ __hub_best_r = function() { var _g = __hub_gal_r(); return { x : _g.x + _g.w + 4
 it_pop   = undefined;    // the item popup: { it, sp, worn : bool, x, y }
 it_rects = [];           // the sheet's item rows, laid down by the Draw for the Step's taps: { x, y, w, h, it, worn }
 dp_quest = undefined;    // the departure window's quest (undefined = an explore)
+dp_stance = "steady";    // THE STANCE (2026-09-16): cautious / steady / greedy - the pills in the mission box (exped_stance)
+dp_stance_rects = [];    // ...their rects, laid down by the Draw for the Step's taps
 dp_look  = -1;           // the preparation page's INSPECTED sprite: its sheet in brief, a popup (tap a banner)
 // THE PREPARATION PAGE (reworked 2026-09-15, his ask; round two the same
 // day): the crew as BANNERS in a list on the left, a [+] beside each -
@@ -109,7 +111,7 @@ __dp_layout = function() {
 	// (2026-09-16: a long ask, a long objective and two hazard rows did)
 	var _ask = is_struct(_q) ? _q.txt : (is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled"));
 	var _obj = is_struct(_q) ? exped_quest_obj(_q, _rg, true) : (is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home");
-	var _nrows = (is_struct(_q) ? 5 : 4) + __dp_haz_rows();
+	var _nrows = (is_struct(_q) ? 5 : 4) + __dp_haz_rows() + 2;   // (+2: the stance's pills and its blurb, 2026-09-16)
 	var _seats_h = 14 + _srows * (__dp_seat_h() + 2) + 4;
 	var _th = string_height_ext(_ask, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 10 * _nrows;
 	var _para_on = true;
@@ -887,6 +889,8 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw, 3, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _xx, _hy + 10, _xw * clamp(_sh.xp / max(1, _need), 0, 1), 3, 0, c_gold, .9);
 	array_push(it_rects, { x : _xx - 4, y : _hy - 3, w : _xw + 8, h : 18, lvup : true });
+	// THE TITLE (the bestiary's payouts, 2026-09-16): after the class, in gold, cut before the level corner
+	if ((_sh[$ "title"] ?? "") != "") { var _ttx = _hx + 18 + string_width(_c.name) + 6; draw_set_color(c_gold); draw_set_alpha(.85); draw_text(_ttx, _hy + 12, __sheet_cut("- " + _sh.title, max(24, _xx - _ttx - 4))); }
 	// HP / MP bars (the Disgaea row): the maxima - a sprite at home is whole
 	var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add);   // (whole hp - his ask; sprite_pawn floors the same)
 	var _mpr = max(1, round(_st.pts.mp));

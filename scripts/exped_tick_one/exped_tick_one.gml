@@ -29,6 +29,7 @@ function exped_tick_one(_tr, _dt) {
 			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); exped_tally(_tr, "slain"); }
 		}
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
+		if (!_drawn) bestiary_payout(_tr, _f);   // THE BESTIARY PAYS (2026-09-16): the hunt's rungs, the land's set
 		// THE KILL'S XP (his law): the pack's stat total to every survivor
 		if (_f.won) exped_xp_grant(_tr, _f[$ "xp"] ?? 0, "");
 		// the quest's and the bounty's tallies
@@ -70,6 +71,19 @@ function exped_tick_one(_tr, _dt) {
 		// THE REASON (2026-09-15): a loss under a hazard says what would have held it
 		if (!_f.won && !_drawn && is_struct(_f[$ "hazard"]) && array_length(_f.hazard.bare) > 0)
 			array_push(_tr.log, _f.hazard.name + " did it - " + _f.hazard.hold + " holds it" + ((array_length(_f.hazard.bare) == array_length(_f.party)) ? "" : (", and " + exped_crew_txt(_f.hazard.bare) + " had none of that")));
+		// THE STANCE (2026-09-16): a cautious crew turns for home when one of them goes down
+		if (_f.won && exped_stance(_tr).fall && !(_tr[$ "recall"] ?? false)) {
+			var _dn = "";
+			for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0 && _dn == "") _dn = _tr.names[_f.party[_k].mi];
+			if (_dn != "") {
+				var _qd = _tr[$ "quest"];
+				var _open = is_struct(_qd) && _qd.done < _qd.n;
+				_tr.recall = true;
+				if (_tr.mode == "quest" && _open) { _tr.aborted = true; exped_stat("aborted"); }
+				array_push(_tr.log, _dn + " is down. cautious: " + choose("they turn for the landing zone", "that is enough. home", "nobody argues. home") + (_open ? " - the quest is dropped" : ""));
+				_tr.act = undefined; _tr.path = [];
+			}
+		}
 		// THE FILM stays on the trip for the panel's replay (not saved)
 		var _rfoes = [];
 		for (var _j = 0; _j < array_length(_f.foes); _j++) array_push(_rfoes, { name : _f.foes[_j].name, hpmax : _f.foes[_j].hpmax, lv : _f.foes[_j][$ "lv"] ?? 1, kind : _f.foes[_j][$ "kind"] ?? "", col : _f.foes[_j][$ "col"] ?? c_hred });
@@ -94,7 +108,9 @@ function exped_tick_one(_tr, _dt) {
 			var _rg = exped_region(_tr);
 			_tr.pos = clamp(_tr[$ "home"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1);   // the landing zone nearest the objective (exped_start)
 			_tr.path = []; _tr.road = undefined; _tr.act = undefined;
-			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name);
+			var _ssl = region_season(_tr.dest, _rg);   // THE SEASON (2026-09-16): named on landing
+			if (_ssl.on) _tr.season = _ssl.name;
+			array_push(_tr.log, "landed on " + _tr.dest.name + " - " + _rg.name + ", " + _rg.nodes[_tr.pos].name + (_ssl.on ? (". " + _ssl.name + " here") : ""));
 			// DISCOVERED: the world and the region, once each (the ledger's set)
 			exped_stat("landings");
 			var _sk = string(_tr.dest.seed) + ":" + string(_tr[$ "rgi"] ?? 0);

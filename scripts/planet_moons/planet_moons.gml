@@ -2,7 +2,7 @@
 /// THE ONE SOURCE of a world's moons (the tech demo's scr_planet_moons,
 /// ported 2026-09-15): dist in world radii, size in world radii, ang the
 /// seed-time phase, spd deg a step (x60 x wall seconds for the universal
-/// clock - moon_pos), incl each moon's own orbital plane off the world's
+/// clock - moon_pos; a round is hours, not minutes, since 2026-09-16), incl each moon's own orbital plane off the world's
 /// tilt, col a muted rock of its own. planet_props says how many of the
 /// four a world has. A seeded section of its own (rng_release).
 function planet_moons(_seed) {
@@ -14,7 +14,7 @@ function planet_moons(_seed) {
 			dist : 1.75 + _i * .5 + random(.25),
 			size : random_range(.07, .13),
 			ang  : random(360),
-			spd  : random_range(.25, .5) * choose(1, -1) / (1 + _i * .5),
+			spd  : random_range(.25, .5) * choose(1, -1) / (1 + _i * .5) / 30,   // A MONTH IS HOURS (his ask, 2026-09-16: slowed as the day was): 6-12 h round for the inner moon, up to 30 h for the fourth; the same roll
 			incl : random_range(5, 28) * choose(1, -1),
 			col  : merge_colour(make_colour_hsv(irandom(255), irandom_range(40, 130), irandom_range(105, 205)), rgb(152, 150, 156), .35),
 		});

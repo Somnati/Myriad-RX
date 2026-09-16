@@ -602,6 +602,7 @@ function stats_v2_content() {
 		stats_v2_line("time exploring", _xn("explore_h", true), -1, _xc, "of the time on worlds, the part spent on [explore] trips");
 		stats_v2_line("credits earned", _xn("credits"), -1, c_lavender, "credits collected from hauls: the floor, the pocket's remainder, quest rewards");
 		stats_v2_line("items bought", _xn("bought"), -1, _xc);
+		stats_v2_line("items sold", _xn("sold"), -1, _xc, "the pocket's worst, sold at the shop's close for half the shelf's price");
 		stats_v2_line("things found", _xn("finds"), -1, _xc);
 		stats_v2_line("gear found", _xn("gear_found"), -1, _xc);
 		stats_v2_line("fights won", _xn("fights_won"), -1, c_sgreen);

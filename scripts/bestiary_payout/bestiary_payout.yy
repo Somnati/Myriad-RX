@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"bestiary_payout",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"bestiary_payout",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_papers_all",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_papers_all",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

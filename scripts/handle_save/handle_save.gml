@@ -572,9 +572,11 @@ function handle_save(){
 	var _bst = g.exped[$ "best"];
 	if (is_struct(_bst)) {
 		var _bkn = variable_struct_get_names(_bst);
-		for (var _i = 0; _i < array_length(_bkn); _i++) { var _bv = _bst[$ _bkn[_i]]; _xbt += ((_i > 0) ? "|" : "") + _bkn[_i] + "=" + string(_bv.seen) + ":" + string(_bv.slain) + ":" + string_join_ext(",", _bv.vars) + ":" + string(_bv.boss); }
+		for (var _i = 0; _i < array_length(_bkn); _i++) { var _bv = _bst[$ _bkn[_i]]; _xbt += ((_i > 0) ? "|" : "") + _bkn[_i] + "=" + string(_bv.seen) + ":" + string(_bv.slain) + ":" + string_join_ext(",", _bv.vars) + ":" + string(_bv.boss) + ":" + string(_bv[$ "paid"] ?? 0); }   // (:paid - the hunt's last rung, 2026-09-16)
 	}
 	_xbt = handle("ex_best", _xbt);
+	var _xbl = string_join_ext("|", g.exped[$ "blands"] ?? []);   // THE LANDS COMPLETE (bestiary_payout, 2026-09-16)
+	_xbl = handle("ex_blands", _xbl);
 	var _xof = handle("ex_offer", exped_offer_pack());   // THE QUEST BOARDS (2026-09-15)
 	if (action == sv_load) {
 		exped_offer_unpack(_xof);
@@ -587,6 +589,7 @@ function handle_save(){
 			}
 		}
 		g.exped.seen = (_xsn != "") ? string_split(_xsn, "|") : [];
+		g.exped.blands = (_xbl != "") ? string_split(_xbl, "|") : [];
 		g.exped.best = {};
 		if (_xbt != "") {
 			var _bl2 = string_split(_xbt, "|");
@@ -594,7 +597,7 @@ function handle_save(){
 				var _kv = string_split(_bl2[_i], "=");
 				if (array_length(_kv) != 2) continue;
 				var _fv = string_split(_kv[1], ":");
-				if (array_length(_fv) >= 4) g.exped.best[$ foe_legacy(_kv[0])] = { seen : max(0, real(_fv[0])), slain : max(0, real(_fv[1])), vars : (_fv[2] != "") ? string_split(_fv[2], ",") : [], boss : max(0, real(_fv[3])) };
+				if (array_length(_fv) >= 4) g.exped.best[$ foe_legacy(_kv[0])] = { seen : max(0, real(_fv[0])), slain : max(0, real(_fv[1])), vars : (_fv[2] != "") ? string_split(_fv[2], ",") : [], boss : max(0, real(_fv[3])), paid : (array_length(_fv) >= 5) ? max(0, real(_fv[4])) : 0 };
 			}
 		}
 		g.exped.depth  = clamp(floor(g.exped.depth), 1, 8);

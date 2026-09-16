@@ -8,7 +8,7 @@ function exped_next_node(_tr, _rg) {
 	var _mean = 0, _up = 0;
 	for (var _i = 0; _i < array_length(_tr.hp); _i++) if (_tr.hp[_i] > 0) { _mean += _tr.hp[_i] / max(1, _tr.hpmax[_i]); _up++; }
 	_mean = (_up > 0) ? _mean / _up : 1;
-	var _hurt = (_mean < .4);
+	var _hurt = (_mean < exped_stance(_tr).hurt);   // (the stance's line, 2026-09-16: cautious .55 / steady .4 / greedy .25)
 	if (_tr.mode == "quest") {
 		if (is_struct(_q) && _q.done < _q.n && !(_tr[$ "aborted"] ?? false) && !(_tr[$ "recall"] ?? false)) {
 			if (_hurt && _tr.credits >= EXPED_INN) {

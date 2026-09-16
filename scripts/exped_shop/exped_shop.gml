@@ -12,8 +12,10 @@
 /// the pocket comes home. The stock tastes of the town or the land
 /// around it (gear_gen's tag).
 /// PHASES (2026-09-16, the town as beats): "open" lays the shelf out and keeps it
-/// on the activity (act.shop); "buy" is ONE member's look (k); "close" the last
+/// on the activity (act.shop); "buy" is ONE member's look (k); "close" the
+/// SELLING (the pocket's worst, by the stance), the credits joke and the last
 /// word; "all" the whole visit in one (the old way, for any other caller).
+/// The keeper and the sign are the place's own (region_node_info's folk).
 function exped_shop(_tr, _phase = "all", _k = -1) {
 	var _rg = exped_region(_tr);
 	var _nd = _rg.nodes[_tr.pos];
@@ -28,7 +30,10 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		else if (_sf < 65) _sign = "the " + choose("three", "two", "seven", "nine", "twelve") + " " + choose("pigs", "spoons", "hats", "bells", "crows", "boots", "kettles", "geese");
 		else if (_sf < 85) _sign = exped_npc_name() + "'s " + choose("ironmongery", "emporium", "stall", "shop", "goods", "odds and ends", "outfitters", "bits", "warehouse (small)");
 		else _sign = choose("goods", "wares", "things", "sundries", "everything", "bits and pieces") + " " + choose("and more", "of quality", "for sale", "and such", "at prices");
-		var _keeper = exped_npc_name();
+		// THE PLACE'S OWN SHOP (the recurring folk, 2026-09-16): the papers name the keeper and the sign, the same on every visit
+		var _ppk = region_node_info(_tr.dest, _rg, _tr.pos);
+		var _keeper = is_struct(_ppk[$ "folk"]) ? _ppk.folk.keeper : exped_npc_name();
+		if (is_struct(_ppk[$ "shop"])) _sign = _ppk.shop.sign;
 		// THE STOCK, laid out once: every member sees the same shelf
 		var _stock = [];
 		var _wl = _rg[$ "wild"] ?? [];
@@ -105,6 +110,50 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		}
 	}
 	if (_phase == "buy") return;
+	// THE SELLING (his pick, 2026-09-16): the worst of each pocket's gear goes over the counter at half the shelf's price -
+	// one to three things a member by the stance (never a potion); a note on shops is a credit more a thing
+	var _stn = exped_stance(_tr);
+	for (var _k3 = 0; _k3 < array_length(_tr.sids); _k3++) {
+		if (_tr.hp[_k3] <= 0) continue;
+		var _sp3 = exped_sprite(_tr.sids[_k3]);
+		if (is_undefined(_sp3)) continue;
+		var _sh3 = sprite_sheet(_sp3), _sold3 = [], _csold = 0;
+		repeat (_stn.sell) {
+			var _wi = -1, _ws = infinity;
+			for (var _j = 0; _j < array_length(_sh3.inv); _j++) { var _it3 = _sh3.inv[_j]; if ((_it3[$ "slot"] ?? "") == "use") continue; var _gs = gear_score(_sp3, _it3); if (_gs < _ws) { _ws = _gs; _wi = _j; } }
+			if (_wi < 0) break;
+			var _it4 = _sh3.inv[_wi];
+			array_delete(_sh3.inv, _wi, 1);
+			var _pr4 = max(1, floor((2 + floor(_rg.lv / 3) + 2 * (_it4[$ "rar"] ?? 0)) * .5)) + (sprite_note_has(_sp3, "shop") ? 1 : 0);
+			_tr.credits += _pr4; _csold += _pr4;
+			array_push(_sold3, _it4.name + " (" + string(_pr4) + ")");
+		}
+		if (array_length(_sold3) > 0) {
+			exped_stat("sold", array_length(_sold3)); exped_tally(_tr, "earned", _csold); save_mark_dirty();
+			array_push(_tr.log, _sp3.name + " sold " + exped_crew_txt(_sold3) + " to " + _keeper2 + choose(". " + _keeper2 + " weighed it in one hand", ". half what it was worth, and both of them knew it", ". the coins were counted twice", ". it went under the counter at once", "", ". " + _keeper2 + " did not ask where it came from"));
+		}
+	}
+	// ...AND THE CREDITS (his joke, 2026-09-16): somebody tries to sell the keeper money. the keeper gives them a look
+	if (_tr.credits > 0 && roll_perc(30)) {
+		var _cand = [];
+		for (var _k4 = 0; _k4 < array_length(_tr.sids); _k4++) {
+			if (_tr.hp[_k4] <= 0) continue;
+			var _sp4 = exped_sprite(_tr.sids[_k4]);
+			if (is_undefined(_sp4)) continue;
+			array_push(_cand, _k4);
+			if (_pl[clamp(_sp4.pers, 0, array_length(_pl) - 1)].name == "dreamy") { array_push(_cand, _k4); array_push(_cand, _k4); }   // (the dreamy, three times as likely)
+		}
+		if (array_length(_cand) > 0) {
+			var _jn = _tr.names[_cand[irandom(array_length(_cand) - 1)]];
+			exped_tally(_tr, "mist");
+			array_push(_tr.log, choose(
+				_jn + " tried to sell " + _keeper2 + " two credits. for three credits. " + _keeper2 + " gave " + _jn + " a look",
+				_jn + " put a credit on the counter and asked what " + _keeper2 + " would give for it. " + _keeper2 + " looked at " + _jn + " for a long time, then at the cat",
+				_jn + " offered " + _keeper2 + " the pocket's credits at a fair price. the look " + _keeper2 + " gave is still going",
+				_jn + " tried to sell a credit. " + _keeper2 + " said it was already a credit. " + _jn + " asked for a better price",
+				_jn + " held up a credit and said \"how much\". " + _keeper2 + " did not answer. the look answered"));
+		}
+	}
 	if (_shop2.bought == 0 && roll_perc(50)) array_push(_tr.log, choose("the shops of " + _nd.name + " had nothing worth the walk", _sign2 + " had nothing for them, and " + _keeper2 + " said so", "nothing bought in " + _nd.name + ". " + _keeper2 + " watched them go", "the shelf was looked at. the shelf was left", "the shop's best thing was the cat, which was not for sale"));
 	else if (_shop2.bought > 0 && roll_perc(30)) array_push(_tr.log, _keeper2 + " " + choose("wrapped it in paper that had been used before", "said it was the last one. it was not", "threw in a piece of string", "bit the coin, out of habit", "said \"come back\", in a voice that did not care either way"));
 }

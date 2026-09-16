@@ -368,7 +368,8 @@ if (view == "bestiary") {
 	var _ros = foe_roster(), _nk = array_length(_ros), _met = 0;
 	for (var _i = 0; _i < _nk; _i++) { var _mb = __bs_met(_ros[_i].name); if (is_struct(_mb) && _mb.seen > 0) _met++; }
 	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text(land ? 14 : 4, list_y + 6, "the bestiary  -  " + string(_met) + " of " + string(_nk) + " met");
+	var _bls = g.exped[$ "blands"] ?? [];
+	draw_text(land ? 14 : 4, list_y + 6, "the bestiary  -  " + string(_met) + " of " + string(_nk) + " met" + ((array_length(_bls) > 0) ? ("  -  lands complete " + string(array_length(_bls)) + " (*)") : ""));
 	// THE GRID: a cell a kind, a letter in its colour once met, a "?" until then, the slain in the corner
 	for (var _i = 0; _i < _nk; _i++) {
 		var _r = _ros[_i], _cr = __bs_cell_r(_i);
@@ -407,7 +408,13 @@ if (view == "bestiary") {
 			draw_text(_tx + string_width(str_cap(_r.name)) * 2 + 6, _ty + 5, "(" + foe_plural(_r.name) + ")");
 			_ty += 18;
 			draw_set_color(_ink); draw_set_alpha(.85);
-			draw_text(_tx, _ty, "seen " + string(_bb.seen) + "  -  slain " + string(_bb.slain) + ((_bb.boss > 0) ? ("  -  bosses " + string(_bb.boss)) : "")); _ty += 12;
+			// ...and THE HUNT's rung on the same line (2026-09-16): the measure at ten, bane at fifty, scourge at two hundred and fifty (the card is full)
+			var _pd = _bb[$ "paid"] ?? 0;
+			var _sl = "seen " + string(_bb.seen) + "  -  slain " + string(_bb.slain) + ((_bb.boss > 0) ? ("  -  bosses " + string(_bb.boss)) : "");
+			draw_text(_tx, _ty, _sl);
+			draw_set_color(c_gold); draw_set_alpha(.85);
+			draw_text(_tx + string_width(_sl) + 8, _ty, (_pd >= 250) ? "scourge" : ((_pd >= 50) ? "bane - scourge at 250" : ((_pd >= 10) ? "measured - bane at 50" : "measure at 10")));
+			_ty += 12;
 			// the shape as bars (the roster's eight lines on the sprites' budget)
 			var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit", "luck"], _bw = min(80, _tw - 60);
 			for (var _k = 0; _k < 9; _k++) {
@@ -420,7 +427,7 @@ if (view == "bestiary") {
 			}
 			_ty += 3;
 			var _lnd2 = "";
-			for (var _li = 0; _li < array_length(_r.lands); _li++) _lnd2 += ((_lnd2 != "") ? ", " : "") + _r.lands[_li];
+			for (var _li = 0; _li < array_length(_r.lands); _li++) _lnd2 += ((_lnd2 != "") ? ", " : "") + _r.lands[_li] + (array_contains(_bls, _r.lands[_li]) ? "*" : "");   // (* = the land's set complete)
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "lands");
 			draw_set_color(_ink); draw_set_alpha(.85); draw_text_ext(_tx + 40, _ty, _lnd2, 9, _tw - 40); _ty += string_height_ext(_lnd2, 9, _tw - 40) + 2;
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "skill");
@@ -1164,6 +1171,28 @@ if (view == "depart") {
 		draw_set_color((_pc >= 70) ? c_sgreen : ((_pc >= 40) ? c_gold : c_hred));
 		draw_text(_tx + _tw, _ty, "about " + string(_pc) + "%  (" + string(round(_od.fights)) + ((_od.fights == 1) ? " fight" : " fights") + " expected)");
 	}
+	draw_set_halign(fa_left);
+	// THE STANCE (2026-09-16): three pills on a row of the numbers, the blurb under them; the rects for the Step's taps
+	_ty += 10;
+	draw_set_color(_ink); draw_set_alpha(.8);
+	draw_text(_tx, _ty, "stance");
+	dp_stance_rects = [];
+	var _sks = ["cautious", "steady", "greedy"], _sx = _tx + _tw;
+	for (var _si = 2; _si >= 0; _si--) {
+		var _sst = exped_stance(_sks[_si]), _sw = string_width(_sst.name) + 8;
+		_sx -= _sw;
+		var _son = (dp_stance == _sks[_si]);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx, _ty - 1, _sw, 10, 0, _son ? merge_colour(_sst.col, c_black, .7) : c_black, .8);
+		draw_px_rect(_sx, _ty - 1, _sw, 10, _son ? _sst.col : _dim, _son ? .9 : .35);
+		draw_set_halign(fa_center); draw_set_color(_son ? c_white : _dim); draw_set_alpha(_son ? .95 : .6);
+		draw_text(_sx + _sw * .5, _ty, _sst.name);
+		draw_set_halign(fa_left);
+		array_push(dp_stance_rects, { x : _sx, y : _ty - 1, w : _sw, h : 10, key : _sks[_si] });
+		_sx -= 3;
+	}
+	_ty += 10;
+	draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.7);
+	draw_text(_tx + _tw, _ty, exped_stance(dp_stance).blurb);
 	draw_set_halign(fa_left);
 	// THE SEATS, inside the box: a [+] while empty, the banner when taken, a [-] beside it
 	draw_set_color(_dim); draw_set_alpha(.5);

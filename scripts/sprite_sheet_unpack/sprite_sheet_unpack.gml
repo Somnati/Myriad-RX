@@ -48,6 +48,9 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 		var _xs = string_split(_f[_at + 8], ";");
 		for (var _i = 0; _i < array_length(_xs); _i++) { var _xv = string_split(_xs[_i], ":"); if (array_length(_xv) == 2 && _xv[0] != "") _sh.elix[$ _xv[0]] = max(0, real(_xv[1])); }
 	}
+	// the title (a tenth field, 2026-09-16): rank:text
+	_sh.title = ""; _sh.trank = 0;
+	if (array_length(_f) > _at + 9 && _f[_at + 9] != "") { var _tp = string_pos(":", _f[_at + 9]); if (_tp > 1) { _sh.trank = max(0, real(string_copy(_f[_at + 9], 1, _tp - 1))); _sh.title = string_delete(_f[_at + 9], 1, _tp); } }
 	_sh.learned = [];
 	if (array_length(_f) > _at + 7) {
 		if (_f[_at + 7] != "") {

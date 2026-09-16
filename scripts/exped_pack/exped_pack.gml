@@ -17,6 +17,7 @@
 ///   qk qn qf qc qd qm qr qfr qat qw qns   the quest: kind, node, foe, n, done, mult, reward, from, at, who, nodes(;)
 ///   bn bf bc bd bp   the bounty: node, foe, n, done, pay
 ///   tl      slain:mist:items:xp:earned           pk      the pocket (a trip: its credits now; a haul: what came home)
+///   stn     the stance (cautious / steady / greedy - exped_stance; a haul keeps it for [send again])
 /// A fight in progress replays its room on load (room_i steps back one).
 function exped_pack() {
 	exped_init();
@@ -105,6 +106,7 @@ function exped_pack() {
 		var _tl = _r[$ "tl"]; if (!is_struct(_tl)) _tl = { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 };
 		array_push(_f, "tl=" + string(_tl.slain) + ":" + string(_tl.mist) + ":" + string(_tl.items) + ":" + string_format(_tl.xp, 1, 2) + ":" + string(_tl.earned));
 		array_push(_f, "pk=" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0)));
+		array_push(_f, "stn=" + string(_r[$ "stance"] ?? "steady"));   // (the stance, 2026-09-16)
 		_out += ((_a > 0) ? "#" : "") + string_join_ext("|", _f);
 	}
 	return _out;

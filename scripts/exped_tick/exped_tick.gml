@@ -31,7 +31,7 @@ function exped_tick(_secs) {
 		array_push(_e.hauls, { id : _tr.id, dest : _tr.dest, sids : _tr.sids, names : _tr.names, cols : _tr.cols,
 		                       sid : _tr.sid, sname : _tr.sname, finds : _tr.finds, routed : _tr.routed,
 		                       cleared : _tr.cleared, wins : _tr.wins, log : _tr.log, hp : _tr.hp, hpmax : _tr.hpmax, mp : _tr[$ "mp"] ?? [], rgi : _tr[$ "rgi"] ?? 0,
-		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0 });   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
+		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0, stance : _tr[$ "stance"] ?? "steady" });   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
 		save_mark_dirty();
 	}
 }

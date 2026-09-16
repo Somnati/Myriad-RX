@@ -11,6 +11,7 @@
 function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 	static _thr = function(_pn) { switch (_pn) { case "nervous": return .5; case "brave": return .25; case "greedy": return .15; default: return .35; } };
 	var _drank = false;
+	var _stn = exped_stance(_tr);   // (the stance moves the threshold: cautious earlier, greedy later - 2026-09-16)
 	var _ks = [];
 	if (is_struct(_pw)) { if (is_real(_pw[$ "mi"])) array_push(_ks, _pw.mi); }
 	else for (var _k = 0; _k < array_length(_tr.sids); _k++) if (_tr.hp[_k] > 0) array_push(_ks, _k);
@@ -38,7 +39,7 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 			continue;
 		}
 		if (_pn == "dreamy" && roll_perc(60)) continue;   // (forgot the pocket)
-		var _thv = _thr(_pn);
+		var _thv = clamp(_thr(_pn) + _stn.drink, .1, .9);
 		var _hpn = is_struct(_pw) ? _pw.hp : _tr.hp[_k], _hpm = is_struct(_pw) ? _pw.maxhp : _tr.hpmax[_k];
 		if (_hpn > 0 && _hpn / max(1, _hpm) < _thv) {
 			// the red one: a big one when it is bad, a small one otherwise; the first that fits
