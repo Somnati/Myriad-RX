@@ -53,9 +53,14 @@ function galaxy_nebulae() {
 		var _dark = ((hash_mix(_c.h, 37) mod 1000) / 1000) < (_cfg[$ "neb_dark_frac"] ?? .3);
 		// THE KIND (his pick, 2026-09-16): 0 diffuse / 1 shell (a remnant, small) / 2 pillars / 3 veil (huge, faint); dust is diffuse or
 		// pillars (a dark shell is nothing to see)
-		var _kr = (hash_mix(_c.h, 41) mod 1000) / 1000, _kind = (_kr < .45) ? 0 : ((_kr < .6) ? 1 : ((_kr < .8) ? 2 : 3));
-		if (_dark && (_kind == 1 || _kind == 3)) _kind = (_kr < .55) ? 0 : 2;
-		_r *= (_kind == 1) ? .7 : ((_kind == 3) ? 1.8 : 1);
+		// (ONE KIND for now - his call the same day: the shells, pillars and veils had oddities he had no energy to fight; the
+		// machinery stays behind neb_kinds for a rainy day)
+		var _kr = (hash_mix(_c.h, 41) mod 1000) / 1000, _kind = 0;
+		if (_cfg[$ "neb_kinds"] ?? false) {
+			_kind = (_kr < .45) ? 0 : ((_kr < .6) ? 1 : ((_kr < .8) ? 2 : 3));
+			if (_dark && (_kind == 1 || _kind == 3)) _kind = (_kr < .55) ? 0 : 2;
+			_r *= (_kind == 1) ? .7 : ((_kind == 3) ? 1.8 : 1);
+		}
 		array_push(_out, { x : _x, y : _y, r : _r, h : _hgt, t : _thk, col : _dark ? rgb(28, 22, 34) : _pal[_pi], col2 : _dark ? rgb(48, 36, 40) : _pal[_pj], seed : (_c.h mod 977) * .173, dn : _c.dn, dark : _dark, kind : _kind });
 	}
 	_list = _out; _seed = _sm.seed;

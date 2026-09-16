@@ -101,6 +101,7 @@ function starmap_config() {
 		neb_r_rand    : 120,
 		neb_lean      : .8,   // a cloud's middle sits within this x its thickness off the plane (triangular): it leans, it never leaves
 		neb_range     : 1500, // plane px: a sky shows the ones within this of its star
+		neb_kinds     : false, // the shells / pillars / veils (neb_body): off - one kind, his call 2026-09-16 (they had oddities)
 		neb_dark_frac : .3,   // DARK NEBULAE (2026-09-16): this share of the clouds are dust - they hide, they never glow
 		neb_dark_map  : .92,  // ...how much of the map they hide beneath them ("a lil darker" - his ask)
 		neb_dark_sky  : 1.6,  // ...their extinction in a sky (x the near / far factor); inside one, the sky goes out toward its heart
