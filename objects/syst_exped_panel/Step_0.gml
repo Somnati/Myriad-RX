@@ -70,12 +70,14 @@ if (view == "trip") {
 	} else rp = undefined;
 } else rp = undefined;
 // a trip that got home while its page was open: the page turns to the haul
-if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "hub"; if (view == "haul") { pg_a = 0; pg_dir = 1; } }   // (the haul fades in - his ask, 2026-09-15)
-if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "hub"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
+if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; } }   // (the haul fades in - his ask, 2026-09-15)
+if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "planet"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
 if (view == "sheet") view = "crew";
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
-if (view == "map" && !is_struct(map_dest)) view = "hub";
-if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) view = "hub";
+if (view == "map" && !is_struct(map_dest)) view = "planet";
+if (view == "hub") view = "planet";   // (the hub went, 2026-09-16)
+if (!is_struct(pl_dest) && is_struct(g[$ "exped"]) && array_length(g.exped.board) > 0) pl_dest = g.exped.board[0];   // (the board's world, always)
+if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) { exped_close(); exit; }   // (no world at all: nothing to show)
 
 // THE SUN IS LIVE (his report, 2026-09-15: "mid-morning but clearly night" -
 // the render's sun was the one at open, the words read the clock's; the
@@ -281,7 +283,7 @@ if (hand != "") {
 if (keyboard_check_pressed(vk_escape) && view == "depart" && dp_sheet >= 0) { dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }   // (the sheet modal first)
 if (keyboard_check_pressed(vk_escape) && view == "trip" && tp_sheet >= 0) { tp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 if (keyboard_check_pressed(vk_escape)) {
-	if (view != "hub") __back(); else exped_close();
+	__back();   // (the planet's back is the close)
 	exit;
 }
 if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
@@ -528,6 +530,26 @@ if (view == "planet") {
 			__pv_pick(_i);
 			exit;
 		}
+		// THE EXPEDITIONS in the drawer (2026-09-16): a haul's row opens the haul, a trip's the trip
+		var _nl = array_length(_e.hauls) + array_length(_e.trips);
+		for (var _k = 0; _k < _nl; _k++) {
+			var _pr1 = __pv_trip_r(_k);
+			if (_pr1.y + _pr1.h > room_height - 32) break;
+			if (!point_in_rectangle(mouse_x, mouse_y, _pr1.x, _pr1.y, _pr1.x + _pr1.w, _pr1.y + _pr1.h)) continue;
+			if (_k < array_length(_e.hauls)) { view_id = _e.hauls[_k].id; __page_go("haul"); }
+			else { view_id = _e.trips[_k - array_length(_e.hauls)].id; __page_go("trip"); }
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
+	}
+	// [bestiary] in the left column (planet mode)
+	if (pv_mode == "planet") {
+		var _bsr = __best_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _bsr.x, _bsr.y, _bsr.x + _bsr.w, _bsr.y + _bsr.h)) {
+			bs_from = "planet"; __page_go("bestiary");
+			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+			exit;
+		}
 	}
 	exit;
 }
@@ -563,7 +585,7 @@ if (view == "depart") {
 			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
 			dp_slot = -1;
 			sel_crew = []; dp_slots = array_create(exped_party_max(), -1); dp_pos = {};
-			__dp_leave("hub");   // (the page swings out, then the hub)
+			__dp_leave("planet");   // (the page swings out, then the world)
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 		exit;
 	}
@@ -606,7 +628,7 @@ if (view == "haul") {
 				var _sid = g.sprites[_k].id;
 				exped_collect(_hi, room_width * .5, room_height * .5, "swap:" + string(_sid));
 				swap_pick = false;
-				__page_go("hub");
+				__page_go("planet");
 				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 				exit;
 			}
@@ -622,7 +644,7 @@ if (view == "haul") {
 		if (point_in_rectangle(mouse_x, mouse_y, _sw.x, _sw.y, _sw.x + _sw.w, _sw.y + _sw.h)) { swap_pick = true; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
 		if (point_in_rectangle(mouse_x, mouse_y, _go.x, _go.y, _go.x + _go.w, _go.y + _go.h)) {
 			exped_collect(_hi, room_width * .5, room_height * .5, "letgo");
-			__page_go("hub");
+			__page_go("planet");
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			exit;
 		}
@@ -630,7 +652,7 @@ if (view == "haul") {
 		var _cb = __col_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _cb.x, _cb.y, _cb.x + _cb.w, _cb.y + _cb.h)) {
 			exped_collect(_hi, room_width * .5, room_height * .5);
-			__page_go("hub");
+			__page_go("planet");
 			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			exit;
 		}
@@ -648,7 +670,7 @@ if (view == "haul") {
 				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
 			} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 			save_mark_dirty();
-			__page_go("hub");
+			__page_go("planet");
 			exit;
 		}
 	}
@@ -725,7 +747,8 @@ if (view == "trip") {
 	exit;
 }
 
-// ======================= THE HUB =======================
+// ======================= THE HUB (went 2026-09-16 - the code stays behind this gate) =======================
+if (view != "hub") exit;
 // the list: a trip or a haul opens its page
 var _rows = array_length(_e.hauls) + array_length(_e.trips);
 for (var _i = 0; _i < _rows; _i++) {

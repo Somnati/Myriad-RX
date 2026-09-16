@@ -36,22 +36,25 @@ strip_y = hh; list_y = hh + 16;
 land = (room_width > 300);
 dim  = rgb(120, 130, 150);
 
-view    = "hub";     // hub / trip / haul
+view    = "planet";  // the pages: planet / depart / trip / haul / map / crew / galaxy / bestiary (THE HUB WENT, his call 2026-09-16: the panel opens on the world)
 view_id = -1;        // the trip's or haul's id
+// THE WORLD AT THE START (the hub went): the board's first world, orbit mode
+pl_dest = undefined; sel_dest = 0; rg_sel = 0; pl_focus = -1;
+if (is_struct(g[$ "exped"]) && array_length(g.exped.board) > 0) pl_dest = g.exped.board[0];
 rp      = undefined; // the combat window's REPLAY of a fight that ended off screen: { i, t, r : the film }
 seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / level / gear)
 map_dest = undefined;    // the map view's world (its region: region_get)
-map_from = "hub";        // where the map returns to
+map_from = "planet";     // where the map returns to
 pl_dest  = undefined;    // the planet window's world
 rg_sel   = 0;            // the region picked in the planet window (EXPED_REGIONS a world)
 map_rgi  = 0;            // the map view's region
 pl_focus = -1;           // the planet window: the region the world has turned to (-1 = none, ambient spin)
 crew_trip = -1;          // the crew menu shows only this trip's crew (-1 = everyone)
-crew_from = "hub";       // where the crew menu returns to (the strip's [crew] is on every page - his ask, 2026-09-15)
+crew_from = "planet";    // where the crew menu returns to (the strip's [crew] is on every page - his ask, 2026-09-15)
 // ---- THE BESTIARY (his ask, 2026-09-16, grid based): the roster in cells, a card for the one picked ----
 bs_sel  = -1;            // the roster index picked (-1 none)
-bs_from = "hub";         // where [back] returns to
+bs_from = "planet";      // where [back] returns to
 __bs_cols   = function() { return land ? 8 : 5; };
 __bs_grid_r = function() { var _c = __bs_cols(); return { x : land ? 14 : 4, y : list_y + 22, w : _c * 26 - 2, h : ceil(array_length(foe_roster()) / _c) * 26 - 2 }; };
 __bs_cell_r = function(_i) { var _g = __bs_grid_r(), _c = __bs_cols(); return { x : _g.x + (_i mod _c) * 26, y : _g.y + (_i div _c) * 26, w : 24, h : 24 }; };
@@ -348,7 +351,7 @@ __draw_back = function() {
 	draw_set_halign(fa_center);
 	draw_set_color(c_white);
 	draw_set_alpha(.9);
-	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
+	draw_text(_bk.x + _bk.w * .5, _bk.y + 3, (view == "planet" && pv_mode != "region") ? "close  >" : "back  >");   // (the planet's is the panel's close - the hub went, 2026-09-16)
 	if (view != "crew" && view != "hub" && array_length(g.sprites) > 0) {
 		var _cs = __crewstrip_r();
 		draw_sprite_ext(spr_pixel_1x1, 0, _cs.x, _cs.y, _cs.w, _cs.h, 0, c_black, .8);
@@ -394,10 +397,10 @@ __back = function() {
 		case "map":    __page_go(map_from); break;
 		case "galaxy": __page_go(gx_from); break;
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
-		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else __page_go("hub"); break;   // region mode swings out -> the planet; the planet turns -> the hub
+		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { exped_close(); return; } break;   // region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
 		case "bestiary": __page_go(bs_from); break;
-		default:       __page_go("hub"); break;
+		default:       __page_go("planet"); break;
 	}
 	play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
 };
@@ -453,6 +456,8 @@ __pv_dw_w  = function() { return land ? 150 : 120; };
 __pv_dw_x  = function() { return room_width - 9 - __pv_dw_w() * pv_dwa; };   // the drawer's left edge (its tab)
 __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 60 }; };
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 40 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
+__pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 40 + EXPED_REGIONS * 26 + 14 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
+__best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };   // [bestiary] over the geosync toggle (planet mode)
 // THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
 // at the foot, the geosync toggle over it ([region map] sat between them in
 // region mode until 2026-09-16 - it is [map] in the strip now); bottom
@@ -680,6 +685,7 @@ __pv_ui_hit = function() {
 	var _cs = __crewstrip_r(); if (point_in_rectangle(mouse_x, mouse_y, _cs.x, _cs.y, _cs.x + _cs.w, _cs.y + _cs.h)) return true;
 	var _g = __galaxy_r(); if (point_in_rectangle(mouse_x, mouse_y, _g.x, _g.y, _g.x + _g.w, _g.y + _g.h)) return true;
 	var _ge = __geo_r(); if (point_in_rectangle(mouse_x, mouse_y, _ge.x, _ge.y, _ge.x + _ge.w, _ge.y + _ge.h)) return true;
+	if (pv_mode == "planet") { var _bsr = __best_r(); if (point_in_rectangle(mouse_x, mouse_y, _bsr.x, _bsr.y, _bsr.x + _bsr.w, _bsr.y + _bsr.h)) return true; }   // ([bestiary], 2026-09-16)
 	if (pv_mode == "region") {
 		var _bn = __rg_banner_r(); if (point_in_rectangle(mouse_x, mouse_y, _bn.x, _bn.y, _bn.x + _bn.w, _bn.y + _bn.h)) return true;
 		var _qb = __quests_r(); if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) return true;
@@ -700,7 +706,7 @@ __pv_pick = function(_i) {
 gx_x = 0; gx_y = 0; gx_zoom = 1; gx_init = false;   // the camera's top-left on the plane, the zoom; centred on the home star the first time
 gx_press = false; gx_px = 0; gx_py = 0; gx_cx0 = 0; gx_cy0 = 0; gx_travel = 0;
 gx_sel = -1; gx_sys = undefined;     // the tapped star and its system
-gx_from = "hub";                     // where [back] returns
+gx_from = "planet";                  // where [back] returns
 gx_fog = -1; gx_fog_seed = -1;       // the nebula fog sheet, baked once a galaxy
 gx_mm = -1; gx_mm_seed = -1;         // THE MINIMAP (his ask: bring it back): the star dots baked once, 80px wide
 gx_glow_a = -1; gx_glow_b = -1;      // the bloom's two half-size passes (sh_blur)

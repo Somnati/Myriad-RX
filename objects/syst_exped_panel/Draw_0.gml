@@ -61,7 +61,7 @@ for (var _k = 0; _k < 3; _k++) {
 draw_set_halign(fa_left);
 
 // [back] (and [crew]) on a page
-if (view != "hub") __draw_back();
+__draw_back();
 
 // ======================= THE HAUL =======================
 if (view == "haul") {
@@ -769,6 +769,7 @@ if (view == "planet") {
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
 	var _ge = __geo_r();
 	draw_ui_button(_ge.x, _ge.y, _ge.w, _ge.h, pv_geo ? (land ? "riding the spin" : "geosync") : "free camera", pv_geo ? c_sgreen : c_gray, true, false);
+	if (pv_mode == "planet") { var _bsr = __best_r(); draw_ui_button(_bsr.x, _bsr.y, _bsr.w, _bsr.h, "bestiary", c_steelblue, true, false); }   // (the hub's button, rehomed - 2026-09-16)
 	if (pv_mode == "region") {
 		// REGION MODE: THE INFO BOX left (his shape, 2026-09-15: the name, then
 		// "level 1 - peaceful / temperature - warm / weather - calm / time -
@@ -853,7 +854,23 @@ if (view == "planet") {
 			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 		}
 		draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa);
-		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 4, "tap a row: the world turns to it");
+		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 2, "tap a row: the world turns to it");
+		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16): hauls home first, then the trips out; a row each, tap for its page
+		var _nl = array_length(_e.hauls) + array_length(_e.trips);
+		draw_set_color(_ink); draw_set_alpha(.6 * pv_dwa);
+		draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 2, "");
+		for (var _k = 0; _k < _nl; _k++) {
+			var _pr1 = __pv_trip_r(_k);
+			if (_pr1.y + _pr1.h > room_height - 32) break;
+			var _ish = (_k < array_length(_e.hauls));
+			var _rec = _ish ? _e.hauls[_k] : _e.trips[_k - array_length(_e.hauls)];
+			draw_sprite_ext(spr_pixel_1x1, 0, _pr1.x, _pr1.y, _pr1.w, _pr1.h, 0, c_black, .7 * pv_dwa);
+			draw_px_rect(_pr1.x, _pr1.y, _pr1.w, _pr1.h, _ish ? c_gold : _rec.cols[0], .6 * pv_dwa);
+			__dot(_pr1.x + 6, _pr1.y + 6, 2, _rec.cols[0], .95 * pv_dwa);
+			draw_set_color(_ish ? c_gold : c_white); draw_set_alpha(.95 * pv_dwa);
+			draw_text(_pr1.x + 12, _pr1.y + 2, __sheet_cut(exped_crew_txt(_rec.names) + (_ish ? " - home, collect" : (" - " + exped_where(_rec))), _pr1.w - 16));
+		}
+		if (_nl == 0) { draw_set_color(_dim); draw_set_alpha(.45 * pv_dwa); draw_text(_dwx + 13, list_y + 40 + EXPED_REGIONS * 26 + 16, "no expeditions out"); }
 	}
 	__draw_back();
 	ui_fade_set(1);
@@ -1191,7 +1208,8 @@ if (view == "depart") {
 	exit;
 }
 
-// ======================= THE HUB (redone 2026-09-15: "make it nicer") =======================
+// ======================= THE HUB (went 2026-09-16 - the code stays behind this gate) =======================
+if (view != "hub") { ui_fade_set(1); exit; }
 // THE WORLD CARD: the world big, its name, its kind and level, then its
 // regions as rows, the flight and who is out at the foot. Tap = its page
 draw_set_color(_ink);

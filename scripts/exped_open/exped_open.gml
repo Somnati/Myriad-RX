@@ -1,4 +1,4 @@
-/// @description exped_open() - the expedition bench, over the room
+/// @description exped_open() - the expedition bench, over the room (it opens on the board's world - the hub went, his call 2026-09-16)
 function exped_open() {
 	if (instance_exists(syst_exped_panel) && syst_exped_panel.closing) {
 		syst_exped_panel.closing = false;
