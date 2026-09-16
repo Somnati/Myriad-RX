@@ -16,9 +16,11 @@
 /// sun's bearing is one for every world - region_daylight's shortcut).
 function region_season(_d, _rg) {
 	static _nm = ["spring", "summer", "autumn", "winter"];
+	// (a frame's worth cached on the region - the hazards, the weather, the info box and the agent all ask in one frame; bug hunt 2026-09-16)
+	if (is_struct(_rg[$ "season_c"]) && (_rg[$ "season_ct"] ?? -1) == current_time) return _rg.season_c;
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
 	var _tilt = _pn[$ "tilt"] ?? 0;
-	if (abs(_tilt) < 4) return { on : false, idx : 1, name : "", lean : 0, rising : false, warm : 0 };
+	if (abs(_tilt) < 4) { _rg.season_c = { on : false, idx : 1, name : "", lean : 0, rising : false, warm : 0 }; _rg.season_ct = current_time; return _rg.season_c; }
 	// the world's axis: the pole turned by the same matrix region_daylight turns a spot by
 	var _ax = mat3_apply(mat3_rot(0, 0, 1, _tilt), 0, 1, 0);
 	var _hm = galaxy_world_sys(_d), _pl = _hm.sys.planets[_hm.planet];   // (the world's own orbit and year, 2026-09-16)
@@ -30,5 +32,7 @@ function region_season(_d, _rg) {
 	var _l1 = clamp((_ax[0] * _s1[0] + _ax[1] * _s1[1] + _ax[2] * _s1[2]) * _sc, -1, 1);
 	var _rising = (_l1 > _l0);
 	var _idx = (_l0 > .5) ? 1 : ((_l0 < -.5) ? 3 : (_rising ? 0 : 2));
-	return { on : true, idx : _idx, name : _nm[_idx], lean : _l0, rising : _rising, warm : _l0 * abs(_tilt) / 28 * .12 };
+	_rg.season_c = { on : true, idx : _idx, name : _nm[_idx], lean : _l0, rising : _rising, warm : _l0 * abs(_tilt) / 28 * .12 };
+	_rg.season_ct = current_time;
+	return _rg.season_c;
 }
