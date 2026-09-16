@@ -8,6 +8,14 @@ action = -1;
 boot_phase = 0;       // 0 building the galaxy, 1 the load queued, 2 done
 boot_gen = undefined;
 boot_t = 0;
+// THE BUDGET (2026-09-16, his report: "it stutters pretty bad"): every boot
+// job - the galaxy's passes, the worlds' rows, the bakes' stamps - runs in
+// slices of this many ms a frame and resumes next frame, so the spinner
+// turns at the frame rate. 9 ms leaves a 60 Hz frame its draw; a faster
+// monitor simply shows more frames of it
+boot_budget = 9;
+boot_prog = 0;        // 0..1, the boot's real progress (the bar under the caption)
+boot_prog_v = 0;      // the bar, easing to it
 
 file_to_handle = save_slot_path(0); // active profile's main save
 

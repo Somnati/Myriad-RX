@@ -26,6 +26,10 @@
 ///    instead of floating over the buttons. Nothing is boxed - the
 ///    chrome was doing work the type should be doing.
 
+// THE BOOT SOUND, on the title's first arrival (his call, 2026-09-16: not
+// under the loading screen; setgame flags it, this plays it once)
+if (variable_global_exists("boot_snd_due") && g.boot_snd_due) { g.boot_snd_due = false; play_sound_ext(snd_boot, 1, 1, .25, 0); }
+
 save_file = save_slot_path(0);
 has_save = file_exists(save_file);
 // ANY profile with a run (his ask, 2026-09-13: a fresh install skips the

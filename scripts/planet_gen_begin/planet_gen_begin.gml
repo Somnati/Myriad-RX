@@ -227,6 +227,7 @@ function planet_gen_begin(_seed, _hint = undefined) {
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
 		elev : array_create(_tw * _th, 0), biome : array_create(_tw * _th, 0), carr : array_create(_tw * _th, 0),
 		row : 0,            // planet_gen_step's cursor; ready when row == th
+		brow : 0,           // planet_bake's cursor: rows stamped across the three textures (0..3*th)
 		tsurf : -1, csurf : -1, hsurf : -1,   // planet_bake's textures
 	};
 }

@@ -260,18 +260,19 @@ create_obj(0, 0, syst_sprites);
 // A wood-and-metal cue, take one spliced out of the same six-take
 // library file the continue sound came from.
 //
-// PLAYED FROM THE VERY END OF THIS EVENT, deliberately: settings_defaults
-// and the saved settings both land above, so by here g.vol_sfx is real
-// and the sound respects the player's own mix on the first frame rather
-// than blaring at whatever the default happened to be. play_sound_ext
-// guards for the global's absence anyway - this is about being right,
-// not about not crashing.
+// NOT PLAYED HERE ANY MORE (his call, 2026-09-16: "i dont want the boot
+// sound to play until after the boot loading screen"): this event runs
+// under the black gameload screen, seconds before anything shows. It is
+// flagged due here and syst_titlescreen's Create plays it on the title's
+// first arrival - by which time settings_defaults and the saved settings
+// have long landed, so g.vol_sfx is real and the sound respects the
+// player's own mix.
 //
-// Quiet on purpose. The library masters these cues at a tenth of full
-// scale and the import normalises to 0.85, so the asset is hot and the
-// call has to take it back out (the same trim the continue sound needed
-// after his report).
-play_sound_ext(snd_boot, 1, 1, .25, 0);
+// Quiet on purpose (the .25 in the title's call). The library masters
+// these cues at a tenth of full scale and the import normalises to 0.85,
+// so the asset is hot and the call has to take it back out (the same trim
+// the continue sound needed after his report).
+g.boot_snd_due = true;
 
 // ---- run gating (title screen, 2026-07-07): nothing plays until
 // continue / new game flips this. the header menu checks it ----
