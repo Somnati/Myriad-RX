@@ -420,16 +420,16 @@ __trip_crew_r  = function() { return __trip_btn_r(0); };
 __trip_abort_r = function() { return __trip_btn_r(1); };   // ([map] left the foot for the strip, 2026-09-16)
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
 // ---- THE ORBIT VIEW (the planet page, 2026-09-15: the tech demo's rm_planet in the panel) ----
-// cam = view -> world. THE TURNTABLE (his report, 2026-09-16: snaps between
-// regions "throw me off course" - the arcball it was rolled the world a
-// little with every turn, and a rolled world's regions stop sitting where
-// their longitude and latitude say): a YAW about the world's axis and a
-// PITCH above its plane, the axis always up the screen (__cam_tt). Drag =
-// yaw and pitch, the glide the same, geosync = yaw rides the spin, a snap
-// = the region's own longitude and latitude. The sky and the sun come from
-// the galaxy (pv_sky)
-pv_yaw   = 0; pv_pitch = 32;         // the turntable (pitch: above the plane, like the demo)
-pv_cam   = mat3_rot(1, 0, 0, -32);   // (built from the two every frame - syst_exped_panel's Step)
+// cam = view -> world: an ARCBALL for the hand (drag post-multiplies about
+// the view's axes - grab the world and pull it; the glide keeps the flick;
+// geosync pre-multiplies the spin so the spot you look at stays put), and
+// THE TURNTABLE FOR THE SNAP (his call, 2026-09-16: the arcball rolled the
+// world a little with every turn, and a rolled world's regions stop sitting
+// where their longitude and latitude say - so a snap to a region eases the
+// matrix toward __cam_tt's north-up view of it, along the one rotation
+// between them; "the previous panning method when it's not snapping"). The
+// sky and the sun come from the galaxy (pv_sky)
+pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
@@ -1502,6 +1502,20 @@ __cam_face = function(_pn, _spin, _rg, _cam) {
 __cam_tt = function(_pn, _yaw, _pitch) {
 	var _af = mat3_rot(0, 0, 1, _pn.tilt);
 	return mat3_mul(mat3_mul(_af, mat3_rot(0, 1, 0, _yaw)), mat3_mul(mat3_rot(1, 0, 0, _pitch), [-1, 0, 0, 0, -1, 0, 0, 0, 1]));
+};
+/// a step of the camera toward a target camera: the ONE rotation between them (axis-angle of
+/// target x cam^T, world space), a fraction k of its angle; undefined once within .05 degree (arrived)
+__cam_toward = function(_cam, _tgt, _k) {
+	var _rr = mat3_mul(_tgt, mat3_transpose(_cam));
+	var _ang = darccos(clamp((_rr[0] + _rr[4] + _rr[8] - 1) * .5, -1, 1));
+	if (_ang < .05) return undefined;   // (there: the caller takes the target itself)
+	var _ax = _rr[7] - _rr[5], _ay = _rr[2] - _rr[6], _az = _rr[3] - _rr[1];
+	var _al = sqrt(_ax * _ax + _ay * _ay + _az * _az);
+	if (_al < .0001) { _ax = 0; _ay = 1; _az = 0; }   // (180 degrees apart: any axis in the plane; take the world's up)
+	// (mat3_rot's sin is flipped for the screen - both signs tried, the one that closes the gap kept)
+	var _c1 = mat3_mul(mat3_rot(_ax, _ay, _az, _ang * _k), _cam), _c2 = mat3_mul(mat3_rot(_ax, _ay, _az, -_ang * _k), _cam);
+	var _r1 = mat3_mul(_tgt, mat3_transpose(_c1)), _r2 = mat3_mul(_tgt, mat3_transpose(_c2));
+	return ((_r1[0] + _r1[4] + _r1[8]) >= (_r2[0] + _r2[4] + _r2[8])) ? _c1 : _c2;
 };
 /// a region's spot as the turntable's yaw / pitch (its direction in the axis frame, the spin in;
 /// the camera's own direction there is (-sin yaw cos pitch, sin pitch, cos yaw cos pitch))
