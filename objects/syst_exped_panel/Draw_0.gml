@@ -114,6 +114,7 @@ if (view == "haul") {
 	}
 	var _ch = 40 + _nb * 12 + 4 + 11 + _fsum + (_recruit ? 52 : 40);
 	var _cx = land ? 14 : 4, _cy = list_y + 22;
+	_ch = max(_ch, room_height - 8 - _cy);   // (to the page's foot: the buttons and the "again:" line sit inside it - his report 2026-09-15)
 	ui_fade_set(_ea);
 	draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy, _cw, _ch, 0, c_black, .9);
 	draw_px_rect(_cx, _cy, _cw, _ch, _h.routed ? c_hred : c_gold, .6);
@@ -386,15 +387,13 @@ if (view == "trip") {
 	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, _isl.w, _isl.h, 0, c_black, .85);
 	draw_px_rect(_isl.x, _isl.y, _isl.w, _isl.h, _wc, .35);
 	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, 2, _isl.h, 0, _wc, .9);
-	__draw_orbit(_d, big_x + 2, big_y + 1, big_w - 3, big_h - 2, (big_w - 3) * .5, (big_h - 2) * .5 + 2, land ? 30 : 26, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
+	__draw_orbit(_d, big_x + 2, big_y + 1, big_w - 3, big_h - 2, (big_w - 3) * .5, (big_h - 2) * .5 + 2, land ? 24 : 26, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
 	ui_fade_set(_ea);
 	draw_set_halign(fa_center);
 	draw_set_font(fnt_large);
 	draw_set_color(_wc); draw_set_alpha(.95);
-	draw_text(big_x + big_w * .5, big_y + big_h + 3, str_cap(_d.name));
+	draw_text(big_x + big_w * .5, big_y + big_h + 2, str_cap(_d.name));
 	draw_set_font(fnt);
-	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
-	draw_text(big_x + big_w * .5, big_y + big_h + 17, _rg.name + "  -  lv " + string(exped_trip_lv(_tr)));
 	draw_set_halign(fa_left);
 	// the leg: a labelled bar (the hub's), then the day and the weather
 	var _travel = _tr.dur * EXPED_TRAVEL;
@@ -404,17 +403,22 @@ if (view == "trip") {
 	else if (is_struct(_tr[$ "road"])) { _tf = clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1); _leg = "on the road"; }
 	else if (is_struct(_tr[$ "act"])) { _tf = 1 - clamp(_tr.act.left / max(1, EXPED_ROOM_T), 0, 1); _leg = "at " + _rg.nodes[clamp(_tr.pos, 0, array_length(_rg.nodes) - 1)].name; }
 	else { _tf = 0; _leg = "deciding"; }
-	var _lgy = big_y + big_h + 30;
+	// the region and its level on the left, the sky on the right (one row - 2026-09-15), then the leg
+	var _sky = (_tr.stage == 1) ? (((_tr[$ "night"] ?? false) ? "night" : "day") + (((_tr[$ "weather"] ?? "clear") != "clear") ? (", " + _tr.weather) : "")) : "in space";
+	var _rgl = big_y + big_h + (land ? 14 : 17);
+	draw_set_color(merge_colour(_b.col2, c_white, .3)); draw_set_alpha(.8);
+	draw_text(big_x + 6, _rgl, string_copy(_rg.name, 1, land ? 17 : 22) + "  lv " + string(exped_trip_lv(_tr)));
+	draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(big_x + big_w - 6, _rgl, _sky + ((_e.spd > 1) ? ("  x" + string(_e.spd)) : ""));
+	draw_set_halign(fa_left);
+	var _lgy = big_y + big_h + (land ? 25 : 30);
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(big_x + 6, _lgy, string_copy(_leg, 1, 14));
 	var _lbx = big_x + 6 + max(46, string_width(string_copy(_leg, 1, 14)) + 6), _lbw = big_x + big_w - 6 - _lbx;
 	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw, 4, 0, c_black, .7);
 	draw_sprite_ext(spr_pixel_1x1, 0, _lbx, _lgy + 2, _lbw * _tf, 4, 0, (_tr.stage == 1) ? c_sgreen : c_steelblue, .9);
 	draw_px_rect(_lbx, _lgy + 2, _lbw, 4, c_white, .1);
-	draw_set_color(_dim); draw_set_alpha(.6);
-	var _sky = (_tr.stage == 1) ? (((_tr[$ "night"] ?? false) ? "night" : "day") + (((_tr[$ "weather"] ?? "clear") != "clear") ? (", " + _tr.weather) : "")) : "in space";
-	draw_text(big_x + 6, _lgy + 11, _sky + ((_e.spd > 1) ? ("  -  x" + string(_e.spd)) : ""));
-	// [crew] [map] [abort] at the island's foot
+	// [crew] [map] [abort] - the island's foot (portrait), the right column's foot (wide)
 	var _tcr = __trip_crew_r();
 	draw_ui_button(_tcr.x, _tcr.y, _tcr.w, _tcr.h, "crew", c_steelblue, true, false);
 	var _tmr = __trip_map_r();
@@ -927,7 +931,7 @@ if (view == "depart") {
 	// a seated one leaves a grey ghost here until it is home again
 	var _dl = __dp_list_r();
 	draw_set_color(_ink); draw_set_alpha(.6);
-	draw_text(_dl.x, list_y + 22, "the crew  -  tap for the sheet, [+] to seat" + ((__dp_off_max() > 0) ? "  -  scrolls" : ""));
+	draw_text(_dl.x, list_y + 22, "the crew  -  tap, or [+]" + ((__dp_off_max() > 0) ? "  -  scrolls" : ""));   // (short: the box sits to its right - 2026-09-15)
 	var _crew = [];
 	var _np = 0;
 	for (var _j = 0; _j < _ns; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) { array_push(_crew, __sp_by_id(dp_slots[_j])); _np++; }
@@ -1077,9 +1081,8 @@ if (view == "depart") {
 	var _msp = __sp_by_id(dp_sheet);
 	if (!is_undefined(_msp)) {
 		var _msr = __dp_sheet_r();
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .7);
 		it_rects = [];
-		__draw_sheet(_msp, _msr.x, _msr.y, _msr.x + _msr.w);
+		__draw_sheet(_msp, _msr.x, _msr.y, _msr.x + _msr.w, _msr.y + _msr.h);   // (on the mission box, no veil: the list stays live - his ask 2026-09-15)
 	}
 	ui_fade_set(1);
 	exit;

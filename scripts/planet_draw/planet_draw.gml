@@ -83,7 +83,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	var _ctn = 0;
 	if (!is_undefined(_pn.civ)) {
 		var _cts = _pn.civ.cities;
-		_ctn = min(array_length(_cts), 6);
+		_ctn = 0;   // (city lights are the tech demo's, unused here - gone, his call 2026-09-15)
 		for (var _i = 0; _i < _ctn; _i++) {
 			_cty[_i * 4] = _cts[_i].x; _cty[_i * 4 + 1] = _cts[_i].y; _cty[_i * 4 + 2] = _cts[_i].z; _cty[_i * 4 + 3] = _cts[_i].r;
 		}

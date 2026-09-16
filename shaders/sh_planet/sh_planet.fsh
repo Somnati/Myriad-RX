@@ -236,9 +236,9 @@ void main()
         float wat = texture2D(u_height, sphere_uv(t, u_tsize)).g;
         if (wat > 0.5) {
             vec3 hv = normalize(u_light + vec3(0.0, 0.0, 1.0));
-            float sp = pow(max(dot(n, hv), 0.0), 36.0);
+            float sp = pow(max(dot(n, hv), 0.0), 26.0);
             float day = smoothstep(-0.05, 0.30, dot(n, u_light));
-            col += vec3(1.0, 0.96, 0.86) * sp * 0.85 * day * (0.8 + 0.4 * dsp);
+            col += vec3(1.0, 0.96, 0.86) * sp * 0.6 * day * (0.92 + 0.08 * dsp);   // (the sparkle nearly out - "noisy", his report 2026-09-15)
         }
 
         float em = 1.0 - tex.a;

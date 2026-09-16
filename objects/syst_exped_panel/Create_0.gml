@@ -69,7 +69,7 @@ dp_in    = 0; dp_dir = 0; dp_next = "";     // THE SWING: the page slides in (0 
 rg_in    = 0;                               // region mode's own swing (the info box from the left, the buttons from the right)
 view_last = "";                             // the view a frame ago: a change fades the new page in (the one veil, turn_px)
 __dp_bw  = function() { return land ? 120 : (room_width - 8 - 18); };   // a banner's width
-__dp_bh  = function() { return 22; };                                    // ...and its height (the name line, the hp / mp line)
+__dp_bh  = function() { return 28; };                                    // ...and its height (the name line, the hp row, the mp row - 2026-09-15: room for four digits)
 __dp_list_r = function() { var _o = -(1 - dp_in) * 200; return { x : (land ? 14 : 4) + _o, y : list_y + 34, w : __dp_bw() + 18, h : room_height - 8 - (list_y + 34) }; };
 __dp_row_r = function(_k) { var _l = __dp_list_r(); return { x : _l.x, y : _l.y + _k * (__dp_bh() + 4) - dp_off, w : __dp_bw(), h : __dp_bh() }; };
 __dp_row_in = function(_k) { var _l = __dp_list_r(), _r = __dp_row_r(_k); return (_r.y >= _l.y - 1 && _r.y + _r.h <= _l.y + _l.h + 1); };   // the row wholly in the band
@@ -78,7 +78,7 @@ __dp_off_max = function() { var _l = __dp_list_r(); return max(0, array_length(g
 /// THE MISSION BOX's layout: the text and the numbers, then the seats; the box grows to fit
 __dp_layout = function() {
 	var _o = (1 - dp_in) * 340;
-	var _x = land ? (160 + _o) : (4 + _o), _y = list_y + 22;
+	var _x = land ? (160 + _o) : (4 + _o), _y = list_y + 4;   // (higher - 2026-09-15: room for four seats and the taller banners)
 	var _w = land ? (room_width - 160 - 14) : (room_width - 8);
 	var _tw = _w - 16;
 	var _rg = region_get(pl_dest, rg_sel);
@@ -96,8 +96,10 @@ __dp_layout = function() {
 	}
 	var _ns = exped_party_max();
 	var _sy0 = _y + 6 + _th + 14;
-	var _h = 6 + _th + 14 + _ns * (__dp_bh() + 4) + 4;
-	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns };
+	// THE SEATS in two columns on a wide page (2026-09-15: four seats, taller banners - the box stays on the page)
+	var _cols = land ? 2 : 1, _srows = ceil(_ns / _cols);
+	var _h = 6 + _th + 14 + _srows * (__dp_bh() + 4) + 4;
+	return { x : _x, y : _y, w : _w, h : _h, tw : _tw, seat_y0 : _sy0, ns : _ns, cols : _cols };
 };
 __brief_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : _l.h }; };
 /// THE HAZARDS of the mission (2026-09-15): a quest's place, or every one an explore's region carries; who in the seats holds each, who is bare
@@ -131,7 +133,7 @@ __dp_hazards = function() {
 };
 /// ...and the rows they take in the mission box: one each, and one more under it when someone seated is bare (what holds it)
 __dp_haz_rows = function() { var _l = __dp_hazards(), _r = 0; for (var _i = 0; _i < array_length(_l); _i++) _r += 1 + ((array_length(_l[_i].bare) > 0) ? 1 : 0); return _r; };
-__dp_seat_r = function(_j) { var _l = __dp_layout(); return { x : _l.x + 8, y : _l.seat_y0 + _j * (__dp_bh() + 4), w : __dp_bw(), h : __dp_bh() }; };
+__dp_seat_r = function(_j) { var _l = __dp_layout(), _cl = _j mod _l.cols, _rw = _j div _l.cols; return { x : _l.x + 8 + _cl * (__dp_bw() + 24), y : _l.seat_y0 + _rw * (__dp_bh() + 4), w : __dp_bw(), h : __dp_bh() }; };   // (two columns on a wide page)
 __dp_minus_r = function(_j) { var _r = __dp_seat_r(_j); return { x : _r.x + _r.w + 4, y : _r.y + 4, w : 14, h : 14 }; };
 __depart_r = function() { var _b = __brief_r(); return { x : _b.x + _b.w - 100, y : min(room_height - 8 - 16, _b.y + _b.h + 4) + (1 - dp_in) * 60, w : 100, h : 16 }; };
 /// the seat a sprite sits in (-1 = the list)
@@ -168,26 +170,33 @@ __dp_banner = function(_sp, _x, _y, _w, _a, _ghost, _ovr = undefined) {   // ovr
 	draw_set_color(_ghost ? sett_ink : c_white); draw_set_alpha((_ghost ? .35 : .95) * _a);
 	draw_text(_x + 16, _y + 3, str_cap(_sp.name));
 	draw_set_color(_ghost ? sett_ink : _c.col); draw_set_alpha((_ghost ? .3 : .85) * _a);
-	draw_text(_x + 16 + string_width(str_cap(_sp.name)) + 5, _y + 3, _c.name + " " + string(_sh.lv));
-	if (_away) { draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.6 * _a); draw_text(_x + _w - 4, _y + 3, "out"); draw_set_halign(fa_left); }
-	else if (_sp.asleep) { draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.6 * _a); draw_text(_x + _w - 4, _y + 3, "zz"); draw_set_halign(fa_left); }
+	draw_text(_x + 16 + string_width(str_cap(_sp.name)) + 5, _y + 3, _c.name);   // (no "ranger 1" - the level sits on the right, his ask 2026-09-15)
+	// the level, right; "out" / "zz" to its left when they apply
+	draw_set_halign(fa_right);
+	draw_set_color(_ghost ? sett_ink : sett_ink); draw_set_alpha((_ghost ? .3 : .75) * _a);
+	var _lvt = "lv " + string(_sh.lv);
+	draw_text(_x + _w - 4, _y + 3, _lvt);
+	if (_away)          { draw_set_alpha(.6 * _a); draw_text(_x + _w - 4 - string_width(_lvt) - 6, _y + 3, "out"); }
+	else if (_sp.asleep) { draw_set_alpha(.6 * _a); draw_text(_x + _w - 4 - string_width(_lvt) - 6, _y + 3, "zz"); }
+	draw_set_halign(fa_left);
 	if (!_ghost) {
-		// hp / mp: a label, a 3px bar, the numbers (the sheet's, condensed)
+		// hp and mp, a row each (2026-09-15: four digits must fit - his note): a
+		// label, the number right-aligned, and the bar sized to what is left
 		var _st = sprite_stats(_sp), _bal = cbt_balance();
 		var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add), _mpr = max(1, round(_st.pts.mp));
 		var _hpc = floor(_hpr * (_sp[$ "hpf"] ?? 1)), _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
 		if (is_struct(_ovr)) { _hpr = max(1, floor(_ovr.hpmax)); _hpc = clamp(floor(_ovr.hp), 0, _hpr); _mpr = max(1, round(_ovr.mpmax)); _mpc = clamp(round(_ovr.mp), 0, _mpr); }
-		var _half = floor((_w - 8) * .5), _bw = max(8, _half - 14 - 26);
-		var _ly = _y + 13;
-		draw_set_color(c_hred); draw_set_alpha(.9 * _a); draw_text(_x + 4, _ly, "hp");
-		draw_sprite_ext(spr_pixel_1x1, 0, _x + 15, _ly + 2, _bw, 3, 0, c_black, .7 * _a);
-		draw_sprite_ext(spr_pixel_1x1, 0, _x + 15, _ly + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 3, 0, c_hred, .85 * _a);
-		draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_x + 15 + _bw + 3, _ly, string(_hpc) + "/" + string(_hpr));
-		var _mx = _x + 4 + _half;
-		draw_set_color(c_sblue); draw_set_alpha(.9 * _a); draw_text(_mx, _ly, "mp");
-		draw_sprite_ext(spr_pixel_1x1, 0, _mx + 11, _ly + 2, _bw, 3, 0, c_black, .7 * _a);
-		draw_sprite_ext(spr_pixel_1x1, 0, _mx + 11, _ly + 2, _bw * clamp(_mpc / max(1, _mpr), 0, 1), 3, 0, c_sblue, .85 * _a);
-		draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_mx + 11 + _bw + 3, _ly, string(_mpc) + "/" + string(_mpr));
+		var _rows = [[c_hred, "hp", _hpc, _hpr], [c_sblue, "mp", _mpc, _mpr]];
+		for (var _ri = 0; _ri < 2; _ri++) {
+			var _rw = _rows[_ri], _ly = _y + 12 + _ri * 8;
+			var _num = string(_rw[2]) + "/" + string(_rw[3]);
+			var _nw = string_width(_num);
+			var _bx = _x + 16, _bw = max(8, (_x + _w - 4 - _nw - 4) - _bx);
+			draw_set_color(_rw[0]); draw_set_alpha(.9 * _a); draw_text(_x + 4, _ly, _rw[1]);
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 2, _bw, 4, 0, c_black, .7 * _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 2, _bw * clamp(_rw[2] / max(1, _rw[3]), 0, 1), 4, 0, _rw[0], .85 * _a);
+			draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_x + _w - 4, _ly, _num); draw_set_halign(fa_left);
+		}
 	}
 	draw_set_alpha(1);
 };
@@ -236,10 +245,10 @@ row_h   = land ? 44 : 40;              // a trip's island (redone 2026-09-15: fo
 // render, the name, the region, the leg, the buttons), the crew's banners
 // under it; the quest's island and the diary on the right; the combat
 // window in the right column's bottom-right corner
-big_x = land ? 14 : 4; big_y = list_y + 22; big_w = land ? 150 : (room_width - 8); big_h = land ? 66 : 62;   // the render's box (the island runs on below it)
-isle_h = big_h + 66;                                                  // the island: the render, the name and region, the leg, the buttons
+big_x = land ? 14 : 4; big_y = land ? (list_y + 4) : (list_y + 22); big_w = land ? 150 : (room_width - 8); big_h = land ? 52 : 62;   // the render's box (the island runs on below it) - UP and tighter on a wide page (2026-09-15: four banners under it)
+isle_h = land ? (big_h + 36) : (big_h + 66);                          // the island: the render, the name, the region and the sky, the leg (wide: the buttons live in the right column's foot)
 log_x = land ? (big_x + big_w + 12) : 4; log_w = land ? (room_width - log_x - 12) : (room_width - 8);
-log_y = land ? big_y : (big_y + isle_h + 6 + EXPED_PARTY * 24 + 4);    // (portrait: the island and the banners come first)
+log_y = land ? big_y : (big_y + isle_h + 6 + exped_party_max() * (__dp_bh() + 2) + 4);    // (portrait: the island and the banners come first)
 fight_s = 80;        // the combat window's side (grown from 64 - his ask; the right column's bottom-right corner)
 wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothing spills past a rect; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
@@ -363,7 +372,7 @@ __crew_list = function() {
 // the trip page's buttons: a row UNDER the world box (his ask, 2026-09-15:
 // "move the crew/map buttons off the world panel"): [crew] [map] [abort]
 __trip_isle_r = function() { return { x : big_x, y : big_y, w : big_w, h : isle_h }; };
-__trip_btn_r = function(_k) { var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + isle_h - 18, w : _bw - 2, h : 13 }; };
+__trip_btn_r = function(_k) { if (land) return { x : log_x + _k * 64, y : room_height - 8 - 14, w : 60, h : 14 }; var _bw = floor((big_w - 8) / 3); return { x : big_x + 4 + _k * (_bw + 2), y : big_y + isle_h - 18, w : _bw - 2, h : 13 }; };   // (wide: the right column's foot - 2026-09-15)
 __trip_crew_r  = function() { return __trip_btn_r(0); };
 __trip_abort_r = function() { return __trip_btn_r(2); };
 __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : room_height - 8 - 16, w : 96, h : 16 }; };   // [view region], bottom right, once a region is picked
@@ -751,7 +760,7 @@ __log_r = function() {
 	if (view == "trip") {
 		var _t = __trip();
 		var _fighting = !is_undefined(_t) && (!is_undefined(_t.fight) || !is_undefined(rp));
-		var _yend = _fighting ? (room_height - 8 - fight_s - 6) : (room_height - 10);
+		var _yend = _fighting ? (__fight_r().y - 6) : (room_height - 8 - (land ? 18 : 2));   // (over the buttons' row on a wide page)
 		return { x : log_x, y : log_y + 42, w : log_w, h : _yend - (log_y + 42) };   // (under the quest's island)
 	}
 	if (view == "haul") { var _cw = land ? 224 : (room_width - 8), _lx = (land ? 14 : 4) + _cw + 12; return { x : _lx, y : list_y + 22 + 12, w : room_width - _lx - 14, h : room_height - 10 - (list_y + 22 + 12) }; }
@@ -761,7 +770,7 @@ gx_para = [];                        // the parallax backdrop's layers (built on
 __gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
 /// THE SHEET (2026-09-15: one painter - the crew page draws it in its rail's shadow, the preparation page as a modal): the sprite's whole sheet from (x0, y0) to x1, the rows laid into it_rects for the taps
-__draw_sheet = function(_sp, _x0, _y0, _x1) {
+__draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the sheet's foot (undefined = the page's)
 	var _ink = sett_ink, _dim = dim, _e = g.exped, _ea = g.ui_fade_a;
 	var _sh = sprite_sheet(_sp);
 	var _st = sprite_stats(_sp);
@@ -769,7 +778,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1) {
 	var _bal = cbt_balance();
 	var _w = _x1 - _x0;
 	// THE GROUND: black (the gradient came and went the same day - his call)
-	var _gh0 = room_height - 8 - _y0;
+	var _gh0 = (is_undefined(_y1) ? (room_height - 8) : _y1) - _y0;
 	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0, _w, _gh0, 0, c_black, .92);
 	draw_px_rect(_x0, _y0, _w, _gh0, _sp.col, .35);
 	// the header: the name, the class UNDER it (his ask), the personality
@@ -1075,7 +1084,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1) {
 	}
 };
 dp_sheet = -1;   // the sheet modal on the preparation page: the sprite shown (-1 = none)
-__dp_sheet_r = function() { var _x0 = land ? 58 : 4, _x1 = room_width - (land ? 58 : 4); return { x : _x0, y : list_y + 22, w : _x1 - _x0, h : room_height - 8 - (list_y + 22) }; };
+__dp_sheet_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : max(_l.h, room_height - 8 - _l.y) }; };   // (the mission box's rect, sat over it - his ask 2026-09-15; never shorter than the page allows)
 /// a press on the sheet's rows (it_rects, laid by __draw_sheet): the popup - or a popup up closes; true when the press was the sheet's
 __sheet_tap = function() {
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
@@ -1096,7 +1105,7 @@ tab_w = land ? 78 : 60; tab_h = 15;
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
 __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
 __recall_r = function() { return { x : log_x + log_w - 62, y : log_y + 4, w : 56, h : 12 }; };   // (in the quest island's corner)
-__fight_r  = function() { return { x : log_x + log_w - fight_s, y : room_height - 8 - fight_s, w : fight_s, h : fight_s }; };   // the combat window: the right column's bottom-right corner
+__fight_r  = function() { return { x : log_x + log_w - fight_s, y : room_height - 8 - (land ? 18 : 0) - fight_s, w : fight_s, h : fight_s }; };   // the combat window: the right column's bottom-right corner (over the buttons' row on a wide page)
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page
 __map_r = function() { var _x = land ? (14 + rg_box_w + 10) : 4; return { x : _x, y : list_y + 22, w : room_width - _x - (land ? 14 : 4), h : room_height - 8 - 14 - (list_y + 22) }; };   // (right of the info box - his ask, 2026-09-15)
@@ -1310,7 +1319,7 @@ __map_labels = function(_rg, _mr, _key) {
 __trip_map_r = function() { return __trip_btn_r(1); };
 // THE CREW'S BANNERS (his ask, 2026-09-15: under the world box): a row each
 // under the button row - dot, name, level, the hp bar (live in a fight)
-__crew_row_r = function(_k) { return { x : big_x, y : big_y + isle_h + 6 + _k * 24, w : big_w, h : 22 }; };   // the crew's banners under the island (the preparation page's)
+__crew_row_r = function(_k) { return { x : big_x, y : big_y + isle_h + 4 + _k * (__dp_bh() + 2), w : big_w, h : __dp_bh() }; };   // the crew's banners under the island (the preparation page's) - four fit (2026-09-15)
 /// THE ORBIT RENDERER (2026-09-15: "have all models of the planet match our
 /// main one... stars and all"): the sky (the real neighbourhood, the milky
 /// way, the sun - pv_sky), the world at (pcx, pcy) of the rect with radius
@@ -1441,7 +1450,7 @@ __sp_by_id = function(_id) {
 	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _id) return g.sprites[_i];
 	return undefined;
 };
-__step_r = function() { return { x : log_x, y : room_height - 8 - 14, w : 70, h : 14 }; };   // [step turn], under the fight's lines, left of the window
+__step_r = function() { return { x : log_x, y : room_height - 8 - 14 - (land ? 17 : 0), w : 70, h : 14 }; };   // [step turn], under the fight's lines, left of the window (over the buttons' row on a wide page)
 __col_r  = function() { return { x : (land ? 14 : 4) + 16, y : room_height - 8 - 16, w : 90, h : 16 }; };    // under the haul card, [send again] beside it
 __again_r = function() { return { x : (land ? 14 : 4) + 118, y : room_height - 8 - 16, w : 90, h : 16 }; };
 /// [SEND AGAIN] (his pick from the review, 2026-09-15: one tap, not five): this haul's crew, as they are, back to the same

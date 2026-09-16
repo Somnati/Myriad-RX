@@ -517,8 +517,14 @@ if (view == "depart") {
 	if (dp_sheet >= 0) {
 		if (__sheet_tap()) exit;
 		var _msr = __dp_sheet_r();
-		if (!point_in_rectangle(mouse_x, mouse_y, _msr.x, _msr.y, _msr.x + _msr.w, _msr.y + _msr.h)) { dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
-		exit;
+		if (point_in_rectangle(mouse_x, mouse_y, _msr.x, _msr.y, _msr.x + _msr.w, _msr.y + _msr.h)) exit;
+		// off the sheet: it closes, and the press goes on to whatever it hit
+		// (another banner opens its sheet in the same press - his ask
+		// 2026-09-15); [depart] under the box only closes it
+		dp_sheet = -1; it_pop = undefined; it_rects = [];
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+		var _dr0 = __depart_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _dr0.x, _dr0.y, _dr0.x + _dr0.w, _dr0.y + _dr0.h)) exit;
 	}
 	var _dr = __depart_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {

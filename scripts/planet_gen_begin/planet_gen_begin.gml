@@ -215,7 +215,7 @@ function planet_gen_begin(_seed, _hint = undefined) {
 				var _sl3 = sin(_cv * pi);
 				array_push(_cities, { x : _sl3 * cos(_cu * 2 * pi), y : cos(_cv * pi), z : _sl3 * sin(_cu * 2 * pi), r : random_range(.06, .12) });
 			}
-			if (array_length(_cities) > 0) { _civ = { cities : _cities }; _ps.cities = _cities; }
+			// (the cities are rolled - the stream holds - but never kept: no lights, no street grids; his call 2026-09-15)
 		}
 	}
 	rng_release(_rs);
