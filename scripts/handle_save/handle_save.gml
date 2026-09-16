@@ -505,9 +505,18 @@ function handle_save(){
 			for (var _k = 0; _k < array_length(_pp); _k++) {
 				var _f = string_split(_pp[_k], "/");
 				if (array_length(_f) < 9) continue;
-				// the id: the record's own (field 25), or - a save from before it
-				// was kept - a fresh one; sprite_seq stays the high-water mark
-				var _sid = (array_length(_f) > 25 && _f[25] != "") ? real(_f[25]) : g.sprite_seq++;
+				// THE TAIL, FROM THE END (his crash 2026-09-16: "unable to convert string '' to number" at field 26): the
+				// sheet between the head and the tail GREW (notes, learned, elixirs, the title) while the id / hpf / mpf /
+				// resting stayed read at 25..28 - the id read the learned skills, hpf the elixirs. The packer appends the
+				// four LAST, so they are the last four; a save from before the naps (2026-09-15 morning) ends with the id
+				// alone - told apart by its last field not being a 0/1 flag. An id already taken in this load is re-dealt
+				// (the misread left every sprite at 0 in the saves between).
+				var _nf = array_length(_f), _last = _f[_nf - 1];
+				var _tail4 = (_nf >= 18 + 6 + 4 && (_last == "0" || _last == "1"));
+				var _idf = _tail4 ? _f[_nf - 4] : ((_nf > 25) ? _f[_nf - 1] : "");
+				var _hpf = _tail4 ? _f[_nf - 3] : "", _mpf = _tail4 ? _f[_nf - 2] : "", _rsf = _tail4 ? _last : "0";
+				var _sid = (_idf != "" && string_digits(_idf) == _idf) ? real(_idf) : g.sprite_seq++;
+				for (var _q = 0; _q < array_length(g.sprites); _q++) if (g.sprites[_q].id == _sid) { _sid = g.sprite_seq++; break; }
 				g.sprite_seq = max(g.sprite_seq, _sid + 1);
 				array_push(g.sprites, {
 					id : _sid, name : _f[0], col : real(_f[1]), pers : real(_f[2]),
@@ -525,9 +534,9 @@ function handle_save(){
 				// the sheet, from field 18 on (a save from before: a fresh one, sprite_sheet)
 				sprite_sheet_unpack(g.sprites[array_length(g.sprites) - 1], _f, 18);
 				var _nsp = g.sprites[array_length(g.sprites) - 1];
-				_nsp.hpf = (array_length(_f) > 26) ? clamp(real(_f[26]), 0, 1) : 1;
-				_nsp.mpf = (array_length(_f) > 27) ? clamp(real(_f[27]), 0, 1) : 1;
-				_nsp.resting = (array_length(_f) > 28) ? (_f[28] == "1") : false;
+				_nsp.hpf = (_hpf != "") ? clamp(real(_hpf), 0, 1) : 1;
+				_nsp.mpf = (_mpf != "") ? clamp(real(_mpf), 0, 1) : 1;
+				_nsp.resting = (_rsf == "1");
 				if (real(_law) < SPRITE_XP_LAW) { var _rsh = sprite_sheet(g.sprites[array_length(g.sprites) - 1]); _rsh.lv = 1; _rsh.xp = 0; }
 			}
 		}
