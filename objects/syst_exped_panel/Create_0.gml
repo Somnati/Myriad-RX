@@ -775,6 +775,12 @@ gx_para = [];                        // the parallax backdrop's layers (built on
 __gx_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
 // the departure window: the crew chips left, the brief right, [depart] under the brief
 /// THE SHEET (2026-09-15: one painter - the crew page draws it in its rail's shadow, the preparation page as a modal): the sprite's whole sheet from (x0, y0) to x1, the rows laid into it_rects for the taps
+/// a name cut with ".." to `avail` px in the font that is set (the popup says it whole)
+__sheet_cut = function(_nm, _avail) {
+	if (string_width(_nm) <= _avail) return _nm;
+	while (string_width(_nm + "..") > _avail && string_length(_nm) > 2) _nm = string_copy(_nm, 1, string_length(_nm) - 1);
+	return _nm + "..";
+};
 __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the sheet's foot (undefined = the page's)
 	var _ink = sett_ink, _dim = dim, _e = g.exped, _ea = g.ui_fade_a;
 	var _sh = sprite_sheet(_sp);
@@ -825,7 +831,9 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _tt = _e.trips[_t];
 		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) { _hpc = floor(min(_hpr, _tt.hp[_k])); if (is_array(_tt[$ "mp"]) && _k < array_length(_tt.mp)) _mpc = round(_mpr * _tt.mp[_k]); }
 	}
-	var _by = _hy + 28, _bw = land ? 150 : (_w - 16);
+	// (the left column CONDENSED, his call 2026-09-16: bars 106, the stats on a
+	// 64 px pitch, so the gear column starts at x0+140 and its names read whole)
+	var _by = _hy + 28, _bw = land ? 106 : (_w - 16);
 	// (the hp / mp rows and every stat are taps: what the stat does - his ask, 2026-09-15)
 	var _hlw = _bw + 20;
 	if (is_struct(it_pop) && it_pop[$ "st"] == "hp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by - 1, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by - 1, _hlw, 10, c_white, .45); }
@@ -846,24 +854,24 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _labels = ["atk", "def", "int", "res", "spd", "hit"];
 	var _gy = _by + 26;
 	for (var _k = 0; _k < 6; _k++) {
-		var _cx = _hx + (_k mod 2) * (land ? 84 : 80), _cy = _gy + (_k div 2) * 11;
-		array_push(it_rects, { x : _cx - 2, y : _cy - 1, w : 80, h : 10, st : _keys[_k] });
-		if (is_struct(it_pop) && it_pop[$ "st"] == _keys[_k]) { draw_sprite_ext(spr_pixel_1x1, 0, _cx - 2, _cy - 1, 80, 10, 0, c_white, .1); draw_px_rect(_cx - 2, _cy - 1, 80, 10, c_white, .45); }
+		var _cx = _hx + (_k mod 2) * (land ? 64 : 80), _cy = _gy + (_k div 2) * 11, _cw = land ? 62 : 80;
+		array_push(it_rects, { x : _cx - 2, y : _cy - 1, w : _cw, h : 10, st : _keys[_k] });
+		if (is_struct(it_pop) && it_pop[$ "st"] == _keys[_k]) { draw_sprite_ext(spr_pixel_1x1, 0, _cx - 2, _cy - 1, _cw, 10, 0, c_white, .1); draw_px_rect(_cx - 2, _cy - 1, _cw, 10, c_white, .45); }
 		draw_set_color(_dim); draw_set_alpha(.8);
 		draw_text(_cx, _cy, _labels[_k]);
 		draw_set_halign(fa_right);
 		draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
-		draw_text(_cx + 58, _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
+		draw_text(_cx + (land ? 40 : 58), _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
 		draw_set_font(fnt); draw_set_halign(fa_left);
 		var _g = _st.gear[$ _keys[_k]];
-		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + 62, _cy, "+" + string_format(_g, 1, 1)); }
+		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + (land ? 43 : 62), _cy, "+" + string_format(_g, 1, 1)); }
 	}
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(_hx, _gy + 34, "crit " + string(_c.crit) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%");   // (the basics / points line went - his ask, 2026-09-15)
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(_hx, _gy + 44, "mood  -  " + _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name);
 	// the equipment (the Disgaea list): slot - item
-	var _ex = land ? (_x0 + 182) : _hx, _ey = land ? (_by) : (_gy + 48);   // (the column moved left - his ask: long names fell off the edge)
+	var _ex = land ? (_x0 + 140) : _hx, _ey = land ? (_by) : (_gy + 48);   // (the column moved left - his ask: long names fell off the edge)
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_ex, _ey - 11, "equip");
 	var _rows = [];
@@ -880,13 +888,12 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _x1 - 8 - _ex, 11, 0, c_white, .1); draw_px_rect(_ex, _ry - 1, _x1 - 8 - _ex, 11, c_white, .45); }
 		draw_set_color(_dim); draw_set_alpha(.8);
 		draw_text(_ex + 3, _ry + 1, _rw.lbl);
-		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 46, _ry + 1, "(none)"); }
+		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 40, _ry + 1, "(none)"); }
 		else {
 			// a long name is cut with ".." to the room before the level tag (the popup says it whole)
-			var _nm = _rw.it.name, _navail = (_x1 - 11 - 20) - (_ex + 46);
-			if (string_width(_nm) > _navail) { while (string_width(_nm + "..") > _navail && string_length(_nm) > 2) _nm = string_copy(_nm, 1, string_length(_nm) - 1); _nm += ".."; }
+			var _nm = __sheet_cut(_rw.it.name, (_x1 - 11 - 16) - (_ex + 40));
 			draw_set_color(_rw.it.col); draw_set_alpha(.95);
-			draw_text(_ex + 46, _ry + 1, _nm);
+			draw_text(_ex + 40, _ry + 1, _nm);
 			draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6);
 			draw_text(_x1 - 11, _ry + 1, "lv" + string(_rw.it.lv));
 			draw_set_halign(fa_left);
@@ -897,7 +904,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _ky = _gy + 58;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_hx, _ky, "skills");
-	var _skw = land ? 168 : (_w - 16);
+	var _skw = land ? 128 : (_w - 16);
 	for (var _i = 0; _i < array_length(_sk); _i++) {
 		var _s = _sk[_i];
 		var _ly = _ky + 11 + _i * 11;
@@ -917,7 +924,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _pn = min(array_length(_sh.inv), 4);
 	for (var _i = 0; _i < _pn; _i++) {
 		if (is_struct(it_pop) && it_pop[$ "it"] == _sh.inv[_i]) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _py + 9 + _i * 9, _x1 - 8 - _ex, 9, 0, c_white, .1); draw_px_rect(_ex, _py + 9 + _i * 9, _x1 - 8 - _ex, 9, c_white, .45); }
-		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6); draw_text(_ex + 4, _py + 10 + _i * 9, _sh.inv[_i].name);
+		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.6); draw_text(_ex + 4, _py + 10 + _i * 9, __sheet_cut(_sh.inv[_i].name, _x1 - 12 - (_ex + 4)));   // (cut to the column - one drew off the box, his report 2026-09-16)
 		array_push(it_rects, { x : _ex, y : _py + 9 + _i * 9, w : _x1 - 8 - _ex, h : 9, it : _sh.inv[_i], worn : false });
 	}
 	if (array_length(_sh.inv) > _pn) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 4, _py + 10 + _pn * 9, "...and " + string(array_length(_sh.inv) - _pn) + " more"); }

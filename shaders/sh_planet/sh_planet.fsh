@@ -67,6 +67,14 @@ float height_at(vec3 n)
     return texture2D(u_height, sphere_uv(to_tex(n), u_tsize)).r;
 }
 
+// the height at a map coordinate, the texel's own (wrapping in u, clamped at the poles)
+float h_uv(vec2 uv)
+{
+    uv.x = fract(uv.x);
+    uv.y = clamp(uv.y, 0.0, 1.0);
+    return texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize).r;
+}
+
 float cloud_at(vec3 n, vec2 ts)
 {
     vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
@@ -229,26 +237,45 @@ void main()
         float bumpl = 0.0;
         float shadow = 0.0;
         if (u_relief > 0.0005 && u_bump > 0.001) {
-            h0 = height_at(n);
-            float e = 1.0 / max(u_tsize.x, 8.0);
-            vec3 txr = cross(vec3(0.0, 1.0, 0.0), n);
-            vec3 tx = (length(txr) < 0.001) ? vec3(1.0, 0.0, 0.0) : normalize(txr);
-            vec3 ty = normalize(cross(n, tx));
-            float hx = height_at(normalize(n + tx * e)) - height_at(normalize(n - tx * e));
-            float hy = height_at(normalize(n + ty * e)) - height_at(normalize(n - ty * e));
-            float k = u_relief * 22.0 * u_bump;
-            nn = normalize(n - tx * hx * k - ty * hy * k);
+            // PER TEXEL (2026-09-16, his report: "very jittery when panning"):
+            // the slope's taps sat a sixth of a texel apart and the shadow's
+            // march inside one, so what a pixel read depended on where in its
+            // texel the sample fell - and that drifts with every camera move.
+            // Now the neighbours are a whole texel away in the map's own grid
+            // and the march starts at the texel's centre: a texel's shading is
+            // its own and changes only at a texel boundary, as the colour does.
+            // It all happens in TEXTURE space (the world's rotation off through
+            // to_tex, back on through u_rot's transpose - a rotation's inverse)
+            vec3 t0 = to_tex(n);
+            vec2 uv0 = vec2(atan(t0.z, t0.x) / 6.2831853 + 0.5, acos(clamp(t0.y, -1.0, 1.0)) / 3.14159265);
+            vec2 uvc = (floor(uv0 * u_tsize) + 0.5) / u_tsize;
+            vec2 du = vec2(1.0 / u_tsize.x, 0.0), dv = vec2(0.0, 1.0 / u_tsize.y);
+            h0 = h_uv(uvc);
+            float hx = h_uv(uvc + du) - h_uv(uvc - du);
+            float hy = h_uv(uvc + dv) - h_uv(uvc - dv);
+            // the texel's frame: +u east along the parallel, +v south along the meridian
+            vec3 tur = vec3(-t0.z, 0.0, t0.x);
+            vec3 tu = (length(tur) < 0.001) ? vec3(0.0, 0.0, 1.0) : normalize(tur);
+            vec3 tv = normalize(cross(t0, tu));
+            float k = u_relief * 13.0 * u_bump;
+            vec3 nt = normalize(t0 - tu * hx * k - tv * hy * k);
+            nn = normalize(u_rot[0] * nt.x + u_rot[1] * nt.y + u_rot[2] * nt.z);
             bumpl = dot(nn, u_light) - dot(n, u_light);
-            // the self-shadow: the sun's rise per unit of ground, against the ground ahead
+            // the self-shadow: from the texel's centre, a texel a step along the
+            // sun; the sun's rise per unit of ground, against the ground ahead
             float el = dot(n, u_light);
             if (el > 0.02) {
+                float th = uvc.y * 3.14159265, ph = (uvc.x - 0.5) * 6.2831853;
+                vec3 tc = vec3(sin(th) * cos(ph), cos(th), sin(th) * sin(ph));
+                vec3 lt = to_tex(u_light);
                 float cs = sqrt(max(0.0, 1.0 - el * el));
                 float rise = el / max(cs, 0.08);
+                float tx1 = 6.2831853 / u_tsize.x;
                 for (int i = 1; i <= 5; i++) {
-                    float sd = e * float(i) * 1.7;
-                    vec3 sp = normalize(n + u_light * sd);
+                    float sd = tx1 * float(i);
+                    vec3 sp = normalize(tc + lt * sd);
                     float hr = h0 + (sd / u_relief) * rise;
-                    float ht = height_at(sp);
+                    float ht = texture2D(u_height, sphere_uv(sp, u_tsize)).r;
                     shadow = max(shadow, clamp((ht - hr) * 6.0, 0.0, 1.0));
                 }
             }
