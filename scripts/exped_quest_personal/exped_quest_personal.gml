@@ -41,13 +41,13 @@ function exped_quest_personal(_tr, _q, _rg) {
 			break;
 		}
 		case "defend": case "well": case "cellars": {
-			var _pp = region_node_info(_d, _rg, _q.node);
-			var _eld = is_struct(_pp[$ "folk"]) ? _pp.folk.elder : "the elder";
+			var _ldq = region_node_leader(_d, _rg, _q.node);   // (the leader of the day asks - 2026-09-16)
+			var _eld = is_struct(_ldq) ? (_ldq.name + " the " + _ldq.title) : "the elder";
 			if (_q.kind == "cellars") {
 				var _wf = foe_kinds_at((array_length(_dung) > 0) ? _rg.nodes[_dung[irandom(array_length(_dung) - 1)]].kind : "marsh");
 				_p = { kind : "well", node : _q.node, foe : _wf[irandom(array_length(_wf) - 1)], n : 1, mult : 4, who : "the thing in the well" };
 			} else _p = { kind : "cellars", node : _q.node, foe : choose("rat", "rat", "flea", "musca"), n : irandom_range(3, 5), mult : 3 };
-			_note = _eld + " the elder asks it and " + _rg.nodes[_q.node].name + " pays half again";
+			_note = _eld + " asks it and " + _rg.nodes[_q.node].name + " pays half again";
 			break;
 		}
 		default: return "";

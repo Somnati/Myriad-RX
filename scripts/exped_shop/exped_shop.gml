@@ -35,7 +35,9 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		else _sign = choose("goods", "wares", "things", "sundries", "everything", "bits and pieces") + " " + choose("and more", "of quality", "for sale", "and such", "at prices");
 		// THE PLACE'S OWN SHOP (the recurring folk, 2026-09-16): the papers name the keeper and the sign, the same on every visit
 		var _ppk = region_node_info(_tr.dest, _rg, _tr.pos);
-		var _keeper = is_struct(_ppk[$ "folk"]) ? _ppk.folk.keeper : exped_npc_name();
+		var _fk = region_node_folk(_tr.dest, _rg, _tr.pos);   // (the keeper of the day - terms of years, 2026-09-16)
+		var _keeper = is_struct(_fk) ? _fk.keeper.name : exped_npc_name();
+		var _newk = is_struct(_fk) && _fk.keeper.days < 30;
 		if (is_struct(_ppk[$ "shop"])) _sign = _ppk.shop.sign;
 		// THE STOCK, laid out once: every member sees the same shelf
 		// THE SHELF REMEMBERED (the world remembers, 2026-09-16): as it was left last time, sold gaps and all, until the restock
@@ -61,7 +63,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		}
 		var _shop = { sign : _sign, keeper : _keeper, stock : _stock, bought : 0, mem_left : (is_struct(_shm) && _remembered) ? _shm.left : 0 };
 		if (is_struct(_a)) _a.shop = _shop; else { _a = { shop : _shop }; }
-		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does") + (_remembered ? choose(". the shelf is as they left it", ". the same things on the shelf, less what went", ". nothing new on the shelf yet") : "") + ((_fair && !_remembered) ? ". the fair is on: the shelf is twice itself" : ""));
+		array_push(_tr.log, "the shop in " + _nd.name + ": " + _sign + ". " + choose(_keeper + " keeps it", _keeper + " behind the counter", "a sprite called " + _keeper + " and a cat", _keeper + ", who does not look up", "kept by " + _keeper + ", who does") + (_remembered ? choose(". the shelf is as they left it", ". the same things on the shelf, less what went", ". nothing new on the shelf yet") : "") + ((_fair && !_remembered) ? ". the fair is on: the shelf is twice itself" : "") + (_newk ? (". new behind the counter - it was " + _fk.keeper.prev + "'s until " + _fk.keeper.prev + " " + _fk.keeper.went) : ""));
 		if (_phase == "open") return;
 	}
 	var _shop2 = is_struct(_a) ? _a[$ "shop"] : undefined;
@@ -77,6 +79,8 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _hag = (_pn == "greedy" || _pn == "sly") ? -1 : ((_pn == "kind") ? 1 : 0);
 		if (sprite_note_has(_sp, "shop")) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
 		if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _hag -= 1;   // (a grateful town: a credit off - the world remembers)
+		var _ldh = region_node_leader(_tr.dest, _rg, _tr.pos);   // (the leader's word on prices: fair a credit off, greedy one on - 2026-09-16)
+		if (is_struct(_ldh)) { if (_ldh.trait == "fair") _hag -= 1; else if (_ldh.trait == "greedy") _hag += 1; }
 		// the best thing on the shelf for this one, by its own eye
 		var _best = -1, _bgain = 0;
 		for (var _s = 0; _s < array_length(_stock2); _s++) {

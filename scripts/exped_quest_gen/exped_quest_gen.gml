@@ -100,7 +100,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			}
 			case "escort": {
 				var _a = _pick(_civ), _b = _other(_civ, _a);
-				_q = { kind : "escort", node : _b, from : _a, foe : "bandit", n : 1, mult : 3, who : region_node_info(_d, _rg, _a).folk.trader + " the merchant" };   // (the town's own trader - the recurring folk, 2026-09-16)
+				_q = { kind : "escort", node : _b, from : _a, foe : "bandit", n : 1, mult : 3, who : region_node_folk(_d, _rg, _a).trader.name + " the merchant" };   // (the town's own trader - the recurring folk, 2026-09-16)
 				break;
 			}
 			case "fetch": {
@@ -112,7 +112,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 			}
 			case "rescue": {
 				var _a = _pick(array_concat(_dung, _dung, _wild)), _b = _pick(_civ);
-				_q = { kind : "rescue", node : _b, from : _a, foe : "", n : 1, mult : 4, who : region_node_info(_d, _rg, _b).folk.other };   // (somebody of the town they go home to)
+				_q = { kind : "rescue", node : _b, from : _a, foe : "", n : 1, mult : 4, who : region_node_folk(_d, _rg, _b).other.name };   // (somebody of the town they go home to)
 				break;
 			}
 			case "defend": _q = { kind : "defend", node : _pick(_civ), foe : choose("goblin", "bandit", "lupus", "rat", "kobold", "apero", "vespae"), n : irandom_range(2, 3), mult : 4 }; break;
@@ -165,7 +165,7 @@ function exped_quest_gen(_d, _salt = 0, _ri = 0, _easy = false) {
 				       who : choose("geese", "chimneys", "crows", "stones with faces on", "dogs", "gates", "wells", "hats", "ducks", "bells", "scarecrows", "cats on walls") };
 				break;
 			}
-			case "shop": { var _nsh = _pick(_shopc); _q = { kind : "shop", node : _nsh, foe : "", n : 3, mult : 3, who : region_node_info(_d, _rg, _nsh).folk.keeper }; break; }   // (the shop's own keeper)
+			case "shop": { var _nsh = _pick(_shopc); _q = { kind : "shop", node : _nsh, foe : "", n : 3, mult : 3, who : region_node_folk(_d, _rg, _nsh).keeper.name }; break; }   // (the shop's own keeper)
 			case "nothing": _q = { kind : "nothing", node : _pick(_wild), foe : "", n : 4, mult : 2 }; break;
 			case "cellars": _q = { kind : "cellars", node : _pick(_civ), foe : choose("rat", "rat", "flea", "musca"), n : irandom_range(3, 5), mult : 3 }; break;
 			case "well": {

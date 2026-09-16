@@ -16,11 +16,11 @@
 ///   the wild  the going, what is found, its foes
 /// and a LORE line for every one. Cached as node.card (the region is
 /// cached itself - region_get - so this is once a session a node).
-/// THE FOLK (2026-09-16): card.folk = { elder, other, keeper, trader } - four
-/// names of the node's own, and card.shop = { sign } on a settled place; the
-/// shop, the quests and the town's acts name THESE, so the same people turn
-/// up trip after trip. (region_papers_all warms every node before a seeded
-/// deal reads them - the name roll leaves through rng_release.)
+/// THE FOLK: card.folk = { elder, other, keeper, trader } were four names of
+/// the node's own (2026-09-16, morning) - SUPERSEDED the same day by
+/// region_node_leader (the leader, on a term of months) and region_node_folk
+/// (the keeper / trader / other, on terms of years), both hashed off the
+/// wall clock with nothing saved; the rolls stay so the sign reads as it did.
 function region_node_info(_d, _rg, _ni) {
 	var _nd = _rg.nodes[_ni];
 	if (is_struct(_nd[$ "card"])) return _nd.card;
@@ -134,7 +134,7 @@ function region_node_info(_d, _rg, _ni) {
 		}
 		case "camp": {
 			array_push(_rows, { k : "bandits", v : _pick(["a handful", "a dozen", "a score", "more than a score", "fewer than they say"], 1, _seed, _base), col : c_hred });
-			array_push(_rows, { k : "led by", v : _n1 + " the " + _pick(["red", "quiet", "one-eyed", "tall", "smiling", "hungry", "younger", "left-handed", "bald", "kind, once"], 2, _seed, _base), col : undefined });
+			// (the chief is region_node_leader's now - a month or two each, bounty hunters being what they are; 2026-09-16)
 			_facv = _n1 + "'s bandits"; _foev = "bandit";
 			array_push(_rows, { k : "chest", v : _pick(["light", "heavy", "rumoured full", "buried, they say", "two of them"], 3, _seed, _base), col : c_gold });
 			_desc = "tents " + _pick(["in a hollow", "under the trees", "on a spur above the road", "in a ruined steading", "behind a palisade", "in an old quarry"], 5, _seed, _base) + "; " + _pick(["a lookout on a rock", "smoke by day, fires by night", "dogs", "carts they took, stripped to the axles", "a flag that used to be a shirt", "the smell of roasting goat"], 6, _seed, _base);

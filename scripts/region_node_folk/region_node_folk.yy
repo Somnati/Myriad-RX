@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_node_folk",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_node_folk",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

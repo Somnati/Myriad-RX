@@ -101,7 +101,9 @@ function exped_node_event(_tr, _again = false) {
 		for (var _pi = 0; _pi < array_length(_tr.sids); _pi++) if (_tr.hp[_pi] > 0) array_push(_plan, { k : "shop_buy", i : _pi, t : .35 });
 		array_push(_plan, { k : "shop_close", t : .25 });
 		var _evp = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _fairp = (is_struct(_evp) && _evp.kind == "fair" && _evp.node == _tr.pos);   // (the fair: the tavern always, a linger more - 2026-09-16)
-		if ((_fairp || roll_perc(((_tr.mode == "explore") ? 45 : 25) * _stn.tavern)) && is_undefined(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred"))) array_push(_plan, { k : "tavern", t : 1.2 });   // (not while barred - the world remembers)
+		var _ldp = region_node_leader(_tr.dest, _rg, _tr.pos), _tvo = 1;   // (a pious leader keeps the tavern quiet, a drunk one does not - 2026-09-16)
+		if (is_struct(_ldp)) _tvo = (_ldp.trait == "pious") ? .6 : ((_ldp.trait == "drunk") ? 1.5 : 1);
+		if ((_fairp || roll_perc(((_tr.mode == "explore") ? 45 : 25) * _stn.tavern * _tvo)) && is_undefined(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred"))) array_push(_plan, { k : "tavern", t : 1.2 });   // (not while barred - the world remembers)
 		if (_fairp) array_push(_plan, { k : "linger", t : 1 });
 		repeat (1 + (roll_perc(40) ? 1 : 0)) array_push(_plan, { k : "linger", t : random_range(.5, 1.5) });
 		var _night2 = (_tr[$ "night"] ?? false);
@@ -117,7 +119,8 @@ function exped_node_event(_tr, _again = false) {
 			// THE WORLD REMEMBERS (2026-09-16): a camp routed lately is ashes - nobody home
 			var _rmm = exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed");
 			if (is_struct(_rmm)) { _tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 }; array_push(_tr.log, "the camp at " + _nd.name + ": " + choose("cold ashes and a boot. nobody home", "burnt poles, a pot, no bandits", "empty since they burned it. a crow has it now")); break; }
-			_tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name); exped_say(_tr, "camp", undefined, .5); break;
+			var _ldcc = region_node_leader(_tr.dest, _rg, _tr.pos);   // (the chief of the month - 2026-09-16)
+			_tr.act = { kind : "camp",  left : EXPED_ROOM_T * .5, steps : 2 }; array_push(_tr.log, "the camp at " + _nd.name + (is_struct(_ldcc) ? (" - " + _ldcc.name + " the " + _ldcc.title + "'s, " + _ldcc.trait + ((_ldcc.days < 7) ? ", new since " + _ldcc.prev[0].name + " " + _ldcc.prev[0].went : "")) : "")); exped_say(_tr, "camp", undefined, .5); break;
 		}
 		case "mine":    _tr.act = { kind : "mine",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;

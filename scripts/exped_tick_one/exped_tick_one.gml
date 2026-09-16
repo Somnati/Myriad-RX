@@ -52,7 +52,8 @@ function exped_tick_one(_tr, _dt) {
 			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight
 			if (is_struct(_tr.act) && _tr.act.kind == "camp" && (_tr.act[$ "loot"] ?? false)) {
-				var _cr = 2 + irandom(2) + _tr.dest.tier;
+				var _ldx = region_node_leader(_tr.dest, exped_region(_tr), _tr.pos);   // (a careless chief: a fatter chest - 2026-09-16)
+				var _cr = 2 + irandom(2) + _tr.dest.tier + ((is_struct(_ldx) && _ldx.trait == "careless") ? 2 : 0);
 				_tr.credits += _cr; exped_tally(_tr, "earned", _cr);
 				exped_stat("camps");
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");

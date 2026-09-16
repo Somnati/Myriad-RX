@@ -1367,6 +1367,16 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 	var _pp = region_node_info(_d, _rg, _ni);
 	var _rows = [];
 	for (var _ri = 0; _ri < array_length(_pp.rows); _ri++) array_push(_rows, _pp.rows[_ri]);
+	// THE LEADER of the day, the two before, the best remembered (region_node_leader - the wall clock, nothing saved; 2026-09-16)
+	var _ld = region_node_leader(_d, _rg, _ni);
+	if (is_struct(_ld)) {
+		array_push(_rows, { k : _ld.camp ? "chief" : "led by", v : _ld.name + " the " + _ld.title + " (" + _ld.trait + ", " + string(floor(_ld.days)) + "d)", col : c_gold });
+		array_push(_rows, { k : "before", v : _ld.prev[0].name + " (" + _ld.prev[0].went + ")", col : undefined });
+		array_push(_rows, { k : "", v : _ld.prev[1].name + " (" + _ld.prev[1].went + ")", col : undefined });
+		if (!_ld.camp) array_push(_rows, { k : "best", v : _ld.best.name + ((_ld.best.back == 0) ? " (now)" : ((_ld.best.back == 1) ? " (the last)" : (" (" + string(_ld.best.back) + " back)"))), col : c_sgreen });
+	}
+	var _fkc = region_node_folk(_d, _rg, _ni);
+	if (is_struct(_fkc)) array_push(_rows, { k : "folk", v : _fkc.keeper.name + " (shop), " + _fkc.trader.name + " (trade)", col : undefined });
 	if (!_kd.civ && _nd.kind != "landing" && _nd.kind != "shrine" && _nd.kind != "mine") {
 		// (only the foes you have MET are named - the bestiary's ledger; the rest is "unmet", 2026-09-16)
 		var _fk = foe_kinds_at(_nd.kind), _ft = "", _unk = 0;

@@ -15,7 +15,8 @@ function exped_quest_after(_tr) {
 	if (_tn >= 0 && _tn < array_length(_rg.nodes)) {
 		var _kd = _kk[$ _rg.nodes[_tn].kind];
 		if (is_struct(_kd) && _kd.civ) {
-			exped_mem_set(_tr.dest, _ri, _tn, "grateful", 168);
+			var _ldg = region_node_leader(_tr.dest, _rg, _tn);   // (a beloved leader's town remembers twice as long - 2026-09-16)
+			exped_mem_set(_tr.dest, _ri, _tn, "grateful", (is_struct(_ldg) && _ldg.trait == "beloved") ? 336 : 168);
 			array_push(_tr.log, _rg.nodes[_tn].name + " will remember this. " + choose("a bed there is on the house, for a while", "the shop's prices are kinder, for a while", "there will be a bed and a kind word next time", "the elder said so, in front of everyone"));
 		}
 	}

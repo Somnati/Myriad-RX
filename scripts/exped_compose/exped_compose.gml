@@ -9,6 +9,7 @@
 ///   wild      a crossing of the open land (the "wild" activity)
 ///   rumour    the tavern's talk: an [article adjective noun] that [does]
 ///   camp      an evening at a fire (spare: for the beats that want one)
+///   leader    the town's talk of its leaders: the one before, the one now, the best they had, two back (region_node_leader; 2026-09-16)
 function exped_compose(_kind, _tr) {
 	var _n = array_length(_tr.sids);
 	var _up = [];
@@ -26,6 +27,19 @@ function exped_compose(_kind, _tr) {
 	              " and that was the afternoon", ". it is written down somewhere", " and was not sorry", ". twice", " and would do it again", ". a good hour"];
 	var _tail = _tails[irandom(array_length(_tails) - 1)];
 	switch (_kind) {
+		case "leader": {
+			var _ld = region_node_leader(_tr.dest, _rg, _tr.pos);
+			if (!is_struct(_ld)) return exped_compose("linger", _tr);
+			var _who = choose("an old woman", "the keeper", "two farmers", "a child", "the smith", "a man with a goose", "somebody at the well", "the whole tavern", "a clerk", "the ferryman");
+			var _p0 = _ld.prev[0], _p1 = _ld.prev[1], _bk = _ld.best.back;
+			var _bw = (_bk == 0) ? "the one they have now" : ((_bk == 1) ? "the last one" : ((_bk == 2) ? "the one before the last" : (string(_bk) + " " + _ld.title + "s back")));
+			switch (irandom(3)) {
+				case 0: return _who + " " + choose("still leaves a candle for " + _p0.name, "does not say " + _p0.name + "'s name", "says " + _p0.name + " " + _p0.went + " and good riddance", "misses " + _p0.name + ", who was " + _p0.trait, "says " + _p0.name + " was robbed", "told " + _nm + " the whole story of how " + _p0.name + " " + _p0.went);
+				case 1: return _who + " " + choose("thinks " + _ld.name + " is " + _ld.trait + " and says so", "has not made up their mind about " + _ld.name, "voted for " + _ld.name + " and will not say why", "says " + _ld.name + " the " + _ld.title + " is " + _ld.trait + ", like the last one", "asked " + _nm + " what they thought of " + _ld.name + ". " + _nm + " had no thought");
+				case 2: return _who + " says the best " + _ld.title + " they ever had was " + _ld.best.name + " - " + _bw + choose(". nobody argued", ". everybody argued", ". " + _nm + " nodded", ". it is on a plaque");
+				default: return _who + " " + choose("remembers " + _p1.name + ", two " + _ld.title + "s back, who " + _p1.went, "says it was better under " + _p1.name, "cannot remember " + _p1.name + " at all", "has a song about " + _p1.name + ". it is not a kind song");
+			}
+		}
 		case "linger": {
 			var _subj = choose(_nm, _nm, _nm, _nm2, "the crew", "somebody", "half of them");
 			var _pred = choose("watched a dog steal a sausage", "argued with a fence-post", "bought a pie that was mostly gravy", "fed the geese",

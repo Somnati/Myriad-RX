@@ -11,7 +11,8 @@ function exped_villain_card(_d, _ri, _rg, _stage) {
 		case 1: {
 			if (_cn.kind == "camp") _p = { kind : "rout", node : _v.camp, foe : "bandit", n : 2, mult : 4 };
 			else _p = { kind : "slay", node : _v.camp, foe : _v.foe, n : 4, mult : 4 };
-			_note = _v.name + "'s lieutenant holds " + _cn.name + ". the first thread";
+			var _ch = region_node_leader(_d, _rg, _v.camp);   // (the chief of the month is the lieutenant - 2026-09-16)
+			_note = (is_struct(_ch) ? (_ch.name + " the " + _ch.title + ", " + _v.name + "'s lieutenant, holds ") : (_v.name + "'s lieutenant holds ")) + _cn.name + ". the first thread";
 			break;
 		}
 		case 2: {

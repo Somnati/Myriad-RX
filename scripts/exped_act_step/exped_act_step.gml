@@ -27,7 +27,17 @@ function exped_act_step(_tr) {
 			var _eva = region_event(_tr.dest, _rgi_a);
 			if (is_struct(_eva) && _eva.node == _tr.pos && _eva.kind == "fair") _memt += choose(". the fair is on: stalls, geese, a man on stilts", ". the fair is on. everything costs more and is worth it", ". the fair: bunting, a pig on a rope, three bands at once");
 			else if (is_struct(_eva) && _eva.node == _tr.pos && _eva.kind == "rats") _memt += choose(". rats in every gutter", ". the rats have the run of the place", ". a rat on the well-beam, watching");
-			array_push(_tr.log, _nd.name + " - " + _pp.desc + _memt);
+			// THE LEADER (2026-09-16): named on arrival with a word; new in the chair the first fortnight; the bells when the term turned since this crew last stood here
+			var _lda = region_node_leader(_tr.dest, _rg, _tr.pos), _ldt = "";
+			if (is_struct(_lda)) {
+				if (!is_struct(_tr[$ "lk"])) _tr.lk = {};
+				var _lkk = string(_tr.pos), _lkw = _tr.lk[$ _lkk] ?? _lda.k;
+				_tr.lk[$ _lkk] = _lda.k;
+				if (_lkw != _lda.k) _ldt = ". the bells: " + _lda.prev[0].name + " " + _lda.prev[0].went + ". " + _lda.name + " is " + _lda.title + " now";
+				else _ldt = ". under " + _lda.name + " the " + _lda.title + ", who is " + _lda.trait + ((_lda.days < 14) ? " and new in the chair" : "");
+				if (_lda.trait == "pious") { for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .1); _ldt += ". a blessing at the gate"; }
+			}
+			array_push(_tr.log, _nd.name + " - " + _pp.desc + _memt + _ldt);
 			break;
 		}
 		case "shop_open":  exped_shop(_tr, "open"); break;
@@ -35,7 +45,7 @@ function exped_act_step(_tr) {
 		case "shop_close": exped_shop(_tr, "close"); exped_say(_tr, "shop", undefined, .4); exped_note_beat(_tr, "shop", .12); break;
 		case "linger": {
 			// the distractions (his ask): a small thing that took an hour - composed, not picked (exped_compose, 2026-09-16)
-			array_push(_tr.log, exped_compose("linger", _tr));
+			array_push(_tr.log, exped_compose(roll_perc(30) ? "leader" : "linger", _tr));   // (the town's talk of its leaders, one linger in three - 2026-09-16)
 			exped_note_beat(_tr, "rest", .1);
 			break;
 		}
@@ -45,6 +55,9 @@ function exped_act_step(_tr) {
 			_cost = max(ceil(_beds * EXPED_INN * .5), _beds * EXPED_INN - _cheap);   // (a note on inns: a bed cheaper - never below half the bill, 2026-09-16)
 			var _evr = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
 			if (is_struct(_evr) && _evr.kind == "fair" && _evr.node == _tr.pos) _cost = ceil(_cost * .5);   // (the fair's beds, 2026-09-16)
+			var _ldr = region_node_leader(_tr.dest, _rg, _tr.pos);   // (a fair leader: a bed cheaper; a greedy one: dearer - 2026-09-16)
+			if (is_struct(_ldr) && _ldr.trait == "fair") _cost = max(ceil(_beds * EXPED_INN * .5), _cost - 1);
+			else if (is_struct(_ldr) && _ldr.trait == "greedy") _cost += 1;
 			if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _cost = 0;   // (a grateful town: on the house - the world remembers)
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
@@ -66,8 +79,10 @@ function exped_act_step(_tr) {
 			exped_stat("taverns");
 			exped_say(_tr, "tavern", undefined, .5);
 			exped_skill_beat(_tr, .12);   // (a trick off a drunk, sometimes)
+			var _ldv = region_node_leader(_tr.dest, _rg, _tr.pos), _ldtr = is_struct(_ldv) ? _ldv.trait : "";   // (the leader's word in the tavern - 2026-09-16)
 			var _r = random(100);
-			if (_r < 35 && roll_perc(55) && exped_dice(_tr)) {
+			if (_ldtr == "terrifying" && _r >= 35 && _r < 60 && roll_perc(50)) _r = 62;   // (half the bar fights, under a terrifying one)
+			if (_r < 35 && roll_perc((_ldtr == "drunk") ? 80 : 55) && exped_dice(_tr)) {
 				// (a game of chance in the tavern - his pick, 2026-09-16: exped_dice said its piece)
 			} else if (_r < 35 && roll_perc(25)) {
 				// a round with a rival crew (2026-09-16): a credit, and a rumour worth less
@@ -93,7 +108,7 @@ function exped_act_step(_tr) {
 				if (roll_perc(50)) { exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred", 72); array_push(_tr.log, choose("the keeper says they are barred, whatever happens next", "barred from the tavern in " + _nd.name + ", for a while", "the door of the tavern in " + _nd.name + " is shut to them now")); }   // (the world remembers, 2026-09-16)
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"]) && _stn.bounty == 0) {
 				array_push(_tr.log, "a bounty on the board in " + _nd.name + ". " + choose("not this trip - cautious", "they read it twice and left it. cautious", "cautious: the board can keep it", "somebody else's, they decided. cautious"));
-			} else if ((_r < 85 || _stn.bounty >= 2) && !is_struct(_tr[$ "bounty"])) {
+			} else if ((_r < 85 || _stn.bounty >= 2 || _ldtr == "martial") && !is_struct(_tr[$ "bounty"])) {   // (a martial leader keeps the board full)
 				// a bounty: a nearby dungeon or camp, a few kills (a greedy crew takes one whenever the board has one)
 				var _cand = [];
 				for (var _i = 1; _i < array_length(_rg.nodes); _i++) if (_rg.nodes[_i].kind == "dungeon" || _rg.nodes[_i].kind == "crypt" || _rg.nodes[_i].kind == "camp") array_push(_cand, _i);
@@ -101,7 +116,7 @@ function exped_act_step(_tr) {
 					var _bn = _cand[irandom(array_length(_cand) - 1)];
 					var _bkl = foe_kinds_at(_rg.nodes[_bn].kind), _bk = (_rg.nodes[_bn].kind == "camp") ? "bandit" : _bkl[irandom(array_length(_bkl) - 1)];   // (the place's own kinds - the foes pass)
 					var _evb = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
-					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : ceil((3 + 2 * _tr.dest.tier) * ((is_struct(_evb) && _evb.kind == "lord") ? 1.5 : 1)) };   // (the lord abroad: half again - 2026-09-16)
+					_tr.bounty = { node : _bn, foe : _bk, n : irandom_range(2, 4), done : 0, pay : ceil((3 + 2 * _tr.dest.tier) * ((is_struct(_evb) && _evb.kind == "lord") ? 1.5 : 1)) + ((_ldtr == "martial") ? 2 : 0) };   // (+2 under a martial leader)   // (the lord abroad: half again - 2026-09-16)
 					array_push(_tr.log, "took a bounty off the board in " + _nd.name + ": " + string(_tr.bounty.n) + " " + foe_plural(_bk) + " at " + _rg.nodes[_bn].name + ", " + string(_tr.bounty.pay) + " credits" + ((_stn.bounty >= 2) ? choose(" - greedy", ". greedy: of course they did", " (greedy)") : ""));
 				}
 			} else array_push(_tr.log, exped_compose("rumour", _tr));   // (the talk, composed - 2026-09-16)
@@ -136,7 +151,8 @@ function exped_act_step(_tr) {
 		}
 		case "camp": {
 			var _evc = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _lordc = (is_struct(_evc) && _evc.kind == "lord");
-			_tr.fight = exped_fight_new(_tr, "bandit", irandom_range(2, 3) + (_lordc ? 1 : 0), 0);   // a camp is never one bandit (one more with the lord abroad - 2026-09-16)
+			var _ldc = region_node_leader(_tr.dest, _rg, _tr.pos), _ldct = is_struct(_ldc) ? _ldc.trait : "";   // (the chief's word: cruel a bandit more, cowardly one fewer - 2026-09-16)
+			_tr.fight = exped_fight_new(_tr, "bandit", max(2, irandom_range(2, 3) + (_lordc ? 1 : 0) + ((_ldct == "cruel") ? 1 : ((_ldct == "cowardly") ? -1 : 0))), 0);   // a camp is never one bandit (one more with the lord abroad - 2026-09-16)
 			array_push(_tr.log, "bandits at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " of them");
 			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
 			if (_a.steps <= 1) _a.loot = true;   // the last fight's win pays the camp's chest (exped_tick_one)
@@ -175,8 +191,8 @@ function exped_act_step(_tr) {
 		case "mind": {
 			// a customer a step; the last is the cat. the takings go in the pocket
 			if (_a.steps >= 2) {
-				var _ppm = region_node_info(_tr.dest, _rg, _tr.pos);   // (the place's own elder, one customer in three - the recurring folk, 2026-09-16)
-				var _buyer = (is_struct(_ppm[$ "folk"]) && roll_perc(30)) ? (_ppm.folk.elder + " the elder") : exped_npc_name();
+				var _ldm = region_node_leader(_tr.dest, _rg, _tr.pos);   // (the leader of the day, one customer in three - 2026-09-16)
+				var _buyer = (is_struct(_ldm) && roll_perc(30)) ? (_ldm.name + " the " + _ldm.title) : exped_npc_name();
 				var _take = 1 + irandom(2) + floor(_rg.lv / 3);
 				_tr.credits += _take; exped_tally(_tr, "earned", _take);
 				array_push(_tr.log, _buyer + " came in and bought " + choose("a spoon", "the wrong nails", "two of something", "a hat off the peg", "a length of string, measured twice", "an onion, after a speech", "the good ladder, on credit", "a lantern and the oil for it", "nothing, at length, then a candle") + " (" + string(_take) + " credits in the till)");
