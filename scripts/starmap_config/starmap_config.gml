@@ -108,8 +108,8 @@ function starmap_config() {
 		star_height   : 140,  // plane px per unit of a star's parallax depth about 1 (d .85..1.15: +-21 px) - a star's height off the plane
 		                      // (900 stood the near ones far off the band - "the star height feels weird", his report 2026-09-16: a thin disc, the
 		                      // sky's bearings the map's angles, a few degrees of lean at most)
-		neb_in_amp    : .8,   // THE NEAR CLOUD (marched): the glow's strength...
-		neb_in_ext    : 1.4,  // ...and the extinction per unit of gathered density (the sky beyond dims)
+		neb_in_amp    : .7,   // THE NEAR CLOUD (on the sphere): the glow's strength...
+		neb_in_ext    : 1.1,  // ...and the extinction per unit of reach x density (the sky beyond dims)
 		neb_in_smooth : true, // no jitter and no grain of its own in the march (twenty even steps; the page's blit still dithers) - his call 2026-09-16
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
