@@ -298,7 +298,7 @@ __forge_roll = function() {
 		// THE LIFE (2026-09-16, his memories): unclaimed and filling (dens 0 -> 1
 		// over fill_len), CREATED on full (the burst), held hold_t, then
 		// un-created (the other burst) and filling again
-		created : false, dens : random(.5), fill_len : random_range(240, 360), hold_t : 0,
+		created : false, dens : random(.5), fill_len : random_range(240, 360), hold_t : 0, mat_t : irandom_range(20, 60),   // (mat_t: ticks to the next material tapped in)
 		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
 		circ : 0, glow : 0, wdc : random_range(-4, 4), xos : 0, yos : 0,
 		effs : [], sparks : [], rings : [],
@@ -345,7 +345,21 @@ __forge_step = function() {
 	}
 	// ---- THE LIFE: filling, created, un-created ----
 	if (!_f.created) {
-		_f.dens = min(1, _f.dens + delta / _f.fill_len);
+		// THE MATERIALS (DE's obj_gf_slot_mat): the fill rises in steps as they
+		// are tapped in, and every tap flings five to eight motes up from the
+		// slot row at the room's foot, pulled to the cell
+		if (_tick) {
+			_f.mat_t -= 1;
+			if (_f.mat_t <= 0) {
+				_f.mat_t = irandom_range(40, 90);
+				_f.dens = min(1, _f.dens + random_range(.08, .18));
+				repeat (choose(5, 6, 7, 8)) {
+					var _mm = __forge_mote(_f.px + random(144), _f.py + 296 - random(16), false, random(2), random(2), 30, roll_perc(5));
+					_mm.part_chance = 2;
+					array_push(_f.effs, _mm);
+				}
+			}
+		}
 		if (_f.dens >= 1) {
 			// THE CREATION (DE: the click when full): the kick, the flare, the
 			// ring, and seven motes born on the rim and pushed away sideways,
@@ -384,8 +398,8 @@ __forge_step = function() {
 			_f.fill_len = random_range(240, 360);
 		}
 	}
-	// ---- obj_gf_slot_cell: the fill, the spring, the jitter, the shake ----
-	_f.fill = _f.dens;
+	// ---- obj_gf_slot_cell: the fill (dens_perc eases toward the stepped density), the spring, the jitter, the shake ----
+	_f.fill = trickle(_f.fill, _f.dens, 5);
 	var _max = (_f.created ? (30 * .5) : (30 * .75 * .5)) * _f.fill;   // created: sprite_width / 2; unclaimed: x .75
 	__forge_wiggle(_f, _max);
 	_f.circ = _f.size / ((30 * .75) * .5);
@@ -394,8 +408,8 @@ __forge_step = function() {
 		_f.xos = 0; _f.yos = 0;
 		if (!_f.created && roll_perc(_f.fill * _f.fill * 100)) { if (choose(0, 1) == 0) _f.xos = choose(1, -1); else _f.yos = choose(1, -1); }   // the shake as it nears full
 		// the motes pulled in while it fills (DE: roll_perc(7 x dens^2) a frame - a tick here)
-		if (roll_perc(clamp(7 * (_f.dens * _f.dens), 0, 7))) {
-			var _p = clamp(_f.dens, 0, 1);
+		if (roll_perc(clamp(7 * (_f.fill * _f.fill), 0, 7))) {
+			var _p = clamp(_f.fill, 0, 1);
 			var _m = __forge_mote(_f.px + random(144), _f.py + random(296), false, random(2 * _p), random(2 * _p), 30, roll_perc(5));
 			_m.part_chance = 2;
 			array_push(_f.effs, _m);
