@@ -413,7 +413,7 @@ __back = function() {
 	switch (view) {
 		case "map":    __page_go(map_from); break;
 		case "galaxy": __page_go(gx_from); break;
-		case "system": __page_go("galaxy"); break;   // (the system view came from the map - 2026-09-16)
+		case "system": __page_go(sy_from); break;   // (back to the map, or the planet page it came from - 2026-09-16)
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
 		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { exped_close(); return; } break;   // region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
@@ -464,27 +464,145 @@ sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy,
 sky_met_t = 0;                       // ...seconds since the last
 __sky_for = function(_d) { var _k = string(_d.seed); if (!is_struct(sky_c[$ _k])) sky_c[$ _k] = galaxy_sky_build(_d); var _s = sky_c[$ _k]; _s.light_w = galaxy_sun_dir(0, _d); return _s; };
 __gx_enter_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // [enter] the tapped star's system (bottom right, the demo's seat)
-// THE STAR SYSTEM VIEW (his ask, 2026-09-16: the demo's aerial view, back): the star at the centre, the orbits as tilted rings,
-// the worlds where they are NOW (the universal clock) as lit discs, a drag turns and tilts the view, the wheel zooms; a dock on
-// the right lists the worlds - tap one there or on the view, [open world] puts it on the board and goes to it
-sy_star = -1; sy_sys = undefined; sy_sel = -1;
-sy_yaw = 30; sy_tilt = .42; sy_zoom = 1;
-sy_press = false; sy_px = 0; sy_py = 0; sy_yaw0 = 0; sy_tilt0 = 0; sy_travel = 0;
-sy_pos = [];                         // the worlds' page positions this frame (the Step's taps)
-sy_info = [];                        // the worlds' tiers, computed at [enter]
+// THE STAR SYSTEM VIEW (his ask, 2026-09-16: the tech demo's, ported whole): orbits in the GALACTIC plane (world y = 0,
+// the plane the sky's milky way lives in), a camera that orbits the star like the orbit view's orbits the world (drag +
+// glide, wheel = distance), the planets as real sh_planet mini worlds (planet_get_lite: the same generation at 48x24),
+// rings, their REAL moons (planet_moons) at their true phases, lit from the star by their true bearing, spinning by
+// the universal clock; the local star's own sky behind (galaxy_sky_build for the star, no sun, no siblings); a tap
+// picks (a pulsing box, the card), [enter] dives (the swell, then the world's page); a dock on the right: the star's
+// numbers, the worlds listed
+sy_star = -1; sy_sys = undefined; sy_sel = -1; sy_dest = undefined; sy_from = "galaxy";   // (sy_from: where [back] returns - the map, or the planet page)
+sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230;
+sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
+sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
+sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite)
+sy_moons = [];                       // ...and their moons (planet_moons)
+sy_info = [];                        // ...and their tiers (galaxy_world)
+sy_cx = 0; sy_cy = 0;                // the projection's centre on the page
 __sy_dock_w = function() { return land ? 150 : 110; };
 __sy_dock_x = function() { return room_width - (land ? 14 : 4) - __sy_dock_w(); };
-__sy_row_r  = function(_i) { return { x : __sy_dock_x() + 5, y : list_y + 22 + _i * 24, w : __sy_dock_w() - 10, h : 22 }; };
+__sy_box_r  = function() { return { x : __sy_dock_x(), y : list_y + 16, w : __sy_dock_w(), h : 54 }; };   // the star's numbers
+__sy_row_r  = function(_i) { return { x : __sy_dock_x() + 5, y : list_y + 16 + 58 + _i * 24, w : __sy_dock_w() - 10, h : 22 }; };
 __sy_open_r = function() { return { x : __sy_dock_x() + 5, y : room_height - 8 - 16, w : __sy_dock_w() - 10, h : 16 }; };
-__sy_view_r = function() { return { x : land ? 14 : 4, y : list_y + 22, w : __sy_dock_x() - 8 - (land ? 14 : 4), h : room_height - 8 - 20 - (list_y + 22) }; };
-/// a lit disc: rows of a circle, the lit part toward (ldx, ldy) on the page, cut by the lit fraction (the sky's siblings share the idea)
-__sy_disc = function(_x, _y, _r, _col, _ldx, _ldy, _lit, _a) {
-	var _dark = merge_colour(_col, c_black, .7), _x0 = floor(_x), _y0 = floor(_y), _rr = max(1, floor(_r));
-	for (var _dy = -_rr; _dy <= _rr; _dy++) {
-		var _hw = floor(sqrt(max(0, _rr * _rr - _dy * _dy)));
-		var _cut = (1 - 2 * _lit) * _hw;
-		for (var _dx = -_hw; _dx <= _hw; _dx++) { var _isl = ((_dx * _ldx + _dy * _ldy) > _cut); draw_sprite_ext(spr_pixel_1x1, 0, _x0 + _dx, _y0 + _dy, 1, 1, 0, _isl ? _col : _dark, _a); }
+__sy_view_r = function() { return { x : 0, y : list_y, w : __sy_dock_x() - 4, h : room_height - list_y }; };
+/// world -> page: [sx, sy, scale, depth], or undefined when behind the camera
+__sy_proj = function(_wx, _wy, _wz) {
+	var _v = mat3_apply(mat3_transpose(sy_cam), _wx, _wy, _wz);
+	var _dz = sy_D - _v[2];
+	if (_dz < 24) return undefined;
+	var _k = sy_F / _dz;
+	return [sy_cx + _v[0] * _k, sy_cy + _v[1] * _k, _k, _dz];
+};
+/// a planet's world position on its orbit NOW (the universal clock)
+__sy_ppos = function(_p) { var _a = (_p.ang + _p.spd * 60 * universal_now()) mod 360; return [dcos(_a) * _p.orbit, 0, dsin(_a) * _p.orbit, _a]; };
+/// into a star's system: the system, the lite worlds, their moons, the tiers, the camera fresh
+__sy_enter = function(_star) {
+	var _sm = starmap_get();
+	if (_star < 0 || _star >= _sm.count) return;
+	sy_star = _star;
+	sy_sys = starsystem_generate(_sm.stars[_star].seed, _sm.stars[_star].props);
+	sy_sel = -1; sy_pd = []; sy_moons = []; sy_info = [];
+	var _hm = galaxy_home();
+	for (var _i = 0; _i < array_length(sy_sys.planets); _i++) {
+		var _p = sy_sys.planets[_i];
+		var _gw = galaxy_world(_star, _i);
+		var _hint = is_struct(_gw) ? exped_planet_hint(_gw) : { kind : _p.kind, clim : _p.clim, ring : (_p[$ "has_ring"] ?? false) };
+		array_push(sy_pd, planet_get_lite(_p.seed, _hint));
+		array_push(sy_moons, planet_moons(_p.seed));
+		array_push(sy_info, is_struct(_gw) ? _gw.tier : 0);
+		if (is_struct(pl_dest) && pl_dest.seed == _p.seed) sy_sel = _i;
 	}
+	if (sy_sel < 0 && _star == _hm.star) sy_sel = _hm.planet;
+	sy_dest = { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };   // (a stand-in world of this star: the sky builder wants one)
+	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false;
+	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
+};
+/// the star system page painted into the page surface: the star's sky, the rings, the star and the worlds far to near
+__draw_system = function() {
+	var _vr = __sy_view_r();
+	var _w = room_width, _h = room_height - list_y;
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) { if (surface_exists(wb_surf)) surface_free(wb_surf); wb_surf = page_surface(_w, _h); }
+	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) { if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf); sky_fog_surf = surface_create(_w, _h); }
+	sy_cx = _vr.x + _vr.w * .5; sy_cy = _vr.h * .52;   // (page space: the surface starts at list_y)
+	var _sky = __sky_for(sy_dest);
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	galaxy_sky_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false, false);
+	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf);
+	var _pls = sy_sys.planets, _np = array_length(_pls), _s = sy_warp_s;
+	var _cfgp = planet_config(), _pxs = max(1, _cfgp.px_size);
+	// the dive's focus: the picked world's spot anchors the swell
+	sy_wfx = sy_cx; sy_wfy = sy_cy;
+	if (sy_warp_pl >= 0) { var _fpp0 = __sy_ppos(_pls[sy_warp_pl]); var _fpp = __sy_proj(_fpp0[0], 0, _fpp0[2]); if (!is_undefined(_fpp)) { sy_wfx = _fpp[0]; sy_wfy = _fpp[1]; } }
+	// the orbit rings: true circles in the plane, as grid-snapped cells (the demo's)
+	for (var _i = 0; _i < _np; _i++) {
+		var _or = _pls[_i].orbit, _stp = max(.4, _pxs * 55 / max(1, _or)), _lcx = -10000, _lcy = -10000;
+		for (var _a = 0; _a < 360; _a += _stp) {
+			var _rp = __sy_proj(dcos(_a) * _or, 0, dsin(_a) * _or);
+			if (is_undefined(_rp)) continue;
+			var _gx = floor((sy_wfx + (_rp[0] - sy_wfx) * _s) / _pxs) * _pxs, _gy = floor((sy_wfy + (_rp[1] - sy_wfy) * _s) / _pxs) * _pxs;
+			if (_gx == _lcx && _gy == _lcy) continue;
+			_lcx = _gx; _lcy = _gy;
+			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _pxs, _pxs, 0, (sy_sel == _i) ? c_gold : c_white, (sy_sel == _i) ? .3 : .14);
+		}
+	}
+	// z-sort the star and the worlds, far to near
+	var _items = [];
+	var _sp0 = __sy_proj(0, 0, 0);
+	if (!is_undefined(_sp0)) array_push(_items, [_sp0[3], -1, _sp0[0], _sp0[1], _sp0[2]]);
+	for (var _i = 0; _i < _np; _i++) { var _pp0 = __sy_ppos(_pls[_i]); var _pp = __sy_proj(_pp0[0], 0, _pp0[2]); if (!is_undefined(_pp)) array_push(_items, [_pp[3], _i, _pp[0], _pp[1], _pp[2]]); }
+	array_sort(_items, function(_a, _b) { return _b[0] - _a[0]; });
+	g.dither_off = page_float();
+	for (var _n = 0; _n < array_length(_items); _n++) {
+		var _it = _items[_n];
+		var _sx = sy_wfx + (_it[2] - sy_wfx) * _s, _sy = sy_wfy + (_it[3] - sy_wfy) * _s, _k = _it[4] * _s;
+		if (_it[1] < 0) {
+			// the star: the sky's sun recipe, breathing on noise
+			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
+			var _bt = current_time / 900, _bi = floor(_bt), _bf = frac(_bt); _bf = _bf * _bf * (3 - 2 * _bf);
+			var _pu = 1 + .07 * (lerp((hash_mix(_bi mod 100000, 5) mod 1000) / 1000, (hash_mix((_bi + 1) mod 100000, 5) mod 1000) / 1000, _bf) - .5);
+			gpu_set_blendmode(bm_add);
+			draw_sprite_ext(spr_vis_glow_soft, 0, _sx, _sy, .5 * _ss * _pu, .5 * _ss * _pu, 0, _stc, .22);
+			gpu_set_blendmode(bm_normal);
+			draw_sprite_ext(spr_star_glow, 5, _sx, _sy, 2.4 * _ss, 2.4 * _ss, 0, _stc, .9);
+			draw_sprite_ext(spr_star_glow, 5, _sx, _sy, 1.2 * _ss, 1.2 * _ss, 0, merge_colour(_stc, c_white, .5), .9);
+			draw_sprite_ext(spr_star_glow, 3, _sx, _sy, max(1, _ss * .9), max(1, _ss * .9), 0, c_white, 1);
+		} else {
+			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
+			var _pw = __sy_ppos(_p);
+			var _rad = max(1.5, _p.size * _k * 1.2);
+			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera)
+			planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
+			// its moons at their true phases, as the demo drew them: pixel dots on the plane
+			var _mns = sy_moons[_i], _mn = min(4, _p[$ "moon_n"] ?? 0);
+			for (var _m = 0; _m < _mn; _m++) {
+				var _mo = _mns[_m];
+				var _ma = _mo.ang + _mo.spd * 60 * universal_now(), _mr = _p.size * _mo.dist;
+				var _mp = __sy_proj(_pw[0] + dcos(_ma) * _mr, 0, _pw[2] + dsin(_ma) * _mr);
+				if (is_undefined(_mp)) continue;
+				var _mx = sy_wfx + (_mp[0] - sy_wfx) * _s, _my = sy_wfy + (_mp[1] - sy_wfy) * _s, _ms = max(1, _mo.size * _p.size * 2 * _mp[2] * _s);
+				draw_sprite_ext(spr_pixel_1x1, 0, _mx - _ms * .5, _my - _ms * .5, _ms, _ms, 0, _mo.col, .9);
+			}
+			// on the board: a gold corner; picked: the pulsing box
+			var _onb = false;
+			for (var _bj = 0; _bj < array_length(g.exped.board); _bj++) if (g.exped.board[_bj].seed == _p.seed) _onb = true;
+			if (_onb && sy_warp_pl < 0) draw_px_rect(floor(_sx - _rad - 3), floor(_sy - _rad - 3), ceil(_rad * 2 + 7), ceil(_rad * 2 + 7), c_gold, .55);
+			if (sy_sel == _i && sy_warp_pl < 0) { var _mr2 = _rad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr2, _sy - _mr2, _mr2 * 2, _mr2 * 2, c_white, .8); }
+			// "you": the world the panel stands on (the home world when nothing does)
+			var _here = is_struct(pl_dest) ? (pl_dest.seed == _p.seed) : (galaxy_home().planet_seed == _p.seed);
+			if (_here && sy_warp_pl < 0) {
+				var _bob = abs(dsin(current_time * .25)) * 3, _ty = floor(_sy - _rad - 6 - _bob);
+				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 3, _ty - 3, 7, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 2, _ty - 2, 5, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 1, _ty - 1, 3, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _ty, 1, 1, 0, c_sgreen, .95);
+				draw_set_halign(fa_center); draw_set_color(c_sgreen); draw_set_alpha(.95); draw_text(floor(_sx), _ty - 13, "you"); draw_set_halign(fa_left);
+			}
+		}
+	}
+	g.dither_off = false;
+	surface_reset_target();
+	ui_fade_set(_fa);
+	page_blit(wb_surf, 0, list_y);
 };
 pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
@@ -505,13 +623,14 @@ __pv_box_r = function() { var _x = __pv_dw_x() + 9; return { x : _x, y : list_y 
 __pv_dtab_r = function(_i) { var _w = floor((__pv_dw_w() - 8 - 3) / 2); return { x : __pv_dw_x() + 13 + _i * (_w + 3), y : list_y + 20, w : _w, h : 22 }; };   // the two tabs at the top
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
 __pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS on their own tab (2026-09-16): hauls first, then trips   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
-__best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };   // [bestiary] over the geosync toggle (planet mode)
+__best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 60, w : _g.w, h : 16 }; };   // [bestiary] over the geosync toggle (planet mode)
+__system_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };   // [star system] over [galaxy] (his ask, 2026-09-16)
 // THE BUTTON COLUMNS (his ask, 2026-09-15): bottom left, stacked - [galaxy]
 // at the foot, the geosync toggle over it ([region map] sat between them in
 // region mode until 2026-09-16 - it is [map] in the strip now); bottom
 // right in region mode - [quests] over [explore]
 __galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : land ? 90 : 70, h : 16 }; };
-__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };
+__geo_r    = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };
 __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w + (1 - rg_in) * 140, y : room_height - 8 - 16, w : _w, h : 16 }; };   // (region mode's swing: in from the right)
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 // region mode: the info box on the left (region_info's lines)
@@ -1661,7 +1780,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	ui_fade_set(1);
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
-	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true);
+	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, { x : _pcx, y : _pcy, r : _pr });   // (the sun fades behind the world - his report 2026-09-16)
 	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
 	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
 	sky_met_t += delta / 60;
@@ -1695,7 +1814,8 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 			var _sfr = 230 / -_svr[2], _rsx = _pcx + _svr[0] * _sfr, _rsy = _pcy + _svr[1] * _sfr;
 			var _rdd = point_distance(_rsx, _rsy, _pcx, _pcy);
 			if (_rdd < _pr * 1.25 && _rdd > .5) {
-				var _hid = clamp(1 - (_rdd - _pr * .55) / (_pr * .7), 0, 1);   // (deepest when dead behind, gone past the limb)
+				// the leak peaks AT the limb and fades as the sun sinks behind (gone by half way in) - it held whole and snapped round, his report 2026-09-16
+				var _hid = clamp(1 - abs(_rdd - _pr) / (_pr * .5), 0, 1);
 				var _lx = _pcx + (_rsx - _pcx) / _rdd * _pr, _ly = _pcy + (_rsy - _pcy) / _rdd * _pr;
 				var _gsz = (_pr * 1.1) / max(1, sprite_get_width(spr_vis_glow_soft));
 				gpu_set_blendmode(bm_add);

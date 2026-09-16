@@ -13,7 +13,10 @@
 /// throws an anamorphic FLARE streak and two ghosts along the line through
 /// the view's centre. The sun's glow breathes on smoothed noise, not a
 /// sine (the pulse "too rhythmic", his report).
-function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true) {
+/// sibs = draw the sibling planets (false on the star system page: they are the planets); occ = { x, y, r } a disc on the
+/// page that hides the sun (the world in the orbit view): the sun's glow and flare fade as it goes behind it (his report,
+/// 2026-09-16: the glow stayed whole until it snapped round the limb)
+function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true, _occ = undefined) {
 	var _ct = mat3_transpose(_cam);
 	var _cfg = starmap_config();
 	draw_set_alpha(1);
@@ -23,6 +26,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true) {
 	var _ss = _sky.sun_size / 12;
 	var _sun_on = (_sv[2] < -.1), _ssx = 0, _ssy = 0, _sfade = 0;
 	if (_sun_on) { _sfade = clamp((-_sv[2] - .1) / .12, 0, 1); var _sf = 230 / -_sv[2]; _ssx = _cx + _sv[0] * _sf; _ssy = _cy + _sv[1] * _sf; }
+	// behind the disc: the sun's light fades over the first third of the way in, gone at the centre
+	if (_sun_on && is_struct(_occ)) { var _od = point_distance(_ssx, _ssy, _occ.x, _occ.y); if (_od < _occ.r) _sfade *= clamp((_od - _occ.r * .55) / (_occ.r * .45), 0, 1); }
 	var _glr = (_cfg[$ "sky_glare"] ?? 70) * _ss;
 	var _tt = current_time;
 	var _stars = _sky.stars;
@@ -47,7 +52,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true) {
 		}
 		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
 	}
-	for (var _i = 0; _i < array_length(_sky.sibs); _i++) {
+	for (var _i = 0; _i < (_sibs ? array_length(_sky.sibs) : 0); _i++) {
 		var _sb = _sky.sibs[_i];
 		var _dv = mat3_apply(_ct, _sb.x, _sb.y, _sb.z);
 		if (_dv[2] > -.2) continue;

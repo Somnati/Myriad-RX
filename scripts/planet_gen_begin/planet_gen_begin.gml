@@ -10,11 +10,11 @@
 ///              "lava", [wet] : 0..1 } - the expedition biome speaks here
 ///              (exped_planet_hint) so the full world reads in the
 ///              colours the board's portrait promised
-function planet_gen_begin(_seed, _hint = undefined) {
+function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask = undefined) {   // (tw / th: the map's size - the star system's lite worlds ask 48x24, 2026-09-16)
 	var _rs = random_get_seed();
 	random_set_seed(_seed & $7fffffff);
 	var _cfg = planet_config();
-	var _tw = _cfg.tex_w, _th = _cfg.tex_h;
+	var _tw = _tw_ask ?? _cfg.tex_w, _th = _th_ask ?? _cfg.tex_h;
 	var _kind = "rock", _clim = .5, _hue = -1, _arch_f = "", _wet_f = -1;
 	if (!is_undefined(_hint)) {
 		_kind = _hint[$ "kind"] ?? "rock";

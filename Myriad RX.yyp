@@ -620,6 +620,7 @@
     {"id":{"name":"planet_draw","path":"scripts/planet_draw/planet_draw.yy",},},
     {"id":{"name":"planet_gen_begin","path":"scripts/planet_gen_begin/planet_gen_begin.yy",},},
     {"id":{"name":"planet_gen_step","path":"scripts/planet_gen_step/planet_gen_step.yy",},},
+    {"id":{"name":"planet_get_lite","path":"scripts/planet_get_lite/planet_get_lite.yy",},},
     {"id":{"name":"planet_get","path":"scripts/planet_get/planet_get.yy",},},
     {"id":{"name":"planet_moons","path":"scripts/planet_moons/planet_moons.yy",},},
     {"id":{"name":"planet_pick","path":"scripts/planet_pick/planet_pick.yy",},},
