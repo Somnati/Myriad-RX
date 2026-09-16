@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"star_glyph_frame",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"star_glyph_frame",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

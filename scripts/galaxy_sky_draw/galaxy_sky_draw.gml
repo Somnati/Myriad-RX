@@ -57,12 +57,15 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		if (_sk.s <= 2) { var _ph = _sk[$ "ph"] ?? 0; _a *= 1 - .22 * (.5 + .5 * dsin(_tt * (.11 + .0004 * _ph) + _ph) * dsin(_tt * .073 + _ph * 2.618)); }
 		// the glare: inside the sun's reach a star fades toward it
 		if (_sun_on && _sfade > 0) { var _gd = point_distance(_sx, _sy, _ssx, _ssy); if (_gd < _glr) _a *= 1 - .85 * _sfade * (1 - _gd / _glr); }
-		// the halo: a real neighbour big enough wears a soft glow under its pixel
-		if ((_sk[$ "near"] ?? false) && _sk.s >= 3) {
-			var _hs = clamp(_sk.s / 10, .3, .9);
-			draw_sprite_ext(spr_star_glow, 5, _sx, _sy, _hs, _hs, 0, _sk.col, .5 * _a);
-		}
-		draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
+		// a real neighbour is a GLYPH (his ask, 2026-09-16: spr_star_glyph - core, halo, spikes by its size, tinted, its core white,
+		// additive, whole scale); the grain and the dust stay points
+		if (_sk[$ "near"] ?? false) {
+			var _gi = star_glyph_frame(_sk.s), _gx0 = floor(_sx), _gy0 = floor(_sy);
+			gpu_set_blendmode(bm_add);
+			draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, 1, 1, 0, _sk.col, _a);
+			draw_sprite_ext(spr_star_glyph, 8 + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8);
+			gpu_set_blendmode(bm_normal);
+		} else draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
 	}
 	for (var _i = 0; _i < (_sibs ? array_length(_sky.sibs) : 0); _i++) {
 		var _sb = _sky.sibs[_i];

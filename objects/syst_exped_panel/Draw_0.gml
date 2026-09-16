@@ -1032,29 +1032,22 @@ if (view == "galaxy") {
 		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
 		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .3);
 	}
-	// THE DEMO'S STARS (his report, 2026-09-16: scaled glow sprites read as interpolation): a crisp square of the star's size,
-	// gs times over so it sits between the room's pixels, over a stepped glow frame at WHOLE scale (the frame by size, the
-	// demo's per-star bloom, additive, one pass) - the size ladder is the square's, a dwarf under a pixel, a giant seven
-	var _sgs = _gcf[$ "star_glow_size"] ?? 6, _sga = _gcf[$ "star_glow_alpha"] ?? .3;
-	for (var _i = 0; _i < array_length(_vis); _i++) {
-		var _st = _sm.stars[_vis[_i]];
-		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
-		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
-		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
-		var _gw = max(.8, _st.props.size * gx_zoom) * _sgs, _gi = 0;
-		if (_gw > 4) _gi = 1; if (_gw > 6) _gi = 2; if (_gw > 10) _gi = 3; if (_gw > 14) _gi = 4; if (_gw > 18) _gi = 5;
-		var _gsc = ((_gw > 24) ? ceil(_gw / 24) : 1) * _gs;
-		draw_sprite_ext(spr_star_glow, _gi, floor(_sx * _gs), floor(_sy * _gs), _gsc, _gsc, 0, _st.props.color, _sga);
-	}
-	gpu_set_blendmode(bm_normal);
+	// THE STAR GLYPHS (his ask, 2026-09-16: "a nicer looking star image"): spr_star_glyph - eight sizes of core + halo + spikes,
+	// a whole-scale pixel glyph (gs times: crisp), tinted the star's colour and its core laid white over it, both additive;
+	// the frame by the star's size on the page - a dwarf a five-pixel spark, a giant a thirty-one-pixel star
+	gpu_set_blendmode(bm_add);
 	for (var _i = 0; _i < array_length(_vis); _i++) {
 		var _st = _sm.stars[_vis[_i]];
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
 		var _s = max(.8, _st.props.size * gx_zoom);
-		draw_sprite_ext(spr_pixel_1x1, 0, (_sx - _s * .5) * _gs, (_sy - _s * .5) * _gs, _s * _gs, _s * _gs, 0, _st.props.color, 1);
+		var _gi = star_glyph_frame(_s);
+		var _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
+		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95);
+		draw_sprite_ext(spr_star_glyph, 8 + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8);
 	}
+	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped
 	// domain, frayed to wisps - the clouds were circles; his report 2026-09-16); dithered there only on an 8-bit page
 	var _fd = _gcf.fog_depth;

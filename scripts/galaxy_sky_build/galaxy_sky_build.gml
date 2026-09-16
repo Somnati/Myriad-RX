@@ -2,8 +2,8 @@
 /// obj_planet_sky's rules, ported 2026-09-15: the map's stars within
 /// sky_range of the home star, sorted by distance, the nearest sky_max
 /// kept; bearings map 1:1 to azimuth, elevation scatter scales with
-/// each star's parallax depth (far ones hug the galactic band, near ones
-/// roam), apparent size = class size over distance. Plus a full-sphere
+/// each star's height off the plane over its distance (far ones hug the
+/// galactic band, near ones stand off it), apparent size = class size over distance. Plus a full-sphere
 /// dust fill (seeded by the planet), the siblings as dots on the
 /// ecliptic (the galactic plane, y = 0, x = cos / z = sin bearing - the
 /// shared frame), the sun's bearing (the star seen from the planet's
@@ -46,7 +46,9 @@ function galaxy_sky_build(_dw = undefined) {
 		var _sc = clamp((_st.d - .85) / .3, 0, 1);
 		var _hh = (_st.seed * 2654435761) & $7fffffff;
 		_hh = (_hh ^ (_hh >> 13)) & $7fffffff;
-		var _el = ((_hh mod 997) / 997 - .5) * lerp(_cfg.sky_el_far, _cfg.sky_el_near, _sc);
+		// THE REAL ELEVATION (2026-09-16 - he took it for granted, and it was a hash): the neighbour's height off the plane against
+		// ours (the parallax depth read as plane px, the nebulae's law), over its distance
+		var _el = clamp(darctan2((_st.d - _me.d) * (_cfg[$ "star_height"] ?? 900), max(_d, 1)), -75, 75);
 		var _ap = _st.props.size * (90 / max(_d, 55));
 		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : dcos(_el) * dsin(_az),
 		                         col : _st.props.color, b : .4 + .6 * clamp(_ap * .8, 0, 1), s : clamp(1 + _ap * 2, 1, 9), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
