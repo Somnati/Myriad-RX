@@ -1344,7 +1344,11 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	galaxy_sky_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, true);
 	galaxy_fog_draw(pv_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
 	g.dither_off = page_float();   // (the world into a float page: no dither of its own - the blit's grain is the one)
+	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
+	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, pv_sky.light_w);
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, pv_sky.light_w);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, pv_sky.light_w);
 	g.dither_off = false;
 	// (not built yet: the sky alone - the lite portrait that stood in "looked really bad", his report 2026-09-15; the boot builds the board's worlds)
 	if (_built && _spots != -1) {

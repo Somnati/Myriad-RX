@@ -20,7 +20,7 @@ function exped_shop(_tr) {
 		var _wl = _rg[$ "wild"] ?? [];
 		var _tags = (array_length(_wl) > 0 && random(1) < .5) ? _wl[irandom(array_length(_wl) - 1)] : _nd.kind;
 		var _it = gear_gen(_slot, _rg.lv, _rar, irandom($7fffffff), _tags);
-		var _price = max(1, 2 + floor(_rg.lv / 3) + 2 * _rar + planet_props(_tr.dest).price);   // (a settled world sells cheaper, a lonely one dearer - 2026-09-15)
+		var _price = 2 + floor(_rg.lv / 3) + 2 * _rar;
 		// what it would replace
 		var _sh = sprite_sheet(_sp), _c = sprite_classes()[_sh.cls];
 		var _cur = 0;

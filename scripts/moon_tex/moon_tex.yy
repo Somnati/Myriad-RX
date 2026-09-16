@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"moon_tex",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"moon_tex",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

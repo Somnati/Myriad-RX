@@ -327,16 +327,17 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// ...rated 0..3 (mood_t: the word's colour) and worded from a pool
 	// (his ask: variety); the starter (ri 0) always reads calm
 	var _mood = "quiet", _mood_t = 0;
-	if (_ri == 0)                              { _mood = _mcity ? choose("prosperous", "thriving") : choose("peaceful", "calm", "untroubled", "gentle"); _mood_t = 0; }
-	else if (_mcmp >= 3)                       { _mood = choose("war torn", "overrun"); _mood_t = 3; }
-	else if (_mciv >= 2 && _mcmp >= 2)         { _mood = choose("at war", "besieged"); _mood_t = 3; }
-	else if (_mcmp >= 2 && _mcmp >= _mciv)     { _mood = choose("lawless", "bandit-ridden"); _mood_t = 2; }
-	else if (_mcity && _mcmp <= 1)             { _mood = choose("prosperous", "thriving"); _mood_t = 0; }
-	else if (_mdun >= 3)                       { _mood = choose("haunted", "cursed"); _mood_t = 2; }
-	else if (_mruin >= 2)                      { _mood = choose("ruined", "forsaken"); _mood_t = 2; }
-	else if (_mciv >= 3)                       { _mood = choose("peaceful", "settled", "gentle"); _mood_t = 0; }
-	else if (_mciv == 1 && _mdun <= 1)         { _mood = choose("remote", "lonely", "quiet"); _mood_t = 1; }
-	else                                       { _mood = choose("quiet", "sleepy", "untroubled", "calm"); _mood_t = 0; }
+	// (the pools grown 2026-09-15 - his ask: more words; one roll each, as before)
+	if (_ri == 0)                              { _mood = _mcity ? choose("prosperous", "thriving", "well-off", "bustling", "comfortable") : choose("peaceful", "calm", "untroubled", "gentle", "easy", "sunlit", "content", "unhurried"); _mood_t = 0; }
+	else if (_mcmp >= 3)                       { _mood = choose("war torn", "overrun", "in flames", "lost to bandits", "ravaged", "bleeding"); _mood_t = 3; }
+	else if (_mciv >= 2 && _mcmp >= 2)         { _mood = choose("at war", "besieged", "embattled", "under siege", "on edge", "fortified"); _mood_t = 3; }
+	else if (_mcmp >= 2 && _mcmp >= _mciv)     { _mood = choose("lawless", "bandit-ridden", "outlaw country", "rough", "ungoverned", "wild"); _mood_t = 2; }
+	else if (_mcity && _mcmp <= 1)             { _mood = choose("prosperous", "thriving", "wealthy", "busy", "bustling", "well-fed"); _mood_t = 0; }
+	else if (_mdun >= 3)                       { _mood = choose("haunted", "cursed", "ill-omened", "grave-quiet", "uneasy", "restless dead"); _mood_t = 2; }
+	else if (_mruin >= 2)                      { _mood = choose("ruined", "forsaken", "fallen", "abandoned", "long-emptied", "overgrown"); _mood_t = 2; }
+	else if (_mciv >= 3)                       { _mood = choose("peaceful", "settled", "gentle", "tidy", "orderly", "well-kept", "homely"); _mood_t = 0; }
+	else if (_mciv == 1 && _mdun <= 1)         { _mood = choose("remote", "lonely", "quiet", "far-flung", "out of the way", "sparse", "hushed"); _mood_t = 1; }
+	else                                       { _mood = choose("quiet", "sleepy", "untroubled", "calm", "drowsy", "still", "backwater", "mild"); _mood_t = 0; }
 	// the distinct wild kinds here (the planet window lists them)
 	var _wk2 = [];
 	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);

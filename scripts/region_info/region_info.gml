@@ -34,25 +34,26 @@ function region_info(_d, _rg) {
 	// TEMPERATURE: the world's climate (0 hot .. 1 frozen) cooled toward the poles
 	var _tc = clamp(_pn.clim + abs(_rg.spot.lat) / 90 * .25 - .06, 0, 1);
 	var _tp, _tt;
-	if (_tc < .18)      { _tp = ["scorching", "blistering", "searing"]; _tt = 3; }
-	else if (_tc < .32) { _tp = ["hot", "sweltering", "baking"]; _tt = 2; }
-	else if (_tc < .45) { _tp = ["warm", "balmy", "sultry"]; _tt = 0; }
-	else if (_tc < .58) { _tp = ["mild", "temperate", "fair", "gentle"]; _tt = 0; }
-	else if (_tc < .70) { _tp = ["cool", "brisk", "fresh"]; _tt = 1; }
-	else if (_tc < .84) { _tp = ["cold", "chill", "raw"]; _tt = 2; }
-	else                { _tp = ["freezing", "bitter", "arctic"]; _tt = 3; }
+	// (the pools grown 2026-09-15 - his ask: more words for the properties there are)
+	if (_tc < .18)      { _tp = ["scorching", "blistering", "searing", "sun-hammered", "a furnace", "white-hot", "airless heat"]; _tt = 3; }
+	else if (_tc < .32) { _tp = ["hot", "sweltering", "baking", "close", "stifling", "sun-baked", "heavy heat"]; _tt = 2; }
+	else if (_tc < .45) { _tp = ["warm", "balmy", "sultry", "kindly", "summery", "soft", "warm as bread"]; _tt = 0; }
+	else if (_tc < .58) { _tp = ["mild", "temperate", "fair", "gentle", "even", "clement", "spring-like", "easy"]; _tt = 0; }
+	else if (_tc < .70) { _tp = ["cool", "brisk", "fresh", "crisp", "sharp", "autumnal", "nippy"]; _tt = 1; }
+	else if (_tc < .84) { _tp = ["cold", "chill", "raw", "bleak", "frosty", "biting", "hard"]; _tt = 2; }
+	else                { _tp = ["freezing", "bitter", "arctic", "iron-cold", "a deep freeze", "killing cold", "glacial"]; _tt = 3; }
 	array_push(_out, { k : "temperature", v : _pick(_rg.seed, 11, _tp), t : _tt });
 	// WEATHER, live (his ask: "a current weather somewhere")
 	var _slot = floor(universal_now() / 600);
 	var _wx = region_weather(_d, _rg);
 	var _wp, _wt;
 	switch (_wx) {
-		case "rain":  _wp = ["rain", "drizzle", "showers", "wet"]; _wt = 1; break;
-		case "snow":  _wp = ["snow", "flurries", "snowfall"]; _wt = 1; break;
-		case "wind":  _wp = ["wind", "gusts", "blustery"]; _wt = 1; break;
-		case "fog":   _wp = ["fog", "mist", "murk"]; _wt = 2; break;
-		case "storm": _wp = ["storm", "thunder", "a gale"]; _wt = 3; break;
-		default:      _wp = ["calm", "clear", "still", "fair"]; _wt = 0; break;
+		case "rain":  _wp = ["rain", "drizzle", "showers", "wet", "a downpour", "steady rain", "thin rain", "sheets of it"]; _wt = 1; break;
+		case "snow":  _wp = ["snow", "flurries", "snowfall", "sleet", "a whiteout", "soft snow", "driving snow"]; _wt = 1; break;
+		case "wind":  _wp = ["wind", "gusts", "blustery", "a stiff breeze", "squally", "a headwind", "wind off the hills"]; _wt = 1; break;
+		case "fog":   _wp = ["fog", "mist", "murk", "haze", "a thick fog", "low cloud", "pea soup"]; _wt = 2; break;
+		case "storm": _wp = ["storm", "thunder", "a gale", "lightning", "a tempest", "a squall", "wild weather"]; _wt = 3; break;
+		default:      _wp = ["calm", "clear", "still", "fair", "bright", "sunny", "a blue sky", "quiet skies"]; _wt = 0; break;
 	}
 	array_push(_out, { k : "weather", v : _pick(_rg.seed, _slot, _wp), t : _wt });
 	// TIME, live (his ask: "a current time"): the sun over the spot now, and
@@ -62,12 +63,12 @@ function region_info(_d, _rg) {
 	var _hp, _ht;
 	// (the bands follow the render's light: sh_planet's lightband runs
 	// -.22 dark to .30 full, so anything under .3 reads dusky on the world)
-	if (_dl < -.3)       { _hp = ["night", "deep night", "the small hours", "dead of night"]; _ht = 2; }
-	else if (_dl < -.1)  { _hp = _rising ? ["before dawn", "the grey hour", "late night"] : ["nightfall", "early night", "after dark"]; _ht = 2; }
-	else if (_dl < .1)   { _hp = _rising ? ["dawn", "first light", "daybreak"] : ["dusk", "sundown", "twilight"]; _ht = 1; }
-	else if (_dl < .3)   { _hp = _rising ? ["early morning", "the low sun", "morning light"] : ["evening", "the last light", "late evening"]; _ht = 1; }
-	else if (_dl < .55)  { _hp = _rising ? ["morning", "mid-morning", "forenoon"] : ["afternoon", "late day", "late afternoon"]; _ht = 0; }
-	else                 { _hp = ["midday", "noon", "high sun"]; _ht = 0; }
+	if (_dl < -.3)       { _hp = ["night", "deep night", "the small hours", "dead of night", "the middle of the night", "full dark", "the long dark"]; _ht = 2; }
+	else if (_dl < -.1)  { _hp = _rising ? ["before dawn", "the grey hour", "late night", "the last of the night", "cockcrow", "the wolf hour"] : ["nightfall", "early night", "after dark", "lamplight", "the first stars", "past sundown"]; _ht = 2; }
+	else if (_dl < .1)   { _hp = _rising ? ["dawn", "first light", "daybreak", "sunrise", "the grey light", "cold dawn"] : ["dusk", "sundown", "twilight", "the gloaming", "sunset", "the dimming"]; _ht = 1; }
+	else if (_dl < .3)   { _hp = _rising ? ["early morning", "the low sun", "morning light", "breakfast time", "the fresh of the day", "a slanting sun"] : ["evening", "the last light", "late evening", "the golden hour", "supper time", "the long shadows"]; _ht = 1; }
+	else if (_dl < .55)  { _hp = _rising ? ["morning", "mid-morning", "forenoon", "the working morning", "late morning", "a climbing sun"] : ["afternoon", "late day", "late afternoon", "the slow afternoon", "the sinking sun", "mid-afternoon"]; _ht = 0; }
+	else                 { _hp = ["midday", "noon", "high sun", "the middle of the day", "full sun", "the top of the day"]; _ht = 0; }
 	array_push(_out, { k : "time", v : _pick(_rg.seed, _slot + 7, _hp), t : _ht });
 	// FLORA: what grows, off the wild kinds the terrain gave the region
 	var _wk = _rg[$ "wild"] ?? [], _lush = 0, _dry = 0;
@@ -77,15 +78,15 @@ function region_info(_d, _rg) {
 		if (_w == "desert" || _w == "tundra" || _w == "mountains" || _w == "ruin" || _w == "mine") _dry++;
 	}
 	var _fp, _ft;
-	if (_bi == "ice")                 { _fp = ["sparse", "lichen", "frozen scrub"]; _ft = 2; }
-	else if (_lush >= 2 && _dry <= 1) { _fp = ["bountiful", "lush", "verdant", "thick"]; _ft = 0; }
-	else if (_lush >= 1)              { _fp = ["fair", "modest", "patchy", "scattered"]; _ft = 1; }
-	else if (_dry >= 1)               { _fp = ["sparse", "hardy", "scrub"]; _ft = 2; }
-	else                              { _fp = ["barren", "bare", "dead"]; _ft = 3; }
+	if (_bi == "ice")                 { _fp = ["sparse", "lichen", "frozen scrub", "moss and ice", "stunted", "wind-bent", "a few hardy things"]; _ft = 2; }
+	else if (_lush >= 2 && _dry <= 1) { _fp = ["bountiful", "lush", "verdant", "thick", "rampant", "green and deep", "overgrown", "rich"]; _ft = 0; }
+	else if (_lush >= 1)              { _fp = ["fair", "modest", "patchy", "scattered", "thin in places", "middling", "hedgerows and copses"]; _ft = 1; }
+	else if (_dry >= 1)               { _fp = ["sparse", "hardy", "scrub", "thorn and grit", "tough", "dust and thistle", "clinging"]; _ft = 2; }
+	else                              { _fp = ["barren", "bare", "dead", "stone and nothing", "lifeless", "scoured"]; _ft = 3; }
 	array_push(_out, { k : "flora", v : _pick(_rg.seed, 13, _fp), t : _ft });
 	// FAUNA: the region's rung (lv +0 / +2 / +4), a step worse where the dead walk
 	var _fa = clamp((_rg[$ "ri"] ?? 0) + (((_rg[$ "ndun"] ?? 0) >= 3) ? 1 : 0), 0, 3);
-	var _ap = [["passive", "timid", "docile", "shy"], ["restless", "wary", "hungry", "prowling"], ["hostile", "savage", "aggressive", "vicious"], ["feral", "monstrous", "ravenous", "deadly"]][_fa];
+	var _ap = [["passive", "timid", "docile", "shy", "meek", "harmless", "grazing", "sleepy"], ["restless", "wary", "hungry", "prowling", "skittish", "watchful", "nosing about", "unsettled"], ["hostile", "savage", "aggressive", "vicious", "snarling", "territorial", "sharp-toothed", "spoiling for it"], ["feral", "monstrous", "ravenous", "deadly", "murderous", "red in tooth", "man-eating", "bloody-minded"]][_fa];
 	array_push(_out, { k : "fauna", v : _pick(_rg.seed, 17, _ap), t : _fa });
 	// HAZARDS (2026-09-15): what its places do to a bare crew (cbt_hazards)
 	var _rh = region_hazards(_rg), _rht = "";
@@ -101,7 +102,7 @@ function region_info(_d, _rg) {
 			case "city":       _top = max(_top, 4); break;
 		}
 	}
-	var _cp = [["wilderness", "none", "empty"], ["farmlands", "homesteads", "hamlets", "crofts"], ["villages", "parishes", "a village or two"], ["towns", "market towns", "townships"], ["a city", "a walled city", "cities"]][_top];
+	var _cp = [["wilderness", "none", "empty", "nobody's land", "unpeopled", "the back of beyond"], ["farmlands", "homesteads", "hamlets", "crofts", "smallholdings", "a few chimneys", "scattered farms"], ["villages", "parishes", "a village or two", "village greens", "steeples and inns", "a scatter of villages"], ["towns", "market towns", "townships", "a fair-sized town", "walls and markets", "a busy town"], ["a city", "a walled city", "cities", "a city and its sprawl", "spires and gates", "a proper city"]][_top];
 	array_push(_out, { k : "civilization", v : _pick(_rg.seed, 19, _cp), t : (_top == 0) ? 2 : 0 });
 	return _out;
 }

@@ -181,6 +181,7 @@ function planet_gen_begin(_seed, _hint = undefined) {
 	_glow[20] = .30;
 	var _ringc = merge_colour(color_set_comp(_atmo), rgb(205, 195, 178), .55);
 	var _ring  = (_kind == "gas") ? (random(1) < .45) : (random(1) < .12);
+	if (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])) _ring = _hint.ring;   // (the galaxy's planet says - the home world, 2026-09-15; the roll above still runs)
 
 	// ---- the texel sampler's params ----
 	var _ps = {

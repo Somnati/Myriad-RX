@@ -53,9 +53,9 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 	var _hzr = ((_tr[$ "stage"] ?? 0) == 1) ? exped_hazard(_tr) : undefined;
 	var _q = _tr[$ "quest"];
 	var _goal = is_struct(_q) ? _rgn.nodes[clamp(_q.node, 0, _nn - 1)].name : _rgn.name;
-	var _pp = planet_props(_tr.dest);   // (the world's properties: its oddity, gravity, air, moons - 2026-09-15)
+	var _pp = planet_props(_tr.dest);   // (the world's properties: its moons, its ring - 2026-09-15)
 	var _c = {
-		odd : _pp.odd, grav : _pp.gravw, air : _pp.airw, moonless : (_pp.moons == 0),
+		moons : _pp.moons, moonless : (_pp.moons == 0), ringed : _pp.ring,
 		night : _tr[$ "night"] ?? false, wx : _tr[$ "weather"] ?? "clear",
 		haz : (is_struct(_hzr) && is_struct(_hzr.hz)) ? _hzr.hz.key : "",
 		place : _pnd.name, kind : _pnd.kind, region : _rgn.name, goal : _goal,
@@ -96,10 +96,9 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 		if (!is_undefined(_l[$ "qk"])    && _l.qk != _c.qk) return false;
 		if (!is_undefined(_l[$ "poor"])  && _l.poor != _c.poor) return false;
 		if (!is_undefined(_l[$ "lv"])    && ((_l.lv == "low" && _c.lv > 2) || (_l.lv == "high" && _c.lv < 6))) return false;
-		if (!is_undefined(_l[$ "odd"])   && _l.odd != _c.odd) return false;
-		if (!is_undefined(_l[$ "grav"])  && _l.grav != _c.grav) return false;
-		if (!is_undefined(_l[$ "air"])   && _l.air != _c.air) return false;
+		if (!is_undefined(_l[$ "moons"])    && _l.moons != _c.moons) return false;
 		if (!is_undefined(_l[$ "moonless"]) && _l.moonless != _c.moonless) return false;
+		if (!is_undefined(_l[$ "ringed"])   && _l.ringed != _c.ringed) return false;
 		return true;
 	};
 	var _all = exped_lines();
