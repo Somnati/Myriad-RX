@@ -1032,7 +1032,7 @@ if (view == "galaxy") {
 		if (_nx + _nr < 0 || _nx - _nr > _vw || _ny + _nr < 0 || _ny - _nr > _vh) continue;
 		nebula_draw(_nb, _nx * _gs, _ny * _gs, _nr * _gs, _gcf[$ "neb_alpha_map"] ?? .3);
 	}
-	// THE STAR GLYPHS (his ask, 2026-09-16: "a nicer looking star image"): spr_star_glyph - eight sizes of core + halo + spikes,
+	// THE STAR GLYPHS (his ask, 2026-09-16: "a nicer looking star image"): spr_star_glyph - ten sizes from a pixel, core + halo (+ spikes on the biggest three),
 	// a whole-scale pixel glyph (gs times: crisp), tinted the star's colour and its core laid white over it, both additive;
 	// the frame by the star's size on the page - a dwarf a five-pixel spark, a giant a thirty-one-pixel star
 	gpu_set_blendmode(bm_add);
@@ -1045,7 +1045,7 @@ if (view == "galaxy") {
 		var _gi = star_glyph_frame(_s);
 		var _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
 		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95);
-		draw_sprite_ext(spr_star_glyph, 8 + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8);
+		if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8);   // (a dot stays its colour)
 	}
 	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped

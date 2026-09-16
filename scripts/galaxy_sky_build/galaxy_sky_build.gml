@@ -56,7 +56,7 @@ function galaxy_sky_build(_dw = undefined) {
 		var _ap = (_st.props.size / 2) * power(_nrf / max(_d, 20), _npw);
 		var _apb = (_st.props.size / 2) * 3 * power(_nrf / max(_d, 20), 1.2);
 		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : dcos(_el) * dsin(_az),
-		                         col : _st.props.color, b : .2 + .8 * clamp(_apb, 0, 1), s : clamp(2 + 29 * _ap, 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
+		                         col : _st.props.color, b : .2 + .8 * clamp(_apb, 0, 1), s : clamp(1 + 30 * _ap, 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true });   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16)
 	}
 	// the system: where everything is NOW (the universal clock), the
 	// siblings as dots along the ecliptic, the sun at the star's bearing

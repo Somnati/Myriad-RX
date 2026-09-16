@@ -63,7 +63,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 			var _gi = star_glyph_frame(_sk.s), _gx0 = floor(_sx), _gy0 = floor(_sy);
 			gpu_set_blendmode(bm_add);
 			draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, 1, 1, 0, _sk.col, _a);
-			draw_sprite_ext(spr_star_glyph, 8 + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8);
+			if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8);   // (a dot stays its colour)
 			gpu_set_blendmode(bm_normal);
 		} else draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
 	}
