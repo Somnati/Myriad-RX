@@ -444,6 +444,8 @@ pv_zoom  = 1;                        // region mode's pull-in (PV_ZOOM_RG), ease
 pv_cfade = 1;                        // ...and the clouds thinning with it
 // the trip page's world: the same render, the camera fixed on the trip's region
 tp_id = -1; tp_cam = mat3_rot(1, 0, 0, -32); tp_spin = 0;
+tp_sheet = -1;   // THE SHEET MODAL on the trip page (his ask, 2026-09-16): the sprite shown (-1 = none) - a banner opens it, in place of the crew menu
+__tp_sheet_r = function() { if (land) return { x : log_x, y : log_y, w : log_w, h : room_height - 8 - log_y }; return { x : 4, y : list_y + 22, w : room_width - 8, h : room_height - 8 - (list_y + 22) }; };   // over the log column (wide) / the page (portrait)
 sky_fog_surf = -1;                   // sh_sky_fog's canvas (the page's size)
 __pv_r     = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };   // (from the strip down - his ask, 2026-09-15: no gap over the sky)
 __pv_c     = function() { var _r = __pv_r(); return { x : _r.x + _r.w * .5 - 46 * pv_dwa, y : _r.y + _r.h * .5 + 2 }; };   // (the world slides left as the drawer opens)

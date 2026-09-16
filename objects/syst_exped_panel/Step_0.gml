@@ -279,6 +279,7 @@ if (hand != "") {
 }
 // ---- [back], and escape: one step up the chain (__back, the Create) ----
 if (keyboard_check_pressed(vk_escape) && view == "depart" && dp_sheet >= 0) { dp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }   // (the sheet modal first)
+if (keyboard_check_pressed(vk_escape) && view == "trip" && tp_sheet >= 0) { tp_sheet = -1; it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 if (keyboard_check_pressed(vk_escape)) {
 	if (view != "hub") __back(); else exped_close();
 	exit;
@@ -657,6 +658,15 @@ if (view == "haul") {
 // ======================= THE TRIP: a fight can be stepped by hand =======================
 if (view == "trip") {
 	var _tr = __trip();
+	// THE SHEET MODAL owns the page while it is up (the preparation page's rule):
+	// its rows and popups, a press on it stays, a press off it closes it and goes on
+	if (tp_sheet >= 0) {
+		if (__sheet_tap()) exit;
+		var _tsr = __tp_sheet_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _tsr.x, _tsr.y, _tsr.x + _tsr.w, _tsr.y + _tsr.h)) exit;
+		tp_sheet = -1; it_pop = undefined; it_rects = [];
+		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
+	}
 	// a tap on the replay's window skips the rest of it
 	if (!is_undefined(rp)) {
 		var _fw = __fight_r();
@@ -698,7 +708,8 @@ if (view == "trip") {
 		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 			var _cr = __crew_row_r(_k);
 			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
-				sheet_id = _tr.sids[_k]; __page_go("crew"); crew_trip = _tr.id; it_pop = undefined;
+				// (the sheet as a modal here, not the crew menu - his ask, 2026-09-16)
+				tp_sheet = _tr.sids[_k]; sheet_id = _tr.sids[_k]; it_pop = undefined; it_rects = [];
 				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 				exit;
 			}

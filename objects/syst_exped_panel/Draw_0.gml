@@ -680,6 +680,13 @@ if (view == "trip") {
 	var _ly = _sy + 42;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
 	__draw_log_band(_tr.log, { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);
+	// THE SHEET AS A MODAL (a tap on a banner - his ask, 2026-09-16): the crew page's painter over the log column
+	var _tsp = __sp_by_id(tp_sheet);
+	if (!is_undefined(_tsp)) {
+		var _tsr = __tp_sheet_r();
+		it_rects = [];
+		__draw_sheet(_tsp, _tsr.x, _tsr.y, _tsr.x + _tsr.w, _tsr.y + _tsr.h);
+	} else if (tp_sheet >= 0) tp_sheet = -1;   // (the sprite went - retired, or the trip came home)
 	// THE CONFIRM POPUP (abort): the save menu's box, over everything
 	if (conf_a > .01) {
 		var _cr = __conf_rect();
