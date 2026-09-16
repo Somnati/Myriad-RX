@@ -77,7 +77,7 @@ __dp_bh  = function() { return 28; };                                    // ...a
 __dp_list_r = function() { var _o = -(1 - dp_in) * 200; return { x : (land ? 14 : 4) + _o, y : list_y + 34, w : __dp_bw() + 18, h : room_height - 8 - (list_y + 34) }; };
 __dp_row_r = function(_k) { var _l = __dp_list_r(); return { x : _l.x, y : _l.y + _k * (__dp_bh() + 4) - dp_off, w : __dp_bw(), h : __dp_bh() }; };
 __dp_row_in = function(_k) { var _l = __dp_list_r(), _r = __dp_row_r(_k); return (_r.y >= _l.y - 1 && _r.y + _r.h <= _l.y + _l.h + 1); };   // the row wholly in the band
-__dp_plus_r = function(_k) { var _r = __dp_row_r(_k); return { x : _r.x + _r.w + 3, y : _r.y + 4, w : 14, h : 14 }; };
+__dp_plus_r = function(_k) { var _r = __dp_row_r(_k); return { x : _r.x + _r.w + 2, y : _r.y, w : 16, h : _r.h }; };   // ([+] / [-] snug to the banner, as tall as it - his ask 2026-09-16)
 __dp_off_max = function() { var _l = __dp_list_r(); return max(0, array_length(g.sprites) * (__dp_bh() + 4) - 4 - _l.h); };
 /// THE MISSION BOX's layout: the text and the numbers, then the seats; the box grows to fit
 __dp_layout = function() {
@@ -90,14 +90,14 @@ __dp_layout = function() {
 	var _xc = (dp_mode == "explore" && is_struct(dp_quest)) ? dp_quest : undefined;
 	draw_set_font(fnt);
 	var _ns = exped_party_max();
-	var _cols = land ? 2 : 1, _srows = ceil(_ns / _cols);   // THE SEATS in two columns on a wide page (2026-09-15: four seats, taller banners - the box stays on the page)
+	var _cols = 1, _srows = _ns;   // THE SEATS: a vertical list of single-line rows (his ask, 2026-09-16) - four fit
 	// the text's height: the ask, the objective paragraph, the number rows (10px
 	// each) - and the paragraph DROPS when the box would run off the page
 	// (2026-09-16: a long ask, a long objective and two hazard rows did)
 	var _ask = is_struct(_q) ? _q.txt : (is_struct(_xc) ? _xc.txt : ("wander " + _rg.name + " until recalled"));
 	var _obj = is_struct(_q) ? exped_quest_obj(_q, _rg, true) : (is_struct(_xc) ? _xc.note : "they pick their own way: inns when hurt and there is coin, shops, taverns (drink, bar fights, bounties), dungeons, camps, the wild. [recall] on the trip's page brings them home");
 	var _nrows = (is_struct(_q) ? 5 : 4) + __dp_haz_rows();
-	var _seats_h = 14 + _srows * (__dp_bh() + 4) + 4;
+	var _seats_h = 14 + _srows * (__dp_seat_h() + 2) + 4;
 	var _th = string_height_ext(_ask, 9, _tw) + 4 + string_height_ext(_obj, 9, _tw) + 6 + 10 * _nrows;
 	var _para_on = true;
 	if (_y + 6 + _th + _seats_h > room_height - 8) { _para_on = false; _th = string_height_ext(_ask, 9, _tw) + 4 + 10 * _nrows; }
@@ -137,8 +137,9 @@ __dp_hazards = function() {
 };
 /// ...and the rows they take in the mission box: one each, and one more under it when someone seated is bare (what holds it)
 __dp_haz_rows = function() { var _l = __dp_hazards(), _r = 0; for (var _i = 0; _i < array_length(_l); _i++) _r += 1 + ((array_length(_l[_i].bare) > 0) ? 1 : 0); return _r; };
-__dp_seat_r = function(_j) { var _l = __dp_layout(), _cl = _j mod _l.cols, _rw = _j div _l.cols; return { x : _l.x + 8 + _cl * (__dp_bw() + 24), y : _l.seat_y0 + _rw * (__dp_bh() + 4), w : __dp_bw(), h : __dp_bh() }; };   // (two columns on a wide page)
-__dp_minus_r = function(_j) { var _r = __dp_seat_r(_j); return { x : _r.x + _r.w + 4, y : _r.y + 4, w : 14, h : 14 }; };
+__dp_seat_h = function() { return 12; };   // a seat row: one line - "Temoo (ranger)      lv 1"
+__dp_seat_r = function(_j) { var _l = __dp_layout(); return { x : _l.x + 8, y : _l.seat_y0 + _j * (__dp_seat_h() + 2), w : _l.w - 16, h : __dp_seat_h() }; };
+__dp_minus_r = function(_j) { return __dp_seat_r(_j); };   // (a press on a seat row unseats it; the list's [-] does too)
 __depart_r = function() { var _b = __brief_r(); return { x : _b.x + _b.w - 100, y : min(room_height - 8 - 16, _b.y + _b.h + 4) + (1 - dp_in) * 60, w : 100, h : 16 }; };
 /// the seat a sprite sits in (-1 = the list)
 __dp_seat_of = function(_sid) { for (var _j = 0; _j < array_length(dp_slots); _j++) if (dp_slots[_j] == _sid) return _j; return -1; };
@@ -190,16 +191,16 @@ __dp_banner = function(_sp, _x, _y, _w, _a, _ghost, _ovr = undefined) {   // ovr
 		var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add), _mpr = max(1, round(_st.pts.mp));
 		var _hpc = floor(_hpr * (_sp[$ "hpf"] ?? 1)), _mpc = round(_mpr * (_sp[$ "mpf"] ?? 1));
 		if (is_struct(_ovr)) { _hpr = max(1, floor(_ovr.hpmax)); _hpc = clamp(floor(_ovr.hp), 0, _hpr); _mpr = max(1, round(_ovr.mpmax)); _mpc = clamp(round(_ovr.mp), 0, _mpr); }
-		var _rows = [[c_hred, "hp", _hpc, _hpr], [c_sblue, "mp", _mpc, _mpr]];
+		// (2026-09-16: the bar runs to the banner's edge on a dark shade of its own colour; the number sits over it in the outline font)
+		var _rows = [[hp_bar_col(), "hp", _hpc, _hpr], [c_sblue, "mp", _mpc, _mpr]];
 		for (var _ri = 0; _ri < 2; _ri++) {
 			var _rw = _rows[_ri], _ly = _y + 12 + _ri * 8;
 			var _num = string(_rw[2]) + "/" + string(_rw[3]);
-			var _nw = string_width(_num);
-			var _bx = _x + 16, _bw = max(8, (_x + _w - 4 - _nw - 4) - _bx);
+			var _bx = _x + 16, _bw = max(8, (_x + _w - 3) - _bx);
 			draw_set_color(_rw[0]); draw_set_alpha(.9 * _a); draw_text(_x + 4, _ly, _rw[1]);
-			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 2, _bw, 4, 0, c_black, .7 * _a);
-			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 2, _bw * clamp(_rw[2] / max(1, _rw[3]), 0, 1), 4, 0, _rw[0], .85 * _a);
-			draw_set_halign(fa_right); draw_set_color(sett_ink); draw_set_alpha(.9 * _a); draw_text(_x + _w - 4, _ly, _num); draw_set_halign(fa_left);
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 1, _bw, 6, 0, merge_colour(_rw[0], c_black, .75), .9 * _a);
+			draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly + 1, _bw * clamp(_rw[2] / max(1, _rw[3]), 0, 1), 6, 0, _rw[0], .85 * _a);
+			draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.95 * _a); draw_text(_x + _w - 4, _ly - 1, _num); draw_set_halign(fa_left); draw_set_font(fnt);
 		}
 	}
 	draw_set_alpha(1);
@@ -783,7 +784,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _w = _x1 - _x0;
 	// THE GROUND: black (the gradient came and went the same day - his call)
 	var _gh0 = (is_undefined(_y1) ? (room_height - 8) : _y1) - _y0;
-	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0, _w, _gh0, 0, c_black, .92);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x0, _y0, _w, _gh0, 0, c_black, .985);   // (near opaque - his ask, 2026-09-16)
 	draw_px_rect(_x0, _y0, _w, _gh0, _sp.col, .35);
 	// the header: the name, the class UNDER it (his ask), the personality
 	// line further down; the level beside the xp bar (with its brothers)
@@ -831,12 +832,13 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	if (is_struct(it_pop) && it_pop[$ "st"] == "mp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by + 9, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by + 9, _hlw, 10, c_white, .45); }
 	array_push(it_rects, { x : _hx - 2, y : _by - 1, w : _hlw, h : 10, st : "hp" });
 	array_push(it_rects, { x : _hx - 2, y : _by + 9, w : _hlw, h : 10, st : "mp" });
-	draw_set_color(c_hred); draw_set_alpha(.9); draw_text(_hx, _by, "hp");
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw, 5, 0, c_black, .7);
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 5, 0, c_hred, .8);
+	var _hpcol = hp_bar_col();
+	draw_set_color(_hpcol); draw_set_alpha(.9); draw_text(_hx, _by, "hp");
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw, 5, 0, merge_colour(_hpcol, c_black, .75), .9);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 2, _bw * clamp(_hpc / max(1, _hpr), 0, 1), 5, 0, _hpcol, .8);
 	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by - 1, string(_hpc) + " / " + string(_hpr)); draw_set_halign(fa_left); draw_set_font(fnt);
 	draw_set_color(c_sblue); draw_set_alpha(.9); draw_text(_hx, _by + 10, "mp");
-	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw, 5, 0, c_black, .7);
+	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw, 5, 0, merge_colour(c_sblue, c_black, .75), .9);
 	draw_sprite_ext(spr_pixel_1x1, 0, _hx + 18, _by + 12, _bw * clamp(_mpc / max(1, _mpr), 0, 1), 5, 0, c_sblue, .8);
 	draw_set_font(fnt_outline); draw_set_halign(fa_right); draw_set_color(c_white); draw_set_alpha(.9); draw_text(_hx + 18 + _bw - 2, _by + 9, string(_mpc) + " / " + string(_mpr)); draw_set_halign(fa_left); draw_set_font(fnt);
 	// the stats grid (two columns of three), base + the gear's share

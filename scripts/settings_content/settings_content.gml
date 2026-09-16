@@ -434,6 +434,15 @@ function settings_content() {
 		+ "more and the pattern (or the grain) becomes part of the look. hold the knob and the "
 		+ "settings fade so the expedition page shows it as you drag.",
 		-1, undefined, true);
+	// THE HP BARS' COLOUR (his ask, 2026-09-16): the house red, or the green
+	settings_pill("hp bar colour", "hpbarcol",
+		g.hp_bar_col,
+		function() {
+			set_pill("red",   { val : "red",   col : c_hred,   enabled : (g.hp_bar_col == "red") });
+			set_pill("green", { val : "green", col : c_sgreen, enabled : (g.hp_bar_col == "green") });
+		},
+		function(_v) { g.hp_bar_col = _v; },
+		"the colour of every hp bar - the crew's banners, the sheet, the trip page.");
 
 	// THE TAB'S OWN RESET (his ask, 2026-09-11)
 	settings_info("", "");   // (a blank row: the reset is not adjacent to anything you have to tap)

@@ -42,6 +42,7 @@ function settings_defaults(_section = "all") {
 		g.title_bg              = "starfield"; // the title's backdrop (starfield / blocks / trace / forge)
 		g.page_dither           = "ordered";   // the expedition pages' dither (ordered / grain)
 		g.page_dither_amt       = 25;          // ...and its intensity, % of PAGE_GRAIN_MAX levels
+		g.hp_bar_col            = "red";       // the hp bars' colour: red / green
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
 		g.bit_pick              = { profit : "glow", credit : "glow",
 		                            unit : "glow", tile : "plain" }; // bit_config ids

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"hp_bar_col",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"hp_bar_col",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

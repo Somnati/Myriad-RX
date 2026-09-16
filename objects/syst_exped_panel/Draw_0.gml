@@ -937,27 +937,23 @@ if (view == "depart") {
 	var _crew = [];
 	var _np = 0;
 	for (var _j = 0; _j < _ns; _j++) if (dp_slots[_j] >= 0 && !is_undefined(__sp_by_id(dp_slots[_j]))) { array_push(_crew, __sp_by_id(dp_slots[_j])); _np++; }
-	var _fly = [];   // banners in flight: drawn last, over everything
+	// (2026-09-16, his call: a banner stays in its row - seated, its [+] is a [-]; nothing flies, nothing ghosts)
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		if (!__dp_row_in(_k)) continue;
 		var _sp = g.sprites[_k];
 		var _rr = __dp_row_r(_k);
 		var _seated = (__dp_seat_of(_sp.id) >= 0);
 		var _away = (_sp[$ "trip"] ?? false);
-		var _ps = dp_pos[$ string(_sp.id)];
-		var _home = is_struct(_ps) && point_distance(_ps.x, _ps.y, _rr.x, _rr.y) < 1;
-		// the ghost stays until the banner is HOME (his report: the row lost it while the banner flew)
-		if (_seated || !_home) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, 1, true);
-		if (!_seated && is_struct(_ps)) { if (_home) __dp_banner(_sp, _rr.x, _rr.y, _rr.w, _away ? .45 : 1, false); else array_push(_fly, _sp); }
-		if (!_seated) {
-			var _pr = __dp_plus_r(_k);
-			var _can = !_away && (_np < _ns);
-			draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
-			draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _can ? c_sgreen : _dim, _can ? .7 : .25);
-			draw_set_halign(fa_center); draw_set_color(_can ? c_sgreen : _dim); draw_set_alpha(_can ? .95 : .35);
-			draw_text(_pr.x + _pr.w * .5, _pr.y + 3, "+");
-			draw_set_halign(fa_left);
-		}
+		__dp_banner(_sp, _rr.x, _rr.y, _rr.w, _away ? .45 : 1, false);
+		if (_seated) { draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_sgreen, .06); draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, c_sgreen, .5); }   // (a seated banner wears a green edge)
+		var _pr = __dp_plus_r(_k);
+		var _can = _seated || (!_away && (_np < _ns));
+		var _bc = _seated ? c_hred : c_sgreen;
+		draw_sprite_ext(spr_pixel_1x1, 0, _pr.x, _pr.y, _pr.w, _pr.h, 0, c_black, .8);
+		draw_px_rect(_pr.x, _pr.y, _pr.w, _pr.h, _can ? _bc : _dim, _can ? .7 : .25);
+		draw_set_halign(fa_center); draw_set_color(_can ? _bc : _dim); draw_set_alpha(_can ? .95 : .35);
+		draw_text(_pr.x + _pr.w * .5, _pr.y + _pr.h * .5 - 4, _seated ? "-" : "+");
+		draw_set_halign(fa_left);
 	}
 	// THE MISSION BOX: the text, the numbers, then the seats inside it
 	var _lay = __dp_layout();
@@ -1051,25 +1047,27 @@ if (view == "depart") {
 	// THE SEATS, inside the box: a [+] while empty, the banner when taken, a [-] beside it
 	draw_set_color(_dim); draw_set_alpha(.5);
 	draw_text(_tx, _lay.seat_y0 - 12, "the party  -  " + string(_np) + " of " + string(_ns));
+	// THE SEATS as single-line rows (his ask, 2026-09-16): "Temoo (ranger)      lv 1"; an empty one a dim "+"; a press on a filled one unseats it
 	for (var _j = 0; _j < _ns; _j++) {
 		var _sr = __dp_seat_r(_j);
 		var _sid = dp_slots[_j];
 		var _ssp = (_sid >= 0) ? __sp_by_id(_sid) : undefined;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, _sr.w, _sr.h, 0, c_black, .6);
-		draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, _dim, .35);
+		draw_px_rect(_sr.x, _sr.y, _sr.w, _sr.h, is_undefined(_ssp) ? _dim : _ssp.col, is_undefined(_ssp) ? .3 : .55);
 		if (is_undefined(_ssp)) {
-			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.5);
-			draw_text(_sr.x + _sr.w * .5, _sr.y + 7, "+");
+			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.45);
+			draw_text(_sr.x + _sr.w * .5, _sr.y + 2, "+");
 			draw_set_halign(fa_left);
 		} else {
-			var _ps2 = dp_pos[$ string(_sid)];
-			var _home2 = is_struct(_ps2) && point_distance(_ps2.x, _ps2.y, _sr.x, _sr.y) < 1;
-			if (_home2) __dp_banner(_ssp, _sr.x, _sr.y, _sr.w, 1, false); else array_push(_fly, _ssp);
-			var _mr2 = __dp_minus_r(_j);
-			draw_sprite_ext(spr_pixel_1x1, 0, _mr2.x, _mr2.y, _mr2.w, _mr2.h, 0, c_black, .8);
-			draw_px_rect(_mr2.x, _mr2.y, _mr2.w, _mr2.h, c_hred, .7);
-			draw_set_halign(fa_center); draw_set_color(c_hred); draw_set_alpha(.95);
-			draw_text(_mr2.x + _mr2.w * .5, _mr2.y + 3, "-");
+			var _scl = sprite_classes()[sprite_sheet(_ssp).cls];
+			draw_sprite_ext(spr_pixel_1x1, 0, _sr.x, _sr.y, 2, _sr.h, 0, _ssp.col, .9);
+			__dot(_sr.x + 9, _sr.y + 6, 3, _ssp.col, .95);
+			draw_set_color(c_white); draw_set_alpha(.95);
+			draw_text(_sr.x + 16, _sr.y + 2, str_cap(_ssp.name));
+			draw_set_color(_scl.col); draw_set_alpha(.85);
+			draw_text(_sr.x + 16 + string_width(str_cap(_ssp.name)) + 4, _sr.y + 2, "(" + _scl.name + ")");
+			draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.75);
+			draw_text(_sr.x + _sr.w - 4, _sr.y + 2, "lv " + string(sprite_sheet(_ssp).lv));
 			draw_set_halign(fa_left);
 		}
 	}
@@ -1077,11 +1075,6 @@ if (view == "depart") {
 	var _dr = __depart_r();
 	var _can = (_np > 0 && _have >= _cost.total);
 	draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, (_np == 0) ? "seat a crew" : ((_have < _cost.total) ? "short of credits" : "depart"), _can ? c_sgreen : c_gray, true, _can);
-	// the banners in flight, over everything
-	for (var _f = 0; _f < array_length(_fly); _f++) {
-		var _fsp = _fly[_f], _fps = dp_pos[$ string(_fsp.id)];
-		if (is_struct(_fps)) { draw_sprite_ext(spr_pixel_1x1, 0, _fps.x + 2, _fps.y + 3, __dp_bw(), __dp_bh(), 0, c_black, .5); __dp_banner(_fsp, _fps.x, _fps.y, __dp_bw(), 1, false); }
-	}
 	// THE SHEET AS A MODAL (a tap on a banner): the crew page's own painter
 	// under a dim veil; a press off it closes it
 	var _msp = __sp_by_id(dp_sheet);

@@ -295,10 +295,10 @@ __forge_roll = function() {
 		px : _cx, py : _cy,
 		x : _cx + 72, y : _cy + 144,       // the cell (DE: instance at 72,144)
 		c : _col,
-		// THE LIFE (2026-09-16, his memories): unclaimed and filling (dens 0 -> 1
-		// over fill_len), CREATED on full (the burst), held hold_t, then
-		// un-created (the other burst) and filling again
-		created : false, dens : random(.5), fill_len : random_range(240, 360), hold_t : 0, mat_t : irandom_range(20, 60),   // (mat_t: ticks to the next material tapped in)
+		// A COMPLETED DIAL (his call, 2026-09-16): the cycle builds the disc up
+		// smoothly and the cycle's end is the burst - DE's claimed cell under
+		// prod_dials' GENFORGE block (a sawtooth here, the cycle simulated)
+		cycle : random(1), cycle_len : random_range(150, 300),
 		fill : 0, alpha : 0, size : 0, chg : 0, rec : .08, dmp : .9,
 		circ : 0, glow : 0, wdc : random_range(-4, 4), xos : 0, yos : 0,
 		effs : [], sparks : [], rings : [],
@@ -343,77 +343,33 @@ __forge_step = function() {
 		_f.ga = random(lerp(1, -.5, _f.circ));
 		for (var _ti = 0; _ti < array_length(_f.effs); _ti++) { var _te = _f.effs[_ti]; _te.j1 = random_range(.95, 1.05); _te.j2 = random_range(-.05, .05); _te.j3 = random_range(-.05, .05); }
 	}
-	// ---- THE LIFE: filling, created, un-created ----
-	if (!_f.created) {
-		// THE MATERIALS (DE's obj_gf_slot_mat): the fill rises in steps as they
-		// are tapped in, and every tap flings five to eight motes up from the
-		// slot row at the room's foot, pulled to the cell
-		if (_tick) {
-			_f.mat_t -= 1;
-			if (_f.mat_t <= 0) {
-				_f.mat_t = irandom_range(40, 90);
-				_f.dens = min(1, _f.dens + random_range(.08, .18));
-				repeat (choose(5, 6, 7, 8)) {
-					var _mm = __forge_mote(_f.px + random(144), _f.py + 296 - random(16), false, random(2), random(2), 30, roll_perc(5));
-					_mm.part_chance = 2;
-					array_push(_f.effs, _mm);
-				}
-			}
-		}
-		if (_f.dens >= 1) {
-			// THE CREATION (DE: the click when full): the kick, the flare, the
-			// ring, and seven motes born on the rim and pushed away sideways,
-			// one in five with the big glow
-			_f.created = true;
-			_f.size += 5; _f.glow += .75;
-			_f.hold_t = random_range(150, 240);
-			array_push(_f.rings, { size : 0, spd : 3.5, decay : random_range(15, 30), alpha : 1 });
-			var _mx = (30 * .5) * _f.dens;
-			repeat (7) {
-				var _dr = choose(-1000, -2000);
-				_dr = (_dr == -1000) ? random_range(-45, 45) : random_range(135, 225);
-				var _sp1 = random(1);
-				array_push(_f.effs, __forge_mote(_f.x + lengthdir_x(_mx, _dr), _f.y + lengthdir_y(_mx, _dr), true, random(3), 10 * _sp1, lerp(60, 15, _sp1), roll_perc(20)));
-			}
-		}
-	} else {
-		_f.hold_t -= delta;
-		if (_f.hold_t <= 0) {
-			// THE UN-CREATION (DE: density falling under full): two or three
-			// motes born on the rim and pushed away, a crowd born anywhere and
-			// pulled in - and the fill starts over
-			_f.created = false;
-			var _mx2 = (30 * .5) * _f.fill;
-			repeat (choose(2, 3)) {
-				var _dr2 = choose(-1000, -2000);
-				_dr2 = (_dr2 == -1000) ? random_range(-20, 20) : random_range(160, 200);
-				var _sp2 = random(1);
-				array_push(_f.effs, __forge_mote(_f.x + lengthdir_x(_mx2, _dr2), _f.y + lengthdir_y(_mx2, _dr2), true, random(3) * 2, random(4), lerp(60, 15, _sp2), roll_perc(5)));
-			}
-			repeat (choose(2, 3, 4, 5) * 2) {
-				var _sp3 = random(1);
-				array_push(_f.effs, __forge_mote(_f.px + random(144), _f.py + random(296), false, random(3), random(2), lerp(60, 15, _sp3), roll_perc(5)));
-			}
-			_f.dens = 0;
-			_f.fill_len = random_range(240, 360);
+	// ---- the dial's cycle, simulated (DE read g.cycle[s]) ----
+	_f.cycle += delta / _f.cycle_len;
+	if (_f.cycle >= 1) {
+		_f.cycle -= 1;
+		// THE BURST (prod_dials' GENFORGE block, on the cycle's completion): a
+		// kick to the cell's spring (push_wiggle 2), a RING pushing out of it
+		// (obj_gf_eff_ring), and create_pull - four to ten motes born anywhere
+		// and PULLED in (obj_gf_eff's own Create: spd random(3), decay by size)
+		_f.chg += 2;
+		array_push(_f.rings, { size : 0, spd : 3.5, decay : random_range(15, 30), alpha : 1 });
+		repeat (choose(2, 3, 4, 5) * 2) {
+			var _sp0 = random(1);
+			array_push(_f.effs, __forge_mote(_f.px + random(144), _f.py + random(296), false, random(3), random(2), lerp(60, 15, _sp0), roll_perc(5)));
 		}
 	}
-	// ---- obj_gf_slot_cell: the fill (dens_perc eases toward the stepped density), the spring, the jitter, the shake ----
-	_f.fill = trickle(_f.fill, _f.dens, 5);
-	var _max = (_f.created ? (30 * .5) : (30 * .75 * .5)) * _f.fill;   // created: sprite_width / 2; unclaimed: x .75
+	// ---- obj_gf_slot_cell, claimed: the fill and the alpha ride the cycle (a smooth build-up, then back down after the burst) ----
+	_f.fill  = trickle(_f.fill, lerp(.3, 1, _f.cycle), 5);
+	_f.alpha = lerp(.3, 1, _f.cycle);
+	var _max = (30 * .5) * _f.fill;                 // created: (sprite_width / 2) x fill
 	__forge_wiggle(_f, _max);
 	_f.circ = _f.size / ((30 * .75) * .5);
-	if (_tick) {
-		if (!_f.created) _f.chg += random(.2 * _f.fill);            // push_wiggle(random(.2 x fill)): the jitter while filling
-		_f.xos = 0; _f.yos = 0;
-		if (!_f.created && roll_perc(_f.fill * _f.fill * 100)) { if (choose(0, 1) == 0) _f.xos = choose(1, -1); else _f.yos = choose(1, -1); }   // the shake as it nears full
-		// the motes pulled in while it fills (DE: roll_perc(7 x dens^2) a frame - a tick here)
-		if (roll_perc(clamp(7 * (_f.fill * _f.fill), 0, 7))) {
-			var _p = clamp(_f.fill, 0, 1);
-			var _m = __forge_mote(_f.px + random(144), _f.py + random(296), false, random(2 * _p), random(2 * _p), 30, roll_perc(5));
-			_m.part_chance = 2;
-			array_push(_f.effs, _m);
-		}
+	_f.xos = 0; _f.yos = 0;
+	// the motes pulled in (dens_perc 1 for a claimed cell: roll_perc(7) a frame at 60 - a tick here)
+	if (_tick && roll_perc(7)) {
+		var _m = __forge_mote(_f.px + random(144), _f.py + random(296), false, random(2), random(2), 30, roll_perc(5));
+		_m.part_chance = 2;
+		array_push(_f.effs, _m);
 	}
 	_f.glow = clamp(_f.glow - .05 * delta, 0, 1);
 	_f.alpha = trickle(_f.alpha, 1, 3.5);
@@ -484,13 +440,8 @@ __draw_forge = function() {
 	draw_sprite_ext(spr_glow_sw, 0, _fx, _fy, _cp, _cp * ((_ca * _ca) * _ca), 0, _c, lerp(0, .6, _cp * (1 + _f.glow)) * (1 - _ca));
 	var _ga = _f.ga;                                 // the flicker while small (held between ticks)
 	var _sz = _f.size * (_ca * _ca);
-	// THE PIXEL RING (DE's unclaimed cell: a one-pixel outline round the radius, hsv(hue, 150, 255)) - his memory, 2026-09-16
-	if (!_f.created) {
-		var _oc = make_colour_hsv(c_hue(_c), 150, 255);
-		draw_set_alpha(_ca);
-		draw_circle_colour(_fx - 1.5, _fy - 1, max(30 * .5 + 1, _sz + 3), _oc, _oc, true);
-	}
-	draw_set_alpha(clamp(1 - _ga, 0, _f.created ? 1 : .8) * _ca);   // (the unclaimed disc never quite solid - DE's .8)
+	// (the unclaimed cell's pixel ring, shake and step-fill were the forging of a dial, not a finished one - out, his call 2026-09-16)
+	draw_set_alpha(clamp(1 - _ga, 0, 1) * _ca);
 	draw_circle_colour(_fx - 1.5, _fy - 1, _sz, _c, make_colour_hsv(c_hue(_c), 255, c_val(_c)), false);
 	draw_set_alpha(1);
 	// the rings (obj_gf_eff_ring's Draw Begin: a half disc and a full outline)

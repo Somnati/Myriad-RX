@@ -33,21 +33,9 @@ dp_sheet_a = move_to(dp_sheet_a, (view == "depart" && dp_sheet >= 0) ? 1 : 0, 6)
 if (abs(dp_sheet_a - ((view == "depart" && dp_sheet >= 0) ? 1 : 0)) < .01) dp_sheet_a = (view == "depart" && dp_sheet >= 0) ? 1 : 0;
 leg_a = move_to(leg_a, (view == "map" && map_legend) ? 1 : 0, 5);
 swap_a = move_to(swap_a, (view == "haul" && swap_pick) ? 1 : 0, 5);
-// the banners' places: each eases toward its seat or its row (the swing between them)
-if (view == "depart" && is_struct(pl_dest)) {
-	dp_off = clamp(dp_off, 0, __dp_off_max());
-	for (var _k = 0; _k < array_length(g.sprites); _k++) {
-		var _sp = g.sprites[_k];
-		var _j = __dp_seat_of(_sp.id);
-		var _tr = (_j >= 0) ? __dp_seat_r(_j) : __dp_row_r(_k);
-		var _key = string(_sp.id);
-		var _cur = dp_pos[$ _key];
-		if (!is_struct(_cur) || dp_in < .5) { dp_pos[$ _key] = { x : _tr.x, y : _tr.y }; continue; }
-		var _kk = 1 - power(.72, delta);
-		_cur.x = lerp(_cur.x, _tr.x, _kk); _cur.y = lerp(_cur.y, _tr.y, _kk);
-		if (point_distance(_cur.x, _cur.y, _tr.x, _tr.y) < .6) { _cur.x = _tr.x; _cur.y = _tr.y; }
-	}
-} else { dp_off = 0; dp_ldrag = undefined; }
+// (the banners stay in their rows - a seated one shows a [-]; no flight, his call 2026-09-16)
+if (view == "depart" && is_struct(pl_dest)) dp_off = clamp(dp_off, 0, __dp_off_max());
+else { dp_off = 0; dp_ldrag = undefined; }
 // THE PAGE TURN: to black, the view turns, back to light (__page_go)
 if (pg_dir < 0) { pg_a = move_to(pg_a, 0, 3); if (pg_a <= .04) { pg_a = 0; view = pg_next; pg_dir = 1; } }
 else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; pg_dir = 0; } }
@@ -553,7 +541,7 @@ if (view == "depart") {
 		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
 		exit;
 	}
-	// [-] beside a seat: back to the list
+	// a seat row: a press unseats it
 	for (var _j = 0; _j < array_length(dp_slots); _j++) {
 		if (dp_slots[_j] < 0) continue;
 		var _mr2 = __dp_minus_r(_j);
@@ -561,13 +549,14 @@ if (view == "depart") {
 		__dp_unseat(dp_slots[_j]);
 		exit;
 	}
-	// the list: [+] seats a banner; the banner itself opens its sheet (the crew page's own, back returns here)
+	// the list: [+] seats a banner, [-] unseats it (the banner stays put); the banner itself opens its sheet
 	for (var _k = 0; _k < array_length(g.sprites); _k++) {
 		if (!__dp_row_in(_k)) continue;
 		var _sp = g.sprites[_k];
-		if (__dp_seat_of(_sp.id) < 0) {
-			var _pr = __dp_plus_r(_k);
-			if (point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) { __dp_seat(_sp.id); exit; }
+		var _pr = __dp_plus_r(_k);
+		if (point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) {
+			if (__dp_seat_of(_sp.id) >= 0) __dp_unseat(_sp.id); else __dp_seat(_sp.id);
+			exit;
 		}
 		var _rr = __dp_row_r(_k);
 		if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
