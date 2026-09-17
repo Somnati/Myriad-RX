@@ -18,6 +18,14 @@ function handle_save(){
 
 	section = "system";
 	last_datetime = handle("save_datetime",date_current_datetime());
+	// THE RARITY LADDER'S VERSION (2026-09-17): 14 = the tech demo's rungs.
+	// A save without the key is from DE's eight, and every rarity it holds
+	// - sprites, their gear, the upgrade slots, the histogram, the finds,
+	// the autosell flags - is lifted through rarity_remap8 as it loads,
+	// while g.rarity_old is up
+	g.rarity_v = (action == sv_save) ? 14 : 8;
+	g.rarity_v = handle("rarity_v", g.rarity_v);
+	g.rarity_old = (action == sv_load && real(g.rarity_v) < 14);
 
 	section = "player";
 	// the profile's identity lives IN its savefile: until a save exists
@@ -335,6 +343,12 @@ function handle_save(){
 		var _p3 = string_split(_fr, ",");
 		for (var _k = 0; _k < UPG_RARITY_N; _k++)
 			g.autom.upg.rar[_k] = (_k < array_length(_p3)) ? (_p3[_k] == "1") : true;
+		if (g.rarity_old) {   // eight flags onto fourteen rungs
+			var _o8 = array_create(8, true);
+			for (var _k = 0; _k < 8; _k++) _o8[_k] = (_k < array_length(_p3)) ? (_p3[_k] == "1") : true;
+			for (var _k = 0; _k < UPG_RARITY_N; _k++) g.autom.upg.rar[_k] = true;
+			for (var _k = 0; _k < 8; _k++) g.autom.upg.rar[rarity_remap8(_k)] = _o8[_k];
+		}
 		g.autom.upg.kind = {};
 		if (_fk != "") {
 			var _p4 = string_split(_fk, "|");
@@ -532,6 +546,7 @@ function handle_save(){
 						? { trips : real(_f[13]), wins : real(_f[14]), routs : real(_f[15]), last : _f[16], streak : real(_f[17]) }
 						: { trips : 0, wins : 0, routs : 0, last : "", streak : 0 },
 				});
+				if (g.rarity_old) g.sprites[array_length(g.sprites) - 1].rar = rarity_remap8(g.sprites[array_length(g.sprites) - 1].rar);   // (DE's eight -> the fourteen)
 				// the sheet, from field 18 on (a save from before: a fresh one, sprite_sheet)
 				sprite_sheet_unpack(g.sprites[array_length(g.sprites) - 1], _f, 18);
 				var _nsp = g.sprites[array_length(g.sprites) - 1];
@@ -871,6 +886,12 @@ function handle_save(){
 			var _d = (_u < array_length(_seen_p)) ? string_digits(_seen_p[_u]) : "";
 			g.upg.seen[_u] = (_d == "") ? 0 : floor(real(_d));
 		}
+		if (g.rarity_old) {   // the histogram's eight onto the fourteen
+			var _s8 = array_create(8, 0);
+			for (var _u = 0; _u < 8; _u++) _s8[_u] = g.upg.seen[_u];
+			g.upg.seen = array_create(UPG_RARITY_N, 0);
+			for (var _u = 0; _u < 8; _u++) g.upg.seen[rarity_remap8(_u)] += _s8[_u];
+		}
 	}
 	// THE COMPLETED LEDGER, one string, one entry per ROSTER ID:
 	// "id:sum:count|id:sum:count|...". Bounded by the roster however
@@ -940,6 +961,7 @@ function handle_save(){
 			// an id the roster no longer carries costs a SLOT, never the
 			// savefile - a retired upgrade must fail softly
 			var _e = (_id == "") ? -1 : upgrade_entry(_id);
+			if (g.rarity_old) _rar = rarity_remap8(_rar);
 			g.upg.slot[_u] = (_e == -1) ? -1
 				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
 				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)),

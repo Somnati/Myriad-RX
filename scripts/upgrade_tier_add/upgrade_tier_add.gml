@@ -20,8 +20,9 @@
 /// ladder RX skipped) are left out - both are 1 without them.
 function upgrade_tier_add(_rar, _bought, _cap) {
 	var _r = clamp(floor(_rar), 0, UPG_RARITY_N - 1);
-	var _k = [.2, .25, .3, .4, .5, .6, .6, .6];
-	var _c = [.5, 1, 1.2, 1.5, 2, 2.5, 3, 3];
+	// fourteen rungs (2026-09-17): DE's per-rarity ramp and jump, stretched
+	var _k = [.18, .2, .25, .3, .4, .45, .5, .55, .6, .6, .6, .6, .6, .6];
+	var _c = [.4, .5, 1, 1.2, 1.5, 2, 2.2, 2.5, 2.7, 3, 3, 3, 3, 3];
 	var _add = 1 + _k[_r] * max(0, _bought);
 	if (_cap > 1 && _bought == _cap - 1) _add += (_c[_r] / 3) * _cap;
 	return _add * upgrade_rarity_mult(_r);

@@ -16,7 +16,7 @@ function ability_gen(_seed, _maxtier = 1) {
 	}
 	var _r = random(_wsum), _pick = _pool[0].e;
 	for (var _i = 0; _i < array_length(_pool); _i++) { if (_r < _pool[_i].w) { _pick = _pool[_i].e; break; } _r -= _pool[_i].w; }
-	var _rar = clamp(calculate_rarity(100 + _maxtier * 40, .3, .03, 800, 8), 0, 7);   // (no luck lean: the list must never move under a sprite)
+	var _rar = clamp(calculate_rarity(100 + _maxtier * 40, .3, .03, 800, 14), 0, 13);   // (no luck lean: the list must never move under a sprite)
 	var _val = random_range(_pick.band[0], _pick.band[1]) * ability_rarity_mult(_rar);
 	_val = round(_val * 10) / 10;
 	if (string_pos("immune", _pick.lane) == 1 || _pick.lane == "undying" || _pick.lane == "luck") _val = max(1, round(_val));

@@ -50,10 +50,10 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		}
 		var _wl = _rg[$ "wild"] ?? [];
 		if (!_remembered) for (var _s = 0; _s < _nstock; _s++) {
-			var _rar = irandom(_rmax);
+			var _rar = 1 + irandom(_rmax);   // (from common: a shop sells no basic - the fourteen-rung ladder, 2026-09-17)
 			// A POTION on the shelf (2026-09-16): a settlement's one thing more often than not; a big one where the rung allows
 			if (random(1) < ((_nd.kind == "settlement") ? .6 : .3)) {
-				var _pk = choose("hp", "hp", "hp", "mp", "tonic"), _psz = (_rar > 0 && random(1) < .5) ? 2 : 1;
+				var _pk = choose("hp", "hp", "hp", "mp", "tonic"), _psz = (_rar > 1 && random(1) < .5) ? 2 : 1;
 				array_push(_stock, { it : use_gen(_pk, _psz, _rg.lv), price : 1 + _psz + ((_pk == "tonic") ? 1 : 0), sold : false });
 				continue;
 			}

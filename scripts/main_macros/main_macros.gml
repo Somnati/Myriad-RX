@@ -258,7 +258,7 @@ function main_macros() {
 // a month away and 1277 for ten years (measured - see that script).
 // This is here for a corrupt step, not for the normal case.
 #macro HIST_FILL_MAX 4000
-#macro UPG_RARITY_N  8     // common .. ultimate, see upgrade_rarity_info
+#macro UPG_RARITY_N  14    // basic .. ultimate, the tech demo's ladder (upgrade_rarity_info) - fourteen since 2026-09-17
 // THE STAKE. What one roll into an empty slot costs in credits, before
 // difficulty and upgrade_inflation. It is what stops "sell instead of
 // discard" from being a credit printer, and what stops free rerolling
@@ -356,11 +356,11 @@ function main_macros() {
 #macro SPRITE_NAP     3600  // away longer than this and they are found asleep
 #macro SPRITE_HEAL_NAP   300  // seconds a sprite ASLEEP takes to heal from nothing to whole (hp; mp x1.5 as fast) - a resting sprite wakes when whole
 #macro SPRITE_HEAL_AWAKE 1200 // ...and one on its feet (woken early: it is prone to nap again until whole, obj_blob)
-#macro SPRITE_SPECK_RAR   4 // rarity from which a sprite wears the orbiting
+#macro SPRITE_SPECK_RAR   9 // rarity from which a sprite wears the orbiting (legendary on the fourteen-rung ladder, 2026-09-17)
                             // specks (legendary and up)
 #macro SPRITE_STAFF   .05  // a sprite on a machine adds this x (1 + rarity rung) to its rate - sprite_staff (OFFLINE; online its taps charge)
 #macro SPRITE_FAB_TAP 1    // a fab/merge sprite's charge per tap, x the law (sprite_fab_frac: its staff share of the bar, spread over its taps)
-#macro SPRITE_RAR_PACE  .12 // pace x (1 + this x rarity): an ultimate is
+#macro SPRITE_RAR_PACE  .07 // (was .12 on eight rungs) pace x (1 + this x rarity): an ultimate is
                             // x1.84 an equal common
 
 // ---- THE OFFLINE LOG (his ask, 2026-09-12: Techdemo II's, grown up) ----

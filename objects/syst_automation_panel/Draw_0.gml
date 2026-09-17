@@ -178,7 +178,7 @@ for (var _i = 0; _i < _nrows; _i++) {
 			// three letters: eight full rarity names do not fit a row,
 			// and the colour is carrying most of the identity anyway
 			draw_text(_ch.x + _ch.w / 2 + 1, _ch.y + 1,
-				string_copy(_ri.name, 1, 3));
+				string_copy(_ri.name, 1, (_ch.w >= 22) ? 3 : 2));   // (fourteen chips: two letters where three will not fit - 2026-09-17)
 			draw_set_halign(fa_left);
 		}
 		continue;

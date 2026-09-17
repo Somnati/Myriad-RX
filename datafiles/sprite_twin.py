@@ -57,11 +57,11 @@ ABIL = [  # (key, tier, lane, lo, hi, pair, cost_lane, cost_v)
     ("titan", 4, "atk", 12, 18, "def"), ("savant", 4, "mag", 12, 18, "mdef"), ("undying", 4, "undying", 1, 1), ("swift", 4, "crit", 6, 10, "tic"),
 ]
 ABIL_LADDER = [(1, 1), (4, 1), (8, 1), (14, 2), (20, 2), (30, 3), (45, 3), (60, 3), (80, 4), (100, 4)]
-ABIL_RMULT = [1, 1.3, 1.6, 2, 2.4, 2.8, 3.2, 3.6]
+ABIL_RMULT = [.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.3, 3.6]   # fourteen rungs (2026-09-17)
 def rarity_roll(rng, rate):
     # calculate_rarity's shape, near enough: a geometric walk up the rungs
     r = 0; p = .3
-    while r < 7 and rng.random() < p: r += 1; p *= .55
+    while r < 13 and rng.random() < p: r += 1; p *= .55
     return r
 def ability_gen(rng, maxtier):
     pool = [(a, 3 if a[1] == maxtier else 1) for a in ABIL if a[1] <= maxtier]

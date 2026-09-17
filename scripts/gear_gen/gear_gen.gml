@@ -48,16 +48,18 @@ function gear_gen(_slot, _lv, _rar, _seed, _tag = "", _own = "", _gen = 2) {
 	var _noun = _fam.nouns[irandom(array_length(_fam.nouns) - 1)];
 	var _adj = "", _suf = "";
 	if (random(1) < .25 + .1 * _rar) _adj = _adjs[irandom(array_length(_adjs) - 1)];
-	if (_rar >= 2 && random(1) < .3 + .15 * _rar) _suf = _sufs[irandom(array_length(_sufs) - 1)];
+	if (_rar >= 3 && random(1) < .3 + .1 * _rar) _suf = _sufs[irandom(array_length(_sufs) - 1)];
 	// ---- the pass's rolls, after the old stream ----
 	var _tg = gear_tags()[$ _tag];
 	if (is_struct(_tg) && random(1) < .45) _adj = _tg.adjs[irandom(array_length(_tg.adjs) - 1)];   // (the land's word takes the adjective)
 	var _qs = gear_quirks();
 	var _nq = 0;
-	if (_rar == 0)      _nq = (random(1) < .15) ? 1 : 0;
-	else if (_rar == 1) _nq = (random(1) < .45) ? 1 : 0;
-	else if (_rar <= 3) _nq = 1 + ((random(1) < .25) ? 1 : 0);
-	else                _nq = 1 + ((random(1) < .6) ? 1 : 0) + ((_rar >= 6 && random(1) < .5) ? 1 : 0);
+	// (the fourteen-rung ladder, 2026-09-17: basic 0, common 1, uncommon 2, rare 3, epic 4, elite 5 ...)
+	if (_rar == 0)      _nq = (random(1) < .08) ? 1 : 0;
+	else if (_rar == 1) _nq = (random(1) < .15) ? 1 : 0;
+	else if (_rar == 2) _nq = (random(1) < .45) ? 1 : 0;
+	else if (_rar <= 5) _nq = 1 + ((random(1) < .25) ? 1 : 0);
+	else                _nq = 1 + ((random(1) < .6) ? 1 : 0) + ((_rar >= 10 && random(1) < .5) ? 1 : 0);
 	var _quirks = [], _holds = "", _crit = 0, _cnt = 0, _erode = 1, _mp0 = 0, _cursed = false;
 	var _res_el = "", _res_v = 0, _elem = "";
 	var _weapon = (_slot == "w1" || _slot == "w2");

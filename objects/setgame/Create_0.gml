@@ -74,6 +74,7 @@
 	// they come in at boot and stay
 	texture_prefetch("Default");
 	texture_prefetch("glows");
+	g.rarity_v = 14; g.rarity_old = false;   // the rarity ladder's version (handle_save reads it; the fourteen since 2026-09-17)
 	if (!variable_global_exists("profile")) g.profile = 0;   // (syst_handle_save's Create reads the last profile played from settings.ini - do not clobber it)
 	// TWO CLOCKS (2026-09-06, his ask - DE tracks both and the port kept
 	// only half). They never overlap, so their SUM is the whole life of

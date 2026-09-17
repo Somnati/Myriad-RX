@@ -10,7 +10,7 @@ function exped_loot_roll(_tr) {
 	var _d  = _tr.dest;
 	var _bi = exped_biomes()[_d.biome];
 	// FOR NOW (his call, 2026-09-15): credits or gear for the sprites, nothing else
-	var _rar  = clamp(calculate_rarity(luck_rate(_d.rate) + exped_party_luck(_tr) * 12, .3, .03, 800, 8), 0, 7);
+	var _rar  = clamp(calculate_rarity(luck_rate(_d.rate) + exped_party_luck(_tr) * 12, .3, .03, 800, 14), 0, 13);
 	var _ri   = upgrade_rarity_info(_rar);
 	// gear, a potion, an elixir (epic and up), or credits (the consumables pass, 2026-09-16)
 	var _kr = random(100), _kind = "credits";
@@ -20,7 +20,7 @@ function exped_loot_roll(_tr) {
 	if (_kind == "use" || _kind == "elixir") {
 		// (a consumable rides the gear's lane: the finder handles it - sprite_take pockets a potion and drinks an elixir on the spot)
 		var _cit = (_kind == "elixir") ? use_gen("elixir", 1, _rgl_lv(_tr), choose("hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit", "luck"))
-		                               : use_gen(choose("hp", "hp", "hp", "mp", "tonic", (_rar >= 3) ? "totem" : "hp"), (_rar >= 2 && random(1) < .5) ? 2 : 1, _rgl_lv(_tr));
+		                               : use_gen(choose("hp", "hp", "hp", "mp", "tonic", (_rar >= 4) ? "totem" : "hp"), (_rar >= 3 && random(1) < .5) ? 2 : 1, _rgl_lv(_tr));   // (epic / rare on the fourteen-rung ladder)
 		return { kind : "gear", rar : (_kind == "elixir") ? max(_rar, 5) : _rar, txt : _cit.name, col : _cit.col, item : _cit };
 	}
 	switch (_kind) {

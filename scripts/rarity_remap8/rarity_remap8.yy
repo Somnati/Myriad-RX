@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"rarity_remap8",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"rarity_remap8",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

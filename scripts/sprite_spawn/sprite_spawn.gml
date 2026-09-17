@@ -13,7 +13,7 @@ function sprite_spawn(_job = "tap") {
 	// tiles' shape (.3 / .03 / 800), eight rungs - common .. ultimate.
 	// g.sprite_rarity_rate is the lane a future upgrade raises
 	if (!variable_global_exists("sprite_rarity_rate")) g.sprite_rarity_rate = 100;
-	var _rar = clamp(calculate_rarity(luck_rate(g.sprite_rarity_rate), .3, .03, 800, 8), 0, 7);   // luck leans it
+	var _rar = clamp(calculate_rarity(luck_rate(g.sprite_rarity_rate), .3, .03, 800, 14), 0, 13);   // luck leans it
 	// the material follows the rarity: commons are matte, the exotic
 	// finishes are for the exotic ones
 	var _mat = _lk.mat_by_rar[_rar];

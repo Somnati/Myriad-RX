@@ -674,6 +674,7 @@
     {"id":{"name":"ram_used","path":"scripts/ram_used/ram_used.yy",},},
     {"id":{"name":"rarity_label","path":"scripts/rarity_label/rarity_label.yy",},},
     {"id":{"name":"rarity_odds","path":"scripts/rarity_odds/rarity_odds.yy",},},
+    {"id":{"name":"rarity_remap8","path":"scripts/rarity_remap8/rarity_remap8.yy",},},
     {"id":{"name":"read","path":"scripts/read/read.yy",},},
     {"id":{"name":"rebirth_boost","path":"scripts/rebirth_boost/rebirth_boost.yy",},},
     {"id":{"name":"rebirth_calc","path":"scripts/rebirth_calc/rebirth_calc.yy",},},

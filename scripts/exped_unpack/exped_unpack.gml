@@ -48,6 +48,7 @@ function exped_unpack(_s) {
 					var _q = string_split(_fl2[_i], ":");
 					if (array_length(_q) < 5) continue;
 					var _l = { kind : _q[0], rar : real(_q[1]), n : real(_q[2]), fam : _q[3], tier : real(_q[4]), txt : "", col : c_white };
+					if (variable_global_exists("rarity_old") && g.rarity_old) _l.rar = rarity_remap8(_l.rar);   // (DE's eight -> the fourteen)
 					var _rinfo = upgrade_rarity_info(_l.rar);
 					switch (_l.kind) {
 						case "mats":    _l.txt = string(_l.n) + " " + _l.fam + " (t" + string(_l.tier) + ")"; _l.col = _rinfo.col; break;

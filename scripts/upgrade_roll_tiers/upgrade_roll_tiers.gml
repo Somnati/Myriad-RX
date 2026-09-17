@@ -19,14 +19,22 @@
 /// reason to creep up over a long run.
 function upgrade_roll_tiers(_rar) {
 	var _t;
+	// fourteen rungs (2026-09-17): DE's bands stretched over the tech
+	// demo's ladder - a basic roll is one to two tiers deep
 	switch (clamp(floor(_rar), 0, UPG_RARITY_N - 1)) {
-		case 0:  _t = choose(1, 2, 3);    break;   // common
-		case 1:  _t = choose(1, 2, 3);    break;   // uncommon
-		case 2:  _t = choose(1, 2, 3, 4); break;   // rare
-		case 3:  _t = choose(2, 3, 4);    break;   // epic
-		case 4:  _t = choose(2, 3, 4, 5); break;   // legendary
-		case 5:  _t = choose(3, 4, 5, 6); break;   // elite
-		case 6:  _t = choose(4, 5, 6, 7); break;   // divine
+		case 0:  _t = choose(1, 2);       break;   // basic
+		case 1:  _t = choose(1, 2, 3);    break;   // common
+		case 2:  _t = choose(1, 2, 3);    break;   // uncommon
+		case 3:  _t = choose(1, 2, 3, 4); break;   // rare
+		case 4:  _t = choose(2, 3, 4);    break;   // epic
+		case 5:  _t = choose(2, 3, 4, 5); break;   // elite
+		case 6:  _t = choose(2, 3, 4, 5); break;   // master
+		case 7:  _t = choose(3, 4, 5, 6); break;   // exotic
+		case 8:  _t = choose(3, 4, 5, 6); break;   // ancient
+		case 9:  _t = choose(3, 4, 5, 6); break;   // legendary
+		case 10: _t = choose(4, 5, 6, 7); break;   // cosmic
+		case 11: _t = choose(4, 5, 6, 7); break;   // mythic
+		case 12: _t = choose(4, 5, 6, 7); break;   // divine
 		default: _t = choose(5, 6, 7, 8); break;   // ultimate
 	}
 
