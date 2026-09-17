@@ -275,14 +275,16 @@ function stats_v2_content() {
 			// rate, base 100 x the upgrade; the room's button quotes what
 			// the NEXT level would read)
 			var _rlv = variable_global_exists("tiles") ? (g.tiles.upg[$ "rarity"] ?? 0) : 0;
+			// ...as the BONUS over the base (his call, 2026-09-17: "+0% on a
+			// fresh save"), so it reads the same as the upgrade's own figure
+			var _rbon = round(tile_rarity_rate() - TILE_RARITY_BASE);
 			stats_v2_rarity("spread", _te,
-				"rarity rate  " + string(round(tile_rarity_rate())));
-			stats_v2_line("rarity rate", string(round(tile_rarity_rate())), -1,
-				(tile_rarity_rate() > TILE_RARITY_BASE) ? c_horange : c_gray,
-				"every fabricated tile rolls its tier through this. base "
-				+ string(TILE_RARITY_BASE) + ", times the tile rarity upgrade. "
-				+ "every " + string(TILE_RARITY_CUT) + " of it lifts the bottom "
-				+ "tier a step - tiles under the new floor heal up to it.");
+				"rarity rate  " + ((_rbon >= 0) ? "+" : "") + string(_rbon) + "%");
+			stats_v2_line("rarity rate", ((_rbon >= 0) ? "+" : "") + string(_rbon) + "%", -1,
+				(_rbon > 0) ? c_horange : c_gray,
+				"over the base rate of " + string(TILE_RARITY_BASE) + ": every fabricated "
+				+ "tile rolls its tier through it. every " + string(TILE_RARITY_CUT)
+				+ " of rate lifts the bottom tier a step - tiles under the new floor heal up to it.");
 			stats_v2_line("tile rarity upgrade",
 				"+" + string(TILE_RARITY_STEP * _rlv) + "%  (lv " + string(_rlv) + ")", -1,
 				(_rlv > 0) ? c_horange : c_gray,
@@ -420,6 +422,12 @@ function stats_v2_content() {
 			(_dc > 0) ? c_gold : c_gray,
 			"upgrades taken to their last tier. they free their slot and "
 			+ "keep paying out - the totals below count them.");
+		stats_v2_line("upgrade level", string(g.upg.level) + "  (xp " + string(floor(g.upg.xp))
+			+ " / " + string(upgrade_level_need()) + ")", -1, c_gold,
+			"every tier bought pays xp - (1 + its rarity) x the tier. an offer "
+			+ "is rolled AT the level and keeps it: its tiers are worth x"
+			+ string_format(upgrade_level_mult(g.upg.level), 1, 2) + " at level "
+			+ string(g.upg.level) + ", so a later offer outgrows an earlier one of the same rung.");
 		stats_v2_line("offers found", string(g.upg.rolls), -1, -1,
 			"upgrades that turned up on the table, ever. they come by "
 			+ "themselves: a clock of a couple of minutes (a full purse "

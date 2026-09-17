@@ -109,6 +109,8 @@ function upgrade_roll(_slot) {
 		cap  : _cap,         // how many tiers it can ever take
 		tier : 0,            // an offer, not yet owned
 		dur  : _dur,         // a burst's clock in seconds (0 for the rest)
+		lv   : g.upg.level,  // rolled at this upgrade level, and keeps it (DE's u_lv)
+		xtra : 0,            // DE's +1%: what each tier bought added off the type's total then
 	};
 	g.upg.rolls += 1;
 	g.upg.seen[_rar] += 1;   // the histogram - see upgrade_init

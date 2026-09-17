@@ -85,6 +85,16 @@ if (msg_hp > 0 && msg != "") {
 	draw_set_color(c_horange);
 	draw_set_alpha(.5);
 	draw_text(64, bby + 5, "preview - not live yet");
+} else if (land) {
+	// THE UPGRADE LEVEL (DE's "exp x / y" under the trade toggle): the
+	// level, and how far the xp has climbed toward the next one
+	draw_set_color(c_gold);
+	draw_set_alpha(.7);
+	draw_text(64, bby + 5, "level " + string(g.upg.level));
+	draw_set_color(_dim);
+	draw_set_alpha(.6);
+	draw_text(64 + string_width("level " + string(g.upg.level)) + 6, bby + 5,
+		"xp " + string(floor(g.upg.xp)) + " / " + string(upgrade_level_need()));
 }
 
 // ==================== THE SLOT TABLE ====================
@@ -102,9 +112,11 @@ for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 	var _ry  = __row_y(_i);
 	var _hov = (sel == _i);
 
-	// ---- a slot not yet bought ----
+	// ---- a slot not yet bought: only the NEXT one shows, as the
+	// new-slot row (his call, 2026-09-17: no "locked" rows) ----
 	if (_i >= _n) {
-		if (_i == _nr) {
+		if (_i != _nr) continue;
+		{
 			// the "new slot" upgrade, sitting in the slot it unlocks: a
 			// common plate, the name, the price - never a sell button
 			var _ncol = __rar_col(0);
@@ -134,14 +146,6 @@ for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 			} else {
 				__btn_draw(_nb.x, _nb.y, _nb.w, _nb.h, "-", c_lavender, false, false);
 			}
-		} else {
-			// still locked: a whisper of a plate
-			__rr_grad(row_x, _ry, row_w, row_h,
-				merge_colour(_dim, c_black, .8), merge_colour(_dim, c_black, .97), 1);
-			__inner(row_x, _ry, row_w, row_h);
-			draw_set_color(_dim);
-			draw_set_alpha(.25);
-			draw_text(row_x + 10, _ry + 5, "locked");
 		}
 		continue;
 	}
@@ -343,6 +347,12 @@ if (_new_pick) {
 	draw_set_color(_pc);
 	draw_set_alpha(.9);
 	draw_text(_px, desc_y + 18, __rar_name(_ps.rar));
+	// ...and the upgrade level it was rolled at (it keeps it - DE's u_lv)
+	if (_pe != -1 && _pe.stat != "") {
+		draw_set_color(_dim);
+		draw_set_alpha(.7);
+		draw_text(_px + string_width(__rar_name(_ps.rar)) + 6, desc_y + 18, "lv " + string(_ps[$ "lv"] ?? 1));
+	}
 	// (an offer says nothing here - "offer N tiers" was noise, his call;
 	// the bubbles on its row already count the tiers)
 	if (_ps.tier > 0) {

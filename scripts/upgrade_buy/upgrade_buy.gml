@@ -19,8 +19,22 @@ function upgrade_buy(_slot) {
 	if (!(g.credits >= arb(_cost))) return false;      // cannot afford it
 
 	g.credits = do_subtract(g.credits, arb(_cost));
+	// DE'S +1% (his ask, 2026-09-17: "DE gave each upgrade a +1% to its
+	// bonus based off its total bonus from all upgrades of that type"):
+	// update_upgrade's `u_val += u_profit[dial] / 100` - the tier bought
+	// now is worth one percent of what the type already pays, on top.
+	// That is history (the total at the moment of purchase), so it is
+	// banked on the slot, not derived
+	if (_s.stat != "") {
+		var _e0 = upgrade_entry(_s.id);
+		var _ub0 = upgrade_bonus();
+		var _tot0 = (_s.stat == "dial_one" && _e0 != -1) ? _ub0.dial_one[_e0.dial] : (_ub0[$ _s.stat] ?? 0);
+		_s.xtra = (_s[$ "xtra"] ?? 0) + _tot0 / 100;
+	}
 	_s.tier += 1;
 	g.upg.total += 1;
+	// THE UPGRADE LEVEL's xp (DE's buy_upgrade: (1 + rarity) x the tier)
+	if (_s.stat != "") upgrade_xp_add((1 + _s.rar) * _s.tier);
 	// the offer meter takes a share of every purchase (DE's buy_upgrade:
 	// get_sub_sec_inf(cost, 1/4, .01))
 	upgrade_meter_feed(_cost * .25 * (1 + .01 * (_cost - 1)));

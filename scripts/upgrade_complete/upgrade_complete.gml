@@ -32,7 +32,8 @@ function upgrade_complete(_slot) {
 	}
 	// the FULL curve, completion bonus and all - the slot is being
 	// filed at its last tier, which is the tier worth the most
-	_d.sum += upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_slot), _s.rar);
+	_d.sum += upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_slot), _s.rar, _s[$ "lv"] ?? 1)
+	        + (_s[$ "xtra"] ?? 0);
 	_d.n   += 1;
 
 	g.upg.slot[_slot] = -1;

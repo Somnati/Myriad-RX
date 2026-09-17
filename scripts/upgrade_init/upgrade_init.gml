@@ -71,5 +71,12 @@ function upgrade_init(_force = false) {
 		// upgrade_meter_tick): the clock, the hit, the xp run and its
 		// target, offers owed from an absence. History, so it is saved.
 		meter : { uxp : 0, utic : 0, uhit : false, umax : random_range(50, 100), uoff : 0 },
+
+		// THE UPGRADE LEVEL (DE's upgrade_level / upgrade_xp, 2026-09-17):
+		// xp from every tier bought (upgrade_xp_add); an offer is rolled
+		// AT the level and keeps it (slot.lv), which multiplies its tiers
+		// (upgrade_level_mult). History, so it is saved.
+		level : 1,
+		xp    : 0,
 	};
 }

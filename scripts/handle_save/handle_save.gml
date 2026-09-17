@@ -837,6 +837,13 @@ function handle_save(){
 	g.upg.bought = handle("slots_bought", g.upg.bought);
 	g.upg.total  = handle("total",        g.upg.total);
 	g.upg.rolls  = handle("rolls",        g.upg.rolls);
+	// THE UPGRADE LEVEL (2026-09-17, DE's upgrade_level / upgrade_xp)
+	g.upg.level  = handle("level",        g.upg.level);
+	g.upg.xp     = handle("xp",           g.upg.xp);
+	if (action == sv_load) {
+		g.upg.level = max(1, floor(real(g.upg.level)));
+		g.upg.xp    = max(0, real(g.upg.xp));
+	}
 	// THE OFFER METER (2026-09-17, DE's uxp / utic / uhit / offline_upgrades)
 	g.upg.meter.uxp  = handle("uxp",  g.upg.meter.uxp);
 	g.upg.meter.utic = handle("utic", g.upg.meter.utic);
@@ -926,6 +933,9 @@ function handle_save(){
 		var _cp  = handle("u" + string(_u) + "_cap",  _has ? (_s[$ "cap"] ?? 0) : 0);
 		// a burst offer's clock (2026-09-16) - part of the roll, like the value
 		var _du  = handle("u" + string(_u) + "_dur",  _has ? (_s[$ "dur"] ?? 0) : 0);
+		// the level it was rolled at and DE's banked +1% (2026-09-17)
+		var _lv  = handle("u" + string(_u) + "_lv",   _has ? (_s[$ "lv"] ?? 1) : 1);
+		var _xt  = handle("u" + string(_u) + "_xtra", _has ? (_s[$ "xtra"] ?? 0) : 0);
 		if (action == sv_load) {
 			// an id the roster no longer carries costs a SLOT, never the
 			// savefile - a retired upgrade must fail softly
@@ -933,7 +943,7 @@ function handle_save(){
 			g.upg.slot[_u] = (_e == -1) ? -1
 				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
 				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)),
-				    dur : max(0, floor(_du)) };
+				    dur : max(0, floor(_du)), lv : max(1, floor(_lv)), xtra : max(0, _xt) };
 			// a zero cap is the pre-depth marker, and upgrade_cap only
 			// recognises it as absent - so drop the field entirely
 			if (is_struct(g.upg.slot[_u]) && g.upg.slot[_u].cap <= 0)

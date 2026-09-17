@@ -320,11 +320,20 @@ __burst_str = function(_s) {
 // a slot's effect, as the one string the row has room for: THE TIER
 // THE BUTTON BUYS (his correction, 2026-09-17: the running total "felt
 // weird" on the row - DE's slot quotes u_val, the next tier's worth)
+// (DE's u_val, whole: the tier law x the level the offer was rolled at,
+// + .004 (lv - 1), + one percent of what the type already pays)
 __tier_v = function(_i) {
 	var _s = g.upg.slot[_i];
+	var _e = upgrade_entry(_s.id);
 	var _cap = upgrade_cap(_i);
 	var _t = min(_s.tier, max(0, _cap - 1));
-	return _s.val * upgrade_tier_add(_s.rar, _t, _cap);
+	var _lv = _s[$ "lv"] ?? 1;
+	var _v = _s.val * upgrade_tier_add(_s.rar, _t, _cap) * upgrade_level_mult(_lv) + .004 * (_lv - 1);
+	if (_e != -1 && _e.stat != "") {
+		var _ub = upgrade_bonus();
+		_v += ((_e.stat == "dial_one") ? _ub.dial_one[_e.dial] : (_ub[$ _e.stat] ?? 0)) / 100;
+	}
+	return _v;
 };
 __eff_str = function(_i) {
 	return "+" + string_format(__tier_v(_i), 1, 2) + "%";
@@ -343,7 +352,7 @@ __next_str = function(_i) {
 	var _s = g.upg.slot[_i];
 	var _c = upgrade_cap(_i);
 	if (_s.tier >= _c) return "";
-	return "+" + string_format(_s.val * upgrade_tier_add(_s.rar, _s.tier, _c), 1, 2) + "%"
+	return "+" + string_format(__tier_v(_i), 1, 2) + "%"
 		+ ((_s.tier + 1 >= _c) ? " to finish" : " next");
 };
 
