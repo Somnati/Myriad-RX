@@ -44,6 +44,7 @@ function settings_defaults(_section = "all") {
 		g.page_dither_amt       = 25;          // ...and its intensity, % of PAGE_GRAIN_MAX levels
 		g.hp_bar_hue            = "red";       // the hp bars' colour: red / green
 		g.planet_relief_pct     = 140;         // the mountains' exaggeration, %
+		g.cloud_volume          = true;        // the decks as a volume (2026-09-17)
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
 		g.bit_pick              = { profit : "glow", credit : "glow",
 		                            unit : "glow", tile : "plain" }; // bit_config ids

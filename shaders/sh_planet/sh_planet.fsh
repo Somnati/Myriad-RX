@@ -40,6 +40,7 @@ uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
 uniform float u_crelief;  // THE CLOUD RELIEF (2026-09-17): the top deck's thickest puff in radii (0 = flat shells)
+uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
 
 float cw_h(vec3 p)
 {
@@ -103,6 +104,69 @@ float thick_at(vec3 n)
 float deck_h(float H, vec3 d)
 {
     return H * (1.0 + 1.5 * (1.0 - d.z * d.z));
+}
+float cloudband(float d);   // (defined below the marches - a prototype, so the volume may light by it)
+// THE VOLUME (2026-09-17, his call: "do the volume pass"): the deck as a SLAB of density from its shell up to its
+// height, marched through in even steps. Every step adds its lit colour by its density and thins what is behind
+// it (the transmittance); when the ray leaves the slab the pixel is what it gathered. A ray grazing the limb
+// travels a long way inside the slab, so a cloud past the tangent still has weight there - the wrap for free,
+// and the bright hazy limb real worlds have. The light: the deck's terminator by position, the crown brighter
+// than the base, and the puff sunward of the sample shading it (the cheap stand-in for a march to the sun)
+float dens_at(vec3 d, float rr, float R, float H)
+{
+    float th = thick_at(d);
+    if (th <= 0.0) return 0.0;
+    float h = (rr - R) / H;                         // 0 at the shell, 1 at the deck's top
+    float inside = 1.0 - smoothstep(th - 0.25, th, h);
+    return inside * (0.25 + 0.75 * cloud_at(d, u_tsize));
+}
+float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit)
+{
+    lit = 1.0;
+    float RO = R + H;
+    if (r2 > RO * RO) return 0.0;
+    float z0 = sqrt(RO * RO - r2);
+    float z1 = (r2 <= R * R) ? sqrt(R * R - r2) : 0.0;
+    float T = 1.0;
+    float lsum = 0.0;
+    float wsum = 0.0;
+    // the front of the slab: z0 down to the shell (or the mid plane, out past the shell's limb)
+    float ds = (z0 - z1) / 10.0;
+    for (int i = 0; i < 10; i++) {
+        float zz = z0 - ds * (float(i) + 0.5);
+        vec3 pp = vec3(p, zz);
+        float rr = length(pp);
+        vec3 d = pp / rr;
+        float dn = dens_at(d, rr, R, H);
+        if (dn <= 0.0) continue;
+        float a = clamp(dn * 42.0 * ds, 0.0, 1.0);
+        float l = cloudband(dot(d, u_light)) * (0.6 + 0.4 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.35 * cloud_at(normalize(d + u_light * 0.06), u_tsize));
+        lsum += l * a * T;
+        wsum += a * T;
+        T *= 1.0 - a;
+        if (T < 0.03) break;
+    }
+    // ...and the back of it, when the world does not block the ray: the shell's back point down to the far bound
+    if (!ground && T > 0.03) {
+        float zb = (r2 <= R * R) ? -z1 : 0.0;
+        float ds2 = (zb + z0) / 10.0;
+        for (int i = 0; i < 10; i++) {
+            float zz = zb - ds2 * (float(i) + 0.5);
+            vec3 pp = vec3(p, zz);
+            float rr = length(pp);
+            vec3 d = pp / rr;
+            float dn = dens_at(d, rr, R, H);
+            if (dn <= 0.0) continue;
+            float a = clamp(dn * 42.0 * ds2, 0.0, 1.0);
+            float l = cloudband(dot(d, u_light)) * (0.6 + 0.4 * clamp((rr - R) / H, 0.0, 1.0)) * 0.8;   // (an underside, a little darker)
+            lsum += l * a * T;
+            wsum += a * T;
+            T *= 1.0 - a;
+            if (T < 0.03) break;
+        }
+    }
+    if (wsum > 0.0) lit = lsum / wsum;
+    return 1.0 - T;
 }
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
 float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov, out float back)
@@ -217,21 +281,35 @@ void main()
     }
     vec3 atmo = mix(u_atmo * 0.22 + vec3(0.01, 0.01, 0.04), u_atmo, rl);
 
-    // ---- cloud decks, marched (the cloud relief, 2026-09-17): the base deck .6 of the top's height ----
+    // ---- cloud decks: the VOLUME (u_cvol - settings > visuals) or the SURFACE march (the cloud relief, 2026-09-17); the base deck .6 of the top's height ----
     float cab = 0.0; float clib = 1.0;
-    vec3 nbd; vec3 nbn;
-    float bkb = 0.0;
-    float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab, bkb);
-    if (czb < 0.0) cab = 0.0;
-    else clib = cloudband(dot(nbd, u_light)) * flankband(dot(nbn, u_light)) * (1.0 - 0.25 * bkb);   // (the deck's terminator x its slopes; an underside a little darker)
     float cat = 0.0; float clit = 1.0; float emb = 1.0;
-    vec3 ntd; vec3 ntn;
-    float bkt = 0.0;
-    float czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat, bkt);
-    if (czt < 0.0) cat = 0.0;
-    else {
-        clit = cloudband(dot(ntd, u_light)) * flankband(dot(ntn, u_light)) * (1.0 - 0.25 * bkt);
-        if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
+    float czt = -1.0;
+    if (u_cvol > 0.5) {
+        bool grd = (r2 <= 1.0);
+        float lb = 1.0;
+        float lt = 1.0;
+        float hv = u_crelief * 1.6;   // (a slab wants more height than a surface's bump: the volume's decks stand taller)
+        cab = deck_volume(CB, hv * 0.6, p, r2, grd, lb);
+        cat = deck_volume(CR, hv, p, r2, grd, lt);
+        // the gathered alpha in steps: the chunky read, not a smooth fog
+        cab = floor(cab * 6.0 + 0.5) / 6.0;
+        cat = floor(cat * 6.0 + 0.5) / 6.0;
+        clib = lb; clit = lt;
+    } else {
+        vec3 nbd; vec3 nbn;
+        float bkb = 0.0;
+        float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab, bkb);
+        if (czb < 0.0) cab = 0.0;
+        else clib = cloudband(dot(nbd, u_light)) * flankband(dot(nbn, u_light)) * (1.0 - 0.25 * bkb);   // (the deck's terminator x its slopes; an underside a little darker)
+        vec3 ntd; vec3 ntn;
+        float bkt = 0.0;
+        czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat, bkt);
+        if (czt < 0.0) cat = 0.0;
+        else {
+            clit = cloudband(dot(ntd, u_light)) * flankband(dot(ntn, u_light)) * (1.0 - 0.25 * bkt);
+            if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
+        }
     }
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));

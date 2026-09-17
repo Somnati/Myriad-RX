@@ -34,6 +34,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
+		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
 		aurora : shader_get_uniform(sh_planet, "u_aurora"),
@@ -87,6 +88,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
 	shader_set_uniform_f(_u.crelief, (_cfg[$ "crelief"] ?? .05) * ((_pn.kind == "gas") ? .5 : 1));   // (the cloud relief - 2026-09-17; a giant's deck lower)
+	shader_set_uniform_f(_u.cvol, (variable_global_exists("cloud_volume") && g.cloud_volume) ? 1 : 0);   // (the volume, or the surface - settings > visuals)
 	// the moons' shadows, the storms' lightning, the aurora (2026-09-16)
 	var _mshv = array_create(16, 0), _mshn = 0;
 	if (is_array(_msh)) { _mshn = min(4, array_length(_msh)); for (var _i = 0; _i < _mshn; _i++) { _mshv[_i * 4] = _msh[_i][0]; _mshv[_i * 4 + 1] = _msh[_i][1]; _mshv[_i * 4 + 2] = _msh[_i][2]; _mshv[_i * 4 + 3] = _msh[_i][3]; } }

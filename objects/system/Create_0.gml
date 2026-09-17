@@ -84,6 +84,7 @@ g.page_dither = "ordered";  // the expedition pages' dither: ordered / grain (se
 g.page_dither_amt = 25;     // ...and its intensity, % of PAGE_GRAIN_MAX levels
 g.hp_bar_hue = "red";       // the hp bars' colour: red / green (settings > visuals, 2026-09-16; NOT hp_bar_col - that name is the function)
 g.planet_relief_pct = 140;  // the mountains' exaggeration, % (settings > visuals, 2026-09-16)
+g.cloud_volume = true;      // the cloud decks marched as a volume (settings > visuals, 2026-09-17; off = the surface march)
 g.puck_mat = "random";   // the puck's, off the same roster ("random" = black rubber)
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.

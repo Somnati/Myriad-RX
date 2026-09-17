@@ -434,6 +434,15 @@ function settings_content() {
 		+ "more and the pattern (or the grain) becomes part of the look. hold the knob and the "
 		+ "settings fade so the expedition page shows it as you drag.",
 		-1, undefined, true);
+	// THE CLOUD VOLUME (his call, 2026-09-17): the decks marched as a volume (deep,
+	// soft, the limb hazy) or as a surface (the cheaper, harder-edged look)
+	settings_toggle("volumetric clouds",
+		function() { return g.cloud_volume; },
+		function(_v) { g.cloud_volume = _v; },
+		"on: a world's cloud decks are marched as a VOLUME - the ray adds up the cloud it passes "
+		+ "through, so puffs have depth, the edges go soft, and the limb is hazy where the ray "
+		+ "grazes along the deck. off: the decks are a surface with height - crisper, and a good deal "
+		+ "cheaper on the gpu (the mobile setting).");
 	// THE MOUNTAINS (his ask, 2026-09-16): the bump shading, the self-shadow, the
 	// snow line and the silhouette's relief, on one knob - live, like the dither
 	settings_slider("mountain relief", 50, 250,
