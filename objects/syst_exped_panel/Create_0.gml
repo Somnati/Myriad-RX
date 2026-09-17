@@ -2548,15 +2548,6 @@ __worlds_step = function() {
 		if ((_pn[$ "brow"] ?? 0) < 3 * _pn.th) { planet_bake(_pn, get_timer() + 4000); return; }   // (then its textures, four ms a frame - a world opened on the map baked whole on its first draw, a hitch; bug hunt 2026-09-16)
 	}
 };
-// THE ZOOM PATCH (his ask, 2026-09-17: "increase the LOD of the terrain when i get really close"): past x1.8 the
-// page's world gets a PATCH - the window of the map under the view, sampled K times finer through planet_texel
-// (the one terrain sampler: the same coasts and hills, resolved) into two textures sh_planet reads instead of
-// the map's inside the window. Rivers and lakes ride over from the base map (a river as a line through its
-// base texel toward each river or water neighbour; a lake's texel whole). Built rows-per-frame under a deadline
-// while the last finished patch keeps showing; rebuilt when the zoom's K changes or the view drifts a third
-// of the window off its centre; dropped when the page changes or the zoom backs off. K = what the screen's
-// cells allow (a patch texel never finer than 1.3 cells - lod_cells), off the zoom's TARGET, so an eased zoom
-// builds once, not at every step
 // THE ZOOM TIER (his call, 2026-09-17: "LOD triggers based off zoom distance, not camera movement"): the WHOLE
 // map at 3x its resolution (planet_lod_begin / planet_lod_step - the base map's fields blended between its texels
 // on a smooth kernel, the biome law run on them; k odd, so the base texels' own centres are exact), built once
