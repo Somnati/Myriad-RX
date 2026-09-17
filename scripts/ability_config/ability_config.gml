@@ -44,12 +44,12 @@ function ability_config() {
 		{ key : "aegis",      name : "aegis",       tier : 3, lane : "res_all", band : [5, 8], unit : " res all", help : "resists everything a little" },
 		{ key : "vampiric",   name : "vampiric",    tier : 3, lane : "life", band : [8, 15],  unit : "% of damage", help : "heals off what it deals" },
 		{ key : "elemental",  name : "elementalist", tier : 3, lane : "elemdmg", band : [8, 15], unit : "% elemental", help : "its fire, water and nature skills hit harder" },
-		{ key : "berserk",    name : "berserk",     tier : 3, lane : "atk",  band : [15, 25], unit : "% atk", help : "hits much harder, guards less", cost : { lane : "def", v : -8 } },
+		{ key : "berserk",    name : "berserk",     tier : 3, lane : "atk",  band : [15, 25], unit : "% atk", help : "rage: much more attack, a little less defence", cost : { lane : "def", v : -8 } },
 		// ---- tier 4 ----
-		{ key : "titan",      name : "titan",       tier : 4, lane : "atk",  band : [12, 18], unit : "% atk and def", help : "big", also : "def" },
-		{ key : "savant",     name : "savant",      tier : 4, lane : "mag",  band : [12, 18], unit : "% int and res", help : "learned", also : "mdef" },
+		{ key : "titan",      name : "titan",       tier : 4, lane : "atk",  band : [12, 18], unit : "% atk and def", help : "the frame of a titan: attack and defence both", also : "def" },
+		{ key : "savant",     name : "savant",      tier : 4, lane : "mag",  band : [12, 18], unit : "% int and res", help : "a lifetime of study: int and res both", also : "mdef" },
 		{ key : "undying",    name : "undying",     tier : 4, lane : "undying", band : [1, 1], unit : "", help : "once a fight, a killing blow leaves it at 1 hp" },
-		{ key : "swift",      name : "swift death", tier : 4, lane : "crit", band : [6, 10],  unit : "% crit and pace", help : "quick and cruel", also : "tic" },
+		{ key : "swift",      name : "swift death", tier : 4, lane : "crit", band : [6, 10],  unit : "% crit and pace", help : "quick and cruel: crits and pace both", also : "tic" },
 	];
 	return _c;
 }

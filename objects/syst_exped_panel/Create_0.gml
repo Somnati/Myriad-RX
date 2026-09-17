@@ -1116,10 +1116,11 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _tt = _e.trips[_t];
 		for (var _k = 0; _k < array_length(_tt.sids); _k++) if (_tt.sids[_k] == _sp.id) { _hpc = floor(min(_hpr, _tt.hp[_k])); if (is_array(_tt[$ "mp"]) && _k < array_length(_tt.mp)) _mpc = round(_mpr * clamp(_tt.mp[_k], 0, 1)); }
 	}
-	// (the left column CONDENSED, his call 2026-09-16: bars 106, the stats on a
-	// 64 px pitch; the right column starts at x0+150 - resistances, then the
-	// four skill slots, his spec 2026-09-17)
-	var _bw = land ? 106 : (_w - 16);
+	// THE EVEN SPLIT (his ask, 2026-09-17): the left bundle (bars, the grid,
+	// the resistances) and the right bundle (skills, abilities) each take
+	// half the sheet; the bars and the grid stretch to the half
+	var _lcw = land ? floor((_w - 24) / 2) : (_w - 16);   // the left column's content width
+	var _bw = _lcw - 18;
 	// (the hp / mp rows and every stat are taps: what the stat does - his ask, 2026-09-15)
 	var _hlw = _bw + 20;
 	if (is_struct(it_pop) && it_pop[$ "st"] == "hp") { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 2, _by - 1, _hlw, 10, 0, c_white, .1); draw_px_rect(_hx - 2, _by - 1, _hlw, 10, c_white, .45); }
@@ -1139,26 +1140,27 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _keys = ["atk", "def", "mag", "mdef", "spd", "hit"];
 	var _labels = ["atk", "def", "int", "res", "spd", "hit"];
 	var _gy = _by + 26;
+	var _cell = floor(_lcw / 2);
 	for (var _k = 0; _k < 6; _k++) {
-		var _cx = _hx + (_k mod 2) * (land ? 64 : 80), _cy = _gy + (_k div 2) * 11, _cw = land ? 62 : 80;
+		var _cx = _hx + (_k mod 2) * _cell, _cy = _gy + (_k div 2) * 11, _cw = _cell - 2;
 		array_push(it_rects, { x : _cx - 2, y : _cy - 1, w : _cw, h : 10, st : _keys[_k] });
 		if (is_struct(it_pop) && it_pop[$ "st"] == _keys[_k]) { draw_sprite_ext(spr_pixel_1x1, 0, _cx - 2, _cy - 1, _cw, 10, 0, c_white, .1); draw_px_rect(_cx - 2, _cy - 1, _cw, 10, c_white, .45); }
 		draw_set_color(_dim); draw_set_alpha(.8);
 		draw_text(_cx, _cy, _labels[_k]);
 		draw_set_halign(fa_right);
 		draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
-		draw_text(_cx + (land ? 40 : 58), _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
+		draw_text(_cx + _cell - 26, _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
 		draw_set_font(fnt); draw_set_halign(fa_left);
 		var _g = _st.gear[$ _keys[_k]];
-		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + (land ? 43 : 62), _cy, "+" + string_format(_g, 1, 1)); }
+		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + _cell - 23, _cy, "+" + string_format(_g, 1, 1)); }
 	}
 	// LUCK (2026-09-16): its own row under the grid - a tap says what it does
-	var _lkx = _hx, _lky = _gy + 33, _lkw = land ? 62 : 80;
+	var _lkx = _hx, _lky = _gy + 33, _lkw = _cell - 2;
 	array_push(it_rects, { x : _lkx - 2, y : _lky - 1, w : _lkw, h : 10, st : "luck" });
 	if (is_struct(it_pop) && it_pop[$ "st"] == "luck") { draw_sprite_ext(spr_pixel_1x1, 0, _lkx - 2, _lky - 1, _lkw, 10, 0, c_white, .1); draw_px_rect(_lkx - 2, _lky - 1, _lkw, 10, c_white, .45); }
 	draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lkx, _lky, "luck");
 	draw_set_halign(fa_right); draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
-	draw_text(_lkx + (land ? 40 : 58), _lky, string(sprite_luck(_sp)));
+	draw_text(_lkx + _cell - 26, _lky, string(sprite_luck(_sp)));
 	draw_set_font(fnt); draw_set_halign(fa_left);
 	draw_set_color(_dim); draw_set_alpha(.7);
 	draw_text(_hx, _gy + 45, "crit " + string(_c.crit + sprite_luck(_sp) * .5) + "% x" + string(_c.cmulti) + "  -  counter " + string(_c.cnt) + "%");
@@ -1185,56 +1187,57 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 
 	// ---- the right column, on a 10 px pitch: THE FOUR SKILL SLOTS, THE
 	// FOUR ABILITY SLOTS (his spec, 2026-09-17) ----
-	var _rx0 = land ? (_x0 + 150) : _hx, _ry0 = land ? _by : (_rsy + 44);
+	var _rx0 = land ? (_hx + _lcw + 8) : _hx, _ry0 = land ? _by : (_rsy + 44);
 	var _rw0 = land ? (_x1 - 8 - _rx0) : (_w - 16);
 	var _sk = sprite_skills(_sp);
 	var _ky = _ry0;
 	draw_set_color(_ink); draw_set_alpha(.5); draw_text(_rx0, _ky, "skills");
 	var _skw = _rw0;
+	var _rowh = 11, _rowp = 12;
 	for (var _i = 0; _i < SPRITE_SKILLS; _i++) {
-		var _ly = _ky + 10 + _i * 10;
-		draw_sprite_ext(spr_pixel_1x1, 0, _rx0 - 3, _ly - 1, _skw, 9, 0, c_black, .35);
-		if (_i >= array_length(_sk)) { draw_px_rect(_rx0 - 3, _ly - 1, _skw, 9, _dim, .3); draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0, _ly - 1, "- open -"); continue; }
+		var _ly = _ky + 10 + _i * _rowp;
+		if (_i >= array_length(_sk)) { __slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _dim, true); draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly, "- open -"); continue; }
 		var _s = _sk[_i];
-		array_push(it_rects, { x : _rx0 - 3, y : _ly - 1, w : _skw, h : 9, sk : _s });
-		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) { draw_sprite_ext(spr_pixel_1x1, 0, _rx0 - 3, _ly - 1, _skw, 9, 0, c_white, .1); draw_px_rect(_rx0 - 3, _ly - 1, _skw, 9, c_white, .45); }
-		// the element or the school colours the name and says its word (2026-09-17)
+		// the element or the school colours the row and says its word (2026-09-17)
 		var _sel = _s[$ "elem"] ?? "", _ssc = _s[$ "school"] ?? "";
 		var _scol = _s.magic ? c_hpurple : c_horange, _sword = "";
 		if (_sel != "") { var _sei = cbt_elem_info(_sel); _scol = _sei.col; _sword = _sei.name; }
 		else if (_ssc != "") { var _sci = cbt_elem_info(_ssc); _scol = _sci.col; _sword = _ssc; }
-		draw_set_color(_scol); draw_set_alpha(.9);
-		draw_text(_rx0, _ly - 1, __sheet_cut(_s.name, _skw - 44 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
+		__slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _scol);
+		array_push(it_rects, { x : _rx0 - 3, y : _ly - 1, w : _skw, h : _rowh, sk : _s });
+		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) draw_capsule(_rx0 - 3, _ly - 1, _skw, _rowh, c_white, c_white, .18);
+		draw_set_color(merge_colour(_scol, c_white, .3)); draw_set_alpha(.95);
+		draw_text(_rx0 + 6, _ly, __sheet_cut(_s.name, _skw - 52 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
 		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85);
-		draw_text(_rx0 - 3 + _skw - 4, _ly - 1, string(_s.cost) + " mp");
-		if (_sword != "") { draw_set_color(_scol); draw_set_alpha(.55); draw_text(_rx0 - 3 + _skw - 4 - string_width(string(_s.cost) + " mp") - 6, _ly - 1, _sword); }
+		draw_text(_rx0 - 3 + _skw - 8, _ly, string(_s.cost) + " mp");
+		if (_sword != "") { draw_set_color(_scol); draw_set_alpha(.6); draw_text(_rx0 - 3 + _skw - 8 - string_width(string(_s.cost) + " mp") - 6, _ly, _sword); }
 		draw_set_halign(fa_left);
 	}
 	// THE ABILITIES: four slots - what is equipped, in its rarity's colour,
 	// its line right; an empty slot says so; a tap on any opens the picker
 	var _all_ab = sprite_abilities(_sp);
-	var _ay = _ky + 10 + SPRITE_SKILLS * 10 + 4;
+	var _ay = _ky + 10 + SPRITE_SKILLS * _rowp + 4;
 	draw_set_color(_ink); draw_set_alpha(.5); draw_text(_rx0, _ay, "abilities");
 	var _lad = ability_unlocks(), _next_lv = -1;
 	for (var _li = 0; _li < array_length(_lad); _li++) if (_sh.lv < _lad[_li].lv) { _next_lv = _lad[_li].lv; break; }
 	if (_next_lv > 0) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_rx0 + string_width("abilities") + 8, _ay, "next at lv " + string(_next_lv)); }
 	if (!is_array(_sh[$ "abil"])) _sh.abil = [-1, -1, -1, -1];
 	for (var _i = 0; _i < 4; _i++) {
-		var _ly2 = _ay + 10 + _i * 10;
-		draw_sprite_ext(spr_pixel_1x1, 0, _rx0 - 3, _ly2 - 1, _rw0, 9, 0, c_black, .35);
-		array_push(it_rects, { x : _rx0 - 3, y : _ly2 - 1, w : _rw0, h : 9, ab : _i });
-		if (is_struct(it_pop) && it_pop[$ "ab"] == _i) { draw_sprite_ext(spr_pixel_1x1, 0, _rx0 - 3, _ly2 - 1, _rw0, 9, 0, c_white, .1); draw_px_rect(_rx0 - 3, _ly2 - 1, _rw0, 9, c_white, .45); }
+		var _ly2 = _ay + 10 + _i * _rowp;
+		array_push(it_rects, { x : _rx0 - 3, y : _ly2 - 1, w : _rw0, h : _rowh, ab : _i });
 		var _k = _sh.abil[_i];
 		if (_k < 0 || _k >= array_length(_all_ab)) {
-			draw_px_rect(_rx0 - 3, _ly2 - 1, _rw0, 9, _dim, .3);
-			draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0, _ly2 - 1, (array_length(_all_ab) > 0) ? "- open  (tap to pick) -" : "- open -");
+			__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _dim, true);
+			draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly2, (array_length(_all_ab) > 0) ? "- open  (tap to pick) -" : "- open -");
 			continue;
 		}
-		var _a = _all_ab[_k];
-		draw_set_color(upgrade_rarity_info(_a.rar).col); draw_set_alpha(.95);
-		draw_text(_rx0, _ly2 - 1, __sheet_cut(_a.name, _rw0 - 80));
-		draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.75);
-		draw_text(_rx0 - 3 + _rw0 - 4, _ly2 - 1, ability_line(_a));
+		var _a = _all_ab[_k], _arc = upgrade_rarity_info(_a.rar).col;
+		__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _arc);
+		if (is_struct(it_pop) && it_pop[$ "ab"] == _i) draw_capsule(_rx0 - 3, _ly2 - 1, _rw0, _rowh, c_white, c_white, .18);
+		draw_set_color(merge_colour(_arc, c_white, .3)); draw_set_alpha(.95);
+		draw_text(_rx0 + 6, _ly2, __sheet_cut(_a.name, _rw0 - 96));
+		draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.8);
+		draw_text(_rx0 - 3 + _rw0 - 8, _ly2, ability_line(_a));
 		draw_set_halign(fa_left);
 	}
 	}
@@ -1252,8 +1255,10 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _asp = it_pop.sp, _ash = sprite_sheet(_asp), _aall = sprite_abilities(_asp);
 		if (!is_array(_ash[$ "abil"])) _ash.abil = [-1, -1, -1, -1];
 		var _sel = it_pop[$ "sel"] ?? -2;
-		var _apw = 236, _aph = 22 + (array_length(_aall) + 1) * 11 + 4 + 46;
-		var _apx = clamp(it_pop.x - 40, 4, room_width - _apw - 4), _apy = clamp(it_pop.y - _aph + 10, list_y + 20, room_height - _aph - 4);
+		var _pnh = 58, _bh3 = 14;
+		var _apw = 236, _aph = 22 + (array_length(_aall) + 1) * 11 + 4 + _pnh + 4 + _bh3 + 6;
+		// ON THE RIGHT, over the ability column, clear of the stat points (his ask)
+		var _apx = clamp(it_pop.x, 4, room_width - _apw - 4), _apy = clamp(list_y + 20, list_y + 20, room_height - _aph - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _apx + 2, _apy + 3, _apw, _aph, 0, c_black, .5);
 		draw_sprite_ext(spr_pixel_1x1, 0, _apx, _apy, _apw, _aph, 0, c_hsv(169, 186, 9), .98);
 		draw_px_rect(_apx, _apy, _apw, _aph, _asp.col, .8);
@@ -1281,32 +1286,36 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			}
 			_ayy += 11;
 		}
-		// THE PANE: the tooltip, and the button
-		var _pny = _ayy + 3, _pnh = 44;
+		// THE PANE: the tooltip - the name, its rung, its number with the
+		// lane NAMED, what the lane is, the flavour - and the button under it
+		var _pny = _ayy + 3;
 		draw_sprite_ext(spr_pixel_1x1, 0, _apx + 4, _pny, _apw - 8, _pnh, 0, c_black, .45);
 		draw_px_rect(_apx + 4, _pny, _apw - 8, _pnh, _dim, .3);
-		var _bw3 = 50, _bh3 = 14, _bx3 = _apx + _apw - 8 - _bw3, _by3 = _pny + _pnh - _bh3 - 4;
+		var _bw3 = _apw - 8, _bx3 = _apx + 4, _by3 = _pny + _pnh + 4;
 		ab_btn = undefined;
 		if (_sel == -2) {
 			var _nxl = -1, _lad2 = ability_unlocks();
 			for (var _li = 0; _li < array_length(_lad2); _li++) if (_ash.lv < _lad2[_li].lv) { _nxl = _lad2[_li].lv; break; }
 			draw_set_color(_dim); draw_set_alpha(.55);
 			draw_text_ext(_apx + 8, _pny + 4, "tap an ability above to read what it does. " + ((_nxl > 0) ? ("the next rung unlocks at level " + string(_nxl) + ".") : "every rung is unlocked."), 9, _apw - 16);
+			draw_ui_button(_bx3, _by3, _bw3, _bh3, "equip", c_gray, false, false);
 		} else if (_sel < 0) {
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_apx + 8, _pny + 4, "nothing in this slot");
-			draw_set_alpha(.55); draw_text_ext(_apx + 8, _pny + 14, "the slot stays open. an ability unlocked later fills an open slot by itself.", 9, _apw - 16 - _bw3 - 6);
-			if (_ash.abil[it_pop.ab] >= 0) { ab_btn = { x : _bx3, y : _by3, w : _bw3, h : _bh3, k : -1 }; draw_ui_button(_bx3, _by3, _bw3, _bh3, "clear", c_hred, true, true); }
+			draw_set_alpha(.55); draw_text_ext(_apx + 8, _pny + 15, "the slot stays open. an ability unlocked later fills an open slot by itself; a pick you make is never evicted.", 9, _apw - 16);
+			if (_ash.abil[it_pop.ab] >= 0) { ab_btn = { x : _bx3, y : _by3, w : _bw3, h : _bh3, k : -1 }; draw_ui_button(_bx3, _by3, _bw3, _bh3, "clear the slot", c_hred, true, true); }
+			else draw_ui_button(_bx3, _by3, _bw3, _bh3, "the slot is open", c_gray, false, false);
 		} else {
-			var _sa = _aall[_sel], _sri = upgrade_rarity_info(_sa.rar);
+			var _sa = _aall[_sel], _sri = upgrade_rarity_info(_sa.rar), _sld = ability_lane_desc(_sa.cfg.lane);
 			var _sel_here = (_ash.abil[it_pop.ab] == _sel), _sel_else = (!_sel_here && array_contains(_ash.abil, _sel));
 			draw_set_color(_sri.col); draw_set_alpha(.95); draw_text(_apx + 8, _pny + 4, _sa.name);
-			draw_set_color(_dim); draw_set_alpha(.7); draw_text(_apx + 8 + string_width(_sa.name) + 6, _pny + 4, _sri.name + "  -  tier " + string(_sa.tier) + "  -  unlocked at level " + string(ability_unlocks()[_sel].lv));
-			draw_set_color(_ink); draw_set_alpha(.9); draw_text(_apx + 8, _pny + 15, ability_line(_sa));
-			draw_set_color(_dim); draw_set_alpha(.75); draw_text_ext(_apx + 8, _pny + 26, _sa.cfg.help + (_sel_else ? "  (worn in another slot)" : ""), 9, _apw - 16 - _bw3 - 6);
+			draw_set_color(_dim); draw_set_alpha(.7); draw_text(_apx + 8 + string_width(_sa.name) + 6, _pny + 4, _sri.name + "  -  tier " + string(_sa.tier) + "  -  rung " + string(_sel + 1) + ", level " + string(ability_unlocks()[_sel].lv));
+			draw_set_color(_ink); draw_set_alpha(.95); draw_text(_apx + 8, _pny + 15, ability_line(_sa));
+			draw_set_color(_ink); draw_set_alpha(.7); draw_text_ext(_apx + 8, _pny + 26, _sld.what + ((_sa.cfg.help != "") ? ("  -  " + _sa.cfg.help) : "") + (_sel_else ? "  (worn in another slot)" : ""), 9, _apw - 16);
 			if (_sel_here) { ab_btn = { x : _bx3, y : _by3, w : _bw3, h : _bh3, k : -1 }; draw_ui_button(_bx3, _by3, _bw3, _bh3, "unequip", c_hred, true, true); }
 			else if (!_sel_else) { ab_btn = { x : _bx3, y : _by3, w : _bw3, h : _bh3, k : _sel }; draw_ui_button(_bx3, _by3, _bw3, _bh3, "equip", c_sgreen, true, true); }
-			else draw_ui_button(_bx3, _by3, _bw3, _bh3, "elsewhere", c_gray, false, false);
+			else draw_ui_button(_bx3, _by3, _bw3, _bh3, "worn in another slot", c_gray, false, false);
 		}
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
 	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
 		// THE NEXT LEVEL (his ask): each stat that climbs, and by how much
 		var _lpsp = it_pop.sp, _lpsh = sprite_sheet(_lpsp), _lpc = sprite_classes()[_lpsh.cls], _lpb = cbt_balance();
@@ -1667,6 +1676,15 @@ __kind_studied = function(_kind) {
 };
 /// THE ABILITY PICKER's tap (2026-09-17): a row picks that rung into the
 /// slot the popup was opened on (or empties it); anywhere else folds it
+/// THE SLOT ROW (his spec, 2026-09-17: "rounded ends like the ability
+/// slots / upgrade slots... a faint background of its rarity with the
+/// outline the solid colour of its rarity"): a capsule in the colour,
+/// a black capsule a pixel inside it, the colour washed faintly over that
+__slot_row = function(_x, _y, _w, _h, _col, _open = false) {
+	draw_capsule(_x, _y, _w, _h, _col, _col, _open ? .35 : .9);
+	draw_capsule(_x + 1, _y + 1, _w - 2, _h - 2, c_black, c_black, .92, capsule_bevel(_h - 2));
+	if (!_open) draw_capsule(_x + 1, _y + 1, _w - 2, _h - 2, _col, _col, .16, capsule_bevel(_h - 2));
+};
 __ab_pick_tap = function() {
 	if (!is_struct(it_pop) || is_undefined(it_pop[$ "ab"])) return false;
 	var _sp = it_pop.sp;

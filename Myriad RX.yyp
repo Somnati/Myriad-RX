@@ -224,6 +224,7 @@
     {"id":{"name":"ability_effects","path":"scripts/ability_effects/ability_effects.yy",},},
     {"id":{"name":"ability_flavor","path":"scripts/ability_flavor/ability_flavor.yy",},},
     {"id":{"name":"ability_gen","path":"scripts/ability_gen/ability_gen.yy",},},
+    {"id":{"name":"ability_lane_desc","path":"scripts/ability_lane_desc/ability_lane_desc.yy",},},
     {"id":{"name":"ability_line","path":"scripts/ability_line/ability_line.yy",},},
     {"id":{"name":"ability_rarity_mult","path":"scripts/ability_rarity_mult/ability_rarity_mult.yy",},},
     {"id":{"name":"ability_unlocks","path":"scripts/ability_unlocks/ability_unlocks.yy",},},
