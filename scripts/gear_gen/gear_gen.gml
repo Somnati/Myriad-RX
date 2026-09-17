@@ -62,14 +62,14 @@ function gear_gen(_slot, _lv, _rar, _seed, _tag = "", _own = "", _gen = 2) {
 	var _res_el = "", _res_v = 0, _elem = "";
 	var _weapon = (_slot == "w1" || _slot == "w2");
 	for (var _n = 0; _n < _nq; _n++) {
-		var _qk = undefined, _try = 0;
+		var _qk = undefined, _try = 0, _wrong = false;
 		do {
 			if (is_struct(_tg) && _tg.quirk != "" && random(1) < .5) { for (var _j = 0; _j < array_length(_qs); _j++) if (_qs[_j].key == _tg.quirk) _qk = _qs[_j]; }
 			else _qk = _qs[irandom(array_length(_qs) - 1)];
 			if (is_undefined(_qk)) _qk = _qs[irandom(array_length(_qs) - 1)];
 			_try += 1;
 			// (a proofing belongs on armour or a talisman, an element on a weapon - 2026-09-17)
-			var _wrong = (!is_undefined(_qk[$ "elem"]) && !_weapon) || (!is_undefined(_qk[$ "res"]) && _weapon);
+			_wrong = (!is_undefined(_qk[$ "elem"]) && !_weapon) || (!is_undefined(_qk[$ "res"]) && _weapon);
 		} until ((!array_contains(_quirks, _qk.key) && !_wrong) || _try >= 4);
 		if (array_contains(_quirks, _qk.key) || _wrong) continue;
 		array_push(_quirks, _qk.key);

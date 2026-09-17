@@ -46,10 +46,10 @@ function ability_config() {
 		{ key : "elemental",  name : "elementalist", tier : 3, lane : "elemdmg", band : [8, 15], unit : "% elemental", help : "its fire, water and nature skills hit harder" },
 		{ key : "berserk",    name : "berserk",     tier : 3, lane : "atk",  band : [15, 25], unit : "% atk", help : "hits much harder, guards less", cost : { lane : "def", v : -8 } },
 		// ---- tier 4 ----
-		{ key : "titan",      name : "titan",       tier : 4, lane : "atk",  band : [12, 18], unit : "% atk and def", help : "big", pair : "def" },
-		{ key : "savant",     name : "savant",      tier : 4, lane : "mag",  band : [12, 18], unit : "% int and res", help : "learned", pair : "mdef" },
+		{ key : "titan",      name : "titan",       tier : 4, lane : "atk",  band : [12, 18], unit : "% atk and def", help : "big", also : "def" },
+		{ key : "savant",     name : "savant",      tier : 4, lane : "mag",  band : [12, 18], unit : "% int and res", help : "learned", also : "mdef" },
 		{ key : "undying",    name : "undying",     tier : 4, lane : "undying", band : [1, 1], unit : "", help : "once a fight, a killing blow leaves it at 1 hp" },
-		{ key : "swift",      name : "swift death", tier : 4, lane : "crit", band : [6, 10],  unit : "% crit and pace", help : "quick and cruel", pair : "tic" },
+		{ key : "swift",      name : "swift death", tier : 4, lane : "crit", band : [6, 10],  unit : "% crit and pace", help : "quick and cruel", also : "tic" },
 	];
 	return _c;
 }

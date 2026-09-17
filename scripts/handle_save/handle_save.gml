@@ -935,7 +935,7 @@ function handle_save(){
 		var _du  = handle("u" + string(_u) + "_dur",  _has ? (_s[$ "dur"] ?? 0) : 0);
 		// the level it was rolled at and DE's banked +1% (2026-09-17)
 		var _lv  = handle("u" + string(_u) + "_lv",   _has ? (_s[$ "lv"] ?? 1) : 1);
-		var _xt  = handle("u" + string(_u) + "_xtra", _has ? (_s[$ "xtra"] ?? 0) : 0);
+		var _xtr = handle("u" + string(_u) + "_xtra", _has ? (_s[$ "xtra"] ?? 0) : 0);
 		if (action == sv_load) {
 			// an id the roster no longer carries costs a SLOT, never the
 			// savefile - a retired upgrade must fail softly
@@ -943,7 +943,7 @@ function handle_save(){
 			g.upg.slot[_u] = (_e == -1) ? -1
 				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
 				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)),
-				    dur : max(0, floor(_du)), lv : max(1, floor(_lv)), xtra : max(0, _xt) };
+				    dur : max(0, floor(_du)), lv : max(1, floor(_lv)), xtra : max(0, _xtr) };
 			// a zero cap is the pre-depth marker, and upgrade_cap only
 			// recognises it as absent - so drop the field entirely
 			if (is_struct(g.upg.slot[_u]) && g.upg.slot[_u].cap <= 0)

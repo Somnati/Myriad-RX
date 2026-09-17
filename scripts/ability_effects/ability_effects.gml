@@ -25,7 +25,7 @@ function ability_effects(_list) {
 			case "undying": _o.undying = true; break;
 			default: if (variable_struct_exists(_o, _ln)) _o[$ _ln] += _v; break;
 		}
-		if (variable_struct_exists(_a.cfg, "pair") && variable_struct_exists(_o, _a.cfg.pair)) _o[$ _a.cfg.pair] += _v;
+		if (variable_struct_exists(_a.cfg, "also") && variable_struct_exists(_o, _a.cfg.also)) _o[$ _a.cfg.also] += _v;   // (`also`, not `pair` - pair is the house macro for event_inherited)
 		if (variable_struct_exists(_a.cfg, "cost")) _o[$ _a.cfg.cost.lane] += _a.cfg.cost.v;
 	}
 	return _o;

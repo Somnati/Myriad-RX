@@ -73,12 +73,6 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 		var _lk = variable_struct_get_names(_worn[_w].pts);
 		for (var _i = 0; _i < array_length(_lk); _i++) { _pts[$ _lk[_i]] += _worn[_w].pts[$ _lk[_i]]; _total += _worn[_w].pts[$ _lk[_i]]; }
 	}
-	var _fres = cbt_res_gen(_seed, _r[$ "elem"] ?? "");
-	_fres.fire = clamp(_fres.fire + _ab.res.fire, _b.res_min, _b.res_max); _fres.water = clamp(_fres.water + _ab.res.water, _b.res_min, _b.res_max); _fres.nature = clamp(_fres.nature + _ab.res.nature, _b.res_min, _b.res_max);
-	var _name = _r.name;
-	if (array_length(_worn) > 0 && _armed_name) _name = "armed " + _r.name;
-	if (is_struct(_vv)) _name = _vv.key + " " + _name;   // ("greater goblin", "corrupt armed rat")
-	if (_boss) _name = _r.name + " " + _title;
 	// THE ABILITIES (2026-09-17): its rungs off its seed, the highest four
 	var _abl = foe_abilities(_seed, _lv, 4);
 	var _ab  = ability_effects(_abl);
@@ -86,6 +80,12 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 	for (var _k = 0; _k < 6; _k++) _pts[$ _keys2[_k]] *= 1 + (_ab[$ _keys2[_k]] / 100);
 	var _abtags = is_array(_r[$ "tags"]) ? array_concat(_r.tags, []) : [];
 	for (var _im = 0; _im < array_length(_ab.immune); _im++) array_push(_abtags, "immune_" + _ab.immune[_im]);
+	var _fres = cbt_res_gen(_seed, _r[$ "elem"] ?? "");
+	_fres.fire = clamp(_fres.fire + _ab.res.fire, _b.res_min, _b.res_max); _fres.water = clamp(_fres.water + _ab.res.water, _b.res_min, _b.res_max); _fres.nature = clamp(_fres.nature + _ab.res.nature, _b.res_min, _b.res_max);
+	var _name = _r.name;
+	if (array_length(_worn) > 0 && _armed_name) _name = "armed " + _r.name;
+	if (is_struct(_vv)) _name = _vv.key + " " + _name;   // ("greater goblin", "corrupt armed rat")
+	if (_boss) _name = _r.name + " " + _title;
 	var _maxhp = floor(_pts.hp * _b.hp_per_point * (1 + _ab.hp / 100) + _b.hp_flat_add);   // (whole hp, like the sprites')
 	var _maxmp = max(1, round(_pts.mp));
 	var _luck = max(0, (_r[$ "luck"] ?? 1) + _vluck);   // the kind's luck (the roster's; 1 unless said), the variant's lean
