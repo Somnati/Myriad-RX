@@ -19,7 +19,7 @@ function ability_gen(_seed, _maxtier = 1) {
 	var _rar = clamp(calculate_rarity(100 + _maxtier * 40, .3, .03, 800, 14), 0, 13);   // (no luck lean: the list must never move under a sprite)
 	var _val = random_range(_pick.band[0], _pick.band[1]) * ability_rarity_mult(_rar);
 	_val = round(_val * 10) / 10;
-	if (string_pos("immune", _pick.lane) == 1 || _pick.lane == "undying" || _pick.lane == "luck") _val = max(1, round(_val));
+	if (string_pos("immune", _pick.lane) == 1 || ability_lane_pts(_pick.lane)) _val = max(1, round(_val));   // (the flags and the point lanes: whole numbers)
 	rng_release(_old);
 	return { key : _pick.key, name : _pick.name, rar : _rar, val : _val, tier : _pick.tier, cfg : _pick };
 }

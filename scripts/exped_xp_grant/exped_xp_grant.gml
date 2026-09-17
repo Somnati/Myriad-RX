@@ -27,7 +27,9 @@ function exped_xp_grant(_tr, _xp, _why) {
 	for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
-		var _share = round(_each * ((_tr.hp[_k] > 0) ? 1 : .5) * (1 + sprite_ab(_sp).xp / 100) * 10) / 10;   // (the scholar's share, 2026-09-17)
+		var _abx = sprite_ab(_sp), _xm = 1 + _abx.xp / 100;   // (the scholar's share, 2026-09-17)
+		if (_abx.low_xp > 0 && _tr.hp[_k] > 0 && _tr.hp[_k] < _tr.hpmax[_k] * .25) _xm *= 1 + _abx.low_xp / 100;   // (hard lessons: a fight ended on its last legs)
+		var _share = round(_each * ((_tr.hp[_k] > 0) ? 1 : .5) * _xm * 10) / 10;
 		var _was = _tr.hpmax[_k];
 		var _got = sprite_xp_add(_sp, _share);
 		if (_got > 0) {

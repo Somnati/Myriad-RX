@@ -17,7 +17,7 @@ function sprites_tick() {
 		// sprite RESTING (asleep because it came home short) wakes when whole
 		var _hpf = _s[$ "hpf"] ?? 1, _mpf = _s[$ "mpf"] ?? 1;
 		if (_hpf < 1 || _mpf < 1) {
-			var _rate = _dt / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE);
+			var _rate = _dt / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE) * (1 + sprite_ab(_s).rest / 100);   // (second wind, 2026-09-17)
 			_s.hpf = min(1, _hpf + _rate);
 			_s.mpf = min(1, _mpf + _rate * 1.5);
 			if ((_s[$ "resting"] ?? false) && _s.hpf >= 1 && _s.mpf >= 1) { _s.resting = false; if (_h <= 0) _s.asleep = false; }

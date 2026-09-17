@@ -18,7 +18,7 @@ function cbt_ai(_f, _u) {
 	// the skills: affordable + can_use, targets by the skill's own rule
 	for (var _k = 0; _k < array_length(_u.skills); _k++) {
 		var _s = _u.skills[_k];
-		if (_u.mp < _s.cost) continue;
+		if (_u.mp < cbt_skill_cost(_u, _s)) continue;   // (frugal's price - 2026-09-17)
 		if (!_s.can_use(_f, _u)) continue;
 		for (var _i = 0; _i < array_length(_pawns); _i++) {
 			var _t = _pawns[_i];

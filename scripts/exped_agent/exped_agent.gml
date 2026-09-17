@@ -85,6 +85,13 @@ function exped_agent(_tr, _dt) {
 			if (sprite_note_has(_nsp, "road:" + _rg.nodes[_rd.a].kind) || sprite_note_has(_nsp, "road:" + _rg.nodes[_rd.b].kind)) _n_road = true;
 			if (sprite_note_has(_nsp, "wx:" + _wx)) _n_wx = true;
 			if (sprite_note_has(_nsp, "night")) _n_night = true; }
+		// THE ABILITIES' ROAD LANES (2026-09-17): long legs quicken the pace,
+		// owl-eyed and all-weather read like the notes, pathfinder thins the wrong turns
+		var _pab = exped_party_ab(_tr);
+		if (_pab.pace > 0) _pace *= 1 + _pab.pace / 100;
+		if (_pab.night > 0) _n_night = true;
+		if (_pab.weather > 0) _n_wx = true;
+		var _sure = 1 - min(80, _pab.sure) / 100;
 		if (_n_road) _pace *= 1.1;
 		var _dark = (_pp.moons == 0) ? 2 : ((_pp.moons >= 2) ? .5 : 1);   // (a moonless night: twice the wrong turns; two moons: half)
 		_rd.t += _dt * _pace;
@@ -101,14 +108,14 @@ function exped_agent(_tr, _dt) {
 			// the dark: a wrong turn (another road out of the node they left -
 			// the path is thrown away, they decide afresh where they end up),
 			// or an hour lost, before anything else; fog doubles the wrong turns
-			if ((_night && roll_perc(6 * _dark * (_n_night ? .5 : 1))) || (_wx == "fog" && !_n_wx && roll_perc(_night ? 10 : 8))) {
+			if ((_night && roll_perc(6 * _dark * (_n_night ? .5 : 1) * _sure)) || (_wx == "fog" && !_n_wx && roll_perc((_night ? 10 : 8) * _sure))) {
 				var _nb = region_neighbors(_rg, _rd.a);
 				if (array_length(_nb) > 1) {
 					var _pick = _nb[irandom(array_length(_nb) - 1)].j;
 					if (_pick != _rd.b) { _tr.road = { a : _rd.a, b : _pick, d : region_hours(_rg, _rd.a, _pick), t : _rd.t }; _tr.path = []; exped_tally(_tr, "mist"); array_push(_tr.log, "took the wrong road in the " + ((_wx == "fog") ? "fog" : "dark") + ". it goes to " + _rg.nodes[_pick].name); exped_say(_tr, "lost", undefined, .7); return false; }
 				}
 			}
-			if (_night && roll_perc(10 * _dark * (_n_night ? .5 : 1))) { _rd.t = max(0, _rd.t - EXPED_HOUR); exped_tally(_tr, "mist"); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
+			if (_night && roll_perc(10 * _dark * (_n_night ? .5 : 1) * _sure)) { _rd.t = max(0, _rd.t - EXPED_HOUR); exped_tally(_tr, "mist"); array_push(_tr.log, choose("lost the road in the dark. an hour to find it again", "went round in a circle. the same tree, twice", "waited out a black hour under a hedge")); exped_say(_tr, "lost", undefined, .6); return false; }
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;
@@ -120,6 +127,15 @@ function exped_agent(_tr, _dt) {
 		exped_stat("road_h", _dt / EXPED_HOUR);
 		exped_stat("road_km", (_dt / EXPED_HOUR) * EXPED_WALK_KMH);   // the distance ledger (his ask, 2026-09-17), kept in km
 		for (var _wk = 0; _wk < array_length(_tr.sids); _wk++) sprite_led(exped_sprite(_tr.sids[_wk]), "km", (_dt / EXPED_HOUR) * EXPED_WALK_KMH);   // ...and each walker's own
+		// THE WANDERER (2026-09-17, Kingdom Hearts' EXP Walker): xp for the distance, its number per 10 km
+		for (var _wk2 = 0; _wk2 < array_length(_tr.sids); _wk2++) {
+			if (_tr.hp[_wk2] <= 0) continue;
+			var _wsp = exped_sprite(_tr.sids[_wk2]);
+			if (is_undefined(_wsp)) continue;
+			var _wab = sprite_ab(_wsp).wander;
+			if (_wab <= 0) continue;
+			if (sprite_xp_add(_wsp, (_dt / EXPED_HOUR) * EXPED_WALK_KMH * _wab / 10) > 0) { _tr.hpmax[_wk2] = sprite_pawn(_wsp).maxhp; exped_stat("levels"); array_push(_tr.log, "+ " + _wsp.name + " reached level " + string(sprite_sheet(_wsp).lv) + " - the road taught it"); }
+		}
 		if (_rd.t >= _rd.d * EXPED_HOUR) {
 			_tr.pos = _rd.b;
 			_tr.road = undefined;

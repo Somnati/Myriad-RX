@@ -51,7 +51,7 @@ function exped_act_step(_tr) {
 		}
 		case "rest": {
 			var _cost = 0, _beds = 0, _cheap = 0;
-			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _beds++; if (sprite_note_has(exped_sprite(_tr.sids[_k]), "inn")) _cheap++; }
+			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) { _beds++; var _isp = exped_sprite(_tr.sids[_k]); if (!is_undefined(_isp) && (sprite_note_has(_isp, "inn") || sprite_ab(_isp).inn > 0)) _cheap++; }
 			_cost = max(ceil(_beds * EXPED_INN * .5), _beds * EXPED_INN - _cheap);   // (a note on inns: a bed cheaper - never below half the bill, 2026-09-16)
 			var _evr = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
 			if (is_struct(_evr) && _evr.kind == "fair" && _evr.node == _tr.pos) _cost = ceil(_cost * .5);   // (the fair's beds, 2026-09-16)

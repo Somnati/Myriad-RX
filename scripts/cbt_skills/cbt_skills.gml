@@ -23,7 +23,7 @@ function cbt_skills() {
 			name : "reform", cost : 4, targ : "self", magic : false, healp : .4, elem : "", school : "light",
 			can_use  : function(_f, _u) { return _u.hp < _u.maxhp; },
 			ai_score : function(_f, _u, _t) { return (_u.hp > _u.maxhp * .35) ? 0 : 85; },   // the emergency button
-			effect : function(_f, _u, _t) { cbt_heal(_f, _u, _u.maxhp * healp, "reform"); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _u, _u.maxhp * healp, "reform", _u); },
 		},
 		drain : {
 			name : "drain", cost : 3, targ : "enemy", mult : .8, magic : true, leech : .6, elem : "", school : "dark",
@@ -42,7 +42,7 @@ function cbt_skills() {
 				if (is_struct(_t[$ "ail"]) && (_t.ail.poison > 0 || _t.ail.slow > 0 || _t.ail.leech > 0)) _s += 20;   // (an ailment to ease)
 				return _s;
 			},
-			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, "mend"); cbt_purge(_f, _t, "light", true); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, "mend", _u); cbt_purge(_f, _t, "light", true); },
 		},
 		concuss : {
 			name : "concuss", cost : 3, targ : "enemy", mult : .7, magic : false, stag : .45, elem : "", school : "",

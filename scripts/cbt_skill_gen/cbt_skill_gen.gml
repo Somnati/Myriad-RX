@@ -54,7 +54,7 @@ function cbt_skill_gen(_seed, _tmpl = -1) {
 				if (is_struct(_t[$ "ail"]) && (_t.ail.poison > 0 || _t.ail.slow > 0 || _t.ail.leech > 0)) _sc += 20;
 				return _sc;
 			},
-			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, name); cbt_purge(_f, _t, "light", true); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, name, _u); cbt_purge(_f, _t, "light", true); },
 		};
 	} else if (_tmpl == 3) {
 		_s = {
@@ -149,7 +149,7 @@ function cbt_skill_gen(_seed, _tmpl = -1) {
 				if (_dark == 0) return 0;
 				return 55 + _dark * 15 + (1 - _t.hp / _t.maxhp) * 20;
 			},
-			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, name); cbt_purge(_f, _t, "light", false); },
+			effect : function(_f, _u, _t) { cbt_heal(_f, _t, _t.maxhp * healp, name, _u); cbt_purge(_f, _t, "light", false); },
 		};
 	}
 	_s.tmpl = _tmpl;

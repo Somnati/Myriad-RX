@@ -27,6 +27,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
 		var _pw = sprite_pawn(_sp, _tr.hp[_k], (is_array(_tr[$ "mp"]) && _k < array_length(_tr.mp)) ? _tr.mp[_k] : undefined);
+		if (_pw.ab.rest_hp > 0 && _pw.hp > 0 && _pw.hp < _pw.maxhp) { _pw.hp = min(_pw.maxhp, _pw.hp + _pw.maxhp * _pw.ab.rest_hp / 100); _tr.hp[_k] = _pw.hp; }   // (well-rested: a little back walking in - 2026-09-17)
 		_pw.hit += _bonus;
 		_pw.mi = _k;
 		_pw.studied = sprite_notes_kinds(_sp);
@@ -38,10 +39,10 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 				for (var _tj = 0; _tj < array_length(_shz.inv); _tj++) if ((_shz.inv[_tj][$ "slot"] ?? "") == "use" && _shz.inv[_tj].kind == "tonic") { array_delete(_shz.inv, _tj, 1); _ho = { ok : true, by : "a tonic" }; array_push(_tr.log, _sp.name + " drank a tonic at the door. " + _hz.name + " will not bite"); save_mark_dirty(); break; }
 			}
 			if (_ho.ok) array_push(_held, _sp.name + " (" + _ho.by + ")");
-			else if (sprite_note_has(_sp, "haz:" + _hz.key)) {
+			else if (sprite_note_has(_sp, "haz:" + _hz.key) || _pw.ab.hazard > 0) {   // (a note, or danger sense - 2026-09-17)
 				_pw[$ _hz.lane] *= sqrt(_hz.f);
 				if (_hz.lane == "spd") { _pw.eva = _pw.spd * _bal.spd_to_eva; _pw.tic_spd = _bal.tic_spd_base + sqrt(max(0, _pw.spd)) / _bal.tic_spd_div; }
-				array_push(_held, _sp.name + " (a note, half)");
+				array_push(_held, _sp.name + (sprite_note_has(_sp, "haz:" + _hz.key) ? " (a note, half)" : " (danger sense, half)"));
 			}
 			else {
 				_pw[$ _hz.lane] *= _hz.f;

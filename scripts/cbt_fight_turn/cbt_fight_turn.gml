@@ -56,12 +56,25 @@ function cbt_fight_turn(_f) {
 	}
 	if (_actor.hp > 0 && (_actor[$ "regen"] ?? 0) > 0) cbt_heal(_f, _actor, _actor.maxhp * _b.regen_pct, "regen");
 	if (_actor.hp > 0 && is_struct(_actor[$ "ab"]) && _actor.ab.regen > 0) cbt_heal(_f, _actor, _actor.maxhp * _actor.ab.regen / 100, "");   // (the mending ability, 2026-09-17)
+	if (_actor.hp > 0 && is_struct(_actor[$ "ab"]) && _actor.ab.mp_haste > 0) _actor.mp = min(_actor.maxmp, _actor.mp + _actor.maxmp * _actor.ab.mp_haste / 100);   // (mp haste: a little every action)
 	if (_actor.team == 0 && is_struct(_f[$ "tr"])) exped_drink(_f.tr, _actor, _f);   // the pocket first: a potion when low, a free action (2026-09-16)
 	var _plan = cbt_ai(_f, _actor);
 	if (!is_undefined(_plan) && _actor.hp > 0 && _plan.target.hp > 0) {
 		if (is_undefined(_plan.skill)) cbt_hit(_f, _actor, _plan.target, 1, "", 0, _actor.magic);
-		else { _actor.mp -= _plan.skill.cost; _plan.skill.effect(_f, _actor, _plan.target); }
+		else {
+			// a skill: its cost through cbt_skill_cost (frugal), the school on
+			// the actor while it runs (dark-touched reads it), the ruse's heal
+			// after, the count of skills used (the opening salvo) - 2026-09-17
+			var _cost = cbt_skill_cost(_actor, _plan.skill);
+			_actor.mp -= _cost;
+			_actor.cur_school = _plan.skill[$ "school"] ?? "";
+			_plan.skill.effect(_f, _actor, _plan.target);
+			_actor.cur_school = "";
+			_actor.sk_used = (_actor[$ "sk_used"] ?? 0) + 1;
+			if (is_struct(_actor[$ "ab"]) && _actor.ab.ruse > 0 && _actor.hp > 0) cbt_heal(_f, _actor, _actor.maxhp * (_cost / max(1, _actor.maxmp)) * _actor.ab.ruse / 100, "the ruse");
+		}
 	}
+	_actor.acts = (_actor[$ "acts"] ?? 0) + 1;   // (first blood reads it)
 	_actor.tic -= _th;
 	// THE CLOCKS run in the actor's own actions (2026-09-17)
 	if (is_struct(_actor[$ "ail"])) {

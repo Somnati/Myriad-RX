@@ -27,6 +27,7 @@ function cbt_status(_f, _u, _t, _key) {
 	if (array_contains(_tags, "immune_" + _key)) { cbt_log(_f, _t.name + " shrugs it off"); return false; }
 	var _boss = (_t[$ "boss"] ?? false);
 	var _turns = max(1, round(_b.ail_turns * (_boss ? _b.boss_ail : 1)));
+	if (is_struct(_u) && is_struct(_u[$ "ab"]) && _u.ab.ail_dur > 0) _turns += round(_u.ab.ail_dur);   // (lingering, 2026-09-17)
 	var _bturns = max(1, round(_b.buff_turns * ((_boss && _t.team == 1) ? _b.boss_ail : 1)));
 	var _who = _t.name;
 	switch (_key) {

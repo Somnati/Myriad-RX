@@ -27,6 +27,7 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 	// crit / counter, the pace, immunities as tags, a bite of their own
 	var _ab = _st.ab;
 	var _abhp = _maxhp;
+	_gmp0 += _ab.mp0 / 100;   // (eager: more mp to start - 2026-09-17)
 	var _abtags = [];
 	for (var _im = 0; _im < array_length(_ab.immune); _im++) array_push(_abtags, "immune_" + _ab.immune[_im]);
 	return {
@@ -43,7 +44,7 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 		skills : sprite_skills(_sp),
 		tic : random(.3), tic_spd : (_b.tic_spd_base + sqrt(max(0, _p.spd)) / _b.tic_spd_div) * (1 + _ab.tic / 100),
 		pts_total : _st.total,
-		dd : 0, dt : 0, cc : 0,
+		dd : 0, dt : 0, cc : 0, acts : 0, sk_used : 0, streak : 0, cur_school : "",   // (the big roster's counters, 2026-09-17: first blood, the salvo, momentum, dark-touched)
 		// the elements pass (2026-09-17): the table, the weapon's element, the
 		// abilities' bite (venomous / chilling), and the fight-long clocks
 		res : sprite_res(_sp), elem : _welem, school : "", ail_k : _ab.ail, ail_c : _ab.ailc, tags : _abtags, ab : _ab, undying_used : false,

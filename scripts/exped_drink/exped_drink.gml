@@ -53,7 +53,7 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 			if (_at >= 0) {
 				var _pot = _sh.inv[_at];
 				array_delete(_sh.inv, _at, 1);
-				var _heal = _hpm * ((_pot.size >= 2) ? .8 : .4);
+				var _heal = _hpm * ((_pot.size >= 2) ? .8 : .4) * (1 + sprite_ab(_sp).potion / 100);   // (gourmet, 2026-09-17)
 				var _newhp = min(_hpm, _hpn + _heal);
 				if (is_struct(_pw)) _pw.hp = _newhp; else _tr.hp[_k] = round(_newhp * 10) / 10;
 				var _dl = _sp.name + " drank the " + _pot.name + choose(". it tasted of red", ". better", ". most of it went in", " in one", ". the colour came back", ". it fizzed");
@@ -69,7 +69,7 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 				var _it2 = _sh.inv[_j];
 				if ((_it2[$ "slot"] ?? "") != "use" || _it2.kind != "mp") continue;
 				array_delete(_sh.inv, _j, 1);
-				_pw.mp = min(_pw.maxmp, _pw.mp + ((_it2.size >= 2) ? _pw.maxmp : ceil(_pw.maxmp * .5)));
+				_pw.mp = min(_pw.maxmp, _pw.mp + ceil(((_it2.size >= 2) ? _pw.maxmp : ceil(_pw.maxmp * .5)) * (1 + sprite_ab(_sp).potion / 100)));   // (gourmet, 2026-09-17)
 				var _bl = _sp.name + " drank the " + _it2.name + choose(". blue, then clear", ". cold", ". the hum came back", ". it tastes of a window");
 				cbt_log(_f, _bl); cbt_film(_f, undefined, 0, _bl);
 				array_push(_tr.log, _bl);

@@ -29,7 +29,7 @@ function sprite_stats(_sp) {
 		var _g = 0;
 		for (var _w = 0; _w < array_length(_worn); _w++) _g += _worn[_w].pts[$ _key] ?? 0;
 		if (is_struct(_sh[$ "elix"])) _g += _sh.elix[$ _key] ?? 0;   // THE ELIXIRS (2026-09-16): +1 a line each, for good - shown with the gear's green
-		var _a = (_key == "mp") ? 0 : (_b + _g) * (_ab[$ _key] ?? 0) / 100;   // (no lane for mp)
+		var _a = (_b + _g) * (_ab[$ _key] ?? 0) / 100;   // (every lane, mp's too - deep well, 2026-09-17)
 		_base[$ _key] = _b;
 		_gear[$ _key] = _g;
 		_abil[$ _key] = _a;

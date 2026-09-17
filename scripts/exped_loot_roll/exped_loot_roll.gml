@@ -10,7 +10,7 @@ function exped_loot_roll(_tr) {
 	var _d  = _tr.dest;
 	var _bi = exped_biomes()[_d.biome];
 	// FOR NOW (his call, 2026-09-15): credits or gear for the sprites, nothing else
-	var _rar  = clamp(calculate_rarity(luck_rate(_d.rate) + exped_party_luck(_tr) * 12, .3, .03, 800, 14), 0, 13);
+	var _rar  = clamp(calculate_rarity(luck_rate(_d.rate) + (exped_party_luck(_tr) + exped_party_ab(_tr).loot) * 12, .3, .03, 800, 14), 0, 13);   // (treasure sense leans it like luck - 2026-09-17)
 	var _ri   = upgrade_rarity_info(_rar);
 	// gear, a potion, an elixir (epic and up), or credits (the consumables pass, 2026-09-16)
 	var _kr = random(100), _kind = "credits";

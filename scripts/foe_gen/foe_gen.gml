@@ -87,7 +87,7 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 	if (is_struct(_vv)) _name = _vv.key + " " + _name;   // ("greater goblin", "corrupt armed rat")
 	if (_boss) _name = _r.name + " " + _title;
 	var _maxhp = floor(_pts.hp * _b.hp_per_point * (1 + _ab.hp / 100) + _b.hp_flat_add);   // (whole hp, like the sprites')
-	var _maxmp = max(1, round(_pts.mp));
+	var _maxmp = max(1, round(_pts.mp * (1 + _ab.mp / 100)));   // (deep well, 2026-09-17)
 	var _luck = max(0, (_r[$ "luck"] ?? 1) + _vluck);   // the kind's luck (the roster's; 1 unless said), the variant's lean
 	var _sk = [];
 	if (_r.skill != "") array_push(_sk, g.cskills[$ _r.skill]);

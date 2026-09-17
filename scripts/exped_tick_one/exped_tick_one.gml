@@ -164,6 +164,7 @@ function exped_tick_one(_tr, _dt) {
 		// home: the floor of credits by distance, the pocket's remainder, the quest's reward
 		// the pay: 3 a tier, and one for every four hours on the world (the credits twin, 2026-09-16: an explore bled without it)
 		var _payn = 3 * _tr.dest.tier + floor((_tr[$ "planet_t"] ?? 0) / (4 * EXPED_HOUR));
+		_payn = round(_payn * (1 + exped_party_ab(_tr, false).gold / 100));   // (golden touch - 2026-09-17)
 		var _floor = { kind : "credits", rar : 0, n : _payn, txt : string(_payn) + " credits - the trip's pay", col : c_lavender };   // ("the floor" made no sense on the card - 2026-09-15)
 		array_insert(_tr.finds, 0, _floor);
 		exped_tally(_tr, "earned", _floor.n);

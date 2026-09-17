@@ -77,7 +77,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		if (is_undefined(_sp)) continue;
 		var _pn = _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name;
 		var _hag = (_pn == "greedy" || _pn == "sly") ? -1 : ((_pn == "kind") ? 1 : 0);
-		if (sprite_note_has(_sp, "shop")) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
+		if (sprite_note_has(_sp, "shop") || sprite_ab(_sp).haggle > 0) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
 		if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _hag -= 1;   // (a grateful town: a credit off - the world remembers)
 		var _ldh = region_node_leader(_tr.dest, _rg, _tr.pos);   // (the leader's word on prices: fair a credit off, greedy one on - 2026-09-16)
 		if (is_struct(_ldh)) { if (_ldh.trait == "fair") _hag -= 1; else if (_ldh.trait == "greedy") _hag += 1; }
@@ -139,7 +139,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			if (_wi < 0) break;
 			var _it4 = _sh3.inv[_wi];
 			array_delete(_sh3.inv, _wi, 1);
-			var _pr4 = max(1, floor((2 + floor(_rg.lv / 3) + 2 * (_it4[$ "rar"] ?? 0)) * .5)) + (sprite_note_has(_sp3, "shop") ? 1 : 0);
+			var _pr4 = max(1, floor((2 + floor(_rg.lv / 3) + 2 * (_it4[$ "rar"] ?? 0)) * .5)) + ((sprite_note_has(_sp3, "shop") || sprite_ab(_sp3).haggle > 0) ? 1 : 0);
 			_tr.credits += _pr4; _csold += _pr4;
 			array_push(_sold3, _it4.name + " (" + string(_pr4) + ")");
 		}

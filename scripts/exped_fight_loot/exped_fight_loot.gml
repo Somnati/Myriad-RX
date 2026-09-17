@@ -7,7 +7,8 @@
 function exped_fight_loot(_tr, _f) {
 	var _boss = false;
 	for (var _j = 0; _j < array_length(_f.foes); _j++) if (_f.foes[_j][$ "boss"] ?? false) _boss = true;
-	if (!_boss && !roll_perc(EXPED_DROP)) return;
+	var _fab = exped_party_ab(_tr);   // (magpie / treasure sense, 2026-09-17)
+	if (!_boss && !roll_perc(EXPED_DROP * (1 + _fab.finds / 100))) return;
 	var _d = _tr.dest;
 	var _nf = array_length(_f.foes);
 	if (!_boss && roll_perc(55)) {
@@ -26,7 +27,7 @@ function exped_fight_loot(_tr, _f) {
 	// a NAMED boss's drop carries its name, a rung higher again (the proc-gear pass, 2026-09-15); everything is tagged by the place
 	var _own = "";
 	for (var _j = 0; _j < array_length(_f.foes); _j++) if ((_f.foes[_j][$ "named"] ?? false) && _own == "") _own = _f.foes[_j].name;
-	var _rar = clamp(calculate_rarity(luck_rate(_d.rate) + exped_party_luck(_tr) * 12, .3, .03, 800, 14) + (_boss ? 1 : 0) + ((_own != "") ? 1 : 0), 0, 13);
+	var _rar = clamp(calculate_rarity(luck_rate(_d.rate) + (exped_party_luck(_tr) + _fab.loot) * 12, .3, .03, 800, 14) + (_boss ? 1 : 0) + ((_own != "") ? 1 : 0), 0, 13);
 	var _rgf = exped_region(_tr), _tagf = _rgf.nodes[clamp(_tr[$ "pos"] ?? 0, 0, array_length(_rgf.nodes) - 1)].kind;
 	var _it = gear_gen(choose("w1", "w2", "armor", "talis"), exped_trip_lv(_tr), _rar, irandom($7fffffff), _tagf, _own);
 	var _tk = sprite_take(_sp, _it, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
