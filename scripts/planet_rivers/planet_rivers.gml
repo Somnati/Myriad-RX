@@ -1,4 +1,4 @@
-/// @description planet_rivers(pn) - RIVERS AND LAKES (2026-09-16; the drainage way 2026-09-17): channels one texel wide set into the biome map as shallows, the lakes they pass through as water
+/// @description planet_rivers(pn) - RIVERS, LAKES AND EROSION (2026-09-16; the drainage way 2026-09-17): channels set into the biome map as shallows (the great ones two texels wide, with deltas), the lakes they pass through as water, the valleys they cut into the heights
 /// THE DRAINAGE (his ask, 2026-09-17: "branch out from large bodies of
 /// water and fit snug in lower elevation areas ... passing between two
 /// mountain passes and connecting to an ocean"): the first rivers ran
@@ -122,5 +122,47 @@ function planet_rivers(_pn) {
 		if (_b == 8 || _b == 9 || _b == 10 || _b == 14) continue;
 		if (_fill[_i] - _ej[_i] > _laked) _bm[_i] = 1;          // a lake
 		else if (_acc[_i] >= _t) _bm[_i] = 11;                  // a river
+	}
+	// ---- EROSION (his pick, 2026-09-17: "erosion from the rivers"): the water WEARS. Every texel on a drawn system with a ----
+	// ---- catchment of half a slice or more is cut down by its flow (a log law: the great rivers deepest), its eight ----
+	// ---- neighbours by half - a V of a valley the bump shading reads as gullied flanks; never under the sea. The ----
+	// ---- great rivers (six slices) widen to two texels - their lowest dry bank joins them; a mouth of ten slices ----
+	// ---- spreads a DELTA of shallows over its low neighbours ----
+	var _cut = array_create(_n, 0);
+	for (var _k = 0; _k < _no; _k++) {
+		var _i = _order[_k];
+		if (_mouth[_i] < _tm || _acc[_i] < _t * .5) continue;
+		var _d = .014 * clamp(ln(_acc[_i] / (_t * .5)) / ln(60), 0, 1);
+		var _cx = _i mod _tw, _cy = _i div _tw;
+		_cut[_i] = max(_cut[_i], _d);
+		for (var _dy = -1; _dy <= 1; _dy++) {
+			var _ny = _cy + _dy;
+			if (_ny < 0 || _ny >= _th) continue;
+			for (var _dx = -1; _dx <= 1; _dx++) {
+				if (_dx == 0 && _dy == 0) continue;
+				var _ni = ((_cx + _dx + _tw) mod _tw) + _ny * _tw;
+				_cut[_ni] = max(_cut[_ni], _d * .5);
+			}
+		}
+	}
+	for (var _i = 0; _i < _n; _i++) if (_cut[_i] > 0 && !_wat[_i]) _el[_i] = max(_sea + .002, _el[_i] - _cut[_i]);
+	var _wide = _t * 6, _delta = _t * 10;
+	for (var _k = 0; _k < _no; _k++) {
+		var _i = _order[_k];
+		if (_bm[_i] != 11 || _acc[_i] < _wide || _mouth[_i] < _tm) continue;
+		var _cx = _i mod _tw, _cy = _i div _tw, _lo = -1, _lv = 9;
+		var _p = _par[_i], _atm = (_p < 0 || _wat[_p]);
+		for (var _dy = -1; _dy <= 1; _dy++) {
+			var _ny = _cy + _dy;
+			if (_ny < 0 || _ny >= _th) continue;
+			for (var _dx = -1; _dx <= 1; _dx++) {
+				if (_dx == 0 && _dy == 0) continue;
+				var _ni = ((_cx + _dx + _tw) mod _tw) + _ny * _tw, _nb = _bm[_ni];
+				if (_wat[_ni] || _nb == 11 || _nb == 1 || _nb == 8 || _nb == 9 || _nb == 10 || _nb == 14) continue;
+				if (_atm && _acc[_i] >= _delta && _el[_ni] < _sea + .012) { _bm[_ni] = 11; continue; }   // the delta's fan
+				if (_fill[_ni] < _lv) { _lv = _fill[_ni]; _lo = _ni; }
+			}
+		}
+		if (_lo >= 0) _bm[_lo] = 11;   // the second bank
 	}
 }
