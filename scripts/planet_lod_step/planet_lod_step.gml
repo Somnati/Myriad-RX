@@ -1,11 +1,14 @@
 /// @description planet_lod_step(pn, l, until) -> true once the tier stands (l.ready): builds rows of a zoom tier (planet_lod_begin) until the get_timer deadline
-/// A tier texel is the terrain SAMPLED THERE - planet_fields' noise at the
-/// tier texel's own centre, planet_biome's law on it - exactly as the base
-/// map's texels were at theirs, so the two agree wherever they meet and
-/// the tier shows what truly lies between the map's samples. (The first
-/// cut interpolated the base texels' fields: cheaper, but a smoothed
-/// field misses its thresholds - the woods, the dirt and the grass all
-/// shifted between tiers; his report, 2026-09-17)
+/// A tier texel is the terrain SAMPLED THERE (planet_texel at the tier
+/// texel's own centre, exactly as the base map's texels were at theirs)
+/// WHERE THE MAP'S TEXELS DISAGREE - the four base texels around it are not
+/// one biome - and the base's own biome elsewhere (its height between the
+/// four). So a coast, a wood's edge, a river's bank is truly resolved,
+/// the inside of a plain costs nothing, and the tier agrees with the map
+/// everywhere the map is sure. (The first cut interpolated the fields
+/// everywhere: a smoothed field misses its thresholds and every biome
+/// shifted between tiers; the second sampled everywhere: whole minutes
+/// of noise at 4x - his reports, 2026-09-17)
 /// Rivers and lakes ride over from the base biome map: a lake's texel
 /// whole, a river as a line through its texel toward each river or water
 /// neighbour. The colour texture (rgb the biome's colour, alpha 1 - glow)
@@ -22,11 +25,23 @@ function planet_lod_step(_pn, _l, _until) {
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
-		var _o = _j * _w * 4;
-		for (var _i = 0; _i < _w; _i++) {
+		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
+		_y0 = clamp(_y0, 0, _th - 1);
+		var _o = (_j * _w + _l.col) * 4;
+		for (var _i = _l.col; _i < _w; _i++) {
 			var _u = (_i + .5) / _w;
-			planet_texel(_ps, _u, _v);
-			var _b = _ps.ob, _oe = _ps.oe;
+			var _xx = _u * _tw - .5, _x0 = floor(_xx), _tx = _xx - _x0;
+			var _x1 = (_x0 + 1 + _tw) mod _tw; _x0 = (_x0 + _tw) mod _tw;   // (the seam wraps)
+			var _i00 = _x0 + _y0 * _tw, _i10 = _x1 + _y0 * _tw, _i01 = _x0 + _y1 * _tw, _i11 = _x1 + _y1 * _tw;
+			var _b, _oe, _b00 = _bm[_i00];
+			if (_b00 == _bm[_i10] && _b00 == _bm[_i01] && _b00 == _bm[_i11]) {
+				// the map is sure here: its biome, its height between the four
+				_b = _b00;
+				_oe = _el[_i00] * (1 - _tx) * (1 - _ty) + _el[_i10] * _tx * (1 - _ty) + _el[_i01] * (1 - _tx) * _ty + _el[_i11] * _tx * _ty;
+			} else {
+				planet_texel(_ps, _u, _v);
+				_b = _ps.ob; _oe = _ps.oe;
+			}
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11);
@@ -58,7 +73,10 @@ function planet_lod_step(_pn, _l, _until) {
 			if (_wat > 0) _for = floor(clamp((_sea - _oe) / .08, 0, 1) * 255);
 			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
 			_o += 4;
+			// (the deadline inside the row too: a row of a tier is a thousand texels and more, and a frame's share is a few ms)
+			if ((_i & 31) == 31 && get_timer() >= _until) { _l.col = _i + 1; return false; }
 		}
+		_l.col = 0;
 		_l.row++;
 	}
 	if (_l.row >= _l.h) {

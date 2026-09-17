@@ -46,19 +46,22 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 			_n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff;
 			return ((_n ^ (_n >> 16)) & $ffff) / $ffff;
 		},
+		// (the eight corners' hashes INLINE - h3's arithmetic, in h3's order, so the values are bit-identical to
+		// every world built before; the calls were most of a sample's cost - the zoom tiers, 2026-09-17)
 		vn3 : function(_x, _y, _z, _o) {
 			var _ix = floor(_x); var _iy = floor(_y); var _iz = floor(_z);
 			var _fx = _x - _ix; _fx = _fx * _fx * (3 - 2 * _fx);
 			var _fy = _y - _iy; _fy = _fy * _fy * (3 - 2 * _fy);
 			var _fz = _z - _iz; _fz = _fz * _fz * (3 - 2 * _fz);
-			var _c000 = h3(_ix, _iy, _iz, _o);
-			var _c100 = h3(_ix + 1, _iy, _iz, _o);
-			var _c010 = h3(_ix, _iy + 1, _iz, _o);
-			var _c110 = h3(_ix + 1, _iy + 1, _iz, _o);
-			var _c001 = h3(_ix, _iy, _iz + 1, _o);
-			var _c101 = h3(_ix + 1, _iy, _iz + 1, _o);
-			var _c011 = h3(_ix, _iy + 1, _iz + 1, _o);
-			var _c111 = h3(_ix + 1, _iy + 1, _iz + 1, _o);
+			var _ix1 = _ix + 1, _iy1 = _iy + 1, _iz1 = _iz + 1, _n;
+			_n = (_ix * 374761393 + _iy * 668265263 + _iz * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c000 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix1 * 374761393 + _iy * 668265263 + _iz * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c100 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix * 374761393 + _iy1 * 668265263 + _iz * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c010 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix1 * 374761393 + _iy1 * 668265263 + _iz * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c110 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix * 374761393 + _iy * 668265263 + _iz1 * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c001 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix1 * 374761393 + _iy * 668265263 + _iz1 * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c101 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix * 374761393 + _iy1 * 668265263 + _iz1 * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c011 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
+			_n = (_ix1 * 374761393 + _iy1 * 668265263 + _iz1 * 1274126177 + _o * 69069 + sd * 2654435761) & $7fffffff; _n = ((_n ^ (_n >> 13)) * 1103515245) & $7fffffff; var _c111 = ((_n ^ (_n >> 16)) & $ffff) / $ffff;
 			return lerp(
 				lerp(lerp(_c000, _c100, _fx), lerp(_c010, _c110, _fx), _fy),
 				lerp(lerp(_c001, _c101, _fx), lerp(_c011, _c111, _fx), _fy),
