@@ -98,9 +98,9 @@ float thick_at(vec3 n)
     return thk_uv(sphere_uv(t, u_tsize));
 }
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
-float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov)
+float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov, out float back)
 {
-    dirn = vec3(0.0, 0.0, 1.0); nrm = vec3(0.0, 0.0, 1.0); cov = 0.0;
+    dirn = vec3(0.0, 0.0, 1.0); nrm = vec3(0.0, 0.0, 1.0); cov = 0.0; back = 0.0;
     float RO = R + H;
     if (r2 > RO * RO) return -1.0;
     float z0 = sqrt(RO * RO - r2);
@@ -116,14 +116,29 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
         if (th > 0.0 && rr <= R + H * th) { under = true; zh = zz; break; }
         zs = zz;
     }
-    if (!under) return -1.0;
-    for (int j = 0; j < 3; j++) {
-        float zm = (zs + zh) * 0.5;
-        vec3 pp = vec3(p, zm);
-        float rr = length(pp);
-        float th = thick_at(pp / rr);
-        if (th > 0.0 && rr <= R + H * th) zh = zm; else zs = zm;
-    }
+    if (under) {
+        for (int j = 0; j < 3; j++) {
+            float zm = (zs + zh) * 0.5;
+            vec3 pp = vec3(p, zm);
+            float rr = length(pp);
+            float th = thick_at(pp / rr);
+            if (th > 0.0 && rr <= R + H * th) zh = zm; else zs = zm;
+        }
+    } else if (r2 > 1.0) {
+        // THE BACK OF THE DECK (his report, 2026-09-17: "they disappear as they wrap around ... the underside not
+        // rendering"): past the ground's limb the ray misses the world, passes through the deck and out its far
+        // side - a puff that has gone round the horizon shows its UNDERSIDE there, and one just past it its top.
+        // From the shell's back (or the mid plane, in the relief band) outward: the first point inside a puff
+        float zb0 = (r2 <= R * R) ? -z1 : 0.0;
+        for (int i = 0; i < 6; i++) {
+            float zz = mix(zb0, -z0, (float(i) + 1.0) / 6.0);
+            vec3 pp = vec3(p, zz);
+            float rr = length(pp);
+            float th = thick_at(pp / rr);
+            if (th > 0.0 && rr <= R + H * th) { under = true; zh = zz; back = 1.0; break; }
+        }
+        if (!under) return -1.0;
+    } else return -1.0;
     vec3 ph = vec3(p, zh);
     dirn = ph / length(ph);
     cov = cloud_at(dirn, u_tsize);
@@ -183,15 +198,17 @@ void main()
     // ---- cloud decks, marched (the cloud relief, 2026-09-17): the base deck .6 of the top's height ----
     float cab = 0.0; float clib = 1.0;
     vec3 nbd; vec3 nbn;
-    float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab);
+    float bkb = 0.0;
+    float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab, bkb);
     if (czb < 0.0) cab = 0.0;
-    else clib = lightband(dot(nbn, u_light)) * 0.8 + lightband(dot(nbd, u_light)) * 0.2;
+    else clib = (lightband(dot(nbn, u_light)) * 0.8 + lightband(dot(nbd, u_light)) * 0.2) * (1.0 - 0.25 * bkb);   // (an underside a little darker)
     float cat = 0.0; float clit = 1.0; float emb = 1.0;
     vec3 ntd; vec3 ntn;
-    float czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat);
+    float bkt = 0.0;
+    float czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat, bkt);
     if (czt < 0.0) cat = 0.0;
     else {
-        clit = lightband(dot(ntn, u_light)) * 0.8 + lightband(dot(ntd, u_light)) * 0.2;
+        clit = (lightband(dot(ntn, u_light)) * 0.8 + lightband(dot(ntd, u_light)) * 0.2) * (1.0 - 0.25 * bkt);
         if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
     }
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
