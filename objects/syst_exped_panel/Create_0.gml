@@ -1258,7 +1258,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _sel = it_pop[$ "sel"] ?? -2;
 		if (_ash[$ "abnew"] ?? false) { _ash.abnew = false; save_mark_dirty(); }   // (looked at)
 		var _pnh = 58, _bh3 = 14;
-		var _apw = 236, _aph = 22 + (array_length(_aall) + 1) * 11 + 4 + _pnh + 4 + _bh3 + 6;
+		var _apw = 196, _aph = 22 + (array_length(_aall) + 1) * 11 + 4 + _pnh + 4 + _bh3 + 6;   // (narrower, his ask 2026-09-17)
 		// ON THE RIGHT, over the ability column, clear of the stat points (his ask)
 		var _apx = clamp(it_pop.x, 4, room_width - _apw - 4), _apy = clamp(list_y + 20, list_y + 20, room_height - _aph - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _apx + 2, _apy + 3, _apw, _aph, 0, c_black, .5);
@@ -1266,7 +1266,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		draw_px_rect(_apx, _apy, _apw, _aph, _asp.col, .8);
 		draw_set_color(_asp.col); draw_set_alpha(.95);
 		draw_text(_apx + 6, _apy + 4, "abilities  -  slot " + string(it_pop.ab + 1));
-		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6); draw_text(_apx + _apw - 6, _apy + 4, "tap one to read it"); draw_set_halign(fa_left);
+		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6); draw_text(_apx + _apw - 6, _apy + 4, "tap to read"); draw_set_halign(fa_left);
 		ab_rects = [];
 		var _ayy = _apy + 16;
 		for (var _k = -1; _k < array_length(_aall); _k++) {
@@ -1280,10 +1280,10 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			} else {
 				var _aa = _aall[_k];
 				draw_set_color(_elsewhere ? _dim : upgrade_rarity_info(_aa.rar).col); draw_set_alpha(_elsewhere ? .45 : .95);
-				draw_text(_apx + 8, _ayy, __sheet_cut(_aa.name, 80));
-				draw_set_color(_dim); draw_set_alpha(.6); draw_text(_apx + 92, _ayy, "t" + string(_aa.tier) + "  lv " + string(ability_unlocks()[_k].lv));
+				draw_text(_apx + 8, _ayy, __sheet_cut(_aa.name, 62));
+				draw_set_color(_dim); draw_set_alpha(.6); draw_text(_apx + 74, _ayy, "t" + string(_aa.tier));
 				draw_set_halign(fa_right); draw_set_color(_elsewhere ? _dim : _ink); draw_set_alpha(_elsewhere ? .45 : .85);
-				draw_text(_apx + _apw - 8, _ayy, _here ? "here" : (_elsewhere ? "in another slot" : ability_line(_aa)));
+				draw_text(_apx + _apw - 8, _ayy, _here ? "here" : (_elsewhere ? "elsewhere" : __sheet_cut(ability_line(_aa), _apw - 8 - (_apx + 92) + _apx)));
 				draw_set_halign(fa_left);
 			}
 			_ayy += 11;
@@ -1310,7 +1310,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			var _sa = _aall[_sel], _sri = upgrade_rarity_info(_sa.rar), _sld = ability_lane_desc(_sa.cfg.lane);
 			var _sel_here = (_ash.abil[it_pop.ab] == _sel), _sel_else = (!_sel_here && array_contains(_ash.abil, _sel));
 			draw_set_color(_sri.col); draw_set_alpha(.95); draw_text(_apx + 8, _pny + 4, _sa.name);
-			draw_set_color(_dim); draw_set_alpha(.7); draw_text(_apx + 8 + string_width(_sa.name) + 6, _pny + 4, _sri.name + "  -  tier " + string(_sa.tier) + "  -  rung " + string(_sel + 1) + ", level " + string(ability_unlocks()[_sel].lv));
+			draw_set_color(_dim); draw_set_alpha(.7); draw_text(_apx + 8 + string_width(_sa.name) + 6, _pny + 4, _sri.name + "  t" + string(_sa.tier) + "  lv " + string(ability_unlocks()[_sel].lv));
 			draw_set_color(_ink); draw_set_alpha(.95); draw_text(_apx + 8, _pny + 15, ability_line(_sa));
 			draw_set_color(_ink); draw_set_alpha(.7); draw_text_ext(_apx + 8, _pny + 26, _sld.what + ((_sa.cfg.help != "") ? ("  -  " + _sa.cfg.help) : "") + (_sel_else ? "  (worn in another slot)" : ""), 9, _apw - 16);
 			if (_sel_here) { ab_btn = { x : _bx3, y : _by3, w : _bw3, h : _bh3, k : -1 }; draw_ui_button(_bx3, _by3, _bw3, _bh3, "unequip", c_hred, true, true); }
@@ -1697,7 +1697,8 @@ __kind_studied = function(_kind) {
 // end, mirrored at the right, the middle a stretch of the same two ideas
 // (a 1 px rim top and bottom, the fill between). Rows are 11 tall.
 __slot_row = function(_x, _y, _w, _h, _col, _open = false) {
-	var _ra = _open ? .35 : .9, _fa = _open ? 0 : .16;
+	if (_open) return;   // (an empty slot is EMPTY - no rim, no wash - his call, 2026-09-17)
+	var _ra = .9, _fa = .16;
 	var _cw = sprite_get_width(spr_slot_end), _mid = _w - _cw * 2;
 	// the black under everything (the wash tints black, never the sheet)
 	draw_sprite_ext(spr_slot_end, 1, _x, _y, 1, 1, 0, c_black, .92);

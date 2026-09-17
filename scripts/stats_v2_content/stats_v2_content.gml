@@ -259,10 +259,14 @@ function stats_v2_content() {
 			// odds are far below a tenth of a percent and the rows are
 			// all the same shape. The bar's job is to show where the
 			// mass actually is.
+			// ...AND THE WINDOW MOVES (his report, 2026-09-17: common sat at 0
+			// instead of falling off): the tiers under the floor drop off the
+			// list and the ones past ten come in, so it is always ten LIVE tiers
 			var _tn = 10;
-			var _to = tile_tier_odds(_tn);
+			var _tshift = floor(luck_rate(tile_rarity_rate()) / TILE_RARITY_CUT);
+			var _to = tile_tier_odds(_tn + _tshift);
 			var _te = [];
-			for (var _i = 0; _i < _tn; _i++)
+			for (var _i = _tshift; _i < _tshift + _tn; _i++)
 				array_push(_te, {
 					name : "tier " + string(_i + 1),
 					col  : tile_color(_i + 1),
