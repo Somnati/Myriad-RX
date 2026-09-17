@@ -1196,7 +1196,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _rowh = 11, _rowp = 12;
 	for (var _i = 0; _i < SPRITE_SKILLS; _i++) {
 		var _ly = _ky + 10 + _i * _rowp;
-		if (_i >= array_length(_sk)) { __slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _dim, true); draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly, "- open -"); continue; }
+		if (_i >= array_length(_sk)) { __slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _dim, true); draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly + 1, "- open -"); continue; }
 		var _s = _sk[_i];
 		// the element or the school colours the row and says its word (2026-09-17)
 		var _sel = _s[$ "elem"] ?? "", _ssc = _s[$ "school"] ?? "";
@@ -1207,10 +1207,10 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		array_push(it_rects, { x : _rx0 - 3, y : _ly - 1, w : _skw, h : _rowh, sk : _s });
 		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) draw_capsule(_rx0 - 3, _ly - 1, _skw, _rowh, c_white, c_white, .18);
 		draw_set_color(merge_colour(_scol, c_white, .3)); draw_set_alpha(.95);
-		draw_text(_rx0 + 6, _ly, __sheet_cut(_s.name, _skw - 52 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
+		draw_text(_rx0 + 6, _ly + 1, __sheet_cut(_s.name, _skw - 52 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
 		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85);
-		draw_text(_rx0 - 3 + _skw - 8, _ly, string(_s.cost) + " mp");
-		if (_sword != "") { draw_set_color(_scol); draw_set_alpha(.6); draw_text(_rx0 - 3 + _skw - 8 - string_width(string(_s.cost) + " mp") - 6, _ly, _sword); }
+		draw_text(_rx0 - 3 + _skw - 8, _ly + 1, string(_s.cost) + " mp");
+		if (_sword != "") { draw_set_color(_scol); draw_set_alpha(.6); draw_text(_rx0 - 3 + _skw - 8 - string_width(string(_s.cost) + " mp") - 6, _ly + 1, _sword); }
 		draw_set_halign(fa_left);
 	}
 	// THE ABILITIES: four slots - what is equipped, in its rarity's colour,
@@ -1228,16 +1228,16 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _k = _sh.abil[_i];
 		if (_k < 0 || _k >= array_length(_all_ab)) {
 			__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _dim, true);
-			draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly2, (array_length(_all_ab) > 0) ? "- open  (tap to pick) -" : "- open -");
+			draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly2 + 1, (array_length(_all_ab) > 0) ? "- open  (tap to pick) -" : "- open -");
 			continue;
 		}
 		var _a = _all_ab[_k], _arc = upgrade_rarity_info(_a.rar).col;
 		__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _arc);
 		if (is_struct(it_pop) && it_pop[$ "ab"] == _i) draw_capsule(_rx0 - 3, _ly2 - 1, _rw0, _rowh, c_white, c_white, .18);
 		draw_set_color(merge_colour(_arc, c_white, .3)); draw_set_alpha(.95);
-		draw_text(_rx0 + 6, _ly2, __sheet_cut(_a.name, _rw0 - 96));
+		draw_text(_rx0 + 6, _ly2 + 1, __sheet_cut(_a.name, _rw0 - 96));
 		draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.8);
-		draw_text(_rx0 - 3 + _rw0 - 8, _ly2, ability_line(_a));
+		draw_text(_rx0 - 3 + _rw0 - 8, _ly2 + 1, ability_line(_a));
 		draw_set_halign(fa_left);
 	}
 	}
@@ -1509,21 +1509,24 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 	array_push(_rows, { lbl : "offhand", it : _sh.w2 });
 	for (var _i = 0; _i < _c.armor; _i++) array_push(_rows, { lbl : "armor",    it : (_i < array_length(_sh.armor)) ? _sh.armor[_i] : undefined });
 	for (var _i = 0; _i < _c.talis; _i++) array_push(_rows, { lbl : "talisman", it : (_i < array_length(_sh.talis)) ? _sh.talis[_i] : undefined });
+	// (the same slot as the skills and the abilities - his ask, 2026-09-17:
+	// the rim and the wash in the item's rarity colour, an empty slot dim)
 	for (var _i = 0; _i < array_length(_rows); _i++) {
 		var _rw = _rows[_i];
 		var _ry = _ey + 11 + _i * 12;
-		draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _ew, 11, 0, c_black, .35);
+		var _rc = is_undefined(_rw.it) ? _dim : _rw.it.col;
+		__slot_row(_ex, _ry - 1, _ew, 11, _rc, is_undefined(_rw.it));
 		if (!is_undefined(_rw.it)) array_push(it_rects, { x : _ex, y : _ry - 1, w : _ew, h : 11, it : _rw.it, worn : true });
-		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ry - 1, _ew, 11, 0, c_white, .1); draw_px_rect(_ex, _ry - 1, _ew, 11, c_white, .45); }
+		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) draw_capsule(_ex, _ry - 1, _ew, 11, c_white, c_white, .18);
 		draw_set_color(_dim); draw_set_alpha(.8);
-		draw_text(_ex + 3, _ry + 1, _rw.lbl);
-		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 40, _ry + 1, "(none)"); }
+		draw_text(_ex + 6, _ry + 1, _rw.lbl);
+		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 44, _ry + 1, "- open -"); }
 		else {
-			var _nm = __sheet_cut(_rw.it.name, (_ex + _ew - 3 - 16) - (_ex + 40));
-			draw_set_color(_rw.it.col); draw_set_alpha(.95);
-			draw_text(_ex + 40, _ry + 1, _nm);
+			var _nm = __sheet_cut(_rw.it.name, (_ex + _ew - 8 - 16) - (_ex + 44));
+			draw_set_color(merge_colour(_rw.it.col, c_white, .3)); draw_set_alpha(.95);
+			draw_text(_ex + 44, _ry + 1, _nm);
 			draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6);
-			draw_text(_ex + _ew - 3, _ry + 1, "lv" + string(_rw.it.lv));
+			draw_text(_ex + _ew - 8, _ry + 1, "lv" + string(_rw.it.lv));
 			draw_set_halign(fa_left);
 		}
 	}
@@ -1532,17 +1535,19 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 	var _pw = land ? (_x1 - 8 - _px0) : _ew;
 	draw_set_color(_ink); draw_set_alpha(.5);
 	draw_text(_px0, _py, "pocket  " + string(array_length(_sh.inv)) + " / " + string(SPRITE_INV));
+	// the pocket's ten slots, the same shape: an item in its rarity colour, an open one dim
 	var _pn = array_length(_sh.inv);
-	for (var _i = 0; _i < _pn; _i++) {
-		var _iy = _py + 11 + _i * 10;
-		if (_iy + 9 > _y1 - 2) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_px0 + 4, _iy, "...and " + string(_pn - _i) + " more"); break; }
-		draw_sprite_ext(spr_pixel_1x1, 0, _px0, _iy - 1, _pw, 10, 0, c_black, .35);
-		if (is_struct(it_pop) && it_pop[$ "it"] == _sh.inv[_i]) { draw_sprite_ext(spr_pixel_1x1, 0, _px0, _iy - 1, _pw, 10, 0, c_white, .1); draw_px_rect(_px0, _iy - 1, _pw, 10, c_white, .45); }
-		draw_set_color(_sh.inv[_i].col); draw_set_alpha(.7); draw_text(_px0 + 4, _iy, __sheet_cut(_sh.inv[_i].name, _pw - 8 - 18));
-		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.5); draw_text(_px0 + _pw - 3, _iy, "lv" + string(_sh.inv[_i].lv)); draw_set_halign(fa_left);
-		array_push(it_rects, { x : _px0, y : _iy - 1, w : _pw, h : 10, it : _sh.inv[_i], worn : false });
+	for (var _i = 0; _i < SPRITE_INV; _i++) {
+		var _iy = _py + 11 + _i * 12;
+		if (_iy + 11 > _y1 - 2) break;
+		if (_i >= _pn) { __slot_row(_px0, _iy - 1, _pw, 11, _dim, true); draw_set_color(_dim); draw_set_alpha(.3); draw_text(_px0 + 6, _iy + 1, "- open -"); continue; }
+		var _it = _sh.inv[_i];
+		__slot_row(_px0, _iy - 1, _pw, 11, _it.col);
+		if (is_struct(it_pop) && it_pop[$ "it"] == _it) draw_capsule(_px0, _iy - 1, _pw, 11, c_white, c_white, .18);
+		draw_set_color(merge_colour(_it.col, c_white, .3)); draw_set_alpha(.95); draw_text(_px0 + 6, _iy + 1, __sheet_cut(_it.name, _pw - 12 - 18));
+		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6); draw_text(_px0 + _pw - 8, _iy + 1, "lv" + string(_it.lv)); draw_set_halign(fa_left);
+		array_push(it_rects, { x : _px0, y : _iy - 1, w : _pw, h : 11, it : _it, worn : false });
 	}
-	if (_pn == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_px0 + 4, _py + 11, "- empty -"); }
 };
 /// [misc] (his spec, 2026-09-17): the ledger on the left; on the right THE
 /// NOTEPAD with THE FRIENDSHIPS under it - both scroll (the wheel over
@@ -1680,10 +1685,30 @@ __kind_studied = function(_kind) {
 /// slots / upgrade slots... a faint background of its rarity with the
 /// outline the solid colour of its rarity"): a capsule in the colour,
 /// a black capsule a pixel inside it, the colour washed faintly over that
+// ...OFF A SPRITE HE CAN EDIT (his ask, 2026-09-17): spr_slot_end, 6 x 11,
+// frame 0 the rim of the left end, frame 1 its fill - drawn at the left
+// end, mirrored at the right, the middle a stretch of the same two ideas
+// (a 1 px rim top and bottom, the fill between). Rows are 11 tall.
 __slot_row = function(_x, _y, _w, _h, _col, _open = false) {
-	draw_capsule(_x, _y, _w, _h, _col, _col, _open ? .35 : .9);
-	draw_capsule(_x + 1, _y + 1, _w - 2, _h - 2, c_black, c_black, .92, capsule_bevel(_h - 2));
-	if (!_open) draw_capsule(_x + 1, _y + 1, _w - 2, _h - 2, _col, _col, .16, capsule_bevel(_h - 2));
+	var _ra = _open ? .35 : .9, _fa = _open ? 0 : .16;
+	var _cw = sprite_get_width(spr_slot_end), _mid = _w - _cw * 2;
+	// the black under everything (the wash tints black, never the sheet)
+	draw_sprite_ext(spr_slot_end, 1, _x, _y, 1, 1, 0, c_black, .92);
+	draw_sprite_ext(spr_slot_end, 1, _x + _w, _y, -1, 1, 0, c_black, .92);
+	if (_mid > 0) draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + 1, _mid, _h - 2, 0, c_black, .92);
+	// the fill's wash
+	if (_fa > 0) {
+		draw_sprite_ext(spr_slot_end, 1, _x, _y, 1, 1, 0, _col, _fa);
+		draw_sprite_ext(spr_slot_end, 1, _x + _w, _y, -1, 1, 0, _col, _fa);
+		if (_mid > 0) draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + 1, _mid, _h - 2, 0, _col, _fa);
+	}
+	// the rim
+	draw_sprite_ext(spr_slot_end, 0, _x, _y, 1, 1, 0, _col, _ra);
+	draw_sprite_ext(spr_slot_end, 0, _x + _w, _y, -1, 1, 0, _col, _ra);
+	if (_mid > 0) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y, _mid, 1, 0, _col, _ra);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + _h - 1, _mid, 1, 0, _col, _ra);
+	}
 };
 __ab_pick_tap = function() {
 	if (!is_struct(it_pop) || is_undefined(it_pop[$ "ab"])) return false;

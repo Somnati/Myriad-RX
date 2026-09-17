@@ -1095,6 +1095,7 @@
     {"id":{"name":"spr_scale_bar","path":"sprites/spr_scale_bar/spr_scale_bar.yy",},},
     {"id":{"name":"spr_scale_bracket","path":"sprites/spr_scale_bracket/spr_scale_bracket.yy",},},
     {"id":{"name":"spr_scrollbar","path":"sprites/spr_scrollbar/spr_scrollbar.yy",},},
+    {"id":{"name":"spr_slot_end","path":"sprites/spr_slot_end/spr_slot_end.yy",},},
     {"id":{"name":"spr_star_glow","path":"sprites/spr_star_glow/spr_star_glow.yy",},},
     {"id":{"name":"spr_star_glyph","path":"sprites/spr_star_glyph/spr_star_glyph.yy",},},
     {"id":{"name":"spr_tile","path":"sprites/spr_tile/spr_tile.yy",},},
