@@ -600,15 +600,20 @@ void main()
                 }
             }
         }
-        col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
-        float li = lightband(dot(nn, u_light));
-        col *= li;
-        col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45);                       // the slope's own light, over the band
         // THE SNOW LINE BY LATITUDE (his pick, 2026-09-17): at the equator only the crowns (.95); toward the poles it
-        // comes down the flanks (.40 at the pole); and the season moves it - a hemisphere's winter brings it lower
+        // comes down the flanks (.40 at the pole); and the season moves it - a hemisphere's winter brings it lower.
+        // Laid on BEFORE the light (his screenshot: snowy crowns shone on the night side - the white was mixed in
+        // after the band and never darkened): it is the ground's own colour, and takes the night like the rest
         float slat = abs(t.y);
         float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001);
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
+        col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
+        float li = lightband(dot(nn, u_light));
+        col *= li;
+        // the slope's own light, over the band - the LIFT only where the sun is up at all (a slope facing a sun below
+        // the horizon lit up on the night side); the shade side keeps its full darkening
+        float sunup = smoothstep(-0.02, 0.12, dot(n, u_light));
+        col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45 * sunup);
         col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
         // THE NIGHT (2026-09-17, his ask: "dark yes but also grey ... the landscape hard to see"): a moonlit
         // blue that MULTIPLIES the land (its contrast survives) with the faintest floor, instead of a flat dark blue mixed over it

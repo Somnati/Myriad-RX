@@ -427,7 +427,7 @@ function main_macros() {
 #macro EXPED_DROP     40     // % chance a won fight drops something (exped_fight_loot: credits or a piece of gear)
 #macro PL_ZOOM_IN    1.7     // the planet window's zoom on a focused region (syst_exped_panel; the clouds fade to nothing by it, the box clips the rest)
 #macro PAGE_GRAIN_MAX 6      // the one dither at its slider's 100% (sh_page_out, page_blit): levels either way at the blit; 1 level (~17%) is the textbook amount, more = a visible pattern / grain
-#macro PV_ZOOM_RG    1.55    // the planet page's pull-in on [view region] (region mode: the banner left, the quests right, the clouds thinned)
+#macro PV_ZOOM_RG    1.85    // the planet page's pull-in on [view region] (region mode: the banner left, the quests right, the clouds thinned; closer - his ask 2026-09-17, was 1.55)
 #macro PV_ZOOM_MAX   7       // THE WHEEL (his ask, 2026-09-17: "zoom in and out even when it artificially zooms in on the region"): the hand's zoom, on top of the mode's
 #macro PV_ZOOM_MIN   .7
 #macro EXPED_QUESTS    5     // quests a region offers at once (his ask, 2026-09-15), each slot on its own clock...

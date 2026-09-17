@@ -28,6 +28,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _tb = _l.tbuf, _hb = _l.hbuf;
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _w = _l.w;
 	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
+	var _rf = _pn[$ "rfill"], _ra = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _hasr = is_array(_rf) && is_array(_ra);   // (planet_rivers' keep)
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
@@ -64,21 +65,62 @@ function planet_lod_step(_pn, _l, _until) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);
 				if (_natl && _el[_bi] >= _sea) {   // (the base texel is land: its water is a lake or a river, not the coast's own call)
-					if (_bb == 1) _b = 1;
+					// A LAKE BY ITS OWN SHORE (his report, 2026-09-17: "ponds with hard pixel shores"): where a lake texel
+					// lies among the four base texels round this point, the lake is wherever the flood's filled surface
+					// (kept, blended) stands over the ground (the cubic) by the lake's depth - the basin's own contour,
+					// a curve, not the texel's square
+					var _lk = false;
+					if (_hasr) {
+						var _bl00 = (_bm[_i00] == 1 && _el[_i00] >= _sea), _bl10 = (_bm[_i10] == 1 && _el[_i10] >= _sea), _bl01 = (_bm[_i01] == 1 && _el[_i01] >= _sea), _bl11 = (_bm[_i11] == 1 && _el[_i11] >= _sea);
+						if (_bl00 || _bl10 || _bl01 || _bl11) {
+							var _fl = _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11;
+							_lk = (_fl - _oe > .010);
+						}
+					} else _lk = (_bb == 1);
+					if (_lk) _b = 1;
 					else if (_bb == 11) {
-						var _hit = false, _any = false, _rw = .6 / _k;
-						for (var _dy = -1; _dy <= 1 && !_hit; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
+						// A RIVER AS A CURVE (his report: "an unnatural look"): through a texel with one way in and one way out
+						// the channel is a bend - a quadratic from the in-edge's middle through the texel's (nudged) centre to the
+						// out-edge's - not two straight spokes; at a fork or a source the spokes stay. Its WIDTH grows with the
+						// catchment (a log law): a thread at the source, a broad reach at the mouth
+						var _hit = false, _nn = 0, _d1x = 0, _d1y = 0, _d2x = 0, _d2y = 0;
+						var _rw = (.45 + (_hasr ? .55 * clamp(ln(max(1, _ra[_bi]) / _rt) / ln(40), 0, 1) : .15)) / _k;
+						for (var _dy = -1; _dy <= 1; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
 							if (_dx == 0 && _dy == 0) continue;
 							var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
 							var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
 							if (!(_nb == 0 || _nb == 1 || _nb == 11 || _nb == 25)) continue;
-							_any = true;
-							var _px2 = _fx - .5, _py2 = _fy - .5, _sx = _dx * .5, _sy = _dy * .5;
-							var _tt = clamp((_px2 * _sx + _py2 * _sy) / (_sx * _sx + _sy * _sy), 0, 1);
-							var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
-							if (sqrt(_ddx * _ddx + _ddy * _ddy) < _rw) { _hit = true; break; }
+							if (_nn == 0) { _d1x = _dx; _d1y = _dy; } else if (_nn == 1) { _d2x = _dx; _d2y = _dy; }
+							_nn++;
 						}
-						if (!_any && point_distance(_fx, _fy, .5, .5) < _rw) _hit = true;
+						// the centre, nudged by the texel's own hash (a third of a texel at most) so no reach runs dead straight
+						var _hc = (_bi * 2654435 + 11) mod 2147483647; _hc = ((_hc ^ (_hc >> 13)) * 48271) mod 2147483647;
+						var _ccx = .5 + ((_hc mod 1000) / 1000 - .5) * .3, _ccy = .5 + (((_hc div 1000) mod 1000) / 1000 - .5) * .3;
+						if (_nn == 2) {
+							var _ax = .5 + _d1x * .5, _ay = .5 + _d1y * .5, _ex = .5 + _d2x * .5, _ey = .5 + _d2y * .5;
+							var _lx = _ax, _ly = _ay, _best = 9;
+							for (var _s = 1; _s <= 8; _s++) {
+								var _tt = _s / 8, _mt = 1 - _tt;
+								var _qx = _mt * _mt * _ax + 2 * _mt * _tt * _ccx + _tt * _tt * _ex, _qy = _mt * _mt * _ay + 2 * _mt * _tt * _ccy + _tt * _tt * _ey;
+								var _vx = _qx - _lx, _vy = _qy - _ly, _vl = max(.0001, _vx * _vx + _vy * _vy);
+								var _pt = clamp(((_fx - _lx) * _vx + (_fy - _ly) * _vy) / _vl, 0, 1);
+								var _ddx = _fx - (_lx + _vx * _pt), _ddy = _fy - (_ly + _vy * _pt);
+								_best = min(_best, _ddx * _ddx + _ddy * _ddy);
+								_lx = _qx; _ly = _qy;
+							}
+							_hit = (_best < _rw * _rw);
+						} else if (_nn > 0) {
+							for (var _dy = -1; _dy <= 1 && !_hit; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
+								if (_dx == 0 && _dy == 0) continue;
+								var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
+								var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
+								if (!(_nb == 0 || _nb == 1 || _nb == 11 || _nb == 25)) continue;
+								var _px2 = _fx - _ccx, _py2 = _fy - _ccy, _sx = .5 + _dx * .5 - _ccx, _sy = .5 + _dy * .5 - _ccy;
+								var _tt = clamp((_px2 * _sx + _py2 * _sy) / max(.0001, _sx * _sx + _sy * _sy), 0, 1);
+								var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
+								if (sqrt(_ddx * _ddx + _ddy * _ddy) < _rw) { _hit = true; break; }
+							}
+						} else _hit = (point_distance(_fx, _fy, _ccx, _ccy) < _rw);
 						if (_hit) _b = 11;
 					}
 				}

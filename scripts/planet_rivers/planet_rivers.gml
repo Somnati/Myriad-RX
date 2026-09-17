@@ -113,6 +113,8 @@ function planet_rivers(_pn) {
 	// ---- a lake where the flood filled a basin under one. Never on snow, glacier or a peak, never at the poles ----
 	var _land = _no, _t = max(6, round(_land * .0015)), _tm = _t * 3, _laked = .008;
 	var _pole = max(2, round(_th * .04));
+	var _bm0 = array_create(_n, 0);
+	array_copy(_bm0, 0, _bm, 0, _n);   // (the map before the water: a pond too small to keep gives its texels back)
 	for (var _k = 0; _k < _no; _k++) {
 		var _i = _order[_k];
 		if (_mouth[_i] < _tm) continue;
@@ -123,6 +125,25 @@ function planet_rivers(_pn) {
 		if (_fill[_i] - _ej[_i] > _laked) _bm[_i] = 1;          // a lake
 		else if (_acc[_i] >= _t) _bm[_i] = 11;                  // a river
 	}
+	// ---- THE PONDS (his report, 2026-09-17: "weird ponds"): a lake of fewer than five texels is a pit, not a lake - ----
+	// ---- its texels go back to what they were (a river through it stays a river where the flow says so) ----
+	var _seen = array_create(_n, false), _q = array_create(_n, 0);
+	for (var _i = 0; _i < _n; _i++) {
+		if (_seen[_i] || _bm[_i] != 1 || _wat[_i]) continue;
+		var _qh = 0, _qt = 0; _q[_qt++] = _i; _seen[_i] = true;
+		while (_qh < _qt) {
+			var _c = _q[_qh++], _cx = _c mod _tw, _cy = _c div _tw;
+			for (var _dy = -1; _dy <= 1; _dy++) { var _ny = _cy + _dy; if (_ny < 0 || _ny >= _th) continue;
+				for (var _dx = -1; _dx <= 1; _dx++) { if (_dx == 0 && _dy == 0) continue;
+					var _ni = ((_cx + _dx + _tw) mod _tw) + _ny * _tw;
+					if (_seen[_ni] || _bm[_ni] != 1 || _wat[_ni]) continue;
+					_seen[_ni] = true; _q[_qt++] = _ni; } }
+		}
+		if (_qt < 5) for (var _j = 0; _j < _qt; _j++) { var _pi = _q[_j]; _bm[_pi] = (_acc[_pi] >= _t && _mouth[_pi] >= _tm) ? 11 : _bm0[_pi]; }
+	}
+	// (kept for the zoom tier: the filled surface, the catchment and the slice - it draws the lakes' true shores and
+	// the rivers' widths from them - 2026-09-17)
+	_pn.rfill = _fill; _pn.racc = _acc; _pn.rt = _t;
 	// ---- EROSION (his pick, 2026-09-17: "erosion from the rivers"): the water WEARS. Every texel on a drawn system with a ----
 	// ---- catchment of half a slice or more is cut down by its flow (a log law: the great rivers deepest), its eight ----
 	// ---- neighbours by half - a V of a valley the bump shading reads as gullied flanks; never under the sea. The ----
