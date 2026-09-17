@@ -88,7 +88,7 @@ function planet_lod_step(_pn, _l, _until) {
 			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
 			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11 || _b == 25)) ? 255 : 0;
 			var _for = (!_gas) ? ((_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0))) : 0;
-			if (_wat > 0) _for = floor(clamp((_sea - _oe) / .08, 0, 1) * 255);
+			if (_wat > 0) _for = (_oe >= _sea) ? 0 : max(6, floor(clamp((_sea - _oe) / .08, 0, 1) * 255));   // (the sea's at least 6 - the foam's mark; a river's or a lake's 0)
 			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
 			_o += 4;
 			// (the deadline inside the row too: a row of a tier is a thousand texels and more, and a frame's share is a few ms)

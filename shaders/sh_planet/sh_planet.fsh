@@ -587,6 +587,18 @@ void main()
         if (hsmp.g > 0.5) {
             float dp = hsmp.b;
             col = mix(mix(col, u_sea1, smoothstep(0.0, 0.35, dp)), u_sea0, smoothstep(0.3, 1.0, dp));
+            // THE FOAM (his ask, 2026-09-17): a lit fringe on the sea's shallowest texel or two (the sea's depth is baked
+            // at 6/255 and up; a river's or a lake's is 0, so they take none), LAPPING - bands run in toward the shore
+            // on the clock, each texel with a grain of its own phase so the line breaks and rejoins like surf
+            if (dp > 0.01) {
+                float shore = 1.0 - smoothstep(0.02, 0.16, dp);
+                if (shore > 0.0) {
+                    vec2 fuv = muv * u_tsize * grid_k(muv);
+                    float fph = hash12(floor(fuv) + 3.7);
+                    float lap = 0.5 + 0.5 * sin(dp * 42.0 - u_time * 2.1 + fph * 6.2832);
+                    col = mix(col, vec3(0.88, 0.95, 0.97), shore * (0.35 + 0.5 * lap) * 0.8);
+                }
+            }
         }
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         float li = lightband(dot(nn, u_light));

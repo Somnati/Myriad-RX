@@ -61,7 +61,7 @@ function planet_bake(_pn, _until = undefined) {
 				// (blue marks the WOODS - forest, jungle full, swamp thinner - for the shader's canopy, 2026-09-17)
 				var _for = (_pn.kind != "gas") ? (((_bw == 5 || _bw == 6 || _bw == 22) ? 255 : ((_bw == 12) ? 140 : ((_bw == 21) ? 90 : 0)))) : 0;   // (the taiga a full wood, the savanna a sparse one)
 				// (...and under WATER blue is the DEPTH, 0 at the shore to 1 at .08 under the sea - the sea's gradient, his ask 2026-09-17; a river's or a lake's is 0)
-				if (_wat > 0) _for = floor(clamp((_pn.sea - _pn.elev[_i]) / .08, 0, 1) * 255);
+				if (_wat > 0) _for = (_pn.elev[_i] >= _pn.sea) ? 0 : max(6, floor(clamp((_pn.sea - _pn.elev[_i]) / .08, 0, 1) * 255));   // (the SEA's is at least 6: the foam knows the sea's shore from a river or a lake, whose depth is 0 - 2026-09-17)
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _wat, _for), 1);
 			}
 		}
