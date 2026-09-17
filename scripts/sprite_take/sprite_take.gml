@@ -7,7 +7,9 @@
 /// dumb... sometimes they trash a better one for a dumb reason"): a
 /// personality-sized chance the sprite bins an upgrade with a reason.
 /// txt is the diary's truth line about it.
-function sprite_take(_sp, _it) {
+/// party (2026-09-16, his ask): the sprites on the journey with it - a find the finder cannot use goes to one who can wear
+/// it, and a full pocket hands it to one with room, before anything is dropped. The diary line says who took it.
+function sprite_take(_sp, _it, _party = undefined) {
 	// A CONSUMABLE (2026-09-16): an elixir is drunk on the spot; the rest go in the pocket, no dumb moment about it
 	if ((_it[$ "slot"] ?? "") == "use") {
 		if (_it.kind == "elixir") return { txt : sprite_elixir(_sp, _it.line), worn : false, kept : false, elixir : true };
@@ -61,6 +63,28 @@ function sprite_take(_sp, _it) {
 		sprite_inv_trim(_sp);
 		save_mark_dirty();
 		return { txt : _t, worn : true, kept : true };
+	}
+	// THE HANDOVER (2026-09-16): not better for this one - a mate on the journey who WOULD wear it takes it; a full pocket
+	// hands it to a mate with room; only then the pocket (and its drop)
+	if (is_array(_party)) {
+		for (var _m = 0; _m < array_length(_party); _m++) {
+			var _ms = _party[_m];
+			if (_ms.id == _sp.id) continue;
+			if (sprite_would_wear(_ms, _it)) {
+				var _mt = sprite_take(_ms, _it);
+				if (_mt.worn) return { txt : _sp.name + " found " + _it.name + " and handed it to " + _ms.name + ", who put it on", worn : true, kept : true, given : _ms.id };
+				return { txt : _sp.name + " found " + _it.name + " and handed it to " + _ms.name, worn : false, kept : _mt.kept, given : _ms.id };
+			}
+		}
+		if (array_length(_sh.inv) >= SPRITE_INV) {
+			for (var _m = 0; _m < array_length(_party); _m++) {
+				var _ms = _party[_m];
+				if (_ms.id == _sp.id || array_length(sprite_sheet(_ms).inv) >= SPRITE_INV) continue;
+				array_push(sprite_sheet(_ms).inv, _it);
+				save_mark_dirty();
+				return { txt : _sp.name + " found " + _it.name + " - no room, so " + _ms.name + " carries it", worn : false, kept : true, given : _ms.id };
+			}
+		}
 	}
 	// not better: into the pocket, and the pocket keeps its size
 	array_push(_sh.inv, _it);

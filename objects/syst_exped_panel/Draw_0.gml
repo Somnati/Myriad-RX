@@ -482,6 +482,7 @@ if (view == "crew" || view == "sheet") {
 		draw_px_rect(_tb.x, _tb.y, _tb.w, _tb.h, _sp.col, _on ? .9 : .3);
 		if (_on) draw_sprite_ext(spr_pixel_1x1, 0, _tb.x + _tb.w, _tb.y, 10, _tb.h, 0, merge_colour(_sp.col, c_black, .75), .95);   // the tab bleeds into the sheet
 		__dot(_tb.x + 7, _tb.y + 7, 3, _sp.col, _away ? .4 : .95);
+		if (is_struct(_sp[$ "egg"])) draw_sprite_ext(spr_pixel_1x1, 0, _tb.x + 10, _tb.y + 9, 2, 3, 0, _sp.egg.col, .95);   // (the egg it keeps, 2026-09-16)
 		draw_set_color(_on ? c_white : _ink); draw_set_alpha(_on ? .95 : .75);
 		draw_text(_tb.x + 14, _tb.y + 3, string_copy(_sp.name, 1, land ? 8 : 6));
 		draw_set_halign(fa_right);

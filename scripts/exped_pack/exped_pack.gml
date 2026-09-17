@@ -67,6 +67,7 @@ function exped_pack() {
 		}
 		array_push(_f, "finds=" + _fs);
 		if (_is) array_push(_f, "thr=" + string_join_ext(",", _r[$ "threads"] ?? []));
+		if (is_array(_r[$ "young"]) && array_length(_r.young) > 0) { var _ys = ""; for (var _yi = 0; _yi < array_length(_r.young); _yi++) _ys += ((_yi > 0) ? "," : "") + string(_r.young[_yi]); array_push(_f, "yg=" + _ys); }   // (the young tagging along, 2026-09-16)
 		array_push(_f, "rgi=" + string(_r[$ "rgi"] ?? 0));
 		if (_is) {
 			// THE AGENT: a trip reloads standing at its node (the road and the activity start over; the quest's text is rebuilt)

@@ -17,8 +17,34 @@ function exped_tick(_secs) {
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
 	exped_mem_tick(_dt);     // the world's memories fade (2026-09-16)
 	exped_event_tick();      // ...and the regions' events roll (2026-09-16)
-	// THE EGGS (his ask, 2026-09-16): the clutch hatches on the universal clock - a sprite of the egg's colour, asleep, its first
-	// note the story; a full roster keeps an egg waiting (it does not go cold)
+	// THE KEEPERS' EGGS (his design, 2026-09-16): a sprite's egg hatches on the universal clock into its CHARGE - a sprite of the
+	// egg's colour, the keeper's class (a fifth of the time an adjacent one), young: it follows its keeper about the rooms and
+	// tags along on its journeys (exped_start), and grows up after two days. A full roster keeps the egg waiting.
+	for (var _si = 0; _si < array_length(g.sprites); _si++) {
+		var _kp = g.sprites[_si], _keg = _kp[$ "egg"];
+		if (!is_struct(_keg)) continue;
+		if (universal_now() < _keg.hatch || array_length(g.sprites) >= SPRITE_CAP) continue;
+		var _ch = sprite_spawn("tap");
+		_ch.col = _keg.col; _ch.col2 = merge_colour(_keg.col, c_white, .3); _ch.asleep = true; _ch.found = "an egg " + _kp.name + " kept";
+		_ch.young = { parent : _kp.id, born : universal_now() };
+		var _ncl = array_length(sprite_classes()), _pcl = sprite_sheet(_kp).cls;
+		sprite_sheet(_ch).cls = (random(1) < .2) ? ((_pcl + choose(1, _ncl - 1)) mod _ncl) : _pcl;   // (the keeper's class, or a neighbour on the ring)
+		sprite_note(_ch, "hatched from a " + _keg.word + " egg " + _kp.name + " carried home from " + _keg.from + ". " + choose("i follow them everywhere", "they are the first thing i saw", "i came out already talking", "the shell is kept, for luck"), "egg");
+		sprite_note(_kp, "the " + _keg.word + " egg hatched. " + _ch.name + ". " + choose("it follows me everywhere", "it will not stop looking at me", "i did not expect to feel like this about it", "it is small and loud"), "egg_hatch");
+		_kp.egg = undefined;
+		exped_stat("recruits");
+		save_mark_dirty();
+	}
+	// GROWN (2026-09-16): two days of wall clock young, then an adult like any other
+	for (var _si = 0; _si < array_length(g.sprites); _si++) {
+		var _ys = g.sprites[_si], _yy = _ys[$ "young"];
+		if (!is_struct(_yy) || universal_now() - _yy.born < 172800) continue;
+		var _ypar = exped_sprite(_yy.parent);
+		sprite_note(_ys, "grown. " + (is_undefined(_ypar) ? "" : (_ypar.name + " says i still have to do what they say. ")) + choose("we will see", "i am taller than them now, nearly", "i want my own adventures"), "grown");
+		_ys.young = undefined;
+		save_mark_dirty();
+	}
+	// THE FIRE'S EGGS (the fallback clutch: nobody free to keep one): they hatch the same, nobody's charge
 	if (!is_array(_e[$ "eggs"])) _e.eggs = [];
 	for (var _gi = array_length(_e.eggs) - 1; _gi >= 0; _gi--) {
 		var _eg = _e.eggs[_gi];
@@ -44,7 +70,7 @@ function exped_tick(_secs) {
 		if (!_home) continue;
 		array_delete(_e.trips, _i, 1);
 		array_push(_e.hauls, { id : _tr.id, dest : _tr.dest, sids : _tr.sids, names : _tr.names, cols : _tr.cols,
-		                       sid : _tr.sid, sname : _tr.sname, finds : _tr.finds, routed : _tr.routed,
+		                       sid : _tr.sid, sname : _tr.sname, finds : _tr.finds, routed : _tr.routed, young : _tr[$ "young"] ?? [],
 		                       cleared : _tr.cleared, wins : _tr.wins, log : _tr.log, hp : _tr.hp, hpmax : _tr.hpmax, mp : _tr[$ "mp"] ?? [], rgi : _tr[$ "rgi"] ?? 0,
 		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0, stance : _tr[$ "stance"] ?? "steady", best : exped_haul_moment(_tr) });   // (the best moment, 2026-09-16)   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
 		save_mark_dirty();

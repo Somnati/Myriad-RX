@@ -50,6 +50,11 @@ bub_cur  = "";
 bub_next = random_range(240, 720);
 #macro SPRITE_TALK_PCT 5
 card_open = false; // the card: up until a press lands anywhere but on it
+// THE EGG IT KEEPS (his design, 2026-09-16): put down somewhere near where it arrived - a new spot every room (the blob is
+// made afresh on arrival), and it stays there while the keeper works; drawn on the floor in the egg's colour
+egg_x = x + random_range(-18, 18); egg_y = y + random_range(-3, 6);
+// A YOUNG ONE (2026-09-16): smaller, and it trails its keeper about the room (Step)
+follow_dx = random_range(-14, 14); follow_dy = random_range(2, 7);
 card_a    = 0;     // ...eased, so it fades rather than pops
 tap_t = 0;         // frames to the next tap while working
 look_x = 0; look_y = 0;   // the pupils, eased toward the pointer

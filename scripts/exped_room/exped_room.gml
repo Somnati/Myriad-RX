@@ -20,7 +20,7 @@ function exped_room(_tr) {
 				var _spf = undefined;
 				for (var _if = 0; _if < array_length(g.sprites); _if++) if (g.sprites[_if].id == _tr.sids[_whof]) _spf = g.sprites[_if];
 				if (_spf != undefined) {
-					var _tk = sprite_take(_spf, _l.item);
+					var _tk = sprite_take(_spf, _l.item, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
 					if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist"); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
 					_l.txt = _tk.txt;
 					array_push(_tr.log, _rm + _tk.txt);

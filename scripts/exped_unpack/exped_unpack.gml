@@ -38,6 +38,8 @@ function exped_unpack(_s) {
 			for (var _k = 0; _k < array_length(_sl); _k++) { if (_sl[_k] == "") continue; array_push(_sids, real(_sl[_k])); array_push(_cols, (_k < array_length(_cl) && _cl[_k] != "") ? real(_cl[_k]) : c_white); }
 			if (array_length(_sids) == 0 || array_length(_names) != array_length(_sids)) continue;
 			// the finds
+			var _yng = [];   // the young tagging along (2026-09-16)
+			if ((_kv[$ "yg"] ?? "") != "") { var _yl = string_split(_kv.yg, ","); for (var _yi = 0; _yi < array_length(_yl); _yi++) array_push(_yng, real(_yl[_yi])); }
 			var _finds = [];
 			var _fsv = _kv[$ "finds"] ?? "";
 			if (_fsv != "") {
@@ -77,7 +79,7 @@ function exped_unpack(_s) {
 			var _rgi = clamp(real(_kv[$ "rgi"] ?? "0"), 0, EXPED_REGIONS - 1);
 			var _routed = ((_kv[$ "rt"] ?? "0") == "1");
 			if (_kind == "H") {
-				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
+				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0], young : _yng,
 				                       finds : _finds, routed : _routed, cleared : real(_kv[$ "cl"] ?? "0"), wins : real(_kv[$ "w"] ?? "0"), log : (((_kv[$ "lg"] ?? "") != "") ? string_split(_kv.lg, "^") : [ "home" ]), hp : _hp, hpmax : _hm, mp : _mp,
 				                       rgi : _rgi, tl : _tl, pocket : real(_kv[$ "pk"] ?? "0"), stance : exped_stance(_kv[$ "stn"] ?? "steady").key,
 				                       best : ((_kv[$ "bt"] ?? "") != "") ? { title : _kv.bt, line : _kv[$ "bm"] ?? "" } : undefined });
@@ -99,6 +101,7 @@ function exped_unpack(_s) {
 				fight : undefined, routed : _routed, rout_t : _t0,
 				finds : _finds, log : [ "on the way to " + _d.name + " (the diary's earlier pages did not survive the save)" ],
 				threads : ((_kv[$ "thr"] ?? "") != "") ? string_split(_kv.thr, ",") : [], said_travel : ((_kv[$ "sd"] ?? "0") == "1"), wins : real(_kv[$ "w"] ?? "0"),
+				young : _yng,
 				mode : ((_kv[$ "mode"] ?? "quest") == "explore") ? "explore" : "quest", quest : undefined,
 				pos : clamp(real(_kv[$ "pos"] ?? "0"), 0, _rgn - 1), path : [], road : undefined, act : undefined,
 				credits : real(_kv[$ "cr"] ?? "0"), recall : ((_kv[$ "rc"] ?? "0") == "1"), visited : [], planet_t : real(_kv[$ "pt"] ?? "0"), bounty : undefined,

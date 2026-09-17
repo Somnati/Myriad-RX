@@ -16,6 +16,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 	// the crew comes home first (a swap may retire one of them)
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _sp = g.sprites[_i];
+		if (is_array(_h[$ "young"]) && array_contains(_h.young, _sp.id)) { _sp.trip = false; continue; }   // (the young tagging along: home, unhurt - 2026-09-16)
 		if (!array_contains(_h.sids, _sp.id)) continue;
 		_sp.trip = false;
 		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP; }
@@ -56,9 +57,22 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 			}
 			case "egg": {
 				// THE CLUTCH (2026-09-16): the egg waits at home - six to eighteen hours of wall clock (its seed says), then hatches given room
-				if (!is_array(_e[$ "eggs"])) _e.eggs = [];
-				array_push(_e.eggs, { col : _l.n, seed : _l.tier, word : _l.fam, from : _h.dest.name, hatch : universal_now() + (6 + (_l.tier mod 13)) * 3600 });
-				array_push(_h.log, "~ the " + _l.fam + " egg is set by the fire. it is warm. someone keeps checking it.");
+				// THE KEEPER (2026-09-16, his ask): the finder keeps its egg - it rides the sprite (sp.egg), sits in its room, hatches into its
+				// charge; a keeper already with one hands it to a crewmate without; none free = the fire at home (g.exped.eggs)
+				var _egg = { col : _l.n, seed : _l.tier, word : _l.fam, from : _h.dest.name, hatch : universal_now() + (6 + (_l.tier mod 13)) * 3600 };
+				var _keeper = undefined;
+				var _kp0 = exped_sprite(_l[$ "who"] ?? -1);
+				if (!is_undefined(_kp0) && !is_struct(_kp0[$ "egg"])) _keeper = _kp0;
+				if (is_undefined(_keeper)) for (var _ki = 0; _ki < array_length(_h.sids) && is_undefined(_keeper); _ki++) { var _kp = exped_sprite(_h.sids[_ki]); if (!is_undefined(_kp) && !is_struct(_kp[$ "egg"])) _keeper = _kp; }
+				if (!is_undefined(_keeper)) {
+					_keeper.egg = _egg;
+					sprite_note(_keeper, "keeping a " + _l.fam + " egg from " + _h.dest.name + ". it is warm. " + choose("i check it a lot", "i sleep next to it", "nobody else is allowed to touch it", "it hums, i think"), "egg_keep");
+					array_push(_h.log, "~ " + _keeper.name + " keeps the " + _l.fam + " egg close. it is warm.");
+				} else {
+					if (!is_array(_e[$ "eggs"])) _e.eggs = [];
+					array_push(_e.eggs, _egg);
+					array_push(_h.log, "~ the " + _l.fam + " egg is set by the fire. it is warm. someone keeps checking it.");
+				}
 				break;
 			}
 			case "offer": {

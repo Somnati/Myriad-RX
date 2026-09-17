@@ -48,6 +48,10 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 		var _xs = string_split(_f[_at + 8], ";");
 		for (var _i = 0; _i < array_length(_xs); _i++) { var _xv = string_split(_xs[_i], ":"); if (array_length(_xv) == 2 && _xv[0] != "") _sh.elix[$ _xv[0]] = max(0, real(_xv[1])); }
 	}
+	// the egg it keeps (an eleventh field) and its youth (a twelfth), 2026-09-16
+	_sp.egg = undefined; _sp.young = undefined;
+	if (array_length(_f) > _at + 10 && _f[_at + 10] != "") { var _eq = string_split(_f[_at + 10], "~"); if (array_length(_eq) >= 5) _sp.egg = { col : real(_eq[0]), seed : real(_eq[1]), hatch : real(_eq[2]), word : _eq[3], from : _eq[4] }; }
+	if (array_length(_f) > _at + 11 && _f[_at + 11] != "") { var _yq = string_split(_f[_at + 11], "~"); if (array_length(_yq) >= 2) _sp.young = { parent : real(_yq[0]), born : real(_yq[1]) }; }
 	// the title (a tenth field, 2026-09-16): rank:text
 	_sh.title = ""; _sh.trank = 0;
 	if (array_length(_f) > _at + 9 && _f[_at + 9] != "") { var _tp = string_pos(":", _f[_at + 9]); if (_tp > 1) { _sh.trank = max(0, real(string_copy(_f[_at + 9], 1, _tp - 1))); _sh.title = string_delete(_f[_at + 9], 1, _tp); } }

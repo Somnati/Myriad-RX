@@ -45,6 +45,14 @@ look_y = lerp(look_y, clamp((mouse_y - (y - r)) / 40, -1, 1), .15 * delta);
 if (input_free(tile_room ? ui_layer_overlay : 0) && (!variable_global_exists("click_owner") || g.click_owner == noone))
 if (mouse_check_button_pressed(mb_left) && __hit(mouse_x, mouse_y)) __poke();
 
+// A YOUNG ONE trails its keeper (2026-09-16): its body small, its wander target beside the keeper's blob when that is in the room
+var _yng = s[$ "young"];
+r = is_struct(_yng) ? 3.4 : 5;
+if (is_struct(_yng) && !s.asleep) {
+	var _kb = noone;
+	with (obj_blob) if (sid == other.s.young.parent) _kb = id;
+	if (_kb != noone) { st = 1; st_t = max(st_t, 30); tx = _kb.x + follow_dx; ty = _kb.y + follow_dy; }
+}
 // ---- the loop ----
 if (s.asleep) { st = 3; }
 else {

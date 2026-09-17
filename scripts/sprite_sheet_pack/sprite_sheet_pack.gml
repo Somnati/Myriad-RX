@@ -1,4 +1,4 @@
-/// @description sprite_sheet_pack(sprite) -> "cls/lv/xp/sks/worn/inv/notes/learned/elixirs/title" (the save's tail)
+/// @description sprite_sheet_pack(sprite) -> "cls/lv/xp/sks/worn/inv/notes/learned/elixirs/title/egg/young" (the save's tail)
 /// worn = "w1=item;w2=item;a=item;t=item" and inv = "item;item", an item
 /// being gear_pack's "slot,lv,rar,seed". No "/" or "|" anywhere (the
 /// sprite record's separators).
@@ -22,5 +22,9 @@ function sprite_sheet_pack(_sp) {
 	if (is_struct(_sh[$ "elix"])) { var _xk = variable_struct_get_names(_sh.elix); for (var _i = 0; _i < array_length(_xk); _i++) _x += ((_i > 0) ? ";" : "") + _xk[_i] + ":" + string(_sh.elix[$ _xk[_i]]); }
 	// the title (a tenth field, 2026-09-16): rank:text
 	var _t = string(_sh[$ "trank"] ?? 0) + ":" + (_sh[$ "title"] ?? "");
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t;
+	// the egg it keeps (an eleventh field, 2026-09-16): col~seed~hatch~word~from; and its youth (a twelfth): parent~born
+	var _eg = "", _yg = "";
+	if (is_struct(_sp[$ "egg"])) { var _e2 = _sp.egg; _eg = string(_e2.col) + "~" + string(_e2.seed) + "~" + string(_e2.hatch) + "~" + string_replace_all(string_replace_all(string_replace_all(_e2.word, "/", " "), "~", " "), "|", " ") + "~" + string_replace_all(string_replace_all(string_replace_all(_e2.from, "/", " "), "~", " "), "|", " "); }
+	if (is_struct(_sp[$ "young"])) _yg = string(_sp.young.parent) + "~" + string(_sp.young.born);
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg;
 }

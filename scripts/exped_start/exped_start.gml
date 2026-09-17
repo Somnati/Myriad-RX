@@ -28,10 +28,13 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	var _rg = region_get(_d, _ri);
 	_e.seq += 1;
 	var _sids = [], _names = [], _cols = [], _hp = [], _hpmax = [], _mp = [];
+	// THE YOUNG TAG ALONG (his design, 2026-09-16): a keeper's charge follows it out - no fighting, a small share of the xp
+	var _young = [];
 	for (var _i = 0; _i < array_length(_crew); _i++) {
 		var _sp = _crew[_i];
 		_sp.trip = true;
 		array_push(_sids, _sp.id);
+		for (var _yi = 0; _yi < array_length(g.sprites); _yi++) { var _ys = g.sprites[_yi]; if (is_struct(_ys[$ "young"]) && _ys.young.parent == _sp.id && !(_ys[$ "trip"] ?? false) && !array_contains(_sids, _ys.id)) { var _dup = false; for (var _cj = 0; _cj < array_length(_crew); _cj++) if (_crew[_cj].id == _ys.id) _dup = true; if (!_dup) { _ys.trip = true; array_push(_young, _ys.id); } } }
 		array_push(_names, _sp.name);
 		array_push(_cols, _sp.col);
 		var _h = sprite_pawn(_sp).maxhp;         // hp: the sheet's (class x level x gear, sprite_pawn)
@@ -57,7 +60,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	var _home = is_struct(_q) ? region_nearest_landing(_rg, exped_quest_target(_q)) : _rg.landing;   // (nearest the FIRST stop)
 	var _tr = {
 		id : _e.seq, dest : _d,
-		sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0],
+		sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0], young : _young,
 		t : 0, dur : _d.dist, stage : 0,             // 0 flying there, 1 on the world, 2 flying home
 		leave_t : 0,                                 // when stage 2 began (the flight home is dur x EXPED_RETURN)
 		rooms : [], room_i : -1, cleared : 0,        // (the old delve's - kept for the save's shape)

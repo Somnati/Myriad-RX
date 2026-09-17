@@ -22,6 +22,8 @@ function exped_xp_grant(_tr, _xp, _why) {
 	var _et = (frac(_each) == 0) ? string(round(_each)) : string_format(_each, 1, 1);
 	var _split = (array_length(_tr.sids) > 1) ? (" (" + _et + " each)") : "";
 	if (_why == "") array_push(_tr.log, "+ " + _xt + " xp" + _split);
+	// the young tagging along learn by watching: two fifths of a share each, no hp pool to grow (2026-09-16)
+	if (is_array(_tr[$ "young"])) for (var _yi = 0; _yi < array_length(_tr.young); _yi++) { var _ysp = exped_sprite(_tr.young[_yi]); if (!is_undefined(_ysp) && sprite_xp_add(_ysp, round(_each * .4 * 10) / 10) > 0) array_push(_tr.log, "+ " + _ysp.name + " (tagging along) reached level " + string(sprite_sheet(_ysp).lv)); }
 	for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;

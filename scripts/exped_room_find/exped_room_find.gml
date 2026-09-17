@@ -10,13 +10,18 @@ function exped_room_find(_tr, _pre) {
 		var _who = (array_length(_up) > 0) ? _up[irandom(array_length(_up) - 1)] : 0;
 		var _sp = exped_sprite(_tr.sids[_who]);
 		if (!is_undefined(_sp)) {
-			var _tk = sprite_take(_sp, _l.item);
+			var _tk = sprite_take(_sp, _l.item, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
 			if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist"); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
 			_l.txt = _tk.txt;
 			array_push(_tr.log, _pre + _tk.txt);
 			if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }
 		} else array_push(_tr.log, _pre + "found " + _l.txt);
 	} else array_push(_tr.log, _pre + "found " + _l.txt);
+	// AN EGG IS ITS FINDER'S (2026-09-16): one of the party who is up keeps it close - it rides the sprite home (exped_collect)
+	if (_l.kind == "egg") {
+		var _eup = exped_party_up(_tr);
+		if (array_length(_eup) > 0) { var _ek = _eup[irandom(array_length(_eup) - 1)]; _l.who = _ek.id; _l.txt = "a " + _l.fam + " egg, warm - " + _ek.name + " is keeping it close"; }
+	}
 	array_push(_tr.finds, _l);
 	exped_say(_tr, "find", { item : (_l.kind == "gear") ? _l.item.name : _l.txt }, .7);
 	exped_note_beat(_tr, "find", .2, (_l.kind == "gear") ? _l.item.name : _l.txt);

@@ -1062,7 +1062,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	draw_text(_hx + 18, _hy - 2, str_cap(_sp.name));
 	draw_set_font(fnt);
 	draw_set_color(_c.col); draw_set_alpha(.95);
-	draw_text(_hx + 18, _hy + 12, _c.name);
+	draw_text(_hx + 18, _hy + 12, _c.name + (is_struct(_sp[$ "young"]) ? "  -  young" : ""));
 	var _pl = sprite_personalities();
 	var _need = sprite_xp_need(_sh.lv);
 	// THE LEVEL CORNER (his ask, 2026-09-15): "level N" above the bar at its
