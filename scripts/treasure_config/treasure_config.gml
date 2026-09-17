@@ -9,7 +9,7 @@
 /// picks by index.
 function treasure_config() {
 	static _c = [
-		{ key : "knot", names : ["a frayed knot", "a good knot", "a sailor's knot"], val : 1, col : rgb(150, 140, 130) },
+		{ key : "knot", names : ["a frayed knot", "a frayed knot", "a frayed knot"], val : 1, col : rgb(150, 140, 130) },   // (the pun, at every rung - "afraid not"; his call 2026-09-17)
 		{ key : "button", names : ["a button", "a brass button", "a jewelled button"], val : 1, col : rgb(190, 120, 80) },
 		{ key : "marble", names : ["a marble", "a cat's-eye marble", "a shooter marble"], val : 1, col : rgb(200, 220, 240) },
 		{ key : "nail", names : ["a bent nail", "a horseshoe nail", "a golden nail"], val : 1, col : rgb(150, 140, 130) },
