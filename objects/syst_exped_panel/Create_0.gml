@@ -1040,7 +1040,7 @@ __sheet_cut = function(_nm, _avail) {
 	while (string_width(_nm + "..") > _avail && string_length(_nm) > 2) _nm = string_copy(_nm, 1, string_length(_nm) - 1);
 	return _nm + "..";
 };
-__draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the sheet's foot (undefined = the page's)
+__draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   // y1 = the sheet's foot (undefined = the page's); pops false = the caller draws the popups (__draw_sheet_pops) itself, later
 	var _ink = sett_ink, _dim = dim, _e = g.exped, _ea = g.ui_fade_a;
 	var _sh = sprite_sheet(_sp);
 	var _st = sprite_stats(_sp);
@@ -1243,6 +1243,15 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		draw_set_halign(fa_left);
 	}
 	}
+	if (_pops) __draw_sheet_pops();   // (the popups - the crew view draws them itself, LAST, over its foot; his report 2026-09-17)
+};
+/// THE SHEET'S POPUPS (split out of __draw_sheet 2026-09-17 - his report: the
+/// sprite menu's foot drew over the gear tooltip): the ability / item / level /
+/// stat / note / skill popups off it_pop, drawn after everything under them.
+/// __draw_sheet calls it unless told not to (_pops false) - the crew view then
+/// draws its foot and calls this after
+__draw_sheet_pops = function() {
+	var _ink = sett_ink, _dim = dim, _bal = cbt_balance();
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
@@ -1756,7 +1765,7 @@ __kind_studied = function(_kind) {
 // (a 1 px rim top and bottom, the fill between). Rows are 11 tall.
 __slot_row = function(_x, _y, _w, _h, _col, _open = false) {
 	if (_open) return;   // (an empty slot is EMPTY - no rim, no wash - his call, 2026-09-17)
-	var _ra = .9, _fa = .16;
+	var _ra = .55, _fa = .09;   // (quieter - his report, 2026-09-17: "those gear slots are very bright"; was .9 / .16)
 	var _cw = sprite_get_width(spr_slot_end), _mid = _w - _cw * 2;
 	// the black under everything (the wash tints black, never the sheet)
 	draw_sprite_ext(spr_slot_end, 1, _x, _y, 1, 1, 0, c_black, .92);

@@ -532,7 +532,7 @@ if (view == "crew" || view == "sheet") {
 	// the sheet
 	var _sp = __sp_by_id(sheet_id);
 	if (is_undefined(_sp)) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(__sheet_x0(), list_y + 24, "no sprites yet"); ui_fade_set(1); exit; }
-	__draw_sheet(_sp, __sheet_x0(), list_y + 22, room_width - (land ? 14 : 4), (mode == "sprites") ? (room_height - 8 - 30) : undefined);   // (30, not 20: the foot's two lines sit UNDER the sheet, not across its border - his report, 2026-09-17)
+	__draw_sheet(_sp, __sheet_x0(), list_y + 22, room_width - (land ? 14 : 4), (mode == "sprites") ? (room_height - 8 - 30) : undefined, false);   // (30, not 20: the foot's two lines sit UNDER the sheet, not across its border - his report, 2026-09-17; the popups come after the foot)
 	// THE SPRITE MENU's foot (2026-09-16): the card's lines (what it is, what it does) and [dismiss] - armed, then sure
 	if (mode == "sprites") {
 		var _fy = room_height - 8 - 16, _fx = __sheet_x0() + 8;
@@ -544,6 +544,7 @@ if (view == "crew" || view == "sheet") {
 		var _dr = __dismiss_r(), _away2 = (_sp[$ "trip"] ?? false), _armed = (dismiss_arm == _sp.id && dismiss_t > 0);
 		draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, _away2 ? "away" : (_armed ? "sure? dismiss" : "dismiss"), _armed ? c_hred : c_gray, !_away2, _armed);
 	}
+	__draw_sheet_pops();   // (over the foot - his report, 2026-09-17: the task line drew through the gear tooltip)
 	ui_fade_set(1);
 	exit;
 }
