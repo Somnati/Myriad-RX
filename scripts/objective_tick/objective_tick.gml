@@ -19,7 +19,7 @@ function objective_tick() {
 	if (_ob.gap > 0) { _ob.gap = max(0, _ob.gap - delta / 60); return; }
 
 	var _c = objective_config();
-	if (_ob.i >= array_length(_c)) return;
+	if (_ob.i >= array_length(_c)) { ticket_release(); return; }   // (a chain already complete: anything still owed lands - a ticket granted before the objectives loaded would otherwise wait forever)
 	var _o = _c[_ob.i];
 
 	// activation, once (the card announces it)
