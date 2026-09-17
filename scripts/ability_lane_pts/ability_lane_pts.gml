@@ -4,7 +4,7 @@
 /// yes/no lane (once more, death throes, the road's flags). ability_gen
 /// rounds them, ability_line prints them without a % (2026-09-17)
 function ability_lane_pts(_ln) {
-	static _pts = ["luck", "eva", "ail_dur", "loot", "low_crit", "cnt_crit", "once_more", "throes", "inn", "haggle", "night", "weather", "hazard"];
+	static _pts = ["luck", "eva", "ail_dur", "loot", "low_crit", "cnt_crit", "once_more", "throes", "inn", "haggle", "night", "weather", "hazard", "aura_luck", "nograze"];
 	if (string_pos("res_", _ln) == 1 || string_pos("immune_", _ln) == 1) return true;
 	return array_contains(_pts, _ln);
 }

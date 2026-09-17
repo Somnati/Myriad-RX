@@ -45,7 +45,7 @@ ELEMS = ["fire", "water", "nature"]
 BEATS = {"fire": "nature", "water": "fire", "nature": "water"}
 WEAK  = {"fire": "water", "water": "nature", "nature": "fire"}
 # ---- the abilities (2026-09-17, the evilities): ability_config / ability_unlocks / ability_gen, mirrored ----
-ABIL = [  # (key, tier, lane, lo, hi, pair, cost_lane, cost_v) - THE BIG ROSTER (2026-09-17, 99 kinds; generated with ability_config)
+ABIL = [  # (key, tier, lane, lo, hi, pair, cost_lane, cost_v) - THE ROSTER (2026-09-17, 134 kinds; generated with ability_config)
     ("stout", 1, "hp", 4, 8),
     ("brawn", 1, "atk", 4, 8),
     ("bookish", 1, "mag", 4, 8),
@@ -145,6 +145,79 @@ ABIL = [  # (key, tier, lane, lo, hi, pair, cost_lane, cost_v) - THE BIG ROSTER 
     ("underdog", 4, "underdog", 12, 20),
     ("salvo", 4, "salvo", 25, 40),
     ("ruse", 4, "ruse", 15, 25),
+    ("scavenger", 1, "scav", 15, 25),
+    ("pickpocket", 2, "pick", 25, 40),
+    ("noble", 2, "sell", 15, 25),
+    ("prospector", 2, "rooms", 15, 25),
+    ("courier", 3, "quest", 15, 25),
+    ("artisan", 1, "work", 8, 14),
+    ("busyhands", 1, "work_tap", 12, 20),
+    ("fabhand", 2, "work_fab", 12, 20),
+    ("mergehand", 2, "work_merge", 12, 20),
+    ("tireless", 2, "nap", 30, 50),
+    ("foreman", 3, "work_aura", 4, 8),
+    ("homebody", 2, "home_alone", 10, 18),
+    ("captain", 3, "aura_atk", 4, 8),
+    ("shieldwall", 3, "aura_def", 4, 8),
+    ("cheerleader", 2, "aura_hit", 4, 8),
+    ("luckycharm", 3, "aura_luck", 1, 1),
+    ("medic", 2, "aura_heal", 10, 18),
+    ("banner", 3, "aura_xp", 8, 14),
+    ("quartermaster", 2, "aura_potion", 10, 18),
+    ("firetouched", 3, "fire_pow", 15, 25),
+    ("watertouched", 3, "water_pow", 15, 25),
+    ("naturetouched", 3, "nature_pow", 15, 25),
+    ("storyteller", 2, "notes", 30, 50),
+    ("soundsleeper", 1, "rest_nap", 30, 50),
+    ("lightsleeper", 1, "rest_wake", 30, 50),
+    ("thorns", 3, "thorns", 10, 20),
+    ("pouncingtiger", 4, "hurt_atk", 5, 9),
+    ("superguts", 4, "hurt_def", 5, 9),
+    ("duelist", 3, "duel", 20, 35),
+    ("packfighter", 2, "pack", 6, 10),
+    ("lonewolf", 3, "lone", 25, 40),
+    ("laststand", 4, "last", 20, 35),
+    ("executioner", 4, "execute", 8, 12),
+    ("coldblood", 3, "immune_stagger", 1, 1),
+    ("surehands", 2, "nograze", 1, 1),
+]
+FLAWS = [  # (key, lane, lo, hi) - THE FIFTH SLOT (2026-09-17): one a pawn, the band DIVIDED by the rarity's multiplier
+    ("coward", "atk", -14, -8),
+    ("brittle", "def", -14, -8),
+    ("dull", "mag", -14, -8),
+    ("thinskinned", "mdef", -14, -8),
+    ("sluggish", "spd", -14, -8),
+    ("clumsy", "hit", -14, -8),
+    ("frail", "hp", -14, -8),
+    ("shallow", "mp", -18, -10),
+    ("jinxed", "luck", -1, -1),
+    ("flatfooted", "eva", -4, -2),
+    ("slowstarter", "first", -35, -20),
+    ("panicky", "low_atk", -35, -20),
+    ("overconfident", "hi_def", -25, -15),
+    ("glassjaw", "taken", 10, 18),
+    ("wildswings", "graze", 20, 35),
+    ("bleeder", "bleed", 1, 2),
+    ("soft", "vaccine", -50, -30),
+    ("badpatient", "heal_recv", -35, -20),
+    ("wasteful", "frugal", -25, -15),
+    ("leaky", "mp_haste", -6, -3),
+    ("topheavy", "steady", -35, -20),
+    ("featherhands", "stagger", -35, -20),
+    ("fireshy", "res_fire", -14, -8),
+    ("watershy", "res_water", -14, -8),
+    ("thornshy", "res_nature", -14, -8),
+    ("slowlearner", "xp", -30, -15),
+    ("heavysleeper", "rest", -50, -30),
+    ("picky", "potion", -40, -25),
+    ("shortlegs", "pace", -10, -5),
+    ("careless", "sure", -50, -30),
+    ("butterfingers", "finds", -20, -10),
+    ("spendthrift", "gold", -20, -10),
+    ("prickly", "bonds", -50, -30),
+    ("lazy", "work", -20, -10),
+    ("shabby", "sell", -25, -15),
+    ("tired", "rest_hp", -15, -8),
 ]
 ABIL_LADDER = [(1, 1), (4, 1), (8, 1), (14, 2), (20, 2), (30, 3), (45, 3), (60, 3), (80, 4), (100, 4)]
 ABIL_RMULT = [.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.3, 3.6]   # fourteen rungs (2026-09-17)
@@ -162,9 +235,18 @@ def ability_gen(rng, maxtier):
     rar = rarity_roll(rng, 100 + maxtier * 40)
     lo, hi = pick[3], pick[4]
     val = round((lo + (hi - lo) * rng.random()) * ABIL_RMULT[rar] * 10) / 10
-    if pick[2].startswith("immune") or pick[2].startswith("res_") or pick[2] in ("luck", "eva", "ail_dur", "loot", "low_crit", "cnt_crit", "once_more", "throes", "inn", "haggle", "night", "weather", "hazard"): val = max(1, round(val))
+    if lane_pts(pick[2]): val = math.copysign(max(1, round(abs(val))), val)
     return dict(key=pick[0], tier=pick[1], lane=pick[2], val=val, pair=(pick[5] if len(pick) > 5 else None),
                 cost=((pick[6], pick[7]) if len(pick) > 7 else None))
+def lane_pts(ln):
+    return ln.startswith("immune") or ln.startswith("res_") or ln in ("luck", "eva", "ail_dur", "loot", "low_crit", "cnt_crit", "once_more", "throes", "inn", "haggle", "night", "weather", "hazard", "aura_luck", "nograze")
+def flaw_gen(rng):
+    pick = rng.choice(FLAWS)
+    rar = rarity_roll(rng, 100)
+    lo, hi = pick[2], pick[3]
+    val = round((lo + (hi - lo) * rng.random()) / ABIL_RMULT[rar] * 10) / 10
+    if lane_pts(pick[1]): val = math.copysign(max(1, round(abs(val))), val)
+    return dict(key=pick[0], tier=0, lane=pick[1], val=val, pair=None, cost=None)
 class _Lanes(dict):
     def __missing__(self, k): return 0   # (every numeric lane reads 0 until something lands on it)
 def ability_effects(lst):
@@ -268,14 +350,14 @@ class Pawn:
         for it in (gear or []):
             for k, v in it.items(): pts[k] += v
         # the abilities (2026-09-17): the rungs the level has passed, the newest four worn
-        ab = ability_effects(abilities_for(rng, lv, 4))
+        ab = ability_effects(abilities_for(rng, lv, 4) + [flaw_gen(rng)])   # (+ the flaw, the fifth slot - 2026-09-17)
         for k in ("atk", "mag", "def", "mdef", "spd", "hit"): pts[k] *= 1 + ab["def_" if k == "def" else k] / 100
         self.ab = ab
         self.name, self.team, self.lv = name, team, lv
         self.pts_total = sum(pts.values())
         self.maxhp = math.floor(pts["hp"] * BAL["hp_per_point"] * (1 + ab["hp"] / 100) + BAL["hp_flat_add"])   # (whole hp, 2026-09-15 - sprite_pawn / foe_gen floor it)
         self.hp = self.maxhp
-        self.maxmp = max(1, round(pts["mp"] * (1 + ab["mp"] / 100))); self.mp = math.ceil(self.maxmp * min(1, BAL["mp_start_frac"] + ab["mp0"] / 100))
+        self.maxmp = max(1, round(pts["mp"] * (1 + ab["mp"] / 100))); self.mp = math.ceil(self.maxmp * max(0, min(1, BAL["mp_start_frac"] + ab["mp0"] / 100)))
         self.atk, self.def_, self.mag, self.mdef, self.spd, self.hit = pts["atk"], pts["def"], pts["mag"], pts["mdef"], pts["spd"], pts["hit"]
         self.eva = pts["spd"] * BAL["spd_to_eva"]
         self.crit_rate, self.crit_multi, self.cnt = arch["crit"] + ab["crit"] + ab["luck"] * .5, arch["cmulti"], arch["cnt"] + ab["cnt"]
@@ -362,19 +444,26 @@ class Fight:
         m_atk = 1 + (b["buff_pct"] if u.bf["atk"] > 0 else 0) - (b["buff_pct"] if u.nf["atk"] > 0 else 0)
         ua, ta = u.ab, t.ab
         hp0 = t.hp; tfull = t.hp >= t.maxhp - .01; thalf = t.hp < t.maxhp * .5; tail = t.ail["poison"] > 0 or t.ail["slow"] > 0 or t.ail["leech"] > 0
-        if ua["low_atk"] > 0 and u.hp < u.maxhp * .35: m_atk += ua["low_atk"] / 100
-        if ua["first"] > 0 and u.acts == 0: m_atk += ua["first"] / 100
+        up_u = sum(1 for p in self.all if p.hp > 0 and p.team == u.team); up_t = sum(1 for p in self.all if p.hp > 0 and p.team != u.team)
+        ulast, tlast = up_u == 1, up_t == 1
+        if ua["low_atk"] != 0 and u.hp < u.maxhp * .35: m_atk += ua["low_atk"] / 100
+        if ua["first"] != 0 and u.acts == 0: m_atk += ua["first"] / 100
         if ua["underdog"] > 0 and t.lv > u.lv: m_atk += ua["underdog"] / 100
+        if ua["hurt_atk"] > 0: m_atk += ua["hurt_atk"] / 100 * math.floor((1 - u.hp / max(1, u.maxhp)) * 5)
         m_hit = 1 + (b["buff_pct"] if u.bf["hit"] > 0 else 0) - (b["buff_pct"] if u.nf["hit"] > 0 else 0)
+        if ua["last"] > 0 and ulast: m_atk += ua["last"] / 100; m_hit += ua["last"] / 100
         m_def = 1 + (b["buff_pct"] if t.bf["def"] > 0 else 0) - (b["buff_pct"] if t.nf["def"] > 0 else 0)
-        if ta["low_def"] > 0 and t.hp < t.maxhp * .35: m_def += ta["low_def"] / 100
-        if ta["hi_def"] > 0 and t.hp >= t.maxhp * .8: m_def += ta["hi_def"] / 100
+        if ta["low_def"] != 0 and t.hp < t.maxhp * .35: m_def += ta["low_def"] / 100
+        if ta["hi_def"] != 0 and t.hp >= t.maxhp * .8: m_def += ta["hi_def"] / 100
+        if ta["hurt_def"] > 0: m_def += ta["hurt_def"] / 100 * math.floor((1 - t.hp / max(1, t.maxhp)) * 5)
+        if ta["last"] > 0 and tlast: m_def += ta["last"] / 100
+        m_atk, m_def, m_hit = max(.1, m_atk), max(.1, m_def), max(.1, m_hit)
         apow = (u.mag if magic else u.atk) * m_atk
         dpow = (t.mdef if magic else t.def_) * m_def * (1 - ua["pierce"] / 100)
         uhit = u.hit * m_hit
         teva = t.eva + ta["eva"]
         if ta["low_eva"] > 0 and t.hp < t.maxhp * .25: teva *= 1 + ta["low_eva"] / 100
-        s = uhit + teva
+        s = uhit + max(0, teva)
         hc = 50
         if s > 0:
             r = uhit / s
@@ -383,6 +472,7 @@ class Fight:
         if roll >= hc: u.streak = 0; return 0
         q = (hc - roll) / hc
         if ua["graze"] > 0 and rng.random() * 100 < ua["graze"]: q = 0
+        if ua["nograze"] > 0: q = max(q, .15)
         cr = u.crit_rate + (ua["cnt_crit"] if cdepth > 0 else 0) + (ua["low_crit"] if u.hp < u.maxhp * .25 else 0)
         cm = (u.crit_multi - 1) * (1 + ua["crit_dmg"] / 100) * ((1 + ua["low_crit_dmg"] / 100) if u.hp < u.maxhp * .25 else 1)
         crit = rng.random() * 100 < cr and "immune_crit" not in t.tags
@@ -410,18 +500,27 @@ class Fight:
         if ua["cnt_pow"] > 0 and cdepth > 0: dmg *= 1 + ua["cnt_pow"] / 100
         if ua["salvo"] > 0 and label != "" and u.sk_used == 0: dmg *= 1 + ua["salvo"] / 100
         if ua["momentum"] > 0: dmg *= 1 + ua["momentum"] / 100 * min(5, u.streak)
+        if ua["fire_pow"] > 0 and elem == "fire": dmg *= 1 + ua["fire_pow"] / 100
+        if ua["water_pow"] > 0 and elem == "water": dmg *= 1 + ua["water_pow"] / 100
+        if ua["nature_pow"] > 0 and elem == "nature": dmg *= 1 + ua["nature_pow"] / 100
+        if ua["duel"] > 0 and tlast: dmg *= 1 + ua["duel"] / 100
+        if ua["pack"] > 0 and up_u > 1: dmg *= 1 + ua["pack"] / 100 * min(3, up_u - 1)
+        if ua["lone"] > 0 and ulast: dmg *= 1 + ua["lone"] / 100
         dmg *= (1 + ta["taken"] / 100) * (1 - ta["guard"] / 100)
         if ta["low_guard"] > 0 and t.hp < t.maxhp * .25: dmg *= 1 - ta["low_guard"] / 100
         dmg = max(.1, round(dmg * 10) / 10)
         if ta["thick"] > 0 and dmg <= t.maxhp * ta["thick"] / 100: u.streak = 0; return 0
+        if ua["execute"] > 0 and basic and not t.boss and t.hp <= t.maxhp * ua["execute"] / 100: dmg = max(dmg, t.hp)
         stag = (1 + t.spd / 3) * (.01 + ((.085 if q >= .97 else .05) - .01) * q)
         if crit: stag += (1 + t.spd / 3) * .03
-        stag *= (1 + ua["stagger"] / 100) * (1 - ta["steady"] / 100)
+        stag *= max(0, 1 + ua["stagger"] / 100) * max(0, 1 - ta["steady"] / 100)
+        if "immune_stagger" in t.tags: stag = 0
         t.tic -= stag * self.thr
         t.hp = max(0, t.hp - dmg)
         if t.hp <= 0 and ta["once_more"] and hp0 > 1: t.hp = 1
         if ua["bleed"] > 0 and u.hp > 1: u.hp = max(1, u.hp - u.maxhp * ua["bleed"] / 100)
         u.streak += 1
+        if ta["thorns"] > 0 and t.hp > 0 and cdepth == 0 and u.hp > 1: u.hp = max(1, u.hp - round(dmg * ta["thorns"] / 100 * 10) / 10)
         t.maxhp = max(1, t.maxhp - dmg * b["dmg_to_maxhp"] * t.erode)
         if t.hp > t.maxhp: t.hp = t.maxhp
         if ua["life"] > 0 and u.hp > 0: self.heal(u, dmg * ua["life"] / 100)
@@ -438,10 +537,10 @@ class Fight:
         if ail != "" and t.hp > 0:
             ch = (b["ail_basic"] if basic else b["ail_skill"])
             if basic and u.ail_c > 0: ch = u.ail_c
-            if ta["vaccine"] > 0: ch *= 1 - ta["vaccine"] / 100
+            if ta["vaccine"] != 0: ch *= max(0, 1 - ta["vaccine"] / 100)
             if rng.random() * 100 < ch: self.status(u, t, ail)
         if label == "" and cdepth == 0:
-            u.mp = min(u.maxmp, u.mp + (b["mp_gain_qual"] if (q >= .85 or crit) else b["mp_gain"]) * (1 + ua["mp_gain"] / 100))
+            u.mp = min(u.maxmp, u.mp + (b["mp_gain_qual"] if (q >= .85 or crit) else b["mp_gain"]) * max(0, 1 + ua["mp_gain"] / 100))
         if t.hp > 0 and cdepth < b["cnt_chain"]:
             if rng.random() * 100 < t.cnt * (b["cnt_falloff"] ** cdepth):
                 self.hit(t, u, b["cnt_mult"], "", cdepth + 1, False)
@@ -544,13 +643,13 @@ class Fight:
             actor.hp = max(0, actor.hp - max(1, round(actor.maxhp * BAL["poison_pct"])))
         if actor.hp > 0 and actor.regen > 0: self.heal(actor, actor.maxhp * BAL["regen_pct"])
         if actor.hp > 0 and actor.ab["regen"] > 0: self.heal(actor, actor.maxhp * actor.ab["regen"] / 100)
-        if actor.hp > 0 and actor.ab["mp_haste"] > 0: actor.mp = min(actor.maxmp, actor.mp + actor.maxmp * actor.ab["mp_haste"] / 100)
+        if actor.hp > 0 and actor.ab["mp_haste"] != 0: actor.mp = max(0, min(actor.maxmp, actor.mp + actor.maxmp * actor.ab["mp_haste"] / 100))
         plan = self.ai(actor)
         if plan is not None and actor.hp > 0 and plan[1].hp > 0:
             s, t = plan
             if s is None: self.hit(actor, t, 1, "", 0, actor.magic)
             else:
-                cost = max(1, math.ceil(s.cost * (1 - actor.ab["frugal"] / 100))) if actor.ab["frugal"] > 0 else s.cost
+                cost = max(1, math.ceil(s.cost * (1 - actor.ab["frugal"] / 100))) if actor.ab["frugal"] != 0 else s.cost
                 actor.mp -= cost; self.effect(s, actor, t); actor.sk_used += 1
                 if actor.ab["ruse"] > 0 and actor.hp > 0: self.heal(actor, actor.maxhp * (cost / max(1, actor.maxmp)) * actor.ab["ruse"] / 100)
         actor.acts += 1

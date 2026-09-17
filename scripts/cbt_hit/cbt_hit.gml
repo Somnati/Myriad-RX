@@ -42,15 +42,25 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	var _tail = is_struct(_t[$ "ail"]) && (_t.ail.poison > 0 || _t.ail.slow > 0 || _t.ail.leech > 0);
 	var _ttags = is_array(_t[$ "tags"]) ? _t.tags : [];
 	var _uacts = _u[$ "acts"] ?? 0, _usk = _u[$ "sk_used"] ?? 0, _ustk = _u[$ "streak"] ?? 0, _usch = _u[$ "cur_school"] ?? "";
+	// who is up on each side (the second roster, 2026-09-17: duelist / pack fighter / lone wolf / last stand)
+	var _up_u = 0, _up_t = 0;
+	for (var _ai = 0; _ai < array_length(_f.all); _ai++) { var _ap = _f.all[_ai]; if (_ap.hp <= 0) continue; if (_ap.team == _u.team) _up_u++; else _up_t++; }
+	var _ulast = (_up_u == 1), _tlast = (_up_t == 1);
+	// (the flaws go the other way down the same lanes: panicky, a slow starter, overconfident - hence != 0)
 	if (is_struct(_abu)) {
-		if (_abu.low_atk > 0 && _u.hp < _u.maxhp * .35) _m_atk += _abu.low_atk / 100;
-		if (_abu.first > 0 && _uacts == 0) _m_atk += _abu.first / 100;
+		if (_abu.low_atk != 0 && _u.hp < _u.maxhp * .35) _m_atk += _abu.low_atk / 100;
+		if (_abu.first != 0 && _uacts == 0) _m_atk += _abu.first / 100;
 		if (_abu.underdog > 0 && (_t[$ "lv"] ?? 0) > (_u[$ "lv"] ?? 0)) _m_atk += _abu.underdog / 100;
+		if (_abu.hurt_atk > 0) _m_atk += _abu.hurt_atk / 100 * floor((1 - _u.hp / max(1, _u.maxhp)) * 5);   // pouncing tiger: a step per fifth lost
+		if (_abu.last > 0 && _ulast) { _m_atk += _abu.last / 100; _m_hit += _abu.last / 100; }                // last stand
 	}
 	if (is_struct(_abt)) {
-		if (_abt.low_def > 0 && _t.hp < _t.maxhp * .35) _m_def += _abt.low_def / 100;
-		if (_abt.hi_def > 0 && _t.hp >= _t.maxhp * .8) _m_def += _abt.hi_def / 100;
+		if (_abt.low_def != 0 && _t.hp < _t.maxhp * .35) _m_def += _abt.low_def / 100;
+		if (_abt.hi_def != 0 && _t.hp >= _t.maxhp * .8) _m_def += _abt.hi_def / 100;
+		if (_abt.hurt_def > 0) _m_def += _abt.hurt_def / 100 * floor((1 - _t.hp / max(1, _t.maxhp)) * 5);   // super guts
+		if (_abt.last > 0 && _tlast) _m_def += _abt.last / 100;                                              // last stand, on the guard
 	}
+	_m_atk = max(.1, _m_atk); _m_def = max(.1, _m_def); _m_hit = max(.1, _m_hit);
 	var _apow = (_magic ? _u.mag : _u.atk) * _m_atk;
 	var _dpow = (_magic ? _t.mdef : _t.def) * _m_def;
 	if (is_struct(_abu) && _abu.pierce > 0) _dpow *= 1 - _abu.pierce / 100;   // (the piercer)
@@ -59,6 +69,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	// hit chance: the attacker's hit vs the defender's EVASION (nimble's flat points, cornered's under a quarter)
 	var _teva = _t.eva;
 	if (is_struct(_abt)) { _teva += _abt.eva; if (_abt.low_eva > 0 && _t.hp < _t.maxhp * .25) _teva *= 1 + _abt.low_eva / 100; }
+	_teva = max(0, _teva);   // (flat-footed can take it under)
 	var _sum = _uhit + _teva;
 	var _hc = 50;
 	if (_sum > 0) {
@@ -89,7 +100,8 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 
 	// ---- hit: quality = how far under the curve the roll landed ----
 	var _q = (_hc - _roll) / _hc;   // 0 graze .. 1 perfect
-	if (is_struct(_abu) && _abu.graze > 0 && random(100) < _abu.graze) _q = 0;   // (the gambler's cost: a graze)
+	if (is_struct(_abu) && _abu.graze > 0 && random(100) < _abu.graze) _q = 0;   // (the gambler's cost, wild swings: a graze)
+	if (is_struct(_abu) && _abu.nograze > 0) _q = max(_q, .15);                     // (sure hands: never a graze)
 	var _cr = _u.crit_rate + ((_tk != "" && array_contains(_nu, _tk + ":crit")) ? 5 : 0);
 	var _cm = _u.crit_multi - 1;   // (the extra a crit deals)
 	if (is_struct(_abu)) {
@@ -131,6 +143,13 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		if (_abu.cnt_pow > 0 && _cdepth > 0) _dmg *= 1 + _abu.cnt_pow / 100;         // retaliator
 		if (_abu.salvo > 0 && _label != "" && _usk == 0) _dmg *= 1 + _abu.salvo / 100;   // opening salvo
 		if (_abu.momentum > 0) _dmg *= 1 + _abu.momentum / 100 * min(5, _ustk);       // momentum
+		// the second roster (2026-09-17)
+		if (_abu.fire_pow > 0 && _elem == "fire") _dmg *= 1 + _abu.fire_pow / 100;          // fire-touched
+		if (_abu.water_pow > 0 && _elem == "water") _dmg *= 1 + _abu.water_pow / 100;       // water-touched
+		if (_abu.nature_pow > 0 && _elem == "nature") _dmg *= 1 + _abu.nature_pow / 100;    // nature-touched
+		if (_abu.duel > 0 && _tlast) _dmg *= 1 + _abu.duel / 100;                            // duelist: one foe left
+		if (_abu.pack > 0 && _up_u > 1) _dmg *= 1 + _abu.pack / 100 * min(3, _up_u - 1);     // pack fighter: per ally up
+		if (_abu.lone > 0 && _ulast) _dmg *= 1 + _abu.lone / 100;                            // lone wolf
 	}
 	if (is_struct(_abt)) {
 		_dmg *= (1 + _abt.taken / 100) * (1 - _abt.guard / 100);                                   // to the death's cost, stoneskin
@@ -146,12 +165,15 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		cbt_log(_f, _tsh); cbt_film(_f, _t, 0, _tsh);
 		return 0;
 	}
+	// THE EXECUTIONER (the second roster): a basic attack downs a foe (not a titled one) under its share of hp
+	if (is_struct(_abu) && _abu.execute > 0 && _basic && !(_t[$ "boss"] ?? false) && _t.hp <= _t.maxhp * _abu.execute / 100) _dmg = max(_dmg, _t.hp);
 
 	// stagger: quality (and crits) knock the target's ATB backward
 	var _stag = (1 + _t.spd / 3) * lerp(.01, (_q >= .97 ? .085 : .05), _q);
 	if (_crit) _stag += (1 + _t.spd / 3) * .03;
-	if (is_struct(_abu) && _abu.stagger > 0) _stag *= 1 + _abu.stagger / 100;   // heavy hand
-	if (is_struct(_abt) && _abt.steady > 0) _stag *= 1 - _abt.steady / 100;     // unshakable
+	if (is_struct(_abu) && _abu.stagger != 0) _stag *= max(0, 1 + _abu.stagger / 100);   // heavy hand (feather hands the other way)
+	if (is_struct(_abt) && _abt.steady != 0) _stag *= max(0, 1 - _abt.steady / 100);     // unshakable (top-heavy the other way)
+	if (array_contains(_ttags, "immune_stagger")) _stag = 0;                              // cold blood
 	_t.tic -= _stag * _f.thr;
 
 	// apply: hp + the attrition erosion (scaled by the pawn's resist)
@@ -162,6 +184,11 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	// TWO-EDGED's cost: the striker bleeds a sliver on every blow it lands
 	if (is_struct(_abu) && _abu.bleed > 0 && _u.hp > 1) _u.hp = max(1, _u.hp - _u.maxhp * _abu.bleed / 100);
 	_u.streak = _ustk + 1;   // (momentum)
+	// THORNS (the second roster): the struck pawn gives a share straight back - never the striker's last point
+	if (is_struct(_abt) && _abt.thorns > 0 && _t.hp > 0 && _cdepth == 0 && _u.hp > 1) {
+		var _thd = round(_dmg * _abt.thorns / 100 * 10) / 10;
+		if (_thd > 0) { _u.hp = max(1, _u.hp - _thd); _u.dt = (_u[$ "dt"] ?? 0) + _thd; cbt_log(_f, _t.name + "'s thorns cut " + _u.name + " for " + string(_thd)); }
+	}
 	_t.maxhp = max(1, _t.maxhp - _dmg * _b.dmg_to_maxhp * _t.erode);
 	if (_t.hp > _t.maxhp) _t.hp = _t.maxhp;
 	_t.hpmax = _t.maxhp;   // (the combat window's name for it)
@@ -209,14 +236,14 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	if (_ail != "" && _t.hp > 0) {
 		var _ach = (_basic ? _b.ail_basic : _b.ail_skill) * ((_u.team == 0) ? _lm : 1);
 		if (_basic && (_u[$ "ail_c"] ?? 0) > 0) _ach = _u.ail_c * ((_u.team == 0) ? _lm : 1);   // (an ability's own bite has its own chance)
-		if (is_struct(_abt) && _abt.vaccine > 0) _ach *= 1 - _abt.vaccine / 100;   // (vaccinated: it lands less often)
+		if (is_struct(_abt) && _abt.vaccine != 0) _ach *= max(0, 1 - _abt.vaccine / 100);   // (vaccinated: it lands less often; soft: more)
 		if (random(100) < _ach) cbt_status(_f, _u, _t, _ail);
 	}
 
 	// ---- the mp economy: landed BASIC attacks (not skills, not counters) ----
 	if (_label == "" && _cdepth == 0) {
 		var _gain = (_q >= .85 || _crit) ? _b.mp_gain_qual : _b.mp_gain;
-		if (is_struct(_abu) && _abu.mp_gain > 0) _gain *= 1 + _abu.mp_gain / 100;   // (battery)
+		if (is_struct(_abu) && _abu.mp_gain != 0) _gain *= max(0, 1 + _abu.mp_gain / 100);   // (battery)
 		_u.mp = min(_u.maxmp, _u.mp + _gain);
 	}
 

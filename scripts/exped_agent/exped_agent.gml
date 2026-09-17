@@ -88,7 +88,7 @@ function exped_agent(_tr, _dt) {
 		// THE ABILITIES' ROAD LANES (2026-09-17): long legs quicken the pace,
 		// owl-eyed and all-weather read like the notes, pathfinder thins the wrong turns
 		var _pab = exped_party_ab(_tr);
-		if (_pab.pace > 0) _pace *= 1 + _pab.pace / 100;
+		if (_pab.pace != 0) _pace *= max(.3, 1 + _pab.pace / 100);   // (long legs; short legs, the flaw)
 		if (_pab.night > 0) _n_night = true;
 		if (_pab.weather > 0) _n_wx = true;
 		var _sure = 1 - min(80, _pab.sure) / 100;

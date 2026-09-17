@@ -15,7 +15,7 @@ function sprite_staff(_kind) {
 		var _s = g.sprites[_i];
 		if ((_s[$ "job"] ?? "tap") != _kind) continue;
 		if (_s.asleep || (_s[$ "trip"] ?? false)) continue;
-		_b += SPRITE_STAFF * (1 + (_s[$ "rar"] ?? 0) * .55);   // (x.55: fourteen rungs read like eight did - 2026-09-17)
+		_b += SPRITE_STAFF * (1 + (_s[$ "rar"] ?? 0) * .55) * max(.1, 1 + sprite_ab(_s).work / 100);   // (x.55: fourteen rungs read like eight did - 2026-09-17; artisan / lazy on the staff too)
 	}
 	return _b;
 }

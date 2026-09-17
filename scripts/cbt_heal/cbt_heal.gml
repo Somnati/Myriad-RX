@@ -8,7 +8,8 @@ function cbt_heal(_f, _t, _amt, _label = "", _u = undefined) {
 	// caster's side, a good patient on the target's
 	if (!is_undefined(_u)) {
 		if (is_struct(_u[$ "ab"]) && _u.ab.heal_pow > 0) _amt *= 1 + _u.ab.heal_pow / 100;
-		if (is_struct(_t[$ "ab"]) && _t.ab.heal_recv > 0) _amt *= 1 + _t.ab.heal_recv / 100;
+		if (is_struct(_t[$ "ab"]) && _t.ab.heal_recv != 0) _amt *= max(0, 1 + _t.ab.heal_recv / 100);   // (a good patient - or a bad one)
+		_amt *= 1 + (_t[$ "heal_aura"] ?? 0) / 100;   // (the medic's aura, set on the pawn by exped_fight_new)
 	}
 	_amt = max(0, round(_amt * 10) / 10);
 	var _before = _t.hp;

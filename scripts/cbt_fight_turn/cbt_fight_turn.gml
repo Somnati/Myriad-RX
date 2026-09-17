@@ -56,7 +56,7 @@ function cbt_fight_turn(_f) {
 	}
 	if (_actor.hp > 0 && (_actor[$ "regen"] ?? 0) > 0) cbt_heal(_f, _actor, _actor.maxhp * _b.regen_pct, "regen");
 	if (_actor.hp > 0 && is_struct(_actor[$ "ab"]) && _actor.ab.regen > 0) cbt_heal(_f, _actor, _actor.maxhp * _actor.ab.regen / 100, "");   // (the mending ability, 2026-09-17)
-	if (_actor.hp > 0 && is_struct(_actor[$ "ab"]) && _actor.ab.mp_haste > 0) _actor.mp = min(_actor.maxmp, _actor.mp + _actor.maxmp * _actor.ab.mp_haste / 100);   // (mp haste: a little every action)
+	if (_actor.hp > 0 && is_struct(_actor[$ "ab"]) && _actor.ab.mp_haste != 0) _actor.mp = clamp(_actor.mp + _actor.maxmp * _actor.ab.mp_haste / 100, 0, _actor.maxmp);   // (mp haste: a little every action; leaky: a little less)
 	if (_actor.team == 0 && is_struct(_f[$ "tr"])) exped_drink(_f.tr, _actor, _f);   // the pocket first: a potion when low, a free action (2026-09-16)
 	var _plan = cbt_ai(_f, _actor);
 	if (!is_undefined(_plan) && _actor.hp > 0 && _plan.target.hp > 0) {

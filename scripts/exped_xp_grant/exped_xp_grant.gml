@@ -11,6 +11,7 @@
 /// reward line (the panel paints them gold).
 function exped_xp_grant(_tr, _xp, _why) {
 	if (_xp <= 0) return;
+	_xp *= 1 + exped_party_ab(_tr).aura_xp / 100;   // (the banner: the crew's xp - 2026-09-17)
 	exped_tally(_tr, "xp", _xp);   // (the completion screen's "xp earned", 2026-09-16)
 	// (xp is kept to a tenth - a level-1 foe pays 1.0, a level-5 one 1.3)
 	var _xt = (frac(_xp) == 0) ? string(round(_xp)) : string_format(_xp, 1, 1);
@@ -42,7 +43,7 @@ function exped_xp_grant(_tr, _xp, _why) {
 			array_push(_tr.log, "+ " + _sp.name + " reached level " + string(sprite_sheet(_sp).lv));
 			exped_say(_tr, "levelup", { sid : _sp.id }, .75);   // (the one who levelled speaks - 2026-09-15)
 			if (roll_perc(40)) { var _lt = sprite_skill_learn(_sp); if (_lt != "") { array_push(_tr.log, "+ " + _lt); exped_stat("skills"); exped_say(_tr, "skill", { sid : _sp.id }, .6); } }
-			if (roll_perc(40)) { var _nt = sprite_note_gen(_sp, "levelup", { lv : sprite_sheet(_sp).lv }); if (_nt != "" && sprite_note(_sp, _nt, "")) array_push(_tr.log, _sp.name + " writes: \"" + _nt + "\""); }
+			if (roll_perc(40 * (1 + _abx.notes / 100))) { var _nt = sprite_note_gen(_sp, "levelup", { lv : sprite_sheet(_sp).lv }); if (_nt != "" && sprite_note(_sp, _nt, "")) array_push(_tr.log, _sp.name + " writes: \"" + _nt + "\""); }
 		}
 	}
 	if (_why != "") array_push(_tr.log, "+ " + _xt + " xp for " + _why + _split);

@@ -3,7 +3,7 @@
 /// land / rest / find / home) with that chance; the truth line quotes it.
 /// ctx: the planet, a partner's name, the item (from the trip's last find).
 function exped_note_beat(_tr, _beat, _chance, _item = "") {
-	if (!roll_perc(_chance * 100)) return;
+	if (!roll_perc(_chance * 100 * (1 + exped_party_ab(_tr).notes / 100))) return;   // (the storyteller - 2026-09-17)
 	var _up = [];
 	for (var _k = 0; _k < array_length(_tr.sids); _k++) if (_tr.hp[_k] > 0) array_push(_up, _k);
 	if (array_length(_up) == 0) return;

@@ -10,7 +10,12 @@
 /// THE BIG ROSTER (2026-09-17, his ask: Disgaea 7's common evilities and
 /// Kingdom Hearts' support abilities, read across the games, translated
 /// onto the hooks the fight engine and the road already have): 99 kinds
-/// in four tiers. Every lane's meaning is in ability_lane_desc; every
+/// in four tiers - then THE SECOND ROSTER the same day (exploring / the
+/// home jobs / the auras / the elements / home life / the rest of the fight:
+/// 134 in all) and THE FLAWS (his call: "give all sprites/enemies at least 1
+/// flaw... 5th slot will be the negative"): 36 kinds with `flaw : true`, tier
+/// 0 - one per sprite and per foe, seeded, never taken off (flaw_gen /
+/// sprite_flaw / foe_flaw); a rare flaw is a MILD one. Every lane's meaning is in ability_lane_desc; every
 /// consumer is marked "(2026-09-17)" where it reads the lane - cbt_hit
 /// (the fight lanes), cbt_fight_turn (mp haste / frugal / the ruse / the
 /// salvo's count), cbt_status (lingering), cbt_heal (gentle hands / good
@@ -126,6 +131,77 @@ function ability_config() {
 		{ key : "underdog", name : "underdog", tier : 4, lane : "underdog", band : [12, 20], help : "rises to the bigger foe" },
 		{ key : "salvo", name : "opening salvo", tier : 4, lane : "salvo", band : [25, 40], help : "its first skill of a fight is its best" },
 		{ key : "ruse", name : "wizard's ruse", tier : 4, lane : "ruse", band : [15, 25], help : "every mp it spends knits a little" },
+		{ key : "scavenger", name : "scavenger", tier : 1, lane : "scav", band : [15, 25], help : "turns every body and hedge out for coins" },
+		{ key : "pickpocket", name : "pickpocket", tier : 2, lane : "pick", band : [25, 40], help : "a won fight always pays a little, one way or another" },
+		{ key : "noble", name : "noble", tier : 2, lane : "sell", band : [15, 25], help : "shopkeepers pay more for what it sells" },
+		{ key : "prospector", name : "prospector", tier : 2, lane : "rooms", band : [15, 25], help : "one find is often two" },
+		{ key : "courier", name : "courier", tier : 3, lane : "quest", band : [15, 25], help : "the quest pays better with it along" },
+		{ key : "artisan", name : "artisan", tier : 1, lane : "work", band : [8, 14], help : "works faster at any job at home" },
+		{ key : "busyhands", name : "busy hands", tier : 1, lane : "work_tap", band : [12, 20], help : "a quick tapper" },
+		{ key : "fabhand", name : "fab hand", tier : 2, lane : "work_fab", band : [12, 20], help : "a natural at the fabricator" },
+		{ key : "mergehand", name : "merge hand", tier : 2, lane : "work_merge", band : [12, 20], help : "a natural at the merger" },
+		{ key : "tireless", name : "tireless", tier : 2, lane : "nap", band : [30, 50], help : "naps shorter, and is hard to find asleep" },
+		{ key : "foreman", name : "foreman", tier : 3, lane : "work_aura", band : [4, 8], help : "the other workers at home go a little faster" },
+		{ key : "homebody", name : "homebody", tier : 2, lane : "home_alone", band : [10, 18], help : "works hardest while the crew is away" },
+		{ key : "captain", name : "captain", tier : 3, lane : "aura_atk", band : [4, 8], help : "the crew hits harder with it in the line" },
+		{ key : "shieldwall", name : "shieldwall", tier : 3, lane : "aura_def", band : [4, 8], help : "the crew stands firmer with it in the line" },
+		{ key : "cheerleader", name : "cheerleader", tier : 2, lane : "aura_hit", band : [4, 8], help : "the crew lands more with it cheering" },
+		{ key : "luckycharm", name : "lucky charm", tier : 3, lane : "aura_luck", band : [1, 1], help : "a point of luck for everyone with it" },
+		{ key : "medic", name : "medic", tier : 2, lane : "aura_heal", band : [10, 18], help : "heals go further on the whole crew" },
+		{ key : "banner", name : "banner", tier : 3, lane : "aura_xp", band : [8, 14], help : "the crew learns more with it along" },
+		{ key : "quartermaster", name : "quartermaster", tier : 2, lane : "aura_potion", band : [10, 18], help : "the crew's potions do more" },
+		{ key : "firetouched", name : "fire-touched", tier : 3, lane : "fire_pow", band : [15, 25], help : "its fire burns hotter" },
+		{ key : "watertouched", name : "water-touched", tier : 3, lane : "water_pow", band : [15, 25], help : "its water hits harder" },
+		{ key : "naturetouched", name : "nature-touched", tier : 3, lane : "nature_pow", band : [15, 25], help : "its thorns cut deeper" },
+		{ key : "storyteller", name : "storyteller", tier : 2, lane : "notes", band : [30, 50], help : "writes more notes on the road" },
+		{ key : "soundsleeper", name : "sound sleeper", tier : 1, lane : "rest_nap", band : [30, 50], help : "heals fastest asleep" },
+		{ key : "lightsleeper", name : "light sleeper", tier : 1, lane : "rest_wake", band : [30, 50], help : "heals well enough on its feet" },
+		{ key : "thorns", name : "thorns", tier : 3, lane : "thorns", band : [10, 20], help : "gives a share of every blow straight back" },
+		{ key : "pouncingtiger", name : "pouncing tiger", tier : 4, lane : "hurt_atk", band : [5, 9], help : "the more it is hurt, the harder it hits" },
+		{ key : "superguts", name : "super guts", tier : 4, lane : "hurt_def", band : [5, 9], help : "the more it is hurt, the harder it is to hurt" },
+		{ key : "duelist", name : "duelist", tier : 3, lane : "duel", band : [20, 35], help : "fights best one on one" },
+		{ key : "packfighter", name : "pack fighter", tier : 2, lane : "pack", band : [6, 10], help : "fights best in company" },
+		{ key : "lonewolf", name : "lone wolf", tier : 3, lane : "lone", band : [25, 40], help : "fights best alone" },
+		{ key : "laststand", name : "last stand", tier : 4, lane : "last", band : [20, 35], help : "the last one standing stands tallest" },
+		{ key : "executioner", name : "executioner", tier : 4, lane : "execute", band : [8, 12], help : "finishes the nearly dead in one" },
+		{ key : "coldblood", name : "cold blood", tier : 3, lane : "immune_stagger", band : [1, 1], help : "blows never knock it off its turn" },
+		{ key : "surehands", name : "sure hands", tier : 2, lane : "nograze", band : [1, 1], help : "never lands a graze" },
+		{ key : "coward", name : "coward", tier : 0, lane : "atk", band : [-14, -8], help : "flinches from every swing", flaw : true },
+		{ key : "brittle", name : "brittle", tier : 0, lane : "def", band : [-14, -8], help : "breaks easy", flaw : true },
+		{ key : "dull", name : "dull", tier : 0, lane : "mag", band : [-14, -8], help : "never quite got the words right", flaw : true },
+		{ key : "thinskinned", name : "thin-skinned", tier : 0, lane : "mdef", band : [-14, -8], help : "spells go straight through", flaw : true },
+		{ key : "sluggish", name : "sluggish", tier : 0, lane : "spd", band : [-14, -8], help : "always a step behind", flaw : true },
+		{ key : "clumsy", name : "clumsy", tier : 0, lane : "hit", band : [-14, -8], help : "trips over its own feet", flaw : true },
+		{ key : "frail", name : "frail", tier : 0, lane : "hp", band : [-14, -8], help : "not much to it", flaw : true },
+		{ key : "shallow", name : "shallow well", tier : 0, lane : "mp", band : [-18, -10], help : "runs dry quickly", flaw : true },
+		{ key : "jinxed", name : "jinxed", tier : 0, lane : "luck", band : [-1, -1], help : "things go wrong near it", flaw : true },
+		{ key : "flatfooted", name : "flat-footed", tier : 0, lane : "eva", band : [-4, -2], help : "easy to hit", flaw : true },
+		{ key : "slowstarter", name : "slow starter", tier : 0, lane : "first", band : [-35, -20], help : "takes a turn to wake up", flaw : true },
+		{ key : "panicky", name : "panicky", tier : 0, lane : "low_atk", band : [-35, -20], help : "falls apart when it is hurt", flaw : true },
+		{ key : "overconfident", name : "overconfident", tier : 0, lane : "hi_def", band : [-25, -15], help : "careless while it is whole", flaw : true },
+		{ key : "glassjaw", name : "glass jaw", tier : 0, lane : "taken", band : [10, 18], help : "feels every blow", flaw : true },
+		{ key : "wildswings", name : "wild swings", tier : 0, lane : "graze", band : [20, 35], help : "half of what it lands barely lands", flaw : true },
+		{ key : "bleeder", name : "bleeder", tier : 0, lane : "bleed", band : [1, 2], help : "every blow it lands costs it a little", flaw : true },
+		{ key : "soft", name : "soft", tier : 0, lane : "vaccine", band : [-50, -30], help : "ailments take easily", flaw : true },
+		{ key : "badpatient", name : "bad patient", tier : 0, lane : "heal_recv", band : [-35, -20], help : "healing does not take well", flaw : true },
+		{ key : "wasteful", name : "wasteful", tier : 0, lane : "frugal", band : [-25, -15], help : "its skills cost more", flaw : true },
+		{ key : "leaky", name : "leaky", tier : 0, lane : "mp_haste", band : [-6, -3], help : "mp drains away every action", flaw : true },
+		{ key : "topheavy", name : "top-heavy", tier : 0, lane : "steady", band : [-35, -20], help : "knocked about by every blow", flaw : true },
+		{ key : "featherhands", name : "feather hands", tier : 0, lane : "stagger", band : [-35, -20], help : "its blows do not stagger", flaw : true },
+		{ key : "fireshy", name : "fire-shy", tier : 0, lane : "res_fire", band : [-14, -8], help : "burns easy", flaw : true },
+		{ key : "watershy", name : "water-shy", tier : 0, lane : "res_water", band : [-14, -8], help : "soaks easy", flaw : true },
+		{ key : "thornshy", name : "thorn-shy", tier : 0, lane : "res_nature", band : [-14, -8], help : "stings easy", flaw : true },
+		{ key : "slowlearner", name : "slow learner", tier : 0, lane : "xp", band : [-30, -15], help : "takes the long way to every lesson", flaw : true },
+		{ key : "heavysleeper", name : "heavy sleeper", tier : 0, lane : "rest", band : [-50, -30], help : "naps its hurts off slowly", flaw : true },
+		{ key : "picky", name : "picky", tier : 0, lane : "potion", band : [-40, -25], help : "does not like the taste", flaw : true },
+		{ key : "shortlegs", name : "short legs", tier : 0, lane : "pace", band : [-10, -5], help : "the crew waits for it", flaw : true },
+		{ key : "careless", name : "careless", tier : 0, lane : "sure", band : [-50, -30], help : "loses the road", flaw : true },
+		{ key : "butterfingers", name : "butterfingers", tier : 0, lane : "finds", band : [-20, -10], help : "drops what it picks up", flaw : true },
+		{ key : "spendthrift", name : "spendthrift", tier : 0, lane : "gold", band : [-20, -10], help : "the trip's pay thins in its pocket", flaw : true },
+		{ key : "prickly", name : "prickly", tier : 0, lane : "bonds", band : [-50, -30], help : "hard to be friends with", flaw : true },
+		{ key : "lazy", name : "lazy", tier : 0, lane : "work", band : [-20, -10], help : "slow at any job at home", flaw : true },
+		{ key : "shabby", name : "shabby", tier : 0, lane : "sell", band : [-25, -15], help : "shopkeepers pay less for what it sells", flaw : true },
+		{ key : "tired", name : "walks in tired", tier : 0, lane : "rest_hp", band : [-15, -8], help : "arrives at every fight a little short", flaw : true },
 	];
 	return _c;
 }

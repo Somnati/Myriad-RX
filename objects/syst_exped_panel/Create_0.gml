@@ -1266,6 +1266,17 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   /
 		draw_text(_rx0 - 3 + _rw0 - 8, _ly2 + 1, ability_line(_a));
 		draw_set_halign(fa_left);
 	}
+	// THE FLAW (2026-09-17, his call: "5th slot will be the negative"): the
+	// sprite's one, seeded, never taken off - the slot in its rarity's
+	// colour (a rare flaw is a mild one), the name and the line in red
+	var _flw = sprite_flaw(_sp), _fly = _ay + 10 + 4 * _rowp, _flc = upgrade_rarity_info(_flw.rar).col;
+	array_push(it_rects, { x : _rx0 - 3, y : _fly - 1, w : _rw0, h : _rowh, ab : 4 });
+	__slot_row(_rx0 - 3, _fly - 1, _rw0, _rowh, _flc, false, is_struct(it_pop) && it_pop[$ "ab"] == 4);
+	draw_set_color(merge_colour(c_hred, c_white, .25)); draw_set_alpha(.95);
+	draw_text(_rx0 + 6, _fly + 1, __sheet_cut(_flw.name, _rw0 - 96));
+	draw_set_halign(fa_right); draw_set_color(c_hred); draw_set_alpha(.85);
+	draw_text(_rx0 - 3 + _rw0 - 8, _fly + 1, ability_line(_flw));
+	draw_set_halign(fa_left);
 	}
 	if (_pops) __draw_sheet_pops();   // (the popups - the crew view draws them itself, LAST, over its foot; his report 2026-09-17)
 };
@@ -1279,7 +1290,7 @@ __draw_sheet_pops = function() {
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
-	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "ab"]) && !SPRITE_AB_PICK) {
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "ab"]) && (!SPRITE_AB_PICK || it_pop.ab >= 4)) {
 		// THE ABILITY TOOLTIP (2026-09-17, take three - the picker is VAULTED
 		// behind SPRITE_AB_PICK, his call: "leave it to the sprite... redo the
 		// tooltip"): the skill popup's shape, over the slot it came from (the
@@ -1289,10 +1300,18 @@ __draw_sheet_pops = function() {
 		// Opening it is "looking": the "new" flag clears
 		var _tsp = it_pop.sp, _tsh = sprite_sheet(_tsp), _tall = sprite_abilities(_tsp), _twn = sprite_ability_worn(_tsp);
 		if (_tsh[$ "abnew"] ?? false) { _tsh.abnew = false; save_mark_dirty(); }
-		var _tk = _twn[clamp(it_pop.ab, 0, 3)];
+		var _tk = (it_pop.ab >= 4) ? -1 : _twn[clamp(it_pop.ab, 0, 3)];
 		var _tw = it_pop[$ "w"] ?? 180; _tw = clamp(_tw, 150, 210);
 		var _t0 = "", _tcol = _dim, _tsub = "", _tl1 = "", _tl2 = "", _tl3 = "";
-		if (_tk < 0 || _tk >= array_length(_tall)) {
+		if (it_pop.ab >= 4) {
+			// THE FLAW's tooltip (2026-09-17): what it is, how mild, what it costs
+			var _tfl = sprite_flaw(_tsp), _tfr = upgrade_rarity_info(_tfl.rar), _tfd = ability_lane_desc(_tfl.cfg.lane);
+			_t0 = "flaw  -  " + _tfl.name; _tcol = c_hred;
+			_tsub = _tfr.name + ((_tfl.rar >= 5) ? "  -  a mild one" : ((_tfl.rar >= 2) ? "  -  a lighter one" : ""));
+			_tl1 = ability_line(_tfl);
+			_tl2 = _tfd.what + ". every sprite and every foe carries one flaw; it never comes off.";
+			_tl3 = _tfl.cfg.help;
+		} else if (_tk < 0 || _tk >= array_length(_tall)) {
 			var _tnx = -1, _tlad = ability_unlocks();
 			for (var _li = 0; _li < array_length(_tlad); _li++) if (_tsh.lv < _tlad[_li].lv) { _tnx = _tlad[_li].lv; break; }
 			_t0 = "an open slot";
@@ -1839,7 +1858,7 @@ __ab_pick_tap = function() {
 	return true;
 };
 __sheet_tap = function() {
-	if (SPRITE_AB_PICK && is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) return __ab_pick_tap();   // (the picker, when it is back)
+	if (SPRITE_AB_PICK && is_struct(it_pop) && !is_undefined(it_pop[$ "ab"]) && it_pop.ab < 4) return __ab_pick_tap();   // (the picker, when it is back - never the flaw's slot)
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
 	for (var _k = 0; _k < array_length(it_rects); _k++) {
 		var _ir = it_rects[_k];
@@ -1847,7 +1866,7 @@ __sheet_tap = function() {
 			// the page pills (2026-09-17): no popup, just the turn
 			if (!is_undefined(_ir[$ "pg"])) { sheet_pg = _ir.pg; play_sound_ext(snd_softclick, 1, 1.1, .4, 1); return true; }
 			var _psp0 = __sp_by_id(sheet_id), _psel = -2;
-			if (!is_undefined(_ir[$ "ab"]) && !is_undefined(_psp0)) { var _pwn0 = sprite_ability_worn(_psp0); if (_pwn0[_ir.ab] >= 0) _psel = _pwn0[_ir.ab]; }   // (the slot's own, read at once)
+			if (!is_undefined(_ir[$ "ab"]) && !is_undefined(_psp0) && _ir.ab < 4) { var _pwn0 = sprite_ability_worn(_psp0); if (_pwn0[_ir.ab] >= 0) _psel = _pwn0[_ir.ab]; }   // (the slot's own, read at once; the fifth is the flaw's)
 			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], ab : _ir[$ "ab"], sel : _psel, lvup : _ir[$ "lvup"] ?? false, sp : _psp0, worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2, w : _ir.w };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			return true;

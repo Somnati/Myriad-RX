@@ -7,6 +7,10 @@
 function sprites_tick() {
 	sprites_init();
 	var _dt = delta / 60;
+	// THE FOREMAN (the second roster, 2026-09-17): every awake worker at home lends its work_aura to the others (sprite_rate reads the sum, less its own)
+	var _wa = 0;
+	for (var _j = 0; _j < array_length(g.sprites); _j++) { var _ws = g.sprites[_j]; if (_ws.asleep || (_ws[$ "trip"] ?? false)) continue; _wa += sprite_ab(_ws).work_aura; }
+	g.sprite_work_aura = _wa;
 	for (var _i = 0; _i < array_length(g.sprites); _i++) {
 		var _s = g.sprites[_i];
 		// a hurt sprite (routed on an expedition) naps its EXPED_NAP out, then wakes on its own
@@ -17,7 +21,8 @@ function sprites_tick() {
 		// sprite RESTING (asleep because it came home short) wakes when whole
 		var _hpf = _s[$ "hpf"] ?? 1, _mpf = _s[$ "mpf"] ?? 1;
 		if (_hpf < 1 || _mpf < 1) {
-			var _rate = _dt / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE) * (1 + sprite_ab(_s).rest / 100);   // (second wind, 2026-09-17)
+			var _sab = sprite_ab(_s);   // (second wind, 2026-09-17; the sound / light sleeper; heavy sleeper, the flaw)
+			var _rate = _dt / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE) * max(.1, 1 + (_sab.rest + (_s.asleep ? _sab.rest_nap : _sab.rest_wake)) / 100);
 			_s.hpf = min(1, _hpf + _rate);
 			_s.mpf = min(1, _mpf + _rate * 1.5);
 			if ((_s[$ "resting"] ?? false) && _s.hpf >= 1 && _s.mpf >= 1) { _s.resting = false; if (_h <= 0) _s.asleep = false; }

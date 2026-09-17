@@ -8,11 +8,16 @@ function exped_fight_loot(_tr, _f) {
 	var _boss = false;
 	for (var _j = 0; _j < array_length(_f.foes); _j++) if (_f.foes[_j][$ "boss"] ?? false) _boss = true;
 	var _fab = exped_party_ab(_tr);   // (magpie / treasure sense, 2026-09-17)
-	if (!_boss && !roll_perc(EXPED_DROP * (1 + _fab.finds / 100))) return;
+	if (!_boss && !roll_perc(EXPED_DROP * max(0, 1 + _fab.finds / 100))) {
+		// THE PICKPOCKET (the second roster): when nothing dropped, a chance of a coin or two off the bodies anyway
+		if (_fab.pick > 0 && roll_perc(_fab.pick)) { var _pc = 1 + irandom(1); _tr.credits += _pc; exped_tally(_tr, "earned", _pc); array_push(_tr.log, "+ " + string(_pc) + " credits, picked off the bodies"); }
+		return;
+	}
 	var _d = _tr.dest;
 	var _nf = array_length(_f.foes);
 	if (!_boss && roll_perc(55)) {
 		var _c = irandom_range(1, 2) * _nf + _d.tier - 1;
+		_c = max(1, round(_c * (1 + _fab.scav / 100)));   // (the scavenger - 2026-09-17)
 		_tr.credits += _c;
 		exped_stat("finds"); exped_tally(_tr, "earned", _c);
 		array_push(_tr.log, "+ " + string(_c) + " credits " + choose("off the bodies", "in a pouch one of them had", "scattered in the fight", "that they will not need now"));

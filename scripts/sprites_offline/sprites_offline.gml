@@ -16,7 +16,8 @@ function sprites_offline(_secs) {
 		var _s = g.sprites[_i];
 		// the climb, over the absence (the offline nap below is its own rule: untouched)
 		if ((_s[$ "hpf"] ?? 1) < 1 || (_s[$ "mpf"] ?? 1) < 1) {
-			var _hr = _secs / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE);
+			var _oab = sprite_ab(_s);
+			var _hr = _secs / (_s.asleep ? SPRITE_HEAL_NAP : SPRITE_HEAL_AWAKE) * max(.1, 1 + (_oab.rest + (_s.asleep ? _oab.rest_nap : _oab.rest_wake)) / 100);   // (the sleepers, 2026-09-17)
 			_s.hpf = min(1, (_s[$ "hpf"] ?? 1) + _hr); _s.mpf = min(1, (_s[$ "mpf"] ?? 1) + _hr * 1.5);
 		}
 		if ((_s[$ "resting"] ?? false) && (_s[$ "hpf"] ?? 1) >= 1 && (_s[$ "mpf"] ?? 1) >= 1) _s.resting = false;
@@ -29,6 +30,6 @@ function sprites_offline(_secs) {
 			tap_fire(_n, 0, 0, false, true, false);
 			_s.taps += _n;
 		}
-		if (_secs > SPRITE_NAP) _s.asleep = true;
+		if (_secs > SPRITE_NAP * (1 + sprite_ab(_s).nap / 100)) _s.asleep = true;   // (tireless: found asleep later - 2026-09-17)
 	}
 }

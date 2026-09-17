@@ -16,6 +16,11 @@ function ability_effects(_list) {
 		gold : 0, loot : 0, first : 0, pierce : 0, taken : 0, guard : 0, low_guard : 0, dark_pow : 0,
 		thick : 0, absorb : 0, kill_heal : 0, kill_mp : 0, ail_dur : 0, bleed : 0, graze : 0, throes : 0,
 		momentum : 0, underdog : 0, salvo : 0, ruse : 0,
+		// the second roster (2026-09-17): exploring, the home jobs, the auras, the elements, home life, the rest of the fight
+		work : 0, work_tap : 0, work_fab : 0, work_merge : 0, work_aura : 0, home_alone : 0, nap : 0, rest_nap : 0, rest_wake : 0,
+		notes : 0, sell : 0, scav : 0, pick : 0, rooms : 0, quest : 0,
+		aura_atk : 0, aura_def : 0, aura_hit : 0, aura_luck : 0, aura_heal : 0, aura_xp : 0, aura_potion : 0,
+		fire_pow : 0, water_pow : 0, nature_pow : 0, thorns : 0, hurt_atk : 0, hurt_def : 0, duel : 0, pack : 0, lone : 0, last : 0, execute : 0, nograze : 0,
 		res : { fire : 0, water : 0, nature : 0 },
 		immune : [], ail : "", ailc : 0, once_more : false,
 	};
@@ -28,7 +33,7 @@ function ability_effects(_list) {
 			case "res_water":  _o.res.water += _v; break;
 			case "res_nature": _o.res.nature += _v; break;
 			case "res_all":    _o.res.fire += _v; _o.res.water += _v; _o.res.nature += _v; break;
-			case "immune_poison": case "immune_slow": case "immune_leech": case "immune_crit": array_push(_o.immune, string_delete(_ln, 1, 7)); break;
+			case "immune_poison": case "immune_slow": case "immune_leech": case "immune_crit": case "immune_stagger": array_push(_o.immune, string_delete(_ln, 1, 7)); break;
 			case "ail_poison": case "ail_slow":
 				// (two bites: the stronger chance wins, one ailment)
 				if (_v > _o.ailc) { _o.ail = string_delete(_ln, 1, 4); _o.ailc = _v; }

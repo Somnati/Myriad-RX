@@ -19,7 +19,7 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 		if (is_array(_h[$ "young"]) && array_contains(_h.young, _sp.id)) { _sp.trip = false; continue; }   // (the young tagging along: home, unhurt - 2026-09-16)
 		if (!array_contains(_h.sids, _sp.id)) continue;
 		_sp.trip = false;
-		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP; }
+		if (_h.routed) { _sp.asleep = true; _sp.hurt = EXPED_NAP * max(.2, 1 - sprite_ab(_sp).nap / 100); }   // (tireless: a shorter nap - 2026-09-17)
 		// HOME SHORT (his ask, 2026-09-15): the hp and mp they came back with
 		// ride the sprite; short of either, it sleeps until whole (resting -
 		// sprites_tick's climb wakes it; the offline nap is another rule)

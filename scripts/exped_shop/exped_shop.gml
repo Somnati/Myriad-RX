@@ -140,6 +140,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			var _it4 = _sh3.inv[_wi];
 			array_delete(_sh3.inv, _wi, 1);
 			var _pr4 = max(1, floor((2 + floor(_rg.lv / 3) + 2 * (_it4[$ "rar"] ?? 0)) * .5)) + ((sprite_note_has(_sp3, "shop") || sprite_ab(_sp3).haggle > 0) ? 1 : 0);
+			_pr4 = max(1, round(_pr4 * (1 + sprite_ab(_sp3).sell / 100)));   // (noble / shabby - 2026-09-17)
 			_tr.credits += _pr4; _csold += _pr4;
 			array_push(_sold3, _it4.name + " (" + string(_pr4) + ")");
 		}

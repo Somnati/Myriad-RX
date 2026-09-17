@@ -4,6 +4,6 @@
 function cbt_skill_cost(_u, _s) {
 	var _c = _s.cost;
 	var _ab = _u[$ "ab"];
-	if (is_struct(_ab) && _ab.frugal > 0) _c = max(1, ceil(_c * (1 - _ab.frugal / 100)));
+	if (is_struct(_ab) && _ab.frugal != 0) _c = max(1, ceil(_c * (1 - _ab.frugal / 100)));   // (wasteful goes the other way)
 	return _c;
 }

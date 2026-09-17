@@ -27,7 +27,14 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
 		var _pw = sprite_pawn(_sp, _tr.hp[_k], (is_array(_tr[$ "mp"]) && _k < array_length(_tr.mp)) ? _tr.mp[_k] : undefined);
-		if (_pw.ab.rest_hp > 0 && _pw.hp > 0 && _pw.hp < _pw.maxhp) { _pw.hp = min(_pw.maxhp, _pw.hp + _pw.maxhp * _pw.ab.rest_hp / 100); _tr.hp[_k] = _pw.hp; }   // (well-rested: a little back walking in - 2026-09-17)
+		if (_pw.ab.rest_hp != 0 && _pw.hp > 0) { _pw.hp = clamp(_pw.hp + _pw.maxhp * _pw.ab.rest_hp / 100, 1, _pw.maxhp); _tr.hp[_k] = _pw.hp; }   // (well-rested: a little back walking in - 2026-09-17; walks in tired, the flaw, the other way)
+		// THE AURAS (the second roster, 2026-09-17): captain / shieldwall / cheerleader / lucky charm / medic - the crew's summed, itself included
+		var _aur = exped_party_ab(_tr);
+		if (_aur.aura_atk > 0) { _pw.atk *= 1 + _aur.aura_atk / 100; _pw.mag *= 1 + _aur.aura_atk / 100; }
+		if (_aur.aura_def > 0) { _pw.def *= 1 + _aur.aura_def / 100; _pw.mdef *= 1 + _aur.aura_def / 100; }
+		if (_aur.aura_hit > 0) _pw.hit *= 1 + _aur.aura_hit / 100;
+		if (_aur.aura_luck > 0) { _pw.luck += _aur.aura_luck; _pw.crit_rate += _aur.aura_luck * .5; }
+		_pw.heal_aura = _aur.aura_heal;   // (cbt_heal reads it - the ab struct itself is never touched)
 		_pw.hit += _bonus;
 		_pw.mi = _k;
 		_pw.studied = sprite_notes_kinds(_sp);

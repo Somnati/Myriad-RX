@@ -10,7 +10,7 @@ function ability_gen(_seed, _maxtier = 1) {
 	var _c = ability_config();
 	var _pool = [], _wsum = 0;
 	for (var _i = 0; _i < array_length(_c); _i++) {
-		if (_c[_i].tier > _maxtier) continue;
+		if (_c[_i].tier > _maxtier || (_c[_i][$ "flaw"] ?? false)) continue;   // (the flaws have their own draw - flaw_gen)
 		var _w = (_c[_i].tier == _maxtier) ? 3 : 1;
 		array_push(_pool, { e : _c[_i], w : _w }); _wsum += _w;
 	}

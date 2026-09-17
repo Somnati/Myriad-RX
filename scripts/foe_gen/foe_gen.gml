@@ -75,6 +75,7 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 	}
 	// THE ABILITIES (2026-09-17): its rungs off its seed, the highest four
 	var _abl = foe_abilities(_seed, _lv, 4);
+	array_push(_abl, foe_flaw(_seed));   // THE FLAW (2026-09-17): every foe has one too
 	var _ab  = ability_effects(_abl);
 	var _keys2 = ["atk", "mag", "def", "mdef", "spd", "hit"];
 	for (var _k = 0; _k < 6; _k++) _pts[$ _keys2[_k]] *= 1 + (_ab[$ _keys2[_k]] / 100);

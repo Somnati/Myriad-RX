@@ -43,6 +43,7 @@ function exped_road_beat(_tr) {
 	} else if (_r < 22) {
 		// a coin in the mud
 		var _c = 1 + irandom(1);
+		_c = max(1, round(_c * (1 + exped_party_ab(_tr).scav / 100)));   // (the scavenger - 2026-09-17)
 		_tr.credits += _c;
 		exped_stat("finds"); exped_tally(_tr, "earned", _c);   // (a coin is credits earned, not an item - the tally)
 		array_push(_tr.log, "+ " + string(_c) + ((_c == 1) ? " credit" : " credits") + " " + choose("in the mud", "under a hedge", "in a ditch, with a boot", "on the road, shining", "in a puddle",

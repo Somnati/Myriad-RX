@@ -1,6 +1,6 @@
 /// @description exped_room_find(trip, prefix) - a find where the crew stands (the delve's / the wild's)
 /// exped_loot_roll's kinds; gear goes to whoever is up (sprite_take).
-function exped_room_find(_tr, _pre) {
+function exped_room_find(_tr, _pre, _again = true) {   // (again = the prospector may double it - 2026-09-17)
 	var _l = exped_loot_roll(_tr);
 	exped_stat("finds");
 	if (_l.kind == "gear") {
@@ -26,4 +26,6 @@ function exped_room_find(_tr, _pre) {
 	array_push(_tr.finds, _l);
 	exped_say(_tr, "find", { item : (_l.kind == "gear") ? _l.item.name : _l.txt }, .7);
 	exped_note_beat(_tr, "find", .2, (_l.kind == "gear") ? _l.item.name : _l.txt);
+	// THE PROSPECTOR (the second roster, 2026-09-17): one find is often two
+	if (_again && roll_perc(exped_party_ab(_tr).rooms)) exped_room_find(_tr, "and another: ", false);
 }

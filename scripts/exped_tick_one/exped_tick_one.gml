@@ -70,6 +70,7 @@ function exped_tick_one(_tr, _dt) {
 			if (is_struct(_tr.act) && _tr.act.kind == "camp" && (_tr.act[$ "loot"] ?? false)) {
 				var _ldx = region_node_leader(_tr.dest, exped_region(_tr), _tr.pos);   // (a careless chief: a fatter chest - 2026-09-16)
 				var _cr = 2 + irandom(2) + _tr.dest.tier + ((is_struct(_ldx) && _ldx.trait == "careless") ? 2 : 0);
+				_cr = max(1, round(_cr * (1 + exped_party_ab(_tr).scav / 100)));   // (the scavenger - 2026-09-17)
 				_tr.credits += _cr; exped_tally(_tr, "earned", _cr);
 				exped_stat("camps");
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
@@ -172,7 +173,7 @@ function exped_tick_one(_tr, _dt) {
 		var _q = _tr[$ "quest"];
 		if (is_struct(_q)) {
 			var _done = clamp(_q.done / max(1, _q.n), 0, 1);
-			if (_done >= 1) { exped_stat("quests"); exped_tally(_tr, "earned", _q.reward); array_push(_tr.finds, { kind : "credits", rar : 1, n : _q.reward, txt : string(_q.reward) + " credits - the quest's reward", col : c_gold }); }
+			if (_done >= 1) { var _qr = max(1, round(_q.reward * (1 + exped_party_ab(_tr, false).quest / 100))); exped_stat("quests"); exped_tally(_tr, "earned", _qr); array_push(_tr.finds, { kind : "credits", rar : 1, n : _qr, txt : string(_qr) + " credits - the quest's reward", col : c_gold }); }   // (the courier - 2026-09-17)
 			// THE QUEST'S XP (his law): a par foe's xp x 2..5 by how much got done
 			// (an abort before anything was done pays nothing)
 			if (_done > 0 || (!_tr.routed && !(_tr[$ "aborted"] ?? false))) exped_xp_grant(_tr, sprite_xp_quest(exped_trip_lv(_tr), _done, _q.mult), "the quest");
