@@ -93,7 +93,7 @@ float hash12(vec2 p)
 
 float lightband(float d)
 {
-    return mix(0.10, 1.0, smoothstep(-0.22, 0.30, d));
+    return mix(0.13, 1.0, smoothstep(-0.22, 0.30, d));   // (the night floor: .10 -> .13, the land reads - his ask 2026-09-17)
 }
 
 void main()
@@ -287,7 +287,9 @@ void main()
         col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45);                       // the slope's own light, over the band
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(0.62, 0.95, h0) * min(1.0, u_bump));   // the snow line
         col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
-        if (li < 0.9) col = mix(col, vec3(0.03, 0.04, 0.10), 0.5 * (1.0 - li));
+        // THE NIGHT (2026-09-17, his ask: "dark yes but also grey ... the landscape hard to see"): a moonlit
+        // blue that MULTIPLIES the land (its contrast survives) with the faintest floor, instead of a flat dark blue mixed over it
+        if (li < 0.9) col = mix(col, col * vec3(0.55, 0.66, 1.0) + vec3(0.012, 0.016, 0.045), 0.6 * (1.0 - li));
         float dusk = smoothstep(0.25, 0.55, li) * (1.0 - smoothstep(0.55, 0.95, li));
         col += mix(vec3(0.72, 0.20, 0.46), u_atmo, 0.22) * (dusk * 0.16);
 
@@ -382,12 +384,14 @@ void main()
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
         float fr = pow(1.0 - clamp(z, 0.0, 1.0), 2.6);
-        col += atmo * fr * (0.12 + 0.88 * rl);
+        col += atmo * fr * (1.15 * pow(rl, 1.3));   // (the lit side's rim, more of it; NONE on the night side - his ask 2026-09-17)
         col += dn * (min(dot(col, vec3(0.299, 0.587, 0.114)) * 255.0 * 0.5, 2.0) / 255.0);
         gl_FragColor = vec4(col, 1.0);
     } else {
-        float t2 = clamp((sqrt(r2) - 1.0) / 0.22, 0.0, 1.0);
-        float g = pow(1.0 - t2, 2.2) * (0.025 + 0.62 * rl);
+        // THE HALO (2026-09-17, his ask: "a larger atmospheric glow on the light side ... the night side without the grey"):
+        // twice the reach (.42 radii - the quad's pad 1.6 has the room), the lit side bright, the night side nothing
+        float t2 = clamp((sqrt(r2) - 1.0) / 0.42, 0.0, 1.0);
+        float g = pow(1.0 - t2, 2.4) * 0.85 * pow(rl, 1.6);
         g += dn * (min(g * 255.0 * 0.5, 1.4) / 255.0);
         vec3 col = atmo;
         float a = max(g, 0.0);
