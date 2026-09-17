@@ -502,8 +502,15 @@ if (view == "system" && is_struct(sy_sys)) {
 				if (is_undefined(_sp2)) continue;
 				if (point_distance(mouse_x, mouse_y - list_y, _sp2[0], _sp2[1]) <= sy_stns[_j].size * _sp2[2] * 1.9 + 6) { _shit = _j; break; }
 			}
-			if (_shit >= 0 && _hit < 0) { if (_shit != sy_ssel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_ssel = _shit; sy_sel = -1; }
-			else { if (_hit >= 0 && _hit != sy_sel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_sel = _hit; sy_ssel = -1; }
+			// ...or a belt's band (the polish, 2026-09-17): the nearest point of its ring within reach names it - nothing to enter
+			var _bhit = -1;
+			if (_hit < 0 && _shit < 0) for (var _b = 0; _b < array_length(sy_belts) && _bhit < 0; _b++) {
+				var _bo = sy_belts[_b].orbit;
+				for (var _ba = 0; _ba < 360; _ba += 4) { var _bq = __sy_proj(dcos(_ba) * _bo, 0, dsin(_ba) * _bo); if (is_undefined(_bq)) continue; if (point_distance(mouse_x, mouse_y - list_y, _bq[0], _bq[1]) <= max(5, sy_belts[_b].width * .5 * _bq[2]) + 2) { _bhit = _b; break; } }
+			}
+			if (_shit >= 0 && _hit < 0) { if (_shit != sy_ssel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_ssel = _shit; sy_sel = -1; sy_bsel = -1; }
+			else if (_bhit >= 0) { if (_bhit != sy_bsel) play_sound_ext(snd_softclick, 1, 1.1, .35, 1); sy_bsel = _bhit; sy_sel = -1; sy_ssel = -1; }
+			else { if (_hit >= 0 && _hit != sy_sel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_sel = _hit; sy_ssel = -1; sy_bsel = -1; }
 		}
 	}
 	sy_dwa = move_to(sy_dwa, sy_dw ? 1 : 0, 6);   // the drawer's ease
@@ -558,8 +565,9 @@ if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 	if (sy_dwa <= .3 && sy_ssel >= 0) { var _ser3 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser3.x, _ser3.y, _ser3.x + _ser3.w, _ser3.y + _ser3.h)) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
 	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
 	if (sy_dwa >= .5) {   // (the drawer open: its rows and [enter])
-	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _rr2 = __sy_row_r(_npl + _j); if (_rr2.y + _rr2.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) { sy_ssel = _j; sy_sel = -1; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }   // (a station's row - 2026-09-17)
-	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_ssel = -1; sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
+	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _rr2 = __sy_row_r(_npl + _j); if (_rr2.y + _rr2.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) { sy_ssel = _j; sy_sel = -1; sy_bsel = -1; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }   // (a station's row - 2026-09-17)
+	for (var _b = 0; _b < array_length(sy_belts); _b++) { var _rr3 = __sy_row_r(_npl + array_length(sy_stns) + _b); if (_rr3.y + _rr3.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr3.x, _rr3.y, _rr3.x + _rr3.w, _rr3.y + _rr3.h)) { sy_bsel = _b; sy_sel = -1; sy_ssel = -1; play_sound_ext(snd_softclick, 1, 1.1, .35, 1); exit; } }   // (a belt's row: named, lit - the polish)
+	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_ssel = -1; sy_bsel = -1; sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
 	var _sor = __sy_open_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _sor.x, _sor.y, _sor.x + _sor.w, _sor.y + _sor.h)) {
 		if (sy_ssel >= 0) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; }   // (a station - 2026-09-17)

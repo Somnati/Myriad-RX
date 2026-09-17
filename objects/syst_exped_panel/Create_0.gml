@@ -515,6 +515,7 @@ sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite)
 sy_stns = [];                        // THE STAR'S SPACE STATIONS (station_sys, 2026-09-17): on their own rings, picked like a world
 sy_belts = [];                       // THE ASTEROID BELTS (belt_sys, 2026-09-17): a crowd of rocks on a band, turning
+sy_bsel = -1;                        // the belt tapped (its name in the caption, its row lit - nothing to enter)
 sy_ssel = -1;                        // the picked station (-1 none; a station and a world are never both picked)
 sy_warp_st = -1;                     // the dive, to a station (its page)
 st_sel = -1;                         // THE STATION PAGE: which of sy_stns; its own camera and spin
@@ -532,6 +533,13 @@ __sy_box_r  = function() { var _x = __sy_dock_x() + 9; return { x : _x, y : list
 __sy_row_r  = function(_i) { var _x = __sy_dock_x() + 13; return { x : _x, y : list_y + 16 + 58 + _i * 24, w : room_width - _x - 4, h : 22 }; };
 __sy_open_r = function() { var _x = __sy_dock_x() + 13; return { x : _x, y : room_height - 8 - 16, w : room_width - _x - 4, h : 16 }; };
 __sy_view_r = function() { return { x : 0, y : list_y, w : room_width, h : room_height - list_y }; };
+/// one rock of a belt on the page (the polish, 2026-09-17): [sx, sy, k, b, belt, size, glint] under the swell - its size in cells, its glint a white flare over it
+__rock_draw = function(_r, _s) {
+	var _rx = floor(sy_wfx + (_r[0] - sy_wfx) * _s), _ry = floor(sy_wfy + (_r[1] - sy_wfy) * _s), _sz = _r[5];
+	var _bl = sy_belts[_r[4]], _col = (sy_bsel == _r[4]) ? merge_colour(_bl.col, c_gold, .35) : _bl.col;
+	draw_sprite_ext(spr_pixel_1x1, 0, _rx - (_sz div 2), _ry - (_sz div 2), _sz, _sz, 0, _col, clamp(_r[3] * (.35 + .65 * min(1, _r[2] * _s * 1.1)), .12, .95));
+	if (_r[6] > 0) draw_sprite_ext(spr_pixel_1x1, 0, _rx - 1, _ry - 1, 3, 3, 0, c_white, _r[6] * .85);
+};
 /// world -> page: [sx, sy, scale, depth], or undefined when behind the camera
 __sy_proj = function(_wx, _wy, _wz) {
 	var _v = mat3_apply(mat3_transpose(sy_cam), _wx, _wy, _wz);
@@ -550,7 +558,7 @@ __sy_enter = function(_star) {
 	sy_sys = starsystem_generate(_sm.stars[_star].seed, _sm.stars[_star].props);
 	sy_sel = -1; sy_pd = []; sy_moons = []; sy_info = [];
 	sy_stns = station_sys(_sm.stars[_star].seed, sy_sys); sy_ssel = -1; sy_warp_st = -1;   // (the star's stations, 2026-09-17)
-	sy_belts = belt_sys(_sm.stars[_star].seed, sy_sys, sy_stns);   // (its belts, in the gaps the stations left)
+	sy_belts = belt_sys(_sm.stars[_star].seed, sy_sys, sy_stns); sy_bsel = -1;   // (its belts, in the gaps the stations left)
 	var _hm = galaxy_home();
 	for (var _i = 0; _i < array_length(sy_sys.planets); _i++) {
 		var _p = sy_sys.planets[_i];
@@ -649,16 +657,40 @@ __draw_system = function() {
 	// every frame, would be the cost): split at the star's depth, the far half painted before everything, the
 	// near half after (a rock over a far world reads right; a rock behind the star but before a farther world is a pixel wrong)
 	var _bnow = universal_now(), _rk_far = [], _rk_near = [], _sdz = is_undefined(_sp0) ? sy_D : _sp0[3];
+	var _gslot = floor(_bnow / .45), _gfr = frac(_bnow / .45);   // THE GLINTS' clock: a slot a little under half a second (each rock its own phase below)
 	for (var _b = 0; _b < array_length(sy_belts); _b++) {
 		var _bl = sy_belts[_b], _rks = _bl.rocks;
+		// THE DUST (the polish, 2026-09-17): a faint dithered band under the rocks, three radii, brighter nearer - the belt reads edge-on too
+		var _dcol = (sy_bsel == _b) ? merge_colour(_bl.col, c_gold, .5) : _bl.col;
+		for (var _dr = -1; _dr <= 1; _dr++) {
+			var _drad = _bl.orbit + _dr * _bl.width * .3, _dstp = max(.6, _pxs * 70 / max(1, _drad)), _dlx = -10000, _dly = -10000, _dn = 0;
+			for (var _a = 0; _a < 360; _a += _dstp) {
+				var _dp = __sy_proj(dcos(_a) * _drad, 0, dsin(_a) * _drad);
+				if (is_undefined(_dp)) continue;
+				var _dgx = floor((sy_wfx + (_dp[0] - sy_wfx) * _s) / _pxs) * _pxs, _dgy = floor((sy_wfy + (_dp[1] - sy_wfy) * _s) / _pxs) * _pxs;
+				if (_dgx == _dlx && _dgy == _dly) continue;
+				_dlx = _dgx; _dly = _dgy; _dn++;
+				if ((_dn + _dr) mod 2 == 0) continue;   // (dithered: every other cell)
+				draw_sprite_ext(spr_pixel_1x1, 0, _dgx, _dgy, _pxs, _pxs, 0, _dcol, ((sy_bsel == _b) ? .16 : .07) * (.6 + .4 * min(1, _dp[2] * 1.1)));
+			}
+		}
 		for (var _k = 0; _k < array_length(_rks); _k++) {
 			var _rk = _rks[_k], _ra = (_rk[1] + _rk[4] * 60 * _bnow) mod 360;
 			var _rp = __sy_proj(dcos(_ra) * _rk[0], _rk[2], dsin(_ra) * _rk[0]);
 			if (is_undefined(_rp)) continue;
-			array_push((_rp[3] > _sdz) ? _rk_far : _rk_near, [_rp[0], _rp[1], _rp[2], _rk[3], _b]);
+			// A GLINT (the polish): a facet catching the star - a hash per rock per slot, the odd one flares and decays through its slot
+			var _gl = 0;
+			if (_rk[3] > .55) { var _gph = floor((_bnow + _k * .173) / .45), _gr = hash_mix(_k * 31 + _b * 977, _gph) mod 1000; if (_gr > 993) _gl = power(1 - frac((_bnow + _k * .173) / .45), 2.5); }
+			array_push((_rp[3] > _sdz) ? _rk_far : _rk_near, [_rp[0], _rp[1], _rp[2], _rk[3], _b, _rk[5], _gl]);
+		}
+		// THE BIG ONES: into the sort with the worlds and the stations (item 3000 + belt x 8 + which)
+		for (var _bi = 0; _bi < array_length(_bl.bigs); _bi++) {
+			var _bg = _bl.bigs[_bi], _ba = (_bg.a0 + _bg.spd * 60 * _bnow) mod 360;
+			var _bp = __sy_proj(dcos(_ba) * _bg.r, _bg.y, dsin(_ba) * _bg.r);
+			if (!is_undefined(_bp)) array_push(_items, [_bp[3], 3000 + _b * 8 + _bi, _bp[0], _bp[1], _bp[2]]);
 		}
 	}
-	for (var _k = 0; _k < array_length(_rk_far); _k++) { var _rf = _rk_far[_k]; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_rf[0] - sy_wfx) * _s), floor(sy_wfy + (_rf[1] - sy_wfy) * _s), 1, 1, 0, sy_belts[_rf[4]].col, clamp(_rf[3] * (.35 + .65 * min(1, _rf[2] * _s * 1.1)), .12, .95)); }
+	for (var _k = 0; _k < array_length(_rk_far); _k++) __rock_draw(_rk_far[_k], _s);
 	array_sort(_items, function(_a, _b) { return _b[0] - _a[0]; });
 	g.dither_off = page_float();
 	for (var _n = 0; _n < array_length(_items); _n++) {
@@ -668,6 +700,10 @@ __draw_system = function() {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
 			star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
+		} else if (_it[1] >= 3000) {
+			// A BIG ROCK of a belt (the polish, 2026-09-17): a small tumbling solid, lit from the star
+			var _bb = sy_belts[(_it[1] - 3000) div 8].bigs[(_it[1] - 3000) mod 8], _bba = (_bb.a0 + _bb.spd * 60 * _bnow) mod 360;
+			station_render(_bb.st, _sx, _sy, max(1.5, _bb.size * _k * 1.2), sy_cam, [-dcos(_bba), 0, -dsin(_bba)], (_bnow * 60 * _bb.st.spin) mod 360);
 		} else if (_it[1] >= 1000) {
 			// A STATION on its ring (2026-09-17): its solid, lit from the star; picked = the pulsing box, like a world's
 			var _j = _it[1] - 1000, _stj = sy_stns[_j], _sq1 = __st_ppos(_stj);
@@ -702,7 +738,7 @@ __draw_system = function() {
 		}
 	}
 	// ...the near half of the belts' rocks, over everything
-	for (var _k = 0; _k < array_length(_rk_near); _k++) { var _rn = _rk_near[_k]; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_rn[0] - sy_wfx) * _s), floor(sy_wfy + (_rn[1] - sy_wfy) * _s), 1, 1, 0, sy_belts[_rn[4]].col, clamp(_rn[3] * (.35 + .65 * min(1, _rn[2] * _s * 1.1)), .12, .95)); }
+	for (var _k = 0; _k < array_length(_rk_near); _k++) __rock_draw(_rk_near[_k], _s);
 	g.dither_off = false;
 	surface_reset_target();
 	ui_fade_set(_fa);

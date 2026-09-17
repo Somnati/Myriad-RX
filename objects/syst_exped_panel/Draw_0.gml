@@ -1002,7 +1002,11 @@ if (view == "system") {
 	draw_text(sy_cx, list_y + 6, "the " + star_name(sy_star) + " system");
 	// the caption at the foot of the view: pick a planet, or the picked one's line (above the buttons' row)
 	var _capy = room_height - 8 - 16 - 12;
-	if (sy_ssel >= 0 && sy_ssel < array_length(sy_stns)) {
+	if (sy_bsel >= 0 && sy_bsel < array_length(sy_belts)) {
+		var _blc = sy_belts[sy_bsel];
+		draw_set_color(merge_colour(_blc.col, c_white, .3)); draw_set_alpha(.95);
+		draw_text(sy_cx, _capy, _blc.name + "  -  asteroid belt  -  " + string(_blc.n) + " rocks" + ((array_length(_blc.lanes) > 1) ? ", two lanes" : ", a lane"));
+	} else if (sy_ssel >= 0 && sy_ssel < array_length(sy_stns)) {
 		var _stc2 = sy_stns[sy_ssel];
 		draw_set_color(c_gold); draw_set_alpha(.95);
 		draw_text(sy_cx, _capy, _stc2.name + "  -  " + _stc2.kind + "  -  " + _stc2.shape_name);
@@ -1062,10 +1066,10 @@ if (view == "system") {
 	}
 	// THE BELTS' ROWS (2026-09-17): named, dim, nothing to pick
 	for (var _b = 0; _b < array_length(sy_belts); _b++) {
-		var _rr3 = __sy_row_r(_np + array_length(sy_stns) + _b), _blr = sy_belts[_b];
+		var _rr3 = __sy_row_r(_np + array_length(sy_stns) + _b), _blr = sy_belts[_b], _onb = (sy_bsel == _b);
 		if (_rr3.y + _rr3.h > room_height - 8 - 20) break;
 		draw_sprite_ext(spr_pixel_1x1, 0, _rr3.x, _rr3.y, _rr3.w, _rr3.h, 0, c_black, .7);
-		draw_px_rect(_rr3.x, _rr3.y, _rr3.w, _rr3.h, c_steelblue, .35);
+		draw_px_rect(_rr3.x, _rr3.y, _rr3.w, _rr3.h, _onb ? c_gold : c_steelblue, _onb ? .9 : .35);
 		for (var _bd = 0; _bd < 5; _bd++) draw_sprite_ext(spr_pixel_1x1, 0, _rr3.x + 5 + _bd * 2 + ((_bd mod 2) == 0 ? 0 : 1), _rr3.y + 10 + ((_bd mod 3) - 1), 1, 1, 0, _blr.col, .9);
 		draw_set_color(_dim); draw_set_alpha(.9);
 		draw_text(_rr3.x + 16, _rr3.y + 2, __sheet_cut(_blr.name, _rr3.w - 20));
