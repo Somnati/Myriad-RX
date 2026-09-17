@@ -1,6 +1,6 @@
 /// @description planet_biome(ps, u, v) - the BIOME (ps.ob) from the fields planet_fields wrote (ps.oe / od / om) at a map coordinate
 /// The half of planet_texel that decides (the tech demo's law, verbatim);
-/// the zoom tiers (planet_lod_step) run it on INTERPOLATED fields. Split 2026-09-17
+/// split out 2026-09-17 so the fields and the law can be read apart
 function planet_biome(_ps, _u, _v) {
 	var _sl  = sin(_v * pi);
 	var _py  = cos(_v * pi);

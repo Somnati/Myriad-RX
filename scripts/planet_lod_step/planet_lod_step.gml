@@ -1,9 +1,11 @@
 /// @description planet_lod_step(pn, l, until) -> true once the tier stands (l.ready): builds rows of a zoom tier (planet_lod_begin) until the get_timer deadline
-/// A tier texel is the base map's FIELDS (elevation, detail, moisture -
-/// planet_gen_step keeps them) interpolated between the four base texels
-/// around it, then planet_biome's law run on them - the same coasts and
-/// hills as the map, resolved between its texels, at a fraction of the
-/// noise's cost (the noise's finest octave is near the base texel anyway).
+/// A tier texel is the terrain SAMPLED THERE - planet_fields' noise at the
+/// tier texel's own centre, planet_biome's law on it - exactly as the base
+/// map's texels were at theirs, so the two agree wherever they meet and
+/// the tier shows what truly lies between the map's samples. (The first
+/// cut interpolated the base texels' fields: cheaper, but a smoothed
+/// field misses its thresholds - the woods, the dirt and the grass all
+/// shifted between tiers; his report, 2026-09-17)
 /// Rivers and lakes ride over from the base biome map: a lake's texel
 /// whole, a river as a line through its texel toward each river or water
 /// neighbour. The colour texture (rgb the biome's colour, alpha 1 - glow)
@@ -16,23 +18,14 @@ function planet_lod_step(_pn, _l, _until) {
 	var _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
 	var _tb = _l.tbuf, _hb = _l.hbuf;
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _w = _l.w;
-	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
+	var _el = _pn.elev, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
-		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
-		_y0 = clamp(_y0, 0, _th - 1);
 		var _o = _j * _w * 4;
 		for (var _i = 0; _i < _w; _i++) {
 			var _u = (_i + .5) / _w;
-			var _xx = _u * _tw - .5, _x0 = floor(_xx), _tx = _xx - _x0;
-			var _x1 = (_x0 + 1 + _tw) mod _tw; _x0 = (_x0 + _tw) mod _tw;   // (the seam wraps)
-			var _i00 = _x0 + _y0 * _tw, _i10 = _x1 + _y0 * _tw, _i01 = _x0 + _y1 * _tw, _i11 = _x1 + _y1 * _tw;
-			var _w00 = (1 - _tx) * (1 - _ty), _w10 = _tx * (1 - _ty), _w01 = (1 - _tx) * _ty, _w11 = _tx * _ty;
-			_ps.oe = _el[_i00] * _w00 + _el[_i10] * _w10 + _el[_i01] * _w01 + _el[_i11] * _w11;
-			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
-			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
-			planet_biome(_ps, _u, _v);
+			planet_texel(_ps, _u, _v);
 			var _b = _ps.ob, _oe = _ps.oe;
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;

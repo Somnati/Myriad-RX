@@ -566,10 +566,11 @@ void main()
             float rc = 1.0 + u_relief * h0 + u_canopy;
             vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
             vec2 cuvm = map_uv(to_tex(nc));
-            vec2 cuv = cuvm * u_tsize * grid_k(cuvm);   // (the canopy's grain on the grid under it: finer in the zoom patch)
+            vec2 cuv = cuvm * u_tsize * grid_k(cuvm);   // (the trees' grain on the grid under it: finer in a zoom tier)
             vec2 ct = floor(cuv);
             float g = hash12(ct + 0.5);
-            vec2 cl = cuv / 4.0; vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
+            vec2 cl = cuvm * u_tsize / 4.0;              // (the CLEARINGS on the base map's grid - the same clearings at every tier; his report 2026-09-17)
+            vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
             float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
             // CLEARINGS, not static (his screenshot, 2026-09-17: the per-texel gaps read as noise): a gap is where the
             // slow clump noise runs low - a blob a few texels wide - with the texel hash only roughening its edge;

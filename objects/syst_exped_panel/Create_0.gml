@@ -2500,8 +2500,13 @@ __cam_toward = function(_cam, _tgt, _k) {
 	var _ax = _rr[7] - _rr[5], _ay = _rr[2] - _rr[6], _az = _rr[3] - _rr[1];
 	var _al = sqrt(_ax * _ax + _ay * _ay + _az * _az);
 	if (_al < .0001) { _ax = 0; _ay = 1; _az = 0; }   // (180 degrees apart: any axis in the plane; take the world's up)
+	// THE LAST DEGREES AT A FLOOR (his report, 2026-09-17: "the jitter is at the end when it settles"): an ease that
+	// only ever takes a fraction of what is left creeps for half a second under a pixel a frame, and the terrain's
+	// cells flicker under the crawl. Past the fraction's own pace the step is at least a third of a degree a
+	// sixtieth, so it arrives and stops
+	var _stp = min(_ang, max(_ang * _k, .35 * delta));
 	// (mat3_rot's sin is flipped for the screen - both signs tried, the one that closes the gap kept)
-	var _c1 = mat3_mul(mat3_rot(_ax, _ay, _az, _ang * _k), _cam), _c2 = mat3_mul(mat3_rot(_ax, _ay, _az, -_ang * _k), _cam);
+	var _c1 = mat3_mul(mat3_rot(_ax, _ay, _az, _stp), _cam), _c2 = mat3_mul(mat3_rot(_ax, _ay, _az, -_stp), _cam);
 	var _r1 = mat3_mul(_tgt, mat3_transpose(_c1)), _r2 = mat3_mul(_tgt, mat3_transpose(_c2));
 	return ((_r1[0] + _r1[4] + _r1[8]) >= (_r2[0] + _r2[4] + _r2[8])) ? _c1 : _c2;
 };
