@@ -608,7 +608,10 @@ void main()
         float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001);
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
-        float li = lightband(dot(nn, u_light));
+        // THE HORIZON (his screenshot, 2026-09-17: ridges lit on the night side): the band read the BUMPED normal, and a
+        // steep sunward flank tilts it into the sun even where the sun is under the world's own horizon. The bumped
+        // dot may run ahead of the ground's by .15 at most - a sunward slope brightens by day, never past the dark
+        float li = lightband(min(dot(nn, u_light), dot(n, u_light) + 0.15));
         col *= li;
         // the slope's own light, over the band - the LIFT only where the sun is up at all (a slope facing a sun below
         // the horizon lit up on the night side); the shade side keeps its full darkening
