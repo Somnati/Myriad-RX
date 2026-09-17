@@ -137,18 +137,24 @@ float cloudband(float d);   // (defined below the marches - a prototype, so the 
 // travels a long way inside the slab, so a cloud past the tangent still has weight there - the wrap for free,
 // and the bright hazy limb real worlds have. The light: the deck's terminator by position, the crown brighter
 // than the base, and the puff sunward of the sample shading it (the cheap stand-in for a march to the sun)
-float dens_at(vec3 d, float rr, float R, float H, float w)
+float dens_at(vec3 d, float rr, float R, float H, float w, out float below)
 {
+    below = 0.0;
     float th = thick_at(d);
     if (th <= 0.0) return 0.0;
     th = min(1.0, th * w);   // (the weather's swell)
     float h = (rr - R) / H;                         // 0 at the shell, 1 at the deck's top
+    below = clamp((th - h) * 2.0, 0.0, 1.0);        // how far under the puff's top the sample sits (the underside, 2026-09-17)
     float inside = 1.0 - smoothstep(th - 0.25, th, h);
     return inside * (0.25 + 0.75 * cloud_at(d, u_tsize));
 }
-float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit)
+// lit = the deck's day / night (the terminator band alone); shd = the SHAPE's shading - the crown bright, the base
+// and the underside dark (his ask, 2026-09-17: "make the underside of clouds darker"). Kept apart, so the night's
+// blue and the dusk's pink read the terminator only, never a shadowed base as a sunset
+float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit, out float shd)
 {
-    lit = 1.0;
+    lit = 1.0; shd = 1.0;
+    float ssum = 0.0;
     float RO = R + H;
     if (r2 > RO * RO) return 0.0;
     float z0 = sqrt(RO * RO - r2);
@@ -164,11 +170,15 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
         vec3 pp = vec3(p, zz);
         float rr = length(pp);
         vec3 d = pp / rr;
-        float dn = dens_at(d, rr, R, H, w);
+        float below = 0.0;
+        float dn = dens_at(d, rr, R, H, w, below);
         if (dn <= 0.0) continue;
         float a = clamp(dn * 42.0 * ds, 0.0, 1.0);
-        float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.3 * cloud_at(normalize(d + u_light * 0.06), u_tsize));   // (a notch brighter - "a lil darker", 2026-09-17)
+        float l = cloudband(dot(d, u_light));
+        // the shape: the crown full, the base under half; the puff sunward shades it; deep under its own top, darker still
+        float s = (0.45 + 0.55 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.3 * cloud_at(normalize(d + u_light * 0.06), u_tsize)) * (1.0 - 0.35 * below);
         lsum += l * a * T;
+        ssum += s * a * T;
         wsum += a * T;
         T *= 1.0 - a;
         if (T < 0.03) break;
@@ -182,17 +192,20 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
             vec3 pp = vec3(p, zz);
             float rr = length(pp);
             vec3 d = pp / rr;
-            float dn = dens_at(d, rr, R, H, w);
+            float below = 0.0;
+            float dn = dens_at(d, rr, R, H, w, below);
             if (dn <= 0.0) continue;
             float a = clamp(dn * 42.0 * ds2, 0.0, 1.0);
-            float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * 0.8;   // (an underside, a little darker)
+            float l = cloudband(dot(d, u_light));
+            float s = (0.45 + 0.55 * clamp((rr - R) / H, 0.0, 1.0)) * 0.5;   // (THE UNDERSIDE, seen past the limb: half-lit at best)
             lsum += l * a * T;
+            ssum += s * a * T;
             wsum += a * T;
             T *= 1.0 - a;
             if (T < 0.03) break;
         }
     }
-    if (wsum > 0.0) lit = lsum / wsum;
+    if (wsum > 0.0) { lit = lsum / wsum; shd = ssum / wsum; }
     return 1.0 - T;
 }
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
@@ -310,32 +323,32 @@ void main()
     vec3 atmo = mix(u_atmo * 0.22 + vec3(0.01, 0.01, 0.04), u_atmo, rl);
 
     // ---- cloud decks: the VOLUME (u_cvol - settings > visuals) or the SURFACE march (the cloud relief, 2026-09-17); the base deck .6 of the top's height ----
-    float cab = 0.0; float clib = 1.0;
-    float cat = 0.0; float clit = 1.0; float emb = 1.0;
+    float cab = 0.0; float clib = 1.0; float cshb = 1.0;   // (each deck: its coverage, its day / night, its shape's shading)
+    float cat = 0.0; float clit = 1.0; float cshd = 1.0; float emb = 1.0;
     float czt = -1.0;
     if (u_cvol > 0.5) {
         bool grd = (r2 <= 1.0);
-        float lb = 1.0;
         float lt = 1.0;
+        float sd = 1.0;
         float hv = u_crelief * 1.6;   // (a slab wants more height than a surface's bump: the volume's deck stands taller)
         // ONE DECK in the volume (his call, 2026-09-17: the base deck was half the cost and most of the darkening; the
         // slab has its own depth) - the surface path below keeps both, for its two-shell drift
-        cat = deck_volume(CR, hv, p, r2, grd, lt);
+        cat = deck_volume(CR, hv, p, r2, grd, lt, sd);
         // the gathered alpha in steps: the chunky read, not a smooth fog
         cat = floor(cat * 6.0 + 0.5) / 6.0;
-        clit = lt;
+        clit = lt; cshd = sd;
     } else {
         vec3 nbd; vec3 nbn;
         float bkb = 0.0;
         float czb = deck_march(CB, u_crelief * 0.6, p, r2, true, nbd, nbn, cab, bkb);   // (the base deck, on its own frame - the wind, 2026-09-17)
         if (czb < 0.0) cab = 0.0;
-        else clib = cloudband(dot(nbd, u_light)) * flankband(dot(nbn, u_light)) * (1.0 - 0.25 * bkb);   // (the deck's terminator x its slopes; an underside a little darker)
+        else { clib = cloudband(dot(nbd, u_light)); cshb = flankband(dot(nbn, u_light)) * (1.0 - 0.5 * bkb); }   // (the deck's terminator; its slopes, and an underside half-lit - apart, 2026-09-17)
         vec3 ntd; vec3 ntn;
         float bkt = 0.0;
         czt = deck_march(CR, u_crelief, p, r2, false, ntd, ntn, cat, bkt);
         if (czt < 0.0) cat = 0.0;
         else {
-            clit = cloudband(dot(ntd, u_light)) * flankband(dot(ntn, u_light)) * (1.0 - 0.25 * bkt);
+            clit = cloudband(dot(ntd, u_light)); cshd = flankband(dot(ntn, u_light)) * (1.0 - 0.5 * bkt);
             if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
         }
     }
@@ -343,10 +356,12 @@ void main()
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
     float duskb = smoothstep(0.25, 0.55, clib) * (1.0 - smoothstep(0.55, 0.95, clib));   // the undersides catch the sunset too (2026-09-16)
     cbcol += mix(vec3(0.85, 0.35, 0.45), u_atmo, 0.30) * (duskb * 0.30);
+    cbcol *= cshb;   // (the shape's shading last: the underside dark by day and by night alike - 2026-09-17)
     vec3 ctcol = vec3(0.97, 0.98, 1.0) * clit * emb;
     if (clit < 0.9) ctcol = mix(ctcol, vec3(0.05, 0.06, 0.13), 0.55 * (1.0 - clit));
     float duskc = smoothstep(0.25, 0.55, clit) * (1.0 - smoothstep(0.55, 0.95, clit));
     ctcol += mix(vec3(0.80, 0.30, 0.55), u_atmo, 0.22) * (duskc * 0.30);
+    ctcol *= cshd;
 
     // ---- ring ----
     float ringA = 0.0;
