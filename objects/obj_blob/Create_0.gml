@@ -154,10 +154,14 @@ __poke = function() {
 			bub_t = 110;
 		}
 	}
-	// THE SPRITE MENU (his ask, 2026-09-16): a poke opens the roster on this one - and the first poke ever unlocks the menu
-	if (!variable_global_exists("sprites_met") || !g.sprites_met) { g.sprites_met = true; unfold_grant("sprites", "sprites: tap one to manage them"); }
-	if (st != 4) exped_open("sprites", s.id);
+	// the first poke ever (the newcomer) unlocks the header's [sprites] line (his ask, 2026-09-16)
+	if (!variable_global_exists("sprites_met") || !g.sprites_met) { g.sprites_met = true; unfold_grant("sprites", "sprites: the header menu has them now"); }
+	// A DOUBLE TAP opens the small tooltip (lv / hp / mp); a tap on the tooltip opens the sprite menu on this one (his correction)
+	if (tap_last > 0) card_open = true;
+	tap_last = 22;
 };
+tap_last = 0;       // frames since a tap on it, for the double tap
+card_rect = undefined;   // the tooltip's rect on screen (the draw sets it; the step hit-tests it)
 
 // the shader's handles, once
 u_quad_b  = shader_get_uniform(sh_blob, "u_quad");
@@ -212,11 +216,14 @@ __draw_over = function() {
 		draw_set_halign(fa_left);
 		var _ri = upgrade_rarity_info(s[$ "rar"] ?? 0);
 		var _mn = _lk.mats[clamp(_mat, 0, array_length(_lk.mats) - 1)].name;
+		// THE SMALL TOOLTIP (his correction, 2026-09-16): the name and level, hp, mp - a tap on it opens the sprite menu
+		var _pw = sprite_pawn(s), _sh = sprite_sheet(s);
+		var _hpc = floor(_pw.maxhp * (s[$ "hpf"] ?? 1)), _mpc = round(_pw.maxmp * (s[$ "mpf"] ?? 1));
 		var _lines = [
-			s.name,
-			_ri.name + "  -  " + _p.name + "  -  " + _mn + ", " + _ey.name,
-			"taps " + string(s.taps) + ((s.away > 0) ? ("  (" + string(s.away) + " while idle)") : ""),
-			sprite_lore(s),
+			s.name + "  -  lv " + string(_sh.lv),
+			"hp " + string(_hpc) + " / " + string(_pw.maxhp),
+			"mp " + string(_mpc) + " / " + string(_pw.maxmp),
+			"tap for more",
 		];
 		var _cw = 0;
 		for (var _k = 0; _k < 4; _k++) _cw = max(_cw, string_width(_lines[_k]));
@@ -225,20 +232,21 @@ __draw_over = function() {
 		var _cx = clamp(floor(x + r + 6), 2, room_width - _cw - 2);
 		var _cy2 = clamp(floor(_cy - _ch), 20, room_height - _ch - 2);
 		var _ca = card_a;
+		card_rect = { x : _cx, y : _cy2, w : _cw, h : _ch };
 		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, _cw, _ch, 0, c_black, .82 * _ca);
 		draw_px_rect(_cx, _cy2, _cw, _ch, _ri.col, .8 * _ca);
 		draw_sprite_ext(spr_pixel_1x1, 0, _cx, _cy2, 2, _ch, 0, _ri.col, .95 * _ca);
 		draw_set_color(_col);
 		draw_set_alpha(.95 * _ca);
 		draw_text(_cx + 5, _cy2 + 3, _lines[0]);
-		draw_set_color(_ri.col);
+		draw_set_color(c_sgreen);
 		draw_set_alpha(.9 * _ca);
 		draw_text(_cx + 5, _cy2 + 13, _lines[1]);
 		draw_set_color(sett_ink);
 		draw_set_alpha(.8 * _ca);
 		draw_text(_cx + 5, _cy2 + 23, _lines[2]);
 		draw_set_color(merge_colour(sett_ink, _col, .5));
-		draw_set_alpha(.6 * _ca);
+		draw_set_alpha(.45 * _ca);
 		draw_text(_cx + 5, _cy2 + 33, _lines[3]);
 		draw_set_alpha(1);
 	}

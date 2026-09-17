@@ -518,7 +518,7 @@ if (view == "crew" || view == "sheet") {
 		var _pn = _pl2[clamp(_sp.pers, 0, array_length(_pl2) - 1)].name, _mn = _lk.mats[clamp(_sp[$ "mat"] ?? 0, 0, array_length(_lk.mats) - 1)].name;
 		draw_set_halign(fa_left); draw_set_color(_ri.col); draw_set_alpha(.9); draw_text(_fx, _fy + 4, _ri.name + "  -  " + _pn + "  -  " + _mn);
 		var _job = _sp[$ "job"] ?? "tap";
-		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_fx, _fy - 8, "task: " + ((_job == "tap") ? "tapping" : _job) + "  -  taps " + string(_sp.taps) + (((_sp[$ "away"] ?? 0) > 0) ? ("  (" + string(_sp.away) + " while idle)") : ""));
+		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_fx, _fy - 8, "task: " + ((_job == "tap") ? "autotapping" : _job) + "  -  taps " + string(_sp.taps) + (((_sp[$ "away"] ?? 0) > 0) ? ("  (" + string(_sp.away) + " while idle)") : ""));
 		var _dr = __dismiss_r(), _away2 = (_sp[$ "trip"] ?? false), _armed = (dismiss_arm == _sp.id && dismiss_t > 0);
 		draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, _away2 ? "away" : (_armed ? "sure? dismiss" : "dismiss"), _armed ? c_hred : c_gray, !_away2, _armed);
 	}
