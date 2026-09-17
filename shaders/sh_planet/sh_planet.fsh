@@ -173,6 +173,18 @@ float lightband(float d)
 {
     return mix(0.13, 1.0, smoothstep(-0.22, 0.30, d));   // (the night floor: .10 -> .13, the land reads - his ask 2026-09-17)
 }
+// THE DECKS' LIGHT (2026-09-17, his report: the clouds fade long before the limb): the ground's band starts
+// dimming 72 degrees from the sun - with the sun behind the camera that is two fifths of the way out, and a white
+// deck shows it where the land does not. The deck's own band holds bright until near the terminator, then drops;
+// a puff's slopes (the relief's normal) shade only mildly - a cloud is a scatterer, its flanks are never black
+float cloudband(float d)
+{
+    return mix(0.12, 1.0, smoothstep(-0.18, 0.12, d));
+}
+float flankband(float d)
+{
+    return mix(0.55, 1.0, smoothstep(-0.30, 0.30, d));
+}
 
 void main()
 {
@@ -201,14 +213,14 @@ void main()
     float bkb = 0.0;
     float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab, bkb);
     if (czb < 0.0) cab = 0.0;
-    else clib = (lightband(dot(nbn, u_light)) * 0.8 + lightband(dot(nbd, u_light)) * 0.2) * (1.0 - 0.25 * bkb);   // (an underside a little darker)
+    else clib = cloudband(dot(nbd, u_light)) * flankband(dot(nbn, u_light)) * (1.0 - 0.25 * bkb);   // (the deck's terminator x its slopes; an underside a little darker)
     float cat = 0.0; float clit = 1.0; float emb = 1.0;
     vec3 ntd; vec3 ntn;
     float bkt = 0.0;
     float czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat, bkt);
     if (czt < 0.0) cat = 0.0;
     else {
-        clit = (lightband(dot(ntn, u_light)) * 0.8 + lightband(dot(ntd, u_light)) * 0.2) * (1.0 - 0.25 * bkt);
+        clit = cloudband(dot(ntd, u_light)) * flankband(dot(ntn, u_light)) * (1.0 - 0.25 * bkt);
         if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
     }
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
