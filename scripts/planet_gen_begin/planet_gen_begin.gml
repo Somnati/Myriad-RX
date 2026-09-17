@@ -84,13 +84,24 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	if (_kind == "gas") {
 		var _gh = (_hue >= 0) ? _hue : irandom(255);
 		_atmo = make_colour_hsv(_gh, irandom_range(80, 135), 255);
+		// TWO HUES (his ask, 2026-09-17: every giant was one hue, banded): the bands alternate between the
+		// giant's hue and a SECOND - a neighbour (cream and rust, blue and teal: the Jupiters and the Neptunes)
+		// three times in five, its opposite else (the vivid ones) - and a band now and then breaks the
+		// alternation, so it reads as weather, not stripes. Hashed off the seed: the stream holds, nothing moves
+		var _g2h = hash_mix(_seed, 611);
+		var _g2off = ((_g2h mod 100) < 60) ? (38 + ((_g2h div 100) mod 21)) : (118 + ((_g2h div 100) mod 21));
+		if (((_g2h div 7) mod 2) == 0) _g2off = -_g2off;
+		var _gh2 = (_gh + _g2off + 512) mod 256;
 		_bands = []; _pal = [];
-		var _v0 = 0;
+		var _v0 = 0, _bi = 0;
 		while (_v0 < 1) {
 			var _lum = irandom_range(120, 235);
 			array_push(_bands, { v0 : _v0 });
-			array_push(_pal, make_colour_hsv((_gh + irandom_range(-16, 16) + 256) mod 256, irandom_range(55, 135), _lum));
+			var _useb = ((_bi mod 2) == 1);
+			if ((hash_mix(_seed, 640 + _bi) mod 100) < 22) _useb = !_useb;
+			array_push(_pal, make_colour_hsv(((_useb ? _gh2 : _gh) + irandom_range(-16, 16) + 256) mod 256, irandom_range(55, 135), _lum));
 			_v0 += random_range(.06, .16);
+			_bi++;
 		}
 		if (random(1) < .7) {
 			var _sz2 = random_range(-.55, .55);
@@ -116,8 +127,19 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		var _vs = irandom_range(120, 200);
 		var _vv = irandom_range(175, 220);
 		if (_hue >= 0) _vh = _hue;   // the family's hue: the world reads as its portrait promised
-		var _fh = (_vh + choose(1, -1) * irandom_range(90, 150) + 256) mod 256;
+		var _fh = (_vh + choose(1, -1) * irandom_range(90, 150) + 256) mod 256;   // (the rolls stay - the stream holds)
 		var _fs = irandom_range(130, 210);
+		// THE TREES (his ask, 2026-09-17 - the wood was always the grass's far side): five families, hashed off
+		// the seed. kin = the grass's own hue, deeper (the earthly wood); autumn = reds, oranges and golds;
+		// contrast = the rule of before, the grass's opposite; ink = near-black with a tint; pale = silver and
+		// bone (the birch woods, the ghost woods). Jungle and swamp derive from the wood, as before
+		var _fv = 150;
+		var _tf = hash_mix(_seed, 733) mod 100;
+		if (_tf < 38)      { _fh = (_vh + (hash_mix(_seed, 734) mod 21) - 10 + 256) mod 256; _fs = min(255, _vs + 30); _fv = 150; }
+		else if (_tf < 55) { _fh = hash_mix(_seed, 735) mod 40; _fs = 150 + (hash_mix(_seed, 736) mod 70); _fv = 165; }
+		else if (_tf < 80) { }   // (contrast: as rolled)
+		else if (_tf < 90) { _fh = hash_mix(_seed, 737) mod 256; _fs = 60 + (hash_mix(_seed, 738) mod 60); _fv = 85; }
+		else               { _fh = hash_mix(_seed, 739) mod 256; _fs = 20 + (hash_mix(_seed, 740) mod 40); _fv = 205; }
 		var _sand;
 		var _sr = irandom(9);
 		if (_sr < 4)      _sand = make_colour_hsv(irandom_range(10, 32),  irandom_range(80, 160), irandom_range(140, 205));
@@ -137,8 +159,8 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 			merge_colour(_sand, c_white, .3),
 			_sand,
 			make_colour_hsv(_vh, _vs, _vv),
-			make_colour_hsv(_fh, _fs, 150),
-			make_colour_hsv((_fh + 12) mod 256, min(_fs + 35, 255), 118),
+			make_colour_hsv(_fh, _fs, _fv),
+			make_colour_hsv((_fh + 12) mod 256, min(_fs + 35, 255), round(_fv * .79)),
 			rgb(150, 158, 138), rgb(235, 240, 245),
 			_peak,
 			rgb(248, 250, 255),
@@ -147,7 +169,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		// floor, 16 crater rim, 17 basalt crust, 18 lava flow (emissive)
 		array_push(_pal,
 			merge_colour(rgb(62, 112, 175), rgb(110, 215, 205), .55),
-			make_colour_hsv(_fh, min(_fs + 30, 255), 88),
+			make_colour_hsv(_fh, min(_fs + 30, 255), round(_fv * .59)),
 			merge_colour(_sand, c_white, .55),
 			rgb(198, 224, 244),
 			merge_colour(_sand, c_black, .38),
