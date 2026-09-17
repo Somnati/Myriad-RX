@@ -482,10 +482,8 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 // sky and the sun come from the galaxy (pv_sky)
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
-lod_show = undefined;                // THE ZOOM PATCH showing (2026-09-17): { seed, k, u0, v0, uw, vh, pw, ph, cu, cv, hu, hv, tsurf, hsurf }
-lod_bld  = undefined;                // ...and the one building (+ row, tbuf, hbuf)
-lod_ord  = undefined;                // the channel probe's answer (__lod_order): the byte index of r, g, b, a in a surface texel
-lod_pcu  = -1; lod_pcv = 0;          // the view's centre last step (the look-ahead)
+lod_k2 = undefined; lod_k4 = undefined;   // THE ZOOM TIERS (2026-09-17): the page's world at 2x and 4x the map (planet_lod_begin's structs, building or ready)
+lod_seed = -1;                            // ...whose world they are
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
@@ -2418,7 +2416,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
-	var _lod = (view == "planet" && is_struct(lod_show) && lod_show.seed == _pn.seed) ? lod_show : undefined;   // (the zoom patch, the page's own - 2026-09-17)
+	var _lod = (view == "planet") ? __lod_pick(_pn) : undefined;   // (the zoom tier standing for this zoom, the page's own - 2026-09-17)
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
@@ -2554,145 +2552,44 @@ __worlds_step = function() {
 // of the window off its centre; dropped when the page changes or the zoom backs off. K = what the screen's
 // cells allow (a patch texel never finer than 1.3 cells - lod_cells), off the zoom's TARGET, so an eased zoom
 // builds once, not at every step
-__lod_free = function(_l) {
-	if (is_struct(_l)) {
-		if (surface_exists(_l.tsurf)) surface_free(_l.tsurf);
-		if (surface_exists(_l.hsurf)) surface_free(_l.hsurf);
-		if (buffer_exists(_l.tbuf)) buffer_delete(_l.tbuf);
-		if (buffer_exists(_l.hbuf)) buffer_delete(_l.hbuf);
-	}
+// THE ZOOM TIERS (his call, 2026-09-17: "LOD triggers based off zoom distance, not camera movement"): a tier is the
+// WHOLE map at k times the base map's resolution (planet_lod_begin / planet_lod_step: the base map's fields
+// interpolated, the biome law re-run between its texels), built once for the page's world and kept while the page
+// shows it. k = what the screen's cells allow (a tier texel at least lod_cells cells wide - finer beats against
+// the cells): 2 from about x3, 4 from about x6. The first tier builds AHEAD, as soon as the base map stands, so
+// the first zoom-in has it; the second on demand, the first showing meanwhile. No build runs while the camera
+// moves (a drag, a glide, a snap) - the frames it costs would stutter the motion
+__lod_drop = function() { lod_k2 = planet_lod_free(lod_k2); lod_k4 = planet_lod_free(lod_k4); lod_seed = -1; };
+__lod_want = function() {   // the tier the zoom asks for: 0, 2 or 4
+	if (view != "planet" || !is_struct(pl_dest)) return 0;
+	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1), _pcf = planet_config();
+	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	var _kc = (starmap_config().pr * _zt * 2 * pi / _pn.tw) / (max(1, _pcf.px_size) * (_pcf[$ "lod_cells"] ?? 1.3));
+	return (_kc >= 4) ? 4 : ((_kc >= 2) ? 2 : 0);
+};
+__lod_pick = function(_pn) {   // the best tier standing at or under the one wanted (for the draw)
+	if (lod_seed != _pn.seed) return undefined;
+	var _kw = __lod_want();
+	if (_kw >= 4 && is_struct(lod_k4) && lod_k4.ready) return lod_k4;
+	if (_kw >= 2 && is_struct(lod_k2) && lod_k2.ready) return lod_k2;
 	return undefined;
 };
-// THE CHANNEL PROBE (once): buffer_set_surface's byte order is the platform's (learned the hard way in the demo).
-// A texel of known bytes goes up and is read back; whichever byte landed in red is red's. Alpha is the byte left
-__lod_order = function() {
-	if (is_array(lod_ord)) return lod_ord;
-	var _ts = surface_create(1, 1), _tb = buffer_create(4, buffer_fixed, 1);
-	buffer_write(_tb, buffer_u8, 40); buffer_write(_tb, buffer_u8, 80); buffer_write(_tb, buffer_u8, 120); buffer_write(_tb, buffer_u8, 255);
-	buffer_set_surface(_tb, _ts, 0);
-	var _c = surface_getpixel(_ts, 0, 0);
-	var _vals = [colour_get_red(_c), colour_get_green(_c), colour_get_blue(_c)];
-	var _ord = [2, 1, 0, 3], _ok = true, _used = [false, false, false, false];   // (b g r a - the windows default - unless the probe says otherwise)
-	for (var _ch = 0; _ch < 3; _ch++) {
-		var _vv = _vals[_ch], _bi = -1;
-		if (abs(_vv - 40) < 6) _bi = 0; else if (abs(_vv - 80) < 6) _bi = 1; else if (abs(_vv - 120) < 6) _bi = 2;
-		if (_bi < 0 || _used[_bi]) { _ok = false; break; }
-		_ord[_ch] = _bi; _used[_bi] = true;
-	}
-	if (_ok) { for (var _bi2 = 0; _bi2 < 4; _bi2++) if (!_used[_bi2]) _ord[3] = _bi2; lod_ord = _ord; } else lod_ord = [2, 1, 0, 3];
-	surface_free(_ts); buffer_delete(_tb);
-	return lod_ord;
-};
 __lod_step = function() {
-	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	var _pcf = planet_config(), _pr = starmap_config().pr * _zt;
-	// THE TIER (his report, 2026-09-17: "the lowest zoom level looks bad... pixel warping"): a patch texel finer than
-	// the screen's cells beats against them. K is the most the cells allow - a patch texel at least lod_cells
-	// cells wide (1.3: never under a cell, never much over two) - so the first tier waits until x3, and every tier
-	// is coarser than before; the window is wider for it (the cost is K squared)
-	var _k0 = 0;
-	if (view == "planet" && is_struct(pl_dest)) {
-		var _pn0 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-		_k0 = min(6, floor((_pr * 2 * pi / _pn0.tw) / (max(1, _pcf.px_size) * (_pcf[$ "lod_cells"] ?? 1.3))));
-	}
-	if (_k0 < 2) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); lod_pcu = -1; return; }
+	if (view != "planet" || !is_struct(pl_dest)) { __lod_drop(); return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
-	var _tw = _pn.tw, _th = _pn.th, _pvr = __pv_r();
-	// the view's centre on the map, and the window the page sees there (half again wider, for the drift)
-	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
-	var _m = mat3_mul(mat3_transpose(_wm), pv_cam);
-	var _t = mat3_apply(_m, 0, 0, 1);
-	var _cu = arctan2(_t[2], _t[0]) / (2 * pi) + .5, _cv = arccos(clamp(_t[1], -1, 1)) / pi;
-	var _k = _k0;
-	var _aw = arcsin(min(.999, (_pvr.w * .5) / _pr)), _ah = arcsin(min(.999, (_pvr.h * .5) / _pr));
-	var _hu = min(.5, _aw / (2 * pi) * 1.9 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.9);   // (nearly twice the view: a large area at the tier - his ask)
-	// THE LOOK-AHEAD (his report, 2026-09-17: "panning around ... shows a low quality version for a bit before the
-	// higher quality pops in"): a new window sits a little ahead of where the view is heading, so a pan runs into
-	// patch, not map; the rebuild fires at a quarter of the window's drift, well before the old one's edge shows
-	var _dcu = 0, _dcv = 0;
-	if (lod_pcu >= 0) { _dcu = _cu - lod_pcu; if (_dcu > .5) _dcu -= 1; if (_dcu < -.5) _dcu += 1; _dcv = _cv - lod_pcv; }
-	lod_pcu = _cu; lod_pcv = _cv;
-	var _cur = is_struct(lod_bld) ? lod_bld : lod_show;
-	if (is_struct(_cur) && _cur.seed == _pn.seed && _cur.k == _k) {
-		var _du = abs(_cu - _cur.cu); _du = min(_du, 1 - _du);
-		if (_du < _cur.hu * .3 && abs(_cv - _cur.cv) < _cur.hv * .3) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
-	}
-	// a new patch - only once the view has SETTLED (no drag, no glide, no snap under way): a build begun mid-motion
-	// was thrown away and begun again every few frames as the centre ran off, and the frames it cost stuttered the
-	// motion itself (his report, 2026-09-17: the snap "jitters back and forth")
-	if (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1) return;
-	var _acu = _cu + clamp(_dcu * 8, -.2 * _hu, .2 * _hu), _acv = clamp(_cv + clamp(_dcv * 8, -.2 * _hv, .2 * _hv), 0, 1);
-	_acu = ((_acu mod 1) + 1) mod 1;
-	lod_bld = __lod_free(lod_bld);
-	var _uw = min(_tw, ceil(2 * _hu * _tw)), _vh = min(_th, ceil(2 * _hv * _th));
-	var _u0 = floor((_acu - _hu) * _tw); _u0 = ((_u0 mod _tw) + _tw) mod _tw;
-	var _v0 = clamp(floor((_acv - _hv) * _th), 0, _th - _vh);
-	var _pw = _uw * _k, _ph = _vh * _k;
-	lod_bld = { seed : _pn.seed, k : _k, u0 : _u0, v0 : _v0, uw : _uw, vh : _vh, pw : _pw, ph : _ph, cu : _acu, cv : _acv, hu : _hu, hv : _hv, row : 0,
-		tsurf : -1, hsurf : -1, tbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1), hbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1) };
-	__lod_build(_pn);
-};
-// the rows, a share of each frame, into two BUFFERS (a texel is four pokes, not two draw calls - the stamps were
-// a third of the bill); the textures are made whole at the end
-__lod_build = function(_pn) {
-	// (the budget is a share of the FRAME - at 144 hz a frame is seven ms, and eight of build stalled it: delta is
-	// the frame's length in sixtieths, so this is forty-five hundredths of a frame, two to eight ms)
-	var _l = lod_bld, _lim = get_timer() + clamp(delta * 16667 * .45, 2000, 8000);
-	if (!buffer_exists(_l.tbuf) || !buffer_exists(_l.hbuf)) { lod_bld = __lod_free(lod_bld); return; }
-	var _ord = __lod_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
-	var _tb = _l.tbuf, _hb = _l.hbuf;
-	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _bm = _pn.biome, _el = _pn.elev, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
-	var _base = _gas ? 1 : max(_sea, .34);
-	while (_l.row < _l.ph && get_timer() < _lim) {
-		var _j = _l.row, _by = _l.v0 + (_j div _k), _fy = ((_j mod _k) + .5) / _k;
-		var _v = (_l.v0 + (_j + .5) / _k) / _th;
-		var _o = _j * _l.pw * 4;
-		for (var _i = 0; _i < _l.pw; _i++) {
-			var _bx = (_l.u0 + (_i div _k)) mod _tw, _fx = ((_i mod _k) + .5) / _k, _bi = _bx + _by * _tw;
-			var _u = ((_l.u0 + (_i + .5) / _k) mod _tw) / _tw;
-			planet_texel(_ps, _u, _v);
-			var _b = _ps.ob, _oe = _ps.oe;
-			if (!_gas) {
-				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11);
-				if (_natl && _el[_bi] >= _sea) {   // (the base texel is land: its water is a lake or a river, not the coast's own call)
-					if (_bb == 1) _b = 1;
-					else if (_bb == 11) {
-						// a river: a line through the base texel, its centre toward each river or water neighbour's
-						var _hit = false, _any = false, _rw = .6 / _k;
-						for (var _dy = -1; _dy <= 1 && !_hit; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
-							if (_dx == 0 && _dy == 0) continue;
-							var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
-							var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
-							if (!(_nb == 0 || _nb == 1 || _nb == 11)) continue;
-							_any = true;
-							var _px2 = _fx - .5, _py2 = _fy - .5, _sx = _dx * .5, _sy = _dy * .5;
-							var _tt = clamp((_px2 * _sx + _py2 * _sy) / (_sx * _sx + _sy * _sy), 0, 1);
-							var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
-							if (sqrt(_ddx * _ddx + _ddy * _ddy) < _rw) { _hit = true; break; }
-						}
-						if (!_any && point_distance(_fx, _fy, .5, .5) < _rw) _hit = true;
-						if (_hit) _b = 11;
-					}
-				}
-			}
-			var _c = _pal[_b];
-			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
-			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
-			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11)) ? 255 : 0;
-			var _for = (!_gas) ? ((_b == 5 || _b == 6) ? 255 : ((_b == 12) ? 140 : 0)) : 0;
-			if (_wat > 0) _for = floor(clamp((_sea - _oe) / .08, 0, 1) * 255);   // (under water: the depth - the sea's gradient)
-			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
-			_o += 4;
-		}
-		_l.row++;
-	}
-	if (_l.row >= _l.ph) {
-		_l.tsurf = surface_create(_l.pw, _l.ph); _l.hsurf = surface_create(_l.pw, _l.ph);
-		buffer_set_surface(_l.tbuf, _l.tsurf, 0); buffer_set_surface(_l.hbuf, _l.hsurf, 0);
-		buffer_delete(_l.tbuf); buffer_delete(_l.hbuf); _l.tbuf = -1; _l.hbuf = -1;
-		lod_show = __lod_free(lod_show); lod_show = _l; lod_bld = undefined;
-	}
+	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; }
+	if (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1) return;   // (never under the camera's hand)
+	var _kw = __lod_want();
+	// what to build: the tier wanted if it is not standing; else the first tier, ahead
+	var _bk = 0;
+	if (_kw >= 4 && (!is_struct(lod_k4) || !lod_k4.ready)) _bk = 4;
+	else if (!is_struct(lod_k2) || !lod_k2.ready) _bk = 2;
+	if (_bk == 0) return;
+	if (_bk == 4 && !is_struct(lod_k4)) lod_k4 = planet_lod_begin(_pn, 4);
+	if (_bk == 2 && !is_struct(lod_k2)) lod_k2 = planet_lod_begin(_pn, 2);
+	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): a third of it, 1.5 to 6 ms
+	planet_lod_step(_pn, (_bk == 4) ? lod_k4 : lod_k2, get_timer() + clamp(delta * 16667 * .33, 1500, 6000));
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved

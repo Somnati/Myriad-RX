@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"surface_byte_order",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"surface_byte_order",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

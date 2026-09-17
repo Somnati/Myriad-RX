@@ -571,10 +571,13 @@ void main()
             float g = hash12(ct + 0.5);
             vec2 cl = cuv / 4.0; vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
             float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
-            float dens = (0.55 + 0.4 * vn) * fo;
+            // CLEARINGS, not static (his screenshot, 2026-09-17: the per-texel gaps read as noise): a gap is where the
+            // slow clump noise runs low - a blob a few texels wide - with the texel hash only roughening its edge;
+            // the trees keep a finer grain of brightness. A swamp's canopy (fo lower) opens wider
+            float open = vn + (g - 0.5) * 0.3 + (1.0 - fo) * 0.4;
             vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
-            vec3 canopy = col * (0.84 + 0.30 * hash12(ct + 17.3));
-            col = (g < dens) ? canopy : floorc;
+            vec3 canopy = col * (0.90 + 0.20 * hash12(ct + 17.3));
+            col = (open > 0.36) ? canopy : floorc;
         }
         // THE SEA'S DEPTH (his ask, 2026-09-17: "smooth blending between its depth layers"): under water the height
         // map's blue is the depth. The texel's own colour at the shore (the shallows where the map put them), the

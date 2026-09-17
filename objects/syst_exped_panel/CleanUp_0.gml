@@ -1,6 +1,6 @@
 /// the world box's surface goes with the panel
 if (surface_exists(wb_surf)) surface_free(wb_surf);
-lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld);   // (the zoom patch, 2026-09-17)
+__lod_drop();   // (the zoom tiers, 2026-09-17)
 wb_surf = -1;
 if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
 sky_fog_surf = -1;
