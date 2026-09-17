@@ -700,6 +700,9 @@ void main()
         // twice the reach (.42 radii - the quad's pad 1.6 has the room), the lit side bright, the night side nothing
         float t2 = clamp((sqrt(r2) - 1.0) / 0.42, 0.0, 1.0);
         float g = pow(1.0 - t2, 2.4) * 0.85 * smoothstep(0.45, 0.75, rl);   // (sharp into the night: a sliver past the terminator, then nothing)
+        // (a world with NO atmosphere - a moon - has no halo: its atmo is black, and a black halo with alpha was a dark
+        // band round the moon's lit limb, one cell wide - "a weird shadow in their corner", his report 2026-09-17)
+        g *= step(0.02, max(u_atmo.r, max(u_atmo.g, u_atmo.b)));
         g += dn * (min(g * 255.0 * 0.5, 1.4) / 255.0);
         vec3 col = atmo;
         float a = max(g, 0.0);

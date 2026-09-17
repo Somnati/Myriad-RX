@@ -45,6 +45,13 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 		ring : shader_get_uniform(sh_planet, "u_ring"), raxis : shader_get_uniform(sh_planet, "u_raxis"), rcol : shader_get_uniform(sh_planet, "u_ringcol"),
 		city : shader_get_uniform(sh_planet, "u_city"), cityn : shader_get_uniform(sh_planet, "u_cityn"), relief : shader_get_uniform(sh_planet, "u_relief"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"), cloud : shader_get_sampler_index(sh_planet, "u_cloud"), height : shader_get_sampler_index(sh_planet, "u_height"),
+		// (the world's newer uniforms, 2026-09-17: uniforms PERSIST between draws, and a moon drawn after the world inherited its
+		// zoom tier - u_pk 3 and the tier's textures - and drew the world's continents on itself; his report: "the moon
+		// decided not to moon")
+		crot2 : shader_get_uniform(sh_planet, "u_crot2"), wt : shader_get_uniform(sh_planet, "u_wt"), cvol : shader_get_uniform(sh_planet, "u_cvol"),
+		crelief : shader_get_uniform(sh_planet, "u_crelief"), canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
+		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"), pk : shader_get_uniform(sh_planet, "u_pk"),
+		pwin : shader_get_uniform(sh_planet, "u_pwin"),
 	};
 	// the quad on the pixel grid, like the world's
 	var _q = _mq * 1.02, _qx = _mx - _q, _qy = _my - _q;
@@ -67,6 +74,10 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_stormn"), 0);
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_aurora"), 0);
 	shader_set_uniform_f(_u.cfade, 0);
+	shader_set_uniform_f_array(_u.crot2, _mm); shader_set_uniform_f(_u.wt, 0, 0);
+	shader_set_uniform_f(_u.cvol, 0); shader_set_uniform_f(_u.crelief, 0); shader_set_uniform_f(_u.canopy, 0);
+	shader_set_uniform_f(_u.grass, .5, .5, .5); shader_set_uniform_f(_u.sea0, 0, 0, 0); shader_set_uniform_f(_u.sea1, 0, 0, 0);
+	shader_set_uniform_f(_u.pk, 0); shader_set_uniform_f(_u.pwin, 0, 0, 1, 1);   // (no zoom tier: its own texture, whole)
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);
 	shader_set_uniform_f_array(_u.city, array_create(24, 0));
 	shader_set_uniform_f(_u.cityn, 0);

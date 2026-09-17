@@ -3,7 +3,11 @@
 /// planet_gen_step keeps them) blended between the four base texels
 /// around it on a SMOOTH kernel (an s-curve, not a straight lerp: a
 /// texel's value holds near its centre and hands over near its edge), then
-/// planet_biome's law run on them. With K ODD the middle tier texel of
+/// planet_biome's law run on them; the HEIGHT on a Catmull-Rom cubic over
+/// the sixteen texels around it, because the bump shading reads the height's
+/// SLOPE and the smooth kernel's slope peaks at every texel edge - the
+/// mountains came out ruled into a grid (his screenshot, 2026-09-17); a
+/// cubic's slope is continuous. With K ODD the middle tier texel of
 /// every base texel sits exactly on its centre, so it IS the base texel -
 /// the tier can never disagree with the map where the map was sampled -
 /// and the texels between round the map's edges into curves. (Three
@@ -28,17 +32,30 @@ function planet_lod_step(_pn, _l, _until) {
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
 		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
+		var _ym = clamp(_y0 - 1, 0, _th - 1), _y2 = clamp(_y0 + 2, 0, _th - 1);
 		_y0 = clamp(_y0, 0, _th - 1);
-		_ty = _ty * _ty * (3 - 2 * _ty);   // (the smooth kernel)
+		// the cubic's row weights (Catmull-Rom), on the raw fraction
+		var _t2 = _ty * _ty, _t3 = _t2 * _ty;
+		var _cy0 = (-_t3 + 2 * _t2 - _ty) * .5, _cy1 = (3 * _t3 - 5 * _t2 + 2) * .5, _cy2 = (-3 * _t3 + 4 * _t2 + _ty) * .5, _cy3 = (_t3 - _t2) * .5;
+		var _rm = _ym * _tw, _r0 = _y0 * _tw, _r1 = _y1 * _tw, _r2 = _y2 * _tw;
+		_ty = _ty * _ty * (3 - 2 * _ty);   // (the smooth kernel, for the fields)
 		var _o = (_j * _w + _l.col) * 4;
 		for (var _i = _l.col; _i < _w; _i++) {
 			var _u = (_i + .5) / _w;
 			var _xx = _u * _tw - .5, _x0 = floor(_xx), _tx = _xx - _x0;
 			var _x1 = (_x0 + 1 + _tw) mod _tw; _x0 = (_x0 + _tw) mod _tw;   // (the seam wraps)
 			var _i00 = _x0 + _y0 * _tw, _i10 = _x1 + _y0 * _tw, _i01 = _x0 + _y1 * _tw, _i11 = _x1 + _y1 * _tw;
+			// the height: the cubic over the four columns x-1 .. x+2 (wrapping) of the four rows
+			var _xm = (_x0 + _tw - 1) mod _tw, _x2 = (_x0 + 2) mod _tw;
+			var _s2 = _tx * _tx, _s3 = _s2 * _tx;
+			var _cx0 = (-_s3 + 2 * _s2 - _tx) * .5, _cx1 = (3 * _s3 - 5 * _s2 + 2) * .5, _cx2 = (-3 * _s3 + 4 * _s2 + _tx) * .5, _cx3 = (_s3 - _s2) * .5;
+			var _hrm = _el[_rm + _xm] * _cx0 + _el[_rm + _x0] * _cx1 + _el[_rm + _x1] * _cx2 + _el[_rm + _x2] * _cx3;
+			var _hr0 = _el[_r0 + _xm] * _cx0 + _el[_r0 + _x0] * _cx1 + _el[_r0 + _x1] * _cx2 + _el[_r0 + _x2] * _cx3;
+			var _hr1 = _el[_r1 + _xm] * _cx0 + _el[_r1 + _x0] * _cx1 + _el[_r1 + _x1] * _cx2 + _el[_r1 + _x2] * _cx3;
+			var _hr2 = _el[_r2 + _xm] * _cx0 + _el[_r2 + _x0] * _cx1 + _el[_r2 + _x1] * _cx2 + _el[_r2 + _x2] * _cx3;
+			_ps.oe = _hrm * _cy0 + _hr0 * _cy1 + _hr1 * _cy2 + _hr2 * _cy3;
 			_tx = _tx * _tx * (3 - 2 * _tx);
 			var _w00 = (1 - _tx) * (1 - _ty), _w10 = _tx * (1 - _ty), _w01 = (1 - _tx) * _ty, _w11 = _tx * _ty;
-			_ps.oe = _el[_i00] * _w00 + _el[_i10] * _w10 + _el[_i01] * _w01 + _el[_i11] * _w11;
 			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
 			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
 			planet_biome(_ps, _u, _v);
