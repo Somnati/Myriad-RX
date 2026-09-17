@@ -22,6 +22,7 @@ function planet_gen_step(_pn, _rows = undefined) {
 			planet_texel(_ps, _uu2, _vv2);
 			_pn.elev[_i2]  = _ps.oe;
 			_pn.biome[_i2] = _ps.ob;
+			_pn.det[_i2] = _ps.od; _pn.moi[_i2] = _ps.om;   // (the fields, kept - the zoom tier interpolates them, 2026-09-17)
 			// clouds at this texel: the puffs, then the belts
 			var _a = 0;
 			var _bd = 99;

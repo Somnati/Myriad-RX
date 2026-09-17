@@ -482,7 +482,7 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 // sky and the sun come from the galaxy (pv_sky)
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
-lod_k2 = undefined; lod_k3 = undefined;   // THE ZOOM TIERS (2026-09-17): the page's world at 2x and 3x the map (planet_lod_begin's structs, building or ready)
+lod_k3 = undefined;                       // THE ZOOM TIER (2026-09-17): the page's world at 3x the map (planet_lod_begin's struct, building or ready)
 lod_seed = -1;                            // ...whose world they are
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
@@ -2557,44 +2557,37 @@ __worlds_step = function() {
 // of the window off its centre; dropped when the page changes or the zoom backs off. K = what the screen's
 // cells allow (a patch texel never finer than 1.3 cells - lod_cells), off the zoom's TARGET, so an eased zoom
 // builds once, not at every step
-// THE ZOOM TIERS (his call, 2026-09-17: "LOD triggers based off zoom distance, not camera movement"): a tier is the
-// WHOLE map at k times the base map's resolution (planet_lod_begin / planet_lod_step: the base map's fields
-// interpolated, the biome law re-run between its texels), built once for the page's world and kept while the page
-// shows it. k = what the screen's cells allow (a tier texel at least lod_cells cells wide - finer beats against
-// the cells): 2 from about x3, 3 from about x4.6. The first tier builds AHEAD, as soon as the base map stands, so
-// the first zoom-in has it; the second on demand, the first showing meanwhile. No build runs while the camera
-// moves (a drag, a glide, a snap) - the frames it costs would stutter the motion
-__lod_drop = function() { lod_k2 = planet_lod_free(lod_k2); lod_k3 = planet_lod_free(lod_k3); lod_seed = -1; };
-__lod_want = function() {   // the tier the zoom asks for: 0, 2 or 4
+// THE ZOOM TIER (his call, 2026-09-17: "LOD triggers based off zoom distance, not camera movement"): the WHOLE
+// map at 3x its resolution (planet_lod_begin / planet_lod_step - the base map's fields blended between its texels
+// on a smooth kernel, the biome law run on them; k odd, so the base texels' own centres are exact), built once
+// for the page's world, AHEAD, as soon as its base map stands, and kept while the page shows it. It shows from
+// the zoom where a tier texel is at least lod_cells screen cells wide (~x4.6 - finer beats against the cells).
+// Nothing about the camera. No build runs while the camera moves (a drag, a glide, a snap): the frames it costs
+// would stutter the motion. A tier whose textures the gpu dropped (the window going full screen) is re-uploaded
+// from its kept buffers
+__lod_drop = function() { lod_k3 = planet_lod_free(lod_k3); lod_seed = -1; };
+__lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1), _pcf = planet_config();
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	var _kc = (starmap_config().pr * _zt * 2 * pi / _pn.tw) / (max(1, _pcf.px_size) * (_pcf[$ "lod_cells"] ?? 1.3));
-	return (_kc >= 3) ? 3 : ((_kc >= 2) ? 2 : 0);   // (3x is the top: 4x was four times the map's texels again - whole minutes of noise, his report)
+	return (_kc >= 3) ? 3 : 0;
 };
-__lod_pick = function(_pn) {   // the best tier standing at or under the one wanted (for the draw)
-	if (lod_seed != _pn.seed) return undefined;
-	var _kw = __lod_want();
-	if (_kw >= 3 && is_struct(lod_k3) && lod_k3.ready) return lod_k3;
-	if (_kw >= 2 && is_struct(lod_k2) && lod_k2.ready) return lod_k2;
-	return undefined;
+__lod_pick = function(_pn) {   // the tier for the draw, if it stands and the zoom asks for it
+	if (lod_seed != _pn.seed || !is_struct(lod_k3) || !lod_k3.ready || __lod_want() < 3) return undefined;
+	if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) return undefined;   // (dropped by the gpu: the Step re-uploads it; not here, inside the page's target)
+	return lod_k3;
 };
 __lod_step = function() {
 	if (view != "planet" || !is_struct(pl_dest)) { __lod_drop(); return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; }
+	if (is_struct(lod_k3) && lod_k3.ready) { if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) planet_lod_upload(lod_k3); return; }
 	if (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1) return;   // (never under the camera's hand)
-	var _kw = __lod_want();
-	// what to build: the tier wanted if it is not standing; else the first tier, ahead
-	var _bk = 0;
-	if (_kw >= 3 && (!is_struct(lod_k3) || !lod_k3.ready)) _bk = 3;
-	else if (!is_struct(lod_k2) || !lod_k2.ready) _bk = 2;
-	if (_bk == 0) return;
-	if (_bk == 3 && !is_struct(lod_k3)) lod_k3 = planet_lod_begin(_pn, 3);
-	if (_bk == 2 && !is_struct(lod_k2)) lod_k2 = planet_lod_begin(_pn, 2);
-	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): a third of it, 1.5 to 6 ms
-	planet_lod_step(_pn, (_bk == 3) ? lod_k3 : lod_k2, get_timer() + clamp(delta * 16667 * .4, 1500, 6000));
+	if (!is_struct(lod_k3)) lod_k3 = planet_lod_begin(_pn, 3);
+	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms
+	planet_lod_step(_pn, lod_k3, get_timer() + clamp(delta * 16667 * .4, 1500, 6000));
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved

@@ -1,14 +1,16 @@
 /// @description planet_lod_step(pn, l, until) -> true once the tier stands (l.ready): builds rows of a zoom tier (planet_lod_begin) until the get_timer deadline
-/// A tier texel is the terrain SAMPLED THERE (planet_texel at the tier
-/// texel's own centre, exactly as the base map's texels were at theirs)
-/// WHERE THE MAP'S TEXELS DISAGREE - the four base texels around it are not
-/// one biome - and the base's own biome elsewhere (its height between the
-/// four). So a coast, a wood's edge, a river's bank is truly resolved,
-/// the inside of a plain costs nothing, and the tier agrees with the map
-/// everywhere the map is sure. (The first cut interpolated the fields
-/// everywhere: a smoothed field misses its thresholds and every biome
-/// shifted between tiers; the second sampled everywhere: whole minutes
-/// of noise at 4x - his reports, 2026-09-17)
+/// A tier texel is the base map's FIELDS (elevation, detail, moisture -
+/// planet_gen_step keeps them) blended between the four base texels
+/// around it on a SMOOTH kernel (an s-curve, not a straight lerp: a
+/// texel's value holds near its centre and hands over near its edge), then
+/// planet_biome's law run on them. With K ODD the middle tier texel of
+/// every base texel sits exactly on its centre, so it IS the base texel -
+/// the tier can never disagree with the map where the map was sampled -
+/// and the texels between round the map's edges into curves. (Three
+/// earlier cuts, 2026-09-17: a straight lerp at even K put every tier
+/// texel off-centre and the biomes drifted; sampling the noise at every
+/// tier texel was minutes; sampling only along the map's edges seamed
+/// where the rule changed hands.)
 /// Rivers and lakes ride over from the base biome map: a lake's texel
 /// whole, a river as a line through its texel toward each river or water
 /// neighbour. The colour texture (rgb the biome's colour, alpha 1 - glow)
@@ -21,27 +23,26 @@ function planet_lod_step(_pn, _l, _until) {
 	var _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
 	var _tb = _l.tbuf, _hb = _l.hbuf;
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _w = _l.w;
-	var _el = _pn.elev, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
+	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
 		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
 		_y0 = clamp(_y0, 0, _th - 1);
+		_ty = _ty * _ty * (3 - 2 * _ty);   // (the smooth kernel)
 		var _o = (_j * _w + _l.col) * 4;
 		for (var _i = _l.col; _i < _w; _i++) {
 			var _u = (_i + .5) / _w;
 			var _xx = _u * _tw - .5, _x0 = floor(_xx), _tx = _xx - _x0;
 			var _x1 = (_x0 + 1 + _tw) mod _tw; _x0 = (_x0 + _tw) mod _tw;   // (the seam wraps)
 			var _i00 = _x0 + _y0 * _tw, _i10 = _x1 + _y0 * _tw, _i01 = _x0 + _y1 * _tw, _i11 = _x1 + _y1 * _tw;
-			var _b, _oe, _b00 = _bm[_i00];
-			if (_b00 == _bm[_i10] && _b00 == _bm[_i01] && _b00 == _bm[_i11]) {
-				// the map is sure here: its biome, its height between the four
-				_b = _b00;
-				_oe = _el[_i00] * (1 - _tx) * (1 - _ty) + _el[_i10] * _tx * (1 - _ty) + _el[_i01] * (1 - _tx) * _ty + _el[_i11] * _tx * _ty;
-			} else {
-				planet_texel(_ps, _u, _v);
-				_b = _ps.ob; _oe = _ps.oe;
-			}
+			_tx = _tx * _tx * (3 - 2 * _tx);
+			var _w00 = (1 - _tx) * (1 - _ty), _w10 = _tx * (1 - _ty), _w01 = (1 - _tx) * _ty, _w11 = _tx * _ty;
+			_ps.oe = _el[_i00] * _w00 + _el[_i10] * _w10 + _el[_i01] * _w01 + _el[_i11] * _w11;
+			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
+			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
+			planet_biome(_ps, _u, _v);
+			var _b = _ps.ob, _oe = _ps.oe;
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11);
@@ -79,11 +80,6 @@ function planet_lod_step(_pn, _l, _until) {
 		_l.col = 0;
 		_l.row++;
 	}
-	if (_l.row >= _l.h) {
-		_l.tsurf = surface_create(_l.w, _l.h); _l.hsurf = surface_create(_l.w, _l.h);
-		buffer_set_surface(_l.tbuf, _l.tsurf, 0); buffer_set_surface(_l.hbuf, _l.hsurf, 0);
-		buffer_delete(_l.tbuf); buffer_delete(_l.hbuf); _l.tbuf = -1; _l.hbuf = -1;
-		_l.ready = true;
-	}
+	if (_l.row >= _l.h) { _l.ready = true; planet_lod_upload(_l); }   // (the buffers are KEPT: a lost surface - the window going full screen - is re-uploaded, not rebuilt)
 	return _l.ready;
 }

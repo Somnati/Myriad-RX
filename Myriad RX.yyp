@@ -662,6 +662,7 @@
     {"id":{"name":"planet_lod_begin","path":"scripts/planet_lod_begin/planet_lod_begin.yy",},},
     {"id":{"name":"planet_lod_free","path":"scripts/planet_lod_free/planet_lod_free.yy",},},
     {"id":{"name":"planet_lod_step","path":"scripts/planet_lod_step/planet_lod_step.yy",},},
+    {"id":{"name":"planet_lod_upload","path":"scripts/planet_lod_upload/planet_lod_upload.yy",},},
     {"id":{"name":"planet_moons","path":"scripts/planet_moons/planet_moons.yy",},},
     {"id":{"name":"planet_pick","path":"scripts/planet_pick/planet_pick.yy",},},
     {"id":{"name":"planet_props","path":"scripts/planet_props/planet_props.yy",},},
