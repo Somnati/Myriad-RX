@@ -1204,9 +1204,8 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   /
 		var _scol = _s.magic ? c_hpurple : c_horange, _sword = "";
 		if (_sel != "") { var _sei = cbt_elem_info(_sel); _scol = _sei.col; _sword = _sei.name; }
 		else if (_ssc != "") { var _sci = cbt_elem_info(_ssc); _scol = _sci.col; _sword = _ssc; }
-		__slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _scol);
+		__slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _scol, false, is_struct(it_pop) && it_pop[$ "sk"] == _s);   // (the rim = selected)
 		array_push(it_rects, { x : _rx0 - 3, y : _ly - 1, w : _skw, h : _rowh, sk : _s });
-		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) draw_capsule(_rx0 - 3, _ly - 1, _skw, _rowh, c_white, c_white, .18);
 		draw_set_color(merge_colour(_scol, c_white, .3)); draw_set_alpha(.95);
 		draw_text(_rx0 + 6, _ly + 1, __sheet_cut(_s.name, _skw - 52 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
 		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85);
@@ -1234,8 +1233,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   /
 			continue;
 		}
 		var _a = _all_ab[_k], _arc = upgrade_rarity_info(_a.rar).col;
-		__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _arc);
-		if (is_struct(it_pop) && it_pop[$ "ab"] == _i) draw_capsule(_rx0 - 3, _ly2 - 1, _rw0, _rowh, c_white, c_white, .18);
+		__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _arc, false, is_struct(it_pop) && it_pop[$ "ab"] == _i);   // (the rim = selected)
 		draw_set_color(merge_colour(_arc, c_white, .3)); draw_set_alpha(.95);
 		draw_text(_rx0 + 6, _ly2 + 1, __sheet_cut(_a.name, _rw0 - 96));
 		draw_set_halign(fa_right); draw_set_color(_ink); draw_set_alpha(.8);
@@ -1584,9 +1582,8 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 		var _rw = _rows[_i];
 		var _ry = _ey + 11 + _i * 12;
 		var _rc = is_undefined(_rw.it) ? _dim : _rw.it.col;
-		__slot_row(_ex, _ry - 1, _ew, 11, _rc, is_undefined(_rw.it));
+		__slot_row(_ex, _ry - 1, _ew, 11, _rc, is_undefined(_rw.it), is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it);   // (the rim = selected)
 		if (!is_undefined(_rw.it)) array_push(it_rects, { x : _ex, y : _ry - 1, w : _ew, h : 11, it : _rw.it, worn : true });
-		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) draw_capsule(_ex, _ry - 1, _ew, 11, c_white, c_white, .18);
 		// DISGAEA'S ROW (his screenshots, 2026-09-17): the item's name on the
 		// left - "(none)" dim when the slot is bare - and the slot's KIND on
 		// the right, small and dim; the level tucked after the name
@@ -1616,8 +1613,7 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 		if (_iy + 11 > _y1 - 2) break;
 		if (_i >= _pn) { __slot_row(_px0, _iy - 1, _pw, 11, _dim, true); continue; }   // (empty is empty)
 		var _it = _sh.inv[_i];
-		__slot_row(_px0, _iy - 1, _pw, 11, _it.col);
-		if (is_struct(it_pop) && it_pop[$ "it"] == _it) draw_capsule(_px0, _iy - 1, _pw, 11, c_white, c_white, .18);
+		__slot_row(_px0, _iy - 1, _pw, 11, _it.col, false, is_struct(it_pop) && it_pop[$ "it"] == _it);   // (the rim = selected)
 		draw_set_color(merge_colour(_it.col, c_white, .3)); draw_set_alpha(.95); draw_text(_px0 + 6, _iy + 1, __sheet_cut(_it.name, _pw - 12 - 18));
 		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6); draw_text(_px0 + _pw - 8, _iy + 1, "lv" + string(_it.lv)); draw_set_halign(fa_left);
 		array_push(it_rects, { x : _px0, y : _iy - 1, w : _pw, h : 11, it : _it, worn : false });
@@ -1763,9 +1759,12 @@ __kind_studied = function(_kind) {
 // frame 0 the rim of the left end, frame 1 its fill - drawn at the left
 // end, mirrored at the right, the middle a stretch of the same two ideas
 // (a 1 px rim top and bottom, the fill between). Rows are 11 tall.
-__slot_row = function(_x, _y, _w, _h, _col, _open = false) {
+__slot_row = function(_x, _y, _w, _h, _col, _open = false, _sel = false) {
 	if (_open) return;   // (an empty slot is EMPTY - no rim, no wash - his call, 2026-09-17)
-	var _ra = .55, _fa = .09;   // (quieter - his report, 2026-09-17: "those gear slots are very bright"; was .9 / .16)
+	// RIMLESS (his ask, 2026-09-17: "without the outline... leave the outline
+	// when i select it"): the wash alone makes the capsule; the rim in the
+	// colour is the SELECTED state - the popup up for this row
+	var _ra = _sel ? .95 : 0, _fa = _sel ? .2 : .13;
 	var _cw = sprite_get_width(spr_slot_end), _mid = _w - _cw * 2;
 	// the black under everything (the wash tints black, never the sheet)
 	draw_sprite_ext(spr_slot_end, 1, _x, _y, 1, 1, 0, c_black, .92);
@@ -1777,12 +1776,14 @@ __slot_row = function(_x, _y, _w, _h, _col, _open = false) {
 		draw_sprite_ext(spr_slot_end, 1, _x + _w, _y, -1, 1, 0, _col, _fa);
 		if (_mid > 0) draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + 1, _mid, _h - 2, 0, _col, _fa);
 	}
-	// the rim
-	draw_sprite_ext(spr_slot_end, 0, _x, _y, 1, 1, 0, _col, _ra);
-	draw_sprite_ext(spr_slot_end, 0, _x + _w, _y, -1, 1, 0, _col, _ra);
-	if (_mid > 0) {
-		draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y, _mid, 1, 0, _col, _ra);
-		draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + _h - 1, _mid, 1, 0, _col, _ra);
+	// the rim (the selection only)
+	if (_ra > 0) {
+		draw_sprite_ext(spr_slot_end, 0, _x, _y, 1, 1, 0, _col, _ra);
+		draw_sprite_ext(spr_slot_end, 0, _x + _w, _y, -1, 1, 0, _col, _ra);
+		if (_mid > 0) {
+			draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y, _mid, 1, 0, _col, _ra);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x + _cw, _y + _h - 1, _mid, 1, 0, _col, _ra);
+		}
 	}
 };
 __ab_pick_tap = function() {
