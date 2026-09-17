@@ -21,6 +21,9 @@
 function upgrade_roll(_slot) {
 	upgrade_init();
 
+	// DE's one-in-five that ignores the per-dial average (see
+	// upgrade_dial_hot) - rolled ONCE here so every dial's gate agrees
+	g.upg_dial_ignore = roll_perc(20);
 	// the candidates that can be offered at all right now
 	var _cfg = upgrade_config();
 	var _ok  = [];

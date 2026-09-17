@@ -43,8 +43,8 @@
 ///
 /// THE REWORK (his call, 2026-09-16 - "scrap all the upgrade types you
 /// added"): three standing modifiers - tap profit, ALL-dial profit, ONE
-/// dial's profit (offered for the two highest dials you own, the ones
-/// carrying the run) - stacking MULTIPLICATIVELY in update_dial, and two
+/// dial's profit (offered by DE's average rule - the dials behind the
+/// pack, one roll in five any dial) - stacking MULTIPLICATIVELY in update_dial, and two
 /// bursts - x tap profit / x dial profit for a while, the number and the
 /// clock rolled ("sometimes i might get x1.58 for 2:30min"). Bursts of
 /// one kind ADD their bonus parts and keep SEPARATE clocks (his rule).
@@ -73,10 +73,10 @@ function upgrade_config() {
 
 	// ---- ONE DIAL'S PROFIT, an entry per dial ----
 	// The id names the dial (upgrade_bonus reads `dial` off the entry,
-	// so the completed ledger needs nothing new). Offered only for the
-	// TWO HIGHEST dials you own - the ones carrying the run; a boost on
-	// dial a while dial e is paying is a dead roll, and a boost on a
-	// dial you have not opened does nothing until you do.
+	// so the completed ledger needs nothing new). Offered by DE's
+	// AVERAGE rule (upgrade_dial_hot, his call 2026-09-17): the dials
+	// whose own boost sits at or under the average + 10 - so the offers
+	// keep the dials level - with one roll in five ignoring the average.
 	var _dn = variable_global_exists("dial_total") ? g.dial_total : 13;
 	for (var _i = 0; _i < _dn; _i++) {
 		array_push(g.upg_cfg, {
