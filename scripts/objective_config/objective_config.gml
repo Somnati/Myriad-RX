@@ -58,8 +58,11 @@ function objective_config() {
 			  done : function() { return instance_exists(syst_menu2); } },
 			{ txt : "open upgrades",
 			  done : function() { return instance_exists(syst_upgrades); } },
-			{ txt : "roll an upgrade",
-			  done : function() { return variable_global_exists("upg") && g.upg.rolls >= 1; } },
+			// (was "roll an upgrade" - offers turn up by themselves now, DE's
+			// meter, and the first one is handed over the moment upgrades
+			// unlock; the step is the purchase)
+			{ txt : "buy the upgrade on the table (hold its price)",
+			  done : function() { return variable_global_exists("upg") && g.upg.total >= 1; } },
 		  ],
 		  reward : ["dice"], reward_txt : "dice on the table - something to fidget with" },
 		{ key : "dial3", name : "a third dial",

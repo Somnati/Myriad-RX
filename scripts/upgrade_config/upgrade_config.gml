@@ -23,8 +23,10 @@
 ///   name   what the screen calls it
 ///   stat   which accumulator it feeds (see upgrade_bonus). "" = a
 ///          GRANT, which does something once and consumes itself.
-///   band   [min, max] value per tier at rarity 0, before the rarity
-///          multiplier. Percent for every current entry.
+///   band   [min, max] BASE value a tier - DE's 4..6 for the profit
+///          rows - before the tier law (upgrade_tier_add: the per-tier
+///          ramp, the last tier's jump and the rarity multiplier all
+///          live there, ported from DE 2026-09-17)
 ///   cap    tier ceiling before rarity widens it
 ///   cost   base credit price of tier 1
 ///   col    the colour the row wears
@@ -57,13 +59,13 @@ function upgrade_config() {
 	g.upg_cfg = [
 		{
 			id : "tap_profit", name : "tap profit", stat : "tap_profit",
-			band : [8, 16], cap : 10, cost : 6, col : c_gold,
+			band : [4, 6], cap : 10, cost : 6, col : c_gold,
 			help : "every tap pays more",
 			avail : function() { return true; },
 		},
 		{
 			id : "dial_profit", name : "dial profit", stat : "dial_profit",
-			band : [6, 12], cap : 10, cost : 8, col : c_sgreen,
+			band : [2, 4], cap : 10, cost : 8, col : c_sgreen,
 			help : "every dial pays more per cycle",
 			avail : function() { return true; },
 		},
@@ -80,7 +82,7 @@ function upgrade_config() {
 		array_push(g.upg_cfg, {
 			id : "dial_one_" + string(_i), name : "dial " + dial_config(_i).name + " profit",
 			stat : "dial_one", dial : _i, group : "dial_one", gname : "one dial's profit",
-			band : [15, 30], cap : 8, cost : 5, col : c_seagreen,
+			band : [4, 6], cap : 8, cost : 5, col : c_seagreen,
 			help : "this one dial pays more per cycle - it multiplies with dial profit",
 			// self is the entry (a function literal in a struct literal
 			// binds to the struct), so `dial` is this entry's own
@@ -109,14 +111,10 @@ function upgrade_config() {
 			band : [0.5, 1.3], dur : [90, 180], cap : 1, cost : 12, col : c_sgreen,
 			help : "every dial pays x more for a while, from the moment you buy it",
 			avail : function() { return true; },
-		},
-		{
-			id : "new_slot", name : "another slot", stat : "",
-			band : [1, 1], cap : 1, cost : 30, col : c_white,
-			help : "one more upgrade slot, permanently",
-			avail : function() {
-				return upgrade_slots() < UPG_SLOT_MAX;
-			},
 		});
+	// ("another slot" is NOT an offer any more - his call, 2026-09-17: the
+	// next locked slot shows a "new slot" upgrade sitting in it, and
+	// buying that frees the slot. See upgrade_slot_buy / the screen. An
+	// old save's new_slot offer drops on load like any retired id.)
 	return g.upg_cfg;
 }

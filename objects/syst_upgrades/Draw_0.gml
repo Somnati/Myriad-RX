@@ -88,46 +88,77 @@ if (msg_hp > 0 && msg != "") {
 }
 
 // ==================== THE SLOT TABLE ====================
-var _fs  = __free_slot();
-var _rc  = upgrade_roll_cost();
-var _ra  = (_fs != -1) && (_rc <= 0 || g.credits >= arb(_rc));
+// Every row of the table, bought or not: the slots you own, then THE
+// NEW-SLOT ROW (his ask, 2026-09-17: "the new slot shown with a 'new
+// slot' upgrade in it and buying that upgrade frees the slot"), then
+// the slots still locked behind it as quiet plates. No roll row any
+// more - offers turn up by DE's meter (upgrade_meter_tick).
 var _eff_r  = row_x + row_w - 54 - 8;   // the effect column's right edge
 var _filled = 0;
+var _nr     = __new_row();
+var _wait_said = false;
 
-for (var _i = 0; _i < _n; _i++) {
+for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 	var _ry  = __row_y(_i);
-	var _s   = g.upg.slot[_i];
-	var _has = is_struct(_s);
 	var _hov = (sel == _i);
 
-	// ---- an empty row: the roll row if it is the first, else a
-	// quiet plate that says so and nothing more ----
-	if (!_has) {
-		if (_i == _fs) {
-			// the roll row: a blue capsule (red when short), brighter
-			// under the pointer
-			var _rcol = _ra ? c_sblue : c_hred;
-			__rr_grad(row_x, _ry, row_w, row_h,
-				merge_colour(_rcol, c_black, _ra ? (_hov ? .3 : .45) : .7),
-				merge_colour(_rcol, c_black, .94), 1);
-			__inner(row_x, _ry, row_w, row_h);
-			draw_set_color(_ra ? merge_colour(_rcol, c_white, .55) : c_gray);
-			draw_set_alpha(.95);
-			draw_text(row_x + 10, _ry + 5, "+ roll a slot");
+	// ---- a slot not yet bought ----
+	if (_i >= _n) {
+		if (_i == _nr) {
+			// the "new slot" upgrade, sitting in the slot it unlocks: a
+			// common plate, the name, the price - never a sell button
+			var _ncol = __rar_col(0);
+			__plate(row_x, _ry, row_w, row_h, 0, merge_colour(_ncol, c_black, .55));
+			if (pick == -2 || _hov) {
+				__rr(row_x, _ry, row_w, row_h, c_aqua, (pick == -2) ? .95 : .4);
+				__plate(row_x + 1, _ry + 1, row_w - 2, row_h - 2, 0, merge_colour(_ncol, c_black, .55));
+			}
+			if (hold_i == _i && hold_hp > 0)
+				__rr(row_x, _ry, row_w * (hold_hp / 100), row_h, merge_colour(c_sgreen, c_black, .3), .55);
+			draw_set_color(c_white);
+			draw_set_alpha(.9);
+			draw_text(row_x + 10, _ry + 3, "new slot");
+			draw_set_color(_dim);
+			draw_set_alpha(.55);
+			draw_text(row_x + 10, _ry + 11, "one more, permanently");
 			draw_set_halign(fa_right);
-			draw_set_color(_ra ? c_white : c_gray);
-			draw_set_alpha(.8);
-			draw_text(row_x + row_w - 10, _ry + 5, (_rc > 0) ? (string(_rc) + " cr") : "free");
+			draw_set_color(_dim);
+			draw_set_alpha(.75);
+			draw_text(_eff_r, _ry + 5, "+1 slot");
 			draw_set_halign(fa_left);
+			var _nb = __btn(_i);
+			if (mode == 0) {
+				var _ncost = upgrade_slot_cost();
+				var _naff  = (_ncost > 0) && (g.credits >= arb(_ncost));
+				__btn_draw(_nb.x, _nb.y, _nb.w, _nb.h, string(_ncost), _naff ? c_sgreen : c_hred, true, _naff);
+			} else {
+				__btn_draw(_nb.x, _nb.y, _nb.w, _nb.h, "-", c_lavender, false, false);
+			}
 		} else {
-			// an empty capsule: the deck's near-black, a whisper of grey
+			// still locked: a whisper of a plate
 			__rr_grad(row_x, _ry, row_w, row_h,
-				merge_colour(_dim, c_black, .7), merge_colour(_dim, c_black, .95), 1);
+				merge_colour(_dim, c_black, .8), merge_colour(_dim, c_black, .97), 1);
 			__inner(row_x, _ry, row_w, row_h);
 			draw_set_color(_dim);
-			draw_set_alpha(.35);
-			draw_text(row_x + 10, _ry + 5, "empty");
+			draw_set_alpha(.25);
+			draw_text(row_x + 10, _ry + 5, "locked");
 		}
+		continue;
+	}
+
+	var _s   = g.upg.slot[_i];
+	var _has = is_struct(_s);
+
+	// ---- an empty row: the first one says an offer is on its way,
+	// the rest say nothing ----
+	if (!_has) {
+		__rr_grad(row_x, _ry, row_w, row_h,
+			merge_colour(_dim, c_black, .7), merge_colour(_dim, c_black, .95), 1);
+		__inner(row_x, _ry, row_w, row_h);
+		draw_set_color(_dim);
+		draw_set_alpha(.35);
+		draw_text(row_x + 10, _ry + 5, _wait_said ? "empty" : "waiting for an upgrade");
+		_wait_said = true;
 		continue;
 	}
 	_filled++;
@@ -238,7 +269,12 @@ var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .3);
 // && short-circuits, so an out-of-range pick never indexes the array -
 // which it can be for a frame after the slot count changes
 var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
-if (_has_pick) {
+var _new_pick = (pick == -2 && _nr != -1);   // the "new slot" row, read
+if (_new_pick) {
+	__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
+	__rr_grad_l(desc_x, desc_y, __rar_grad(0, desc_w, c_black).w, desc_h,
+		merge_colour(__rar_col(0), c_black, .2), _dc, 1);
+} else if (_has_pick) {
 	// the picked row's plate, at the inspector's size: the rim's
 	// coloured reach says the rarity here too
 	// (the plate under the rim is the inner's own colour: no line past
@@ -256,7 +292,35 @@ __inner(desc_x, desc_y, desc_w, desc_h, _dc);
 var _px = desc_x + 10;
 var _pr = desc_x + desc_w - 8;
 
-if (!_has_pick) {
+if (_new_pick) {
+	// THE NEW SLOT, read: what it is, what it costs, that it is never sold
+	draw_set_color(c_white);
+	draw_set_alpha(.95);
+	draw_text(_px, desc_y + 7, "new slot");
+	draw_set_color(_dim);
+	draw_set_alpha(.8);
+	draw_text(_px, desc_y + 18, "slot " + string(_n + 1) + " of " + string(UPG_SLOT_MAX));
+	if (desc_h >= 110) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _px, desc_y + 30, desc_w - 18, 1, 0, __rar_col(0), .35);
+		draw_set_color(_ink);
+		draw_set_alpha(.75);
+		draw_text_ext(_px, desc_y + 37, "one more upgrade slot, permanently. bought, never sold.", 9, desc_w - 18);
+		draw_set_color(_dim);
+		draw_set_alpha(.5);
+		draw_text(_px, desc_y + desc_h - 6 - 12 - 11, (mode == 0) ? "hold the price to buy" : "buy mode buys it");
+	}
+	var _nly = desc_y + desc_h - 6 - 12;
+	draw_sprite_ext(spr_pixel_1x1, 0, desc_x + 6, _nly, desc_w - 12, 11, 0, c_black, .3);
+	draw_set_halign(fa_left);
+	draw_set_color(_dim);
+	draw_set_alpha(.65);
+	draw_text(_px, _nly + 3, "price");
+	draw_set_halign(fa_right);
+	draw_set_color(c_white);
+	draw_set_alpha(.95);
+	draw_text(_pr - 2, _nly + 3, string(upgrade_slot_cost()) + " credits");
+	draw_set_halign(fa_left);
+} else if (!_has_pick) {
 	draw_set_halign(fa_center);
 	draw_set_color(_dim);
 	draw_set_alpha(.4);
@@ -306,20 +370,14 @@ if (!_has_pick) {
 	// HOLD across everything. Reading down is reading outward.
 	var _rows_txt = [];
 	if (_pe != -1 && _pe.stat != "") {
-		var _sfx  = (_ps.id == "crit_multi") ? "x" : ((_ps.id == "luck") ? " luck" : "%");
-		var _mine = upgrade_tier_value(_ps.val, _ps.tier, _pcap);
-		var _nxt  = __next_str(pick);
-		array_push(_rows_txt,
-			{ k : (_ps.tier + 1 >= _pcap) ? "final tier" : "next tier",
-			  v : (_nxt == "") ? "complete" : _nxt, c : c_sgreen });
-		if (_ps.tier > 0)
-			array_push(_rows_txt,
-				{ k : "this slot", v : "+" + string_format(_mine, 1, 2) + _sfx, c : c_white });
-		// a per-dial boost totals on its own dial's lane (2026-09-16)
+		// ONE LINE (his spec, 2026-09-17: "dial boost  +5% (145%)"): this
+		// tier's worth - the one the button buys - and in brackets the
+		// total held from every upgrade of this kind (a per-dial boost
+		// totals on its own dial's lane)
 		var _tot = (_pe.stat == "dial_one") ? _ub.dial_one[_pe.dial] : _ub[$ _pe.stat];
 		array_push(_rows_txt,
-			{ k : "total",
-			  v : "+" + string_format(_tot, 1, 2) + _sfx,
+			{ k : _pe.name,
+			  v : "+" + string_format(__tier_v(pick), 1, 2) + "% (" + string_format(_tot, 1, 0) + "%)",
 			  c : merge_colour(_pe.col, c_white, .3) });
 	} else if (_pe != -1 && (_pe[$ "burst"] ?? false)) {
 		// A BURST (2026-09-16): what it pays, for how long, and the rule

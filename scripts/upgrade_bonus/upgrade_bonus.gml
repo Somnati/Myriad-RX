@@ -42,7 +42,7 @@ function upgrade_bonus() {
 		if (_s.stat == "") continue;         // a grant; it has no accumulator
 		if (!variable_struct_exists(_b, _s.stat)) continue;
 		// the tier curve, not a flat multiply - see upgrade_tier_value
-		var _tv = upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i));
+		var _tv = upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i), _s.rar);
 		// ONE DIAL'S PROFIT lands on that dial's lane - the entry names the dial
 		if (_s.stat == "dial_one") {
 			var _de = upgrade_entry(_s.id);

@@ -21,6 +21,9 @@ function upgrade_buy(_slot) {
 	g.credits = do_subtract(g.credits, arb(_cost));
 	_s.tier += 1;
 	g.upg.total += 1;
+	// the offer meter takes a share of every purchase (DE's buy_upgrade:
+	// get_sub_sec_inf(cost, 1/4, .01))
+	upgrade_meter_feed(_cost * .25 * (1 + .01 * (_cost - 1)));
 
 	// ---- GRANTS ----
 	// A grant is not a modifier: it changes state once and consumes

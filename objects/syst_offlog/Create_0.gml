@@ -166,7 +166,9 @@ __rows = function() {
 			if (_fab > 0 || _mg > 0 || _dbg) {
 				_push(_out, "sec", RH_SEC, { txt : "tiles", col : c_aqua });
 				_push(_out, "row", RH_ROW, { l : "fabricated", v : "+" + string(_fab), col : c_aqua });
-				_push(_out, "row", RH_ROW, { l : "auto-merges", v : string(_mg), col : c_aqua });
+				// (the merge row only while the automerger is ON - his ask, 2026-09-17)
+				if (_t[$ "merge_on"] ?? true)
+					_push(_out, "row", RH_ROW, { l : "auto-merges", v : string(_mg), col : c_aqua });
 				if (_t.hi1 > _t.hi0) _push(_out, "row", RH_ROW, { l : "highest tier", v : string(_t.hi0) + " > " + string(_t.hi1), col : c_gold });
 				if (_t.sh1 > _t.sh0) _push(_out, "row", RH_ROW, { l : "shards", v : "+" + __ar(do_subtract(_t.sh1, _t.sh0)), col : c_aqua });
 				if (_dbg) {

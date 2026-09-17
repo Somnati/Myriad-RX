@@ -261,15 +261,8 @@ __btn = function(_i) {
 	return { x : row_x + row_w - 54, y : __row_y(_i) + 2, w : 52, h : 14 };
 };
 
-// THE ROLL ROW (his call: ONE roll control, not one per slot - a roll
-// does not care WHICH empty slot it lands in). It IS the first empty
-// row: the plate wears a blue frame and says "roll a slot" and the
-// stake, and a tap anywhere on it rolls. No free slot, no roll row
-__roll_rect = function() {
-	var _fs = __free_slot();
-	if (_fs == -1) return { x : -1, y : -1, w : 0, h : 0 };
-	return { x : row_x, y : __row_y(_fs), w : row_w, h : row_h };
-};
+// (the roll row is gone, 2026-09-17: offers turn up by DE's meter -
+// upgrade_meter_tick - and the first empty row just says it is waiting)
 
 // the row's body - everything left of its button. Tapping HERE picks
 // the row for the panel; tapping the button acts on it. Two meanings on
@@ -324,14 +317,21 @@ __burst_str = function(_s) {
 	return "x" + string_format(_s.val, 1, 2) + " for " + __mmss(_s[$ "dur"] ?? 0);
 };
 
-// a slot's effect, as the one string the row has room for
-__eff_str = function(_i) {
+// a slot's effect, as the one string the row has room for: THE TIER
+// THE BUTTON BUYS (his correction, 2026-09-17: the running total "felt
+// weird" on the row - DE's slot quotes u_val, the next tier's worth)
+__tier_v = function(_i) {
 	var _s = g.upg.slot[_i];
-	var _sfx = (_s.id == "crit_multi") ? "x" : ((_s.id == "luck") ? " luck" : "%");
-	if (_s.tier > 0)
-		return "+" + string_format(
-			upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i)), 1, 2) + _sfx;
-	return "+" + string_format(_s.val, 1, 2) + _sfx;
+	var _cap = upgrade_cap(_i);
+	var _t = min(_s.tier, max(0, _cap - 1));
+	return _s.val * upgrade_tier_add(_s.rar, _t, _cap);
+};
+__eff_str = function(_i) {
+	return "+" + string_format(__tier_v(_i), 1, 2) + "%";
+};
+// the "new slot" row: the next locked slot, -1 once every slot is bought
+__new_row = function() {
+	return (upgrade_slots() < UPG_SLOT_MAX) ? upgrade_slots() : -1;
 };
 
 // what the NEXT tier would add - the marginal value, which is the
@@ -343,10 +343,7 @@ __next_str = function(_i) {
 	var _s = g.upg.slot[_i];
 	var _c = upgrade_cap(_i);
 	if (_s.tier >= _c) return "";
-	var _d = upgrade_tier_value(_s.val, _s.tier + 1, _c)
-	       - upgrade_tier_value(_s.val, _s.tier, _c);
-	return "+" + string_format(_d, 1, 2)
-		+ ((_s.id == "crit_multi") ? "x" : ((_s.id == "luck") ? " luck" : "%"))
+	return "+" + string_format(_s.val * upgrade_tier_add(_s.rar, _s.tier, _c), 1, 2) + "%"
 		+ ((_s.tier + 1 >= _c) ? " to finish" : " next");
 };
 

@@ -60,9 +60,10 @@ if (mod_open || mod_a > .01) {
 
 var _mx = mouse_x, _my = mouse_y;
 var _n  = upgrade_slots();
+var _nr = __new_row();   // the "new slot" row, -1 once every slot is bought
 
-// hover, for the wash the Draw paints
-for (var _i = 0; _i < _n; _i++) {
+// hover, for the wash the Draw paints - every row, the new-slot row too
+for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 	var _ry = __row_y(_i);
 	if (point_in_rectangle(_mx, _my, row_x, _ry, row_x + row_w, _ry + row_h)) sel = _i;
 }
@@ -75,14 +76,22 @@ if (!_held) { hold_lock = false; hold_spd = 1; }
 
 var _want = -1;
 if (_held && !hold_lock)
-for (var _i = 0; _i < _n; _i++) {
-	if (!is_struct(g.upg.slot[_i])) continue;
-	// a slot that cannot be bought does not fill: an unaffordable or
-	// finished row should refuse at a glance, not after two thirds of
-	// a second of holding
-	if (mode == 0) {
-		var _c0 = upgrade_cost(_i);
-		if (_c0 < 0 || !(g.credits >= arb(_c0))) continue;
+for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
+	if (_i >= _n) {
+		// THE NEW-SLOT ROW (2026-09-17) fills in buy mode only, when it
+		// can be afforded; it is never sold
+		if (_i != _nr || mode != 0) continue;
+		var _c2 = upgrade_slot_cost();
+		if (_c2 < 0 || !(g.credits >= arb(_c2))) continue;
+	} else {
+		if (!is_struct(g.upg.slot[_i])) continue;
+		// a slot that cannot be bought does not fill: an unaffordable or
+		// finished row should refuse at a glance, not after two thirds of
+		// a second of holding
+		if (mode == 0) {
+			var _c0 = upgrade_cost(_i);
+			if (_c0 < 0 || !(g.credits >= arb(_c0))) continue;
+		}
 	}
 	var _r = __btn(_i);
 	if (point_in_rectangle(_mx, _my, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) _want = _i;
@@ -97,7 +106,12 @@ if (hold_i == -1) {
 	hold_hp += (100 / 40) * hold_spd * delta;
 	if (hold_hp >= 100) {
 		hold_hp = 0;
-		if (mode == 0) {
+		if (hold_i >= _n) {
+			// the new slot: one purchase, then the hold ends - the row it
+			// was on is a real (empty) slot now
+			if (upgrade_slot_buy()) { __say("slot unlocked", c_white); pick = -1; }
+			hold_i = -1; hold_lock = true;
+		} else if (mode == 0) {
 			// BUY, and KEEP GOING. DE's hp_spd climbs by half a step per
 			// landed purchase to a ceiling of 7, so a held row buys
 			// faster the longer you hold it. The hold survives; it ends
@@ -150,42 +164,44 @@ for (var _m = 0; _m < 2; _m++) {
 	exit;
 }
 
-// ---- THE ROLL ROW (the first empty row IS the roll control) ----
-// Before the pick loop, because it is an empty row and the pick loop
-// would otherwise swallow the tap as "nothing to describe"
-var _rr = __roll_rect();
-if (_rr.w > 0 && point_in_rectangle(_mx, _my, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
-	var _fs = __free_slot();
-	var _r0 = upgrade_roll(_fs);
-	if (_r0 == -1)
-		__say("nothing to offer yet", c_gray);
-	else if (_r0 == -2)
-		__say("not enough credits to roll", c_hred);
-	else {
-		play_sound_ext(snd_softclick, 1, 1.1, .5, 1);
-		pick = _fs;   // a fresh roll is the thing you want to read about
-	}
-	exit;
-}
+// (no roll row since 2026-09-17: offers turn up by DE's meter)
 
 // ---- PICKING A ROW for the inspector ----
 // Before the buttons, and it does not consume the press: a tap on a
 // row's body picks it, a tap on its button still acts. An EMPTY row
 // picks nothing - there is nothing to describe - but it clears the
-// panel, which is the honest answer to "what is in this slot".
-for (var _i = 0; _i < _n; _i++) {
+// panel, which is the honest answer to "what is in this slot". The
+// new-slot row picks -2, its own page.
+for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 	var _bd = __body(_i);
 	if (!point_in_rectangle(_mx, _my, _bd.x, _bd.y, _bd.x + _bd.w, _bd.y + _bd.h))
 		continue;
-	pick = is_struct(g.upg.slot[_i]) ? _i : -1;
+	if (_i >= _n) pick = (_i == _nr) ? -2 : -1;
+	else pick = is_struct(g.upg.slot[_i]) ? _i : -1;
 	play_sound_ext(snd_softclick, 1.1, 1.2, .3, 0);
 	exit;
 }
 
 // ---- the rows ----
-for (var _i = 0; _i < _n; _i++) {
+for (var _i = 0; _i < UPG_SLOT_MAX; _i++) {
 	var _r = __btn(_i);
 	if (!point_in_rectangle(_mx, _my, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) continue;
+	if (_i >= _n) {
+		// the new-slot row's button: bought by the hold, never sold
+		if (_i != _nr) continue;
+		pick = -2;
+		if (mode != 0) {
+			play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+			__say("a slot is bought, never sold", c_gray);
+		} else {
+			var _c3 = upgrade_slot_cost();
+			if (_c3 < 0 || !(g.credits >= arb(_c3))) {
+				play_sound_ext(snd_matclick2, .7, .8, .35, 0);
+				__say("not enough credits", c_hred);
+			}
+		}
+		exit;
+	}
 	var _s = g.upg.slot[_i];
 	if (!is_struct(_s)) continue;   // an empty row has no button now
 

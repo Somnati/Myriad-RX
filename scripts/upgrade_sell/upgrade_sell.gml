@@ -25,6 +25,9 @@ function upgrade_sell(_slot) {
 	// The mote cap is DE's 20 rather than a tap's 8: a sale is a bigger
 	// event and should look like one.
 	if (_pay > 0) credit_drop(mouse_x, mouse_y, _pay, 20);
+	// ...and the offer meter takes a share of the refund (DE's sale:
+	// get_sub_sec_inf(acost, 1/2, .02))
+	upgrade_meter_feed(_pay * .5 * (1 + .02 * (_pay - 1)));
 
 	update_dials();
 	save_mark_dirty();

@@ -20,7 +20,7 @@ function autom_upgrades(_buy_due = true, _pulse = true) {
 	autom_init();
 	if (!variable_global_exists("upg")) return;
 	var _u = g.autom.upg;
-	if (!(_u.roll || _u.buy || _u.sell)) { _u.st = 0; return; }
+	if (!(_u.buy || _u.sell)) { _u.st = 0; return; }
 	if (_pulse) _u.st = 1;
 
 	var _n = upgrade_slots();
@@ -36,22 +36,7 @@ function autom_upgrades(_buy_due = true, _pulse = true) {
 		autom_log("sold " + ((_sn == -1) ? "an upgrade" : _sn.name) + "  +" + string(_pay) + " cr", c_lavender, "upg");
 	}
 
-	// ---- ROLL into what is empty ----
-	if (_u.roll && _pulse)
-	for (var _i = 0; _i < _n; _i++) {
-		if (is_struct(g.upg.slot[_i])) continue;
-		var _r = upgrade_roll(_i);
-		if (_r == -2) break;              // out of credits; stop trying
-		if (_r != -1) {
-			_u.st = 2;
-			var _rs = g.upg.slot[_i];
-			if (is_struct(_rs)) {
-				var _re = upgrade_entry(_rs.id);
-				autom_log("rolled " + ((_re == -1) ? "an upgrade" : _re.name) + "  (" + upgrade_rarity_info(_rs.rar).name + ")",
-					upgrade_rarity_info(_rs.rar).col, "upg");
-			}
-		}
-	}
+	// (the roll is gone - offers turn up by DE's meter now, upgrade_meter_tick)
 
 	// ---- BUY, cheapest first, inside the budget ----
 	// NO RARITY FILTER HERE, deliberately. The keep percentage decides

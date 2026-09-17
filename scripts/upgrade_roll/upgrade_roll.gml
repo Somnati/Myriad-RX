@@ -93,7 +93,7 @@ function upgrade_roll(_slot) {
 		var _rs = sqrt(_mult);
 		_val = 1 + random_range(_pick.band[0], _pick.band[1]) * _rs;
 		_dur = round(random_range(_pick.dur[0], _pick.dur[1]) * _rs / 5) * 5;
-	} else _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
+	} else _val = random_range(_pick.band[0], _pick.band[1]);   // the rung enters through the tier law (upgrade_tier_add) - DE's shape
 	// two decimals: the exact number is noise, and a readout that
 	// changes in the third decimal reads as instability rather than detail
 	_val = round(_val * 100) / 100;

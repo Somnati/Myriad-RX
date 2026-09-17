@@ -6,9 +6,25 @@
 /// presentation stays out: board changes push events onto g.tiles.ev
 /// and the room view drains them into glow/sounds when one is around.
 function tiles_tick(_tmult = 1) {
+	// NOTHING RUNS BEFORE THE TABLE IS UNLOCKED (his report, 2026-09-17:
+	// tiles had fabricated before he ever opened them) - the replay
+	// keeps the same gate (offline_replay)
+	if (!unfold_has("tiles")) return;
 	tiles_sync();   // slots / period / hopper / luck all derive from the
 	                // upgrade levels - see tiles_sync
 	var _t = g.tiles;
+
+	// THE TIER FIX (DE's obj_tile "tierfix", his ask 2026-09-17): a tile
+	// under the spawn floor heals UP to it. The floor climbs with the
+	// rarity rate, and a tile left below it could never merge with
+	// anything again - "unmergable with anything and always will be"
+	var _tb = tile_base_tier();
+	for (var _k = 0; _k < _t.slots; _k++) {
+		if (_t.tier[_k] <= 0 || _t.tier[_k] >= _tb) continue;
+		_t.tier[_k] = _tb;
+		_t.highest  = max(_t.highest, _tb);
+		_t.dirty    = true;
+	}
 
 	// ---- fabricator: fills, banks, drains into the first free slot.
 	// at the stored cap the timer CLAMPS full and waits (Myriad's

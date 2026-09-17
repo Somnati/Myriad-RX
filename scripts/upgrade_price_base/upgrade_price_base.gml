@@ -22,6 +22,11 @@ function upgrade_price_base(_slot, _tier) {
 	var _e = upgrade_entry(_s.id);
 	if (_e == -1) return 0;
 	var _t = max(0, _tier);
-	return _e.cost * upgrade_rarity_mult(_s.rar) * (1 + (0.2 + 0.1 * _t) * _t)
+	// DE's rarity price curve (set_ucost: `_cost *= 1 + (.2 + .1(r-1)) r`)
+	// - x1 / 1.2 / 1.6 / 2.2 / 3 / 4 / 5.2 / 6.6 - against a VALUE ladder
+	// that reaches x25 (upgrade_rarity_mult). Ported 2026-09-17; before
+	// it the price took the value multiplier and a rung bought nothing
+	var _r = clamp(floor(_s.rar), 0, UPG_RARITY_N - 1);
+	return _e.cost * (1 + (0.2 + 0.1 * (_r - 1)) * _r) * (1 + (0.2 + 0.1 * _t) * _t)
 		* upgrade_diff_mult();
 }

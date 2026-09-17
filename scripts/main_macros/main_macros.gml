@@ -812,8 +812,8 @@ function main_macros() {
                              // reserve is earned a slot at a time,
                              // never bought in blocks
 
-#macro UPG_TIER_RAMP .15
-#macro UPG_TIER_LAST 3
+// (the tier ramp / last-tier jump are DE's per-rarity law now - see
+// upgrade_tier_add; UPG_TIER_RAMP / UPG_TIER_LAST retired 2026-09-17)
 #macro UPG_SELL_BACK .45   // fraction of what was paid in, returned on a sale
 
 #macro eid_crit_rate 0

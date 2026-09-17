@@ -12,5 +12,6 @@
 ///   seq        the ticket counter (folds into each seed)
 function ticket_init(_force = false) {
 	if (variable_global_exists("tickets") && !_force) return;
-	g.tickets = { pile : [], scratched : 0, won : 0, best : -1, best_txt : "", seq : 0 };
+	g.tickets = { pile : [], scratched : 0, won : 0, best : -1, best_txt : "", seq : 0,
+	              owed : [] };   // earned while the objective chain runs (ticket_release)
 }

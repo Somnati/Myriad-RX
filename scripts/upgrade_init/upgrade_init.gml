@@ -66,5 +66,10 @@ function upgrade_init(_force = false) {
 		// at the top: a burst is a bought thing with a clock, and the
 		// clock is history. upgrade_burst_mult prunes what has run out.
 		bursts : [],
+
+		// THE OFFER METER (DE's syst_handle_upgrades, 2026-09-17 - see
+		// upgrade_meter_tick): the clock, the hit, the xp run and its
+		// target, offers owed from an absence. History, so it is saved.
+		meter : { uxp : 0, utic : 0, uhit : false, umax : random_range(50, 100), uoff : 0 },
 	};
 }

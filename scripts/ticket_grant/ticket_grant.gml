@@ -7,8 +7,20 @@
 /// The first ticket ever unfolds "tickets" (the pile appears); every
 /// later one gets a banner. Returns the rarity index.
 /// quiet: no banner (the debug refill - settings > data > unlimited tickets)
-function ticket_grant(_src = "gift", _quiet = false) {
+function ticket_grant(_src = "gift", _quiet = false, _release = false) {
 	ticket_init();
+	// LOCKED UNTIL THE TUTORIAL IS OVER (his call, 2026-09-17): while the
+	// objective chain still runs, a ticket earned is OWED - it lands on
+	// the desk the moment the chain completes (ticket_release, which
+	// calls back in with _release). The debug "unlimited" toggle bypasses
+	// the lock, or its refill loop would never end
+	var _dbg = variable_global_exists("tickets_free") && g.tickets_free;
+	if (!_release && !_dbg && objective_cur() != undefined) {
+		if (!is_array(g.tickets[$ "owed"])) g.tickets.owed = [];
+		array_push(g.tickets.owed, _src);
+		save_mark_dirty();
+		return -1;
+	}
 	var _c = ticket_config();
 	var _w = (_src == "milestone") ? _c.w_milestone : _c.w_common;
 	var _tot = 0;

@@ -350,7 +350,6 @@ __ram_page = function(_t) {
 	}
 	if (_t == AT_REB)  if (_a.reb.on) _u += ram_cost("rebirth");
 	if (_t == AT_UPG) {
-		if (_a.upg.roll) _u += 1;
 		if (_a.upg.sell) _u += 1;
 		if (_a.upg.buy)  _u += ram_cost("timer", _a.upg.t);
 	}
@@ -669,9 +668,7 @@ __page_rows = function() {
 	if (tab == AT_UPG) {
 		var _u = _a.upg;
 		array_push(_o, __section("upgrade table automation", tcol[AT_UPG]));
-		array_push(_o, { kind : 0, name : "auto roll", tag : "upg_roll",
-			on : _u.roll, val : 0, sfx : "", st : -1, col : c_sblue, ram : 1,
-			help : "fills every empty slot, once a second" });
+		// (no "auto roll" row since 2026-09-17: offers turn up by DE's meter)
 		array_push(_o, { kind : 5, lo : 1, hi : 100, name : "auto buy", ock : "timer", tag : "upg_buy",
 			on : _u.buy, val : _u.pct, t : _u.t, tic : _u.tic, sfx : "%", st : -1,
 			col : c_sgreen, ram : ram_cost("timer", _u.t),

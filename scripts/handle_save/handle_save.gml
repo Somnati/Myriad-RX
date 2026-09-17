@@ -305,6 +305,7 @@ function handle_save(){
 	g.autom.reb.p_on  = handle("reb_p_on",  g.autom.reb.p_on);
 	g.autom.reb.p_oom = handle("reb_p_oom", g.autom.reb.p_oom);
 	g.autom.upg.roll  = handle("upg_roll",  g.autom.upg.roll);
+	if (action == sv_load) g.autom.upg.roll = false;   // (no auto roll since 2026-09-17: offers turn up by the meter)
 	g.autom.upg.buy   = handle("upg_buy",   g.autom.upg.buy);
 	g.autom.upg.sell  = handle("upg_sell",  g.autom.upg.sell);
 	g.autom.upg.pct   = handle("upg_pct",   g.autom.upg.pct);
@@ -737,6 +738,17 @@ function handle_save(){
 	g.tickets.best      = handle("best",      g.tickets.best);
 	g.tickets.best_txt  = handle("best_txt",  g.tickets.best_txt);
 	g.tickets.seq       = handle("seq",       g.tickets.seq);
+	// OWED (2026-09-17): tickets earned while the objective chain still
+	// runs wait here, "src|src", and land when it completes (ticket_release)
+	var _tow = "";
+	if (action == sv_save && is_array(g.tickets[$ "owed"]))
+		for (var _i = 0; _i < array_length(g.tickets.owed); _i++)
+			_tow += ((_i > 0) ? "|" : "") + string(g.tickets.owed[_i]);
+	_tow = handle("owed", _tow);
+	if (action == sv_load) {
+		g.tickets.owed = [];
+		if (string(_tow) != "") g.tickets.owed = string_split(string(_tow), "|");
+	}
 	if (action == sv_load) {
 		g.tickets.pile = [];
 		if (string(_tp) != "") {
@@ -825,6 +837,19 @@ function handle_save(){
 	g.upg.bought = handle("slots_bought", g.upg.bought);
 	g.upg.total  = handle("total",        g.upg.total);
 	g.upg.rolls  = handle("rolls",        g.upg.rolls);
+	// THE OFFER METER (2026-09-17, DE's uxp / utic / uhit / offline_upgrades)
+	g.upg.meter.uxp  = handle("uxp",  g.upg.meter.uxp);
+	g.upg.meter.utic = handle("utic", g.upg.meter.utic);
+	g.upg.meter.uhit = handle("uhit", g.upg.meter.uhit);
+	g.upg.meter.umax = handle("umax", g.upg.meter.umax);
+	g.upg.meter.uoff = handle("uoff", g.upg.meter.uoff);
+	if (action == sv_load) {
+		g.upg.meter.uxp  = max(0, real(g.upg.meter.uxp));
+		g.upg.meter.utic = max(0, real(g.upg.meter.utic));
+		g.upg.meter.uhit = (real(g.upg.meter.uhit) > 0);
+		g.upg.meter.umax = clamp(real(g.upg.meter.umax), 50, 100);
+		g.upg.meter.uoff = clamp(floor(real(g.upg.meter.uoff)), 0, 6);
+	}
 	// the rarity histogram, one comma string - a short fixed-length
 	// list has no business being one key per rung
 	var _seen_txt = "";

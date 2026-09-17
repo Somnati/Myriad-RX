@@ -57,6 +57,8 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1)
 	// the press, hp refilled) - before the payout, since the payout is
 	// what it multiplies
 	if (_stat) overcharge_tap(_n);
+	// the offer meter (DE's obj_clicker: +1 a press, +.05 a held frame)
+	if (_stat) upgrade_meter_feed(_hold ? .05 * _n : 1);
 
 	var _ub   = upgrade_bonus_live();
 	var _rate = (g.click_crit + _ub.crit_rate) * luck_mod();   // luck leans the crit (DE)

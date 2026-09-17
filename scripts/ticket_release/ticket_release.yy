@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ticket_release",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ticket_release",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

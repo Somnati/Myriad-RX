@@ -44,6 +44,20 @@ function offline_replay(_secs, _src = "boot return") {
 	// A LONG ABSENCE leaves a scratch ticket on the desk (2026-09-13) - a
 	// real one, not the bench's simulated hours
 	if (_secs >= ticket_config().away_secs && string_copy(_src, 1, 3) != "sim") ticket_grant("away");
+	// OFFLINE UPGRADES (DE's calculate_offline_gain): an absence past 1 /
+	// 5 / 10 / 15 / 20 / 30 minutes owes that many offers, spawned on
+	// return one a frame while the table has room (upgrade_meter_tick's
+	// force path). Only while none are already owed, DE's guard
+	if (variable_global_exists("upg") && string_copy(_src, 1, 3) != "sim" && g.upg.meter.uoff <= 0) {
+		var _uo = 0;
+		if (_secs > 60)   _uo++;
+		if (_secs > 300)  _uo++;
+		if (_secs > 600)  _uo++;
+		if (_secs > 900)  _uo++;
+		if (_secs > 1200) _uo++;
+		if (_secs > 1800) _uo++;
+		g.upg.meter.uoff = _uo;
+	}
 
 	// THE TIME BANK, on top (the hybrid - see timebank_init). The
 	// absence is about to be replayed as production exactly as it always
@@ -126,11 +140,16 @@ function offline_replay(_secs, _src = "boot return") {
 	// whatever size the arbs are. Offline == online to within the
 	// board's own replay, which was already the honest half.
 	var _ts = undefined;   // the table before the replay (the log's tiles block)
-	if (TILES_LIVE && variable_global_exists("tiles"))
+	// ...AND NOT BEFORE THE TABLE IS UNLOCKED (his report, 2026-09-17:
+	// tiles had run offline before he ever opened them) - tiles_tick
+	// keeps the same gate online
+	var _tiles_on = TILES_LIVE && variable_global_exists("tiles") && unfold_has("tiles");
+	if (_tiles_on)
 		_ts = { hi0 : g.tiles.highest, sh0 : g.tiles.shards, gps0 : g.tiles.gps,
-		        made0 : g.tiles.made, mg0 : g.tiles.merges, bailed : false };
+		        made0 : g.tiles.made, mg0 : g.tiles.merges, bailed : false,
+		        merge_on : g.tiles.automerge };   // (the log hides the merge row while it is off)
 	var _lg0 = arb_log10(tile_dial_boost());
-	if (TILES_LIVE)
+	if (_tiles_on)
 		if (variable_global_exists("tiles")) {
 			var _ff = tiles_fastforward(_cov);
 			if (is_struct(_ff) && !is_undefined(_ts)) _ts.bailed = _ff[$ "bailed"] ?? false;

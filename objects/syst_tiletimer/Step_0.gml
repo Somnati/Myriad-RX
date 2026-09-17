@@ -1,3 +1,7 @@
+// nothing before the table is unlocked (2026-09-17) - the tick gates
+// itself too; this keeps the shard clock from paying a board that does
+// not exist yet
+if (!unfold_has("tiles")) exit;
 // the time bank's speed: the tile sim rides the SAME paid multiplier
 // every other sim system got this frame (timebank_spend set live_m -
 // one payment covers the whole layer)
