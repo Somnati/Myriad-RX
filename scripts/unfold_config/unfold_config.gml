@@ -71,10 +71,15 @@ function unfold_config() {
 		  need : function() { return unfold_has("tiles") && variable_global_exists("dial") && g.profit >= arb(1000000); },
 		  on : function() {
 			if (!variable_global_exists("sprites")) sprites_init();
-			if (array_length(g.sprites) == 0) { var _sp = sprite_spawn("tap"); _sp.found = "home"; }
+			if (array_length(g.sprites) == 0) { var _sp = sprite_spawn("tap"); _sp.found = "home"; _sp.arrive = true; }   // (arrive: it WALKS IN, lost - obj_blob; 2026-09-16)
 		  } },
+		// THE SPRITE MENU (2026-09-16): unlocked by meeting the newcomer - the first poke on a sprite (obj_blob's __poke sets the flag)
+		{ key : "sprites", banner : "sprites: tap one to manage them",
+		  need : function() { return unfold_has("sprite") && variable_global_exists("sprites_met") && g.sprites_met; } },
+		// EXPEDITIONS wait (his call, 2026-09-16: "first is getting sprites to automate on specific tasks") - the need is the tasks
+		// round's to write; a save that already has them keeps them
 		{ key : "expeditions", banner : "new: expeditions",
-		  need : function() { return unfold_has("sprite"); } },
+		  need : function() { return false; } },
 	];
 	return _c;
 }

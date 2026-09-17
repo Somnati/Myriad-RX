@@ -37,6 +37,8 @@ land = (room_width > 300);
 dim  = rgb(120, 130, 150);
 
 view    = "planet";  // the pages: planet / depart / trip / haul / map / crew / galaxy / bestiary (THE HUB WENT, his call 2026-09-16: the panel opens on the world)
+mode    = "exped";   // THE SPRITE MENU (2026-09-16, his ask): "sprites" = the crew page alone, as the roster's manager (exped_open("sprites", sid)) - no expedition strip, [dismiss] at the foot
+dismiss_arm = -1; dismiss_t = 0;   // [dismiss] armed on a sprite id, for a few seconds (a second tap does it)
 view_id = -1;        // the trip's or haul's id
 // THE WORLD AT THE START (the hub went): the board's first world, orbit mode
 pl_dest = undefined; sel_dest = 0; rg_sel = 0; pl_focus = -1;
@@ -333,7 +335,7 @@ __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
 /// [back] shows on every page but the planet's own (there it was [close] - redundant beside the panel's X, his ask 2026-09-16); the other strip buttons slide into its seat
-__back_on = function() { return !(view == "planet" && pv_mode != "region"); };
+__back_on = function() { if (mode == "sprites") return false; return !(view == "planet" && pv_mode != "region"); };   // (the sprite menu: one page, the X closes it)
 __crewstrip_r = function() { var _b = __back_r(); return { x : __back_on() ? (_b.x - 4 - 44) : _b.x, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
 // [map] beside [crew] (his call, 2026-09-16: "move the region map button to
 // the top next to the crew button"): on every page that has a region -
@@ -362,14 +364,14 @@ __draw_back = function() {
 		draw_px_rect(_bk.x, _bk.y, _bk.w, _bk.h, rgb(170, 190, 230), .5);
 		draw_text(_bk.x + _bk.w * .5, _bk.y + 3, "back  >");
 	}   // (the planet's is the panel's close - the hub went, 2026-09-16)
-	if (view != "crew" && view != "hub" && array_length(g.sprites) > 0) {
+	if (view != "crew" && view != "hub" && mode != "sprites" && array_length(g.sprites) > 0) {
 		var _cs = __crewstrip_r();
 		draw_sprite_ext(spr_pixel_1x1, 0, _cs.x, _cs.y, _cs.w, _cs.h, 0, c_black, .8);
 		draw_px_rect(_cs.x, _cs.y, _cs.w, _cs.h, c_steelblue, .5);
 		draw_set_color(c_steelblue);
 		draw_text(_cs.x + _cs.w * .5, _cs.y + 3, "crew");
-	} else if (view == "crew") {
-		// (the crew's own page: its slot holds [bestiary] - 2026-09-16)
+	} else if (view == "crew" && mode != "sprites") {
+		// (the crew's own page: its slot holds [bestiary] - 2026-09-16; the sprite menu has no strip)
 		var _cs2 = __crewstrip_r();
 		draw_sprite_ext(spr_pixel_1x1, 0, _cs2.x, _cs2.y, _cs2.w, _cs2.h, 0, c_black, .8);
 		draw_px_rect(_cs2.x, _cs2.y, _cs2.w, _cs2.h, c_steelblue, .5);
@@ -1406,6 +1408,7 @@ __sheet_tap = function() {
 	return false;
 };
 // (the chips and the old brief rects went with the preparation page's rework, 2026-09-15 - see __dp_* above)
+__dismiss_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // THE SPRITE MENU's [dismiss] (2026-09-16)
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 44, h : 14 }; };   // (narrower, 2026-09-16: three buttons fit under the card - [crew] [galaxy] [bestiary])
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;

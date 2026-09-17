@@ -127,6 +127,12 @@ __next_state = function() {
 };
 
 /// the poke
+/// the newcomer's lost lines (a pool, 2026-09-16)
+__lost_line = function() { return choose("where am i", "must've taken a wrong turn", "how did i get here", "this isn't the marsh", "was that a door?", "...hello?", "did anyone see a road?", "i was following a light"); };
+// THE ARRIVAL (his ask, 2026-09-16): a newcomer walks in from off screen, lost - a line every so often, the eyes darting -
+// and settles where it was seated; then it is home (the flag rides the struct for the session only)
+arrive_n = 0; look_tx = 0; look_ty = 0;
+if (s[$ "arrive"] ?? false) { st = 4; st_t = 30; tx = x; ty = y; x = (random(1) < .5) ? -14 : room_width + 14; bub = __lost_line(); bub_t = 150; }
 __poke = function() {
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];
@@ -148,7 +154,9 @@ __poke = function() {
 			bub_t = 110;
 		}
 	}
-	card_open = !card_open;
+	// THE SPRITE MENU (his ask, 2026-09-16): a poke opens the roster on this one - and the first poke ever unlocks the menu
+	if (!variable_global_exists("sprites_met") || !g.sprites_met) { g.sprites_met = true; unfold_grant("sprites", "sprites: tap one to manage them"); }
+	if (st != 4) exped_open("sprites", s.id);
 };
 
 // the shader's handles, once

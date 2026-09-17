@@ -41,6 +41,7 @@ function menu2_content() {
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
 	menu2_button("faq",          function() { faq_open(); }, c_gold);
+	if (unfold_has("sprites")) menu2_button("sprites",  function() { exped_open("sprites"); }, c_feat_expeditions, "sprites");   // THE SPRITE MENU (2026-09-16): the roster's manager - unlocked by the first poke on a sprite
 	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_feat_expeditions, "expeditions");   // misc (his call, 2026-09-13)
 	if (unfold_has("offlog"))      menu2_button("offline log",  function() { offlog_open(); }, c_feat_offlog, "offlog");   // every absence's story (2026-09-12)
 }

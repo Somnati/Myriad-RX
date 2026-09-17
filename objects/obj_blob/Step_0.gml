@@ -53,8 +53,18 @@ if (is_struct(_yng) && !s.asleep) {
 	with (obj_blob) if (sid == other.s.young.parent) _kb = id;
 	if (_kb != noone) { st = 1; st_t = max(st_t, 30); tx = _kb.x + follow_dx; ty = _kb.y + follow_dy; }
 }
+// THE ARRIVAL (2026-09-16): walks to its seat, lost; settles, and is home
+if (st == 4) {
+	var _d4 = point_distance(x, y, tx, ty), _sp4 = .3 * _p.pace * delta;
+	if (_d4 > 1.5) { x += (tx - x) / _d4 * _sp4; y += (ty - y) / _d4 * _sp4; }
+	st_t -= delta;
+	if (st_t <= 0) { st_t = random_range(50, 90); if (arrive_n < 3) { bub = __lost_line(); bub_t = 120; arrive_n += 1; } look_tx = random_range(-1, 1); look_ty = random_range(-.6, .3); }
+	look_x = lerp(look_x, look_tx, .12 * delta); look_y = lerp(look_y, look_ty, .12 * delta);
+	if (_d4 <= 1.5) { st = 0; st_t = 60; s.arrive = false; bub = choose("oh. hello.", "well. this'll do.", "i'll just... stay here then"); bub_t = 130; }
+}
 // ---- the loop ----
-if (s.asleep) { st = 3; }
+if (st == 4) { }
+else if (s.asleep) { st = 3; }
 else {
 	if (st == 3) { st = 0; st_t = 30; }
 	st_t -= delta;
@@ -111,8 +121,7 @@ else {
 
 // stay in its patch, and remember where it stands
 var _b = __bounds();
-x = clamp(x, _b.x1, _b.x2);
-y = clamp(y, _b.y1, _b.y2);
+if (st != 4) { x = clamp(x, _b.x1, _b.x2); y = clamp(y, _b.y1, _b.y2); }   // (a newcomer is off the patch on purpose - it is walking in)
 if (tx > _b.x2 || tx < _b.x1) __wander_to();   // a target the patch no longer holds (the drawer came out over it)
 // OFF THE TABLE (his ask): a body that finds itself on the board - it
 // arrived there from the money room's seat, or the board grew under it

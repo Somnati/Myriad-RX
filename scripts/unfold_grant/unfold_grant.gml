@@ -9,7 +9,7 @@ function unfold_grant(_key, _banner = "", _quiet = false) {
 	// the keys with a line in the menu (menu2_content) - the drawer, the
 	// toys, the tap's own unlocks have none, so they never say "new"
 	static _menu = ["upgrades", "tiles", "abilities", "automation", "timebank", "battery",
-	                "ccore", "expeditions", "gift", "statistics", "offlog", "rebirth", "cheat"];
+	                "ccore", "sprites", "expeditions", "gift", "statistics", "offlog", "rebirth", "cheat"];
 	unfold_init();
 	if (g.unf.seen[$ _key] ?? false) return;
 	g.unf.seen[$ _key] = true;

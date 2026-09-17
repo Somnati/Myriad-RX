@@ -75,6 +75,7 @@ if (view == "trip") {
 if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; hl_open = false; } }   // (the haul fades in - his ask, 2026-09-15)
 if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "planet"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
 if (view == "sheet") view = "crew";
+if (dismiss_t > 0) dismiss_t -= delta; else dismiss_arm = -1;   // ([dismiss] disarms on its own - 2026-09-16)
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
 if (view == "map" && !is_struct(map_dest)) view = "planet";
 if (view == "hub") view = "planet";   // (the hub went, 2026-09-16)
@@ -498,7 +499,21 @@ if (view != "hub") {
 		}
 	}
 	// [bestiary] in the crew page's slot (2026-09-16)
-	if (view == "crew") {
+	// THE SPRITE MENU's [dismiss] (2026-09-16): armed by the first tap, done by a second within the arm's time (exped_retire)
+	if (view == "crew" && mode == "sprites") {
+		var _dr = __dismiss_r(), _dsp = __sp_by_id(sheet_id);
+		if (!is_undefined(_dsp) && !(_dsp[$ "trip"] ?? false) && point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
+			if (dismiss_arm == _dsp.id && dismiss_t > 0) {
+				var _gone = exped_retire(_dsp.id);
+				dismiss_arm = -1; dismiss_t = 0; it_pop = undefined;
+				if (_gone != "") assign_banner(_gone + " has gone to live somewhere quieter", c_gold, c_black);
+				if (array_length(g.sprites) > 0) sheet_id = g.sprites[0].id; else closing = true;
+				play_sound_ext(snd_matclick2, .8, .9, .5, 1);
+			} else { dismiss_arm = _dsp.id; dismiss_t = 180; play_sound_ext(snd_softclick, .9, 1, .4, 1); }
+			exit;
+		}
+	}
+	if (view == "crew" && mode != "sprites") {
 		var _cs2 = __crewstrip_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _cs2.x, _cs2.y, _cs2.x + _cs2.w, _cs2.y + _cs2.h)) {
 			bs_from = "crew"; __page_go("bestiary"); it_pop = undefined;
