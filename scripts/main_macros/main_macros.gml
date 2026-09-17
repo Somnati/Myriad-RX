@@ -455,7 +455,7 @@ function main_macros() {
 #macro SPRITE_QUEST_XP_LO 2   // a quest's xp in par kills: barely done...
 #macro SPRITE_QUEST_XP_HI 5   // ...to fully done (exped_tick_one pays by rooms cleared for now)
 #macro SPRITE_INV        10   // a sprite's inventory (his call): past it the worst is trashed
-#macro SPRITE_SKILLS      3   // skills a sprite carries: the class's own plus this many minus one LEARNED on the road (his call, 2026-09-15: one at level 1, the rest picked up - and swapped out - like gear)
+#macro SPRITE_SKILLS      4   // (four since 2026-09-17, his call) skills a sprite carries: the class's own plus this many minus one LEARNED on the road (his call, 2026-09-15: one at level 1, the rest picked up - and swapped out - like gear)
 #macro SPRITE_NOTES      12   // a sprite's notepad holds this many lines (the oldest falls off)
 #macro SPRITE_NOTE_HIT    5   // hit chance a sprite gains against a foe kind it has a note on ("goblins are quick. swing early.")
 #macro SPRITE_FOE_BUDGET .9   // a foe's stat budget as a share of a sprite's at the same level (the twin: at par a crew of three wins ~78%, a lone warrior 87%, a lone mage 60%)
