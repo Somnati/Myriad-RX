@@ -39,6 +39,7 @@ uniform float u_aurora;      // AURORA: 1 on the worlds that have one
 uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
+uniform float u_crelief;  // THE CLOUD RELIEF (2026-09-17): the top deck's thickest puff in radii (0 = flat shells)
 
 float cw_h(vec3 p)
 {
@@ -80,6 +81,68 @@ float cloud_at(vec3 n, vec2 ts)
     vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
     return texture2D(u_cloud, sphere_uv(t, ts)).a * u_cfade;
 }
+// THE CLOUD RELIEF (2026-09-17, his ask: "a depth pass like how our mountains
+// are so clouds don't look flat"): the cover map's RED is a smooth thickness
+// (planet_gen_step bakes it), the alpha the hard coverage. A deck is a shell
+// displaced by it - marched like the ground, lit by its own normal (the
+// mountains' per-texel recipe, in the cloud map's grid), so a puff has a
+// lit top, a shaded flank, and bulges over the limb
+float thk_uv(vec2 uv)
+{
+    vec4 c = texture2D(u_cloud, (floor(uv * u_tsize) + 0.5) / u_tsize);
+    return (c.a > 0.02) ? c.r * u_cfade : 0.0;
+}
+float thick_at(vec3 n)
+{
+    vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
+    return thk_uv(sphere_uv(t, u_tsize));
+}
+// a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
+float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov)
+{
+    dirn = vec3(0.0, 0.0, 1.0); nrm = vec3(0.0, 0.0, 1.0); cov = 0.0;
+    float RO = R + H;
+    if (r2 > RO * RO) return -1.0;
+    float z0 = sqrt(RO * RO - r2);
+    float z1 = (r2 <= R * R) ? sqrt(R * R - r2) : 0.0;
+    float zs = z0;
+    float zh = z0;
+    bool under = false;
+    for (int i = 0; i < 7; i++) {
+        float zz = mix(z0, z1, (float(i) + 1.0) / 7.0);
+        vec3 pp = vec3(p, zz);
+        float rr = length(pp);
+        float th = thick_at(pp / rr);
+        if (th > 0.0 && rr <= R + H * th) { under = true; zh = zz; break; }
+        zs = zz;
+    }
+    if (!under) return -1.0;
+    for (int j = 0; j < 3; j++) {
+        float zm = (zs + zh) * 0.5;
+        vec3 pp = vec3(p, zm);
+        float rr = length(pp);
+        float th = thick_at(pp / rr);
+        if (th > 0.0 && rr <= R + H * th) zh = zm; else zs = zm;
+    }
+    vec3 ph = vec3(p, zh);
+    dirn = ph / length(ph);
+    cov = cloud_at(dirn, u_tsize);
+    // the normal in the map's own grid: one texel each way (the mountains' recipe)
+    vec3 t0 = vec3(dot(u_crot[0], dirn), dot(u_crot[1], dirn), dot(u_crot[2], dirn));
+    vec2 uv0 = vec2(atan(t0.z, t0.x) / 6.2831853 + 0.5, acos(clamp(t0.y, -1.0, 1.0)) / 3.14159265);
+    vec2 uvc = (floor(uv0 * u_tsize) + 0.5) / u_tsize;
+    vec2 du = vec2(1.0 / u_tsize.x, 0.0);
+    vec2 dv = vec2(0.0, 1.0 / u_tsize.y);
+    float hx = thk_uv(uvc + du) - thk_uv(uvc - du);
+    float hy = thk_uv(uvc + dv) - thk_uv(uvc - dv);
+    vec3 tur = vec3(-t0.z, 0.0, t0.x);
+    vec3 tu = (length(tur) < 0.001) ? vec3(0.0, 0.0, 1.0) : normalize(tur);
+    vec3 tv = normalize(cross(t0, tu));
+    float k = max(H, 0.01) * 9.0;
+    vec3 nt = normalize(t0 - tu * hx * k - tv * hy * k);
+    nrm = normalize(u_crot[0] * nt.x + u_crot[1] * nt.y + u_crot[2] * nt.z);
+    return zh;
+}
 
 // white noise, no lattice (Hoskins' hash12): the grain that reads as film
 // grain, not the diagonal checkerboard interleaved-gradient noise makes
@@ -117,19 +180,19 @@ void main()
     }
     vec3 atmo = mix(u_atmo * 0.22 + vec3(0.01, 0.01, 0.04), u_atmo, rl);
 
-    // ---- cloud shells ----
+    // ---- cloud decks, marched (the cloud relief, 2026-09-17): the base deck .6 of the top's height ----
     float cab = 0.0; float clib = 1.0;
-    if (r2 <= CB * CB) {
-        vec3 nb = vec3(p.x, p.y, sqrt(CB * CB - r2)) / CB;
-        cab  = cloud_at(nb, u_tsize);
-        clib = lightband(dot(nb, u_light));
-    }
+    vec3 nbd; vec3 nbn;
+    float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab);
+    if (czb < 0.0) cab = 0.0;
+    else clib = lightband(dot(nbn, u_light)) * 0.8 + lightband(dot(nbd, u_light)) * 0.2;
     float cat = 0.0; float clit = 1.0; float emb = 1.0;
-    if (r2 <= CR * CR) {
-        vec3 nt = vec3(p.x, p.y, sqrt(CR * CR - r2)) / CR;
-        cat  = cloud_at(nt, u_tsize);
-        clit = lightband(dot(nt, u_light));
-        if (cat > 0.0 && cloud_at(normalize(nt + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
+    vec3 ntd; vec3 ntn;
+    float czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat);
+    if (czt < 0.0) cat = 0.0;
+    else {
+        clit = lightband(dot(ntn, u_light)) * 0.8 + lightband(dot(ntd, u_light)) * 0.2;
+        if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
     }
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
@@ -171,7 +234,7 @@ void main()
             }
         }
     }
-    float czf = (r2 <= CR * CR) ? sqrt(CR * CR - r2) : -1000.0;
+    float czf = (czt >= 0.0) ? czt : ((r2 <= CR * CR) ? sqrt(CR * CR - r2) : -1000.0);   // (the top deck's front: where it was hit, else the shell)
 
     // ---- THE MOUNTAINS: march the ray from the outer shell down to
     // the surface 1 + relief x h. Inside the unit disc the base sphere

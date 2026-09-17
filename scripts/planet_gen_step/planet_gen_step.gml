@@ -50,6 +50,18 @@ function planet_gen_step(_pn, _rows = undefined) {
 			else if (_pn.dry)      _a = (_a > 0 && _wisp > .52) ? .55 : 0;   // a dry world keeps a few thin wisps (his ask: every world shows clouds)
 			else if (_pn.wet < .3) _a = min(_a, .55);
 			_pn.carr[_i2] = _a;
+			// THE THICKNESS (the cloud relief, 2026-09-17, his ask: "a depth pass like the mountains so clouds
+			// don't look flat"): a SMOOTH field the shader marches against - how deep inside the puff (its
+			// distance field), the wisp's body, the belt's; a thin texel half. The coverage above stays hard
+			var _t = 0;
+			if (_a > 0) {
+				if (_bd < 0) _t = max(_t, clamp(-_bd / .12, 0, 1));
+				_t = max(_t, clamp((_wisp - .40) / .3, 0, 1) * .7);
+				if (_bv > .27) _t = max(_t, clamp((_bv - .27) / .35, 0, 1));
+				_t = max(_t, .08);
+				if (_a < 1) _t *= .5;
+			}
+			_pn.cthk[_i2] = _t;
 		}
 		_pn.row += 1;
 	}

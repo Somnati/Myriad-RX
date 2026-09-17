@@ -38,7 +38,7 @@ function planet_bake(_pn, _until = undefined) {
 			surface_reset_target();
 		}
 		surface_set_target(_srf[_p]);
-		if (_p != 1) gpu_set_blendmode_ext(bm_one, bm_zero);
+		gpu_set_blendmode_ext(bm_one, bm_zero);   // (every pass straight, the cloud's too: its red is the thickness, its alpha the coverage - 2026-09-17)
 		for (var _tx = 0; _tx < _tw; _tx++) {
 			var _i = _tx + _ty * _tw;
 			if (_p == 0) {
@@ -46,7 +46,7 @@ function planet_bake(_pn, _until = undefined) {
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, _pn.pal[_b3], 1 - _pn.glow[_b3]);
 			} else if (_p == 1) {
 				var _ca2 = _pn.carr[_i];
-				if (_ca2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, c_white, _ca2);
+				if (_ca2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, 255), _ca2);   // (red = the thickness - the cloud relief, 2026-09-17)
 			} else {
 				// height above the sea (or the world's base level), 0..1 in red:
 				// water is flat, the land climbs, peaks reach 1; the gradient rides
