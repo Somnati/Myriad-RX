@@ -74,7 +74,7 @@
 	// they come in at boot and stay
 	texture_prefetch("Default");
 	texture_prefetch("glows");
-	g.profile  = 0;
+	if (!variable_global_exists("profile")) g.profile = 0;   // (syst_handle_save's Create reads the last profile played from settings.ini - do not clobber it)
 	// TWO CLOCKS (2026-09-06, his ask - DE tracks both and the port kept
 	// only half). They never overlap, so their SUM is the whole life of
 	// the save:

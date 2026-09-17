@@ -97,6 +97,8 @@ function handle_settings(_method) {
 
 	section = "gameplay";
 
+	// THE LAST PROFILE PLAYED - WRITTEN ONLY (2026-09-17). syst_handle_save's Create reads it once at boot; a read here would set the profile back mid-load
+	if (action == sv_save) ini_write_real(section, "profile", clamp(floor(g.profile), 0, 3));
 	g.autosave = handle("autosave",g.autosave);
 	g.backup_mid  = handle("backup_mid",  g.backup_mid);
 	g.backup_deep = handle("backup_deep", g.backup_deep);

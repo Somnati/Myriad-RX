@@ -1,4 +1,6 @@
 if (s == undefined) { instance_destroy(); exit; }
+// THE ARRIVAL, on the first step with the struct bound (the Create has no `s` yet)
+if (!arrive_chk) { arrive_chk = true; if (s[$ "arrive"] ?? false) { st = 4; st_t = 30; tx = x; ty = y; x = (random(1) < .5) ? -14 : room_width + 14; bub = __lost_line(); bub_t = 150; } }
 if (!in_room(rm_clicker)) { instance_destroy(); exit; }
 // away on an expedition: the body is not in the room (the card and
 // the bubble go with it - __draw_over checks visible)

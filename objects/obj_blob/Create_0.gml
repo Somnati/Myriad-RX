@@ -132,7 +132,8 @@ __lost_line = function() { return choose("where am i", "must've taken a wrong tu
 // THE ARRIVAL (his ask, 2026-09-16): a newcomer walks in from off screen, lost - a line every so often, the eyes darting -
 // and settles where it was seated; then it is home (the flag rides the struct for the session only)
 arrive_n = 0; look_tx = 0; look_ty = 0;
-if (s[$ "arrive"] ?? false) { st = 4; st_t = 30; tx = x; ty = y; x = (random(1) < .5) ? -14 : room_width + 14; bub = __lost_line(); bub_t = 150; }
+// (checked on the FIRST STEP, not here: syst_sprites binds `s` AFTER create_obj returns - reading it in the Create crashed every blob, his report 2026-09-17)
+arrive_chk = false;
 __poke = function() {
 	var _pl = sprite_personalities();
 	var _p  = _pl[clamp(s.pers, 0, array_length(_pl) - 1)];

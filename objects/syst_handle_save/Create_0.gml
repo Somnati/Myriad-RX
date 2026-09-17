@@ -18,6 +18,15 @@ boot_prog = 0;        // 0..1, the boot's real progress (the bar under the capti
 boot_prog_v = 0;      // the bar, easing to it
 boot_world = "";      // the world being built now (the caption names it - his ask, 2026-09-16)
 
+// THE LAST PROFILE PLAYED (his report, 2026-09-17: continue always opened
+// profile 1). settings.ini remembers it - handle_settings WRITES it on
+// every settings save and never reads it back (a read there would drag a
+// freshly loaded profile back to the last one mid-load). Read once, here,
+// before the pointer below is seated. (setgame's boot default only fills
+// the global in if this has not run yet - either creation order works)
+ini_open("settings.ini");
+g.profile = clamp(floor(ini_read_real("gameplay", "profile", 0)), 0, 3);
+ini_close();
 file_to_handle = save_slot_path(0); // active profile's main save
 
 // boot failsafe: if the device died mid-write and mangled the main
