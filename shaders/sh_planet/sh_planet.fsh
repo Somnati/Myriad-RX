@@ -137,24 +137,34 @@ float cloudband(float d);   // (defined below the marches - a prototype, so the 
 // travels a long way inside the slab, so a cloud past the tangent still has weight there - the wrap for free,
 // and the bright hazy limb real worlds have. The light: the deck's terminator by position, the crown brighter
 // than the base, and the puff sunward of the sample shading it (the cheap stand-in for a march to the sun)
-float dens_at(vec3 d, float rr, float R, float H, float w, out float below)
+float dens_at(vec3 d, float rr, float R, float H, float w)
 {
-    below = 0.0;
     float th = thick_at(d);
     if (th <= 0.0) return 0.0;
     th = min(1.0, th * w);   // (the weather's swell)
     float h = (rr - R) / H;                         // 0 at the shell, 1 at the deck's top
-    below = clamp((th - h) * 2.0, 0.0, 1.0);        // how far under the puff's top the sample sits (the underside, 2026-09-17)
     float inside = 1.0 - smoothstep(th - 0.25, th, h);
     return inside * (0.25 + 0.75 * cloud_at(d, u_tsize));
 }
-// lit = the deck's day / night (the terminator band alone); shd = the SHAPE's shading - the crown bright, the base
-// and the underside dark (his ask, 2026-09-17: "make the underside of clouds darker"). Kept apart, so the night's
-// blue and the dusk's pink read the terminator only, never a shadowed base as a sunset
+// THE FLANK (2026-09-17, his ask: "just the bottoms" - a height term and a depth term went into the ray's AVERAGE
+// and greyed the whole puff, thin ones most): the puff's slope toward the sun, read where the ray first meets
+// cloud. Where the puff RISES sunward of that point the point is on the flank the sun does not reach - the
+// puff's own shadow side - and it darkens; a plateau, or the sunlit flank, stays full. Two thickness taps
+// (~two texels apart), once a pixel, so the rim is a texel-crisp band along the shaded edge, nothing else
+float flank_shade(vec3 d, bool base)
+{
+    float up = thick_atb(normalize(d + u_light * 0.04), base);
+    float dn = thick_atb(normalize(d - u_light * 0.04), base);
+    return 1.0 - 0.5 * smoothstep(0.03, 0.35, up - dn);
+}
+// lit = the deck's day / night (the terminator band alone, the ray's average); shd = the SHAPE's shading - the
+// shaded flank and the underside dark, everything else full (his ask, 2026-09-17: "make the underside of clouds
+// darker ... just the bottoms") - read ONCE where the ray first meets cloud, so it is a rim, not a tint. Kept
+// apart, so the night's blue and the dusk's pink read the terminator only, never a shadowed base as a sunset
 float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit, out float shd)
 {
     lit = 1.0; shd = 1.0;
-    float ssum = 0.0;
+    bool hit = false;
     float RO = R + H;
     if (r2 > RO * RO) return 0.0;
     float z0 = sqrt(RO * RO - r2);
@@ -170,15 +180,12 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
         vec3 pp = vec3(p, zz);
         float rr = length(pp);
         vec3 d = pp / rr;
-        float below = 0.0;
-        float dn = dens_at(d, rr, R, H, w, below);
+        float dn = dens_at(d, rr, R, H, w);
         if (dn <= 0.0) continue;
+        if (!hit) { hit = true; shd = flank_shade(d, false); }   // (the visible face: its flank's shade)
         float a = clamp(dn * 42.0 * ds, 0.0, 1.0);
         float l = cloudband(dot(d, u_light));
-        // the shape: the crown full, the base under half; the puff sunward shades it; deep under its own top, darker still
-        float s = (0.45 + 0.55 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.3 * cloud_at(normalize(d + u_light * 0.06), u_tsize)) * (1.0 - 0.35 * below);
         lsum += l * a * T;
-        ssum += s * a * T;
         wsum += a * T;
         T *= 1.0 - a;
         if (T < 0.03) break;
@@ -192,20 +199,18 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
             vec3 pp = vec3(p, zz);
             float rr = length(pp);
             vec3 d = pp / rr;
-            float below = 0.0;
-            float dn = dens_at(d, rr, R, H, w, below);
+            float dn = dens_at(d, rr, R, H, w);
             if (dn <= 0.0) continue;
+            if (!hit) { hit = true; shd = 0.5; }   // (THE UNDERSIDE, seen past the limb: half-lit)
             float a = clamp(dn * 42.0 * ds2, 0.0, 1.0);
             float l = cloudband(dot(d, u_light));
-            float s = (0.45 + 0.55 * clamp((rr - R) / H, 0.0, 1.0)) * 0.5;   // (THE UNDERSIDE, seen past the limb: half-lit at best)
             lsum += l * a * T;
-            ssum += s * a * T;
             wsum += a * T;
             T *= 1.0 - a;
             if (T < 0.03) break;
         }
     }
-    if (wsum > 0.0) { lit = lsum / wsum; shd = ssum / wsum; }
+    if (wsum > 0.0) lit = lsum / wsum;
     return 1.0 - T;
 }
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
