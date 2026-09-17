@@ -48,8 +48,8 @@ float cw_h(vec3 p)
     return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
 }
 
-const float CB = 1.045;
-const float CR = 1.09;
+const float CB = 1.075;   // the base deck's shell (higher, his ask 2026-09-17: was 1.045)
+const float CR = 1.15;    // the top deck's (was 1.09); the relief rides on top of each
 
 vec2 sphere_uv(vec3 t, vec2 ts)
 {
@@ -344,7 +344,7 @@ void main()
             }
         }
 
-        col *= 1.0 - cloud_at(normalize(n - u_light * 0.10), u_tsize) * 0.28;
+        col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         float li = lightband(dot(nn, u_light));
         col *= li;
         col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45);                       // the slope's own light, over the band
@@ -441,13 +441,15 @@ void main()
             }
         }
         if (ringA > 0.0 && ringZ > z && ringZ <= czf) col = mix(col, ringC, ringA);
+        // THE RIM goes on the GROUND, under the decks (his report 2026-09-17: added over them it washed the clouds into the halo
+        // a way before the limb - they seemed to fade early); the lit side's rim, sharp into the night (rl .5 is the terminator)
+        float fr = pow(1.0 - clamp(z, 0.0, 1.0), 2.6);
+        col += atmo * fr * (1.15 * smoothstep(0.42, 0.72, rl));
         col = mix(col, cbcol, cab * 0.80);
         col = mix(col, ctcol, cat * 0.95);
         col += vec3(0.92, 0.95, 1.0) * fl * 1.1;   // the cloud itself, lit from within
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
-        float fr = pow(1.0 - clamp(z, 0.0, 1.0), 2.6);
-        col += atmo * fr * (1.15 * smoothstep(0.42, 0.72, rl));   // (the lit side's rim; SHARP into the night - his ask 2026-09-17: rl .5 is the terminator, the rim is nearly out there)
         col += dn * (min(dot(col, vec3(0.299, 0.587, 0.114)) * 255.0 * 0.5, 2.0) / 255.0);
         gl_FragColor = vec4(col, 1.0);
     } else {
