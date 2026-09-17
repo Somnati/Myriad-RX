@@ -58,6 +58,7 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 		var _abs = string_split(_f[_at + 13], ",");
 		for (var _i = 0; _i < min(4, array_length(_abs)); _i++) if (_abs[_i] != "") _sh.abil[_i] = clamp(floor(real(_abs[_i])), -1, 9);
 	}
+	_sh.abnew = (array_length(_f) > _at + 14 && _f[_at + 14] == "1");   // "new" (a fifteenth field)
 	// its own ledger (a thirteenth field, 2026-09-17)
 	_sp.led = {};
 	if (array_length(_f) > _at + 12 && _f[_at + 12] != "") {

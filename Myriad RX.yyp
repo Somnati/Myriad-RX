@@ -227,6 +227,7 @@
     {"id":{"name":"ability_lane_desc","path":"scripts/ability_lane_desc/ability_lane_desc.yy",},},
     {"id":{"name":"ability_line","path":"scripts/ability_line/ability_line.yy",},},
     {"id":{"name":"ability_rarity_mult","path":"scripts/ability_rarity_mult/ability_rarity_mult.yy",},},
+    {"id":{"name":"ability_score","path":"scripts/ability_score/ability_score.yy",},},
     {"id":{"name":"ability_unlocks","path":"scripts/ability_unlocks/ability_unlocks.yy",},},
     {"id":{"name":"ability","path":"scripts/ability/ability.yy",},},
     {"id":{"name":"arb_log10","path":"scripts/arb_log10/arb_log10.yy",},},

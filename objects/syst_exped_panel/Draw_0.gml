@@ -507,7 +507,9 @@ if (view == "crew" || view == "sheet") {
 		draw_text(_tb.x + 14, _tb.y + 3, string_copy(_sp.name, 1, land ? 8 : 6));
 		draw_set_halign(fa_right);
 		draw_set_color(_dim); draw_set_alpha(.7);
-		draw_text(_tb.x + _tb.w - 3, _tb.y + 3, "lv" + string(sprite_sheet(_sp).lv));
+		var _tsh = sprite_sheet(_sp);
+		draw_text(_tb.x + _tb.w - 3, _tb.y + 3, "lv" + string(_tsh.lv));
+		if (_tsh[$ "abnew"] ?? false) { draw_set_color(c_gold); draw_set_alpha(.7 + .3 * dsin(current_time * .4)); draw_text(_tb.x + _tb.w - 3 - string_width("lv" + string(_tsh.lv)) - 4, _tb.y + 3, "new"); }   // (an ability to look at, 2026-09-17)
 		draw_set_halign(fa_left);
 	}
 	// THE CLUTCH (2026-09-16): the eggs at home under the tabs - each its colour, and how long it has to go

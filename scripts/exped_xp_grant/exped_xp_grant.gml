@@ -31,8 +31,8 @@ function exped_xp_grant(_tr, _xp, _why) {
 		var _was = _tr.hpmax[_k];
 		var _got = sprite_xp_add(_sp, _share);
 		if (_got > 0) {
-			// a new rung may have unlocked: an empty ability slot takes it (2026-09-17)
-			if (sprite_ability_autofill(_sp) > 0) array_push(_tr.log, "+ " + _sp.name + " has a new ability");
+			// a new rung may have unlocked (sprite_xp_add picked for it): say so
+			if (sprite_sheet(_sp)[$ "abnew"] ?? false) array_push(_tr.log, "+ " + _sp.name + " has a new ability");
 			var _now = sprite_pawn(_sp).maxhp;
 			_tr.hpmax[_k] = _now;
 			_tr.hp[_k] = min(_now, _tr.hp[_k] + max(0, _now - _was));

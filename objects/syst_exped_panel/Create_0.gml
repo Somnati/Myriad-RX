@@ -1196,7 +1196,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _rowh = 11, _rowp = 12;
 	for (var _i = 0; _i < SPRITE_SKILLS; _i++) {
 		var _ly = _ky + 10 + _i * _rowp;
-		if (_i >= array_length(_sk)) { __slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _dim, true); draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly + 1, "- open -"); continue; }
+		if (_i >= array_length(_sk)) { __slot_row(_rx0 - 3, _ly - 1, _skw, _rowh, _dim, true); continue; }   // (an empty slot is empty - his call, 2026-09-17)
 		var _s = _sk[_i];
 		// the element or the school colours the row and says its word (2026-09-17)
 		var _sel = _s[$ "elem"] ?? "", _ssc = _s[$ "school"] ?? "";
@@ -1218,6 +1218,8 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _all_ab = sprite_abilities(_sp);
 	var _ay = _ky + 10 + SPRITE_SKILLS * _rowp + 4;
 	draw_set_color(_ink); draw_set_alpha(.5); draw_text(_rx0, _ay, "abilities");
+	// "NEW" (his ask, 2026-09-17): a rung unlocked and not yet looked at - the picker clears it
+	if (_sh[$ "abnew"] ?? false) { draw_set_color(c_gold); draw_set_alpha(.7 + .3 * dsin(current_time * .4)); draw_text(_rx0 + string_width("abilities") + 6, _ay, "new"); }
 	var _lad = ability_unlocks(), _next_lv = -1;
 	for (var _li = 0; _li < array_length(_lad); _li++) if (_sh.lv < _lad[_li].lv) { _next_lv = _lad[_li].lv; break; }
 	if (_next_lv > 0) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_rx0 + string_width("abilities") + 8, _ay, "next at lv " + string(_next_lv)); }
@@ -1227,8 +1229,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		array_push(it_rects, { x : _rx0 - 3, y : _ly2 - 1, w : _rw0, h : _rowh, ab : _i });
 		var _k = _sh.abil[_i];
 		if (_k < 0 || _k >= array_length(_all_ab)) {
-			__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _dim, true);
-			draw_set_color(_dim); draw_set_alpha(.35); draw_text(_rx0 + 6, _ly2 + 1, (array_length(_all_ab) > 0) ? "- open  (tap to pick) -" : "- open -");
+			__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _dim, true);   // (empty is empty)
 			continue;
 		}
 		var _a = _all_ab[_k], _arc = upgrade_rarity_info(_a.rar).col;
@@ -1255,6 +1256,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _asp = it_pop.sp, _ash = sprite_sheet(_asp), _aall = sprite_abilities(_asp);
 		if (!is_array(_ash[$ "abil"])) _ash.abil = [-1, -1, -1, -1];
 		var _sel = it_pop[$ "sel"] ?? -2;
+		if (_ash[$ "abnew"] ?? false) { _ash.abnew = false; save_mark_dirty(); }   // (looked at)
 		var _pnh = 58, _bh3 = 14;
 		var _apw = 236, _aph = 22 + (array_length(_aall) + 1) * 11 + 4 + _pnh + 4 + _bh3 + 6;
 		// ON THE RIGHT, over the ability column, clear of the stat points (his ask)
@@ -1518,16 +1520,21 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 		__slot_row(_ex, _ry - 1, _ew, 11, _rc, is_undefined(_rw.it));
 		if (!is_undefined(_rw.it)) array_push(it_rects, { x : _ex, y : _ry - 1, w : _ew, h : 11, it : _rw.it, worn : true });
 		if (is_struct(it_pop) && !is_undefined(_rw.it) && it_pop[$ "it"] == _rw.it) draw_capsule(_ex, _ry - 1, _ew, 11, c_white, c_white, .18);
-		draw_set_color(_dim); draw_set_alpha(.8);
-		draw_text(_ex + 6, _ry + 1, _rw.lbl);
-		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 44, _ry + 1, "- open -"); }
+		// DISGAEA'S ROW (his screenshots, 2026-09-17): the item's name on the
+		// left - "(none)" dim when the slot is bare - and the slot's KIND on
+		// the right, small and dim; the level tucked after the name
+		var _kind = (_rw.lbl == "weapon") ? "main weapon" : ((_rw.lbl == "offhand") ? "sub weapon" : _rw.lbl);
+		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(is_undefined(_rw.it) ? .45 : .7);
+		draw_text(_ex + _ew - 8, _ry + 1, _kind);
+		draw_set_halign(fa_left);
+		if (is_undefined(_rw.it)) { draw_set_color(_dim); draw_set_alpha(.45); draw_text(_ex + 8, _ry + 1, "(none)"); }
 		else {
-			var _nm = __sheet_cut(_rw.it.name, (_ex + _ew - 8 - 16) - (_ex + 44));
+			var _room = (_ex + _ew - 8 - string_width(_kind) - 8) - (_ex + 8);
+			var _nm = __sheet_cut(_rw.it.name, _room - string_width(" lv" + string(_rw.it.lv)));
 			draw_set_color(merge_colour(_rw.it.col, c_white, .3)); draw_set_alpha(.95);
-			draw_text(_ex + 44, _ry + 1, _nm);
-			draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.6);
-			draw_text(_ex + _ew - 8, _ry + 1, "lv" + string(_rw.it.lv));
-			draw_set_halign(fa_left);
+			draw_text(_ex + 8, _ry + 1, _nm);
+			draw_set_color(_dim); draw_set_alpha(.55);
+			draw_text(_ex + 8 + string_width(_nm) + 3, _ry + 1, "lv" + string(_rw.it.lv));
 		}
 	}
 	// the pocket: the whole of it, to the foot
@@ -1540,7 +1547,7 @@ __draw_sheet_gear = function(_sp, _x0, _y0, _x1, _y1) {
 	for (var _i = 0; _i < SPRITE_INV; _i++) {
 		var _iy = _py + 11 + _i * 12;
 		if (_iy + 11 > _y1 - 2) break;
-		if (_i >= _pn) { __slot_row(_px0, _iy - 1, _pw, 11, _dim, true); draw_set_color(_dim); draw_set_alpha(.3); draw_text(_px0 + 6, _iy + 1, "- open -"); continue; }
+		if (_i >= _pn) { __slot_row(_px0, _iy - 1, _pw, 11, _dim, true); continue; }   // (empty is empty)
 		var _it = _sh.inv[_i];
 		__slot_row(_px0, _iy - 1, _pw, 11, _it.col);
 		if (is_struct(it_pop) && it_pop[$ "it"] == _it) draw_capsule(_px0, _iy - 1, _pw, 11, c_white, c_white, .18);
