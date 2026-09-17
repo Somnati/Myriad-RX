@@ -514,6 +514,7 @@ sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite)
 sy_stns = [];                        // THE STAR'S SPACE STATIONS (station_sys, 2026-09-17): on their own rings, picked like a world
+sy_belts = [];                       // THE ASTEROID BELTS (belt_sys, 2026-09-17): a crowd of rocks on a band, turning
 sy_ssel = -1;                        // the picked station (-1 none; a station and a world are never both picked)
 sy_warp_st = -1;                     // the dive, to a station (its page)
 st_sel = -1;                         // THE STATION PAGE: which of sy_stns; its own camera and spin
@@ -549,6 +550,7 @@ __sy_enter = function(_star) {
 	sy_sys = starsystem_generate(_sm.stars[_star].seed, _sm.stars[_star].props);
 	sy_sel = -1; sy_pd = []; sy_moons = []; sy_info = [];
 	sy_stns = station_sys(_sm.stars[_star].seed, sy_sys); sy_ssel = -1; sy_warp_st = -1;   // (the star's stations, 2026-09-17)
+	sy_belts = belt_sys(_sm.stars[_star].seed, sy_sys, sy_stns);   // (its belts, in the gaps the stations left)
 	var _hm = galaxy_home();
 	for (var _i = 0; _i < array_length(sy_sys.planets); _i++) {
 		var _p = sy_sys.planets[_i];
@@ -643,6 +645,20 @@ __draw_system = function() {
 	if (!is_undefined(_sp0)) array_push(_items, [_sp0[3], -1, _sp0[0], _sp0[1], _sp0[2]]);
 	for (var _i = 0; _i < _np; _i++) { var _pp0 = __sy_ppos(_pls[_i]); var _pp = __sy_proj(_pp0[0], 0, _pp0[2]); if (!is_undefined(_pp)) array_push(_items, [_pp[3], _i, _pp[0], _pp[1], _pp[2]]); }
 	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _sq0 = __st_ppos(sy_stns[_j]); var _sq = __sy_proj(_sq0[0], 0, _sq0[2]); if (!is_undefined(_sq)) array_push(_items, [_sq[3], 1000 + _j, _sq[0], _sq[1], _sq[2]]); }
+	// THE BELTS' ROCKS (2026-09-17): every rock where it stands now - NOT in the sort (five hundred of them, sorted
+	// every frame, would be the cost): split at the star's depth, the far half painted before everything, the
+	// near half after (a rock over a far world reads right; a rock behind the star but before a farther world is a pixel wrong)
+	var _bnow = universal_now(), _rk_far = [], _rk_near = [], _sdz = is_undefined(_sp0) ? sy_D : _sp0[3];
+	for (var _b = 0; _b < array_length(sy_belts); _b++) {
+		var _bl = sy_belts[_b], _rks = _bl.rocks;
+		for (var _k = 0; _k < array_length(_rks); _k++) {
+			var _rk = _rks[_k], _ra = (_rk[1] + _rk[4] * 60 * _bnow) mod 360;
+			var _rp = __sy_proj(dcos(_ra) * _rk[0], _rk[2], dsin(_ra) * _rk[0]);
+			if (is_undefined(_rp)) continue;
+			array_push((_rp[3] > _sdz) ? _rk_far : _rk_near, [_rp[0], _rp[1], _rp[2], _rk[3], _b]);
+		}
+	}
+	for (var _k = 0; _k < array_length(_rk_far); _k++) { var _rf = _rk_far[_k]; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_rf[0] - sy_wfx) * _s), floor(sy_wfy + (_rf[1] - sy_wfy) * _s), 1, 1, 0, sy_belts[_rf[4]].col, clamp(_rf[3] * (.35 + .65 * min(1, _rf[2] * _s * 1.1)), .12, .95)); }
 	array_sort(_items, function(_a, _b) { return _b[0] - _a[0]; });
 	g.dither_off = page_float();
 	for (var _n = 0; _n < array_length(_items); _n++) {
@@ -685,6 +701,8 @@ __draw_system = function() {
 			}
 		}
 	}
+	// ...the near half of the belts' rocks, over everything
+	for (var _k = 0; _k < array_length(_rk_near); _k++) { var _rn = _rk_near[_k]; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_rn[0] - sy_wfx) * _s), floor(sy_wfy + (_rn[1] - sy_wfy) * _s), 1, 1, 0, sy_belts[_rn[4]].col, clamp(_rn[3] * (.35 + .65 * min(1, _rn[2] * _s * 1.1)), .12, .95)); }
 	g.dither_off = false;
 	surface_reset_target();
 	ui_fade_set(_fa);

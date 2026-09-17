@@ -1060,6 +1060,18 @@ if (view == "system") {
 		draw_set_color(_dim); draw_set_alpha(.75);
 		draw_text(_rr2.x + 16, _rr2.y + 12, __sheet_cut(_stj.kind + "  -  " + _stj.shape_name, _rr2.w - 20));
 	}
+	// THE BELTS' ROWS (2026-09-17): named, dim, nothing to pick
+	for (var _b = 0; _b < array_length(sy_belts); _b++) {
+		var _rr3 = __sy_row_r(_np + array_length(sy_stns) + _b), _blr = sy_belts[_b];
+		if (_rr3.y + _rr3.h > room_height - 8 - 20) break;
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr3.x, _rr3.y, _rr3.w, _rr3.h, 0, c_black, .7);
+		draw_px_rect(_rr3.x, _rr3.y, _rr3.w, _rr3.h, c_steelblue, .35);
+		for (var _bd = 0; _bd < 5; _bd++) draw_sprite_ext(spr_pixel_1x1, 0, _rr3.x + 5 + _bd * 2 + ((_bd mod 2) == 0 ? 0 : 1), _rr3.y + 10 + ((_bd mod 3) - 1), 1, 1, 0, _blr.col, .9);
+		draw_set_color(_dim); draw_set_alpha(.9);
+		draw_text(_rr3.x + 16, _rr3.y + 2, __sheet_cut(_blr.name, _rr3.w - 20));
+		draw_set_alpha(.7);
+		draw_text(_rr3.x + 16, _rr3.y + 12, __sheet_cut("asteroid belt  -  " + string(_blr.n) + " rocks", _rr3.w - 20));
+	}
 	var _sor = __sy_open_r();
 	var _canopen = ((sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0) || sy_ssel >= 0) && sy_warp_pl < 0 && sy_warp_st < 0;
 	var _selon = false; if (_canopen) for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pls[sy_sel].seed) _selon = true;

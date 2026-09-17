@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"belt_sys",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"belt_sys",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
