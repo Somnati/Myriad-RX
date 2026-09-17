@@ -449,7 +449,7 @@ if (view == "system" && is_struct(sy_sys)) {
 		sy_warp_s = power(15, _we);
 		if (sy_warp_t >= 1) {
 			if (sy_warp_st >= 0) {
-				st_sel = sy_warp_st; st_cam = mat3_rot(1, 0, 0, -20); st_vx = 0; st_vy = 0; st_drag = false;
+				st_sel = sy_warp_st; st_yaw = 0; st_pitch = -20; st_cam = mat3_mul(mat3_rot(0, 1, 0, st_yaw), mat3_rot(1, 0, 0, st_pitch)); st_vx = 0; st_vy = 0; st_drag = false;
 				sy_warp_st = -1; sy_warp_s = 1; sy_warp_t = 0;
 				view = "station"; pg_a = 0; pg_dir = 1; view_last = view;
 			} else {
@@ -525,19 +525,18 @@ if (view == "station" && st_sel >= 0 && st_sel < array_length(sy_stns)) {
 	if (st_drag && mouse_check_button(mb_left)) {
 		var _sdx = mouse_x - st_dx, _sdy = mouse_y - st_dy;
 		st_drag_px += abs(_sdx) + abs(_sdy);
-		if (_sdx != 0) st_cam = mat3_mul(st_cam, mat3_rot(0, 1, 0,  _sdx * _ocs.orbit_sens));
-		if (_sdy != 0) st_cam = mat3_mul(st_cam, mat3_rot(1, 0, 0, -_sdy * _ocs.orbit_sens));
+		st_yaw += _sdx * _ocs.orbit_sens; st_pitch = clamp(st_pitch - _sdy * _ocs.orbit_sens, -80, 80);
 		st_vx = lerp(st_vx, _sdx, .5); st_vy = lerp(st_vy, _sdy, .5);
 		st_dx = mouse_x; st_dy = mouse_y;
 	}
 	if (!st_drag) {
 		if (abs(st_vx) > .02 || abs(st_vy) > .02) {
-			st_cam = mat3_mul(st_cam, mat3_rot(0, 1, 0,  st_vx * _ocs.orbit_sens * delta));
-			st_cam = mat3_mul(st_cam, mat3_rot(1, 0, 0, -st_vy * _ocs.orbit_sens * delta));
+			st_yaw += st_vx * _ocs.orbit_sens * delta; st_pitch = clamp(st_pitch - st_vy * _ocs.orbit_sens * delta, -80, 80);
 			var _sdk = power(_ocs.orbit_glide, delta);
 			st_vx *= _sdk; st_vy *= _sdk;
 		} else { st_vx = 0; st_vy = 0; }
 	}
+	st_cam = mat3_mul(mat3_rot(0, 1, 0, st_yaw), mat3_rot(1, 0, 0, st_pitch));   // (the turntable: yaw about the world's up, pitch about the view's side - it never rolls)
 	if (st_drag && mouse_check_button_released(mb_left)) st_drag = false;
 }
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS

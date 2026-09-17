@@ -384,14 +384,14 @@ void main()
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
         float fr = pow(1.0 - clamp(z, 0.0, 1.0), 2.6);
-        col += atmo * fr * (1.15 * pow(rl, 1.3));   // (the lit side's rim, more of it; NONE on the night side - his ask 2026-09-17)
+        col += atmo * fr * (1.15 * smoothstep(0.42, 0.72, rl));   // (the lit side's rim; SHARP into the night - his ask 2026-09-17: rl .5 is the terminator, the rim is nearly out there)
         col += dn * (min(dot(col, vec3(0.299, 0.587, 0.114)) * 255.0 * 0.5, 2.0) / 255.0);
         gl_FragColor = vec4(col, 1.0);
     } else {
         // THE HALO (2026-09-17, his ask: "a larger atmospheric glow on the light side ... the night side without the grey"):
         // twice the reach (.42 radii - the quad's pad 1.6 has the room), the lit side bright, the night side nothing
         float t2 = clamp((sqrt(r2) - 1.0) / 0.42, 0.0, 1.0);
-        float g = pow(1.0 - t2, 2.4) * 0.85 * pow(rl, 1.6);
+        float g = pow(1.0 - t2, 2.4) * 0.85 * smoothstep(0.45, 0.75, rl);   // (sharp into the night: a sliver past the terminator, then nothing)
         g += dn * (min(g * 255.0 * 0.5, 1.4) / 255.0);
         vec3 col = atmo;
         float a = max(g, 0.0);

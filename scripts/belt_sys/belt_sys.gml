@@ -28,19 +28,25 @@ function belt_sys(_seed, _sys, _stns = []) {
 		var _s = hash_mix(_seed, 900 + _i * 17);
 		random_set_seed(_s & $7fffffff);
 		var _name = "the " + gen_name_planet() + " belt";
-		// the gap: between two worlds (never the innermost gap - too close to the star), or past the last; not a station's
-		var _orbit = 0, _tries = 0;
+		// the gap: between two worlds (never the innermost gap - too close to the star), or past the last; not a station's.
+		// THE GAP LAW (his report, 2026-09-17: "the adjacent rings next to the asteroid belts are too close"): the belt sits
+		// at the gap's CENTRE and is two fifths of the gap wide, so three tenths of the gap stays clear on either side
+		var _orbit = 0, _gap = 12, _tries = 0;
 		while (_orbit <= 0 && _tries < 8) {
 			_tries++;
 			var _slot = (_np > 1) ? irandom_range(1, _np) : _np;
-			var _o = (_np == 0) ? 40 + random(30) : ((_slot >= _np) ? _pls[_np - 1].orbit * random_range(1.2, 1.4) : lerp(_pls[_slot - 1].orbit, _pls[_slot].orbit, random_range(.45, .55)));
+			var _o = 0, _g = 12;
+			if (_np == 0) { _o = 40 + random(30); _g = 14; }
+			else if (_slot >= _np) { _g = 13; _o = _pls[_np - 1].orbit + _g; }
+			else { _g = _pls[_slot].orbit - _pls[_slot - 1].orbit; _o = (_pls[_slot - 1].orbit + _pls[_slot].orbit) * .5; }
+			if (_g < 9) continue;   // (a tight gap keeps no belt)
 			var _ok = true;
-			for (var _j = 0; _j < array_length(_stns); _j++) if (abs(_stns[_j].orbit - _o) < 7) _ok = false;
-			for (var _j = 0; _j < array_length(_out); _j++) if (abs(_out[_j].orbit - _o) < 9) _ok = false;
-			if (_ok) _orbit = _o;
+			for (var _j = 0; _j < array_length(_stns); _j++) if (abs(_stns[_j].orbit - _o) < _g * .5) _ok = false;
+			for (var _j = 0; _j < array_length(_out); _j++) if (abs(_out[_j].orbit - _o) < _g) _ok = false;
+			if (_ok) { _orbit = _o; _gap = _g; }
 		}
 		if (_orbit <= 0) break;
-		var _width = random_range(3.5, 7), _nr = irandom_range(150, 240), _dir = choose(1, -1);
+		var _width = _gap * .4, _nr = irandom_range(150, 240), _dir = choose(1, -1);
 		var _base = merge_colour(rgb(160, 152, 145), _sys.star.col, .12);
 		// THE LANES: one or two radii the rocks keep clear of (a fifth of the band each)
 		var _lanes = [];

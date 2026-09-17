@@ -5,14 +5,14 @@
 /// simple shapes like pyramids, cubes, spheres"): a hash of the star's seed
 /// decides how many (none / one / two), each on its own orbit ring between
 /// two worlds' rings (or past the last, or inside the first), a plain
-/// solid - cube, sphere, pyramid, octahedron, cylinder, ring, cone - its
+/// solid - a cube, a sphere, a pyramid (his call, 2026-09-17) - its
 /// proportions seeded, turning slowly on a leaned axis, a warm-windowed
 /// hull grey-blue or grey-warm. Named by the planet generator plus a
 /// word for what it is. Nothing rolled on the ambient stream, nothing
 /// saved; cached by the star's seed for the session.
 function station_sys(_seed, _sys) {
 	static _c = {};
-	static _shapes = ["cube", "sphere", "pyramid", "octahedron", "cylinder", "ring", "cone"];
+	static _shapes = ["cube", "sphere", "pyramid"];   // (his call, 2026-09-17: "for right now i just want spherical, cuboid and pyramidal"; the shader keeps the other four for the belts' big rocks)
 	static _kinds = [
 		{ k : "a trading post",  l : ["ships come and go. nobody asks where from.", "everything is for sale, including the chairs.", "the docks never close. the bar never opens."] },
 		{ k : "a listening post", l : ["it hears everything. it says nothing.", "the dishes turn to face things that are not there.", "quiet inside. quieter outside."] },
@@ -47,7 +47,7 @@ function station_sys(_seed, _sys) {
 		if (_np == 0) _orbit = 30 + random(30);
 		else if (_slot >= _np) _orbit = _pls[_np - 1].orbit * random_range(1.15, 1.3);
 		else if (_slot == 0) _orbit = _pls[0].orbit * random_range(.55, .75);
-		else _orbit = lerp(_pls[_slot - 1].orbit, _pls[_slot].orbit, random_range(.4, .6));
+		else _orbit = (_pls[_slot - 1].orbit + _pls[_slot].orbit) * .5;   // (the gap's centre - the rings keep their spacing, his report 2026-09-17)
 		if (_i > 0 && abs(_orbit - _out[0].orbit) < 5) _orbit += 6;
 		var _hull = (random(1) < .5) ? merge_colour(rgb(150, 160, 185), rgb(120, 125, 140), random(1)) : merge_colour(rgb(175, 165, 150), rgb(130, 122, 112), random(1));
 		array_push(_out, { seed : _s, name : _name, kind : _kind.k, line : _line, shape : _shape, shape_name : _shapes[_shape], prm : _prm,

@@ -5,7 +5,11 @@
 /// through the camera. r = the station's radius on the page in px (it fits
 /// a unit sphere; the quad is a little larger). Used by the system view
 /// (small, on its ring) and the station page (large, in the middle).
-function station_render(_st, _sx, _sy, _r, _cam, _light_w, _spin = undefined) {
+/// toward = the VIEW-space direction from the eye to the station (unit; undefined = straight down the view axis):
+/// a solid drawn head-on but standing off the view's centre shears against
+/// its place under the perspective (his report, 2026-09-17: "it kinda skews");
+/// turning the ray to point AT it renders it as the eye sees it
+function station_render(_st, _sx, _sy, _r, _cam, _light_w, _spin = undefined, _toward = undefined) {
 	static _u = undefined;
 	if (is_undefined(_u)) _u = {
 		quad : shader_get_uniform(sh_station, "u_quad"), orr : shader_get_uniform(sh_station, "u_or"), light : shader_get_uniform(sh_station, "u_light"),
@@ -17,9 +21,22 @@ function station_render(_st, _sx, _sy, _r, _cam, _light_w, _spin = undefined) {
 	if (is_undefined(_spin)) _spin = (universal_now() * 60 * _st.spin) mod 360;
 	// its orientation: the lean of its axis, its spin about it, seen through the camera
 	var _wm = mat3_mul(mat3_rot(0, 0, 1, _st.lean), mat3_rot(0, 1, 0, _spin));
-	var _mm = mat3_mul(mat3_transpose(_wm), _cam);
+	var _cam2 = _cam;
 	var _cti = mat3_transpose(_cam);
 	var _lv = is_array(_light_w) ? mat3_apply(_cti, _light_w[0], _light_w[1], _light_w[2]) : [-.55, -.5, .67];
+	if (is_array(_toward)) {
+		// the view turned to look at it: R takes (0, 0, -1) onto `toward` (mat3_rot turns by the NEGATIVE angle - hence -deg)
+		var _tl = max(.001, sqrt(_toward[0] * _toward[0] + _toward[1] * _toward[1] + _toward[2] * _toward[2]));
+		var _tx = _toward[0] / _tl, _ty = _toward[1] / _tl, _tz = _toward[2] / _tl;
+		var _cx = _ty, _cy = -_tx;   // cross((0,0,-1), t) = (t.y, -t.x, 0)
+		var _cl = sqrt(_cx * _cx + _cy * _cy);
+		if (_cl > .0005) {
+			var _rl = mat3_rot(_cx, _cy, 0, -darccos(clamp(-_tz, -1, 1)));
+			_cam2 = mat3_mul(_cam, _rl);
+			_lv = mat3_apply(mat3_transpose(_rl), _lv[0], _lv[1], _lv[2]);
+		}
+	}
+	var _mm = mat3_mul(mat3_transpose(_wm), _cam2);
 	var _ll = max(.001, sqrt(_lv[0] * _lv[0] + _lv[1] * _lv[1] + _lv[2] * _lv[2]));
 	shader_set(sh_station);
 	shader_set_uniform_f(_u.quad, _sx - _hq, _sy - _hq, _hq * 2, _hq * 2);

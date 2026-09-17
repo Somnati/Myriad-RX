@@ -520,6 +520,7 @@ sy_ssel = -1;                        // the picked station (-1 none; a station a
 sy_warp_st = -1;                     // the dive, to a station (its page)
 st_sel = -1;                         // THE STATION PAGE: which of sy_stns; its own camera and spin
 st_cam = mat3_rot(1, 0, 0, -20); st_drag = false; st_drag_px = 0; st_dx = 0; st_dy = 0; st_vx = 0; st_vy = 0;
+st_yaw = 0; st_pitch = -20;          // A TURNTABLE (his report, 2026-09-17: "it kinda skews when i rotate it" - a free arcball rolls; yaw and pitch never do)
 __st_ppos = function(_st) { var _a = (_st.ang + _st.spd * 60 * universal_now()) mod 360; return [dcos(_a) * _st.orbit, 0, dsin(_a) * _st.orbit, _a]; };
 sy_moons = [];                       // ...and their moons (planet_moons)
 sy_info = [];                        // ...and their tiers (galaxy_world)
@@ -708,7 +709,8 @@ __draw_system = function() {
 			// A STATION on its ring (2026-09-17): its solid, lit from the star; picked = the pulsing box, like a world's
 			var _j = _it[1] - 1000, _stj = sy_stns[_j], _sq1 = __st_ppos(_stj);
 			var _srad = max(2, _stj.size * _k * 1.2);
-			station_render(_stj, _sx, _sy, _srad, sy_cam, [-dcos(_sq1[3]), 0, -dsin(_sq1[3])]);
+			var _svv = mat3_apply(mat3_transpose(sy_cam), _sq1[0], _sq1[1], _sq1[2]);   // (the eye sits at view z = sy_D: the ray toward it - no shear off the centre)
+			station_render(_stj, _sx, _sy, _srad, sy_cam, [-dcos(_sq1[3]), 0, -dsin(_sq1[3])], undefined, [_svv[0], _svv[1], _svv[2] - sy_D]);
 			if (sy_ssel == _j && sy_warp_pl < 0 && sy_warp_st < 0) { var _mr3 = _srad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr3, _sy - _mr3, _mr3 * 2, _mr3 * 2, c_white, .8); }
 		} else {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
