@@ -541,10 +541,13 @@ if (view == "crew" || view == "sheet") {
 		draw_set_halign(fa_left); draw_set_color(_ri.col); draw_set_alpha(.9); draw_text(_fx, _fy + 4, _ri.name + "  -  " + _pn + "  -  " + _mn);
 		var _job = _sp[$ "job"] ?? "tap";
 		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_fx, _fy - 11, "task: " + ((_job == "tap") ? "autotapping" : _job) + "  -  taps " + string(_sp.taps) + (((_sp[$ "away"] ?? 0) > 0) ? ("  (" + string(_sp.away) + " while idle)") : ""));
-		var _dr = __dismiss_r(), _away2 = (_sp[$ "trip"] ?? false), _armed = (dismiss_arm == _sp.id && dismiss_t > 0);
-		draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, _away2 ? "away" : (_armed ? "sure? dismiss" : "dismiss"), _armed ? c_hred : c_gray, !_away2, _armed);
+		var _dr = __dismiss_r(), _away2 = (_sp[$ "trip"] ?? false);
+		draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, _away2 ? "away" : "dismiss", c_gray, !_away2, false);
 	}
 	__draw_sheet_pops();   // (over the foot - his report, 2026-09-17: the task line drew through the gear tooltip)
+	// THE DISMISS QUESTIONS (his ask, 2026-09-17: "that one popup confirmation...
+	// with an 'are you sure' second popup"): the confirm popup, twice
+	if (conf_a > .01 && (confirm == "dismiss" || confirm == "dismiss2")) __draw_confirm(__dismiss_q(_sp), (confirm == "dismiss2") ? "yes, dismiss" : "dismiss", c_hred);
 	ui_fade_set(1);
 	exit;
 }
@@ -779,25 +782,11 @@ if (view == "trip") {
 		it_rects = [];
 		__draw_sheet(_tsp, _tsr.x, _tsr.y, _tsr.x + _tsr.w, _tsr.y + _tsr.h);
 	} else if (tp_sheet >= 0) tp_sheet = -1;   // (the sprite went - retired, or the trip came home)
-	// THE CONFIRM POPUP (abort): the save menu's box, over everything
+	// THE CONFIRM POPUP (abort): the save menu's box, over everything (__draw_confirm since 2026-09-17 - the crew page asks too)
 	if (conf_a > .01) {
-		var _cr = __conf_rect();
-		var _ce = conf_a * conf_a * (3 - 2 * conf_a);
-		draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .55 * _ce);
-		var _ry0 = _cr.y + (1 - _ce) * 8;
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + 2, _ry0 + 3, _cr.w, _cr.h, 0, c_black, .5 * _ce);
-		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _ry0, _cr.w, _cr.h, 0, c_hsv(169, 186, 9), _ce);
-		draw_px_rect(_cr.x, _ry0, _cr.w, _cr.h, c_hred, .8 * _ce);
-		draw_set_halign(fa_center); draw_set_valign(fa_top);
-		draw_set_color(c_white); draw_set_alpha(.95 * _ce);
 		var _cq = (_tr.stage == 0) ? "turn the ship around?\n" + exped_crew_txt(_tr.names) + " will fly home without landing."
 		                          : "abort the mission?\n" + exped_crew_txt(_tr.names) + " will head for the landing zone" + (is_struct(_tr[$ "quest"]) ? " and the quest is dropped." : ".");
-		draw_text(_cr.x + _cr.w * .5, _ry0 + 12, _cq);
-		var _cb = __conf_btns();
-		ui_fade_set(_ce);
-		draw_ui_button(_cb[0].x, _cb[0].y - _cr.y + _ry0, _cb[0].w, _cb[0].h, "abort", c_hred, true, true);
-		draw_ui_button(_cb[1].x, _cb[1].y - _cr.y + _ry0, _cb[1].w, _cb[1].h, "cancel", rgb(170, 190, 230), true, false);
-		draw_set_halign(fa_left);
+		__draw_confirm(_cq, "abort", c_hred);
 	}
 	ui_fade_set(1);
 	exit;

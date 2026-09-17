@@ -38,7 +38,7 @@ dim  = rgb(120, 130, 150);
 
 view    = "planet";  // the pages: planet / depart / trip / haul / map / crew / galaxy / bestiary (THE HUB WENT, his call 2026-09-16: the panel opens on the world)
 mode    = "exped";   // THE SPRITE MENU (2026-09-16, his ask): "sprites" = the crew page alone, as the roster's manager (exped_open("sprites", sid)) - no expedition strip, [dismiss] at the foot
-dismiss_arm = -1; dismiss_t = 0;   // [dismiss] armed on a sprite id, for a few seconds (a second tap does it)
+// ([dismiss]'s arm-then-tap went 2026-09-17 - it asks through the confirm popup now, twice: confirm = "dismiss", then "dismiss2")
 view_id = -1;        // the trip's or haul's id
 // THE WORLD AT THE START (the hub went): the board's first world, orbit mode
 pl_dest = undefined; sel_dest = 0; rg_sel = 0; pl_focus = -1;
@@ -275,9 +275,35 @@ log_y = land ? (list_y + 22) : (big_y + isle_h + 6 + exped_party_max() * (__dp_b
 fight_s = 80;        // the combat window's side (grown from 64 - his ask; the right column's bottom-right corner)
 wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothing spills past a rect; freed in the CleanUp
 // THE CONFIRM POPUP (the save menu's shape, his ask 2026-09-15: abort asks first)
-confirm  = "";       // "abort" while the question is up
+confirm  = "";       // "abort" while the question is up; "dismiss" then "dismiss2" (the "are you sure") for the sprite menu's [dismiss] - his ask, 2026-09-17
 conf_a   = 0;
 conf_hot = 0;
+/// the popup itself (split out 2026-09-17 - two pages ask now): the veil,
+/// the box with the ease, the question centred, [the deed] + [cancel]
+__draw_confirm = function(_q, _lbl, _col) {
+	if (conf_a <= .01) return;
+	var _cr = __conf_rect();
+	var _ce = conf_a * conf_a * (3 - 2 * conf_a);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, room_width, room_height, 0, c_black, .55 * _ce);
+	var _ry0 = _cr.y + (1 - _ce) * 8;
+	draw_sprite_ext(spr_pixel_1x1, 0, _cr.x + 2, _ry0 + 3, _cr.w, _cr.h, 0, c_black, .5 * _ce);
+	draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _ry0, _cr.w, _cr.h, 0, c_hsv(169, 186, 9), _ce);
+	draw_px_rect(_cr.x, _ry0, _cr.w, _cr.h, _col, .8 * _ce);
+	draw_set_halign(fa_center); draw_set_valign(fa_top);
+	draw_set_color(c_white); draw_set_alpha(.95 * _ce);
+	draw_text(_cr.x + _cr.w * .5, _ry0 + 12, _q);
+	var _cb = __conf_btns();
+	ui_fade_set(_ce);
+	draw_ui_button(_cb[0].x, _cb[0].y - _cr.y + _ry0, _cb[0].w, _cb[0].h, _lbl, _col, true, true);
+	draw_ui_button(_cb[1].x, _cb[1].y - _cr.y + _ry0, _cb[1].w, _cb[1].h, "cancel", rgb(170, 190, 230), true, false);
+	draw_set_halign(fa_left);
+	ui_fade_set(1);
+};
+/// the dismiss questions (the sprite named; the second is the "are you sure")
+__dismiss_q = function(_sp) {
+	if (confirm == "dismiss2") return "are you sure?\nthere is no getting " + _sp.name + " back.";
+	return "let " + _sp.name + " go?\nthey leave the crew for good, with everything they carry.";
+};
 __conf_rect = function() {
 	var _w = min(room_width - 16, 230), _h = 74;
 	return { x : floor((room_width - _w) * .5), y : floor((room_height - _h) * .5), w : _w, h : _h };

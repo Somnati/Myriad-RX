@@ -81,7 +81,6 @@ if (view == "trip") {
 if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; hl_open = false; } }   // (the haul fades in - his ask, 2026-09-15)
 if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "planet"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
 if (view == "sheet") view = "crew";
-if (dismiss_t > 0) dismiss_t -= delta; else dismiss_arm = -1;   // ([dismiss] disarms on its own - 2026-09-16)
 if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprites) > 0) sheet_id = g.sprites[0].id;
 if (view == "map" && !is_struct(map_dest)) view = "planet";
 if (view == "hub") view = "planet";   // (the hub went, 2026-09-16)
@@ -182,7 +181,8 @@ if (oa < .999 || closing) exit;
 if (_under) exit;   // (the settings own the input; the pages keep drawing under them)
 if (!input_free(ui_layer_overlay)) exit;
 // ---- THE CONFIRM POPUP owns the panel while it is up (abort) ----
-if (view != "trip") confirm = "";   // (the page turned under it - a trip got home)
+if (view != "trip" && confirm == "abort") confirm = "";   // (the page turned under it - a trip got home)
+if (view != "crew" && (confirm == "dismiss" || confirm == "dismiss2")) confirm = "";   // (the sprite menu's question, only there)
 conf_a = move_to(conf_a, (confirm != "") ? 1 : 0, 5);
 if (confirm != "") {
 	var _cb = __conf_btns();
@@ -194,9 +194,21 @@ if (confirm != "") {
 	if (keyboard_check_pressed(vk_escape)) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); exit; }
 	if (conf_a > .9 && mouse_check_button_pressed(mb_left)) {
 		if (conf_hot == 1) {
-			if (confirm == "abort") { var _atr = __trip(); if (!is_undefined(_atr)) exped_abort(_atr); }
-			confirm = "";
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
+			if (confirm == "abort") { var _atr = __trip(); if (!is_undefined(_atr)) exped_abort(_atr); confirm = ""; play_sound_ext(snd_apply, 1, 1.2, .5, 1); }
+			else if (confirm == "dismiss") { confirm = "dismiss2"; play_sound_ext(snd_softclick, .9, 1, .4, 1); }   // (the second question - his ask, 2026-09-17)
+			else if (confirm == "dismiss2") {
+				// THE DEED (exped_retire): the sprite goes; the sheet turns to the first left, or the menu folds
+				var _dsp2 = __sp_by_id(sheet_id);
+				if (!is_undefined(_dsp2) && !(_dsp2[$ "trip"] ?? false)) {
+					var _gone = exped_retire(_dsp2.id);
+					it_pop = undefined;
+					if (_gone != "") assign_banner(_gone + " has gone to live somewhere quieter", c_gold, c_black);
+					if (array_length(g.sprites) > 0) sheet_id = g.sprites[0].id; else closing = true;
+				}
+				confirm = "";
+				play_sound_ext(snd_matclick2, .8, .9, .5, 1);
+			}
+			else confirm = "";
 		} else if (conf_hot == 2) { confirm = ""; play_sound_ext(snd_matclick2, .8, .9, .5, 1); }
 	}
 	exit;
@@ -517,17 +529,13 @@ if (view != "hub") {
 		}
 	}
 	// [bestiary] in the crew page's slot (2026-09-16)
-	// THE SPRITE MENU's [dismiss] (2026-09-16): armed by the first tap, done by a second within the arm's time (exped_retire)
+	// THE SPRITE MENU's [dismiss] (2026-09-16; 2026-09-17: it ASKS - the confirm
+	// popup, then its "are you sure" - the deed is in the popup's yes above)
 	if (view == "crew" && mode == "sprites") {
 		var _dr = __dismiss_r(), _dsp = __sp_by_id(sheet_id);
 		if (!is_undefined(_dsp) && !(_dsp[$ "trip"] ?? false) && point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
-			if (dismiss_arm == _dsp.id && dismiss_t > 0) {
-				var _gone = exped_retire(_dsp.id);
-				dismiss_arm = -1; dismiss_t = 0; it_pop = undefined;
-				if (_gone != "") assign_banner(_gone + " has gone to live somewhere quieter", c_gold, c_black);
-				if (array_length(g.sprites) > 0) sheet_id = g.sprites[0].id; else closing = true;
-				play_sound_ext(snd_matclick2, .8, .9, .5, 1);
-			} else { dismiss_arm = _dsp.id; dismiss_t = 180; play_sound_ext(snd_softclick, .9, 1, .4, 1); }
+			confirm = "dismiss"; it_pop = undefined;
+			play_sound_ext(snd_softclick, .9, 1, .4, 1);
 			exit;
 		}
 	}
