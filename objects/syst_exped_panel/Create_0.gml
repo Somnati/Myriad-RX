@@ -2443,6 +2443,28 @@ __worlds_step = function() {
 	}
 };
 /// a sprite by id (undefined when gone)
+/// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved
+/// here - "trigger a loading screen like that when you first enter a planet
+/// that needs loading"): undefined = the page has what it needs; else
+/// { txt, prog } - the galaxy still charting in the background (syst_handle_
+/// save), the board not yet rolled, or the page's world's rows / bake
+/// unfinished (the planet page's and the trip's - the big renders; the haul's
+/// and the preparation's portraits stand in with the lite one as before)
+__loading = function() {
+	if (mode == "sprites" || view == "crew" || view == "bestiary") return undefined;
+	if (!galaxy_ready()) return { txt : "charting the galaxy", prog : galaxy_progress() };
+	if (!is_struct(g[$ "exped"]) || array_length(g.exped.board) == 0) return { txt : "charting the galaxy", prog : 1 };
+	var _d = undefined;
+	if (view == "planet") _d = pl_dest;
+	else if (view == "trip") { var _lt = __trip(); if (!is_undefined(_lt)) _d = _lt.dest; }
+	if (!is_struct(_d)) return undefined;
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	if (_pn.row < _pn.th) return { txt : "building " + _d.name, prog : .7 * _pn.row / max(1, _pn.th) };
+	var _brw = _pn[$ "brow"] ?? 0;
+	if (_brw < 3 * _pn.th) return { txt : "building " + _d.name, prog : .7 + .3 * _brw / max(1, 3 * _pn.th) };
+	return undefined;
+};
+ld_v = 0;   // the veil's bar, easing
 __sp_by_id = function(_id) {
 	for (var _i = 0; _i < array_length(g.sprites); _i++) if (g.sprites[_i].id == _id) return g.sprites[_i];
 	return undefined;

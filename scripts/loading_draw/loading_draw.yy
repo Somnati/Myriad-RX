@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"loading_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"loading_draw",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

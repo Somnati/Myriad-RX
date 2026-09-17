@@ -1,10 +1,7 @@
-// ---- THE BOOT: the galaxy in slices of boot_budget ms, then the load ----
+// ---- THE BOOT: a frame's grace, then the load at once (the galaxy no longer waits here - his call, 2026-09-17) ----
 if (boot_phase == 0) {
 	boot_t += 1;
-	if (boot_t >= 2 && is_struct(boot_gen)) {
-		if (starmap_gen_step(boot_gen, boot_budget)) { boot_gen = undefined; boot_phase = 1; action = sv_load; boot_prog = .4; }
-		else boot_prog = .4 * starmap_gen_progress(boot_gen);
-	}
+	if (boot_t >= 2) { boot_phase = 1; action = sv_load; boot_prog = .5; }
 	boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
 	exit;
 }
@@ -39,32 +36,30 @@ if (_was_load) {
 }
 
 action = -1;}
-// THE BOARD'S WORLDS TOO (his report, 2026-09-15: "the planet looks really
-// bad then all of a sudden updates" - the lite portrait stood in while the
-// rows built): their maps are built here behind the spinner, a few rows a
-// frame, so the panel opens on the finished model
-// - one world at a time, a row at a time, then its bake row by row, all
-// under boot_budget ms a frame (2026-09-16: twelve rows of three worlds a
-// frame was the stutter; so was a whole bake in one)
-if (boot_phase == 1) {
-	var _bdone = true, _blim = get_timer() + boot_budget * 1000;
-	var _rows_done = 0, _rows_all = 0, _bake_done = 0, _bake_all = 0;
-	if (variable_global_exists("exped")) for (var _bi = 0; _bi < array_length(g.exped.board); _bi++) {
-		// (the home world and any a crew is out to; the rest of the map's opened worlds bake on demand in the panel - bug hunt 2026-09-16)
-		if (_bi != 0) continue;   // (the home world alone - the one the panel opens on; the rest build on their first look, his call 2026-09-16)
-		var _bpn = planet_get(g.exped.board[_bi].seed, exped_planet_hint(g.exped.board[_bi]));
-		if (_bdone) {
-			boot_world = g.exped.board[_bi].name;
-			while (_bpn.row < _bpn.th && get_timer() < _blim) planet_gen_step(_bpn, 1);
-			if (_bpn.row < _bpn.th) _bdone = false;
-			else if (!planet_bake(_bpn, _blim)) _bdone = false;   // (the textures too, behind the spinner: 320x160 x three is a stamp storm - sliced)
-		}
-		_rows_all += _bpn.th; _rows_done += _bpn.row;
-		_bake_all += 3 * _bpn.th; _bake_done += (_bpn[$ "brow"] ?? 0);
+// the load ran (the handler above): the title may come
+if (boot_phase == 1 && action == -1) { boot_phase = 2; boot_prog = 1; }
+boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
+// ---- THE CHART IN THE BACKGROUND (his call, 2026-09-17: "the loading screen
+// on boot needs to go"): the galaxy in slices of bg_budget ms a frame under
+// play - invisible - then the home world's rows and its bake the same way
+// (the panel opens on the finished model; his report 2026-09-15). The
+// expedition panel's veil sets bg_rush while it waits, and the slice grows
+// to the boot's 9 ms. A new game's fresh seed restarts it (starmap_get
+// finishes a half-built one in place if anything asks first) ----
+if (boot_phase >= 2) {
+	var _bgb = bg_rush ? 9 : bg_budget;
+	if (galaxy_ready()) { if (is_struct(bg_gen)) bg_gen = undefined; }
+	else {
+		if (!is_struct(bg_gen) || bg_gen.seed != g.galaxy_seed) { bg_gen = starmap_gen_begin(g.galaxy_seed); bg_world_done = false; }
+		if (starmap_gen_step(bg_gen, _bgb)) bg_gen = undefined;
 	}
-	boot_prog = .4 + .4 * ((_rows_all > 0) ? _rows_done / _rows_all : 1) + .2 * ((_bake_all > 0) ? _bake_done / _bake_all : 1);
-	boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
-	if (_bdone) boot_phase = 2;   // (the boot's load ran, the worlds are whole: the title may come)
+	if (galaxy_ready() && !bg_world_done && variable_global_exists("exped") && array_length(g.exped.board) > 0) {
+		var _blim = get_timer() + _bgb * 1000;
+		var _bpn = planet_get(g.exped.board[0].seed, exped_planet_hint(g.exped.board[0]));
+		while (_bpn.row < _bpn.th && get_timer() < _blim) planet_gen_step(_bpn, 1);
+		if (_bpn.row >= _bpn.th && planet_bake(_bpn, _blim)) bg_world_done = true;
+	}
+	bg_rush = false;
 }
 
 // ---- playtime clock ----

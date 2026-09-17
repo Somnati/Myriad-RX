@@ -10,8 +10,15 @@
 /// - so the absence walks the whole trip, fights and all, offline ==
 /// online by construction. (an hour is 720 slices a trip: cheap)
 function exped_tick(_secs) {
+	// THE CHART FIRST (his call, 2026-09-17: no loading screen on boot - the
+	// galaxy charts in the background). Until it is there a trip's clock is
+	// OWED, not ticked; the first ready call walks the whole owed stretch -
+	// the very call the offline replay makes, so nothing is lost or doubled
+	if (!galaxy_ready()) { g.exped_owed = (g[$ "exped_owed"] ?? 0) + _secs; return; }
+	if ((g[$ "exped_owed"] ?? 0) > 0) { _secs += g.exped_owed; g.exped_owed = 0; }
 	exped_init();
 	var _e = g.exped;
+	if (array_length(_e.board) == 0) exped_board_roll();   // (a board the roll skipped while the chart was pending)
 	var _spd = max(1, _e.spd);
 	var _dt = _secs * _spd;
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)

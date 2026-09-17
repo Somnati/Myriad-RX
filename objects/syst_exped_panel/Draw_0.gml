@@ -16,6 +16,19 @@ var _br = abs(dsin(current_time * .3));
 draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, room_height - hh, 0, c_black, .94);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y, room_width, 16, 0, c_hsv(169, 186, 5), 1);
 draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + 15, room_width, 1, 0, _ink, .25);
+// THE LOADING VEIL (2026-09-17): the page's chrome - a plain title, [back] -
+// and the boot's spinner bottom right; nothing that would touch the galaxy
+var _ldd = __loading();
+if (is_struct(_ldd)) {
+	draw_set_color(c_steelblue); draw_set_alpha(.95);
+	var _lt1 = (land && is_struct(pl_dest)) ? "expedition  -  " : "expeditions";
+	draw_text(6, strip_y + 5, _lt1);
+	if (_lt1 == "expedition  -  ") { draw_set_color(exped_world_col(pl_dest)); draw_text(6 + string_width(_lt1), strip_y + 5, pl_dest.name); }
+	__draw_back();
+	loading_draw(room_width - (land ? 14 : 4) - 16, room_height - 22, 1, _ldd.txt, ld_v, c_steelblue);
+	ui_fade_set(1);
+	exit;
+}
 // THE TITLE SAYS THE PAGE (his ask, 2026-09-15): three parts - a prefix,
 // the WORLD'S NAME in its seeded colour, a suffix - so every page reads
 // "expedition - Mudra IV / the landing reach" or the like

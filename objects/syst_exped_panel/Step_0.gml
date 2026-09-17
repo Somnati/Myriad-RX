@@ -47,7 +47,7 @@ else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; 
 // initially opening this window"): its pages never show a world or a sky,
 // and on a fresh save the first touch of the galaxy builds all ten
 // thousand stars in one frame. Nothing here to build for, so nothing built.
-if (mode != "sprites") {
+if (mode != "sprites" && galaxy_ready()) {   // (never before the chart: a hint needs the galaxy, and the galaxy would build in one frame - 2026-09-17)
 	__worlds_step();
 	if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();
 }   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
@@ -85,6 +85,18 @@ if (view == "crew" && is_undefined(__sp_by_id(sheet_id)) && array_length(g.sprit
 if (view == "map" && !is_struct(map_dest)) view = "planet";
 if (view == "hub") view = "planet";   // (the hub went, 2026-09-16)
 if (!is_struct(pl_dest) && is_struct(g[$ "exped"]) && array_length(g.exped.board) > 0) pl_dest = g.exped.board[0];   // (the board's world, always)
+// THE LOADING VEIL (his call, 2026-09-17: the boot's spinner moved here - a
+// page waits for what it needs: the galaxy charting in the background, the
+// board, the world's rows and bake). While it shows: the chart is rushed,
+// the world stepped hard, and only [back] and the X answer
+var _ldg = __loading();
+if (is_struct(_ldg)) {
+	if (instance_exists(syst_handle_save)) syst_handle_save.bg_rush = true;
+	if (galaxy_ready() && mode != "sprites") { var _llim = get_timer() + 9000; while (get_timer() < _llim && is_struct(__loading())) __worlds_step(); }
+	ld_v = trickle(ld_v, _ldg.prog, 4);
+	if (!_under && input_free(ui_layer_overlay) && mouse_check_button_pressed(mb_left) && __back_on()) { var _lbk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _lbk.x, _lbk.y, _lbk.x + _lbk.w, _lbk.y + _lbk.h)) __back(); }
+	exit;
+} else ld_v = 0;
 if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) { exped_close(); exit; }   // (no world at all: nothing to show)
 
 // THE SUN IS LIVE (his report, 2026-09-15: "mid-morning but clearly night" -

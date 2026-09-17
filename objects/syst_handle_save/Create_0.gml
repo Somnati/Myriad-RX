@@ -1,11 +1,14 @@
 
 
-// THE BOOT (2026-09-15, his ask): a black screen with a spinner while the
-// galaxy builds a pass a frame (starmap_gen_step - ten thousand stars in
-// one call was a hitch), THEN the load (its board roll finds the galaxy
-// ready), THEN the title (syst_roomtrans waits for boot_phase 2)
+// THE BOOT (2026-09-15, his ask: a black screen with a spinner while the
+// galaxy built; 2026-09-17, his call: "the loading screen on boot needs to
+// go"): the load goes at once and the title follows (syst_roomtrans waits
+// for boot_phase 2); THE GALAXY CHARTS IN THE BACKGROUND under play (the
+// Step, bg_* - a small slice a frame), then the home world's rows and bake.
+// Whatever needs it first waits with the expedition panel's loading veil
+// (the boot's spinner, moved there) or, for a trip's clock, is owed (exped_tick)
 action = -1;
-boot_phase = 0;       // 0 building the galaxy, 1 the load queued, 2 done
+boot_phase = 0;       // 0 a frame's grace, 1 the load queued, 2 done
 boot_gen = undefined;
 boot_t = 0;
 // THE BUDGET (2026-09-16, his report: "it stutters pretty bad"): every boot
@@ -85,7 +88,10 @@ if (!instance_exists(obj_boost_spd)) create_obj(0, 0, obj_boost_spd);
 var _gs = 1337;
 if (file_exists(file_to_handle)) { ini_open(file_to_handle); _gs = ini_read_real("exped", "ex_galaxy", 1337); ini_close(); }
 g.galaxy_seed = max(1, floor(_gs));
-boot_gen = starmap_gen_begin(g.galaxy_seed);
+bg_gen = undefined;       // the background chart's context (starmap_gen_begin) while it runs
+bg_budget = 2.5;          // ms a frame for it under play (the panel's veil rushes it to the boot's 9)
+bg_rush = false;
+bg_world_done = false;    // the home world's rows and bake, after the chart
 // (rm_gameload is a 144x296 stub with no obj_set_landscape: the gui was
 // the window's own pixels and the spinner drew warped - the landscape
 // rooms' 480x270 gui, so the boot screen is the game's own scale)

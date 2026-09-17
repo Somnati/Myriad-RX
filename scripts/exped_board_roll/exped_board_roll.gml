@@ -6,6 +6,7 @@
 function exped_board_roll() {
 	exped_init();
 	var _e = g.exped;
+	if (!galaxy_ready()) return;   // (the chart is still in the background - exped_tick rolls the board the moment it lands; 2026-09-17)
 	// THE HOME WORLD first (2026-09-15): galaxy_home builds the galaxy on its
 	// first call - a seeded section of its own - so it runs BEFORE the deal's
 	// seeded block, or its release would scramble the deal's later rolls
