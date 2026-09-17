@@ -49,6 +49,7 @@ else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; 
 // thousand stars in one frame. Nothing here to build for, so nothing built.
 if (mode != "sprites" && galaxy_ready()) {   // (never before the chart: a hint needs the galaxy, and the galaxy would build in one frame - 2026-09-17)
 	__worlds_step();
+	__lod_step();   // (the zoom patch, 2026-09-17 - here in the Step, never inside a page's target)
 	if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();
 }   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
 // THE REPLAY: a trip page with an unseen film (and no live fight)
@@ -127,7 +128,7 @@ if (view == "planet" && is_struct(pl_dest)) {
 	}
 	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
 	// region mode: the pull-in, the clouds thinning (both eased)
-	pv_zoom  = lerp(pv_zoom,  (pv_mode == "region") ? PV_ZOOM_RG : 1, 1 - power(.88, delta));
+	pv_zoom  = lerp(pv_zoom,  pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1), 1 - power(.88, delta));   // (the mode's pull-in x the wheel's - 2026-09-17)
 	pv_cfade = lerp(pv_cfade, (pv_mode == "region") ? .12 : 1, 1 - power(.88, delta));
 }
 // THE TRIP PAGE'S WORLD: the same render, its camera turned to the trip's
@@ -339,14 +340,21 @@ if (view == "planet" && is_struct(pl_dest)) {
 	var _ocf = starmap_config();
 	var _pvr = __pv_r();
 	var _pin = point_in_rectangle(mouse_x, mouse_y, _pvr.x, _pvr.y, _pvr.x + _pvr.w, _pvr.y + _pvr.h);
+	// THE WHEEL (his ask, 2026-09-17): closer or further, in either mode - on top of region mode's pull-in.
+	// The drag turns fewer degrees a pixel the closer you are, so the ground under the hand keeps pace with it
+	if (_pin && !__pv_ui_hit()) {
+		if (mouse_wheel_up())   pv_zuser = min(pv_zuser * 1.18, PV_ZOOM_MAX);
+		if (mouse_wheel_down()) pv_zuser = max(pv_zuser / 1.18, PV_ZOOM_MIN);
+	}
+	var _osens = _ocf.orbit_sens / max(.5, pv_zoom);
 	if (!pv_drag && mouse_check_button_pressed(mb_left) && _pin && !__pv_ui_hit()) { pv_drag = true; pv_px = 0; pv_dx = mouse_x; pv_dy = mouse_y; pv_vx = 0; pv_vy = 0; }
 	if (pv_drag && mouse_check_button(mb_left)) {
 		var _mx = mouse_x - pv_dx, _my = mouse_y - pv_dy;
 		pv_px += abs(_mx) + abs(_my);
 		if (pv_px > 4) pv_face = -1;   // a real drag lets go of the turn
 		// swipe = grab the world and pull it with you (the demo's sign - the arcball, his call 2026-09-16)
-		if (_mx != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  _mx * _ocf.orbit_sens));
-		if (_my != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -_my * _ocf.orbit_sens));
+		if (_mx != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  _mx * _osens));
+		if (_my != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -_my * _osens));
 		pv_vx = lerp(pv_vx, _mx, .5); pv_vy = lerp(pv_vy, _my, .5);
 		pv_dx = mouse_x; pv_dy = mouse_y;
 	} else if (pv_drag) {
@@ -372,8 +380,8 @@ if (view == "planet" && is_struct(pl_dest)) {
 	}
 	if (!pv_drag) {
 		if (abs(pv_vx) > .02 || abs(pv_vy) > .02) {
-			pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  pv_vx * _ocf.orbit_sens * delta));
-			pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -pv_vy * _ocf.orbit_sens * delta));
+			pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  pv_vx * _osens * delta));
+			pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -pv_vy * _osens * delta));
 			var _dk = power(_ocf.orbit_glide, delta);
 			pv_vx *= _dk; pv_vy *= _dk;
 		} else { pv_vx = 0; pv_vy = 0; }
@@ -455,7 +463,7 @@ if (view == "system" && is_struct(sy_sys)) {
 			} else {
 				var _di = exped_world_open(sy_star, sy_warp_pl);
 				sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
-				if (_di >= 0) { sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1; view = "planet"; pg_a = 0; pg_dir = 1; view_last = view; }
+				if (_di >= 0) { sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_zuser = 1; pv_cfade = 1; view = "planet"; pg_a = 0; pg_dir = 1; view_last = view; }
 			}
 		}
 		exit;
@@ -1001,7 +1009,7 @@ if (point_in_rectangle(mouse_x, mouse_y, _hbs.x, _hbs.y, _hbs.x + _hbs.w, _hbs.y
 for (var _i = 0; _i < array_length(_e.board); _i++) {
 	var _c = __card_r(_i);
 	if (point_in_rectangle(mouse_x, mouse_y, _c.x, _c.y, _c.x + _c.w, _c.y + _c.h)) {
-		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; __page_go("planet"); pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1;
+		sel_dest = _i; pl_dest = _e.board[_i]; rg_sel = 0; pl_focus = -1; __page_go("planet"); pv_mode = "planet"; pv_zoom = 1; pv_zuser = 1; pv_cfade = 1;
 		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 		exit;
 	}

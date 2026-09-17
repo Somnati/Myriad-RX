@@ -10,7 +10,8 @@
 /// 0..1 thins the clouds (the region zoom, his ask 2026-09-15). Uniforms
 /// persist between draws, so every one is set every call.
 /// msh (2026-09-16) = the moons' view-space casters [[x, y, z, size], ...] (moon_view_pos); storms = the storm regions' spots in texture space [[x, y, z], ...]
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined) {
+/// lod (2026-09-17) = the ZOOM PATCH (syst_exped_panel's lod_show): { k, u0, v0, uw, vh, tsurf, hsurf } - the window of the map under the view sampled k times finer; undefined = none
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined, _lod = undefined) {
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = planet_spin_now(_pn);   // the universal clock (the agent's day / night agrees with it)
@@ -38,6 +39,8 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
 		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
+		pwin : shader_get_uniform(sh_planet, "u_pwin"), pk : shader_get_uniform(sh_planet, "u_pk"),
+		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
 		aurora : shader_get_uniform(sh_planet, "u_aurora"),
@@ -143,6 +146,13 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.cityn, _ctn);
 	texture_set_stage(_u.cloud, surface_get_texture(_pn.csurf));
 	texture_set_stage(_u.height, surface_get_texture(_pn.hsurf));
+	// THE ZOOM PATCH (2026-09-17): its window and textures, or none
+	if (is_struct(_lod) && surface_exists(_lod.tsurf) && surface_exists(_lod.hsurf)) {
+		shader_set_uniform_f(_u.pwin, _lod.u0 / _pn.tw, _lod.v0 / _pn.th, (_lod.u0 + _lod.uw) / _pn.tw, (_lod.v0 + _lod.vh) / _pn.th);
+		shader_set_uniform_f(_u.pk, _lod.k);
+		texture_set_stage(_u.ptex, surface_get_texture(_lod.tsurf));
+		texture_set_stage(_u.pheight, surface_get_texture(_lod.hsurf));
+	} else shader_set_uniform_f(_u.pk, 0);
 	draw_surface_ext(_pn.tsurf, _qx, _qy, (2 * _q) / _pn.tw, (2 * _q) / _pn.th, 0, c_white, 1);
 	shader_reset();
 	return true;

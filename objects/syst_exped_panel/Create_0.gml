@@ -482,6 +482,8 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 // sky and the sun come from the galaxy (pv_sky)
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
+lod_show = undefined;                // THE ZOOM PATCH showing (2026-09-17): { seed, k, u0, v0, uw, vh, pw, ph, cu, cv, hu, hv, tsurf, hsurf }
+lod_bld  = undefined;                // ...and the one building (+ row)
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
@@ -744,7 +746,8 @@ __draw_system = function() {
 pv_mat_m = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // texture-from-view, published by the draw for the step's pick
 pv_mat_r = [1, 0, 0, 0, 1, 0, 0, 0, 1];   // ...and its inverse (the spots)
 pv_mode  = "planet";                 // "planet" (the world, the drawer) or "region" (pulled in on the pick: the banner, the quests)
-pv_zoom  = 1;                        // region mode's pull-in (PV_ZOOM_RG), eased
+pv_zoom  = 1;                        // region mode's pull-in (PV_ZOOM_RG) x the hand's wheel, eased
+pv_zuser = 1;                        // THE WHEEL's zoom (2026-09-17): PV_ZOOM_MIN..PV_ZOOM_MAX, on top of the mode's pull-in; a fresh world starts at 1
 pv_cfade = 1;                        // ...and the clouds thinning with it
 // the trip page's world: the same render, the camera fixed on the trip's region
 tp_id = -1; tp_cam = mat3_rot(1, 0, 0, -32); tp_spin = 0;
@@ -2412,7 +2415,8 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
-	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms);
+	var _lod = (view == "planet" && is_struct(lod_show) && lod_show.seed == _pn.seed) ? lod_show : undefined;   // (the zoom patch, the page's own - 2026-09-17)
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
 	if (_built) {
@@ -2537,6 +2541,101 @@ __worlds_step = function() {
 		if (_pn.row < _pn.th) { planet_gen_step(_pn, 6); return; }   // (six rows a frame: a fresh world in a quarter second)
 		if ((_pn[$ "brow"] ?? 0) < 3 * _pn.th) { planet_bake(_pn, get_timer() + 4000); return; }   // (then its textures, four ms a frame - a world opened on the map baked whole on its first draw, a hitch; bug hunt 2026-09-16)
 	}
+};
+// THE ZOOM PATCH (his ask, 2026-09-17: "increase the LOD of the terrain when i get really close"): past x1.8 the
+// page's world gets a PATCH - the window of the map under the view, sampled K times finer through planet_texel
+// (the one terrain sampler: the same coasts and hills, resolved) into two textures sh_planet reads instead of
+// the map's inside the window. Rivers and lakes ride over from the base map (a river as a line through its
+// base texel toward each river or water neighbour; a lake's texel whole). Built rows-per-frame under a deadline
+// while the last finished patch keeps showing; rebuilt when the zoom's K changes or the view drifts a third
+// of the window off its centre; dropped when the page changes or the zoom backs off. K = the zoom rounded
+// (2..6) off the zoom's TARGET, so an eased zoom builds once, not at every step
+__lod_free = function(_l) { if (is_struct(_l)) { if (surface_exists(_l.tsurf)) surface_free(_l.tsurf); if (surface_exists(_l.hsurf)) surface_free(_l.hsurf); } return undefined; };
+__lod_step = function() {
+	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
+	if (view != "planet" || !is_struct(pl_dest) || _zt < 1.8) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); return; }
+	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
+	var _tw = _pn.tw, _th = _pn.th, _pvr = __pv_r(), _pr = starmap_config().pr * _zt;
+	// the view's centre on the map, and the window the page sees there (a third wider, for the drift)
+	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
+	var _m = mat3_mul(mat3_transpose(_wm), pv_cam);
+	var _t = mat3_apply(_m, 0, 0, 1);
+	var _cu = arctan2(_t[2], _t[0]) / (2 * pi) + .5, _cv = arccos(clamp(_t[1], -1, 1)) / pi;
+	var _k = clamp(round(_zt), 2, 6);
+	var _aw = arcsin(min(.999, (_pvr.w * .5) / _pr)), _ah = arcsin(min(.999, (_pvr.h * .5) / _pr));
+	var _hu = min(.5, _aw / (2 * pi) * 1.35 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.35);
+	// the patch building (else showing) still covers the view? then build on (or rest)
+	var _cur = is_struct(lod_bld) ? lod_bld : lod_show;
+	if (is_struct(_cur) && _cur.seed == _pn.seed && _cur.k == _k) {
+		var _du = abs(_cu - _cur.cu); _du = min(_du, 1 - _du);
+		if (_du < _cur.hu * .35 && abs(_cv - _cur.cv) < _cur.hv * .35) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
+	}
+	// a new patch
+	lod_bld = __lod_free(lod_bld);
+	var _uw = min(_tw, ceil(2 * _hu * _tw)), _vh = min(_th, ceil(2 * _hv * _th));
+	var _u0 = floor((_cu - _hu) * _tw); _u0 = ((_u0 mod _tw) + _tw) mod _tw;
+	var _v0 = clamp(floor((_cv - _hv) * _th), 0, _th - _vh);
+	var _pw = _uw * _k, _ph = _vh * _k;
+	lod_bld = { seed : _pn.seed, k : _k, u0 : _u0, v0 : _v0, uw : _uw, vh : _vh, pw : _pw, ph : _ph, cu : _cu, cv : _cv, hu : _hu, hv : _hv, row : 0, tsurf : surface_create(_pw, _ph), hsurf : surface_create(_pw, _ph) };
+	surface_set_target(lod_bld.tsurf); draw_clear_alpha(c_black, 1); surface_reset_target();
+	surface_set_target(lod_bld.hsurf); draw_clear_alpha(c_black, 1); surface_reset_target();
+	__lod_build(_pn);
+};
+__lod_build = function(_pn) {
+	var _l = lod_bld, _lim = get_timer() + 5000;   // (five ms a frame)
+	if (!surface_exists(_l.tsurf) || !surface_exists(_l.hsurf)) { lod_bld = __lod_free(lod_bld); return; }
+	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _bm = _pn.biome, _el = _pn.elev, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
+	var _base = _gas ? 1 : max(_sea, .34);
+	var _sh = shader_current(); if (_sh != -1) shader_reset();
+	while (_l.row < _l.ph && get_timer() < _lim) {
+		var _j = _l.row, _by = _l.v0 + (_j div _k), _fy = ((_j mod _k) + .5) / _k;
+		var _v = (_l.v0 + (_j + .5) / _k) / _th;
+		var _cols = array_create(_l.pw, 0), _als = array_create(_l.pw, 1), _hts = array_create(_l.pw, 0);
+		for (var _i = 0; _i < _l.pw; _i++) {
+			var _bx = (_l.u0 + (_i div _k)) mod _tw, _fx = ((_i mod _k) + .5) / _k, _bi = _bx + _by * _tw;
+			var _u = ((_l.u0 + (_i + .5) / _k) mod _tw) / _tw;
+			planet_texel(_ps, _u, _v);
+			var _b = _ps.ob, _oe = _ps.oe;
+			if (!_gas) {
+				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11);
+				if (_natl && _el[_bi] >= _sea) {   // (the base texel is land: its water is a lake or a river, not the coast's own call)
+					if (_bb == 1) _b = 1;
+					else if (_bb == 11) {
+						// a river: a line through the base texel, its centre toward each river or water neighbour's
+						var _hit = false, _any = false, _rw = .6 / _k;
+						for (var _dy = -1; _dy <= 1 && !_hit; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
+							if (_dx == 0 && _dy == 0) continue;
+							var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
+							var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
+							if (!(_nb == 0 || _nb == 1 || _nb == 11)) continue;
+							_any = true;
+							var _px2 = _fx - .5, _py2 = _fy - .5, _sx = _dx * .5, _sy = _dy * .5;
+							var _tt = clamp((_px2 * _sx + _py2 * _sy) / (_sx * _sx + _sy * _sy), 0, 1);
+							var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
+							if (sqrt(_ddx * _ddx + _ddy * _ddy) < _rw) { _hit = true; break; }
+						}
+						if (!_any && point_distance(_fx, _fy, .5, .5) < _rw) _hit = true;
+						if (_hit) _b = 11;
+					}
+				}
+			}
+			_cols[_i] = _pal[_b]; _als[_i] = 1 - _glow[_b];
+			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
+			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11)) ? 255 : 0;
+			var _for = (!_gas) ? ((_b == 5 || _b == 6) ? 255 : ((_b == 12) ? 140 : 0)) : 0;
+			_hts[_i] = make_colour_rgb(floor(_h * 255), _wat, _for);
+		}
+		surface_set_target(_l.tsurf); gpu_set_blendmode_ext(bm_one, bm_zero);
+		for (var _i = 0; _i < _l.pw; _i++) draw_sprite_ext(spr_pixel_1x1, 0, _i, _j, 1, 1, 0, _cols[_i], _als[_i]);
+		surface_reset_target();
+		surface_set_target(_l.hsurf); gpu_set_blendmode_ext(bm_one, bm_zero);
+		for (var _i = 0; _i < _l.pw; _i++) draw_sprite_ext(spr_pixel_1x1, 0, _i, _j, 1, 1, 0, _hts[_i], 1);
+		surface_reset_target(); gpu_set_blendmode(bm_normal);
+		_l.row++;
+	}
+	if (_sh != -1) shader_set(_sh);
+	if (_l.row >= _l.ph) { lod_show = __lod_free(lod_show); lod_show = _l; lod_bld = undefined; }
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved

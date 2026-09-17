@@ -42,6 +42,10 @@ uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
 uniform float u_crelief;  // THE CLOUD RELIEF (2026-09-17): the top deck's thickest puff in radii (0 = flat shells)
+uniform sampler2D u_ptex;     // THE ZOOM PATCH (2026-09-17): the window under the view, K times finer - its colours
+uniform sampler2D u_pheight;  // ...and its height / water / woods
+uniform vec4  u_pwin;         // the window in map uv: x0, y0, x1, y1 (x1 may pass 1 - the seam)
+uniform float u_pk;           // the patch's resolution over the map's (0 = no patch)
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
@@ -68,9 +72,43 @@ vec3 to_tex(vec3 n)
     return vec3(dot(u_rot[0], n), dot(u_rot[1], n), dot(u_rot[2], n));
 }
 
+// THE ZOOM PATCH (2026-09-17, his ask: "increase the LOD of the terrain when i get really close"): the map's reads
+// go through here. A map uv inside the patch's window reads the patch (the same terrain, sampled K times finer, at
+// its own texel's centre); outside, the map at its texel's centre, as ever. The window may cross the seam (x1 > 1)
+vec2 map_uv(vec3 t)
+{
+    return vec2(atan(t.z, t.x) / 6.2831853 + 0.5, acos(clamp(t.y, -1.0, 1.0)) / 3.14159265);
+}
+bool in_patch(vec2 uv)
+{
+    if (u_pk < 0.5) return false;
+    float ux = uv.x; if (ux < u_pwin.x) ux += 1.0;
+    return ux < u_pwin.z && uv.y >= u_pwin.y && uv.y < u_pwin.w;
+}
+vec2 patch_st(vec2 uv)
+{
+    float ux = uv.x; if (ux < u_pwin.x) ux += 1.0;
+    vec2 st = vec2((ux - u_pwin.x) / (u_pwin.z - u_pwin.x), (uv.y - u_pwin.y) / (u_pwin.w - u_pwin.y));
+    vec2 pts = (u_pwin.zw - u_pwin.xy) * u_tsize * u_pk;
+    return (floor(st * pts) + 0.5) / pts;
+}
+vec4 tex_uv(vec2 uv)
+{
+    return in_patch(uv) ? texture2D(u_ptex, patch_st(uv)) : texture2D(gm_BaseTexture, (floor(uv * u_tsize) + 0.5) / u_tsize);
+}
+vec4 hmap_uv(vec2 uv)
+{
+    return in_patch(uv) ? texture2D(u_pheight, patch_st(uv)) : texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize);
+}
+// the grid a map uv lives on: the patch's inside the window, the map's outside
+float grid_k(vec2 uv)
+{
+    return in_patch(uv) ? u_pk : 1.0;
+}
+
 float height_at(vec3 n)
 {
-    return texture2D(u_height, sphere_uv(to_tex(n), u_tsize)).r;
+    return hmap_uv(map_uv(to_tex(n))).r;
 }
 
 // the height at a map coordinate, the texel's own (wrapping in u, clamped at the poles)
@@ -78,7 +116,7 @@ float h_uv(vec2 uv)
 {
     uv.x = fract(uv.x);
     uv.y = clamp(uv.y, 0.0, 1.0);
-    return texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize).r;
+    return hmap_uv(uv).r;
 }
 
 // the decks' frames (2026-09-17): the top deck's (u_crot) and the base deck's (u_crot2) - view space to the map's, and back
@@ -451,9 +489,10 @@ void main()
     if (hit) {
         // ---- terrain hit ----
         vec3 t = to_tex(n);
-        vec4 tex = texture2D(gm_BaseTexture, sphere_uv(t, u_tsize));
+        vec2 muv = map_uv(t);
+        vec4 tex = tex_uv(muv);
         vec3 col = tex.rgb;
-        vec4 hsmp = texture2D(u_height, sphere_uv(t, u_tsize));   // (red the height, green water, blue the woods)
+        vec4 hsmp = hmap_uv(muv);   // (red the height, green water, blue the woods)
 
         // THE MOUNTAINS' SHADING (2026-09-16, his ask: "more noticeably
         // mountains... exaggerated"): the height gradient bends the normal
@@ -478,9 +517,11 @@ void main()
             // It all happens in TEXTURE space (the world's rotation off through
             // to_tex, back on through u_rot's transpose - a rotation's inverse)
             vec3 t0 = to_tex(n);
-            vec2 uv0 = vec2(atan(t0.z, t0.x) / 6.2831853 + 0.5, acos(clamp(t0.y, -1.0, 1.0)) / 3.14159265);
-            vec2 uvc = (floor(uv0 * u_tsize) + 0.5) / u_tsize;
-            vec2 du = vec2(1.0 / u_tsize.x, 0.0), dv = vec2(0.0, 1.0 / u_tsize.y);
+            vec2 uv0 = map_uv(t0);
+            float gk = grid_k(uv0);              // (in the zoom patch the grid is K times finer, and so are the taps)
+            vec2 ts = u_tsize * gk;
+            vec2 uvc = (floor(uv0 * ts) + 0.5) / ts;
+            vec2 du = vec2(1.0 / ts.x, 0.0), dv = vec2(0.0, 1.0 / ts.y);
             h0 = h_uv(uvc);
             float hx = h_uv(uvc + du) - h_uv(uvc - du);
             float hy = h_uv(uvc + dv) - h_uv(uvc - dv);
@@ -488,7 +529,7 @@ void main()
             vec3 tur = vec3(-t0.z, 0.0, t0.x);
             vec3 tu = (length(tur) < 0.001) ? vec3(0.0, 0.0, 1.0) : normalize(tur);
             vec3 tv = normalize(cross(t0, tu));
-            float k = u_relief * 13.0 * u_bump;
+            float k = u_relief * 13.0 * u_bump * gk;   // (a finer tap sees a smaller rise: the slope per unit of ground is the same)
             vec3 nt = normalize(t0 - tu * hx * k - tv * hy * k);
             nn = normalize(u_rot[0] * nt.x + u_rot[1] * nt.y + u_rot[2] * nt.z);
             bumpl = dot(nn, u_light) - dot(n, u_light);
@@ -506,7 +547,7 @@ void main()
                     float sd = tx1 * float(i);
                     vec3 sp = normalize(tc + lt * sd);
                     float hr = h0 + (sd / u_relief) * rise;
-                    float ht = texture2D(u_height, sphere_uv(sp, u_tsize)).r;
+                    float ht = hmap_uv(map_uv(sp)).r;
                     shadow = max(shadow, clamp((ht - hr) * 6.0, 0.0, 1.0));
                 }
             }
@@ -522,7 +563,8 @@ void main()
         if (fo > 0.05) {
             float rc = 1.0 + u_relief * h0 + u_canopy;
             vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
-            vec2 cuv = sphere_uv(to_tex(nc), u_tsize) * u_tsize;
+            vec2 cuvm = map_uv(to_tex(nc));
+            vec2 cuv = cuvm * u_tsize * grid_k(cuvm);   // (the canopy's grain on the grid under it: finer in the zoom patch)
             vec2 ct = floor(cuv);
             float g = hash12(ct + 0.5);
             vec2 cl = cuv / 4.0; vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
