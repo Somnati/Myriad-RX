@@ -39,6 +39,8 @@ var _live = variable_global_exists("game_started") && g.game_started
 	// screen's profile rail is the card's exact corner - 2026-09-14 bug hunt)
 	&& !in_room(rm_saves) && !in_room(rm_gamepad) && !in_room(rm_services) && !in_room(rm_numfmt)
 	&& unfold_has("tap") && !instance_exists(syst_unfold)
+	// ...nor over the statistics (his call, 2026-09-17: nothing completes in there)
+	&& !instance_exists(syst_statistics_v2)
 	&& (_land || !instance_exists(syst_menu2))
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
 // the clear-room clock: runs only while nothing covers the card; anything

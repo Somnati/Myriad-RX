@@ -26,6 +26,7 @@ if (instance_exists(syst_rebirth) && syst_rebirth.open) hp = 0;
 // ...and the expedition / sprite panel (his screenshot, 2026-09-17: a
 // drop from an autotapping sprite slid the chip over the crew header)
 if (instance_exists(syst_exped_panel) && !syst_exped_panel.closing) hp = 0;
+if (instance_exists(syst_statistics_v2)) hp = 0;   // ...and the statistics (his call, 2026-09-17)
 var _want = _live && (hp > 0);
 
 move = trickle(move, _want ? 1 : 0, 4);
