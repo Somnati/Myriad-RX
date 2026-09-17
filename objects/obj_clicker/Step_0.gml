@@ -60,6 +60,12 @@ if (_ok) {
 if (_ok)
 if (instance_exists(syst_dials))
 	if (syst_dials.__consumes(mouse_x, mouse_y)) _ok = false;
+// THE TILE BOARD, the same way (his rule, 2026-09-17: the tap is
+// universal - the board is no longer opaque; it claims its tiles, its
+// drawer and its buttons, and the rest of it pays)
+if (_ok)
+if (instance_exists(syst_tiles))
+	if (syst_tiles.__consumes(mouse_x, mouse_y)) _ok = false;
 // THE PUCK is a syst_input family member, so a press ON it already
 // sets g.click_owner and the check above excludes it for free. What
 // that cannot cover is AIMING: the cannon parks the puck at the bottom

@@ -48,7 +48,8 @@ if (land) {
 	draw_text(6 + string_width(_ttl) + 8, strip_y + 5,
 		(array_length(_e.trips) == 0) ? "" : (string(array_length(_e.trips)) + " out"));
 }
-// the debug clock
+// the debug clock (not on the sprite menu - nothing there runs on it)
+if (mode != "sprites")
 for (var _k = 0; _k < 3; _k++) {
 	var _r = __spd_r(_k);
 	var _on = (_e.spd == [1, 10, 100][_k]);
@@ -510,7 +511,7 @@ if (view == "crew" || view == "sheet") {
 	// the sheet
 	var _sp = __sp_by_id(sheet_id);
 	if (is_undefined(_sp)) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(__sheet_x0(), list_y + 24, "no sprites yet"); ui_fade_set(1); exit; }
-	__draw_sheet(_sp, __sheet_x0(), list_y + 22, room_width - (land ? 14 : 4), (mode == "sprites") ? (room_height - 8 - 20) : undefined);
+	__draw_sheet(_sp, __sheet_x0(), list_y + 22, room_width - (land ? 14 : 4), (mode == "sprites") ? (room_height - 8 - 30) : undefined);   // (30, not 20: the foot's two lines sit UNDER the sheet, not across its border - his report, 2026-09-17)
 	// THE SPRITE MENU's foot (2026-09-16): the card's lines (what it is, what it does) and [dismiss] - armed, then sure
 	if (mode == "sprites") {
 		var _fy = room_height - 8 - 16, _fx = __sheet_x0() + 8;
@@ -518,7 +519,7 @@ if (view == "crew" || view == "sheet") {
 		var _pn = _pl2[clamp(_sp.pers, 0, array_length(_pl2) - 1)].name, _mn = _lk.mats[clamp(_sp[$ "mat"] ?? 0, 0, array_length(_lk.mats) - 1)].name;
 		draw_set_halign(fa_left); draw_set_color(_ri.col); draw_set_alpha(.9); draw_text(_fx, _fy + 4, _ri.name + "  -  " + _pn + "  -  " + _mn);
 		var _job = _sp[$ "job"] ?? "tap";
-		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_fx, _fy - 8, "task: " + ((_job == "tap") ? "autotapping" : _job) + "  -  taps " + string(_sp.taps) + (((_sp[$ "away"] ?? 0) > 0) ? ("  (" + string(_sp.away) + " while idle)") : ""));
+		draw_set_color(_dim); draw_set_alpha(.8); draw_text(_fx, _fy - 11, "task: " + ((_job == "tap") ? "autotapping" : _job) + "  -  taps " + string(_sp.taps) + (((_sp[$ "away"] ?? 0) > 0) ? ("  (" + string(_sp.away) + " while idle)") : ""));
 		var _dr = __dismiss_r(), _away2 = (_sp[$ "trip"] ?? false), _armed = (dismiss_arm == _sp.id && dismiss_t > 0);
 		draw_ui_button(_dr.x, _dr.y, _dr.w, _dr.h, _away2 ? "away" : (_armed ? "sure? dismiss" : "dismiss"), _armed ? c_hred : c_gray, !_away2, _armed);
 	}

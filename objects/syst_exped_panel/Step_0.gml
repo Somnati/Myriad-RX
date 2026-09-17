@@ -43,8 +43,14 @@ else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; 
 // the worlds are built a few rows a frame (planet_gen_step, __worlds_step:
 // the board's, the trips', the planet window's), so every portrait is the
 // full world within a second or two, without a hitch
-__worlds_step();
-if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
+// ...but NOT for the sprite menu (his report, 2026-09-17: "major lag when
+// initially opening this window"): its pages never show a world or a sky,
+// and on a fresh save the first touch of the galaxy builds all ten
+// thousand stars in one frame. Nothing here to build for, so nothing built.
+if (mode != "sprites") {
+	__worlds_step();
+	if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();
+}   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
 // THE REPLAY: a trip page with an unseen film (and no live fight)
 // plays it in the combat window, a swing every half second; the last
 // frame holds a moment, then it is seen. A tap on the window skips it
@@ -455,7 +461,8 @@ if (view == "system" && is_struct(sy_sys)) {
 }
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
-// the debug clock: x1 / x10 / x100
+// the debug clock: x1 / x10 / x100 (not on the sprite menu)
+if (mode != "sprites")
 for (var _k = 0; _k < 3; _k++) {
 	var _r = __spd_r(_k);
 	if (point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h)) {

@@ -23,6 +23,9 @@ if (_menu) hp = hp_;
 if (in_room(rm_clicker) && !_drawer && variable_global_exists("persist_popups") && g.persist_popups) hp = hp_;
 if (!_menu && _drawer) hp = 0;
 if (instance_exists(syst_rebirth) && syst_rebirth.open) hp = 0;
+// ...and the expedition / sprite panel (his screenshot, 2026-09-17: a
+// drop from an autotapping sprite slid the chip over the crew header)
+if (instance_exists(syst_exped_panel) && !syst_exped_panel.closing) hp = 0;
 var _want = _live && (hp > 0);
 
 move = trickle(move, _want ? 1 : 0, 4);

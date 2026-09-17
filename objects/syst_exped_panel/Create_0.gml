@@ -1412,7 +1412,19 @@ __dismiss_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : r
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 44, h : 14 }; };   // (narrower, 2026-09-16: three buttons fit under the card - [crew] [galaxy] [bestiary])
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
-__tab_r = function(_k) { return { x : land ? 14 : 4, y : list_y + 22 + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
+// THE CREW COLUMN'S TOP: under the objective card while it is up (his
+// screenshot, 2026-09-17: the folded card's three boxes sat on the first
+// tab - the card lives over every panel by his earlier ask, so the tabs
+// give way; they glide up as it folds)
+__crew_y0 = function() {
+	var _y = list_y + 22;
+	if (instance_exists(syst_objectives) && syst_objectives.a > .05 && syst_objectives.okey != "") {
+		var _cr = syst_objectives.__rect();
+		if (_cr.x < (land ? 14 : 4) + tab_w) _y = max(_y, _cr.y + _cr.h + 4);
+	}
+	return _y;
+};
+__tab_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
 __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
 __recall_r = function() { return { x : log_x + log_w - 62, y : log_y + 4, w : 56, h : 12 }; };   // (in the quest island's corner)
 __fight_r  = function() { return { x : log_x + log_w - fight_s, y : room_height - 8 - (land ? 18 : 0) - fight_s, w : fight_s, h : fight_s }; };   // the combat window: the right column's bottom-right corner (over the buttons' row on a wide page)

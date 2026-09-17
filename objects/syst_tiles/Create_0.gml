@@ -61,7 +61,40 @@ save_mark_dirty();
 depth   = -510;   // over the room and its drawers, under the menu (-520) and the header (-1000)
 oa      = 0;      // the open ease, 0 closed .. 1 open (Step)
 closing = false;  // armed by tiles_close; the Step destroys at zero
-opaque  = true;   // obj_clicker reads this: no paid taps under the board
+// ⚖️ NOT OPAQUE (his rule, 2026-09-17: "its supposed to be universal
+// no matter where im at"). It was `opaque = true` from 2026-09-12 - no
+// paid taps under the board at all - and that muted the hold-tap for
+// as long as the tiles were open. The board now does what the dial
+// drawer does: it CLAIMS its own furniture through __consumes and
+// leaves the rest of itself as tap surface. A press on a tile is a
+// drag, a press on the drawer is the drawer's; a press on an empty
+// slot, the gutters or the blank board is a paid tap.
+opaque  = false;
+/// does this press belong to the board's furniture? obj_clicker asks
+/// before paying a tap (the dial drawer's __consumes, the same shape)
+__consumes = function(_mx, _my) {
+	if (oa < .5 || closing) return false;
+	// a tile in the hand: the whole press is the drag's until release
+	if (grab_i != -1) return true;
+	// a tile under the pointer: the press would pick it up
+	var _s = __slot_at(_mx, _my);
+	if (_s != -1 && g.tiles.tier[_s] != 0) return true;
+	// the drawer, open: everything right of its face is its own
+	// (tabs, close, rows, buy amount, rebirth - all live past the face)
+	if (dr_open > .5 && _mx > __dr_face()) return true;
+	// the drawer's edge tab, closed
+	if (dr_want == 0) {
+		var _dt = __dr_tab_r();
+		if (point_in_rectangle(_mx, _my, _dt.x - 1, _dt.y, room_width, _dt.y + _dt.h)) return true;
+	}
+	// the sort button in the info column, and the debug chip / sheet
+	var _sr = __sort_r();
+	if (point_in_rectangle(_mx, _my, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) return true;
+	var _dc = __dbg_chip();
+	if (point_in_rectangle(_mx, _my, _dc.x, _dc.y, _dc.x + _dc.w, _dc.y + _dc.h)) return true;
+	if (dbg_open > .5 && _mx < __dbg_x() + dbg_w) return true;
+	return false;
+};
 /// is the panel here and unblocked - the gate every press below asks
 __in = function() { return oa >= .999 && !closing && input_free(ui_layer_overlay); };
 

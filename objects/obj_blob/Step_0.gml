@@ -32,7 +32,6 @@ if (bub_next <= 0) {
 // the card fades toward its state; a press anywhere NOT on this sprite
 // closes it (his report: they lingered)
 card_a = trickle(card_a, card_open ? 1 : 0, 4, 0);
-if (tap_last > 0) tap_last -= delta;
 // a tap on the tooltip: the sprite menu on this one (his design, 2026-09-16)
 if (card_open && card_a > .5 && is_struct(card_rect) && mouse_check_button_pressed(mb_left) && point_in_rectangle(mouse_x, mouse_y, card_rect.x, card_rect.y, card_rect.x + card_rect.w, card_rect.y + card_rect.h)) {
 	card_open = false;

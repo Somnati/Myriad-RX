@@ -36,6 +36,19 @@ function upgrade_complete(_slot) {
 	        + (_s[$ "xtra"] ?? 0);
 	_d.n   += 1;
 
+	// THE RECEIPT (his report, 2026-09-17: "i dont want it to clear the
+	// info box"). The slot still frees - DE's rule - but the inspector
+	// keeps reading the upgrade you just finished until you pick
+	// something else. A snapshot, session-only: what it was, at the tier
+	// it was filed at, and what that filing was worth.
+	g.upg.last_done = {
+		id   : _s.id,   rar : _s.rar,  val : _s.val,
+		tier : _s.tier, lv  : _s[$ "lv"] ?? 1,
+		cap  : upgrade_cap(_slot),
+		worth : upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_slot), _s.rar, _s[$ "lv"] ?? 1)
+		      + (_s[$ "xtra"] ?? 0),
+	};
+
 	g.upg.slot[_slot] = -1;
 
 	assign_banner("upgrade complete - slot freed", c_gold, c_black);

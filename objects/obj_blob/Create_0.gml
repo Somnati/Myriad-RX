@@ -157,11 +157,10 @@ __poke = function() {
 	}
 	// the first poke ever (the newcomer) unlocks the header's [sprites] line (his ask, 2026-09-16)
 	if (!variable_global_exists("sprites_met") || !g.sprites_met) { g.sprites_met = true; unfold_grant("sprites", "sprites: the header menu has them now"); }
-	// A DOUBLE TAP opens the small tooltip (lv / hp / mp); a tap on the tooltip opens the sprite menu on this one (his correction)
-	if (tap_last > 0) card_open = true;
-	tap_last = 22;
+	// (no double tap - his call, 2026-09-17: "it just squeaks... i'd rather it
+	// be that way". The tooltip card is reachable from nowhere now; the sprite
+	// menu is the header's [sprites] line.)
 };
-tap_last = 0;       // frames since a tap on it, for the double tap
 card_rect = undefined;   // the tooltip's rect on screen (the draw sets it; the step hit-tests it)
 
 // the shader's handles, once

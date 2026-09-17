@@ -118,6 +118,10 @@ if (hold_i == -1) {
 			// by itself when the slot completes, empties or runs out of
 			// credits, because the scan above stops offering it.
 			var _was = hold_i;
+			// was it a modifier (files a receipt on its last tier) or a
+			// grant (frees the slot with nothing to read)? Read BEFORE the
+			// buy - the slot may be gone after it.
+			var _was_mod = is_struct(g.upg.slot[hold_i]) && g.upg.slot[hold_i].stat != "";
 			if (upgrade_buy(hold_i)) {
 				hold_spd = min(7, hold_spd + .5);
 				pick = _was;
@@ -126,7 +130,13 @@ if (hold_i == -1) {
 				// that is refused in this room, so say it here.
 				if (!is_struct(g.upg.slot[_was])) {
 					__say("complete - slot freed", c_gold);
-					pick   = -1;
+					// -3 = THE RECEIPT: the inspector keeps reading the
+					// upgrade just finished (g.upg.last_done) rather than
+					// going blank with the slot (his report, 2026-09-17).
+					// A grant (burst / new slot) leaves no receipt - that
+					// path never files anything - so it still clears.
+					pick   = (_was_mod && variable_struct_exists(g.upg, "last_done")
+					          && is_struct(g.upg.last_done)) ? -3 : -1;
 					hold_i = -1;
 				}
 			} else { hold_i = -1; hold_lock = true; }

@@ -274,16 +274,21 @@ var _dc = merge_colour(c_hsv(168, 160, 5), c_black, .3);
 // which it can be for a frame after the slot count changes
 var _has_pick = (pick >= 0 && pick < _n && is_struct(g.upg.slot[pick]));
 var _new_pick = (pick == -2 && _nr != -1);   // the "new slot" row, read
+// THE RECEIPT (pick -3): the upgrade whose last tier was just bought. Its
+// slot is free, so it reads from the snapshot upgrade_complete left, not
+// from the table (his report, 2026-09-17: the box went blank with the slot)
+var _done_pick = (pick == -3 && variable_struct_exists(g.upg, "last_done")
+                  && is_struct(g.upg.last_done));
 if (_new_pick) {
 	__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
 	__rr_grad_l(desc_x, desc_y, __rar_grad(0, desc_w, c_black).w, desc_h,
 		merge_colour(__rar_col(0), c_black, .2), _dc, 1);
-} else if (_has_pick) {
+} else if (_has_pick || _done_pick) {
 	// the picked row's plate, at the inspector's size: the rim's
 	// coloured reach says the rarity here too
 	// (the plate under the rim is the inner's own colour: no line past
 	// the reach - the rows' rule)
-	var _prar = g.upg.slot[pick].rar;
+	var _prar = _done_pick ? g.upg.last_done.rar : g.upg.slot[pick].rar;
 	__rr(desc_x, desc_y, desc_w, desc_h, _dc, 1);
 	__rr_grad_l(desc_x, desc_y, __rar_grad(_prar, desc_w, c_black).w, desc_h,
 		merge_colour(__rar_col(_prar), c_black, .2), _dc, 1);
@@ -324,7 +329,7 @@ if (_new_pick) {
 	draw_set_alpha(.95);
 	draw_text(_pr - 2, _nly + 3, string(upgrade_slot_cost()) + " credits");
 	draw_set_halign(fa_left);
-} else if (!_has_pick) {
+} else if (!_has_pick && !_done_pick) {
 	draw_set_halign(fa_center);
 	draw_set_color(_dim);
 	draw_set_alpha(.4);
@@ -335,10 +340,12 @@ if (_new_pick) {
 		string(_filled) + " of " + string(_n) + " slots in use");
 	draw_set_halign(fa_left);
 } else {
-	var _ps   = g.upg.slot[pick];
+	// a live slot, or the receipt of the one just finished - the same
+	// page, read from the snapshot when the slot is gone
+	var _ps   = _done_pick ? g.upg.last_done : g.upg.slot[pick];
 	var _pe   = upgrade_entry(_ps.id);
 	var _pc   = __rar_col(_ps.rar);
-	var _pcap = upgrade_cap(pick);
+	var _pcap = _done_pick ? _ps.cap : upgrade_cap(pick);
 
 	// ---- the top: what it IS ----
 	draw_set_color(c_white);
@@ -385,9 +392,12 @@ if (_new_pick) {
 		// total held from every upgrade of this kind (a per-dial boost
 		// totals on its own dial's lane)
 		var _tot = (_pe.stat == "dial_one") ? _ub.dial_one[_pe.dial] : _ub[$ _pe.stat];
+		// the receipt reads what the FILING was worth (its last tier,
+		// completion bonus and all - already in the total)
+		var _tv  = _done_pick ? _ps.worth : __tier_v(pick);
 		array_push(_rows_txt,
-			{ k : _pe.name,
-			  v : "+" + string_format(__tier_v(pick), 1, 2) + "% (" + string_format(_tot, 1, 0) + "%)",
+			{ k : _done_pick ? _pe.name + " filed" : _pe.name,
+			  v : "+" + string_format(_tv, 1, 2) + "% (" + string_format(_tot, 1, 0) + "%)",
 			  c : merge_colour(_pe.col, c_white, .3) });
 	} else if (_pe != -1 && (_pe[$ "burst"] ?? false)) {
 		// A BURST (2026-09-16): what it pays, for how long, and the rule
@@ -414,9 +424,10 @@ if (_new_pick) {
 	if (!_compact) {
 		draw_set_color(_dim);
 		draw_set_alpha(.5);
-		draw_text(_px, _ly - 11, (mode == 0)
-			? ((upgrade_cost(pick) < 0) ? "at its last tier" : "hold the price to buy")
-			: "hold the price to sell");
+		var _verb = "hold the price to sell";
+		if (_done_pick) _verb = "complete - filed to the ledger, slot freed";
+		else if (mode == 0) _verb = (upgrade_cost(pick) < 0) ? "at its last tier" : "hold the price to buy";
+		draw_text(_px, _ly - 11, _verb);
 	}
 	for (var _q = 0; _q < array_length(_rows_txt); _q++) {
 		var _ln = _rows_txt[_q];
