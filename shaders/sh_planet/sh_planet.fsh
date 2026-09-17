@@ -19,6 +19,8 @@ uniform sampler2D u_cloud;
 uniform sampler2D u_height;
 uniform vec3  u_rot[3];
 uniform vec3  u_crot[3];
+uniform vec3  u_crot2[3];  // THE WIND (2026-09-17): the base deck's own frame - it sails at its own pace, so the shells slide
+uniform vec2  u_wt;        // THE WEATHER (2026-09-17): the swell's two phases (radians), off the universal clock
 uniform vec3  u_light;
 uniform vec3  u_atmo;
 uniform vec2  u_tsize;
@@ -77,10 +79,30 @@ float h_uv(vec2 uv)
     return texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize).r;
 }
 
+// the decks' frames (2026-09-17): the top deck's (u_crot) and the base deck's (u_crot2) - view space to the map's, and back
+vec3 to_cloud(vec3 n, bool base)
+{
+    return base ? vec3(dot(u_crot2[0], n), dot(u_crot2[1], n), dot(u_crot2[2], n)) : vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
+}
+vec3 from_cloud(vec3 t, bool base)
+{
+    return base ? (u_crot2[0] * t.x + u_crot2[1] * t.y + u_crot2[2] * t.z) : (u_crot[0] * t.x + u_crot[1] * t.y + u_crot[2] * t.z);
+}
+float cloud_atb(vec3 n, bool base)
+{
+    return texture2D(u_cloud, sphere_uv(to_cloud(n, base), u_tsize)).a * u_cfade;
+}
 float cloud_at(vec3 n, vec2 ts)
 {
-    vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
-    return texture2D(u_cloud, sphere_uv(t, ts)).a * u_cfade;
+    return cloud_atb(n, false);
+}
+// THE WEATHER (2026-09-17, with the wind): a slow swell riding the deck's own frame - two waves crossing, their
+// phases off the clock - that thickens the puffs where it crests and thins them in its troughs, so a cloud
+// grows and shrinks as it sails, not only slides. 0.7 .. 1.3 on the thickness
+float weather(vec3 n, bool base)
+{
+    vec3 t = to_cloud(n, base);
+    return 1.0 + 0.3 * sin(dot(t, vec3(3.7, 2.1, 2.9)) + u_wt.x) * sin(dot(t, vec3(-2.3, 4.1, 1.7)) - u_wt.y);
 }
 // THE CLOUD RELIEF (2026-09-17, his ask: "a depth pass like how our mountains
 // are so clouds don't look flat"): the cover map's RED is a smooth thickness
@@ -93,10 +115,13 @@ float thk_uv(vec2 uv)
     vec4 c = texture2D(u_cloud, (floor(uv * u_tsize) + 0.5) / u_tsize);
     return (c.a > 0.02) ? c.r * u_cfade : 0.0;
 }
+float thick_atb(vec3 n, bool base)
+{
+    return thk_uv(sphere_uv(to_cloud(n, base), u_tsize));
+}
 float thick_at(vec3 n)
 {
-    vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
-    return thk_uv(sphere_uv(t, u_tsize));
+    return thick_atb(n, false);
 }
 // THE LIMB'S HEIGHT (his screenshots, 2026-09-17: a cloud band past the limb went to a sliver - under this projection
 // a puff past the tangent shows only its vertical extent, and at H = .05 that is five pixels): a puff stands taller
@@ -112,10 +137,11 @@ float cloudband(float d);   // (defined below the marches - a prototype, so the 
 // travels a long way inside the slab, so a cloud past the tangent still has weight there - the wrap for free,
 // and the bright hazy limb real worlds have. The light: the deck's terminator by position, the crown brighter
 // than the base, and the puff sunward of the sample shading it (the cheap stand-in for a march to the sun)
-float dens_at(vec3 d, float rr, float R, float H)
+float dens_at(vec3 d, float rr, float R, float H, float w)
 {
     float th = thick_at(d);
     if (th <= 0.0) return 0.0;
+    th = min(1.0, th * w);   // (the weather's swell)
     float h = (rr - R) / H;                         // 0 at the shell, 1 at the deck's top
     float inside = 1.0 - smoothstep(th - 0.25, th, h);
     return inside * (0.25 + 0.75 * cloud_at(d, u_tsize));
@@ -127,6 +153,7 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
     if (r2 > RO * RO) return 0.0;
     float z0 = sqrt(RO * RO - r2);
     float z1 = (r2 <= R * R) ? sqrt(R * R - r2) : 0.0;
+    float w = weather(normalize(vec3(p, z0)), false);   // (the swell here - once a pixel; it is a slow, wide wave)
     float T = 1.0;
     float lsum = 0.0;
     float wsum = 0.0;
@@ -137,7 +164,7 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
         vec3 pp = vec3(p, zz);
         float rr = length(pp);
         vec3 d = pp / rr;
-        float dn = dens_at(d, rr, R, H);
+        float dn = dens_at(d, rr, R, H, w);
         if (dn <= 0.0) continue;
         float a = clamp(dn * 42.0 * ds, 0.0, 1.0);
         float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.3 * cloud_at(normalize(d + u_light * 0.06), u_tsize));   // (a notch brighter - "a lil darker", 2026-09-17)
@@ -155,7 +182,7 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
             vec3 pp = vec3(p, zz);
             float rr = length(pp);
             vec3 d = pp / rr;
-            float dn = dens_at(d, rr, R, H);
+            float dn = dens_at(d, rr, R, H, w);
             if (dn <= 0.0) continue;
             float a = clamp(dn * 42.0 * ds2, 0.0, 1.0);
             float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * 0.8;   // (an underside, a little darker)
@@ -169,13 +196,14 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
     return 1.0 - T;
 }
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
-float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov, out float back)
+float deck_march(float R, float H, vec2 p, float r2, bool base, out vec3 dirn, out vec3 nrm, out float cov, out float back)
 {
     dirn = vec3(0.0, 0.0, 1.0); nrm = vec3(0.0, 0.0, 1.0); cov = 0.0; back = 0.0;
     float RO = R + H * 2.5;
     if (r2 > RO * RO) return -1.0;
     float z0 = sqrt(RO * RO - r2);
     float z1 = (r2 <= R * R) ? sqrt(R * R - r2) : 0.0;
+    float w = weather(normalize(vec3(p, z0)), base);   // (the swell, on the puff's height)
     float zs = z0;
     float zh = z0;
     bool under = false;
@@ -184,7 +212,7 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
         vec3 pp = vec3(p, zz);
         float rr = length(pp);
         vec3 d = pp / rr;
-        float th = thick_at(d);
+        float th = thick_atb(d, base) * w;
         if (th > 0.0 && rr <= R + deck_h(H, d) * th) { under = true; zh = zz; break; }
         zs = zz;
     }
@@ -194,7 +222,7 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
             vec3 pp = vec3(p, zm);
             float rr = length(pp);
             vec3 d = pp / rr;
-            float th = thick_at(d);
+            float th = thick_atb(d, base) * w;
             if (th > 0.0 && rr <= R + deck_h(H, d) * th) zh = zm; else zs = zm;
         }
     } else if (r2 > 1.0) {
@@ -208,16 +236,16 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
             vec3 pp = vec3(p, zz);
             float rr = length(pp);
             vec3 d = pp / rr;
-            float th = thick_at(d);
+            float th = thick_atb(d, base) * w;
             if (th > 0.0 && rr <= R + deck_h(H, d) * th) { under = true; zh = zz; back = 1.0; break; }
         }
         if (!under) return -1.0;
     } else return -1.0;
     vec3 ph = vec3(p, zh);
     dirn = ph / length(ph);
-    cov = cloud_at(dirn, u_tsize);
+    cov = cloud_atb(dirn, base);
     // the normal in the map's own grid: one texel each way (the mountains' recipe)
-    vec3 t0 = vec3(dot(u_crot[0], dirn), dot(u_crot[1], dirn), dot(u_crot[2], dirn));
+    vec3 t0 = to_cloud(dirn, base);
     vec2 uv0 = vec2(atan(t0.z, t0.x) / 6.2831853 + 0.5, acos(clamp(t0.y, -1.0, 1.0)) / 3.14159265);
     vec2 uvc = (floor(uv0 * u_tsize) + 0.5) / u_tsize;
     vec2 du = vec2(1.0 / u_tsize.x, 0.0);
@@ -229,7 +257,7 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
     vec3 tv = normalize(cross(t0, tu));
     float k = max(H, 0.01) * 9.0;
     vec3 nt = normalize(t0 - tu * hx * k - tv * hy * k);
-    nrm = normalize(u_crot[0] * nt.x + u_crot[1] * nt.y + u_crot[2] * nt.z);
+    nrm = normalize(from_cloud(nt, base));
     return zh;
 }
 
@@ -299,12 +327,12 @@ void main()
     } else {
         vec3 nbd; vec3 nbn;
         float bkb = 0.0;
-        float czb = deck_march(CB, u_crelief * 0.6, p, r2, nbd, nbn, cab, bkb);
+        float czb = deck_march(CB, u_crelief * 0.6, p, r2, true, nbd, nbn, cab, bkb);   // (the base deck, on its own frame - the wind, 2026-09-17)
         if (czb < 0.0) cab = 0.0;
         else clib = cloudband(dot(nbd, u_light)) * flankband(dot(nbn, u_light)) * (1.0 - 0.25 * bkb);   // (the deck's terminator x its slopes; an underside a little darker)
         vec3 ntd; vec3 ntn;
         float bkt = 0.0;
-        czt = deck_march(CR, u_crelief, p, r2, ntd, ntn, cat, bkt);
+        czt = deck_march(CR, u_crelief, p, r2, false, ntd, ntn, cat, bkt);
         if (czt < 0.0) cat = 0.0;
         else {
             clit = cloudband(dot(ntd, u_light)) * flankband(dot(ntn, u_light)) * (1.0 - 0.25 * bkt);

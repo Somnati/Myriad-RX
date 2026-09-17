@@ -18,6 +18,8 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	if (is_undefined(_u)) _u = {
 		rot   : shader_get_uniform(sh_planet, "u_rot"),
 		crot  : shader_get_uniform(sh_planet, "u_crot"),
+		crot2 : shader_get_uniform(sh_planet, "u_crot2"),
+		wt    : shader_get_uniform(sh_planet, "u_wt"),
 		light : shader_get_uniform(sh_planet, "u_light"),
 		atmo  : shader_get_uniform(sh_planet, "u_atmo"),
 		tsize : shader_get_uniform(sh_planet, "u_tsize"),
@@ -50,9 +52,28 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	if (is_undefined(_cam)) _cam = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 	var _ct = mat3_transpose(_cam);
 	var _w  = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
-	var _wc = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin * 1.16 + 31));
+	// THE WIND (his report, 2026-09-17: "clouds look as if they don't move" - the decks rode the spin, a hair
+	// faster, and a world turns once in hours): the decks SAIL over the land. The top deck laps the world in
+	// wind_lap minutes (a giant's faster), the prevailing direction with the spin two times in three, and a slow
+	// VEER north and south (two beats that never meet) so the drift is never a wheel; the base deck on its own
+	// frame (u_crot2) at a little over half the pace, so the surface path's two shells slide past each other.
+	// Off the universal clock like the spin - a world's weather is where you left it. The pace is hashed off the
+	// seed (nothing rolled - the generator's stream is a save format) and kept on the struct
+	if (is_undefined(_pn[$ "wind"])) {
+		var _wh = hash_mix(_pn.seed, 7331), _wl = _cfg[$ "wind_lap"] ?? [6, 16];
+		var _lap = lerp(_wl[0], _wl[1], (_wh mod 1000) / 1000) * 60;
+		var _wdir = (((_wh div 1000) mod 3) == 0) ? -1 : 1;
+		if (_pn.spin < 0) _wdir = -_wdir;
+		_pn.wind = _wdir * 360 / _lap * ((_pn.kind == "gas") ? 1.6 : 1);   // degrees a second, over the ground
+	}
+	var _now = universal_now();
+	var _drift = (_now * _pn.wind) mod 360;
+	var _veer = 5 * dsin(360 * ((_now mod 407) / 407)) + 3 * dsin(360 * ((_now mod 233) / 233));
+	var _wc  = mat3_mul(mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin + _drift + 31)), mat3_rot(1, 0, 0, _veer));
+	var _wc2 = mat3_mul(mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin + _drift * .55 + 137)), mat3_rot(1, 0, 0, -_veer * .6));
 	var _m  = mat3_mul(mat3_transpose(_w), _cam);
 	var _mc = mat3_mul(mat3_transpose(_wc), _cam);
+	var _mc2 = mat3_mul(mat3_transpose(_wc2), _cam);
 	var _lv = is_array(_light_w) ? mat3_apply(_ct, _light_w[0], _light_w[1], _light_w[2]) : [-.55, -.5, .67];
 	var _ll = max(.001, sqrt(_lv[0] * _lv[0] + _lv[1] * _lv[1] + _lv[2] * _lv[2]));
 	_lv = [_lv[0] / _ll, _lv[1] / _ll, _lv[2] / _ll];
@@ -74,6 +95,10 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set(sh_planet);
 	shader_set_uniform_f_array(_u.rot, _m);
 	shader_set_uniform_f_array(_u.crot, _mc);
+	shader_set_uniform_f_array(_u.crot2, _mc2);
+	// THE WEATHER (2026-09-17): a slow swell over the decks - two phases, each periodic in its own window, so neither
+	// ever jumps at the clock's wrap and together they never repeat in a sitting
+	shader_set_uniform_f(_u.wt, 2 * pi * ((_now mod 240) / 240), 2 * pi * ((_now mod 341) / 341));
 	shader_set_uniform_f(_u.light, _lv[0], _lv[1], _lv[2]);
 	shader_set_uniform_f(_u.atmo, colour_get_red(_pn.atmo) / 255, colour_get_green(_pn.atmo) / 255, colour_get_blue(_pn.atmo) / 255);
 	shader_set_uniform_f(_u.tsize, _pn.tw, _pn.th);
