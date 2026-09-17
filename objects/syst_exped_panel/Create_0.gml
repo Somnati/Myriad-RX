@@ -483,7 +483,9 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
 lod_show = undefined;                // THE ZOOM PATCH showing (2026-09-17): { seed, k, u0, v0, uw, vh, pw, ph, cu, cv, hu, hv, tsurf, hsurf }
-lod_bld  = undefined;                // ...and the one building (+ row)
+lod_bld  = undefined;                // ...and the one building (+ row, tbuf, hbuf)
+lod_ord  = undefined;                // the channel probe's answer (__lod_order): the byte index of r, g, b, a in a surface texel
+lod_pcu  = -1; lod_pcv = 0;          // the view's centre last step (the look-ahead)
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
@@ -2550,48 +2552,85 @@ __worlds_step = function() {
 // while the last finished patch keeps showing; rebuilt when the zoom's K changes or the view drifts a third
 // of the window off its centre; dropped when the page changes or the zoom backs off. K = the zoom rounded
 // (2..6) off the zoom's TARGET, so an eased zoom builds once, not at every step
-__lod_free = function(_l) { if (is_struct(_l)) { if (surface_exists(_l.tsurf)) surface_free(_l.tsurf); if (surface_exists(_l.hsurf)) surface_free(_l.hsurf); } return undefined; };
+__lod_free = function(_l) {
+	if (is_struct(_l)) {
+		if (surface_exists(_l.tsurf)) surface_free(_l.tsurf);
+		if (surface_exists(_l.hsurf)) surface_free(_l.hsurf);
+		if (buffer_exists(_l.tbuf)) buffer_delete(_l.tbuf);
+		if (buffer_exists(_l.hbuf)) buffer_delete(_l.hbuf);
+	}
+	return undefined;
+};
+// THE CHANNEL PROBE (once): buffer_set_surface's byte order is the platform's (learned the hard way in the demo).
+// A texel of known bytes goes up and is read back; whichever byte landed in red is red's. Alpha is the byte left
+__lod_order = function() {
+	if (is_array(lod_ord)) return lod_ord;
+	var _ts = surface_create(1, 1), _tb = buffer_create(4, buffer_fixed, 1);
+	buffer_write(_tb, buffer_u8, 40); buffer_write(_tb, buffer_u8, 80); buffer_write(_tb, buffer_u8, 120); buffer_write(_tb, buffer_u8, 255);
+	buffer_set_surface(_tb, _ts, 0);
+	var _c = surface_getpixel(_ts, 0, 0);
+	var _vals = [colour_get_red(_c), colour_get_green(_c), colour_get_blue(_c)];
+	var _ord = [2, 1, 0, 3], _ok = true, _used = [false, false, false, false];   // (b g r a - the windows default - unless the probe says otherwise)
+	for (var _ch = 0; _ch < 3; _ch++) {
+		var _vv = _vals[_ch], _bi = -1;
+		if (abs(_vv - 40) < 6) _bi = 0; else if (abs(_vv - 80) < 6) _bi = 1; else if (abs(_vv - 120) < 6) _bi = 2;
+		if (_bi < 0 || _used[_bi]) { _ok = false; break; }
+		_ord[_ch] = _bi; _used[_bi] = true;
+	}
+	if (_ok) { for (var _bi2 = 0; _bi2 < 4; _bi2++) if (!_used[_bi2]) _ord[3] = _bi2; lod_ord = _ord; } else lod_ord = [2, 1, 0, 3];
+	surface_free(_ts); buffer_delete(_tb);
+	return lod_ord;
+};
 __lod_step = function() {
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	if (view != "planet" || !is_struct(pl_dest) || _zt < 1.8) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); return; }
+	if (view != "planet" || !is_struct(pl_dest) || _zt < 1.8) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); lod_pcu = -1; return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 	var _tw = _pn.tw, _th = _pn.th, _pvr = __pv_r(), _pr = starmap_config().pr * _zt;
-	// the view's centre on the map, and the window the page sees there (a third wider, for the drift)
+	// the view's centre on the map, and the window the page sees there (half again wider, for the drift)
 	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
 	var _m = mat3_mul(mat3_transpose(_wm), pv_cam);
 	var _t = mat3_apply(_m, 0, 0, 1);
 	var _cu = arctan2(_t[2], _t[0]) / (2 * pi) + .5, _cv = arccos(clamp(_t[1], -1, 1)) / pi;
 	var _k = clamp(round(_zt), 2, 6);
 	var _aw = arcsin(min(.999, (_pvr.w * .5) / _pr)), _ah = arcsin(min(.999, (_pvr.h * .5) / _pr));
-	var _hu = min(.5, _aw / (2 * pi) * 1.35 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.35);
-	// the patch building (else showing) still covers the view? then build on (or rest)
+	var _hu = min(.5, _aw / (2 * pi) * 1.5 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.5);
+	// THE LOOK-AHEAD (his report, 2026-09-17: "panning around ... shows a low quality version for a bit before the
+	// higher quality pops in"): a new window sits a little ahead of where the view is heading, so a pan runs into
+	// patch, not map; the rebuild fires at a quarter of the window's drift, well before the old one's edge shows
+	var _dcu = 0, _dcv = 0;
+	if (lod_pcu >= 0) { _dcu = _cu - lod_pcu; if (_dcu > .5) _dcu -= 1; if (_dcu < -.5) _dcu += 1; _dcv = _cv - lod_pcv; }
+	lod_pcu = _cu; lod_pcv = _cv;
 	var _cur = is_struct(lod_bld) ? lod_bld : lod_show;
 	if (is_struct(_cur) && _cur.seed == _pn.seed && _cur.k == _k) {
 		var _du = abs(_cu - _cur.cu); _du = min(_du, 1 - _du);
-		if (_du < _cur.hu * .35 && abs(_cv - _cur.cv) < _cur.hv * .35) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
+		if (_du < _cur.hu * .25 && abs(_cv - _cur.cv) < _cur.hv * .25) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
 	}
-	// a new patch
+	// a new patch, centred a little ahead
+	var _acu = _cu + clamp(_dcu * 8, -.2 * _hu, .2 * _hu), _acv = clamp(_cv + clamp(_dcv * 8, -.2 * _hv, .2 * _hv), 0, 1);
+	_acu = ((_acu mod 1) + 1) mod 1;
 	lod_bld = __lod_free(lod_bld);
 	var _uw = min(_tw, ceil(2 * _hu * _tw)), _vh = min(_th, ceil(2 * _hv * _th));
-	var _u0 = floor((_cu - _hu) * _tw); _u0 = ((_u0 mod _tw) + _tw) mod _tw;
-	var _v0 = clamp(floor((_cv - _hv) * _th), 0, _th - _vh);
+	var _u0 = floor((_acu - _hu) * _tw); _u0 = ((_u0 mod _tw) + _tw) mod _tw;
+	var _v0 = clamp(floor((_acv - _hv) * _th), 0, _th - _vh);
 	var _pw = _uw * _k, _ph = _vh * _k;
-	lod_bld = { seed : _pn.seed, k : _k, u0 : _u0, v0 : _v0, uw : _uw, vh : _vh, pw : _pw, ph : _ph, cu : _cu, cv : _cv, hu : _hu, hv : _hv, row : 0, tsurf : surface_create(_pw, _ph), hsurf : surface_create(_pw, _ph) };
-	surface_set_target(lod_bld.tsurf); draw_clear_alpha(c_black, 1); surface_reset_target();
-	surface_set_target(lod_bld.hsurf); draw_clear_alpha(c_black, 1); surface_reset_target();
+	lod_bld = { seed : _pn.seed, k : _k, u0 : _u0, v0 : _v0, uw : _uw, vh : _vh, pw : _pw, ph : _ph, cu : _acu, cv : _acv, hu : _hu, hv : _hv, row : 0,
+		tsurf : -1, hsurf : -1, tbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1), hbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1) };
 	__lod_build(_pn);
 };
+// the rows, eight ms a frame (the page has little else to do while you look), into two BUFFERS (a texel is four
+// pokes, not two draw calls - the stamps were a third of the bill); the textures are made whole at the end
 __lod_build = function(_pn) {
-	var _l = lod_bld, _lim = get_timer() + 5000;   // (five ms a frame)
-	if (!surface_exists(_l.tsurf) || !surface_exists(_l.hsurf)) { lod_bld = __lod_free(lod_bld); return; }
+	var _l = lod_bld, _lim = get_timer() + 8000;
+	if (!buffer_exists(_l.tbuf) || !buffer_exists(_l.hbuf)) { lod_bld = __lod_free(lod_bld); return; }
+	var _ord = __lod_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
+	var _tb = _l.tbuf, _hb = _l.hbuf;
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _bm = _pn.biome, _el = _pn.elev, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _base = _gas ? 1 : max(_sea, .34);
-	var _sh = shader_current(); if (_sh != -1) shader_reset();
 	while (_l.row < _l.ph && get_timer() < _lim) {
 		var _j = _l.row, _by = _l.v0 + (_j div _k), _fy = ((_j mod _k) + .5) / _k;
 		var _v = (_l.v0 + (_j + .5) / _k) / _th;
-		var _cols = array_create(_l.pw, 0), _als = array_create(_l.pw, 1), _hts = array_create(_l.pw, 0);
+		var _o = _j * _l.pw * 4;
 		for (var _i = 0; _i < _l.pw; _i++) {
 			var _bx = (_l.u0 + (_i div _k)) mod _tw, _fx = ((_i mod _k) + .5) / _k, _bi = _bx + _by * _tw;
 			var _u = ((_l.u0 + (_i + .5) / _k) mod _tw) / _tw;
@@ -2620,22 +2659,23 @@ __lod_build = function(_pn) {
 					}
 				}
 			}
-			_cols[_i] = _pal[_b]; _als[_i] = 1 - _glow[_b];
+			var _c = _pal[_b];
+			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
 			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
 			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11)) ? 255 : 0;
 			var _for = (!_gas) ? ((_b == 5 || _b == 6) ? 255 : ((_b == 12) ? 140 : 0)) : 0;
-			_hts[_i] = make_colour_rgb(floor(_h * 255), _wat, _for);
+			if (_wat > 0) _for = floor(clamp((_sea - _oe) / .08, 0, 1) * 255);   // (under water: the depth - the sea's gradient)
+			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
+			_o += 4;
 		}
-		surface_set_target(_l.tsurf); gpu_set_blendmode_ext(bm_one, bm_zero);
-		for (var _i = 0; _i < _l.pw; _i++) draw_sprite_ext(spr_pixel_1x1, 0, _i, _j, 1, 1, 0, _cols[_i], _als[_i]);
-		surface_reset_target();
-		surface_set_target(_l.hsurf); gpu_set_blendmode_ext(bm_one, bm_zero);
-		for (var _i = 0; _i < _l.pw; _i++) draw_sprite_ext(spr_pixel_1x1, 0, _i, _j, 1, 1, 0, _hts[_i], 1);
-		surface_reset_target(); gpu_set_blendmode(bm_normal);
 		_l.row++;
 	}
-	if (_sh != -1) shader_set(_sh);
-	if (_l.row >= _l.ph) { lod_show = __lod_free(lod_show); lod_show = _l; lod_bld = undefined; }
+	if (_l.row >= _l.ph) {
+		_l.tsurf = surface_create(_l.pw, _l.ph); _l.hsurf = surface_create(_l.pw, _l.ph);
+		buffer_set_surface(_l.tbuf, _l.tsurf, 0); buffer_set_surface(_l.hbuf, _l.hsurf, 0);
+		buffer_delete(_l.tbuf); buffer_delete(_l.hbuf); _l.tbuf = -1; _l.hbuf = -1;
+		lod_show = __lod_free(lod_show); lod_show = _l; lod_bld = undefined;
+	}
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved

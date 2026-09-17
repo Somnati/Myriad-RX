@@ -40,6 +40,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
 		pwin : shader_get_uniform(sh_planet, "u_pwin"), pk : shader_get_uniform(sh_planet, "u_pk"),
+		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"),
 		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
@@ -122,6 +123,10 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.canopy, _cfg[$ "canopy"] ?? .015);
 	var _gc = (_pn.kind == "gas" || array_length(_pn.pal) < 5) ? c_gray : _pn.pal[4];
 	shader_set_uniform_f(_u.grass, colour_get_red(_gc) / 255, colour_get_green(_gc) / 255, colour_get_blue(_gc) / 255);
+	// THE SEA'S DEPTH (2026-09-17): the deep and the open ocean - the shader grades the water between the shore's own colour and these
+	var _s0 = (_pn.kind == "gas" || array_length(_pn.pal) < 2) ? c_navy : _pn.pal[0], _s1 = (_pn.kind == "gas" || array_length(_pn.pal) < 2) ? c_blue : _pn.pal[1];
+	shader_set_uniform_f(_u.sea0, colour_get_red(_s0) / 255, colour_get_green(_s0) / 255, colour_get_blue(_s0) / 255);
+	shader_set_uniform_f(_u.sea1, colour_get_red(_s1) / 255, colour_get_green(_s1) / 255, colour_get_blue(_s1) / 255);
 	// the moons' shadows, the storms' lightning, the aurora (2026-09-16)
 	var _mshv = array_create(16, 0), _mshn = 0;
 	if (is_array(_msh)) { _mshn = min(4, array_length(_msh)); for (var _i = 0; _i < _mshn; _i++) { _mshv[_i * 4] = _msh[_i][0]; _mshv[_i * 4 + 1] = _msh[_i][1]; _mshv[_i * 4 + 2] = _msh[_i][2]; _mshv[_i * 4 + 3] = _msh[_i][3]; } }

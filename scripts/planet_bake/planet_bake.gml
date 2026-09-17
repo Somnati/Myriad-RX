@@ -60,6 +60,8 @@ function planet_bake(_pn, _until = undefined) {
 				var _wat = (_pn.kind != "gas" && (_bw == 0 || _bw == 1 || _bw == 11)) ? 255 : 0;
 				// (blue marks the WOODS - forest, jungle full, swamp thinner - for the shader's canopy, 2026-09-17)
 				var _for = (_pn.kind != "gas") ? (((_bw == 5 || _bw == 6) ? 255 : ((_bw == 12) ? 140 : 0))) : 0;
+				// (...and under WATER blue is the DEPTH, 0 at the shore to 1 at .08 under the sea - the sea's gradient, his ask 2026-09-17; a river's or a lake's is 0)
+				if (_wat > 0) _for = floor(clamp((_pn.sea - _pn.elev[_i]) / .08, 0, 1) * 255);
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _wat, _for), 1);
 			}
 		}

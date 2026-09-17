@@ -129,7 +129,7 @@ if (view == "planet" && is_struct(pl_dest)) {
 	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
 	// region mode: the pull-in, the clouds thinning (both eased)
 	pv_zoom  = lerp(pv_zoom,  pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1), 1 - power(.88, delta));   // (the mode's pull-in x the wheel's - 2026-09-17)
-	pv_cfade = lerp(pv_cfade, (pv_mode == "region") ? .12 : 1, 1 - power(.88, delta));
+	pv_cfade = lerp(pv_cfade, 1 - .88 * clamp((pv_zoom - 1.2) / (PV_ZOOM_RG - 1.2), 0, 1), 1 - power(.88, delta));   // (by the ZOOM, his ask 2026-09-17: the wheel past 1.2 thins them, region mode's 1.55 is the same .12 as before)
 }
 // THE TRIP PAGE'S WORLD: the same render, its camera turned to the trip's
 // region once (a new trip on the page), riding the spin after (geosync)

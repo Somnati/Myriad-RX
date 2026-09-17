@@ -46,6 +46,8 @@ uniform sampler2D u_ptex;     // THE ZOOM PATCH (2026-09-17): the window under t
 uniform sampler2D u_pheight;  // ...and its height / water / woods
 uniform vec4  u_pwin;         // the window in map uv: x0, y0, x1, y1 (x1 may pass 1 - the seam)
 uniform float u_pk;           // the patch's resolution over the map's (0 = no patch)
+uniform vec3  u_sea0;     // THE SEA'S DEPTH (2026-09-17): the deep, and the open ocean - the water grades between the shore's own colour and these
+uniform vec3  u_sea1;
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
@@ -559,7 +561,7 @@ void main()
         // ground, more toward the limb, so the canopy slides over its floor as the world turns. Per canopy texel a
         // hash says tree or gap - the gap shows the floor, the world's grass darkened - and a grain of brightness on
         // the trees; a slow noise clumps them, thick here and thin there. A swamp's canopy is thinner (its blue lower)
-        float fo = hsmp.b;
+        float fo = (hsmp.g > 0.5) ? 0.0 : hsmp.b;   // (under water the blue is the depth, not the woods)
         if (fo > 0.05) {
             float rc = 1.0 + u_relief * h0 + u_canopy;
             vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
@@ -573,6 +575,13 @@ void main()
             vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
             vec3 canopy = col * (0.84 + 0.30 * hash12(ct + 17.3));
             col = (g < dens) ? canopy : floorc;
+        }
+        // THE SEA'S DEPTH (his ask, 2026-09-17: "smooth blending between its depth layers"): under water the height
+        // map's blue is the depth. The texel's own colour at the shore (the shallows where the map put them), the
+        // open ocean by a third of the way down, the deep past that - one gradient, no bands
+        if (hsmp.g > 0.5) {
+            float dp = hsmp.b;
+            col = mix(mix(col, u_sea1, smoothstep(0.0, 0.35, dp)), u_sea0, smoothstep(0.3, 1.0, dp));
         }
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         float li = lightband(dot(nn, u_light));
