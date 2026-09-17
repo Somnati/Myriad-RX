@@ -140,7 +140,7 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
         float dn = dens_at(d, rr, R, H);
         if (dn <= 0.0) continue;
         float a = clamp(dn * 42.0 * ds, 0.0, 1.0);
-        float l = cloudband(dot(d, u_light)) * (0.6 + 0.4 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.35 * cloud_at(normalize(d + u_light * 0.06), u_tsize));
+        float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * (1.0 - 0.3 * cloud_at(normalize(d + u_light * 0.06), u_tsize));   // (a notch brighter - "a lil darker", 2026-09-17)
         lsum += l * a * T;
         wsum += a * T;
         T *= 1.0 - a;
@@ -158,7 +158,7 @@ float deck_volume(float R, float H, vec2 p, float r2, bool ground, out float lit
             float dn = dens_at(d, rr, R, H);
             if (dn <= 0.0) continue;
             float a = clamp(dn * 42.0 * ds2, 0.0, 1.0);
-            float l = cloudband(dot(d, u_light)) * (0.6 + 0.4 * clamp((rr - R) / H, 0.0, 1.0)) * 0.8;   // (an underside, a little darker)
+            float l = cloudband(dot(d, u_light)) * (0.7 + 0.3 * clamp((rr - R) / H, 0.0, 1.0)) * 0.8;   // (an underside, a little darker)
             lsum += l * a * T;
             wsum += a * T;
             T *= 1.0 - a;
@@ -289,13 +289,13 @@ void main()
         bool grd = (r2 <= 1.0);
         float lb = 1.0;
         float lt = 1.0;
-        float hv = u_crelief * 1.6;   // (a slab wants more height than a surface's bump: the volume's decks stand taller)
-        cab = deck_volume(CB, hv * 0.6, p, r2, grd, lb);
+        float hv = u_crelief * 1.6;   // (a slab wants more height than a surface's bump: the volume's deck stands taller)
+        // ONE DECK in the volume (his call, 2026-09-17: the base deck was half the cost and most of the darkening; the
+        // slab has its own depth) - the surface path below keeps both, for its two-shell drift
         cat = deck_volume(CR, hv, p, r2, grd, lt);
         // the gathered alpha in steps: the chunky read, not a smooth fog
-        cab = floor(cab * 6.0 + 0.5) / 6.0;
         cat = floor(cat * 6.0 + 0.5) / 6.0;
-        clib = lb; clit = lt;
+        clit = lt;
     } else {
         vec3 nbd; vec3 nbn;
         float bkb = 0.0;
