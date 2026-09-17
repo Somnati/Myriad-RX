@@ -97,23 +97,31 @@ float thick_at(vec3 n)
     vec3 t = vec3(dot(u_crot[0], n), dot(u_crot[1], n), dot(u_crot[2], n));
     return thk_uv(sphere_uv(t, u_tsize));
 }
+// THE LIMB'S HEIGHT (his screenshots, 2026-09-17: a cloud band past the limb went to a sliver - under this projection
+// a puff past the tangent shows only its vertical extent, and at H = .05 that is five pixels): a puff stands taller
+// the nearer the limb it is (x2.5 at the tangent, x1 facing the viewer), so the wrap reads as a band, not a hairline
+float deck_h(float H, vec3 d)
+{
+    return H * (1.0 + 1.5 * (1.0 - d.z * d.z));
+}
 // a deck's march: R the shell, H its relief. Returns the hit's z (-1 = none); the hit's direction, its normal (view space) and its coverage through the outs
 float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm, out float cov, out float back)
 {
     dirn = vec3(0.0, 0.0, 1.0); nrm = vec3(0.0, 0.0, 1.0); cov = 0.0; back = 0.0;
-    float RO = R + H;
+    float RO = R + H * 2.5;
     if (r2 > RO * RO) return -1.0;
     float z0 = sqrt(RO * RO - r2);
     float z1 = (r2 <= R * R) ? sqrt(R * R - r2) : 0.0;
     float zs = z0;
     float zh = z0;
     bool under = false;
-    for (int i = 0; i < 7; i++) {
-        float zz = mix(z0, z1, (float(i) + 1.0) / 7.0);
+    for (int i = 0; i < 8; i++) {
+        float zz = mix(z0, z1, (float(i) + 1.0) / 8.0);
         vec3 pp = vec3(p, zz);
         float rr = length(pp);
-        float th = thick_at(pp / rr);
-        if (th > 0.0 && rr <= R + H * th) { under = true; zh = zz; break; }
+        vec3 d = pp / rr;
+        float th = thick_at(d);
+        if (th > 0.0 && rr <= R + deck_h(H, d) * th) { under = true; zh = zz; break; }
         zs = zz;
     }
     if (under) {
@@ -121,8 +129,9 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
             float zm = (zs + zh) * 0.5;
             vec3 pp = vec3(p, zm);
             float rr = length(pp);
-            float th = thick_at(pp / rr);
-            if (th > 0.0 && rr <= R + H * th) zh = zm; else zs = zm;
+            vec3 d = pp / rr;
+            float th = thick_at(d);
+            if (th > 0.0 && rr <= R + deck_h(H, d) * th) zh = zm; else zs = zm;
         }
     } else if (r2 > 1.0) {
         // THE BACK OF THE DECK (his report, 2026-09-17: "they disappear as they wrap around ... the underside not
@@ -130,12 +139,13 @@ float deck_march(float R, float H, vec2 p, float r2, out vec3 dirn, out vec3 nrm
         // side - a puff that has gone round the horizon shows its UNDERSIDE there, and one just past it its top.
         // From the shell's back (or the mid plane, in the relief band) outward: the first point inside a puff
         float zb0 = (r2 <= R * R) ? -z1 : 0.0;
-        for (int i = 0; i < 6; i++) {
-            float zz = mix(zb0, -z0, (float(i) + 1.0) / 6.0);
+        for (int i = 0; i < 8; i++) {
+            float zz = mix(zb0, -z0, float(i) / 7.0);   // (from the shell's own back point - a thin texel there counts too)
             vec3 pp = vec3(p, zz);
             float rr = length(pp);
-            float th = thick_at(pp / rr);
-            if (th > 0.0 && rr <= R + H * th) { under = true; zh = zz; back = 1.0; break; }
+            vec3 d = pp / rr;
+            float th = thick_at(d);
+            if (th > 0.0 && rr <= R + deck_h(H, d) * th) { under = true; zh = zz; back = 1.0; break; }
         }
         if (!under) return -1.0;
     } else return -1.0;
