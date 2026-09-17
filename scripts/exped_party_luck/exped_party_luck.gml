@@ -6,5 +6,6 @@ function exped_party_luck(_tr) {
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (!is_undefined(_sp)) _l += sprite_luck(_sp);
 	}
+	_l += _tr[$ "luck_pot"] ?? 0;   // (the potion of fortune, for the trip - 2026-09-17)
 	return _l;
 }

@@ -10,6 +10,14 @@
 /// party (2026-09-16, his ask): the sprites on the journey with it - a find the finder cannot use goes to one who can wear
 /// it, and a full pocket hands it to one with room, before anything is dropped. The diary line says who took it.
 function sprite_take(_sp, _it, _party = undefined) {
+	// A TREASURE (2026-09-17): into the pocket, to be sold - no dumb moment, nobody throws away a gold nugget
+	if ((_it[$ "slot"] ?? "") == "treasure") {
+		var _sht = sprite_sheet(_sp);
+		array_push(_sht.inv, _it);
+		var _drt = sprite_inv_trim(_sp);
+		save_mark_dirty();
+		return { txt : _sp.name + " pocketed " + _it.name + ((_drt != "") ? (", dropping " + _drt) : ""), worn : false, kept : true };
+	}
 	// A CONSUMABLE (2026-09-16): an elixir is drunk on the spot; the rest go in the pocket, no dumb moment about it
 	if ((_it[$ "slot"] ?? "") == "use") {
 		if (_it.kind == "elixir") return { txt : sprite_elixir(_sp, _it.line), worn : false, kept : false, elixir : true };

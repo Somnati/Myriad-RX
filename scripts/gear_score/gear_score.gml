@@ -4,7 +4,8 @@
 /// is nearly nothing to a warrior. The sheet compares, sprite_take decides.
 function gear_score(_sp, _it) {
 	if (is_undefined(_it)) return 0;
-	if ((_it[$ "slot"] ?? "") == "use") return 4 + _it.size * 2 + ((_it.kind == "totem") ? 20 : 0);   // (a consumable keeps its place in the pocket over poor gear; a totem over everything - 2026-09-16)
+	if ((_it[$ "slot"] ?? "") == "use") return 4 + _it.size * 2 + ((_it.kind == "totem") ? 20 : ((_it.kind == "phoenix") ? 14 : ((_it.kind == "hp" || _it.kind == "mp") ? 0 : 2)));   // (a consumable keeps its place in the pocket over poor gear; a totem over everything - 2026-09-16)
+	if ((_it[$ "slot"] ?? "") == "treasure") return 3 + _it.val;   // (a treasure is worth its credits - 2026-09-17)
 	var _c = sprite_classes()[sprite_sheet(_sp).cls];
 	var _k = variable_struct_get_names(_it.pts);
 	var _s = 0;

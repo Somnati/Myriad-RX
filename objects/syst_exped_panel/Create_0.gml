@@ -1524,7 +1524,7 @@ __draw_sheet_pops = function() {
 		var _lines = variable_struct_get_names(_it.pts);
 		// what it would replace (the worst of a multi-slot)
 		var _cmp = undefined;
-		if (!it_pop.worn && _it.slot != "use") {   // (a consumable compares with nothing - 2026-09-16)
+		if (!it_pop.worn && _it.slot != "use" && _it.slot != "treasure") {   // (a consumable or a treasure compares with nothing - 2026-09-16 / 17)
 			if (_it.slot == "w1" || _it.slot == "w2") _cmp = _psh[$ _it.slot];
 			else { var _arr = _psh[$ _it.slot]; var _wsc = infinity; for (var _j = 0; _j < array_length(_arr); _j++) { var _s2 = gear_score(_psp, _arr[_j]); if (_s2 < _wsc) { _wsc = _s2; _cmp = _arr[_j]; } } }
 		}
@@ -1551,7 +1551,7 @@ __draw_sheet_pops = function() {
 		draw_text_ext(_ppx + 6, _ppy + 4, _it.name, 9, _pw - 12);
 		var _ty2 = _ppy + 4 + string_height_ext(_it.name, 9, _pw - 12) + 2;
 		draw_set_color(_dim); draw_set_alpha(.7);
-		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : "talisman"));
+		var _slotn = (_it.slot == "w1") ? "weapon" : ((_it.slot == "w2") ? "offhand" : ((_it.slot == "armor") ? "armor" : ((_it.slot == "treasure") ? "treasure" : ((_it.slot == "use") ? "potion" : "talisman"))));
 		draw_text(_ppx + 6, _ty2, upgrade_rarity_info(_it.rar).name + " " + _it.fam + "  -  " + _slotn + "  -  lv " + string(_it.lv));
 		_ty2 += 10;
 		// THE ODDS (his ask, 2026-09-16): "1 in N" - the rung's share of the house
@@ -1596,7 +1596,8 @@ __draw_sheet_pops = function() {
 		}
 		draw_set_color(c_gold); draw_set_alpha(.9);
 		var _sc = gear_score(_psp, _it);
-		draw_text(_ppx + 6, _ty2 + 2, "worth " + string_format(_sc, 1, 0) + " to " + _psp.name + " (" + _pcls.name + ")" + (is_undefined(_cmp) ? "" : ("  vs " + string_format(gear_score(_psp, _cmp), 1, 0))));
+		if (_it.slot == "treasure") draw_text(_ppx + 6, _ty2 + 2, "sells for " + string(_it.val) + " credits");
+		else draw_text(_ppx + 6, _ty2 + 2, "worth " + string_format(_sc, 1, 0) + " to " + _psp.name + " (" + _pcls.name + ")" + (is_undefined(_cmp) ? "" : ("  vs " + string_format(gear_score(_psp, _cmp), 1, 0))));
 	}
 };
 dp_sheet = -1;   // the sheet modal on the preparation page: the sprite shown (-1 = none)

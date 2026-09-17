@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"treasure_config",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"treasure_config",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

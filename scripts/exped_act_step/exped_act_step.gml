@@ -138,6 +138,7 @@ function exped_act_step(_tr) {
 				if (_mu > 0 && _mh / _mu < _stn.hurt) { array_push(_tr.log, choose("a door in " + _nd.name + ". cautious: they do not open it", _nd.name + ": a stair going down. cautious, they go back up instead", "cautious: enough of " + _nd.name + " for one day")); exped_stat("delves"); _tr.act = undefined; return; }
 			}
 			// a room: a fight, a find, a trap, a quiet one (exped_room's kinds) - a dungeon cleared lately (the world remembers) fights back less
+			if ((_tr[$ "luck_pot"] ?? 0) <= 0) exped_drink_road(_tr, "delve");   // (the first room: a potion of fortune, if anyone carries one - 2026-09-17)
 			var _qt = (_a[$ "quiet"] ?? false);
 			if (_qt && !(_a[$ "said_quiet"] ?? false)) { _a.said_quiet = true; array_push(_tr.log, choose("quiet since they cleared it. the doors stand open", "their own boot prints, going in. nothing has come back yet", "the place is empty of most things. the smell stays")); }
 			var _r = random(100);

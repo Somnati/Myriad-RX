@@ -53,8 +53,8 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			var _rar = 1 + irandom(_rmax);   // (from common: a shop sells no basic - the fourteen-rung ladder, 2026-09-17)
 			// A POTION on the shelf (2026-09-16): a settlement's one thing more often than not; a big one where the rung allows
 			if (random(1) < ((_nd.kind == "settlement") ? .6 : .3)) {
-				var _pk = choose("hp", "hp", "hp", "mp", "tonic"), _psz = (_rar > 1 && random(1) < .5) ? 2 : 1;
-				array_push(_stock, { it : use_gen(_pk, _psz, _rg.lv), price : 1 + _psz + ((_pk == "tonic") ? 1 : 0), sold : false });
+				var _pk = potion_pick(_rar), _psz = ((_pk == "hp" || _pk == "mp") && _rar > 1 && random(1) < .5) ? 2 : 1;   // (the roster, by the shop's rung - 2026-09-17)
+				array_push(_stock, { it : use_gen(_pk, _psz, _rg.lv), price : potion_find(_pk).price + (_psz - 1), sold : false });
 				continue;
 			}
 			var _slot = choose("w1", "w2", "armor", "talis");
@@ -125,6 +125,25 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		}
 	}
 	if (_phase == "buy") return;
+	// THE TREASURES (his ask, 2026-09-17): every trinket in every pocket goes over the counter first, at its worth (noble / shabby; a note on shops or a haggler a credit more each)
+	for (var _k5 = 0; _k5 < array_length(_tr.sids); _k5++) {
+		if (_tr.hp[_k5] <= 0) continue;
+		var _sp5 = exped_sprite(_tr.sids[_k5]);
+		if (is_undefined(_sp5)) continue;
+		var _sh5 = sprite_sheet(_sp5), _sold5 = [], _c5 = 0;
+		for (var _j5 = array_length(_sh5.inv) - 1; _j5 >= 0; _j5--) {
+			var _it5 = _sh5.inv[_j5];
+			if ((_it5[$ "slot"] ?? "") != "treasure") continue;
+			var _pr5 = max(1, round(_it5.val * (1 + sprite_ab(_sp5).sell / 100))) + ((sprite_note_has(_sp5, "shop") || sprite_ab(_sp5).haggle > 0) ? 1 : 0);
+			_tr.credits += _pr5; _c5 += _pr5;
+			array_push(_sold5, _it5.name + " (" + string(_pr5) + ")");
+			array_delete(_sh5.inv, _j5, 1);
+		}
+		if (array_length(_sold5) > 0) {
+			exped_stat("sold", array_length(_sold5)); exped_tally(_tr, "earned", _c5); save_mark_dirty();
+			array_push(_tr.log, _sp5.name + " sold " + exped_crew_txt(_sold5) + " to " + _keeper2 + choose(". " + _keeper2 + " held it up to the light", ". weighed, bitten, paid for", ". a fair price, and " + _sp5.name + " said so twice", ". the keeper's eyebrows went up", ". counted out slowly"));
+		}
+	}
 	// THE SELLING (his pick, 2026-09-16): the worst of each pocket's gear goes over the counter at half the shelf's price -
 	// one to three things a member by the stance (never a potion); a note on shops is a credit more a thing
 	var _stn = exped_stance(_tr);
@@ -135,7 +154,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _sh3 = sprite_sheet(_sp3), _sold3 = [], _csold = 0;
 		repeat (_stn.sell) {
 			var _wi = -1, _ws = infinity;
-			for (var _j = 0; _j < array_length(_sh3.inv); _j++) { var _it3 = _sh3.inv[_j]; if ((_it3[$ "slot"] ?? "") == "use") continue; var _gs = gear_score(_sp3, _it3); if (_gs < _ws) { _ws = _gs; _wi = _j; } }
+			for (var _j = 0; _j < array_length(_sh3.inv); _j++) { var _it3 = _sh3.inv[_j]; if ((_it3[$ "slot"] ?? "") == "use" || (_it3[$ "slot"] ?? "") == "treasure") continue; var _gs = gear_score(_sp3, _it3); if (_gs < _ws) { _ws = _gs; _wi = _j; } }
 			if (_wi < 0) break;
 			var _it4 = _sh3.inv[_wi];
 			array_delete(_sh3.inv, _wi, 1);

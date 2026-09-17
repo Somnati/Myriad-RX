@@ -105,5 +105,6 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		}
 		if (array_length(_bare) > 0) cbt_log(_f, _hz.name + ": " + exped_crew_txt(_bare) + " " + _hz.bite);
 	}
+	exped_drink_open(_tr, _f);   // THE POCKET AT THE DOOR (2026-09-17): the buffs, the wards, the regen, the growth
 	return _f;
 }

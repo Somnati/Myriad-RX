@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"potion_pick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"potion_pick",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -90,6 +90,7 @@ function exped_agent(_tr, _dt) {
 		var _pab = exped_party_ab(_tr);
 		if (_pab.pace != 0) _pace *= max(.3, 1 + _pab.pace / 100);   // (long legs; short legs, the flaw)
 		if (_pab.night > 0) _n_night = true;
+		if (_tr[$ "owl"] ?? false) _n_night = true;   // (the owl's eye potion, drunk below - 2026-09-17)
 		if (_pab.weather > 0) _n_wx = true;
 		var _sure = 1 - min(80, _pab.sure) / 100;
 		if (_n_road) _pace *= 1.1;
@@ -98,6 +99,7 @@ function exped_agent(_tr, _dt) {
 		var _after = floor(_rd.t / EXPED_HOUR);
 		if (_after > _before && _rd.t < _rd.d * EXPED_HOUR) {
 			var _nl = array_length(_tr.log);
+			if (_night && !(_tr[$ "owl"] ?? false) && exped_drink_road(_tr, "night")) _n_night = true;   // (the first dark hour: an owl's eye potion, if anyone carries one - 2026-09-17)
 			var _high = (_rg.nodes[_rd.a].kind == "mountains" || _rg.nodes[_rd.a].kind == "hills" || _rg.nodes[_rd.b].kind == "mountains" || _rg.nodes[_rd.b].kind == "hills");
 			// the weather's own: a slip on a wet high road, a wait under a tree in a storm
 			if ((_wx == "rain" || _wx == "snow") && _high && !_n_wx && roll_perc(8)) {

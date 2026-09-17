@@ -1,6 +1,9 @@
 /// @description gear_desc(item) -> the popup's line of voice: where it is from, what its quirks do, or a word on its rarity
 function gear_desc(_it) {
+	if ((_it[$ "slot"] ?? "") == "treasure") return "a treasure: worth " + string(_it.val) + " credits to a shopkeeper, or at the door coming home. that is all it is for, and that is plenty.";
 	if ((_it[$ "slot"] ?? "") == "use") {
+		var _pc = potion_find(_it.kind);   // (the roster's line, 2026-09-17)
+		if (is_struct(_pc)) return (_it.size >= 2 && _pc.bighelp != "") ? _pc.bighelp : _pc.help;
 		switch (_it.kind) {
 			case "hp":    return (_it.size >= 2) ? "a big red potion: eight tenths of the hp back. drunk when it is bad, by whoever carries it." : "a red potion: four tenths of the hp back. drunk when low - the nervous early, the brave late, the greedy at the last moment, the dreamy when they remember.";
 			case "mp":    return (_it.size >= 2) ? "a big blue potion: all the mp back, drunk in a fight when the mp is short of a skill." : "a blue potion: half the mp back, drunk in a fight when the mp is short of a skill.";

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"exped_drink_road",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"exped_drink_road",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

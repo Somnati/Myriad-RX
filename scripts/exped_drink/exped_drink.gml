@@ -36,9 +36,34 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 				save_mark_dirty();
 				return true;
 			}
+			// THE PHOENIX DRAUGHT (2026-09-17): the totem's lesser cousin - up again at three tenths
+			for (var _jp = 0; _jp < array_length(_sh.inv); _jp++) {
+				var _tp2 = _sh.inv[_jp];
+				if ((_tp2[$ "slot"] ?? "") != "use" || _tp2.kind != "phoenix") continue;
+				array_delete(_sh.inv, _jp, 1);
+				_pw.hp = max(1, ceil(_pw.maxhp * .3));
+				var _pl2 = _sp.name + "'s phoenix draught catches - " + _sp.name + " is up again";
+				if (is_struct(_f)) { cbt_log(_f, _pl2); cbt_film(_f, undefined, 0, _pl2); }
+				array_push(_tr.log, _pl2 + choose(". the bottle is ash", ". warm all over", ". it burned going down"));
+				save_mark_dirty();
+				return true;
+			}
 			continue;
 		}
 		if (_pn == "dreamy" && roll_perc(60)) continue;   // (forgot the pocket)
+		// THE ANTIDOTE (2026-09-17): in a fight, poisoned, slowed or marked - the bottle, if it carries one
+		if (is_struct(_pw) && is_struct(_pw[$ "ail"]) && (_pw.ail.poison > 0 || _pw.ail.slow > 0 || _pw.ail.leech > 0)) {
+			for (var _ja = 0; _ja < array_length(_sh.inv); _ja++) {
+				var _ita = _sh.inv[_ja];
+				if ((_ita[$ "slot"] ?? "") != "use" || _ita.kind != "antidote") continue;
+				array_delete(_sh.inv, _ja, 1);
+				_pw.ail.poison = 0; _pw.ail.slow = 0; _pw.ail.leech = 0; _pw.leecher = undefined;
+				var _al = _sp.name + " drank the antidote" + choose(". the venom lets go", ". clear-headed again", ". the mark fades");
+				if (is_struct(_f)) { cbt_log(_f, _al); cbt_film(_f, undefined, 0, _al); }
+				array_push(_tr.log, _al); _drank = true; save_mark_dirty();
+				break;
+			}
+		}
 		var _thv = clamp(_thr(_pn) + _stn.drink, .1, .9);
 		var _hpn = is_struct(_pw) ? _pw.hp : _tr.hp[_k], _hpm = is_struct(_pw) ? _pw.maxhp : _tr.hpmax[_k];
 		if (_hpn > 0 && _hpn / max(1, _hpm) < _thv) {
@@ -50,13 +75,19 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 				if (_it.size == _want && _at < 0) _at = _j; else if (_alt < 0) _alt = _j;
 			}
 			if (_at < 0) _at = _alt;
+			// A BOTTLE OF SOMETHING (2026-09-17): no red one - the mystery potion, if there is one. usually good
+			var _myst = false, _mroll = -1;
+			if (_at < 0) for (var _jm = 0; _jm < array_length(_sh.inv); _jm++) { var _itm = _sh.inv[_jm]; if ((_itm[$ "slot"] ?? "") == "use" && _itm.kind == "mystery") { _at = _jm; _myst = true; break; } }
 			if (_at >= 0) {
 				var _pot = _sh.inv[_at];
 				array_delete(_sh.inv, _at, 1);
-				var _heal = _hpm * ((_pot.size >= 2) ? .8 : .4) * max(.1, 1 + (sprite_ab(_sp).potion + exped_party_ab(_tr).aura_potion) / 100);   // (gourmet, the quartermaster's aura, picky - 2026-09-17)
+				var _mfrac = (_pot.size >= 2) ? .8 : .4;
+				if (_myst) { _mroll = random(100); _mfrac = (_mroll < 55) ? .5 : ((_mroll < 80) ? .25 : 0); }
+				var _heal = _hpm * _mfrac * max(.1, 1 + (sprite_ab(_sp).potion + exped_party_ab(_tr).aura_potion) / 100);   // (gourmet, the quartermaster's aura, picky - 2026-09-17)
 				var _newhp = min(_hpm, _hpn + _heal);
 				if (is_struct(_pw)) _pw.hp = _newhp; else _tr.hp[_k] = round(_newhp * 10) / 10;
-				var _dl = _sp.name + " drank the " + _pot.name + choose(". it tasted of red", ". better", ". most of it went in", " in one", ". the colour came back", ". it fizzed");
+				var _dl = _sp.name + " drank the " + _pot.name + (_myst ? ((_mroll < 55) ? ". it was a red one, more or less" : ((_mroll < 80) ? ". something happened. good, probably" : ". it tasted of tuesday. nothing happened")) : choose(". it tasted of red", ". better", ". most of it went in", " in one", ". the colour came back", ". it fizzed"));
+				if (_myst && _mroll >= 55 && _mroll < 80 && is_struct(_f) && is_struct(_pw)) cbt_status(_f, _pw, _pw, choose("buf_atk", "buf_def", "buf_hit", "haste"));   // (the good, probably)
 				if (is_struct(_f)) { cbt_log(_f, _dl); cbt_film(_f, undefined, 0, _dl); }
 				array_push(_tr.log, _dl);
 				_drank = true;

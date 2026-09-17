@@ -34,10 +34,12 @@ function exped_fight_loot(_tr, _f) {
 	for (var _j = 0; _j < array_length(_f.foes); _j++) if ((_f.foes[_j][$ "named"] ?? false) && _own == "") _own = _f.foes[_j].name;
 	var _rar = clamp(calculate_rarity(luck_rate(_d.rate) + (exped_party_luck(_tr) + _fab.loot) * 12, .3, .03, 800, 14) + (_boss ? 1 : 0) + ((_own != "") ? 1 : 0), 0, 13);
 	var _rgf = exped_region(_tr), _tagf = _rgf.nodes[clamp(_tr[$ "pos"] ?? 0, 0, array_length(_rgf.nodes) - 1)].kind;
-	var _it = gear_gen(choose("w1", "w2", "armor", "talis"), exped_trip_lv(_tr), _rar, irandom($7fffffff), _tagf, _own);
+	// a treasure off the bodies three times in ten (2026-09-17), else a piece of gear
+	var _ist = (_own == "" && roll_perc(30));
+	var _it = _ist ? treasure_gen(irandom($7fffffff), _rar, _d.tier) : gear_gen(choose("w1", "w2", "armor", "talis"), exped_trip_lv(_tr), _rar, irandom($7fffffff), _tagf, _own);
 	var _tk = sprite_take(_sp, _it, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
 	if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist", 1, _sp); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
-	exped_stat("finds"); exped_stat("gear_found"); sprite_led(_sp, "finds");
+	exped_stat("finds"); if (!_ist) exped_stat("gear_found"); sprite_led(_sp, "finds");
 	array_push(_tr.finds, { kind : "gear", rar : _rar, txt : _tk.txt, col : _it.col, item : _it });
 	array_push(_tr.log, "+ " + _sp.name + " acquired \"" + _it.name + "\"" + (_tk.worn ? " - and put it on" : (_tk.kept ? " - into the pocket" : " - and threw it away")));
 	if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }

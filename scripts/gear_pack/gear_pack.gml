@@ -3,5 +3,6 @@
 /// name, and the generation - a pre-pass item stays a pre-pass item)
 function gear_pack(_it) {
 	if ((_it[$ "slot"] ?? "") == "use") return "use," + _it.kind + "," + string(_it.size) + "," + string(_it.lv);   // (a consumable, 2026-09-16)
+	if ((_it[$ "slot"] ?? "") == "treasure") return "treasure," + string(_it.seed) + "," + string(_it.rar) + "," + string(_it.lv);   // (a treasure, 2026-09-17: the seed picks the kind)
 	return _it.slot + "," + string(_it.lv) + "," + string(_it.rar) + "," + string(_it.seed) + "," + string(_it[$ "tag"] ?? "") + "," + string(_it[$ "own"] ?? "") + "," + string(_it[$ "gen"] ?? 1);
 }

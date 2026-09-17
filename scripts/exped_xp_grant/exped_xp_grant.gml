@@ -12,6 +12,7 @@
 function exped_xp_grant(_tr, _xp, _why) {
 	if (_xp <= 0) return;
 	_xp *= 1 + exped_party_ab(_tr).aura_xp / 100;   // (the banner: the crew's xp - 2026-09-17)
+	if (_tr[$ "xp_pot"] ?? false) { _xp *= 2; _tr.xp_pot = false; array_push(_tr.log, "+ the potion of growth: twice the xp"); }   // (2026-09-17)
 	exped_tally(_tr, "xp", _xp);   // (the completion screen's "xp earned", 2026-09-16)
 	// (xp is kept to a tenth - a level-1 foe pays 1.0, a level-5 one 1.3)
 	var _xt = (frac(_xp) == 0) ? string(round(_xp)) : string_format(_xp, 1, 1);

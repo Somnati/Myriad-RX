@@ -170,6 +170,25 @@ function exped_tick_one(_tr, _dt) {
 		array_insert(_tr.finds, 0, _floor);
 		exped_tally(_tr, "earned", _floor.n);
 		if ((_tr[$ "credits"] ?? 0) > 0) array_push(_tr.finds, { kind : "credits", rar : 0, n : _tr.credits, txt : string(_tr.credits) + " credits - the pocket, unspent", col : c_lavender });
+		// THE TREASURES (his ask, 2026-09-17): whatever trinkets came home in the pockets are sold at the door
+		var _tsum = 0, _tnames = [], _tn = 0;
+		for (var _tk = 0; _tk < array_length(_tr.sids); _tk++) {
+			var _tsp = exped_sprite(_tr.sids[_tk]);
+			if (is_undefined(_tsp)) continue;
+			var _tsh = sprite_sheet(_tsp);
+			for (var _ti = array_length(_tsh.inv) - 1; _ti >= 0; _ti--) {
+				var _tit = _tsh.inv[_ti];
+				if ((_tit[$ "slot"] ?? "") != "treasure") continue;
+				_tsum += max(1, round(_tit.val * (1 + sprite_ab(_tsp).sell / 100))); _tn += 1;
+				if (array_length(_tnames) < 3) array_push(_tnames, _tit.name);
+				array_delete(_tsh.inv, _ti, 1);
+			}
+		}
+		if (_tsum > 0) {
+			exped_tally(_tr, "earned", _tsum); exped_stat("sold", _tn);
+			var _tlist = exped_crew_txt(_tnames) + ((_tn > 3) ? (" and " + string(_tn - 3) + " more") : "");
+			array_push(_tr.finds, { kind : "credits", rar : 1, n : _tsum, txt : string(_tsum) + " credits - the treasures, sold at the door (" + _tlist + ")", col : c_gold });
+		}
 		var _q = _tr[$ "quest"];
 		if (is_struct(_q)) {
 			var _done = clamp(_q.done / max(1, _q.n), 0, 1);
