@@ -58,7 +58,9 @@ function planet_bake(_pn, _until = undefined) {
 				// (green marks WATER - deep ocean, ocean, shallows - for the shader's glint, 2026-09-15)
 				var _bw = _pn.biome[_i];
 				var _wat = (_pn.kind != "gas" && (_bw == 0 || _bw == 1 || _bw == 11)) ? 255 : 0;
-				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _wat, 0), 1);
+				// (blue marks the WOODS - forest, jungle full, swamp thinner - for the shader's canopy, 2026-09-17)
+				var _for = (_pn.kind != "gas") ? (((_bw == 5 || _bw == 6) ? 255 : ((_bw == 12) ? 140 : 0))) : 0;
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(_v, _wat, _for), 1);
 			}
 		}
 		gpu_set_blendmode(bm_normal);

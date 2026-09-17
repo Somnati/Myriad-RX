@@ -42,6 +42,8 @@ uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
 uniform float u_crelief;  // THE CLOUD RELIEF (2026-09-17): the top deck's thickest puff in radii (0 = flat shells)
+uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
+uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
 
 float cw_h(vec3 p)
@@ -451,6 +453,7 @@ void main()
         vec3 t = to_tex(n);
         vec4 tex = texture2D(gm_BaseTexture, sphere_uv(t, u_tsize));
         vec3 col = tex.rgb;
+        vec4 hsmp = texture2D(u_height, sphere_uv(t, u_tsize));   // (red the height, green water, blue the woods)
 
         // THE MOUNTAINS' SHADING (2026-09-16, his ask: "more noticeably
         // mountains... exaggerated"): the height gradient bends the normal
@@ -509,6 +512,26 @@ void main()
             }
         }
 
+        // THE CANOPY (2026-09-17, his ask: "give forest biomes a grainy texture ... a parallax forest noise above it
+        // with a darker shade of grass below it"): the height map's blue marks the woods. The texel's colour is the
+        // CANOPY, a deck a hair above the ground (u_canopy radii): the ray meets it a little off where it meets the
+        // ground, more toward the limb, so the canopy slides over its floor as the world turns. Per canopy texel a
+        // hash says tree or gap - the gap shows the floor, the world's grass darkened - and a grain of brightness on
+        // the trees; a slow noise clumps them, thick here and thin there. A swamp's canopy is thinner (its blue lower)
+        float fo = hsmp.b;
+        if (fo > 0.05) {
+            float rc = 1.0 + u_relief * h0 + u_canopy;
+            vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
+            vec2 cuv = sphere_uv(to_tex(nc), u_tsize) * u_tsize;
+            vec2 ct = floor(cuv);
+            float g = hash12(ct + 0.5);
+            vec2 cl = cuv / 4.0; vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
+            float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
+            float dens = (0.55 + 0.4 * vn) * fo;
+            vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
+            vec3 canopy = col * (0.84 + 0.30 * hash12(ct + 17.3));
+            col = (g < dens) ? canopy : floorc;
+        }
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         float li = lightband(dot(nn, u_light));
         col *= li;
@@ -525,7 +548,7 @@ void main()
         // highlight where the half-vector of the sun and the eye meets the
         // sphere, on the day side only, with a little shimmer on it (the
         // frame's dither). The height texture's green marks water
-        float wat = texture2D(u_height, sphere_uv(t, u_tsize)).g;
+        float wat = hsmp.g;
         if (wat > 0.5) {
             vec3 hv = normalize(u_light + vec3(0.0, 0.0, 1.0));
             float sp = pow(max(dot(n, hv), 0.0), 26.0);
