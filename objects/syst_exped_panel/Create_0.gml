@@ -2561,17 +2561,18 @@ __worlds_step = function() {
 // map at 3x its resolution (planet_lod_begin / planet_lod_step - the base map's fields blended between its texels
 // on a smooth kernel, the biome law run on them; k odd, so the base texels' own centres are exact), built once
 // for the page's world, AHEAD, as soon as its base map stands, and kept while the page shows it. It shows from
-// the zoom where a tier texel is at least lod_cells screen cells wide (~x4.6 - finer beats against the cells).
+// region mode's own zoom (PV_ZOOM_RG - his ask) and any wheel zoom past it.
 // Nothing about the camera. No build runs while the camera moves (a drag, a glide, a snap): the frames it costs
 // would stutter the motion. A tier whose textures the gpu dropped (the window going full screen) is re-uploaded
 // from its kept buffers
 __lod_drop = function() { lod_k3 = planet_lod_free(lod_k3); lod_seed = -1; };
 __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
-	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1), _pcf = planet_config();
-	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	var _kc = (starmap_config().pr * _zt * 2 * pi / _pn.tw) / (max(1, _pcf.px_size) * (_pcf[$ "lod_cells"] ?? 1.3));
-	return (_kc >= 3) ? 3 : 0;
+	// FROM THE REGION VIEW'S OWN ZOOM (his ask, 2026-09-17: "trigger at the zoom level where viewing a region settles"):
+	// region mode's pull-in is the tier's threshold - the map's texels are already cell-sized there and the tier's
+	// three-to-one resolves the coasts at the cell; the wheel past it keeps it
+	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
+	return (_zt >= PV_ZOOM_RG - .02) ? 3 : 0;
 };
 __lod_pick = function(_pn) {   // the tier for the draw, if it stands and the zoom asks for it
 	if (lod_seed != _pn.seed || !is_struct(lod_k3) || !lod_k3.ready || __lod_want() < 3) return undefined;

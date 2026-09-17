@@ -9,7 +9,6 @@ function planet_config() {
 		pad      : 1.6,    // quad extent in radii: room for the halo
 		px_size  : 2,      // room px per shader cell (0 = no pixelation)
 		crelief  : .05,    // THE CLOUD RELIEF (2026-09-17): the top deck's thickest puff, in radii (the base deck .6 of it); 0 = the flat shells of before
-		lod_cells : 1.3,   // THE ZOOM PATCH's tier (2026-09-17): a patch texel at least this many screen cells wide (finer beats against the cells - "pixel warping")
 		canopy   : .015,   // THE CANOPY (2026-09-17): how far the woods' canopy floats over the ground, in radii (its parallax; 0 = flat grain)
 		wind_lap : [6, 16],// THE WIND (2026-09-17, his report: "clouds look as if they don't move"): minutes the top deck takes to lap the world (a giant's x1.6); the base deck at .55 of it
 		relief   : .09,    // MOUNTAINS: the tallest peak, in radii (a little taller, 2026-09-16) - the

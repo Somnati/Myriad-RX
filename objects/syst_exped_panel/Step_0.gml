@@ -725,6 +725,7 @@ if (view == "planet") {
 		var _vr = __view_rg_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
 			rg_sel = pl_focus; pv_face = pl_focus; pv_mode = "region"; pv_dw = false;
+			pv_zuser = 1;   // (the region's own distance every time, wherever the wheel was - his ask 2026-09-17)
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			exit;
 		}
