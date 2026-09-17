@@ -278,6 +278,7 @@ wb_surf = -1;        // the page surfaces (__draw_orbit, the galaxy view): nothi
 confirm  = "";       // "abort" while the question is up; "dismiss" then "dismiss2" (the "are you sure") for the sprite menu's [dismiss] - his ask, 2026-09-17
 conf_a   = 0;
 conf_hot = 0;
+conf_kind = "";   // the LAST question asked (the popup keeps its face while it fades out - bug hunt 2026-09-17)
 /// the popup itself (split out 2026-09-17 - two pages ask now): the veil,
 /// the box with the ease, the question centred, [the deed] + [cancel]
 __draw_confirm = function(_q, _lbl, _col) {
@@ -301,7 +302,7 @@ __draw_confirm = function(_q, _lbl, _col) {
 };
 /// the dismiss questions (the sprite named; the second is the "are you sure")
 __dismiss_q = function(_sp) {
-	if (confirm == "dismiss2") return "are you sure?\nthere is no getting " + _sp.name + " back.";
+	if (conf_kind == "dismiss2") return "are you sure?\nthere is no getting " + _sp.name + " back.";
 	return "let " + _sp.name + " go?\nthey leave the crew for good, with everything they carry.";
 };
 __conf_rect = function() {

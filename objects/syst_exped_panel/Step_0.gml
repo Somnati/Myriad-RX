@@ -183,6 +183,7 @@ if (!input_free(ui_layer_overlay)) exit;
 // ---- THE CONFIRM POPUP owns the panel while it is up (abort) ----
 if (view != "trip" && confirm == "abort") confirm = "";   // (the page turned under it - a trip got home)
 if (view != "crew" && (confirm == "dismiss" || confirm == "dismiss2")) confirm = "";   // (the sprite menu's question, only there)
+if (confirm != "") conf_kind = confirm;   // (remembered through the fade-out)
 conf_a = move_to(conf_a, (confirm != "") ? 1 : 0, 5);
 if (confirm != "") {
 	var _cb = __conf_btns();

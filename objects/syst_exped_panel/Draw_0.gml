@@ -547,7 +547,7 @@ if (view == "crew" || view == "sheet") {
 	__draw_sheet_pops();   // (over the foot - his report, 2026-09-17: the task line drew through the gear tooltip)
 	// THE DISMISS QUESTIONS (his ask, 2026-09-17: "that one popup confirmation...
 	// with an 'are you sure' second popup"): the confirm popup, twice
-	if (conf_a > .01 && (confirm == "dismiss" || confirm == "dismiss2")) __draw_confirm(__dismiss_q(_sp), (confirm == "dismiss2") ? "yes, dismiss" : "dismiss", c_hred);
+	if (conf_a > .01 && (conf_kind == "dismiss" || conf_kind == "dismiss2")) __draw_confirm(__dismiss_q(_sp), (conf_kind == "dismiss2") ? "yes, dismiss" : "dismiss", c_hred);   // (conf_kind: it fades out with its face on)
 	ui_fade_set(1);
 	exit;
 }
@@ -783,7 +783,7 @@ if (view == "trip") {
 		__draw_sheet(_tsp, _tsr.x, _tsr.y, _tsr.x + _tsr.w, _tsr.y + _tsr.h);
 	} else if (tp_sheet >= 0) tp_sheet = -1;   // (the sprite went - retired, or the trip came home)
 	// THE CONFIRM POPUP (abort): the save menu's box, over everything (__draw_confirm since 2026-09-17 - the crew page asks too)
-	if (conf_a > .01) {
+	if (conf_a > .01 && conf_kind == "abort") {
 		var _cq = (_tr.stage == 0) ? "turn the ship around?\n" + exped_crew_txt(_tr.names) + " will fly home without landing."
 		                          : "abort the mission?\n" + exped_crew_txt(_tr.names) + " will head for the landing zone" + (is_struct(_tr[$ "quest"]) ? " and the quest is dropped." : ".");
 		__draw_confirm(_cq, "abort", c_hred);
