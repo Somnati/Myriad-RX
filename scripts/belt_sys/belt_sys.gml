@@ -75,7 +75,10 @@ function belt_sys(_seed, _sys, _stns = []) {
 			             hull : merge_colour(_base, rgb(95, 90, 88), random_range(.2, .5)), glow : _base, sseed : random(6.28) };
 			array_push(_bigs, { r : _br, a0 : random(360), y : (random(1) - random(1)) * .8, spd : _dir * random_range(.7, 1.3) / _br / 600, size : random_range(.55, .95), st : _bst });
 		}
-		array_push(_out, { seed : _s, name : _name, orbit : _orbit, width : _width, n : array_length(_rocks), col : _base, lanes : _lanes, rocks : _rocks, bigs : _bigs });
+		// THE DUST: scattered across the band (a haze, not rings - his report 2026-09-17), turning at the belt's mean pace
+		var _dust = [];
+		repeat (320) array_push(_dust, [_orbit + (random(1) - random(1)) * _width * .55, random(360), (random(1) - random(1)) * .8, random_range(.3, 1)]);
+		array_push(_out, { seed : _s, name : _name, orbit : _orbit, width : _width, n : array_length(_rocks), col : _base, lanes : _lanes, rocks : _rocks, bigs : _bigs, dust : _dust, dspd : _dir * 1 / _orbit / 600 });
 	}
 	rng_release(_old);
 	_c[$ _key] = _out;

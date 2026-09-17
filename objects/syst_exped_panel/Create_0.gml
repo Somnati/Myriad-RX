@@ -661,19 +661,14 @@ __draw_system = function() {
 	var _gslot = floor(_bnow / .45), _gfr = frac(_bnow / .45);   // THE GLINTS' clock: a slot a little under half a second (each rock its own phase below)
 	for (var _b = 0; _b < array_length(sy_belts); _b++) {
 		var _bl = sy_belts[_b], _rks = _bl.rocks;
-		// THE DUST (the polish, 2026-09-17): a faint dithered band under the rocks, three radii, brighter nearer - the belt reads edge-on too
-		var _dcol = (sy_bsel == _b) ? merge_colour(_bl.col, c_gold, .5) : _bl.col;
-		for (var _dr = -1; _dr <= 1; _dr++) {
-			var _drad = _bl.orbit + _dr * _bl.width * .3, _dstp = max(.6, _pxs * 70 / max(1, _drad)), _dlx = -10000, _dly = -10000, _dn = 0;
-			for (var _a = 0; _a < 360; _a += _dstp) {
-				var _dp = __sy_proj(dcos(_a) * _drad, 0, dsin(_a) * _drad);
-				if (is_undefined(_dp)) continue;
-				var _dgx = floor((sy_wfx + (_dp[0] - sy_wfx) * _s) / _pxs) * _pxs, _dgy = floor((sy_wfy + (_dp[1] - sy_wfy) * _s) / _pxs) * _pxs;
-				if (_dgx == _dlx && _dgy == _dly) continue;
-				_dlx = _dgx; _dly = _dgy; _dn++;
-				if ((_dn + _dr) mod 2 == 0) continue;   // (dithered: every other cell)
-				draw_sprite_ext(spr_pixel_1x1, 0, _dgx, _dgy, _pxs, _pxs, 0, _dcol, ((sy_bsel == _b) ? .16 : .07) * (.6 + .4 * min(1, _dp[2] * 1.1)));
-			}
+		// THE DUST (the polish, 2026-09-17; a haze since the same day - three faint rings read as three more orbits, his report):
+		// scattered specks across the band, very faint, brighter nearer, gold-tinted when the belt is picked
+		var _dcol = (sy_bsel == _b) ? merge_colour(_bl.col, c_gold, .5) : _bl.col, _dsts = _bl.dust;
+		for (var _di = 0; _di < array_length(_dsts); _di++) {
+			var _dd = _dsts[_di], _da = (_dd[1] + _bl.dspd * 60 * _bnow) mod 360;
+			var _dp = __sy_proj(dcos(_da) * _dd[0], _dd[2], dsin(_da) * _dd[0]);
+			if (is_undefined(_dp)) continue;
+			draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_dp[0] - sy_wfx) * _s), floor(sy_wfy + (_dp[1] - sy_wfy) * _s), 1, 1, 0, _dcol, ((sy_bsel == _b) ? .14 : .06) * _dd[3] * (.5 + .5 * min(1, _dp[2] * _s * 1.1)));
 		}
 		for (var _k = 0; _k < array_length(_rks); _k++) {
 			var _rk = _rks[_k], _ra = (_rk[1] + _rk[4] * 60 * _bnow) mod 360;
