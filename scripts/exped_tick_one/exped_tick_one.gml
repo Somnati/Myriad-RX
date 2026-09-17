@@ -29,6 +29,22 @@ function exped_tick_one(_tr, _dt) {
 			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); exped_tally(_tr, "slain"); }
 		}
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
+		// DAMAGE, dealt and taken (his ask, 2026-09-17): the pawns' own
+		// counters (cbt_hit's dd / dt), summed once as the fight closes -
+		// the expedition's ledger, and each member's own (won / lost /
+		// down / dealt / taken)
+		var _dd = 0, _dtk = 0;
+		for (var _k = 0; _k < array_length(_f.party); _k++) {
+			var _pm = _f.party[_k];
+			_dd += _pm[$ "dd"] ?? 0; _dtk += _pm[$ "dt"] ?? 0;
+			var _msp = (is_array(_tr[$ "sids"]) && _pm.mi < array_length(_tr.sids)) ? exped_sprite(_tr.sids[_pm.mi]) : undefined;
+			if (is_undefined(_msp)) continue;
+			if (!_drawn) sprite_led(_msp, _f.won ? "won" : "lost");
+			if (_pm.hp <= 0) sprite_led(_msp, "downs");
+			sprite_led(_msp, "dmg", round(_pm[$ "dd"] ?? 0));
+			sprite_led(_msp, "dtaken", round(_pm[$ "dt"] ?? 0));
+		}
+		exped_stat("dmg", round(_dd)); exped_stat("dtaken", round(_dtk));
 		if (!_drawn) bestiary_payout(_tr, _f);   // THE BESTIARY PAYS (2026-09-16): the hunt's rungs, the land's set
 		// THE KILL'S XP (his law): the pack's stat total to every survivor
 		if (_f.won) exped_xp_grant(_tr, _f[$ "xp"] ?? 0, "");

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"sprite_led",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"sprite_led",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

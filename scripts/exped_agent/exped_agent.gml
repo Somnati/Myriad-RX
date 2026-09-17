@@ -119,6 +119,7 @@ function exped_agent(_tr, _dt) {
 		}
 		exped_stat("road_h", _dt / EXPED_HOUR);
 		exped_stat("road_km", (_dt / EXPED_HOUR) * EXPED_WALK_KMH);   // the distance ledger (his ask, 2026-09-17), kept in km
+		for (var _wk = 0; _wk < array_length(_tr.sids); _wk++) sprite_led(exped_sprite(_tr.sids[_wk]), "km", (_dt / EXPED_HOUR) * EXPED_WALK_KMH);   // ...and each walker's own
 		if (_rd.t >= _rd.d * EXPED_HOUR) {
 			_tr.pos = _rd.b;
 			_tr.road = undefined;

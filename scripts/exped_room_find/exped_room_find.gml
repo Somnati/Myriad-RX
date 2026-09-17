@@ -11,7 +11,8 @@ function exped_room_find(_tr, _pre) {
 		var _sp = exped_sprite(_tr.sids[_who]);
 		if (!is_undefined(_sp)) {
 			var _tk = sprite_take(_sp, _l.item, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
-			if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist"); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
+			if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist", 1, _sp); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
+			sprite_led(_sp, "finds");
 			_l.txt = _tk.txt;
 			array_push(_tr.log, _pre + _tk.txt);
 			if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }

@@ -52,6 +52,12 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 	_sp.egg = undefined; _sp.young = undefined;
 	if (array_length(_f) > _at + 10 && _f[_at + 10] != "") { var _eq = string_split(_f[_at + 10], "~"); if (array_length(_eq) >= 5) _sp.egg = { col : real(_eq[0]), seed : real(_eq[1]), hatch : real(_eq[2]), word : _eq[3], from : _eq[4] }; }
 	if (array_length(_f) > _at + 11 && _f[_at + 11] != "") { var _yq = string_split(_f[_at + 11], "~"); if (array_length(_yq) >= 2) _sp.young = { parent : real(_yq[0]), born : real(_yq[1]) }; }
+	// its own ledger (a thirteenth field, 2026-09-17)
+	_sp.led = {};
+	if (array_length(_f) > _at + 12 && _f[_at + 12] != "") {
+		var _lds = string_split(_f[_at + 12], ";");
+		for (var _i = 0; _i < array_length(_lds); _i++) { var _lv2 = string_split(_lds[_i], ":"); if (array_length(_lv2) == 2 && _lv2[0] != "") _sp.led[$ _lv2[0]] = max(0, real(_lv2[1])); }
+	}
 	// the title (a tenth field, 2026-09-16): rank:text
 	_sh.title = ""; _sh.trank = 0;
 	if (array_length(_f) > _at + 9 && _f[_at + 9] != "") { var _tp = string_pos(":", _f[_at + 9]); if (_tp > 1) { _sh.trank = max(0, real(string_copy(_f[_at + 9], 1, _tp - 1))); _sh.title = string_delete(_f[_at + 9], 1, _tp); } }

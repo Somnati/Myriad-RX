@@ -84,6 +84,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	if (_stn.key != "steady") array_push(_tr.log, "the word is " + _stn.name + ": " + _stn.blurb);
 	array_push(_e.trips, _tr);
 	exped_stat("trips");
+	for (var _tk = 0; _tk < array_length(_tr.sids); _tk++) sprite_led(exped_sprite(_tr.sids[_tk]), "trips");   // (each member's own ledger, 2026-09-17)
 	exped_say(_tr, "depart");
 	save_mark_dirty();
 	return true;

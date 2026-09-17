@@ -41,6 +41,8 @@ var _live = variable_global_exists("game_started") && g.game_started
 	&& unfold_has("tap") && !instance_exists(syst_unfold)
 	// ...nor over the statistics (his call, 2026-09-17: nothing completes in there)
 	&& !instance_exists(syst_statistics_v2)
+	// ...nor over the sprite menu (his report, 2026-09-17 - it sat on the crew tabs)
+	&& !(instance_exists(syst_exped_panel) && syst_exped_panel.mode == "sprites")
 	&& (_land || !instance_exists(syst_menu2))
 	&& !(!_land && instance_exists(syst_dials) && syst_dials.stage > 0);
 // the clear-room clock: runs only while nothing covers the card; anything

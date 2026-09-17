@@ -652,6 +652,9 @@ function stats_v2_content() {
 		stats_v2_line("fights won", _xn("fights_won"), -1, c_sgreen);
 		stats_v2_line("fights lost", _xn("fights_lost"), -1, c_hred);
 		stats_v2_line("enemies slain", _xn("slain"), -1, _xc);
+		stats_v2_line("damage dealt", _xn("dmg"), -1, _xc, "every blow the crews landed, added up as each fight closed");
+		stats_v2_line("damage taken", _xn("dtaken"), -1, c_hred);
+		stats_v2_line("mistakes made", _xn("mistakes"), -1, c_horange, "the dumb moments (a find binned - 'it clashed with the hat'), the wrong roads, the hours lost in the dark");
 		stats_v2_line("times down", _xn("downs"), -1, c_hred, "a crew member knocked down in a fight (they get up when it ends)");
 		stats_v2_line("times routed", _xn("routs"), -1, c_hred, "the whole crew down: robbed and sent home");
 		stats_v2_line("dungeons cleared", _xn("delves"), -1, _xc);

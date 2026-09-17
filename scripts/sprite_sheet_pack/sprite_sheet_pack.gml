@@ -26,5 +26,11 @@ function sprite_sheet_pack(_sp) {
 	var _eg = "", _yg = "";
 	if (is_struct(_sp[$ "egg"])) { var _e2 = _sp.egg; _eg = string(_e2.col) + "~" + string(_e2.seed) + "~" + string(_e2.hatch) + "~" + string_replace_all(string_replace_all(string_replace_all(_e2.word, "/", " "), "~", " "), "|", " ") + "~" + string_replace_all(string_replace_all(string_replace_all(_e2.from, "/", " "), "~", " "), "|", " "); }
 	if (is_struct(_sp[$ "young"])) _yg = string(_sp.young.parent) + "~" + string(_sp.young.born);
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg;
+	// its own ledger (a thirteenth field, 2026-09-17): "key:n;key:n" - sprite_led
+	var _ld = "";
+	if (is_struct(_sp[$ "led"])) {
+		var _lk = variable_struct_get_names(_sp.led);
+		for (var _i = 0; _i < array_length(_lk); _i++) _ld += ((_i > 0) ? ";" : "") + _lk[_i] + ":" + string_format(_sp.led[$ _lk[_i]], 1, 3);
+	}
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg + "/" + _ld;
 }

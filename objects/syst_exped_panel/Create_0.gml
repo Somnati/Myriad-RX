@@ -1082,6 +1082,24 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	array_push(it_rects, { x : _xx - 4, y : _hy - 3, w : _xw + 8, h : 18, lvup : true });
 	// THE TITLE (the bestiary's payouts, 2026-09-16): after the class, in gold, cut before the level corner
 	if ((_sh[$ "title"] ?? "") != "") { var _ttx = _hx + 18 + string_width(_c.name) + 6; draw_set_color(c_gold); draw_set_alpha(.85); draw_text(_ttx, _hy + 12, __sheet_cut("- " + _sh.title, max(24, _xx - _ttx - 4))); }
+	// THE PAGE PILLS (2026-09-17): [sheet] [stats] under the level corner -
+	// page two is the sprite's own ledger and its friendships
+	var _pgy = _hy + 16, _pgx = _x1 - 8 - 66;
+	for (var _pg = 0; _pg < 2; _pg++) {
+		var _px0 = _pgx + _pg * 34, _on2 = (sheet_pg == _pg);
+		draw_sprite_ext(spr_pixel_1x1, 0, _px0, _pgy, 32, 10, 0, _on2 ? merge_colour(_sp.col, c_black, .6) : c_black, .9);
+		draw_px_rect(_px0, _pgy, 32, 10, _on2 ? _sp.col : _dim, _on2 ? .9 : .35);
+		draw_set_halign(fa_center); draw_set_color(_on2 ? c_white : _dim); draw_set_alpha(_on2 ? .95 : .7);
+		draw_text(_px0 + 16, _pgy + 2, (_pg == 0) ? "sheet" : "stats");
+		draw_set_halign(fa_left);
+		array_push(it_rects, { x : _px0, y : _pgy, w : 32, h : 10, pg : _pg });
+	}
+	if (sheet_pg == 1) {
+		__draw_sheet_p2(_sp, _x0, _hy + 30, _x1, is_undefined(_y1) ? (room_height - 8) : _y1);
+		draw_set_halign(fa_left); draw_set_alpha(1);
+		ui_fade_set(_ea);
+		return;
+	}
 	// HP / MP bars (the Disgaea row): the maxima - a sprite at home is whole
 	var _hpr = floor(_st.pts.hp * _bal.hp_per_point + _bal.hp_flat_add);   // (whole hp - his ask; sprite_pawn floors the same)
 	var _mpr = max(1, round(_st.pts.mp));
@@ -1395,11 +1413,78 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 dp_sheet = -1;   // the sheet modal on the preparation page: the sprite shown (-1 = none)
 __dp_sheet_r = function() { var _l = __dp_layout(); return { x : _l.x, y : _l.y, w : _l.w, h : max(_l.h, room_height - 8 - _l.y) }; };   // (the mission box's rect, sat over it - his ask 2026-09-15; never shorter than the page allows)
 /// a press on the sheet's rows (it_rects, laid by __draw_sheet): the popup - or a popup up closes; true when the press was the sheet's
+/// PAGE TWO of the sheet (his ask, 2026-09-17): the sprite's own ledger on
+/// the left (sprite_led - trips, fights, downs, damage, mistakes, finds,
+/// the distance walked), its FRIENDSHIPS on the right (exped_bond: every
+/// other sprite it has been out with, closest first, the bond's tier as
+/// a word and its number)
+__draw_sheet_p2 = function(_sp, _x0, _y0, _x1, _y1) {
+	var _ink = sett_ink, _dim = dim;
+	var _led = _sp[$ "led"];
+	if (!is_struct(_led)) _led = {};
+	var _lx = _x0 + 8, _ly = _y0;
+	draw_set_halign(fa_left);
+	draw_set_color(_ink); draw_set_alpha(.75); draw_text(_lx, _ly, "the ledger"); _ly += 12;
+	var _rows = [
+		{ k : "trips taken",     v : string(round(_led[$ "trips"]  ?? 0)) },
+		{ k : "battles won",     v : string(round(_led[$ "won"]    ?? 0)), c : c_sgreen },
+		{ k : "battles lost",    v : string(round(_led[$ "lost"]   ?? 0)), c : c_hred },
+		{ k : "times down",      v : string(round(_led[$ "downs"]  ?? 0)), c : c_hred },
+		{ k : "damage dealt",    v : string(round(_led[$ "dmg"]    ?? 0)) },
+		{ k : "damage taken",    v : string(round(_led[$ "dtaken"] ?? 0)) },
+		{ k : "mistakes made",   v : string(round(_led[$ "mist"]   ?? 0)), c : c_horange },
+		{ k : "items found",     v : string(round(_led[$ "finds"]  ?? 0)) },
+		{ k : "distance walked", v : dist_fmt(_led[$ "km"] ?? 0) },
+	];
+	var _lw = land ? 124 : (_x1 - _x0 - 16);
+	for (var _i = 0; _i < array_length(_rows); _i++) {
+		var _rw = _rows[_i];
+		if (_ly + 10 > _y1 - 4) break;
+		if (_i & 1) draw_sprite_ext(spr_pixel_1x1, 0, _lx - 3, _ly - 1, _lw + 6, 10, 0, c_white, .04);
+		draw_set_halign(fa_left); draw_set_color(_dim); draw_set_alpha(.8); draw_text(_lx, _ly, _rw.k);
+		draw_set_halign(fa_right); draw_set_color(_rw[$ "c"] ?? c_white); draw_set_alpha(.9); draw_text(_lx + _lw, _ly, _rw.v);
+		_ly += 10;
+	}
+	draw_set_halign(fa_left);
+	// the friendships
+	var _fx = land ? (_x0 + 148) : _lx, _fy = land ? _y0 : (_ly + 8);
+	if (!land && _fy + 22 > _y1) return;
+	draw_set_color(_ink); draw_set_alpha(.75); draw_text(_fx, _fy, "friendships"); _fy += 12;
+	var _fr = [];
+	for (var _i = 0; _i < array_length(g.sprites); _i++) {
+		var _o = g.sprites[_i];
+		if (_o.id == _sp.id) continue;
+		var _b = exped_bond(_sp.id, _o.id);
+		if (_b > 0) array_push(_fr, { sp : _o, b : _b });
+	}
+	// closest first
+	for (var _i = 1; _i < array_length(_fr); _i++) { var _t = _fr[_i], _j = _i - 1; while (_j >= 0 && _fr[_j].b < _t.b) { _fr[_j + 1] = _fr[_j]; _j--; } _fr[_j + 1] = _t; }
+	var _fw = land ? (_x1 - 8 - _fx) : _lw;
+	if (array_length(_fr) == 0) {
+		draw_set_color(_dim); draw_set_alpha(.5);
+		draw_text_ext(_fx, _fy, "no one yet - trips together build these", 9, _fw);
+		return;
+	}
+	var _tw = ["", "acquainted", "friends", "inseparable"];
+	for (var _i = 0; _i < array_length(_fr); _i++) {
+		if (_fy + 10 > _y1 - 4) break;
+		var _f = _fr[_i], _tier = exped_bond_tier(_f.b);
+		if (_i & 1) draw_sprite_ext(spr_pixel_1x1, 0, _fx - 3, _fy - 1, _fw + 6, 10, 0, c_white, .04);
+		__dot(_fx + 3, _fy + 4, 2, _f.sp.col, .95);
+		draw_set_halign(fa_left); draw_set_color(_f.sp.col); draw_set_alpha(.95); draw_text(_fx + 9, _fy, __sheet_cut(_f.sp.name, _fw - 70));
+		draw_set_halign(fa_right); draw_set_color((_tier >= 3) ? c_gold : ((_tier == 2) ? c_sgreen : _dim)); draw_set_alpha(.9);
+		draw_text(_fx + _fw, _fy, _tw[_tier] + "  " + string(round(_f.b)));
+		_fy += 10;
+	}
+	draw_set_halign(fa_left);
+};
 __sheet_tap = function() {
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
 	for (var _k = 0; _k < array_length(it_rects); _k++) {
 		var _ir = it_rects[_k];
 		if (point_in_rectangle(mouse_x, mouse_y, _ir.x, _ir.y, _ir.x + _ir.w, _ir.y + _ir.h)) {
+			// the page pills (2026-09-17): no popup, just the turn
+			if (!is_undefined(_ir[$ "pg"])) { sheet_pg = _ir.pg; play_sound_ext(snd_softclick, 1, 1.1, .4, 1); return true; }
 			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], lvup : _ir[$ "lvup"] ?? false, sp : __sp_by_id(sheet_id), worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			return true;
@@ -1412,6 +1497,7 @@ __dismiss_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : r
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 44, h : 14 }; };   // (narrower, 2026-09-16: three buttons fit under the card - [crew] [galaxy] [bestiary])
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
+sheet_pg = 0;   // the sheet's page: 0 the sheet, 1 the ledger and friendships (2026-09-17)
 // THE CREW COLUMN'S TOP: under the objective card while it is up (his
 // screenshot, 2026-09-17: the folded card's three boxes sat on the first
 // tab - the card lives over every panel by his earlier ask, so the tabs

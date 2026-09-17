@@ -30,8 +30,8 @@ function exped_fight_loot(_tr, _f) {
 	var _rgf = exped_region(_tr), _tagf = _rgf.nodes[clamp(_tr[$ "pos"] ?? 0, 0, array_length(_rgf.nodes) - 1)].kind;
 	var _it = gear_gen(choose("w1", "w2", "armor", "talis"), exped_trip_lv(_tr), _rar, irandom($7fffffff), _tagf, _own);
 	var _tk = sprite_take(_sp, _it, exped_party_up(_tr));   // (the party hands it round - 2026-09-16)
-	if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist"); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
-	exped_stat("finds"); exped_stat("gear_found");
+	if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist", 1, _sp); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
+	exped_stat("finds"); exped_stat("gear_found"); sprite_led(_sp, "finds");
 	array_push(_tr.finds, { kind : "gear", rar : _rar, txt : _tk.txt, col : _it.col, item : _it });
 	array_push(_tr.log, "+ " + _sp.name + " acquired \"" + _it.name + "\"" + (_tk.worn ? " - and put it on" : (_tk.kept ? " - into the pocket" : " - and threw it away")));
 	if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }

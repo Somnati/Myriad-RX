@@ -292,6 +292,31 @@ dbg_want = 0;
 dbg_w    = 112;
 dbg_rows = ["auto merge", "sort", "aim", "reset", "reset upgrades"];
 __dbg_chip = function() { return { x : 4, y : room_height - 18, w : 14, h : 14 }; };
+// THE BUY'S READOUT (his spec, 2026-09-17: "tile rarity +50% > 250%",
+// "tile slot +1 > 6"): what the buy ADDS, then what you would have. Both
+// come off the row's own fmt, so every row keeps its units: the numeric
+// part of the two strings is diffed and the after keeps its suffix
+// (a leading "+" on the after is dropped - the step carries the sign)
+__numpart = function(_s) {
+	var _n = string_length(_s), _i = 1, _pre = "";
+	while (_i <= _n && string_pos(string_char_at(_s, _i), "0123456789.") == 0) { _pre += string_char_at(_s, _i); _i++; }
+	var _j = _i, _num = "", _dec = 0, _seen = false;
+	while (_j <= _n && string_pos(string_char_at(_s, _j), "0123456789.") > 0) {
+		var _ch = string_char_at(_s, _j);
+		if (_ch == ".") _seen = true; else if (_seen) _dec++;
+		_num += _ch; _j++;
+	}
+	if (_num == "" || _num == ".") return undefined;
+	return { pre : _pre, v : real(_num), dec : _dec, suf : string_copy(_s, _j, _n - _j + 1) };
+};
+__upg_stepstr = function(_a, _b) {
+	var _na = __numpart(_a), _nb = __numpart(_b);
+	if (is_undefined(_na) || is_undefined(_nb)) return "> " + _b;
+	var _d = _nb.v - _na.v;
+	var _ds = ((_d >= 0) ? "+" : "-") + string_format(abs(_d), 1, _nb.dec) + _nb.suf;
+	var _bs = (_nb.pre == "+") ? (string_format(_nb.v, 1, _nb.dec) + _nb.suf) : _b;
+	return _ds + " > " + _bs;
+};
 __dbg_x    = function() { return lerp(-dbg_w, 0, dbg_open); };
 __dbg_r    = function(_k) {
 	return { x : __dbg_x() + 6, y : dr_top + 10 + _k * 20, w : dbg_w - 12, h : 14 };
@@ -800,7 +825,7 @@ __draw_drawer = function() {
 			if (variable_struct_exists(_uc, "fmt")) {
 				draw_set_halign(fa_right);
 				if (!_uq.max) {
-					var _nxt = "> " + _uc.fmt(_uq.lv + max(1, _uq.n));
+					var _nxt = __upg_stepstr(_uc.fmt(_uq.lv), _uc.fmt(_uq.lv + max(1, _uq.n)));   // "+50% > 250%" (2026-09-17)
 					draw_set_color(_ok ? merge_colour(_rc, c_white, .3) : _dimc);
 					draw_set_alpha((_ok ? .95 : .5) * _ua);
 					draw_text(_bx2 + _bw2 - 4, _by2 + 2, _nxt);
