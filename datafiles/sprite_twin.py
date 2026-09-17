@@ -10,6 +10,8 @@ Prints:
   3. up-level / down-level: a level-5 warrior vs level 8 and level 2 foes
   4. the ladder: kills a level (his SPRITE_LV_KILLS), quests a level
   5. HOLDS / FAILS on the claims the design makes
+The abilities (2026-09-17, the evilities) are mirrored too: rungs by level
+off the pawn's rng, the newest four worn, their lanes on the pawn.
 The elements pass (2026-09-17) is mirrored: every pawn a signed resistance
 table (+20 / -20 off the triangle for an elemental kind, a random pair
 otherwise), skills carrying fire / water / nature, the ailments (poison /
@@ -42,6 +44,59 @@ BAL = dict(hitcurve_a=-160, hitcurve_b=250, hp_per_point=3.75, hp_flat_add=4, sp
 ELEMS = ["fire", "water", "nature"]
 BEATS = {"fire": "nature", "water": "fire", "nature": "water"}
 WEAK  = {"fire": "water", "water": "nature", "nature": "fire"}
+# ---- the abilities (2026-09-17, the evilities): ability_config / ability_unlocks / ability_gen, mirrored ----
+ABIL = [  # (key, tier, lane, lo, hi, pair, cost_lane, cost_v)
+    ("stout", 1, "hp", 4, 8), ("brawn", 1, "atk", 4, 8), ("bookish", 1, "mag", 4, 8), ("thickskin", 1, "def", 4, 8),
+    ("warded", 1, "mdef", 4, 8), ("quick", 1, "spd", 4, 8), ("keeneye", 1, "hit", 4, 8), ("lucky", 1, "luck", 1, 1),
+    ("fireproof", 1, "res_fire", 6, 10), ("waterproof", 1, "res_water", 6, 10), ("thornproof", 1, "res_nature", 6, 10),
+    ("vicious", 2, "crit", 3, 6), ("spiteful", 2, "cnt", 4, 8), ("venomous", 2, "ail_poison", 10, 18), ("chilling", 2, "ail_slow", 10, 18),
+    ("antidote", 2, "immune_poison", 1, 1), ("surefoot", 2, "immune_slow", 1, 1), ("unmarked", 2, "immune_leech", 1, 1),
+    ("adrenal", 2, "low_atk", 15, 30), ("mending", 2, "regen", 1, 2),
+    ("fleet", 3, "tic", 8, 14), ("bane", 3, "boss", 12, 20), ("scholar", 3, "xp", 15, 30), ("aegis", 3, "res_all", 5, 8),
+    ("vampiric", 3, "life", 8, 15), ("elemental", 3, "elemdmg", 8, 15), ("berserk", 3, "atk", 15, 25, None, "def", -8),
+    ("titan", 4, "atk", 12, 18, "def"), ("savant", 4, "mag", 12, 18, "mdef"), ("undying", 4, "undying", 1, 1), ("swift", 4, "crit", 6, 10, "tic"),
+]
+ABIL_LADDER = [(1, 1), (4, 1), (8, 1), (14, 2), (20, 2), (30, 3), (45, 3), (60, 3), (80, 4), (100, 4)]
+ABIL_RMULT = [1, 1.3, 1.6, 2, 2.4, 2.8, 3.2, 3.6]
+def rarity_roll(rng, rate):
+    # calculate_rarity's shape, near enough: a geometric walk up the rungs
+    r = 0; p = .3
+    while r < 7 and rng.random() < p: r += 1; p *= .55
+    return r
+def ability_gen(rng, maxtier):
+    pool = [(a, 3 if a[1] == maxtier else 1) for a in ABIL if a[1] <= maxtier]
+    tot = sum(w for _, w in pool); x = rng.random() * tot; pick = pool[0][0]
+    for a, w in pool:
+        if x < w: pick = a; break
+        x -= w
+    rar = rarity_roll(rng, 100 + maxtier * 40)
+    lo, hi = pick[3], pick[4]
+    val = round((lo + (hi - lo) * rng.random()) * ABIL_RMULT[rar] * 10) / 10
+    if pick[2].startswith("immune") or pick[2] in ("undying", "luck"): val = max(1, round(val))
+    return dict(key=pick[0], tier=pick[1], lane=pick[2], val=val, pair=(pick[5] if len(pick) > 5 else None),
+                cost=((pick[6], pick[7]) if len(pick) > 7 else None))
+def ability_effects(lst):
+    o = dict(hp=0, atk=0, mag=0, def_=0, mdef=0, spd=0, hit=0, crit=0, cnt=0, luck=0, res={"fire": 0, "water": 0, "nature": 0},
+             immune=[], ail="", ailc=0, low_atk=0, boss=0, xp=0, tic=0, life=0, elemdmg=0, regen=0, undying=False)
+    def lane(k): return "def_" if k == "def" else k
+    for a in lst:
+        ln, v = a["lane"], a["val"]
+        if ln.startswith("res_"):
+            if ln == "res_all":
+                for e in o["res"]: o["res"][e] += v
+            else: o["res"][ln[4:]] += v
+        elif ln.startswith("immune_"): o["immune"].append(ln[7:])
+        elif ln.startswith("ail_"):
+            if v > o["ailc"]: o["ail"], o["ailc"] = ln[4:], v
+        elif ln == "undying": o["undying"] = True
+        else: o[lane(ln)] += v
+        if a["pair"]: o[lane(a["pair"])] += v
+        if a["cost"]: o[lane(a["cost"][0])] += a["cost"][1]
+    return o
+def abilities_for(rng, lv, n=4):
+    lst = [ability_gen(rng, t) for (l, t) in ABIL_LADDER if lv >= l]
+    return lst[-n:] if len(lst) > n else lst
+
 def res_gen(rng, elem=""):
     r = {"fire": 0, "water": 0, "nature": 0}
     if elem in BEATS: r[WEAK[elem]] = -BAL["res_step"]; r[BEATS[elem]] = BAL["res_step"]; return r
@@ -121,22 +176,29 @@ class Pawn:
         pts = {k: arch["shape"][k] * budget / 40 for k in KEYS}
         for it in (gear or []):
             for k, v in it.items(): pts[k] += v
+        # the abilities (2026-09-17): the rungs the level has passed, the newest four worn
+        ab = ability_effects(abilities_for(rng, lv, 4))
+        for k in ("atk", "mag", "def", "mdef", "spd", "hit"): pts[k] *= 1 + ab["def_" if k == "def" else k] / 100
+        self.ab = ab
         self.name, self.team, self.lv = name, team, lv
         self.pts_total = sum(pts.values())
-        self.maxhp = math.floor(pts["hp"] * BAL["hp_per_point"] + BAL["hp_flat_add"])   # (whole hp, 2026-09-15 - sprite_pawn / foe_gen floor it)
+        self.maxhp = math.floor(pts["hp"] * BAL["hp_per_point"] * (1 + ab["hp"] / 100) + BAL["hp_flat_add"])   # (whole hp, 2026-09-15 - sprite_pawn / foe_gen floor it)
         self.hp = self.maxhp
         self.maxmp = max(1, round(pts["mp"])); self.mp = math.ceil(self.maxmp * BAL["mp_start_frac"])
         self.atk, self.def_, self.mag, self.mdef, self.spd, self.hit = pts["atk"], pts["def"], pts["mag"], pts["mdef"], pts["spd"], pts["hit"]
         self.eva = pts["spd"] * BAL["spd_to_eva"]
-        self.crit_rate, self.crit_multi, self.cnt = arch["crit"], arch["cmulti"], arch["cnt"]
+        self.crit_rate, self.crit_multi, self.cnt = arch["crit"] + ab["crit"] + ab["luck"] * .5, arch["cmulti"], arch["cnt"] + ab["cnt"]
         self.erode = arch.get("erode", 1)
         self.magic = arch["magic"]
         self.skills = skills if skills is not None else ([LIB[arch["skill"]]] if arch["skill"] else [])
         self.tic = rng.random() * .3
-        self.tic_spd = BAL["tic_spd_base"] + math.sqrt(max(0, pts["spd"])) / BAL["tic_spd_div"]
+        self.tic_spd = (BAL["tic_spd_base"] + math.sqrt(max(0, pts["spd"])) / BAL["tic_spd_div"]) * (1 + ab["tic"] / 100)
         # the elements pass (2026-09-17): the table, the bite, the clocks
-        self.elem = arch.get("elem", ""); self.ail_k = arch.get("ail", ""); self.tags = arch.get("tags", []); self.boss = boss
+        self.elem = arch.get("elem", ""); self.ail_k = arch.get("ail", "") or ab["ail"]; self.ail_c = 0 if arch.get("ail", "") else ab["ailc"]
+        self.tags = list(arch.get("tags", [])) + ["immune_" + k for k in ab["immune"]]; self.boss = boss
         self.res = res_gen(rng, self.elem if team == 1 else "")
+        for e in self.res: self.res[e] = max(BAL["res_min"], min(BAL["res_max"], self.res[e] + ab["res"][e]))
+        self.undying_used = False
         self.ail = {"poison": 0, "slow": 0, "leech": 0}; self.bf = {"atk": 0, "def": 0, "hit": 0, "spd": 0}; self.nf = {"atk": 0, "def": 0, "hit": 0}
         self.regen = 0; self.leecher = None
 
@@ -163,6 +225,7 @@ class Fight:
         b = BAL
         if t.hp <= 0: return False
         undead = "undead" in t.tags; slime = "slime" in t.tags
+        if ("immune_" + key) in t.tags: return False
         turns = max(1, round(b["ail_turns"] * (b["boss_ail"] if t.boss else 1)))
         bturns = max(1, round(b["buff_turns"] * (b["boss_ail"] if (t.boss and t.team == 1) else 1)))
         if key == "poison":
@@ -206,6 +269,7 @@ class Fight:
         if elem is None: elem = u.elem
         if ail == "" and basic: ail = u.ail_k
         m_atk = 1 + (b["buff_pct"] if u.bf["atk"] > 0 else 0) - (b["buff_pct"] if u.nf["atk"] > 0 else 0)
+        if u.ab["low_atk"] > 0 and u.hp < u.maxhp * .35: m_atk += u.ab["low_atk"] / 100
         m_hit = 1 + (b["buff_pct"] if u.bf["hit"] > 0 else 0) - (b["buff_pct"] if u.nf["hit"] > 0 else 0)
         m_def = 1 + (b["buff_pct"] if t.bf["def"] > 0 else 0) - (b["buff_pct"] if t.nf["def"] > 0 else 0)
         apow = (u.mag if magic else u.atk) * m_atk
@@ -233,16 +297,22 @@ class Fight:
             rs = max(b["res_min"], min(b["res_max"], t.res[elem]))
             dmg *= 1 - rs / 100
         if elem == "fire": dmg *= b["fire_bonus"]
+        if u.ab["boss"] > 0 and t.boss: dmg *= 1 + u.ab["boss"] / 100
+        if u.ab["elemdmg"] > 0 and elem in BEATS and not basic: dmg *= 1 + u.ab["elemdmg"] / 100
         dmg = max(.1, round(dmg * 10) / 10)
         stag = (1 + t.spd / 3) * (.01 + ((.085 if q >= .97 else .05) - .01) * q)
         if crit: stag += (1 + t.spd / 3) * .03
         t.tic -= stag * self.thr
         t.hp = max(0, t.hp - dmg)
+        if t.hp <= 0 and t.ab["undying"] and not t.undying_used: t.hp = 1; t.undying_used = True
         t.maxhp = max(1, t.maxhp - dmg * b["dmg_to_maxhp"] * t.erode)
         if t.hp > t.maxhp: t.hp = t.maxhp
+        if u.ab["life"] > 0 and u.hp > 0: self.heal(u, dmg * u.ab["life"] / 100)
         if t.ail["leech"] > 0 and t.leecher is u and u.hp > 0: self.heal(u, dmg * b["leech_pct"])
         if ail != "" and t.hp > 0:
-            if rng.random() * 100 < (b["ail_basic"] if basic else b["ail_skill"]): self.status(u, t, ail)
+            ch = (b["ail_basic"] if basic else b["ail_skill"])
+            if basic and u.ail_c > 0: ch = u.ail_c
+            if rng.random() * 100 < ch: self.status(u, t, ail)
         if label == "" and cdepth == 0:
             u.mp = min(u.maxmp, u.mp + (b["mp_gain_qual"] if (q >= .85 or crit) else b["mp_gain"]))
         if t.hp > 0 and cdepth < b["cnt_chain"]:
@@ -346,6 +416,7 @@ class Fight:
         if actor.ail["poison"] > 0 and actor.hp > 0:
             actor.hp = max(0, actor.hp - max(1, round(actor.maxhp * BAL["poison_pct"])))
         if actor.hp > 0 and actor.regen > 0: self.heal(actor, actor.maxhp * BAL["regen_pct"])
+        if actor.hp > 0 and actor.ab["regen"] > 0: self.heal(actor, actor.maxhp * actor.ab["regen"] / 100)
         plan = self.ai(actor)
         if plan is not None and actor.hp > 0 and plan[1].hp > 0:
             s, t = plan

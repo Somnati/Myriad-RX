@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"ability_line",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"ability_line",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

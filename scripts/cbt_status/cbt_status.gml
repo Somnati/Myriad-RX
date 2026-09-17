@@ -23,6 +23,8 @@ function cbt_status(_f, _u, _t, _key) {
 	if (!is_struct(_t[$ "nf"]))  _t.nf  = { atk : 0, def : 0, hit : 0 };
 	var _tags = is_array(_t[$ "tags"]) ? _t.tags : [];
 	var _undead = array_contains(_tags, "undead"), _slime = array_contains(_tags, "slime");
+	// the abilities' immunities (antidote / sure-footed / unmarkable, 2026-09-17)
+	if (array_contains(_tags, "immune_" + _key)) { cbt_log(_f, _t.name + " shrugs it off"); return false; }
 	var _boss = (_t[$ "boss"] ?? false);
 	var _turns = max(1, round(_b.ail_turns * (_boss ? _b.boss_ail : 1)));
 	var _bturns = max(1, round(_b.buff_turns * ((_boss && _t.team == 1) ? _b.boss_ail : 1)));

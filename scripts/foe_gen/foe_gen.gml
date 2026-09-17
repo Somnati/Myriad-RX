@@ -73,11 +73,20 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 		var _lk = variable_struct_get_names(_worn[_w].pts);
 		for (var _i = 0; _i < array_length(_lk); _i++) { _pts[$ _lk[_i]] += _worn[_w].pts[$ _lk[_i]]; _total += _worn[_w].pts[$ _lk[_i]]; }
 	}
+	var _fres = cbt_res_gen(_seed, _r[$ "elem"] ?? "");
+	_fres.fire = clamp(_fres.fire + _ab.res.fire, _b.res_min, _b.res_max); _fres.water = clamp(_fres.water + _ab.res.water, _b.res_min, _b.res_max); _fres.nature = clamp(_fres.nature + _ab.res.nature, _b.res_min, _b.res_max);
 	var _name = _r.name;
 	if (array_length(_worn) > 0 && _armed_name) _name = "armed " + _r.name;
 	if (is_struct(_vv)) _name = _vv.key + " " + _name;   // ("greater goblin", "corrupt armed rat")
 	if (_boss) _name = _r.name + " " + _title;
-	var _maxhp = floor(_pts.hp * _b.hp_per_point + _b.hp_flat_add);   // (whole hp, like the sprites')
+	// THE ABILITIES (2026-09-17): its rungs off its seed, the highest four
+	var _abl = foe_abilities(_seed, _lv, 4);
+	var _ab  = ability_effects(_abl);
+	var _keys2 = ["atk", "mag", "def", "mdef", "spd", "hit"];
+	for (var _k = 0; _k < 6; _k++) _pts[$ _keys2[_k]] *= 1 + (_ab[$ _keys2[_k]] / 100);
+	var _abtags = is_array(_r[$ "tags"]) ? array_concat(_r.tags, []) : [];
+	for (var _im = 0; _im < array_length(_ab.immune); _im++) array_push(_abtags, "immune_" + _ab.immune[_im]);
+	var _maxhp = floor(_pts.hp * _b.hp_per_point * (1 + _ab.hp / 100) + _b.hp_flat_add);   // (whole hp, like the sprites')
 	var _maxmp = max(1, round(_pts.mp));
 	var _luck = max(0, (_r[$ "luck"] ?? 1) + _vluck);   // the kind's luck (the roster's; 1 unless said), the variant's lean
 	var _sk = [];
@@ -91,15 +100,16 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 		maxmp : _maxmp, mp : ceil(_maxmp * _b.mp_start_frac),
 		atk : _pts.atk, def : _pts.def, mag : _pts.mag, mdef : _pts.mdef, spd : _pts.spd, hit : _pts.hit,
 		eva : _pts.spd * _b.spd_to_eva,
-		crit_rate : _r.crit + _vcrit + _luck * .5, crit_multi : _r.cmulti, cnt : _r.cnt, erode : _r.erode * _verode, luck : _luck,   // (luck: half a point of crit a point, 2026-09-16)
+		crit_rate : _r.crit + _vcrit + _ab.crit + (_luck + _ab.luck) * .5, crit_multi : _r.cmulti, cnt : _r.cnt + _ab.cnt, erode : _r.erode * _verode, luck : _luck + _ab.luck,   // (luck: half a point of crit a point, 2026-09-16)
 		magic : is_undefined(_vmagic) ? _r.magic : _vmagic, skills : _sk,
-		tic : random(.3), tic_spd : _b.tic_spd_base + sqrt(max(0, _pts.spd)) / _b.tic_spd_div,
+		tic : random(.3), tic_spd : (_b.tic_spd_base + sqrt(max(0, _pts.spd)) / _b.tic_spd_div) * (1 + _ab.tic / 100),
 		pts_total : _total,
 		dd : 0, dt : 0, cc : 0,
 		// the elements pass (2026-09-17): the kind's element (its bite and its
 		// table off the triangle - a neutral kind rolls its pair off the seed),
 		// its school, its own ailment, its tags (undead / slime immunities)
-		res : cbt_res_gen(_seed, _r[$ "elem"] ?? ""), elem : _r[$ "elem"] ?? "", school : _r[$ "school"] ?? "", ail_k : _r[$ "ail"] ?? "", tags : _r[$ "tags"] ?? [],
+		res : _fres, elem : _r[$ "elem"] ?? "", school : _r[$ "school"] ?? "",
+		ail_k : ((_r[$ "ail"] ?? "") != "") ? _r.ail : _ab.ail, ail_c : ((_r[$ "ail"] ?? "") != "") ? 0 : _ab.ailc, tags : _abtags, ab : _ab, abil : _abl, undying_used : false,
 		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
 	};
 }

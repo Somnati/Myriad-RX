@@ -17,7 +17,7 @@ function sprite_sheet(_sp) {
 		w1 : undefined, w2 : undefined, armor : [], talis : [],
 		inv : [],
 		notes : [],   // THE NOTEPAD (his ask): { txt, tag } - tag "foe:<kind>" or "" (sprite_note)
-		learned : [],   // SKILLS LEARNED ON THE ROAD (2026-09-15): { tmpl, seed } each (cbt_skill_gen rebuilds them); the class's own skill is always first
+		learned : [], abil : [-1, -1, -1, -1],   // SKILLS LEARNED ON THE ROAD (2026-09-15): { tmpl, seed } each (cbt_skill_gen rebuilds them); the class's own skill is always first
 	};
 	_sp.sheet = _sh;
 	return _sh;

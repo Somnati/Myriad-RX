@@ -32,5 +32,8 @@ function sprite_sheet_pack(_sp) {
 		var _lk = variable_struct_get_names(_sp.led);
 		for (var _i = 0; _i < array_length(_lk); _i++) _ld += ((_i > 0) ? ";" : "") + _lk[_i] + ":" + string_format(_sp.led[$ _lk[_i]], 1, 3);
 	}
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg + "/" + _ld;
+	// the equipped abilities (a fourteenth field, 2026-09-17): four rung indices, -1 empty
+	var _ab = "";
+	if (is_array(_sh[$ "abil"])) for (var _i = 0; _i < array_length(_sh.abil); _i++) _ab += ((_i > 0) ? "," : "") + string(_sh.abil[_i]);
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg + "/" + _ld + "/" + _ab;
 }

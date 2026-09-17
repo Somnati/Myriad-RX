@@ -52,6 +52,12 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 	_sp.egg = undefined; _sp.young = undefined;
 	if (array_length(_f) > _at + 10 && _f[_at + 10] != "") { var _eq = string_split(_f[_at + 10], "~"); if (array_length(_eq) >= 5) _sp.egg = { col : real(_eq[0]), seed : real(_eq[1]), hatch : real(_eq[2]), word : _eq[3], from : _eq[4] }; }
 	if (array_length(_f) > _at + 11 && _f[_at + 11] != "") { var _yq = string_split(_f[_at + 11], "~"); if (array_length(_yq) >= 2) _sp.young = { parent : real(_yq[0]), born : real(_yq[1]) }; }
+	// the equipped abilities (a fourteenth field, 2026-09-17): four rung indices; an old save fills its slots as it levels
+	_sh.abil = [-1, -1, -1, -1];
+	if (array_length(_f) > _at + 13 && _f[_at + 13] != "") {
+		var _abs = string_split(_f[_at + 13], ",");
+		for (var _i = 0; _i < min(4, array_length(_abs)); _i++) if (_abs[_i] != "") _sh.abil[_i] = clamp(floor(real(_abs[_i])), -1, 9);
+	}
 	// its own ledger (a thirteenth field, 2026-09-17)
 	_sp.led = {};
 	if (array_length(_f) > _at + 12 && _f[_at + 12] != "") {

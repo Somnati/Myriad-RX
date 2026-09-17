@@ -33,6 +33,9 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	if (is_struct(_nfu)) { if (_nfu.atk > 0) _m_atk -= _b.buff_pct; if (_nfu.hit > 0) _m_hit -= _b.buff_pct; }
 	if (is_struct(_bft) && _bft.def > 0) _m_def += _b.buff_pct;
 	if (is_struct(_nft) && _nft.def > 0) _m_def -= _b.buff_pct;
+	// the abilities' lanes (2026-09-17): adrenaline under a third of hp
+	var _abu = _u[$ "ab"], _abt = _t[$ "ab"];
+	if (is_struct(_abu) && _abu.low_atk > 0 && _u.hp < _u.maxhp * .35) _m_atk += _abu.low_atk / 100;
 	var _apow = (_magic ? _u.mag : _u.atk) * _m_atk;
 	var _dpow = (_magic ? _t.mdef : _t.def) * _m_def;
 	var _uhit = _u.hit * _m_hit;
@@ -85,6 +88,11 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		_dmg *= 1 - _rs / 100;
 	}
 	if (_elem == "fire") _dmg *= _b.fire_bonus;
+	// ...bane against a boss, the elementalist's skills
+	if (is_struct(_abu)) {
+		if (_abu.boss > 0 && (_t[$ "boss"] ?? false)) _dmg *= 1 + _abu.boss / 100;
+		if (_abu.elemdmg > 0 && _ei.beats != "" && !_basic) _dmg *= 1 + _abu.elemdmg / 100;
+	}
 	if (_tk != "" && array_contains(_nu, _tk + ":dmg")) _dmg *= 1.1;                       // (a note on a tank: where to hit it)
 	if (_uk != "" && array_contains(_nt, _uk + (_magic ? ":mdef" : ":def"))) _dmg *= (_magic ? .85 : .9);   // (a note on what it does: not being where it lands)
 	_dmg = max(.1, round(_dmg * 10) / 10);
@@ -96,6 +104,8 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 
 	// apply: hp + the attrition erosion (scaled by the pawn's resist)
 	_t.hp = max(0, _t.hp - _dmg);
+	// UNDYING (2026-09-17): once a fight, the killing blow leaves 1 hp
+	if (_t.hp <= 0 && is_struct(_abt) && _abt.undying && !(_t[$ "undying_used"] ?? false)) { _t.hp = 1; _t.undying_used = true; cbt_log(_f, _t.name + " refuses to fall"); }
 	_t.maxhp = max(1, _t.maxhp - _dmg * _b.dmg_to_maxhp * _t.erode);
 	if (_t.hp > _t.maxhp) _t.hp = _t.maxhp;
 	_t.hpmax = _t.maxhp;   // (the combat window's name for it)
@@ -114,6 +124,8 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	else if (_rs > 0) _th += " - " + _ei.shrug;
 	cbt_log(_f, _th);
 	cbt_film(_f, _t, _dmg, _th);
+	// VAMPIRIC (2026-09-17): the ability heals off what it deals
+	if (is_struct(_abu) && _abu.life > 0 && _u.hp > 0) cbt_heal(_f, _u, _dmg * _abu.life / 100, "");
 	// THE LEECH MARK (dark): the marker feeds on every hit it lands on the marked
 	if (is_struct(_t[$ "ail"]) && _t.ail.leech > 0 && _t[$ "leecher"] == _u && _u.hp > 0)
 		cbt_heal(_f, _u, _dmg * _b.leech_pct, "the mark");
@@ -125,6 +137,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	// ---- THE AILMENT: a skill's on a landed hit, a kind's own on its bite ----
 	if (_ail != "" && _t.hp > 0) {
 		var _ach = (_basic ? _b.ail_basic : _b.ail_skill) * ((_u.team == 0) ? _lm : 1);
+		if (_basic && (_u[$ "ail_c"] ?? 0) > 0) _ach = _u.ail_c * ((_u.team == 0) ? _lm : 1);   // (an ability's own bite has its own chance)
 		if (random(100) < _ach) cbt_status(_f, _u, _t, _ail);
 	}
 

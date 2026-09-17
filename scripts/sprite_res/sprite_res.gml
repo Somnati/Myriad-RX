@@ -22,6 +22,9 @@ function sprite_res(_sp) {
 		_got[$ _el2] = true;
 		_r[$ _el2] += _b.res_quirk;
 	}
+	// the abilities' proofings (fireproof, aegis...) - sprite_ab
+	var _ab = sprite_ab(_sp);
+	_r.fire += _ab.res.fire; _r.water += _ab.res.water; _r.nature += _ab.res.nature;
 	_r.fire   = clamp(_r.fire,   _b.res_min, _b.res_max);
 	_r.water  = clamp(_r.water,  _b.res_min, _b.res_max);
 	_r.nature = clamp(_r.nature, _b.res_min, _b.res_max);

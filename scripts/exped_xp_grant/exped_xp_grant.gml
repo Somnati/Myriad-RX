@@ -27,10 +27,12 @@ function exped_xp_grant(_tr, _xp, _why) {
 	for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
-		var _share = round(_each * ((_tr.hp[_k] > 0) ? 1 : .5) * 10) / 10;
+		var _share = round(_each * ((_tr.hp[_k] > 0) ? 1 : .5) * (1 + sprite_ab(_sp).xp / 100) * 10) / 10;   // (the scholar's share, 2026-09-17)
 		var _was = _tr.hpmax[_k];
 		var _got = sprite_xp_add(_sp, _share);
 		if (_got > 0) {
+			// a new rung may have unlocked: an empty ability slot takes it (2026-09-17)
+			if (sprite_ability_autofill(_sp) > 0) array_push(_tr.log, "+ " + _sp.name + " has a new ability");
 			var _now = sprite_pawn(_sp).maxhp;
 			_tr.hpmax[_k] = _now;
 			_tr.hp[_k] = min(_now, _tr.hp[_k] + max(0, _now - _was));

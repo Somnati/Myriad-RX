@@ -219,6 +219,17 @@ if (view == "depart" && is_struct(pl_dest) && dp_sheet < 0) {
 	}
 	dp_off = clamp(dp_off, 0, __dp_off_max());
 }
+// THE [misc] LISTS scroll (2026-09-17): the wheel over the notepad or the friendships
+if ((view == "crew" || view == "sheet") && sheet_pg == 2) {
+	if (is_struct(misc_nrect) && point_in_rectangle(mouse_x, mouse_y, misc_nrect.x, misc_nrect.y, misc_nrect.x + misc_nrect.w, misc_nrect.y + misc_nrect.h)) {
+		if (mouse_wheel_up())   misc_scr_n = max(0, misc_scr_n - 20);
+		if (mouse_wheel_down()) misc_scr_n = min(misc_nmax, misc_scr_n + 20);
+	}
+	if (is_struct(misc_frect) && point_in_rectangle(mouse_x, mouse_y, misc_frect.x, misc_frect.y, misc_frect.x + misc_frect.w, misc_frect.y + misc_frect.h)) {
+		if (mouse_wheel_up())   misc_scr_f = max(0, misc_scr_f - 20);
+		if (mouse_wheel_down()) misc_scr_f = min(misc_fmax, misc_scr_f + 20);
+	}
+}
 // ---- THE HAND (the quest / explore cards) owns the page while it is up ----
 if (hand != "") {
 	if (view != "planet" || pv_mode != "region") __hand_close();
@@ -561,6 +572,8 @@ if (view == "bestiary") {
 }
 
 if (view == "crew") {
+	// the ability picker up: a row picks, anywhere else folds (2026-09-17)
+	if (is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) { __ab_pick_tap(); exit; }
 	// a popup up: any press closes it
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 	var _cl = __crew_list();
