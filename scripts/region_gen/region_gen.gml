@@ -52,13 +52,13 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			planet_texel(_ps, frac(_clon / 360 + .5 + 1), (90 - _clat) / 180);
 			var _ob = _ps.ob;
 			// water, shallows and the ice sheets are no place to land; the peaks neither
-			if (_ob == 0 || _ob == 1 || _ob == 11 || _ob == 14 || _ob == 9 || _ob == 10) continue;
+			if (_ob == 0 || _ob == 1 || _ob == 11 || _ob == 25 || _ob == 14 || _ob == 9 || _ob == 10) continue;
 			// THE LADDER (his call, 2026-09-15): the first reach green (grass, forest,
 			// jungle), the second a MARSH (swamp), the third a DESERT (desert, salt flat)
 			if (_try <= 60) {
-				if (_ri == 0 && !(_ob == 4 || _ob == 5 || _ob == 6)) continue;
+				if (_ri == 0 && !(_ob == 4 || _ob == 5 || _ob == 6 || _ob == 21 || _ob == 22)) continue;
 				if (_ri == 1 && _ob != 12) continue;
-				if (_ri == 2 && !(_ob == 3 || _ob == 13)) continue;
+				if (_ri == 2 && !(_ob == 3 || _ob == 13 || _ob == 23 || _ob == 24)) continue;
 			}
 			_spot = { lon : _clon, lat : _clat };
 			_found = true;
@@ -67,9 +67,10 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		var _map = function(_b) {
 			switch (_b) {
 				case 2: return "coast";
-				case 3: case 13: return "desert";
-				case 4: return "field";
-				case 5: case 6: return "forest";
+				case 3: case 13: case 24: return "desert";
+				case 4: case 21: return "field";
+				case 5: case 6: case 22: return "forest";
+				case 23: return "hills";
 				case 7: case 8: case 14: return "tundra";
 				case 9: case 10: case 18: return "mountains";
 				case 12: return "marsh";

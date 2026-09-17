@@ -29,9 +29,17 @@ function planet_biome(_ps, _u, _v) {
 	var _e   = _ps.oe;
 	var _det = _ps.od;
 	var _mraw = _ps.om;
-	var _moi  = _mraw + _ps.mshift;
-	var _tmp = clamp(_lf * .85 + _det * .15 + _ps.theat, 0, 1);
 	var _h = (_e - _ps.hbase) / max(.001, 1 - _ps.hbase) + (_det - .5) * .5;
+	// THE ECOTONES (his pick, 2026-09-17): a grain of hashed jitter on the moisture and the warmth, so a biome's
+	// border is a band where the two mingle, not a line. The grain lives on a 960 x 480 grid - THREE times the
+	// map's - so the zoom tier's texels each have their own, and the base map's texel (the tier's middle one)
+	// reads the very same grain as the tier does there: the two can never disagree
+	var _jx = floor(_u * 960), _jy = floor(_v * 480);
+	var _hj = ((_jx * 73856093) ^ (_jy * 19349663) ^ (_ps.o1 * 83492791)) & $7fffffff;
+	_hj = ((_hj ^ (_hj >> 13)) * 48271) mod 2147483647;
+	var _moi  = _mraw + _ps.mshift + ((_hj mod 1000) / 1000 - .5) * .08;
+	// ...and ALTITUDE COOLS (his pick): high ground is colder - tundra on the flanks, snow on the crowns, whatever the latitude
+	var _tmp = clamp(_lf * .85 + _det * .15 + _ps.theat + (((_hj div 1000) mod 1000) / 1000 - .5) * .05 - max(0, _h) * .3, 0, 1);
 
 	var _b;
 	if (_ps.arch == "lava") {
@@ -50,22 +58,26 @@ function planet_biome(_ps, _u, _v) {
 			if (_dd < _c.r) { _b = (_dd < _c.r * .68) ? 15 : 16; break; }
 		}
 	} else {
+		// THE KINDS (his pick, 2026-09-17: more of them): 21 savanna (warm, between the desert and the grass), 22 taiga
+		// (cold and wet: the conifer belt below the tundra), 23 badlands (high and bone dry), 24 dunes (low, hot, bone
+		// dry), 25 coral shallows (the warm seas' shallows) - beside the old
 		if (_e < _ps.sea - .05)      _b = 0;
-		else if (_e < _ps.sea)       _b = (_e > _ps.sea - .028 && _tmp > .30) ? 11 : 1;
+		else if (_e < _ps.sea)       _b = (_e > _ps.sea - .028 && _tmp > .30) ? ((_tmp > .62 && _moi > .30) ? 25 : 11) : 1;
 		else {
 			if (_h > .34)            _b = (_tmp < .45) ? 10 : 9;
 			else if (_tmp < .12)     _b = 14;
 			else if (_tmp < .20)     _b = 8;
 			else if (_tmp < .34)     _b = 7;
+			else if (_tmp < .46 && _moi > .46) _b = 22;
 			else if (_moi > .62 && _tmp > .45 && _e < _ps.sea + .07) _b = 12;
-			else if (_moi < .18)     _b = 3;
-			else if (_moi < .40 && _tmp > .60) _b = 3;
+			else if (_moi < .18)     _b = (_tmp > .55 && _h > .16) ? 23 : ((_tmp > .60 && _h < .08 && _moi < .12) ? 24 : 3);
+			else if (_moi < .40 && _tmp > .60) _b = (_moi >= .28) ? 21 : 3;
 			else if (_moi > .60 && _tmp > .55) _b = 6;
 			else if (_moi > .48)     _b = 5;
 			else                     _b = 4;
 			if (_e < _ps.sea + .012) _b = 2;
 		}
-		if ((_b <= 1 || _b == 11) && _tmp < .16) _b = 8;
+		if ((_b <= 1 || _b == 11 || _b == 25) && _tmp < .16) _b = 8;
 
 		// the pixel cities: a street grid in each city's tangent frame
 		if (!is_undefined(_ps[$ "cities"]))

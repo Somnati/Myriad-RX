@@ -41,6 +41,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
 		pwin : shader_get_uniform(sh_planet, "u_pwin"), pk : shader_get_uniform(sh_planet, "u_pk"),
 		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"),
+		season : shader_get_uniform(sh_planet, "u_season"),
 		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
@@ -119,6 +120,10 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
 	shader_set_uniform_f(_u.crelief, (_cfg[$ "crelief"] ?? .05) * ((_pn.kind == "gas") ? .5 : 1));   // (the cloud relief - 2026-09-17; a giant's deck lower)
 	shader_set_uniform_f(_u.cvol, (variable_global_exists("cloud_volume") && g.cloud_volume) ? 1 : 0);   // (the volume, or the surface - settings > visuals)
+	// THE SEASON (2026-09-17): the world's year, four to twelve hours of the wall clock (hashed off the seed, kept on
+	// the struct), its phase on the universal clock - the snow line breathes with it
+	if (is_undefined(_pn[$ "year"])) { _pn.year = 14400 + (hash_mix(_pn.seed, 8181) mod 28800); _pn.year_ph = (hash_mix(_pn.seed, 8182) mod 1000) / 1000; }
+	shader_set_uniform_f(_u.season, sin(2 * pi * ((universal_now() mod _pn.year) / _pn.year + _pn.year_ph)));
 	// THE CANOPY (2026-09-17): the woods' deck height, and the world's grass (the floor under the trees, darkened)
 	shader_set_uniform_f(_u.canopy, _cfg[$ "canopy"] ?? .015);
 	var _gc = (_pn.kind == "gas" || array_length(_pn.pal) < 5) ? c_gray : _pn.pal[4];

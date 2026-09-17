@@ -48,6 +48,7 @@ uniform vec4  u_pwin;         // the window in map uv: x0, y0, x1, y1 (x1 may pa
 uniform float u_pk;           // the patch's resolution over the map's (0 = no patch)
 uniform vec3  u_sea0;     // THE SEA'S DEPTH (2026-09-17): the deep, and the open ocean - the water grades between the shore's own colour and these
 uniform vec3  u_sea1;
+uniform float u_season;   // THE SEASON (2026-09-17): -1..1 on the world's own year - the snow line climbs in summer, comes down in winter, each hemisphere its own
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
@@ -591,7 +592,11 @@ void main()
         float li = lightband(dot(nn, u_light));
         col *= li;
         col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45);                       // the slope's own light, over the band
-        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(0.62, 0.95, h0) * min(1.0, u_bump));   // the snow line
+        // THE SNOW LINE BY LATITUDE (his pick, 2026-09-17): at the equator only the crowns (.95); toward the poles it
+        // comes down the flanks (.40 at the pole); and the season moves it - a hemisphere's winter brings it lower
+        float slat = abs(t.y);
+        float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001);
+        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
         col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
         // THE NIGHT (2026-09-17, his ask: "dark yes but also grey ... the landscape hard to see"): a moonlit
         // blue that MULTIPLIES the land (its contrast survives) with the faintest floor, instead of a flat dark blue mixed over it

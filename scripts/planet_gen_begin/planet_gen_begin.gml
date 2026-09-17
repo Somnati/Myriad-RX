@@ -199,6 +199,17 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	while (array_length(_pal) < 19) array_push(_pal, c_gray);
 	array_push(_pal, make_colour_hsv(24, 30, 74));
 	array_push(_pal, make_colour_hsv(28, 40, 158));
+	// THE NEW KINDS (2026-09-17): 21 savanna, 22 taiga, 23 badlands, 24 dunes, 25 coral shallows - each from the
+	// world's own colours (its grass, its wood, its sand, its shallows), so a strange world's savanna is strange too
+	if (_kind == "gas") repeat (5) array_push(_pal, c_gray);
+	else {
+		var _sav = merge_colour(merge_colour(_pal[4], _sand, .45), c_white, .10);
+		var _tai = make_colour_hsv((colour_get_hue(_pal[5]) + 248) mod 256, min(255, colour_get_saturation(_pal[5]) + 20), max(40, colour_get_value(_pal[5]) * .72));
+		var _bad = make_colour_hsv((colour_get_hue(_sand) + 250) mod 256, min(255, colour_get_saturation(_sand) + 45), max(50, colour_get_value(_sand) * .72));
+		var _dun = merge_colour(_sand, c_white, .18);
+		var _cor = merge_colour(_pal[11], rgb(120, 235, 225), .5);
+		array_push(_pal, _sav, _tai, _bad, _dun, _cor);
+	}
 	// emissive mask per palette slot: the bake writes alpha = 1 - glow
 	var _glow = array_create(array_length(_pal), 0);
 	if (_kind == "rock") _glow[18] = .85;
@@ -236,7 +247,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 				var _cu = random(1), _cv = random_range(.12, .88);
 				planet_texel(_ps, _cu, _cv);
 				var _bio = _ps.ob;
-				if (_bio <= 2 || _bio == 9 || _bio == 10 || _bio == 11 || _bio == 14) continue;
+				if (_bio <= 2 || _bio == 9 || _bio == 10 || _bio == 11 || _bio == 14 || _bio == 25) continue;
 				var _sl3 = sin(_cv * pi);
 				array_push(_cities, { x : _sl3 * cos(_cu * 2 * pi), y : cos(_cv * pi), z : _sl3 * sin(_cu * 2 * pi), r : random_range(.06, .12) });
 			}

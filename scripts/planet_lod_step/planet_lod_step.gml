@@ -62,7 +62,7 @@ function planet_lod_step(_pn, _l, _until) {
 			var _b = _ps.ob, _oe = _ps.oe;
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
-				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11);
+				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);
 				if (_natl && _el[_bi] >= _sea) {   // (the base texel is land: its water is a lake or a river, not the coast's own call)
 					if (_bb == 1) _b = 1;
 					else if (_bb == 11) {
@@ -71,7 +71,7 @@ function planet_lod_step(_pn, _l, _until) {
 							if (_dx == 0 && _dy == 0) continue;
 							var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
 							var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
-							if (!(_nb == 0 || _nb == 1 || _nb == 11)) continue;
+							if (!(_nb == 0 || _nb == 1 || _nb == 11 || _nb == 25)) continue;
 							_any = true;
 							var _px2 = _fx - .5, _py2 = _fy - .5, _sx = _dx * .5, _sy = _dy * .5;
 							var _tt = clamp((_px2 * _sx + _py2 * _sy) / (_sx * _sx + _sy * _sy), 0, 1);
@@ -86,8 +86,8 @@ function planet_lod_step(_pn, _l, _until) {
 			var _c = _pal[_b];
 			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
 			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
-			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11)) ? 255 : 0;
-			var _for = (!_gas) ? ((_b == 5 || _b == 6) ? 255 : ((_b == 12) ? 140 : 0)) : 0;
+			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11 || _b == 25)) ? 255 : 0;
+			var _for = (!_gas) ? ((_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0))) : 0;
 			if (_wat > 0) _for = floor(clamp((_sea - _oe) / .08, 0, 1) * 255);
 			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
 			_o += 4;

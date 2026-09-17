@@ -51,7 +51,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 		crot2 : shader_get_uniform(sh_planet, "u_crot2"), wt : shader_get_uniform(sh_planet, "u_wt"), cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"), canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
 		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"), pk : shader_get_uniform(sh_planet, "u_pk"),
-		pwin : shader_get_uniform(sh_planet, "u_pwin"),
+		pwin : shader_get_uniform(sh_planet, "u_pwin"), season : shader_get_uniform(sh_planet, "u_season"),
 	};
 	// the quad on the pixel grid, like the world's
 	var _q = _mq * 1.02, _qx = _mx - _q, _qy = _my - _q;
@@ -78,6 +78,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.cvol, 0); shader_set_uniform_f(_u.crelief, 0); shader_set_uniform_f(_u.canopy, 0);
 	shader_set_uniform_f(_u.grass, .5, .5, .5); shader_set_uniform_f(_u.sea0, 0, 0, 0); shader_set_uniform_f(_u.sea1, 0, 0, 0);
 	shader_set_uniform_f(_u.pk, 0); shader_set_uniform_f(_u.pwin, 0, 0, 1, 1);   // (no zoom tier: its own texture, whole)
+	shader_set_uniform_f(_u.season, 0);
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);
 	shader_set_uniform_f_array(_u.city, array_create(24, 0));
 	shader_set_uniform_f(_u.cityn, 0);

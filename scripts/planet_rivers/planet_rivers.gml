@@ -27,7 +27,7 @@ function planet_rivers(_pn) {
 	var _wat = array_create(_n, false), _ej = array_create(_n, 0), _nz = array_create(_n, 0), _nw = 0;
 	for (var _i = 0; _i < _n; _i++) {
 		var _b0 = _bm[_i];
-		if (_b0 == 0 || _b0 == 1 || _b0 == 11) { _wat[_i] = true; _nw++; }
+		if (_b0 == 0 || _b0 == 1 || _b0 == 11 || _b0 == 25) { _wat[_i] = true; _nw++; }
 		// a grain of noise a texel (a small exact hash inline - fifty thousand of them; every product stays under 2^53)
 		var _hx = (_i * 2654435761 + _seed) mod 2147483647;
 		_hx = ((_hx ^ (_hx >> 13)) * 48271) mod 2147483647;
