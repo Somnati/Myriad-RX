@@ -26,6 +26,7 @@
 	g.crt_roll    = true;  // the drifting band + flicker
 	g.num_format = 0;      // settings > readouts "number format" (num_format_config: 0 short)
 	// DE's settings, ported 2026-09-10 (the ones RX has the system for)
+	g.units_imperial = true;   // readouts "distance units": miles / feet (his pick), false = km / m (dist_fmt)
 	g.tap_text = 0;        // readouts "tap numbers": 0 at the tap / 1 centred / 2 none (DE taptextformat)
 	g.tps_readout = true;  // readouts "tap rate": the bottom-left tps line (DE tapgps_pos)
 	g.bounce_text = true;  // readouts "bounce tracker" (DE bounce_text)

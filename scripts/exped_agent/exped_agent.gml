@@ -118,6 +118,7 @@ function exped_agent(_tr, _dt) {
 			else if (array_length(_tr.log) == _nl) exped_road_beat(_tr);
 		}
 		exped_stat("road_h", _dt / EXPED_HOUR);
+		exped_stat("road_km", (_dt / EXPED_HOUR) * EXPED_WALK_KMH);   // the distance ledger (his ask, 2026-09-17), kept in km
 		if (_rd.t >= _rd.d * EXPED_HOUR) {
 			_tr.pos = _rd.b;
 			_tr.road = undefined;

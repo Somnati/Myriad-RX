@@ -651,6 +651,17 @@ function settings_content() {
 		+ "short-scale names (spelled out under the counter), scientific, "
 		+ "or the log itself. menu > misc > number formats compares them.");
 
+	// DISTANCES (his ask, 2026-09-17): the expedition ledger keeps km; the
+	// readouts convert. Imperial for him, metric for the rest of the world
+	settings_pill("distance units", "distunits", g.units_imperial ? "imperial" : "metric",
+		function() {
+			set_pill("imperial", { val : 1, col : g.units_imperial ? c_gold : sett_ink, enabled : g.units_imperial });
+			set_pill("metric",   { val : 0, col : !g.units_imperial ? c_gold : sett_ink, enabled : !g.units_imperial });
+		},
+		function(_v) { g.units_imperial = (_v == 1); },
+		"how far things read: miles and feet, or kilometres and metres. "
+		+ "the expedition statistics' distance walked is the one that cares so far.");
+
 	var _ttn = ["at the tap", "centred", "none"];
 	settings_pill("tap numbers", "taptext", _ttn[clamp(g.tap_text, 0, 2)],
 		function() {

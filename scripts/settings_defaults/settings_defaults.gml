@@ -64,6 +64,7 @@ function settings_defaults(_section = "all") {
 
 	if (_all || _section == "readouts") {
 		g.num_format            = 0;
+		g.units_imperial        = true;   // distances in miles / feet (his pick); false = km / m
 		g.tap_text              = 0;
 		g.tps_readout           = true;
 		g.bounce_text           = true;

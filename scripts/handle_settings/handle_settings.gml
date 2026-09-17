@@ -59,6 +59,7 @@ function handle_settings(_method) {
 	g.scene_light = handle("scene_light",g.scene_light); // the field's light on the solids, %
 	g.crt_roll    = handle("crt_roll",g.crt_roll);
 	g.num_format = handle("num_format",g.num_format); // how every number reads (num_format_config)
+	g.units_imperial = handle("units_imperial",g.units_imperial);   // distances: miles or km (dist_fmt)
 	g.tap_text = handle("tap_text",g.tap_text);       // DE's taptextformat: 0 at the tap / 1 centred / 2 none
 	g.tps_readout = handle("tps_readout",g.tps_readout);
 	g.bounce_text = handle("bounce_text",g.bounce_text);

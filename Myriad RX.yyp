@@ -360,6 +360,7 @@
     {"id":{"name":"dice_mat_name","path":"scripts/dice_mat_name/dice_mat_name.yy",},},
     {"id":{"name":"dig_to_arb","path":"scripts/dig_to_arb/dig_to_arb.yy",},},
     {"id":{"name":"DigitWindow","path":"scripts/DigitWindow/DigitWindow.yy",},},
+    {"id":{"name":"dist_fmt","path":"scripts/dist_fmt/dist_fmt.yy",},},
     {"id":{"name":"do_add","path":"scripts/do_add/do_add.yy",},},
     {"id":{"name":"do_ceil","path":"scripts/do_ceil/do_ceil.yy",},},
     {"id":{"name":"do_div","path":"scripts/do_div/do_div.yy",},},

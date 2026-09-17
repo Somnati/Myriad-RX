@@ -415,6 +415,7 @@ function main_macros() {
 #macro MOON_TEX_W     40     // the moons' shared texture (moon_tex): equirect texels
 #macro MOON_TEX_H     20
 #macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
+#macro EXPED_WALK_KMH 4.8    // a road-hour on foot, in km (3 miles) - the distance ledger's pace
 #macro EXPED_ROOM_T   10     // seconds a step at a node takes (a delve room, a shop visit)
 #macro EXPED_FUEL      2     // credits the ship burns to send a crew, x the world's tier
 #macro EXPED_POCKET    3     // credits each member takes along (inns, gear); what is left comes home (3 since 2026-09-16: the credits twin had the pocket dry in a third of the towns at 2)

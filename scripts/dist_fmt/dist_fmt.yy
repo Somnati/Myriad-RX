@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dist_fmt",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dist_fmt",
+  "parent":{
+    "name":"upgrades",
+    "path":"folders/game/upgrades.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
