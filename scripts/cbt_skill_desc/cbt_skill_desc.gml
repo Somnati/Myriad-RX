@@ -16,7 +16,7 @@ function cbt_skill_desc(_s) {
 			case "mend":    _kind = 2; break;
 			case "concuss": _kind = 3; break;
 			case "bolt":    _kind = 4; break;
-			case "reform":  _kind = 5; break;
+			case "reform":  _kind = 9; break;
 		}
 	}
 	switch (_kind) {
@@ -41,6 +41,22 @@ function cbt_skill_desc(_s) {
 			array_push(_out, "reached for when a target's armour outweighs its resistance");
 			break;
 		case 5:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " damage, and " + (((_s[$ "ail"] ?? "") == "poison") ? "the venom: 4% of their max hp each of their turns, three turns" : "the chill: they act at 60% pace for three turns"));
+			array_push(_out, "reached for on a big target that does not have it yet");
+			break;
+		case 6:
+			array_push(_out, "a blessing on " + _tg + ": " + (((_s[$ "buf"] ?? "") == "haste") ? "haste - they act at 125% pace" : ("their " + string_delete(_s[$ "buf"] ?? "buf_atk", 1, 4) + " up a quarter")) + ", three of their turns; it lifts the matching nerf instead if one is on them");
+			array_push(_out, "reached for on someone who will live to use it");
+			break;
+		case 7:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " magic damage, and their " + string_delete(_s[$ "nerf"] ?? "nerf_atk", 1, 5) + " down a quarter for three of their turns; it undoes the matching buff instead if one is on them");
+			array_push(_out, "reached for against a big stat, or a blessed foe");
+			break;
+		case 8:
+			array_push(_out, "heals " + _tg + " " + string(round(_healp * 100)) + "% and strips every dark effect: the nerfs, the mark, the venom, the slow");
+			array_push(_out, "reached for only when there is something to strip");
+			break;
+		case 9:
 			array_push(_out, "heals the user 40% of its max hp");
 			array_push(_out, "the emergency button: only below 35% health");
 			break;
@@ -48,6 +64,11 @@ function cbt_skill_desc(_s) {
 			array_push(_out, "does something. nobody wrote down what");
 			break;
 	}
+	// the element or the school (2026-09-17)
+	var _sel = _s[$ "elem"] ?? "", _ssc = _s[$ "school"] ?? "";
+	if (_sel != "") { var _sei = cbt_elem_info(_sel); array_push(_out, _sei.name + ": through the target's " + _sei.name + " resistance" + ((_sel == "fire") ? ", and fire hits a tenth harder" : "")); }
+	else if (_ssc == "light") array_push(_out, "light: a mending, a blessing - it cancels dark");
+	else if (_ssc == "dark") array_push(_out, "dark: flat damage, it feeds and it weakens - it cancels light");
 	array_push(_out, "mp: a landed basic attack builds 1 (2 on a clean hit or a crit); a fight opens at half");
 	return _out;
 }

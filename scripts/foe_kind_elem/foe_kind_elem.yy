@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"foe_kind_elem",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"foe_kind_elem",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

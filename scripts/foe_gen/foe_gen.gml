@@ -96,5 +96,10 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 		tic : random(.3), tic_spd : _b.tic_spd_base + sqrt(max(0, _pts.spd)) / _b.tic_spd_div,
 		pts_total : _total,
 		dd : 0, dt : 0, cc : 0,
+		// the elements pass (2026-09-17): the kind's element (its bite and its
+		// table off the triangle - a neutral kind rolls its pair off the seed),
+		// its school, its own ailment, its tags (undead / slime immunities)
+		res : cbt_res_gen(_seed, _r[$ "elem"] ?? ""), elem : _r[$ "elem"] ?? "", school : _r[$ "school"] ?? "", ail_k : _r[$ "ail"] ?? "", tags : _r[$ "tags"] ?? [],
+		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
 	};
 }

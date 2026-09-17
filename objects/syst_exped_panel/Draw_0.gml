@@ -448,6 +448,25 @@ if (view == "bestiary") {
 			draw_set_color(_ink); draw_set_alpha(.85); draw_text_ext(_tx + 40, _ty, _lnd2, 9, _tw - 40); _ty += string_height_ext(_lnd2, 9, _tw - 40) + 2;
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "skill");
 			draw_set_color(_r.magic ? c_hpurple : c_horange); draw_set_alpha(.9); draw_text(_tx + 40, _ty, (_r.skill != "") ? _r.skill : "-"); _ty += 10;
+			// THE ELEMENT (2026-09-17): its bite, what it is soft to and what it
+			// shrugs - known once a sprite has a note on the kind (the
+			// notepad's second job); a "?" until then
+			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "element");
+			if (__kind_studied(_r.name)) {
+				var _kel = _r[$ "elem"] ?? "", _ksc = _r[$ "school"] ?? "", _kail = _r[$ "ail"] ?? "";
+				var _kx = _tx + 40;
+				if (_kel != "") {
+					var _kei = cbt_elem_info(_kel);
+					draw_set_color(_kei.col); draw_set_alpha(.95); draw_text(_kx, _ty, _kei.name); _kx += string_width(_kei.name) + 4;
+					draw_set_color(_ink); draw_set_alpha(.85); draw_text(_kx, _ty, "-  soft to " + _kei.weak + ", shrugs " + _kei.beats);
+				} else if (_ksc != "") {
+					var _ksi = cbt_elem_info(_ksc);
+					draw_set_color(_ksi.col); draw_set_alpha(.95); draw_text(_kx, _ty, _ksc); _kx += string_width(_ksc) + 4;
+					draw_set_color(_ink); draw_set_alpha(.85); draw_text(_kx, _ty, (_ksc == "light") ? "-  it mends its own" : "-  it feeds and weakens");
+				} else { draw_set_color(_ink); draw_set_alpha(.85); draw_text(_kx, _ty, "none  -  each one soft to something of its own"); }
+				_ty += 10;
+				if (_kail != "") { draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "leaves"); draw_set_color(c_horange); draw_set_alpha(.9); draw_text(_tx + 40, _ty, (_kail == "poison") ? "venom" : ((_kail == "slow") ? "a chill - slowed" : "the mark - it feeds on you")); _ty += 10; }
+			} else { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_tx + 40, _ty, "?   (a note on one tells)"); _ty += 10; }
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "crit");
 			draw_set_color(_ink); draw_set_alpha(.85); draw_text(_tx + 40, _ty, string(_r.crit) + "% x" + string(_r.cmulti) + "  -  counter " + string(_r.cnt) + "%"); _ty += 10;
 			draw_set_color(_dim); draw_set_alpha(.8); draw_text(_tx, _ty, "met as");
@@ -690,6 +709,7 @@ if (view == "trip") {
 			var _jf = clamp(_fo.hp / max(1, _fo.hpmax), 0, 1);
 			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 7, _jy - 14, 14, 2, 0, c_black, .8);
 			draw_sprite_ext(spr_pixel_1x1, 0, _jx - 7, _jy - 14, 14 * _jf, 2, 0, c_hred, .9);
+			if (_fo.hp > 0) __pips(_fo, _jx - 7, _jy - 18);   // (the status pips, 2026-09-17)
 		}
 		// the crew, bottom left: their own portraits (the room's blobs), hp over each
 		ui_fade_set(1);
@@ -707,6 +727,7 @@ if (view == "trip") {
 			var _mf = clamp(_m.hp / max(1, _m.hpmax), 0, 1);
 			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 7, _my - 12, 14, 2, 0, c_black, .8);
 			draw_sprite_ext(spr_pixel_1x1, 0, _mx - 7, _my - 12, 14 * _mf, 2, 0, (_mf > .35) ? c_sgreen : c_horange, .9);
+			if (_m.hp > 0) __pips(_m, _mx - 7, _my - 16);   // (the status pips, 2026-09-17)
 		}
 		ui_fade_set(_ea);
 		// the damage number, floating off the one hit (the outline font)

@@ -22,27 +22,27 @@ function sprite_classes() {
 		  shape : { hp : 7, mp : 3, atk : 7, mag : 1, def : 6, mdef : 2, spd : 4, hit : 7 },   // eff 8+3+8+1+6+2+4+8 = 40
 		  crit : 6,  cmulti : 1.6, cnt : 8,  armor : 2, talis : 1, magic : false, luck : 1,
 		  w1 : ["sword", "axe", "mace", "spear"], w2 : ["shield", "buckler"],
-		  skill : "strike", tmpls : [0, 3] },
+		  skill : "strike", tmpls : [0, 3, 6] },
 		{ key : "mage", name : "mage", col : c_hpurple,
 		  shape : { hp : 4, mp : 6, atk : 2, mag : 8, def : 2, mdef : 6, spd : 4, hit : 6 },   // eff 4+6+2+10+2+6+4+6 = 40
 		  crit : 5,  cmulti : 1.8, cnt : 2,  armor : 1, talis : 2, magic : true, luck : 2,
 		  w1 : ["staff", "wand"], w2 : ["tome", "lantern"],
-		  skill : "bolt", tmpls : [4, 1] },
+		  skill : "bolt", tmpls : [4, 4, 7, 1] },
 		{ key : "rogue", name : "rogue", col : c_horange,
 		  shape : { hp : 5, mp : 4, atk : 6, mag : 2, def : 4, mdef : 3, spd : 7, hit : 7 },   // eff 5+4+6+2+4+3+8+8 = 40
 		  crit : 14, cmulti : 1.8, cnt : 10, armor : 1, talis : 1, magic : false, luck : 3,
 		  w1 : ["dagger", "sword"], w2 : ["dagger", "torch"],
-		  skill : "concuss", tmpls : [1, 3] },
+		  skill : "concuss", tmpls : [1, 3, 5, 7] },
 		{ key : "cleric", name : "cleric", col : c_gold,
 		  shape : { hp : 6, mp : 6, atk : 3, mag : 6, def : 5, mdef : 6, spd : 3, hit : 5 },   // eff 40, all under the cap
 		  crit : 3,  cmulti : 1.5, cnt : 3,  armor : 1, talis : 2, magic : true, luck : 2,
 		  w1 : ["mace", "staff"], w2 : ["tome", "shield"],
-		  skill : "mend", tmpls : [2, 4] },
+		  skill : "mend", tmpls : [2, 4, 6, 8] },
 		{ key : "ranger", name : "ranger", col : c_sgreen,
 		  shape : { hp : 5, mp : 4, atk : 6, mag : 3, def : 4, mdef : 4, spd : 6, hit : 7 },   // eff 5+4+6+3+4+4+6+8 = 40
 		  crit : 10, cmulti : 1.7, cnt : 6,  armor : 1, talis : 1, magic : false, luck : 2,
 		  w1 : ["bow", "spear"], w2 : ["dagger", "lantern"],
-		  skill : "strike", tmpls : [3, 0] },
+		  skill : "strike", tmpls : [3, 0, 5] },
 	];
 	return _c;
 }

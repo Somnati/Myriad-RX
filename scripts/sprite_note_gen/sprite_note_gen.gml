@@ -27,6 +27,11 @@ function sprite_note_gen(_sp, _beat, _ctx = undefined) {
 			if (_foe[$ "magic"] ?? false) array_push(_opts, { t : _ks + " do the glowy thing. do not stand in it.", f : "mdef" }, { t : "a " + _kind + " hums before it hurts. the hum is the warning.", f : "mdef" });
 			if (_foe.atk >= 6.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " hit hard. do not be where the hit is.", f : "def" }, { t : "a " + _kind + " swings like it means it. lean back.", f : "def" });
 			if (_foe.hit <= 4.5 * (_foe.pts_total / 40)) array_push(_opts, { t : _ks + " miss a lot. stand still and look confident.", f : "eva" }, { t : "a " + _kind + " swings where you were. be somewhere else.", f : "eva" });
+			// THE WARD (the elements pass, 2026-09-17): an elemental kind teaches how to stand in it - +res in that element (sprite_res)
+			var _kel = foe_kind_elem(_kind);
+			if (_kel == "fire")   array_push(_opts, { t : "stood in the " + _kind + "'s fire and lived. it is only hot.", f : "ward" }, { t : "the trick with " + _ks + ": do not be the dry thing.", f : "ward" });
+			if (_kel == "water")  array_push(_opts, { t : "got soaked by " + _ks + ". dried off. that is the whole trick.", f : "ward" }, { t : _ks + " are wet. so is rain. rain is fine.", f : "ward" });
+			if (_kel == "nature") array_push(_opts, { t : "the " + _kind + "'s stings stop hurting after the third one.", f : "ward" }, { t : "kept still in the thorns. the thorns got bored.", f : "ward" });
 			array_push(_opts, { t : _kind + ": hits back. noted.", f : "hit" }, { t : "a " + _kind + " is a " + _kind + ". writing it down anyway.", f : "hit" },
 			           { t : _ks + " smell like " + _ks + ". you will know.", f : "hit" }, { t : "met a " + _kind + ". it did not want to be met.", f : "hit" }, { t : _ks + ": count them first. then count again. then leave.", f : "hit" },
 			           { t : "a " + _kind + " has a front and a back. the back is better.", f : "crit" }, { t : _ks + " are not friendly. checked.", f : "hit" });

@@ -31,6 +31,27 @@ function cbt_balance() {
 		mp_gain       : 1,
 		mp_gain_qual  : 2,
 		mp_start_frac : .5,   // a fight opens at this fraction of max mp
+		// ELEMENTS AND AILMENTS (his design, 2026-09-17 - see cbt_elem_info,
+		// cbt_res_gen, cbt_status): the triangle water > fire > nature > water
+		// only GENERATES a pawn's table; the signed resistance is the one
+		// multiplier (damage x (1 - res / 100)). Light and dark are schools -
+		// flat damage, buffs against nerfs - never a row here.
+		res_step     : 20,    // a generated pawn: +this in one element, -this in another
+		res_min      : -50,   // the table's floor and ceiling (signed %)
+		res_max      : 50,
+		res_quirk    : 10,    // a gear quirk's points; a ward note's too
+		fire_bonus   : 1.1,   // fire carries no ailment: it hits harder instead
+		ail_skill    : 60,    // % a skill's ailment lands on a landed hit
+		ail_basic    : 20,    // % a kind's own ailment lands on its basic bite
+		ail_turns    : 3,     // poison / slow / leech: this many of the victim's actions
+		boss_ail     : .5,    // a boss takes ailments at this fraction of the turns
+		poison_pct   : .04,   // of max hp, each of the victim's actions
+		slow_rate    : .6,    // a slowed pawn's atb fills at this rate
+		haste_rate   : 1.25,  // a hasted one's
+		leech_pct    : .4,    // a marked target: the marker heals this share of every hit on it
+		buff_pct     : .25,   // atk / def / hit up (light) or down (dark)
+		buff_turns   : 3,
+		regen_pct    : .05,   // of max hp an action, light's regen
 		// counters: chance = cnt stat, halving per chain link
 		cnt_mult    : .7,
 		cnt_falloff : .5,

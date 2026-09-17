@@ -17,6 +17,15 @@ function gear_quirks() {
 		{ key : "spiteful", cnt : 6,       adjs : ["spiteful", "rude", "quick-tempered"],               sufs : ["of the quick reply", "of the last word"],     desc : "it hits back. the one holding it has less say in this than you would think.", val : 2 },
 		{ key : "sturdy",   erode : .5,    adjs : ["sturdy", "regulation", "over-built"],               sufs : ["of surprising heft", "of the long haul"],     desc : "it takes the wear so the wearer does not, mostly.", val : 1.5 },
 		{ key : "eager",    mp0 : .25,     adjs : ["restless", "loud", "twitchy"],                      sufs : ["of the early start", "of the first move"],    desc : "it wants to begin. fights open with more in the tank.", val : 1.5 },
+		// THE ELEMENTS PASS (2026-09-17): armour and talismans can be PROOFED
+		// (+res_quirk in one element for the wearer); a weapon can CARRY one
+		// (every basic attack is that element). gear_gen keeps each to its slots
+		{ key : "fireproof",  res : "fire",   adjs : ["fireproof", "ash-grey", "kiln-fired"],        sufs : ["of the cold hearth", "of the doused coal"],  desc : "it takes a tenth less from fire" },
+		{ key : "waterproof", res : "water",  adjs : ["waxed-tight", "salt-stiff", "dry"],           sufs : ["of the dry riverbed", "of the long drought"], desc : "it takes a tenth less from water" },
+		{ key : "thornproof", res : "nature", adjs : ["thornproof", "thick-hided", "bramble-worn"],   sufs : ["of the clear path", "of the calm sky"],       desc : "it takes a tenth less from nature" },
+		{ key : "burning",    elem : "fire",   adjs : ["burning", "smouldering", "ember-lit"],         sufs : ["of the kiln", "of the last fire"],            desc : "every swing is fire" },
+		{ key : "soaked",     elem : "water",  adjs : ["dripping", "rimed", "tide-cold"],              sufs : ["of the deep pool", "of the first frost"],     desc : "every swing is water" },
+		{ key : "thorned",    elem : "nature", adjs : ["thorned", "sap-green", "buzzing"],             sufs : ["of the wild hedge", "of the storm"],          desc : "every swing is nature" },
 		{ key : "cursed",   budget : 1.35, hole : .6, adjs : ["lightly cursed", "haunted (a little)", "suspicious"], sufs : ["of moderate doom", "of the unpaid debt"], desc : "there is more in it than there should be, and a hole where something was taken.", val : 0 },
 	];
 	return _q;

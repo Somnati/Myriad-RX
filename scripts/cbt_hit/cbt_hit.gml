@@ -13,19 +13,35 @@
 /// @param label  the skill's name ("" = a basic attack)
 /// @param cdepth counter chain depth (counters pass depth + 1)
 /// @param magic  true = mag vs mdef instead of atk vs def
-function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false) {
+function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false, _elem = undefined, _ail = "") {
 	var _b = cbt_balance();
 	var _lm = (_u.team == 0) ? luck_mod() : 1;
 
+	// THE ELEMENT (his design, 2026-09-17): a skill names its own (or ""); a
+	// basic attack carries the pawn's - a foe kind's, a sprite's weapon's.
+	// The ailment likewise: a skill's, or a kind's own bite on its basics
+	var _basic = (_label == "" && _cdepth == 0);
+	if (is_undefined(_elem)) _elem = _u[$ "elem"] ?? "";
+	if (_ail == "" && _basic) _ail = _u[$ "ail_k"] ?? "";
+
 	// physical or magical lane: the same spectrum, a different stat pair
-	var _apow = _magic ? _u.mag : _u.atk;
-	var _dpow = _magic ? _t.mdef : _t.def;
+	// - through the light / dark lanes: a raised or lowered stat is
+	// +-buff_pct while its clock runs (cbt_status)
+	var _bfu = _u[$ "bf"], _nfu = _u[$ "nf"], _bft = _t[$ "bf"], _nft = _t[$ "nf"];
+	var _m_atk = 1, _m_def = 1, _m_hit = 1;
+	if (is_struct(_bfu)) { if (_bfu.atk > 0) _m_atk += _b.buff_pct; if (_bfu.hit > 0) _m_hit += _b.buff_pct; }
+	if (is_struct(_nfu)) { if (_nfu.atk > 0) _m_atk -= _b.buff_pct; if (_nfu.hit > 0) _m_hit -= _b.buff_pct; }
+	if (is_struct(_bft) && _bft.def > 0) _m_def += _b.buff_pct;
+	if (is_struct(_nft) && _nft.def > 0) _m_def -= _b.buff_pct;
+	var _apow = (_magic ? _u.mag : _u.atk) * _m_atk;
+	var _dpow = (_magic ? _t.mdef : _t.def) * _m_def;
+	var _uhit = _u.hit * _m_hit;
 
 	// hit chance: the attacker's hit vs the defender's EVASION
-	var _sum = _u.hit + _t.eva;
+	var _sum = _uhit + _t.eva;
 	var _hc = 50;
 	if (_sum > 0) {
-		var _r = _u.hit / _sum;
+		var _r = _uhit / _sum;
 		_hc = clamp(_b.hitcurve_a * _r * _r + _b.hitcurve_b * _r, 1, 99);
 	}
 	_hc = clamp(_hc * _lm, 1, 99);
@@ -59,6 +75,16 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	else          _dmg = lerp(_dmg * _b.dmg_lerp_low, _dmg * _b.perf_lerp_high, _q);
 	if (_crit) _dmg *= 1 + lerp((_u.crit_multi - 1) * _b.crit_lerp_low, (_u.crit_multi - 1) * _b.crit_lerp_high, _q);
 	_dmg *= _b.ttk_multi;
+	// THE RESISTANCE (his design): the target's own signed table for the
+	// element carried - minus takes more, plus takes less. Fire carries no
+	// ailment, so it hits a little harder instead. Light and dark: flat
+	var _ei = cbt_elem_info(_elem);
+	var _rs = 0;
+	if (_ei.beats != "" && is_struct(_t[$ "res"])) {
+		_rs = clamp(_t.res[$ _elem] ?? 0, _b.res_min, _b.res_max);
+		_dmg *= 1 - _rs / 100;
+	}
+	if (_elem == "fire") _dmg *= _b.fire_bonus;
 	if (_tk != "" && array_contains(_nu, _tk + ":dmg")) _dmg *= 1.1;                       // (a note on a tank: where to hit it)
 	if (_uk != "" && array_contains(_nt, _uk + (_magic ? ":mdef" : ":def"))) _dmg *= (_magic ? .85 : .9);   // (a note on what it does: not being where it lands)
 	_dmg = max(.1, round(_dmg * 10) / 10);
@@ -84,11 +110,22 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	else if (_q >= .85) _vb = choose(" landed a CLEAN strike on ", " NAILED ", " PIERCED ");
 	if (_crit) _vb = choose(" landed a CRITICAL strike on ", " CRITICALLY struck ");
 	var _th = _u.name + _vb + _t.name + " for " + string(_dmg);
+	if (_rs < 0) _th += " - " + _ei.burn;          // (the log says the weakness, 2026-09-17)
+	else if (_rs > 0) _th += " - " + _ei.shrug;
 	cbt_log(_f, _th);
 	cbt_film(_f, _t, _dmg, _th);
+	// THE LEECH MARK (dark): the marker feeds on every hit it lands on the marked
+	if (is_struct(_t[$ "ail"]) && _t.ail.leech > 0 && _t[$ "leecher"] == _u && _u.hp > 0)
+		cbt_heal(_f, _u, _dmg * _b.leech_pct, "the mark");
 	if (_t.hp <= 0) {
 		cbt_log(_f, _t.name + " is down"); cbt_film(_f, undefined, 0, _t.name + " is down");
 		if (_t.team == 0 && is_struct(_f[$ "tr"])) exped_drink(_f.tr, _t, _f, true);   // THE TOTEM (2026-09-16): a carrier stands up
+	}
+
+	// ---- THE AILMENT: a skill's on a landed hit, a kind's own on its bite ----
+	if (_ail != "" && _t.hp > 0) {
+		var _ach = (_basic ? _b.ail_basic : _b.ail_skill) * ((_u.team == 0) ? _lm : 1);
+		if (random(100) < _ach) cbt_status(_f, _u, _t, _ail);
 	}
 
 	// ---- the mp economy: landed BASIC attacks (not skills, not counters) ----

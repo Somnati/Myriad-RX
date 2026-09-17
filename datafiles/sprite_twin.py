@@ -10,6 +10,10 @@ Prints:
   3. up-level / down-level: a level-5 warrior vs level 8 and level 2 foes
   4. the ladder: kills a level (his SPRITE_LV_KILLS), quests a level
   5. HOLDS / FAILS on the claims the design makes
+The elements pass (2026-09-17) is mirrored: every pawn a signed resistance
+table (+20 / -20 off the triangle for an elemental kind, a random pair
+otherwise), skills carrying fire / water / nature, the ailments (poison /
+slow / leech), light's buffs against dark's nerfs cancelling, the cantor.
 
 Tune here, port back. Run: python datafiles/sprite_twin.py
 """
@@ -31,26 +35,39 @@ FOE_B    = macro("SPRITE_FOE_BUDGET", .9)
 BAL = dict(hitcurve_a=-160, hitcurve_b=250, hp_per_point=3.75, hp_flat_add=4, spd_to_eva=.5,
            tic_spd_base=1, tic_spd_div=2, def_div=3, def_lerp_low=.8, dmg_lerp_low=.4, dmg_lerp_high=1.1,
            perf_lerp_high=1.2, crit_lerp_low=.4, crit_lerp_high=1, ttk_multi=1.4, dmg_to_maxhp=.1,
-           mp_gain=1, mp_gain_qual=2, mp_start_frac=.5, cnt_mult=.7, cnt_falloff=.5, cnt_chain=3)
+           mp_gain=1, mp_gain_qual=2, mp_start_frac=.5, cnt_mult=.7, cnt_falloff=.5, cnt_chain=3,
+           # the elements pass (2026-09-17): cbt_balance's knobs, mirrored
+           res_step=20, res_min=-50, res_max=50, fire_bonus=1.1, ail_skill=60, ail_basic=20, ail_turns=3, boss_ail=.5,
+           poison_pct=.04, slow_rate=.6, haste_rate=1.25, leech_pct=.4, buff_pct=.25, buff_turns=3, regen_pct=.05)
+ELEMS = ["fire", "water", "nature"]
+BEATS = {"fire": "nature", "water": "fire", "nature": "water"}
+WEAK  = {"fire": "water", "water": "nature", "nature": "fire"}
+def res_gen(rng, elem=""):
+    r = {"fire": 0, "water": 0, "nature": 0}
+    if elem in BEATS: r[WEAK[elem]] = -BAL["res_step"]; r[BEATS[elem]] = BAL["res_step"]; return r
+    w = rng.randrange(3); st = (w + 1 + rng.randrange(2)) % 3
+    r[ELEMS[w]] = -BAL["res_step"]; r[ELEMS[st]] = BAL["res_step"]; return r
 KEYS = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"]
 
 # sprite_classes (the shapes must match the GML table)
 CLASSES = {
-    "warrior": dict(shape={"hp":7,"mp":3,"atk":7,"mag":1,"def":6,"mdef":2,"spd":4,"hit":7}, crit=6,  cmulti=1.6, cnt=8,  magic=False, skill="strike",  tmpls=[0, 3]),
-    "mage":    dict(shape={"hp":4,"mp":6,"atk":2,"mag":8,"def":2,"mdef":6,"spd":4,"hit":6}, crit=5,  cmulti=1.8, cnt=2,  magic=True,  skill="bolt",    tmpls=[4, 1]),
-    "rogue":   dict(shape={"hp":5,"mp":4,"atk":6,"mag":2,"def":4,"mdef":3,"spd":7,"hit":7}, crit=14, cmulti=1.8, cnt=10, magic=False, skill="concuss", tmpls=[1, 3]),
-    "cleric":  dict(shape={"hp":6,"mp":6,"atk":3,"mag":6,"def":5,"mdef":6,"spd":3,"hit":5}, crit=3,  cmulti=1.5, cnt=3,  magic=True,  skill="mend",    tmpls=[2, 4]),
-    "ranger":  dict(shape={"hp":5,"mp":4,"atk":6,"mag":3,"def":4,"mdef":4,"spd":6,"hit":7}, crit=10, cmulti=1.7, cnt=6,  magic=False, skill="strike",  tmpls=[3, 0]),
+    "warrior": dict(shape={"hp":7,"mp":3,"atk":7,"mag":1,"def":6,"mdef":2,"spd":4,"hit":7}, crit=6,  cmulti=1.6, cnt=8,  magic=False, skill="strike",  tmpls=[0, 3, 6]),
+    "mage":    dict(shape={"hp":4,"mp":6,"atk":2,"mag":8,"def":2,"mdef":6,"spd":4,"hit":6}, crit=5,  cmulti=1.8, cnt=2,  magic=True,  skill="bolt",    tmpls=[4, 4, 7, 1]),
+    "rogue":   dict(shape={"hp":5,"mp":4,"atk":6,"mag":2,"def":4,"mdef":3,"spd":7,"hit":7}, crit=14, cmulti=1.8, cnt=10, magic=False, skill="concuss", tmpls=[1, 3, 5, 7]),
+    "cleric":  dict(shape={"hp":6,"mp":6,"atk":3,"mag":6,"def":5,"mdef":6,"spd":3,"hit":5}, crit=3,  cmulti=1.5, cnt=3,  magic=True,  skill="mend",    tmpls=[2, 4, 6, 8]),
+    "ranger":  dict(shape={"hp":5,"mp":4,"atk":6,"mag":3,"def":4,"mdef":4,"spd":6,"hit":7}, crit=10, cmulti=1.7, cnt=6,  magic=False, skill="strike",  tmpls=[3, 0, 5]),
 }
 # foe_gen's roster
 FOES = {
     "goblin":   dict(shape={"hp":5,"mp":3,"atk":6,"mag":2,"def":5,"mdef":3,"spd":7,"hit":7},  crit=8,  cmulti=1.6, cnt=8,  erode=1,   magic=False, skill="concuss", gear=.3),
     "bandit":   dict(shape={"hp":6,"mp":3,"atk":7,"mag":1,"def":6,"mdef":3,"spd":5,"hit":7},  crit=7,  cmulti=1.6, cnt=7,  erode=1,   magic=False, skill="strike",  gear=.8),
     "wolf":     dict(shape={"hp":6,"mp":2,"atk":7,"mag":1,"def":3,"mdef":2,"spd":8,"hit":7}, crit=10, cmulti=1.7, cnt=5,  erode=1,   magic=False, skill="",        gear=0),
-    "slime":    dict(shape={"hp":8,"mp":6,"atk":3,"mag":3,"def":6,"mdef":6,"spd":2,"hit":4}, crit=5,  cmulti=1.5, cnt=4,  erode=.25, magic=False, skill="reform",  gear=0),
-    "skeleton": dict(shape={"hp":6,"mp":4,"atk":8,"mag":1,"def":6,"mdef":4,"spd":3,"hit":6},  crit=8,  cmulti=1.8, cnt=6,  erode=1,   magic=False, skill="strike",  gear=.5),
-    "wisp":     dict(shape={"hp":3,"mp":6,"atk":2,"mag":8,"def":2,"mdef":6,"spd":5,"hit":6},  crit=6,  cmulti=1.8, cnt=2,  erode=1,   magic=True,  skill="drain",   gear=0),
+    "slime":    dict(shape={"hp":8,"mp":6,"atk":3,"mag":3,"def":6,"mdef":6,"spd":2,"hit":4}, crit=5,  cmulti=1.5, cnt=4,  erode=.25, magic=False, skill="reform",  gear=0, elem="water", ail="slow", tags=["slime"]),
+    "skeleton": dict(shape={"hp":6,"mp":4,"atk":8,"mag":1,"def":6,"mdef":4,"spd":3,"hit":6},  crit=8,  cmulti=1.8, cnt=6,  erode=1,   magic=False, skill="strike",  gear=.5, school="dark", tags=["undead"]),
+    "wisp":     dict(shape={"hp":3,"mp":6,"atk":2,"mag":8,"def":2,"mdef":6,"spd":5,"hit":6},  crit=6,  cmulti=1.8, cnt=2,  erode=1,   magic=True,  skill="drain",   gear=0, elem="nature"),
     "rat":      dict(shape={"hp":5,"mp":4,"atk":6,"mag":1,"def":4,"mdef":2,"spd":7,"hit":8}, crit=10, cmulti=1.6, cnt=12, erode=1,   magic=False, skill="concuss", gear=.1),
+    # the cantor (2026-09-17): the light kind that mends its pack
+    "cantor":   dict(shape={"hp":4,"mp":7,"atk":2,"mag":6,"def":5,"mdef":6,"spd":4,"hit":5},  crit=4,  cmulti=1.5, cnt=2,  erode=1,   magic=True,  skill="mend",    gear=.2, school="light"),
 }
 def eff(shape): return sum(v if v <= 6 else 6 + 2 * (v - 6) for v in shape.values())
 for n, c in list(CLASSES.items()) + list(FOES.items()):
@@ -73,23 +90,30 @@ def gear_pts(slot, lv, rar, rng):
     return {k: round(budget * v / ws * rng.uniform(.85, 1.15), 1) for k, v in lines.items()}
 
 class Skill:
-    def __init__(self, name, cost, targ, magic, mult=0, leech=0, healp=0, stag=0, kind=""):
+    def __init__(self, name, cost, targ, magic, mult=0, leech=0, healp=0, stag=0, kind="", elem="", school="", ail="", buf="", nerf=""):
         self.name, self.cost, self.targ, self.magic = name, cost, targ, magic
         self.mult, self.leech, self.healp, self.stag, self.kind = mult, leech, healp, stag, kind
+        self.elem, self.school, self.ail, self.buf, self.nerf = elem, school, ail, buf, nerf
 LIB = {
     "strike":  Skill("strike", 3, "enemy", False, mult=1.6, kind="strike"),
-    "reform":  Skill("reform", 4, "self", False, kind="reform"),
-    "drain":   Skill("drain", 3, "enemy", True, mult=.8, leech=.6, kind="drain"),
-    "mend":    Skill("mend", 4, "ally", True, kind="mend"),
+    "reform":  Skill("reform", 4, "self", False, kind="reform", school="light"),
+    "drain":   Skill("drain", 3, "enemy", True, mult=.8, leech=.6, kind="drain", school="dark", ail="leech"),
+    "mend":    Skill("mend", 4, "ally", True, kind="mend", school="light"),
     "concuss": Skill("concuss", 3, "enemy", False, mult=.7, stag=.45, kind="concuss"),
-    "bolt":    Skill("bolt", 3, "enemy", True, mult=1.5, kind="bolt"),
+    "bolt":    Skill("bolt", 3, "enemy", True, mult=1.5, kind="bolt", elem="nature"),
 }
 def skill_gen(tmpl, rng):
-    if tmpl == 0: return Skill("gen-heavy", rng.randint(3, 5), "enemy", False, mult=rng.uniform(1.4, 2.1), kind="heavy")
-    if tmpl == 1: return Skill("gen-drain", rng.randint(3, 5), "enemy", True, mult=rng.uniform(.6, 1.0), leech=rng.uniform(.4, .8), kind="drain")
-    if tmpl == 2: return Skill("gen-heal", rng.randint(4, 6), "ally", True, healp=rng.uniform(.28, .5), kind="heal")
+    if tmpl == 0: return Skill("gen-heavy", rng.randint(3, 5), "enemy", False, mult=rng.uniform(1.4, 2.1), kind="heavy", elem=(rng.choice(ELEMS) if rng.random() < .34 else ""))
+    if tmpl == 1: return Skill("gen-drain", rng.randint(3, 5), "enemy", True, mult=rng.uniform(.6, 1.0), leech=rng.uniform(.4, .8), kind="drain", school="dark", ail="leech")
+    if tmpl == 2: return Skill("gen-heal", rng.randint(4, 6), "ally", True, healp=rng.uniform(.28, .5), kind="heal", school="light")
     if tmpl == 3: return Skill("gen-stagger", rng.randint(2, 4), "enemy", False, mult=rng.uniform(.55, .8), stag=rng.uniform(.3, .6), kind="stagger")
-    return Skill("gen-spell", rng.randint(3, 5), "enemy", True, mult=rng.uniform(1.3, 1.9), kind="spell")
+    if tmpl == 4: return Skill("gen-spell", rng.randint(3, 5), "enemy", True, mult=rng.uniform(1.3, 1.9), kind="spell", elem=rng.choice(ELEMS))
+    if tmpl == 5:
+        poison = rng.random() < .5
+        return Skill("gen-venom", rng.randint(3, 4), "enemy", False, mult=rng.uniform(.8, 1.1), kind="venom", elem=("nature" if poison else "water"), ail=("poison" if poison else "slow"))
+    if tmpl == 6: return Skill("gen-bless", rng.randint(3, 5), "ally", True, kind="bless", school="light", buf=rng.choice(["buf_atk", "buf_def", "buf_hit", "haste"]))
+    if tmpl == 7: return Skill("gen-hex", rng.randint(3, 5), "enemy", True, mult=rng.uniform(.4, .6), kind="hex", school="dark", nerf=rng.choice(["nerf_atk", "nerf_def", "nerf_hit"]))
+    return Skill("gen-cleanse", rng.randint(4, 6), "ally", True, healp=rng.uniform(.12, .2), kind="cleanse", school="light")
 
 class Pawn:
     def __init__(self, name, arch, lv, team, rng, gear=None, boss=False, skills=None):
@@ -110,6 +134,11 @@ class Pawn:
         self.skills = skills if skills is not None else ([LIB[arch["skill"]]] if arch["skill"] else [])
         self.tic = rng.random() * .3
         self.tic_spd = BAL["tic_spd_base"] + math.sqrt(max(0, pts["spd"])) / BAL["tic_spd_div"]
+        # the elements pass (2026-09-17): the table, the bite, the clocks
+        self.elem = arch.get("elem", ""); self.ail_k = arch.get("ail", ""); self.tags = arch.get("tags", []); self.boss = boss
+        self.res = res_gen(rng, self.elem if team == 1 else "")
+        self.ail = {"poison": 0, "slow": 0, "leech": 0}; self.bf = {"atk": 0, "def": 0, "hit": 0, "spd": 0}; self.nf = {"atk": 0, "def": 0, "hit": 0}
+        self.regen = 0; self.leecher = None
 
 def sprite_pawn(cls, lv, rng, gear=None):
     c = CLASSES[cls]
@@ -130,14 +159,62 @@ class Fight:
     def __init__(self, party, foes, rng):
         self.party, self.foes, self.all = party, foes, party + foes
         self.rng = rng; self.turn = 0; self.over = False; self.won = False; self.thr = 1
-    def hit(self, u, t, mult=1, label="", cdepth=0, magic=False):
+    def status(self, u, t, key):
+        b = BAL
+        if t.hp <= 0: return False
+        undead = "undead" in t.tags; slime = "slime" in t.tags
+        turns = max(1, round(b["ail_turns"] * (b["boss_ail"] if t.boss else 1)))
+        bturns = max(1, round(b["buff_turns"] * (b["boss_ail"] if (t.boss and t.team == 1) else 1)))
+        if key == "poison":
+            if undead or slime: return False
+            t.ail["poison"] = turns; return True
+        if key == "slow":
+            if t.bf["spd"] > 0: t.bf["spd"] = 0; return True
+            t.ail["slow"] = turns; return True
+        if key == "leech":
+            if undead: return False
+            t.ail["leech"] = turns; t.leecher = u; return True
+        if key == "regen": t.regen = bturns; return True
+        if key == "haste":
+            if t.ail["slow"] > 0: t.ail["slow"] = 0; return True
+            t.bf["spd"] = bturns; return True
+        if key.startswith("buf_"):
+            k = key[4:]
+            if t.nf[k] > 0: t.nf[k] = 0; return True
+            t.bf[k] = bturns; return True
+        if key.startswith("nerf_"):
+            k = key[5:]
+            if t.bf[k] > 0: t.bf[k] = 0; return True
+            t.nf[k] = bturns; return True
+        return False
+    def purge(self, t, school, one=False):
+        if school == "light":
+            if one:
+                for k in ("poison", "slow", "leech"):
+                    if t.ail[k] > 0: t.ail[k] = 0; return 1
+                return 0
+            for k in t.ail: t.ail[k] = 0
+            for k in t.nf: t.nf[k] = 0
+            t.leecher = None
+        else:
+            for k in t.bf: t.bf[k] = 0
+            t.regen = 0
+        return 1
+    def hit(self, u, t, mult=1, label="", cdepth=0, magic=False, elem=None, ail=""):
         b, rng = BAL, self.rng
-        apow = u.mag if magic else u.atk
-        dpow = t.mdef if magic else t.def_
-        s = u.hit + t.eva
+        basic = (label == "" and cdepth == 0)
+        if elem is None: elem = u.elem
+        if ail == "" and basic: ail = u.ail_k
+        m_atk = 1 + (b["buff_pct"] if u.bf["atk"] > 0 else 0) - (b["buff_pct"] if u.nf["atk"] > 0 else 0)
+        m_hit = 1 + (b["buff_pct"] if u.bf["hit"] > 0 else 0) - (b["buff_pct"] if u.nf["hit"] > 0 else 0)
+        m_def = 1 + (b["buff_pct"] if t.bf["def"] > 0 else 0) - (b["buff_pct"] if t.nf["def"] > 0 else 0)
+        apow = (u.mag if magic else u.atk) * m_atk
+        dpow = (t.mdef if magic else t.def_) * m_def
+        uhit = u.hit * m_hit
+        s = uhit + t.eva
         hc = 50
         if s > 0:
-            r = u.hit / s
+            r = uhit / s
             hc = max(1, min(99, b["hitcurve_a"] * r * r + b["hitcurve_b"] * r))
         roll = rng.random() * 100
         if roll >= hc: return 0
@@ -152,6 +229,10 @@ class Fight:
             cl = (u.crit_multi - 1) * b["crit_lerp_low"]; ch = (u.crit_multi - 1) * b["crit_lerp_high"]
             dmg *= 1 + cl + (ch - cl) * q
         dmg *= b["ttk_multi"]
+        if elem in BEATS:
+            rs = max(b["res_min"], min(b["res_max"], t.res[elem]))
+            dmg *= 1 - rs / 100
+        if elem == "fire": dmg *= b["fire_bonus"]
         dmg = max(.1, round(dmg * 10) / 10)
         stag = (1 + t.spd / 3) * (.01 + ((.085 if q >= .97 else .05) - .01) * q)
         if crit: stag += (1 + t.spd / 3) * .03
@@ -159,6 +240,9 @@ class Fight:
         t.hp = max(0, t.hp - dmg)
         t.maxhp = max(1, t.maxhp - dmg * b["dmg_to_maxhp"] * t.erode)
         if t.hp > t.maxhp: t.hp = t.maxhp
+        if t.ail["leech"] > 0 and t.leecher is u and u.hp > 0: self.heal(u, dmg * b["leech_pct"])
+        if ail != "" and t.hp > 0:
+            if rng.random() * 100 < (b["ail_basic"] if basic else b["ail_skill"]): self.status(u, t, ail)
         if label == "" and cdepth == 0:
             u.mp = min(u.maxmp, u.mp + (b["mp_gain_qual"] if (q >= .85 or crit) else b["mp_gain"]))
         if t.hp > 0 and cdepth < b["cnt_chain"]:
@@ -177,13 +261,35 @@ class Fight:
             return sc
         if s.kind == "reform": return 0 if u.hp > u.maxhp * .35 else 85
         if s.kind == "drain": return 40 + (1 - u.hp / u.maxhp) * 45
-        if s.kind == "mend": return (1 - t.hp / t.maxhp) * 95
-        if s.kind == "heal": return (1 - t.hp / t.maxhp) * (80 + s.healp * 40)
+        if s.kind == "mend": return (1 - t.hp / t.maxhp) * 95 + (20 if any(v > 0 for v in t.ail.values()) else 0)
+        if s.kind == "heal": return (1 - t.hp / t.maxhp) * (80 + s.healp * 40) + (20 if any(v > 0 for v in t.ail.values()) else 0)
         if s.kind in ("concuss", "stagger"): return 35 + t.spd * 4 + (t.tic / self.thr) * 25
         if s.kind in ("bolt", "spell"):
             sc = 50 + t.def_ * 2 - t.mdef + max(0, s.mult - 1.3) * 20
             if t.hp < t.maxhp * .35: sc += 20
+            if s.elem: sc -= t.res[s.elem] * .5
             return sc
+        if s.kind == "venom":
+            sc = 40 + (t.maxhp / max(1, u.maxhp)) * 10
+            if t.ail[s.ail] > 0: sc = 12
+            sc -= t.res[s.elem] * .5
+            return sc
+        if s.kind == "bless":
+            on = t.bf["spd"] > 0 if s.buf == "haste" else t.bf[s.buf[4:]] > 0
+            if on: return 0
+            sc = 42 + (t.hp / t.maxhp) * 10
+            if s.buf != "haste" and t.nf[s.buf[4:]] > 0: sc += 25
+            return sc
+        if s.kind == "hex":
+            k = s.nerf[5:]
+            if t.nf[k] > 0: return 10
+            sc = 40 + (t.def_ if k == "def" else (t.atk if k == "atk" else t.hit)) * 2
+            if t.bf[k] > 0: sc += 25
+            return sc
+        if s.kind == "cleanse":
+            dark = sum(1 for v in t.ail.values() if v > 0) + sum(1 for v in t.nf.values() if v > 0)
+            if dark == 0: return 0
+            return 55 + dark * 15 + (1 - t.hp / t.maxhp) * 20
         return 0
     def ai(self, u):
         rng = self.rng; best = None; bs = -1e9
@@ -205,37 +311,52 @@ class Fight:
                 if sc > bs: bs, best = sc, (s, t)
         return best
     def effect(self, s, u, t):
-        if s.kind in ("strike", "heavy", "bolt", "spell"): self.hit(u, t, s.mult, s.name, 0, s.magic)
+        if s.kind in ("strike", "heavy", "bolt", "spell"): self.hit(u, t, s.mult, s.name, 0, s.magic, s.elem)
         elif s.kind == "reform": self.heal(u, u.maxhp * .4)
         elif s.kind == "drain":
-            d = self.hit(u, t, s.mult, s.name, 0, s.magic)
+            d = self.hit(u, t, s.mult, s.name, 0, s.magic, s.elem, "leech")
             if d > 0: self.heal(u, d * (s.leech or .6))
-        elif s.kind == "mend": self.heal(t, t.maxhp * .35)
-        elif s.kind == "heal": self.heal(t, t.maxhp * s.healp)
+        elif s.kind == "mend": self.heal(t, t.maxhp * .35); self.purge(t, "light", True)
+        elif s.kind == "heal": self.heal(t, t.maxhp * s.healp); self.purge(t, "light", True)
         elif s.kind in ("concuss", "stagger"):
-            d = self.hit(u, t, s.mult, s.name, 0, s.magic)
+            d = self.hit(u, t, s.mult, s.name, 0, s.magic, s.elem)
             if d > 0: t.tic -= self.thr * (s.stag or .45)
+        elif s.kind == "venom": self.hit(u, t, s.mult, s.name, 0, s.magic, s.elem, s.ail)
+        elif s.kind == "bless": self.status(u, t, s.buf)
+        elif s.kind == "hex":
+            d = self.hit(u, t, s.mult, s.name, 0, s.magic, s.elem)
+            if d > 0: self.status(u, t, s.nerf)
+        elif s.kind == "cleanse": self.heal(t, t.maxhp * s.healp); self.purge(t, "light", False)
     def step(self):
         if self.over: return
         th = 1
         for p in self.all:
             if p.hp > 0 and p.tic_spd > th: th = p.tic_spd
         self.thr = th
-        dt = min((max(0, (th - p.tic) / max(.01, p.tic_spd)) for p in self.all if p.hp > 0), default=None)
+        def rate(p): return p.tic_spd * (BAL["slow_rate"] if p.ail["slow"] > 0 else 1) * (BAL["haste_rate"] if p.bf["spd"] > 0 else 1)
+        dt = min((max(0, (th - p.tic) / max(.01, rate(p))) for p in self.all if p.hp > 0), default=None)
         if dt is None: self.over = True; return
         ready = []
         for p in self.all:
             if p.hp <= 0: continue
-            p.tic += p.tic_spd * dt
+            p.tic += rate(p) * dt
             if p.tic >= th - 1e-4: ready.append(p)
         actor = self.rng.choice(ready)
         self.turn += 1
+        if actor.ail["poison"] > 0 and actor.hp > 0:
+            actor.hp = max(0, actor.hp - max(1, round(actor.maxhp * BAL["poison_pct"])))
+        if actor.hp > 0 and actor.regen > 0: self.heal(actor, actor.maxhp * BAL["regen_pct"])
         plan = self.ai(actor)
         if plan is not None and actor.hp > 0 and plan[1].hp > 0:
             s, t = plan
             if s is None: self.hit(actor, t, 1, "", 0, actor.magic)
             else: actor.mp -= s.cost; self.effect(s, actor, t)
         actor.tic -= th
+        for k in actor.ail: actor.ail[k] = max(0, actor.ail[k] - 1)
+        if actor.ail["leech"] == 0: actor.leecher = None
+        for k in actor.bf: actor.bf[k] = max(0, actor.bf[k] - 1)
+        for k in actor.nf: actor.nf[k] = max(0, actor.nf[k] - 1)
+        actor.regen = max(0, actor.regen - 1)
         alive = [sum(1 for p in self.all if p.hp > 0 and p.team == k) for k in (0, 1)]
         if self.turn >= 300 and alive[0] and alive[1]: alive[0] = 0
         if alive[0] == 0 or alive[1] == 0:
@@ -258,14 +379,15 @@ def main():
     # 1. class vs roster at par, 1 v 1, level 1 and level 10
     for lv in (1, 10):
         out.append("1v1 at par, level %d  (win %% / mean actions)" % lv)
-        out.append("  %-8s" % "" + "".join("%9s" % f for f in FOES) + "     mean")
+        DUEL = [f for f in FOES if f != "cantor"]   # (the cantor is a pack kind - solo it is meant to be a pushover)
+        out.append("  %-8s" % "" + "".join("%9s" % f for f in DUEL) + "     mean")
         means = {}
         for c in CLASSES:
             row = []; acc = 0
-            for fk in FOES:
+            for fk in DUEL:
                 wr_, tn = winrate(lambda r, c=c, lv=lv: [sprite_pawn(c, lv, r)], lambda r, fk=fk, lv=lv: [foe_pawn(fk, lv, r)], n=300, seed=lv * 7 + 1)
                 row.append("%5.0f/%-3.0f" % (wr_ * 100, tn)); acc += wr_
-            means[c] = acc / len(FOES)
+            means[c] = acc / len(DUEL)
             out.append("  %-8s" % c + "".join("%9s" % x for x in row) + "    %4.0f%%" % (means[c] * 100))
         lo, hi = min(means.values()), max(means.values())
         claims.append(("a lone sprite at par wins more than it loses, no class a pushover (50..90%%) at level %d" % lv, lo >= .5 and hi <= .9, "%.0f..%.0f%%" % (lo * 100, hi * 100)))

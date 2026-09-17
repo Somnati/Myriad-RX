@@ -59,6 +59,8 @@ function gear_gen(_slot, _lv, _rar, _seed, _tag = "", _own = "", _gen = 2) {
 	else if (_rar <= 3) _nq = 1 + ((random(1) < .25) ? 1 : 0);
 	else                _nq = 1 + ((random(1) < .6) ? 1 : 0) + ((_rar >= 6 && random(1) < .5) ? 1 : 0);
 	var _quirks = [], _holds = "", _crit = 0, _cnt = 0, _erode = 1, _mp0 = 0, _cursed = false;
+	var _res_el = "", _res_v = 0, _elem = "";
+	var _weapon = (_slot == "w1" || _slot == "w2");
 	for (var _n = 0; _n < _nq; _n++) {
 		var _qk = undefined, _try = 0;
 		do {
@@ -66,9 +68,13 @@ function gear_gen(_slot, _lv, _rar, _seed, _tag = "", _own = "", _gen = 2) {
 			else _qk = _qs[irandom(array_length(_qs) - 1)];
 			if (is_undefined(_qk)) _qk = _qs[irandom(array_length(_qs) - 1)];
 			_try += 1;
-		} until (!array_contains(_quirks, _qk.key) || _try >= 4);
-		if (array_contains(_quirks, _qk.key)) continue;
+			// (a proofing belongs on armour or a talisman, an element on a weapon - 2026-09-17)
+			var _wrong = (!is_undefined(_qk[$ "elem"]) && !_weapon) || (!is_undefined(_qk[$ "res"]) && _weapon);
+		} until ((!array_contains(_quirks, _qk.key) && !_wrong) || _try >= 4);
+		if (array_contains(_quirks, _qk.key) || _wrong) continue;
 		array_push(_quirks, _qk.key);
+		if (!is_undefined(_qk[$ "res"]))   { _res_el = _qk.res; _res_v += cbt_balance().res_quirk; }
+		if (!is_undefined(_qk[$ "elem"]))  _elem = _qk.elem;
 		if (!is_undefined(_qk[$ "hold"]))  _holds = _qk.hold;
 		if (!is_undefined(_qk[$ "crit"]))  _crit += _qk.crit;
 		if (!is_undefined(_qk[$ "cnt"]))   _cnt += _qk.cnt;
@@ -92,5 +98,6 @@ function gear_gen(_slot, _lv, _rar, _seed, _tag = "", _own = "", _gen = 2) {
 	return { slot : _slot, fam : _fam.key, name : _name, lv : max(1, _lv), rar : _rar, seed : _seed & $7fffffff,
 	         tag : _tag, own : _own, gen : _gen,
 	         pts : _pts, col : upgrade_rarity_info(_rar).col, score0 : _sum,
-	         quirks : _quirks, holds : _holds, crit : _crit, cnt : _cnt, erode : _erode, mp0 : _mp0 };
+	         quirks : _quirks, holds : _holds, crit : _crit, cnt : _cnt, erode : _erode, mp0 : _mp0,
+	         res_el : _res_el, res_v : _res_v, elem : _elem };   // (the elements pass, 2026-09-17)
 }

@@ -16,6 +16,10 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 	var _gcrit = 0, _gcnt = 0, _gerode = 1, _gmp0 = 0;
 	for (var _w = 0; _w < array_length(_st.worn); _w++) { var _wi = _st.worn[_w]; _gcrit += _wi[$ "crit"] ?? 0; _gcnt += _wi[$ "cnt"] ?? 0; _gerode *= _wi[$ "erode"] ?? 1; _gmp0 += _wi[$ "mp0"] ?? 0; }
 	_gerode = max(.25, _gerode);
+	// THE WEAPON'S ELEMENT (2026-09-17): a burning / soaked / thorned main hand
+	// puts its element on every basic attack; the off hand only if the main has none
+	var _welem = "";
+	for (var _w = 0; _w < array_length(_st.worn); _w++) { var _wi2 = _st.worn[_w]; if ((_wi2[$ "elem"] ?? "") != "" && (_wi2.slot == "w1" || (_welem == "" && _wi2.slot == "w2"))) _welem = _wi2.elem; }
 	return {
 		name : _sp.name, col : _sp.col, sid : _sp.id, cls : _c.key, lv : sprite_sheet(_sp).lv,
 		team : 0, k : 0,
@@ -30,5 +34,9 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 		tic : random(.3), tic_spd : _b.tic_spd_base + sqrt(max(0, _p.spd)) / _b.tic_spd_div,
 		pts_total : _st.total,
 		dd : 0, dt : 0, cc : 0,
+		// the elements pass (2026-09-17): the table, the weapon's element, no
+		// bite of its own, and the fight-long clocks
+		res : sprite_res(_sp), elem : _welem, school : "", ail_k : "", tags : [],
+		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
 	};
 }

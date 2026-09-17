@@ -1199,10 +1199,16 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _ly - 1, _skw, 10, 0, c_black, .35);
 		array_push(it_rects, { x : _hx - 3, y : _ly - 1, w : _skw, h : 10, sk : _s });
 		if (is_struct(it_pop) && it_pop[$ "sk"] == _s) { draw_sprite_ext(spr_pixel_1x1, 0, _hx - 3, _ly - 1, _skw, 10, 0, c_white, .1); draw_px_rect(_hx - 3, _ly - 1, _skw, 10, c_white, .45); }
-		draw_set_color(_s.magic ? c_hpurple : c_horange); draw_set_alpha(.9);
-		draw_text(_hx, _ly, _s.name);
+		// the element or the school colours the name and says its word (2026-09-17)
+		var _sel = _s[$ "elem"] ?? "", _ssc = _s[$ "school"] ?? "";
+		var _scol = _s.magic ? c_hpurple : c_horange, _sword = "";
+		if (_sel != "") { var _sei = cbt_elem_info(_sel); _scol = _sei.col; _sword = _sei.name; }
+		else if (_ssc != "") { var _sci = cbt_elem_info(_ssc); _scol = _sci.col; _sword = _ssc; }
+		draw_set_color(_scol); draw_set_alpha(.9);
+		draw_text(_hx, _ly, __sheet_cut(_s.name, _skw - 44 - ((_sword != "") ? string_width(_sword) + 6 : 0)));
 		draw_set_halign(fa_right); draw_set_color(c_sblue); draw_set_alpha(.85);
 		draw_text(_hx - 3 + _skw - 4, _ly, string(_s.cost) + " mp");
+		if (_sword != "") { draw_set_color(_scol); draw_set_alpha(.55); draw_text(_hx - 3 + _skw - 4 - string_width(string(_s.cost) + " mp") - 6, _ly, _sword); }
 		draw_set_halign(fa_left);
 	}
 	var _py = _ey + array_length(_rows) * 12 + 4;
@@ -1215,28 +1221,24 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		array_push(it_rects, { x : _ex, y : _py + 9 + _i * 9, w : _x1 - 8 - _ex, h : 9, it : _sh.inv[_i], worn : false });
 	}
 	if (array_length(_sh.inv) > _pn) { draw_set_color(_dim); draw_set_alpha(.4); draw_text(_ex + 4, _py + 10 + _pn * 9, "...and " + string(array_length(_sh.inv) - _pn) + " more"); }
+	// THE RESISTANCES (his design, 2026-09-17), where the notepad was (it is
+	// on page two now): signed - minus takes more, plus takes less, 0 normal.
+	// The birth pair off the id, the gear's proofings, the ward notes (sprite_res)
 	var _ny = _py + 10 + (min(array_length(_sh.inv), 4) + ((array_length(_sh.inv) > 4) ? 1 : 0)) * 9 + 4;
 	draw_set_color(_ink); draw_set_alpha(.5);
-	draw_text(_ex, _ny, "notepad  " + string(array_length(_sh.notes)) + " / " + string(SPRITE_NOTES));
-	// wrapped to the column (his ask), newest at the bottom, as many as fit;
-	// tap a note for what it does (the popup)
-	var _ntw = _x1 - 8 - _ex - 6;
-	var _nhs = array_create(array_length(_sh.notes), 0), _nroom = room_height - 10 - (_ny + 10), _n0 = array_length(_sh.notes);
-	for (var _i = array_length(_sh.notes) - 1; _i >= 0; _i--) {
-		var _nh = string_height_ext("- " + _sh.notes[_i].txt, 9, _ntw) + 1;
-		if (_nh > _nroom) break;
-		_nroom -= _nh; _nhs[_i] = _nh; _n0 = _i;
+	draw_text(_ex, _ny, "resistances");
+	var _rsv = sprite_res(_sp), _rel = ["fire", "water", "nature"], _rx = _ex + 4;
+	for (var _ri2 = 0; _ri2 < 3; _ri2++) {
+		var _rei = cbt_elem_info(_rel[_ri2]), _rv = _rsv[$ _rel[_ri2]];
+		draw_set_color(_rei.col); draw_set_alpha(.85); draw_text(_rx, _ny + 10, _rei.name);
+		draw_set_color((_rv > 0) ? c_aqua : ((_rv < 0) ? c_horange : _dim)); draw_set_alpha((_rv == 0) ? .5 : .95);
+		draw_text(_rx, _ny + 20, ((_rv > 0) ? "+" : "") + string(_rv) + "%");
+		_rx += 44;
 	}
-	var _nyy = _ny + 10;
-	for (var _i = _n0; _i < array_length(_sh.notes); _i++) {
-		var _nt = _sh.notes[_i];
-		if (is_struct(it_pop) && it_pop[$ "nt"] == _nt) { draw_sprite_ext(spr_pixel_1x1, 0, _ex, _nyy - 1, _x1 - 8 - _ex, _nhs[_i], 0, c_white, .1); draw_px_rect(_ex, _nyy - 1, _x1 - 8 - _ex, _nhs[_i], c_white, .45); }
-		draw_set_color((_nt.tag != "") ? c_horange : _dim); draw_set_alpha((_nt.tag != "") ? .8 : .6);
-		draw_text_ext(_ex + 4, _nyy, "- " + _nt.txt, 9, _ntw);
-		array_push(it_rects, { x : _ex, y : _nyy - 1, w : _x1 - 8 - _ex, h : _nhs[_i], nt : _nt });
-		_nyy += _nhs[_i];
-	}
-	if (array_length(_sh.notes) == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_ex + 4, _ny + 10, "- (blank)"); }
+	// the weapon's element, if the main hand carries one
+	var _wel = "";
+	for (var _wk = 0; _wk < array_length(_st.worn); _wk++) if ((_st.worn[_wk][$ "elem"] ?? "") != "" && (_st.worn[_wk].slot == "w1" || (_wel == "" && _st.worn[_wk].slot == "w2"))) _wel = _st.worn[_wk].elem;
+	if (_wel != "") { var _wei = cbt_elem_info(_wel); draw_set_color(_wei.col); draw_set_alpha(.8); draw_text(_ex + 4, _ny + 31, "strikes with " + _wei.name); }
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
@@ -1446,6 +1448,31 @@ __draw_sheet_p2 = function(_sp, _x0, _y0, _x1, _y1) {
 		_ly += 10;
 	}
 	draw_set_halign(fa_left);
+	// THE NOTEPAD (moved here from page one, 2026-09-17): wrapped to the
+	// column, newest at the bottom, as many as fit; tap a note for what it does
+	var _sh2 = sprite_sheet(_sp);
+	_ly += 4;
+	if (_ly + 22 < _y1) {
+		draw_set_color(_ink); draw_set_alpha(.5); draw_text(_lx, _ly, "notepad  " + string(array_length(_sh2.notes)) + " / " + string(SPRITE_NOTES));
+		var _ntw = _lw - 6, _ny0 = _ly + 10;
+		var _nhs = array_create(array_length(_sh2.notes), 0), _nroom = _y1 - 4 - _ny0, _n0 = array_length(_sh2.notes);
+		for (var _i = array_length(_sh2.notes) - 1; _i >= 0; _i--) {
+			var _nh = string_height_ext("- " + _sh2.notes[_i].txt, 9, _ntw) + 1;
+			if (_nh > _nroom) break;
+			_nroom -= _nh; _nhs[_i] = _nh; _n0 = _i;
+		}
+		var _nyy = _ny0;
+		for (var _i = _n0; _i < array_length(_sh2.notes); _i++) {
+			var _nt = _sh2.notes[_i];
+			if (is_struct(it_pop) && it_pop[$ "nt"] == _nt) { draw_sprite_ext(spr_pixel_1x1, 0, _lx - 3, _nyy - 1, _lw + 6, _nhs[_i], 0, c_white, .1); draw_px_rect(_lx - 3, _nyy - 1, _lw + 6, _nhs[_i], c_white, .45); }
+			draw_set_color((_nt.tag != "") ? c_horange : _dim); draw_set_alpha((_nt.tag != "") ? .8 : .6);
+			draw_text_ext(_lx, _nyy, "- " + _nt.txt, 9, _ntw);
+			array_push(it_rects, { x : _lx - 3, y : _nyy - 1, w : _lw + 6, h : _nhs[_i], nt : _nt });
+			_nyy += _nhs[_i];
+		}
+		if (array_length(_sh2.notes) == 0) { draw_set_color(_dim); draw_set_alpha(.35); draw_text(_lx, _ny0, "- (blank)"); }
+		_ly = _nyy + 4;
+	}
 	// the friendships
 	var _fx = land ? (_x0 + 148) : _lx, _fy = land ? _y0 : (_ly + 8);
 	if (!land && _fy + 22 > _y1) return;
@@ -1477,6 +1504,32 @@ __draw_sheet_p2 = function(_sp, _x0, _y0, _x1, _y1) {
 		_fy += 10;
 	}
 	draw_set_halign(fa_left);
+};
+// THE STATUS PIPS (2026-09-17): a 2x2 dot per effect on a pawn in the
+// combat window - venom green, slow blue, the mark purple, a blessing
+// gold, a nerf red, regen white - under its hp bar
+__pips = function(_p, _x, _y) {
+	if (!is_struct(_p[$ "ail"])) return;
+	var _cols = [];
+	if (_p.ail.poison > 0) array_push(_cols, c_sgreen);
+	if (_p.ail.slow > 0)   array_push(_cols, c_sblue);
+	if (_p.ail.leech > 0)  array_push(_cols, c_hpurple);
+	if (is_struct(_p[$ "bf"]) && (_p.bf.atk > 0 || _p.bf.def > 0 || _p.bf.hit > 0 || _p.bf.spd > 0)) array_push(_cols, c_gold);
+	if (is_struct(_p[$ "nf"]) && (_p.nf.atk > 0 || _p.nf.def > 0 || _p.nf.hit > 0)) array_push(_cols, c_hred);
+	if ((_p[$ "regen"] ?? 0) > 0) array_push(_cols, c_white);
+	for (var _i = 0; _i < array_length(_cols); _i++) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _i * 3 - 1, _y - 1, 4, 4, 0, c_black, .8);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x + _i * 3, _y, 2, 2, 0, _cols[_i], .95);
+	}
+};
+// has any sprite a note on this kind? (the bestiary reveals a studied
+// kind's element and table - the notepad's second job, 2026-09-17)
+__kind_studied = function(_kind) {
+	for (var _i = 0; _i < array_length(g.sprites); _i++) {
+		var _nk = sprite_notes_kinds(g.sprites[_i]);
+		for (var _k = 0; _k < array_length(_nk); _k++) if (string_pos(_kind + ":", _nk[_k]) == 1) return true;
+	}
+	return false;
 };
 __sheet_tap = function() {
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
