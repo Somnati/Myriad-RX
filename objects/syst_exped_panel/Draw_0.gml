@@ -42,6 +42,7 @@ switch (view) {
 	case "crew":   _t1 = (mode == "sprites") ? ("sprites  -  " + string(array_length(g.sprites)) + " of " + string(SPRITE_CAP)) : "expedition  -  the crew"; break;
 	case "galaxy": _t1 = "expedition  -  the galaxy"; break;
 	case "system": _t1 = "expedition  -  a star system"; break;
+	case "station": _t1 = (st_sel >= 0 && st_sel < array_length(sy_stns)) ? ("expedition  -  " + sy_stns[st_sel].name + "  /  " + sy_stns[st_sel].kind) : "expedition  -  a station"; break;
 	case "bestiary": _t1 = "expedition  -  the bestiary"; break;
 }
 if (is_struct(_td)) { _t1 = land ? "expedition  -  " : ""; _t2 = _td.name; if (!land) _t3 = ""; }
@@ -966,6 +967,28 @@ if (view == "planet") {
 // the tech demo's rm_starmap as a page: the parallax backdrop, the stars
 // off the draw grid with their depth parallax, the nebula fog sheet
 // (baked once a galaxy, dithered), the home star ringed. Drag pans,
+// ======================= THE STATION PAGE (2026-09-17): a star's station, close up =======================
+if (view == "station") {
+	if (st_sel < 0 || st_sel >= array_length(sy_stns) || !is_struct(sy_sys)) { __draw_back(); ui_fade_set(1); exit; }
+	var _stp = sy_stns[st_sel];
+	__draw_station();
+	ui_fade_set(_ea);
+	// the title
+	draw_set_halign(fa_center); draw_set_color(c_white); draw_set_alpha(.95);
+	draw_text(room_width * .5, list_y + 6, _stp.name);
+	draw_set_halign(fa_left);
+	// THE CARD, bottom left: what it is, its line, where it hangs
+	var _cw = land ? 210 : room_width - 8, _ch = 46, _cx0 = land ? 14 : 4, _cy0 = room_height - 8 - 16 - 6 - _ch;
+	draw_sprite_ext(spr_pixel_1x1, 0, _cx0, _cy0, _cw, _ch, 0, c_black, .82);
+	draw_px_rect(_cx0, _cy0, _cw, _ch, _stp.hull, .7);
+	draw_set_color(_stp.hull); draw_set_alpha(.95); draw_text(_cx0 + 6, _cy0 + 4, _stp.kind + "  -  " + _stp.shape_name);
+	draw_set_color(_ink); draw_set_alpha(.85); draw_text_ext(_cx0 + 6, _cy0 + 15, _stp.line, 9, _cw - 12);
+	draw_set_color(_dim); draw_set_alpha(.7); draw_text(_cx0 + 6, _cy0 + _ch - 12, "in orbit of " + star_name(sy_star) + "  -  drag to look round");
+	__draw_back();
+	ui_fade_set(1);
+	exit;
+}
+
 // ======================= THE STAR SYSTEM (the tech demo's 3d view, ported 2026-09-16) =======================
 if (view == "system") {
 	if (sy_star < 0 || !is_struct(sy_sys)) { __draw_back(); ui_fade_set(1); exit; }
@@ -979,15 +1002,19 @@ if (view == "system") {
 	draw_text(sy_cx, list_y + 6, "the " + star_name(sy_star) + " system");
 	// the caption at the foot of the view: pick a planet, or the picked one's line (above the buttons' row)
 	var _capy = room_height - 8 - 16 - 12;
-	if (sy_sel >= 0 && sy_sel < _np) {
+	if (sy_ssel >= 0 && sy_ssel < array_length(sy_stns)) {
+		var _stc2 = sy_stns[sy_ssel];
+		draw_set_color(c_gold); draw_set_alpha(.95);
+		draw_text(sy_cx, _capy, _stc2.name + "  -  " + _stc2.kind + "  -  " + _stc2.shape_name);
+	} else if (sy_sel >= 0 && sy_sel < _np) {
 		var _gbc = galaxy_world_biome(_pls[sy_sel]);
 		draw_set_color(c_gold); draw_set_alpha(.95);
 		draw_text(sy_cx, _capy, star_name(sy_star) + " " + _romd[clamp(sy_sel, 0, 7)] + "  -  " + ((_gbc < 0) ? "gas giant  -  no landing" : (exped_biomes()[_gbc].name + " world  -  tier " + string(sy_info[sy_sel]))));
-	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, "pick a planet"); }
+	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, (array_length(sy_stns) > 0) ? "pick a planet or a station" : "pick a planet"); }
 	draw_set_halign(fa_left);
 	// [galaxy] bottom left (his ask, 2026-09-16): the map, from here
 	var _sgl = __galaxy_r();
-	if (sy_warp_pl < 0) draw_ui_button(_sgl.x, _sgl.y, _sgl.w, _sgl.h, "galaxy", c_steelblue, true, false);
+	if (sy_warp_pl < 0 && sy_warp_st < 0) draw_ui_button(_sgl.x, _sgl.y, _sgl.w, _sgl.h, "galaxy", c_steelblue, true, false);
 	// THE DOCK AS A DRAWER (his ask, 2026-09-16): the tab on the right edge, the star's numbers and the worlds when open
 	var _dkx = __sy_dock_x(), _dkw = __sy_dock_w();
 	var _stb = __sy_tab_r();
@@ -995,7 +1022,8 @@ if (view == "system") {
 	draw_px_rect(_stb.x, _stb.y, _stb.w, _stb.h, c_steelblue, .6);
 	draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_stb.x + 2, _stb.y + _stb.h * .5 - 4, sy_dw ? ">" : "<");
 	// (one [enter] at a time: this one until the drawer's past .3, the drawer's own after)
-	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0) { var _ser = __sy_enter_r(); draw_ui_button(_ser.x, _ser.y, _ser.w, _ser.h, "enter  >", c_gold, true, true); }
+	if (sy_dwa <= .3 && sy_ssel >= 0 && sy_warp_pl < 0 && sy_warp_st < 0) { var _ser0 = __sy_enter_r(); draw_ui_button(_ser0.x, _ser0.y, _ser0.w, _ser0.h, "enter  >", c_gold, true, true); }   // (a station picked - 2026-09-17)
+	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0 && sy_warp_st < 0) { var _ser = __sy_enter_r(); draw_ui_button(_ser.x, _ser.y, _ser.w, _ser.h, "enter  >", c_gold, true, true); }
 	if (sy_dwa > .01) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), 0, c_black, .82 * sy_dwa);
 	draw_px_rect(_dkx + 9, list_y + 16, room_width - (_dkx + 9), room_height - 8 - (list_y + 16), c_steelblue, .55 * sy_dwa);
@@ -1020,13 +1048,25 @@ if (view == "system") {
 		draw_set_color(_dim); draw_set_alpha(.75);
 		draw_text(_rr.x + 16, _rr.y + 12, __sheet_cut((_gbd < 0) ? "gas  -  no landing" : (exped_biomes()[_gbd].name + "  -  tier " + string(sy_info[_i])), _rr.w - 20));
 	}
+	// THE STATIONS' ROWS (2026-09-17), after the worlds'
+	for (var _j = 0; _j < array_length(sy_stns); _j++) {
+		var _rr2 = __sy_row_r(_np + _j), _stj = sy_stns[_j], _onj = (sy_ssel == _j);
+		if (_rr2.y + _rr2.h > room_height - 8 - 20) break;
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr2.x, _rr2.y, _rr2.w, _rr2.h, 0, c_black, .7);
+		draw_px_rect(_rr2.x, _rr2.y, _rr2.w, _rr2.h, _onj ? c_gold : c_steelblue, _onj ? .9 : .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _rr2.x + 6, _rr2.y + 9, 5, 5, 0, _stj.hull, .95);
+		draw_set_color(c_white); draw_set_alpha(.95);
+		draw_text(_rr2.x + 16, _rr2.y + 2, __sheet_cut(_stj.name, _rr2.w - 20));
+		draw_set_color(_dim); draw_set_alpha(.75);
+		draw_text(_rr2.x + 16, _rr2.y + 12, __sheet_cut(_stj.kind + "  -  " + _stj.shape_name, _rr2.w - 20));
+	}
 	var _sor = __sy_open_r();
-	var _canopen = (sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0 && sy_warp_pl < 0);
+	var _canopen = ((sy_sel >= 0 && sy_sel < _np && galaxy_world_biome(_pls[sy_sel]) >= 0) || sy_ssel >= 0) && sy_warp_pl < 0 && sy_warp_st < 0;
 	var _selon = false; if (_canopen) for (var _bj = 0; _bj < array_length(_e.board); _bj++) if (_e.board[_bj].seed == _pls[sy_sel].seed) _selon = true;
 	draw_ui_button(_sor.x, _sor.y, _sor.w, _sor.h, _canopen ? "enter  >" : "pick a world", _canopen ? c_gold : c_gray, _canopen, _canopen);
 	}
 	// the dive's veil: black by the swell's second half (the page turns behind it)
-	if (sy_warp_pl >= 0) draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, clamp((sy_warp_t - .45) / .3, 0, 1));
+	if (sy_warp_pl >= 0 || sy_warp_st >= 0) draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, clamp((sy_warp_t - .45) / .3, 0, 1));
 	__draw_back();
 	ui_fade_set(1);
 	exit;

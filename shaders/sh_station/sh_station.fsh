@@ -1,12 +1,12 @@
 //
-// A SPACE STATION (2026-09-16, his ask: "shape based space stations like
-// no man's sky's"): a few signed-distance shapes - a ring, a spindle, a
-// hub, pylons; or stacked blocks; or a cluster of pods; or a diamond with
-// a band - raymarched per pixel on a quad, orthographic rays (the dice's
-// recipe: quad coords from u_quad, one exact ray a cell). u_or maps VIEW
-// space onto the station's OBJECT space (its spin and the camera), the
-// light comes in view space. the hull is panelled by a hash on the hit
-// point, the windows are a sparser hash - lit on the night side.
+// A SPACE STATION (2026-09-16; 2026-09-17, his call: "simple shapes like
+// pyramids, cubes, spheres"): ONE plain solid - a cube, a sphere, a
+// pyramid, an octahedron, a cylinder, a ring, a cone - raymarched per pixel
+// on a quad, orthographic rays (the dice's recipe: quad coords from u_quad,
+// one exact ray a cell). u_or maps VIEW space onto the station's OBJECT
+// space (its lean, its spin and the camera), the light comes in view
+// space. the hull is panelled by a hash on the hit point, the windows are
+// a sparser hash - lit on the night side.
 //
 varying vec2 v_pos;
 varying vec2 v_uv;
@@ -17,8 +17,8 @@ uniform vec3  u_light;  // direction TO the light, view space
 uniform vec3  u_col;    // the hull
 uniform vec3  u_glow;   // the windows
 uniform float u_pad;    // quad half-extent in station units (the station fits a unit sphere)
-uniform float u_style;  // 0 ring and spindle, 1 block stack, 2 pod cluster, 3 diamond
-uniform vec4  u_prm;    // the style's seeded proportions
+uniform float u_style;  // 0 cube, 1 sphere, 2 pyramid, 3 octahedron, 4 cylinder, 5 ring, 6 cone
+uniform vec4  u_prm;    // the shape's seeded proportions (x, y = its stretch)
 uniform float u_seed;
 
 float sd_box(vec3 p, vec3 b)
@@ -54,43 +54,49 @@ float hash13(vec3 p)
     return fract((p.x + p.y) * p.z);
 }
 
+float sd_cyl(vec3 p, float h, float r)
+{
+    vec2 d = abs(vec2(length(p.xz), p.y)) - vec2(r, h);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+// a square pyramid, base 1 x 1 at y = 0, apex at y = h (iq's)
+float sd_pyr(vec3 p, float h)
+{
+    float m2 = h * h + 0.25;
+    p.xz = abs(p.xz);
+    p.xz = (p.z > p.x) ? p.zx : p.xz;
+    p.xz -= 0.5;
+    vec3 q = vec3(p.z, h * p.y - 0.5 * p.x, h * p.x + 0.5 * p.y);
+    float s = max(-q.x, 0.0);
+    float t = clamp((q.y - 0.5 * p.z) / (m2 + 0.25), 0.0, 1.0);
+    float a = m2 * (q.x + s) * (q.x + s) + q.y * q.y;
+    float b = m2 * (q.x + 0.5 * t) * (q.x + 0.5 * t) + (q.y - m2 * t) * (q.y - m2 * t);
+    float d2 = min(q.y, -q.x * m2 - q.y * 0.5) > 0.0 ? 0.0 : min(a, b);
+    return sqrt((d2 + q.z * q.z) / m2) * sign(max(q.z, -p.y));
+}
+// a cone, tip at the origin, base at y = -h (iq's)
+float sd_cone(vec3 p, vec2 c, float h)
+{
+    vec2 q = h * vec2(c.x / c.y, -1.0);
+    vec2 w = vec2(length(p.xz), p.y);
+    vec2 a = w - q * clamp(dot(w, q) / dot(q, q), 0.0, 1.0);
+    vec2 b = w - q * vec2(clamp(w.x / q.x, 0.0, 1.0), 1.0);
+    float k = sign(q.y);
+    float d = min(dot(a, a), dot(b, b));
+    float s = max(k * (w.x * q.y - w.y * q.x), k * (w.y - q.y));
+    return sqrt(d) * sign(s);
+}
+
 float sd_station(vec3 p)
 {
-    float d = 1.0e9;
-    if (u_style < 0.5) {
-        // RING AND SPINDLE: the ring, the spindle through it, a hub, four pylons
-        d = sd_torus(p, u_prm.x, u_prm.y);
-        d = min(d, sd_cap(p, u_prm.z, u_prm.w));
-        d = min(d, sd_box(p, vec3(0.3, 0.22, 0.3)));
-        for (int i = 0; i < 4; i++) {
-            vec3 q = rot_y(p, float(i) * 1.5708 + u_seed);
-            q.x -= u_prm.x * 0.5;
-            d = min(d, sd_box(q, vec3(u_prm.x * 0.5, 0.045, 0.045)));
-        }
-    } else if (u_style < 1.5) {
-        // BLOCK STACK: a broad deck, a tower above, a keel below, a spine, an arm
-        d = sd_box(p, vec3(0.55 * u_prm.x, 0.22, 0.55 * u_prm.y));
-        d = min(d, sd_box(p - vec3(0.0, 0.46, 0.0), vec3(0.3, 0.24, 0.3)));
-        d = min(d, sd_box(p + vec3(0.0, 0.46, 0.0), vec3(0.38, 0.2, 0.2)));
-        d = min(d, sd_cap(p, 0.95, 0.08));
-        d = min(d, sd_box(rot_y(p, u_seed) - vec3(0.62, 0.0, 0.0), vec3(0.32, 0.06, 0.06)));
-    } else if (u_style < 2.5) {
-        // POD CLUSTER: a core and five pods on struts, staggered up and down
-        d = length(p) - 0.42;
-        for (int i = 0; i < 5; i++) {
-            vec3 q = rot_y(p, float(i) * 1.2566 + u_seed);
-            q.x -= 0.62;
-            q.y -= (mod(float(i), 2.0) - 0.5) * 0.28 * u_prm.x;
-            d = min(d, length(q) - 0.26 * u_prm.y);
-            d = min(d, sd_box(q + vec3(0.31, 0.0, 0.0), vec3(0.22, 0.04, 0.04)));
-        }
-    } else {
-        // DIAMOND: an octahedron, a band about its waist, a spine through it
-        d = sd_oct(p, 0.95 * u_prm.x);
-        d = min(d, sd_torus(p, 0.72 * u_prm.y, 0.07));
-        d = min(d, sd_cap(p, 1.05, 0.06));
-    }
-    return d;
+    // THE PLAIN SOLIDS (2026-09-17): one shape, its stretch off u_prm
+    if (u_style < 0.5)      return sd_box(p, vec3(0.58 * u_prm.x, 0.58 * u_prm.y, 0.58 * u_prm.x));
+    else if (u_style < 1.5) return length(p) - 0.78;
+    else if (u_style < 2.5) return sd_pyr((p + vec3(0.0, 0.55, 0.0)) / 1.55, 0.75 * u_prm.y) * 1.55;
+    else if (u_style < 3.5) return sd_oct(p, 0.9);
+    else if (u_style < 4.5) return sd_cyl(p, 0.62 * u_prm.y, 0.5 * u_prm.x);
+    else if (u_style < 5.5) return sd_torus(p, 0.6, 0.24 * u_prm.y);
+    return sd_cone(p - vec3(0.0, 0.72, 0.0), vec2(0.45, 0.89), 1.45);
 }
 
 void main()

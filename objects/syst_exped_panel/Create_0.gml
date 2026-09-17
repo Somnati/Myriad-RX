@@ -443,6 +443,7 @@ __back = function() {
 		case "map":    __page_go(map_from); break;
 		case "galaxy": __page_go(gx_from); break;
 		case "system": __page_go(sy_from); break;   // (back to the map, or the planet page it came from - 2026-09-16)
+		case "station": __page_go("system"); break;   // (the station page: back to its system - 2026-09-17)
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
 		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { exped_close(); return; } break;   // region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
@@ -512,6 +513,12 @@ sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230;
 sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite)
+sy_stns = [];                        // THE STAR'S SPACE STATIONS (station_sys, 2026-09-17): on their own rings, picked like a world
+sy_ssel = -1;                        // the picked station (-1 none; a station and a world are never both picked)
+sy_warp_st = -1;                     // the dive, to a station (its page)
+st_sel = -1;                         // THE STATION PAGE: which of sy_stns; its own camera and spin
+st_cam = mat3_rot(1, 0, 0, -20); st_drag = false; st_drag_px = 0; st_dx = 0; st_dy = 0; st_vx = 0; st_vy = 0;
+__st_ppos = function(_st) { var _a = (_st.ang + _st.spd * 60 * universal_now()) mod 360; return [dcos(_a) * _st.orbit, 0, dsin(_a) * _st.orbit, _a]; };
 sy_moons = [];                       // ...and their moons (planet_moons)
 sy_info = [];                        // ...and their tiers (galaxy_world)
 sy_cx = 0; sy_cy = 0;                // the projection's centre on the page
@@ -541,6 +548,7 @@ __sy_enter = function(_star) {
 	sy_star = _star;
 	sy_sys = starsystem_generate(_sm.stars[_star].seed, _sm.stars[_star].props);
 	sy_sel = -1; sy_pd = []; sy_moons = []; sy_info = [];
+	sy_stns = station_sys(_sm.stars[_star].seed, sy_sys); sy_ssel = -1; sy_warp_st = -1;   // (the star's stations, 2026-09-17)
 	var _hm = galaxy_home();
 	for (var _i = 0; _i < array_length(sy_sys.planets); _i++) {
 		var _p = sy_sys.planets[_i];
@@ -555,6 +563,34 @@ __sy_enter = function(_star) {
 	sy_dest = { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };   // (a stand-in world of this star: the sky builder wants one)
 	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
+};
+/// THE STATION PAGE (2026-09-17, his ask: "click on one like I do a planet to
+/// zoom in on it"): the system's sky behind, the station large in the
+/// middle - its solid, lit by its star - turning under its own spin and the
+/// drag's; the card bottom left says what it is
+__draw_station = function() {
+	var _vr = __sy_view_r();
+	var _w = room_width, _h = room_height - list_y;
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) { if (surface_exists(wb_surf)) surface_free(wb_surf); wb_surf = page_surface(_w, _h); }
+	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) { if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf); sky_fog_surf = surface_create(_w, _h); }
+	var _st = sy_stns[st_sel];
+	var _cx = room_width * .5, _cy = _vr.h * .5;
+	var _sky = __sky_for(sy_dest);
+	var _fa = g.ui_fade_a;
+	ui_fade_set(1);
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	galaxy_sky_draw(_sky, st_cam, _cx, _cy, _w, _h, false, false);
+	galaxy_fog_draw(_sky, st_cam, _cx, _cy, _w, _h, sky_fog_surf, false);
+	// lit from its star: from where it stands on its ring, the star is at the origin
+	var _pp = __st_ppos(_st);
+	var _lw = [-dcos(_pp[3]), .15, -dsin(_pp[3])];
+	g.dither_off = page_float();
+	station_render(_st, _cx, _cy, min(_w, _h) * .27, st_cam, _lw);
+	g.dither_off = false;
+	surface_reset_target();
+	ui_fade_set(_fa);
+	page_blit(wb_surf, 0, list_y);
 };
 /// the star system page painted into the page surface: the star's sky, the rings, the star and the worlds far to near
 __draw_system = function() {
@@ -575,6 +611,7 @@ __draw_system = function() {
 	// the dive's focus: the picked world's spot anchors the swell
 	sy_wfx = sy_cx; sy_wfy = sy_cy;
 	if (sy_warp_pl >= 0) { var _fpp0 = __sy_ppos(_pls[sy_warp_pl]); var _fpp = __sy_proj(_fpp0[0], 0, _fpp0[2]); if (!is_undefined(_fpp)) { sy_wfx = _fpp[0]; sy_wfy = _fpp[1]; } }
+	if (sy_warp_st >= 0) { var _fsp0 = __st_ppos(sy_stns[sy_warp_st]); var _fsp = __sy_proj(_fsp0[0], 0, _fsp0[2]); if (!is_undefined(_fsp)) { sy_wfx = _fsp[0]; sy_wfy = _fsp[1]; } }   // (the dive to a station - 2026-09-17)
 	// the orbit rings: true circles in the plane, as grid-snapped cells (the demo's)
 	for (var _i = 0; _i < _np; _i++) {
 		var _or = _pls[_i].orbit, _stp = max(.4, _pxs * 55 / max(1, _or)), _lcx = -10000, _lcy = -10000;
@@ -587,11 +624,25 @@ __draw_system = function() {
 			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _pxs, _pxs, 0, (sy_sel == _i) ? c_gold : c_white, (sy_sel == _i) ? .3 : .14);
 		}
 	}
-	// z-sort the star and the worlds, far to near
+	// THE STATIONS' RINGS (2026-09-17): dashed, in the hull's colour - one in twelve cells, so a world's ring and a station's read apart
+	for (var _j = 0; _j < array_length(sy_stns); _j++) {
+		var _sor = sy_stns[_j].orbit, _sstp = max(.4, _pxs * 55 / max(1, _sor)), _slcx = -10000, _slcy = -10000, _dash = 0;
+		for (var _a = 0; _a < 360; _a += _sstp) {
+			var _srp = __sy_proj(dcos(_a) * _sor, 0, dsin(_a) * _sor);
+			if (is_undefined(_srp)) continue;
+			var _sgx = floor((sy_wfx + (_srp[0] - sy_wfx) * _s) / _pxs) * _pxs, _sgy = floor((sy_wfy + (_srp[1] - sy_wfy) * _s) / _pxs) * _pxs;
+			if (_sgx == _slcx && _sgy == _slcy) continue;
+			_slcx = _sgx; _slcy = _sgy; _dash++;
+			if ((_dash mod 3) != 0) continue;
+			draw_sprite_ext(spr_pixel_1x1, 0, _sgx, _sgy, _pxs, _pxs, 0, (sy_ssel == _j) ? c_gold : sy_stns[_j].hull, (sy_ssel == _j) ? .4 : .22);
+		}
+	}
+	// z-sort the star, the worlds and the stations, far to near (a station is item 1000 + its index)
 	var _items = [];
 	var _sp0 = __sy_proj(0, 0, 0);
 	if (!is_undefined(_sp0)) array_push(_items, [_sp0[3], -1, _sp0[0], _sp0[1], _sp0[2]]);
 	for (var _i = 0; _i < _np; _i++) { var _pp0 = __sy_ppos(_pls[_i]); var _pp = __sy_proj(_pp0[0], 0, _pp0[2]); if (!is_undefined(_pp)) array_push(_items, [_pp[3], _i, _pp[0], _pp[1], _pp[2]]); }
+	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _sq0 = __st_ppos(sy_stns[_j]); var _sq = __sy_proj(_sq0[0], 0, _sq0[2]); if (!is_undefined(_sq)) array_push(_items, [_sq[3], 1000 + _j, _sq[0], _sq[1], _sq[2]]); }
 	array_sort(_items, function(_a, _b) { return _b[0] - _a[0]; });
 	g.dither_off = page_float();
 	for (var _n = 0; _n < array_length(_items); _n++) {
@@ -601,21 +652,18 @@ __draw_system = function() {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
 			star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
+		} else if (_it[1] >= 1000) {
+			// A STATION on its ring (2026-09-17): its solid, lit from the star; picked = the pulsing box, like a world's
+			var _j = _it[1] - 1000, _stj = sy_stns[_j], _sq1 = __st_ppos(_stj);
+			var _srad = max(2, _stj.size * _k * 1.2);
+			station_render(_stj, _sx, _sy, _srad, sy_cam, [-dcos(_sq1[3]), 0, -dsin(_sq1[3])]);
+			if (sy_ssel == _j && sy_warp_pl < 0 && sy_warp_st < 0) { var _mr3 = _srad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr3, _sy - _mr3, _mr3 * 2, _mr3 * 2, c_white, .8); }
 		} else {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
 			var _pw = __sy_ppos(_p);
 			var _rad = max(1.5, _p.size * _k * 1.2);
 			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera)
 			planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
-			// ITS STATION (2026-09-16): a dotted orbit ring about the world and the station on it - the mark of a world that keeps one
-			var _stn = (galaxy_world_biome(_p) >= 0) ? station_get(_p.seed) : undefined;
-			if (is_struct(_stn)) {
-				var _sr = _p.size * _stn.dist * 1.4;
-				for (var _sd = 0; _sd < 24; _sd++) { var _sa = _sd * 15; var _spp = __sy_proj(_pw[0] + dcos(_sa) * _sr, 0, _pw[2] + dsin(_sa) * _sr); if (is_undefined(_spp)) continue; draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_spp[0] - sy_wfx) * _s), floor(sy_wfy + (_spp[1] - sy_wfy) * _s), 1, 1, 0, c_steelblue, .4); }
-				var _sta = _stn.ang + _stn.spd * 60 * universal_now();
-				var _stp = __sy_proj(_pw[0] + dcos(_sta) * _sr, 0, _pw[2] + dsin(_sta) * _sr);
-				if (!is_undefined(_stp)) draw_sprite_ext(spr_pixel_1x1, 0, floor(sy_wfx + (_stp[0] - sy_wfx) * _s) - 1, floor(sy_wfy + (_stp[1] - sy_wfy) * _s) - 1, 2, 2, 0, _stn.hull, .95);
-			}
 			// its moons at their true phases, as the demo drew them: pixel dots on the plane
 			var _mns = sy_moons[_i], _mn = min(4, _p[$ "moon_n"] ?? 0);
 			for (var _m = 0; _m < _mn; _m++) {
@@ -2308,9 +2356,6 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
 	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
-	// THE STATION and its orbit ring (2026-09-16): the far half with the far moons, the near half after the world
-	var _stn = station_get(_d.seed);
-	if (_built && is_struct(_stn)) station_draw(_pn, _stn, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// the moons' shadow casters, and the storm regions' spots (2026-09-16)
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
@@ -2318,7 +2363,6 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
-	if (_built && is_struct(_stn)) station_draw(_pn, _stn, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
 	if (_built) {
 		var _svr = mat3_apply(mat3_transpose(_cam), _sky.light_w[0], _sky.light_w[1], _sky.light_w[2]);

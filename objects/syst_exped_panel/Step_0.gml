@@ -442,15 +442,21 @@ if (view == "galaxy") {
 // ======================= THE STAR SYSTEM VIEW (the demo's): orbit the camera, glide, the wheel's distance, the dive =======================
 if (view == "system" && is_struct(sy_sys)) {
 	var _ocf = starmap_config();
-	// the dive: an eased swell about the picked world, then its page (behind the veil)
-	if (sy_warp_pl >= 0) {
+	// the dive: an eased swell about the picked world (or station - 2026-09-17), then its page (behind the veil)
+	if (sy_warp_pl >= 0 || sy_warp_st >= 0) {
 		sy_warp_t = min(sy_warp_t + delta / 30, 1);
 		var _we = sy_warp_t * sy_warp_t * (3 - 2 * sy_warp_t);
 		sy_warp_s = power(15, _we);
 		if (sy_warp_t >= 1) {
-			var _di = exped_world_open(sy_star, sy_warp_pl);
-			sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
-			if (_di >= 0) { sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1; view = "planet"; pg_a = 0; pg_dir = 1; view_last = view; }
+			if (sy_warp_st >= 0) {
+				st_sel = sy_warp_st; st_cam = mat3_rot(1, 0, 0, -20); st_vx = 0; st_vy = 0; st_drag = false;
+				sy_warp_st = -1; sy_warp_s = 1; sy_warp_t = 0;
+				view = "station"; pg_a = 0; pg_dir = 1; view_last = view;
+			} else {
+				var _di = exped_world_open(sy_star, sy_warp_pl);
+				sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
+				if (_di >= 0) { sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_cfade = 1; view = "planet"; pg_a = 0; pg_dir = 1; view_last = view; }
+			}
 		}
 		exit;
 	}
@@ -489,11 +495,43 @@ if (view == "system" && is_struct(sy_sys)) {
 				if (is_undefined(_pp2)) continue;
 				if (point_distance(mouse_x, mouse_y - list_y, _pp2[0], _pp2[1]) <= _pls2[_i].size * _pp2[2] * 1.9 + 6) { _hit = _i; break; }
 			}
-			if (_hit >= 0 && _hit != sy_sel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			sy_sel = _hit;
+			// ...or the nearest station (2026-09-17): a station and a world are never both picked
+			var _shit = -1;
+			for (var _j = 0; _j < array_length(sy_stns); _j++) {
+				var _sq2 = __st_ppos(sy_stns[_j]); var _sp2 = __sy_proj(_sq2[0], 0, _sq2[2]);
+				if (is_undefined(_sp2)) continue;
+				if (point_distance(mouse_x, mouse_y - list_y, _sp2[0], _sp2[1]) <= sy_stns[_j].size * _sp2[2] * 1.9 + 6) { _shit = _j; break; }
+			}
+			if (_shit >= 0 && _hit < 0) { if (_shit != sy_ssel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_ssel = _shit; sy_sel = -1; }
+			else { if (_hit >= 0 && _hit != sy_sel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_sel = _hit; sy_ssel = -1; }
 		}
 	}
 	sy_dwa = move_to(sy_dwa, sy_dw ? 1 : 0, 6);   // the drawer's ease
+}
+// ======================= THE STATION PAGE (2026-09-17): drag to look round, a glide on release =======================
+if (view == "station" && st_sel >= 0 && st_sel < array_length(sy_stns)) {
+	var _ocs = starmap_config();
+	var _stvr = __sy_view_r();
+	var _bks = __back_r();
+	var _stin = point_in_rectangle(mouse_x, mouse_y, _stvr.x, _stvr.y, _stvr.x + _stvr.w, _stvr.y + _stvr.h) && !point_in_rectangle(mouse_x, mouse_y, _bks.x, _bks.y, _bks.x + _bks.w, _bks.y + _bks.h);
+	if (!st_drag && mouse_check_button_pressed(mb_left) && _stin) { st_drag = true; st_drag_px = 0; st_dx = mouse_x; st_dy = mouse_y; }
+	if (st_drag && mouse_check_button(mb_left)) {
+		var _sdx = mouse_x - st_dx, _sdy = mouse_y - st_dy;
+		st_drag_px += abs(_sdx) + abs(_sdy);
+		if (_sdx != 0) st_cam = mat3_mul(st_cam, mat3_rot(0, 1, 0,  _sdx * _ocs.orbit_sens));
+		if (_sdy != 0) st_cam = mat3_mul(st_cam, mat3_rot(1, 0, 0, -_sdy * _ocs.orbit_sens));
+		st_vx = lerp(st_vx, _sdx, .5); st_vy = lerp(st_vy, _sdy, .5);
+		st_dx = mouse_x; st_dy = mouse_y;
+	}
+	if (!st_drag) {
+		if (abs(st_vx) > .02 || abs(st_vy) > .02) {
+			st_cam = mat3_mul(st_cam, mat3_rot(0, 1, 0,  st_vx * _ocs.orbit_sens * delta));
+			st_cam = mat3_mul(st_cam, mat3_rot(1, 0, 0, -st_vy * _ocs.orbit_sens * delta));
+			var _sdk = power(_ocs.orbit_glide, delta);
+			st_vx *= _sdk; st_vy *= _sdk;
+		} else { st_vx = 0; st_vy = 0; }
+	}
+	if (st_drag && mouse_check_button_released(mb_left)) st_drag = false;
 }
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
@@ -516,12 +554,15 @@ if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
 	// the drawer's tab: open / close
 	var _stb = __sy_tab_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _stb.x, _stb.y, _stb.x + _stb.w, _stb.y + _stb.h)) { sy_dw = !sy_dw; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
-	// [enter] bottom right while the drawer is shut
+	// [enter] bottom right while the drawer is shut: a station picked dives to its page (2026-09-17)
+	if (sy_dwa <= .3 && sy_ssel >= 0) { var _ser3 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser3.x, _ser3.y, _ser3.x + _ser3.w, _ser3.y + _ser3.h)) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
 	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
 	if (sy_dwa >= .5) {   // (the drawer open: its rows and [enter])
-	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
+	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _rr2 = __sy_row_r(_npl + _j); if (_rr2.y + _rr2.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) { sy_ssel = _j; sy_sel = -1; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }   // (a station's row - 2026-09-17)
+	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_ssel = -1; sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
 	var _sor = __sy_open_r();
 	if (point_in_rectangle(mouse_x, mouse_y, _sor.x, _sor.y, _sor.x + _sor.w, _sor.y + _sor.h)) {
+		if (sy_ssel >= 0) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; }   // (a station - 2026-09-17)
 		if (sy_sel < 0 || sy_sel >= _npl || galaxy_world_biome(sy_sys.planets[sy_sel]) < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
 		sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1;
 		play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1);

@@ -115,11 +115,7 @@ function starmap_config() {
 		neb_in_amp    : .7,   // THE NEAR CLOUD (on the sphere): the glow's strength...
 		neb_in_ext    : 1.1,  // ...and the extinction per unit of reach x density (the sky beyond dims)
 		neb_in_smooth : true, // no jitter and no grain of its own in the march (twenty even steps; the page's blit still dithers) - his call 2026-09-16
-		// ---- SPACE STATIONS (2026-09-16): a share of the landable worlds keep one in orbit (station_get) ----
-		station_chance    : .45,
-		station_dist      : 1.6,  // world radii (+ up to .3)
-		station_size      : .26,  // world radii, the station's bounding radius
-		station_round_min : 90,   // minutes of wall clock a round of its orbit
+		// (the world-orbit stations went 2026-09-17 - the stations orbit the STAR now, station_sys)
 		// ---- THE ORBIT VIEW (the expedition panel's planet page) ----
 		pr          : 86,  // the planet's radius on the page, px
 		orbit_sens  : .5,  // degrees per dragged px
