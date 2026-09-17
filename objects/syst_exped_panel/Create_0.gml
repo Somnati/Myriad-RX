@@ -1009,6 +1009,7 @@ __pv_ui_hit = function() {
 /// camera turns to face it, the region window's small world too
 __pv_pick = function(_i) {
 	rg_sel = _i; pl_focus = _i; pv_face = _i;
+	pv_vx = 0; pv_vy = 0;   // (the tap's own glide would fight the snap - "jitters back and forth", his report 2026-09-17)
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 };
 // ---- THE GALAXY VIEW (the star map, 2026-09-15: the tech demo's rm_starmap as a page) ----
@@ -2550,8 +2551,9 @@ __worlds_step = function() {
 // the map's inside the window. Rivers and lakes ride over from the base map (a river as a line through its
 // base texel toward each river or water neighbour; a lake's texel whole). Built rows-per-frame under a deadline
 // while the last finished patch keeps showing; rebuilt when the zoom's K changes or the view drifts a third
-// of the window off its centre; dropped when the page changes or the zoom backs off. K = the zoom rounded
-// (2..6) off the zoom's TARGET, so an eased zoom builds once, not at every step
+// of the window off its centre; dropped when the page changes or the zoom backs off. K = what the screen's
+// cells allow (a patch texel never finer than 1.3 cells - lod_cells), off the zoom's TARGET, so an eased zoom
+// builds once, not at every step
 __lod_free = function(_l) {
 	if (is_struct(_l)) {
 		if (surface_exists(_l.tsurf)) surface_free(_l.tsurf);
@@ -2583,18 +2585,28 @@ __lod_order = function() {
 };
 __lod_step = function() {
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	if (view != "planet" || !is_struct(pl_dest) || _zt < 1.8) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); lod_pcu = -1; return; }
+	var _pcf = planet_config(), _pr = starmap_config().pr * _zt;
+	// THE TIER (his report, 2026-09-17: "the lowest zoom level looks bad... pixel warping"): a patch texel finer than
+	// the screen's cells beats against them. K is the most the cells allow - a patch texel at least lod_cells
+	// cells wide (1.3: never under a cell, never much over two) - so the first tier waits until x3, and every tier
+	// is coarser than before; the window is wider for it (the cost is K squared)
+	var _k0 = 0;
+	if (view == "planet" && is_struct(pl_dest)) {
+		var _pn0 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+		_k0 = min(6, floor((_pr * 2 * pi / _pn0.tw) / (max(1, _pcf.px_size) * (_pcf[$ "lod_cells"] ?? 1.3))));
+	}
+	if (_k0 < 2) { lod_show = __lod_free(lod_show); lod_bld = __lod_free(lod_bld); lod_pcu = -1; return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
-	var _tw = _pn.tw, _th = _pn.th, _pvr = __pv_r(), _pr = starmap_config().pr * _zt;
+	var _tw = _pn.tw, _th = _pn.th, _pvr = __pv_r();
 	// the view's centre on the map, and the window the page sees there (half again wider, for the drift)
 	var _wm = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, pv_spin));
 	var _m = mat3_mul(mat3_transpose(_wm), pv_cam);
 	var _t = mat3_apply(_m, 0, 0, 1);
 	var _cu = arctan2(_t[2], _t[0]) / (2 * pi) + .5, _cv = arccos(clamp(_t[1], -1, 1)) / pi;
-	var _k = clamp(round(_zt), 2, 6);
+	var _k = _k0;
 	var _aw = arcsin(min(.999, (_pvr.w * .5) / _pr)), _ah = arcsin(min(.999, (_pvr.h * .5) / _pr));
-	var _hu = min(.5, _aw / (2 * pi) * 1.5 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.5);
+	var _hu = min(.5, _aw / (2 * pi) * 1.9 / max(.25, sin(_cv * pi))), _hv = min(.5, _ah / pi * 1.9);   // (nearly twice the view: a large area at the tier - his ask)
 	// THE LOOK-AHEAD (his report, 2026-09-17: "panning around ... shows a low quality version for a bit before the
 	// higher quality pops in"): a new window sits a little ahead of where the view is heading, so a pan runs into
 	// patch, not map; the rebuild fires at a quarter of the window's drift, well before the old one's edge shows
@@ -2604,9 +2616,12 @@ __lod_step = function() {
 	var _cur = is_struct(lod_bld) ? lod_bld : lod_show;
 	if (is_struct(_cur) && _cur.seed == _pn.seed && _cur.k == _k) {
 		var _du = abs(_cu - _cur.cu); _du = min(_du, 1 - _du);
-		if (_du < _cur.hu * .25 && abs(_cv - _cur.cv) < _cur.hv * .25) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
+		if (_du < _cur.hu * .3 && abs(_cv - _cur.cv) < _cur.hv * .3) { if (is_struct(lod_bld)) __lod_build(_pn); return; }
 	}
-	// a new patch, centred a little ahead
+	// a new patch - only once the view has SETTLED (no drag, no glide, no snap under way): a build begun mid-motion
+	// was thrown away and begun again every few frames as the centre ran off, and the frames it cost stuttered the
+	// motion itself (his report, 2026-09-17: the snap "jitters back and forth")
+	if (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1) return;
 	var _acu = _cu + clamp(_dcu * 8, -.2 * _hu, .2 * _hu), _acv = clamp(_cv + clamp(_dcv * 8, -.2 * _hv, .2 * _hv), 0, 1);
 	_acu = ((_acu mod 1) + 1) mod 1;
 	lod_bld = __lod_free(lod_bld);
@@ -2618,10 +2633,12 @@ __lod_step = function() {
 		tsurf : -1, hsurf : -1, tbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1), hbuf : buffer_create(_pw * _ph * 4, buffer_fixed, 1) };
 	__lod_build(_pn);
 };
-// the rows, eight ms a frame (the page has little else to do while you look), into two BUFFERS (a texel is four
-// pokes, not two draw calls - the stamps were a third of the bill); the textures are made whole at the end
+// the rows, a share of each frame, into two BUFFERS (a texel is four pokes, not two draw calls - the stamps were
+// a third of the bill); the textures are made whole at the end
 __lod_build = function(_pn) {
-	var _l = lod_bld, _lim = get_timer() + 8000;
+	// (the budget is a share of the FRAME - at 144 hz a frame is seven ms, and eight of build stalled it: delta is
+	// the frame's length in sixtieths, so this is forty-five hundredths of a frame, two to eight ms)
+	var _l = lod_bld, _lim = get_timer() + clamp(delta * 16667 * .45, 2000, 8000);
 	if (!buffer_exists(_l.tbuf) || !buffer_exists(_l.hbuf)) { lod_bld = __lod_free(lod_bld); return; }
 	var _ord = __lod_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
 	var _tb = _l.tbuf, _hb = _l.hbuf;
