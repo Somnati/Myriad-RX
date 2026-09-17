@@ -1,7 +1,13 @@
-/// @description sprite_stats(sprite) -> { pts : {hp..hit}, base : {..}, gear : {..}, total, cls }
+/// @description sprite_stats(sprite) -> { pts : {hp..hit}, base : {..}, gear : {..}, abil : {..}, ab, total, cls, worn }
 /// THE DERIVATION, read fresh every time (nothing stored): the class
 /// shape scaled to the level's budget (40 + SPRITE_LV_PTS a level, the
-/// tech demo's 40-point rule kept), plus every worn item's stat lines.
+/// tech demo's 40-point rule kept), plus every worn item's stat lines,
+/// plus THE ABILITIES' SHARE (2026-09-17, his report: "it increases
+/// defence but the defence stat doesnt change" - the pawn multiplied
+/// them in on its own and the sheet never saw it): each stat lane is a
+/// percent of base + gear, folded in HERE so every reader - the sheet,
+/// the pawn, the odds, the strength number - sees the one number.
+/// `ab` = the summed lanes (sprite_ab) for the pawn's other reads.
 /// total = the sum of the eight - the sprite's own "xp worth", and the
 /// number gear_score and the sheet compare.
 function sprite_stats(_sp) {
@@ -9,7 +15,8 @@ function sprite_stats(_sp) {
 	var _c  = sprite_classes()[_sh.cls];
 	var _keys = ["hp", "mp", "atk", "mag", "def", "mdef", "spd", "hit"];
 	var _budget = sprite_par_pts(_sh.lv);
-	var _base = {}, _gear = {}, _pts = {};
+	var _base = {}, _gear = {}, _abil = {}, _pts = {};
+	var _ab = sprite_ab(_sp);
 	var _worn = [];
 	if (!is_undefined(_sh.w1)) array_push(_worn, _sh.w1);
 	if (!is_undefined(_sh.w2)) array_push(_worn, _sh.w2);
@@ -22,10 +29,12 @@ function sprite_stats(_sp) {
 		var _g = 0;
 		for (var _w = 0; _w < array_length(_worn); _w++) _g += _worn[_w].pts[$ _key] ?? 0;
 		if (is_struct(_sh[$ "elix"])) _g += _sh.elix[$ _key] ?? 0;   // THE ELIXIRS (2026-09-16): +1 a line each, for good - shown with the gear's green
+		var _a = (_key == "mp") ? 0 : (_b + _g) * (_ab[$ _key] ?? 0) / 100;   // (no lane for mp)
 		_base[$ _key] = _b;
 		_gear[$ _key] = _g;
-		_pts[$ _key]  = _b + _g;
-		_total += _b + _g;
+		_abil[$ _key] = _a;
+		_pts[$ _key]  = _b + _g + _a;
+		_total += _b + _g + _a;
 	}
-	return { pts : _pts, base : _base, gear : _gear, total : _total, cls : _c, worn : _worn };
+	return { pts : _pts, base : _base, gear : _gear, abil : _abil, ab : _ab, total : _total, cls : _c, worn : _worn };
 }

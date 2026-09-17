@@ -455,6 +455,7 @@ function main_macros() {
 #macro SPRITE_QUEST_XP_LO 2   // a quest's xp in par kills: barely done...
 #macro SPRITE_QUEST_XP_HI 5   // ...to fully done (exped_tick_one pays by rooms cleared for now)
 #macro SPRITE_INV        10   // a sprite's inventory (his call): past it the worst is trashed
+#macro SPRITE_AB_PICK     false   // the PLAYER picks a sprite's abilities (the sheet's picker popup with [equip] / [unequip] / [clear]); false = VAULTED (his call, 2026-09-17: "leave it to the sprite... i might add the option back") - the sprite wears its best four by its own judgement (sprite_ability_worn), a slot tap is a plain tooltip
 #macro SPRITE_SKILLS      4   // (four since 2026-09-17, his call) skills a sprite carries: the class's own plus this many minus one LEARNED on the road (his call, 2026-09-15: one at level 1, the rest picked up - and swapped out - like gear)
 #macro SPRITE_NOTES      12   // a sprite's notepad holds this many lines (the oldest falls off)
 #macro SPRITE_NOTE_HIT    5   // hit chance a sprite gains against a foe kind it has a note on ("goblins are quick. swing early.")

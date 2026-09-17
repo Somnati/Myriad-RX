@@ -1,4 +1,7 @@
 /// @description sprite_ability_autofill(sprite, [newest]) -> true if a slot changed
+/// (THE PICKER'S filler - with SPRITE_AB_PICK false the worn set derives in
+/// sprite_ability_worn and this only keeps the saved slots sensible for the
+/// day the picker returns; his call, 2026-09-17)
 /// THE SPRITE'S OWN PICK (his ask, 2026-09-17): every EMPTY slot takes
 /// the best unequipped ability by its class's judgement (ability_score);
 /// and when a rung has just unlocked (`newest` = its index) and the four

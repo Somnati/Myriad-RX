@@ -767,6 +767,7 @@
     {"id":{"name":"sprite_ab","path":"scripts/sprite_ab/sprite_ab.yy",},},
     {"id":{"name":"sprite_abilities","path":"scripts/sprite_abilities/sprite_abilities.yy",},},
     {"id":{"name":"sprite_ability_autofill","path":"scripts/sprite_ability_autofill/sprite_ability_autofill.yy",},},
+    {"id":{"name":"sprite_ability_worn","path":"scripts/sprite_ability_worn/sprite_ability_worn.yy",},},
     {"id":{"name":"sprite_classes","path":"scripts/sprite_classes/sprite_classes.yy",},},
     {"id":{"name":"sprite_elixir","path":"scripts/sprite_elixir/sprite_elixir.yy",},},
     {"id":{"name":"sprite_fab_frac","path":"scripts/sprite_fab_frac/sprite_fab_frac.yy",},},

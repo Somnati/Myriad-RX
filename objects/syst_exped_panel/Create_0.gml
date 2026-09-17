@@ -1151,8 +1151,9 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		draw_set_font(fnt_outline); draw_set_color(c_white); draw_set_alpha(.95);
 		draw_text(_cx + _cell - 26, _cy, string_format(_st.pts[$ _keys[_k]], 1, 1));
 		draw_set_font(fnt); draw_set_halign(fa_left);
-		var _g = _st.gear[$ _keys[_k]];
+		var _g = _st.gear[$ _keys[_k]] + _st.abil[$ _keys[_k]];   // (the gear's share AND the abilities' - 2026-09-17; the stat popup splits them)
 		if (_g > 0) { draw_set_color(c_sgreen); draw_set_alpha(.8); draw_text(_cx + _cell - 23, _cy, "+" + string_format(_g, 1, 1)); }
+		else if (_g < 0) { draw_set_color(c_hred); draw_set_alpha(.8); draw_text(_cx + _cell - 23, _cy, string_format(_g, 1, 1)); }
 	}
 	// LUCK (2026-09-16): its own row under the grid - a tap says what it does
 	var _lkx = _hx, _lky = _gy + 33, _lkw = _cell - 2;
@@ -1223,11 +1224,11 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	var _lad = ability_unlocks(), _next_lv = -1;
 	for (var _li = 0; _li < array_length(_lad); _li++) if (_sh.lv < _lad[_li].lv) { _next_lv = _lad[_li].lv; break; }
 	if (_next_lv > 0) { draw_set_color(_dim); draw_set_alpha(.5); draw_text(_rx0 + string_width("abilities") + 8, _ay, "next at lv " + string(_next_lv)); }
-	if (!is_array(_sh[$ "abil"])) _sh.abil = [-1, -1, -1, -1];
+	var _worn_ab = sprite_ability_worn(_sp);   // (the sprite's own set when the picker is vaulted - 2026-09-17)
 	for (var _i = 0; _i < 4; _i++) {
 		var _ly2 = _ay + 10 + _i * _rowp;
 		array_push(it_rects, { x : _rx0 - 3, y : _ly2 - 1, w : _rw0, h : _rowh, ab : _i });
-		var _k = _sh.abil[_i];
+		var _k = _worn_ab[_i];
 		if (_k < 0 || _k >= array_length(_all_ab)) {
 			__slot_row(_rx0 - 3, _ly2 - 1, _rw0, _rowh, _dim, true);   // (empty is empty)
 			continue;
@@ -1245,8 +1246,54 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 	// THE ITEM POPUP (his ask, 2026-09-15): the item's lines, what it is worth
 	// to this sprite (gear_score, the class's eye), and against what is
 	// worn in its slot - the difference per line
-	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "ab"])) {
-		// THE ABILITY PICKER (2026-09-17, take two - his ask: "a way to show
+	if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "ab"]) && !SPRITE_AB_PICK) {
+		// THE ABILITY TOOLTIP (2026-09-17, take three - the picker is VAULTED
+		// behind SPRITE_AB_PICK, his call: "leave it to the sprite... redo the
+		// tooltip"): the skill popup's shape, over the slot it came from (the
+		// slot's own width - the right column, clear of the stat points) -
+		// the name in its rarity's colour, the rarity / tier / rung under it,
+		// the number with its lane NAMED, what the lane is, the flavour.
+		// Opening it is "looking": the "new" flag clears
+		var _tsp = it_pop.sp, _tsh = sprite_sheet(_tsp), _tall = sprite_abilities(_tsp), _twn = sprite_ability_worn(_tsp);
+		if (_tsh[$ "abnew"] ?? false) { _tsh.abnew = false; save_mark_dirty(); }
+		var _tk = _twn[clamp(it_pop.ab, 0, 3)];
+		var _tw = it_pop[$ "w"] ?? 180; _tw = clamp(_tw, 150, 210);
+		var _t0 = "", _tcol = _dim, _tsub = "", _tl1 = "", _tl2 = "", _tl3 = "";
+		if (_tk < 0 || _tk >= array_length(_tall)) {
+			var _tnx = -1, _tlad = ability_unlocks();
+			for (var _li = 0; _li < array_length(_tlad); _li++) if (_tsh.lv < _tlad[_li].lv) { _tnx = _tlad[_li].lv; break; }
+			_t0 = "an open slot";
+			_tl2 = (_tnx > 0) ? ("the next ability comes at level " + string(_tnx) + ". the sprite wears what it judges best for its class.") : "every ability is unlocked.";
+		} else {
+			var _ta = _tall[_tk], _tri = upgrade_rarity_info(_ta.rar), _tld = ability_lane_desc(_ta.cfg.lane);
+			_t0 = _ta.name; _tcol = _tri.col;
+			_tsub = _tri.name + "  -  tier " + string(_ta.tier) + "  -  since lv " + string(ability_unlocks()[_tk].lv);
+			_tl1 = ability_line(_ta);
+			_tl2 = _tld.what;
+			if (variable_struct_exists(_ta.cfg, "also")) _tl2 += "; and " + ability_lane_desc(_ta.cfg.also).what;
+			if (variable_struct_exists(_ta.cfg, "cost")) _tl2 += ". the cost: " + string(_ta.cfg.cost.v) + "% " + ability_lane_desc(_ta.cfg.cost.lane).word;
+			_tl3 = _ta.cfg.help;
+		}
+		var _th = 18;
+		if (_tsub != "") _th += 10;
+		if (_tl1 != "") _th += 12;
+		if (_tl2 != "") _th += string_height_ext(_tl2, 9, _tw - 12) + 2;
+		if (_tl3 != "") _th += string_height_ext(_tl3, 9, _tw - 12) + 2;
+		var _tx = clamp(it_pop.x, 4, room_width - _tw - 4), _ty = clamp(it_pop.y, list_y + 20, room_height - _th - 4);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tx + 2, _ty + 3, _tw, _th, 0, c_black, .5);
+		draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, _tw, _th, 0, c_hsv(169, 186, 9), .98);
+		draw_px_rect(_tx, _ty, _tw, _th, _tcol, .8);
+		draw_set_color(_tcol); draw_set_alpha(.95); draw_text(_tx + 6, _ty + 4, _t0);
+		var _tyy = _ty + 14;
+		if (_tsub != "") { draw_set_color(_dim); draw_set_alpha(.7); draw_text(_tx + 6, _tyy, _tsub); _tyy += 10; }
+		if (_tl1 != "") { draw_set_color(c_white); draw_set_alpha(.95); draw_text(_tx + 6, _tyy, _tl1); _tyy += 12; }
+		if (_tl2 != "") { draw_set_color(_ink); draw_set_alpha(.9); draw_text_ext(_tx + 6, _tyy, _tl2, 9, _tw - 12); _tyy += string_height_ext(_tl2, 9, _tw - 12) + 2; }
+		if (_tl3 != "") { draw_set_color(_dim); draw_set_alpha(.6); draw_text_ext(_tx + 6, _tyy, _tl3, 9, _tw - 12); }
+	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "ab"])) {
+		// THE ABILITY PICKER - VAULTED (SPRITE_AB_PICK false, 2026-09-17: "just
+		// vault the option... i might add the option back"; the tooltip above
+		// stands in for it). Everything under here is the live picker as it was
+		// (2026-09-17, take two - his ask: "a way to show
 		// tooltips when selecting abilities... a green button [equip]"). The
 		// list above: every rung the sprite has unlocked, in its rarity's
 		// colour with its line; a tap SELECTS. The pane under it is the
@@ -1318,7 +1365,6 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			else draw_ui_button(_bx3, _by3, _bw3, _bh3, "worn in another slot", c_gray, false, false);
 		}
 	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
-	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && (it_pop[$ "lvup"] ?? false)) {
 		// THE NEXT LEVEL (his ask): each stat that climbs, and by how much
 		var _lpsp = it_pop.sp, _lpsh = sprite_sheet(_lpsp), _lpc = sprite_classes()[_lpsh.cls], _lpb = cbt_balance();
 		var _lkeys = ["hp", "atk", "def", "mag", "mdef", "spd", "hit", "mp"], _llab = ["hp", "atk", "def", "int", "res", "spd", "hit", "mp"];
@@ -1343,6 +1389,17 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		var _sdl = cbt_stat_desc(it_pop.st);
 		var _sdw = 210, _sdh = 20;
 		for (var _j = 1; _j < array_length(_sdl); _j++) _sdh += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
+		// THIS SPRITE'S OWN NUMBER, split (2026-09-17): the class's, the gear's,
+		// the abilities' - the grid's one green figure is both of the last two
+		var _btx = "";
+		if (it_pop.st != "luck") {
+			var _bst = sprite_stats(it_pop.sp), _bk = it_pop.st, _bmul = (_bk == "hp") ? _bal.hp_per_point : 1;
+			var _bb = _bst.base[$ _bk] * _bmul + ((_bk == "hp") ? _bal.hp_flat_add : 0), _bg = _bst.gear[$ _bk] * _bmul, _ba = _bst.abil[$ _bk] * _bmul;
+			_btx = "this one: " + string_format(_bb, 1, 1) + " the class's";
+			if (_bg != 0) _btx += ", " + ((_bg > 0) ? "+" : "") + string_format(_bg, 1, 1) + " the gear's";
+			if (_ba != 0) _btx += ", " + ((_ba > 0) ? "+" : "") + string_format(_ba, 1, 1) + " the abilities'";
+			_sdh += string_height_ext(_btx, 9, _sdw - 12) + 2;
+		}
 		var _sdx = clamp(it_pop.x, 4, room_width - _sdw - 4), _sdy = clamp(it_pop.y, list_y + 20, room_height - _sdh - 4);
 		draw_sprite_ext(spr_pixel_1x1, 0, _sdx + 2, _sdy + 3, _sdw, _sdh, 0, c_black, .5);
 		draw_sprite_ext(spr_pixel_1x1, 0, _sdx, _sdy, _sdw, _sdh, 0, c_hsv(169, 186, 9), .98);
@@ -1355,6 +1412,7 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 			draw_text_ext(_sdx + 6, _sdy2, _sdl[_j], 9, _sdw - 12);
 			_sdy2 += string_height_ext(_sdl[_j], 9, _sdw - 12) + 2;
 		}
+		if (_btx != "") { draw_set_color(_dim); draw_set_alpha(.75); draw_text_ext(_sdx + 6, _sdy2, _btx, 9, _sdw - 12); }
 	} else if (is_struct(it_pop) && !is_undefined(it_pop.sp) && !is_undefined(it_pop[$ "nt"])) {
 		// THE NOTE POPUP (his ask): what a note does to the sprite
 		var _pnt = it_pop.nt;
@@ -1445,10 +1503,10 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined) {   // y1 = the she
 		_ty2 += 10;
 		// THE ODDS (his ask, 2026-09-16): "1 in N" - the rung's share of the house
 		// ladder at the base rate (rarity_odds: the very bands the loot rolls through)
-		var _go = rarity_odds(0, .3, .03, 800, 8);
+		var _go = rarity_odds(0, .3, .03, 800, UPG_RARITY_N);   // (the fourteen - 2026-09-17)
 		draw_text(_ppx + 6, _ty2, it_pop.worn ? "worn" : "in the pocket");
 		draw_set_halign(fa_right); draw_set_color(_it.col); draw_set_alpha(.9);
-		draw_text(_ppx + _pw - 6, _ty2, rarity_label(_go[clamp(_it.rar, 0, 7)]));
+		draw_text(_ppx + _pw - 6, _ty2, rarity_label(_go[clamp(_it.rar, 0, UPG_RARITY_N - 1)]));
 		draw_set_halign(fa_left);
 		_ty2 += 12;
 		// the line of voice, then the quirks in green
@@ -1745,7 +1803,7 @@ __ab_pick_tap = function() {
 	return true;
 };
 __sheet_tap = function() {
-	if (is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) return __ab_pick_tap();
+	if (SPRITE_AB_PICK && is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) return __ab_pick_tap();   // (the picker, when it is back)
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
 	for (var _k = 0; _k < array_length(it_rects); _k++) {
 		var _ir = it_rects[_k];
@@ -1753,8 +1811,8 @@ __sheet_tap = function() {
 			// the page pills (2026-09-17): no popup, just the turn
 			if (!is_undefined(_ir[$ "pg"])) { sheet_pg = _ir.pg; play_sound_ext(snd_softclick, 1, 1.1, .4, 1); return true; }
 			var _psp0 = __sp_by_id(sheet_id), _psel = -2;
-			if (!is_undefined(_ir[$ "ab"]) && !is_undefined(_psp0)) { var _psh0 = sprite_sheet(_psp0); if (is_array(_psh0[$ "abil"]) && _psh0.abil[_ir.ab] >= 0) _psel = _psh0.abil[_ir.ab]; }   // (the slot's own, read at once)
-			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], ab : _ir[$ "ab"], sel : _psel, lvup : _ir[$ "lvup"] ?? false, sp : _psp0, worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2 };
+			if (!is_undefined(_ir[$ "ab"]) && !is_undefined(_psp0)) { var _pwn0 = sprite_ability_worn(_psp0); if (_pwn0[_ir.ab] >= 0) _psel = _pwn0[_ir.ab]; }   // (the slot's own, read at once)
+			it_pop = { it : _ir[$ "it"], sk : _ir[$ "sk"], nt : _ir[$ "nt"], st : _ir[$ "st"], ab : _ir[$ "ab"], sel : _psel, lvup : _ir[$ "lvup"] ?? false, sp : _psp0, worn : _ir[$ "worn"] ?? false, x : _ir.x, y : _ir.y + _ir.h + 2, w : _ir.w };
 			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
 			return true;
 		}
@@ -1766,7 +1824,7 @@ __dismiss_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : r
 __crewbtn_r = function() { return { x : card_x0, y : room_height - 8 - 14, w : 44, h : 14 }; };   // (narrower, 2026-09-16: three buttons fit under the card - [crew] [galaxy] [bestiary])
 // the crew menu: tabs down the left (one a sprite), the picked one's sheet on the right (his ask, 2026-09-14)
 tab_w = land ? 78 : 60; tab_h = 15;
-ab_rects = [];  // the ability picker's rows (the Draw lays them down, __ab_pick_tap reads them)
+ab_rects = [];  // the ability picker's rows (the Draw lays them down, __ab_pick_tap reads them) - VAULTED behind SPRITE_AB_PICK (2026-09-17)
 ab_btn   = undefined;   // ...and its [equip] / [unequip] / [clear] button
 misc_scr_n = 0; misc_scr_f = 0;   // the [misc] page's two scrolls: the notepad, the friendships (px)
 misc_nrect = undefined; misc_frect = undefined; misc_nmax = 0; misc_fmax = 0;

@@ -572,8 +572,8 @@ if (view == "bestiary") {
 }
 
 if (view == "crew") {
-	// the ability picker up: a row picks, anywhere else folds (2026-09-17)
-	if (is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) { __ab_pick_tap(); exit; }
+	// the ability picker up: a row picks, anywhere else folds (2026-09-17; vaulted behind SPRITE_AB_PICK - the tooltip folds like any popup)
+	if (SPRITE_AB_PICK && is_struct(it_pop) && !is_undefined(it_pop[$ "ab"])) { __ab_pick_tap(); exit; }
 	// a popup up: any press closes it
 	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
 	var _cl = __crew_list();

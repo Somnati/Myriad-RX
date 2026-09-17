@@ -16,7 +16,10 @@ function sprite_xp_add(_sp, _xp) {
 	if (_sh.lv >= SPRITE_LV_MAX) _sh.xp = 0;
 	// A NEW RUNG (2026-09-17): the sprite picks for itself (the best by its
 	// class, the newest against the weakest worn), and "new" waits on the
-	// sheet until the player looks (sprite_sheet's abnew, the picker clears it)
+	// sheet until the player looks (sprite_sheet's abnew; the tooltip - or
+	// the picker, when SPRITE_AB_PICK brings it back - clears it). With the
+	// picker vaulted the worn set DERIVES (sprite_ability_worn) and the
+	// autofill only keeps the saved slots sensible for the day it returns
 	var _n1 = array_length(sprite_abilities(_sp));
 	if (_n1 > _n0) {
 		_sh.abnew = true;
