@@ -20,6 +20,9 @@ function prod_dials(_secs = -1) {
 	// is. Never during a replay - a hand is not there
 	var _hold = (variable_global_exists("dial_hold") && !(variable_global_exists("offline_replaying") && g.offline_replaying))
 		? g.dial_hold : -1;
+	// THE DIAL BURST (2026-09-16): x for a while from the buy. Read once
+	// a call - it prunes as it reads - and 1 during a replay
+	var _bm = upgrade_burst_mult("dial");
 
 	for (var _i = 0; _i < g.dial_total; _i++) {
 		var _d = g.dial[_i];
@@ -65,6 +68,8 @@ function prod_dials(_secs = -1) {
 		// curve or into the cost of levelling it. See tile_dial_boost.
 		var _tb = tile_dial_boost();
 		if (_tb > arb(1)) _pay = do_multi(_pay, _tb);
+		// ...and the burst, the same way: result-side, never on _d.gpc
+		if (_bm > 1) _pay = do_scale(_pay, _bm);
 		give_profit(_pay);
 		_d.paid = true;
 		_d.paid_amt = _pay;   // the view's motes carry this home

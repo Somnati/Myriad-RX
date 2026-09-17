@@ -27,10 +27,22 @@ function upgrade_buy(_slot) {
 	// itself, freeing the slot it was sitting in. Keeping these apart
 	// from the derived stats is what lets everything else be derived.
 	if (_s.stat == "") {
-		if (_s.id == "new_slot") g.upg.bought += 1;
+		var _e = upgrade_entry(_s.id);
 		g.upg.slot[_slot] = -1;
-		assign_banner("upgrade slot gained", c_white, c_black);
-		play_sound_ext(snd_diamond, 1, 1.05, 0.424, 2);
+		if (_e != -1 && (_e[$ "burst"] ?? false)) {
+			// A BURST (2026-09-16): the slot frees and the clock starts NOW,
+			// on the wall clock - see upgrade_burst_start for the stacking
+			var _dur = max(5, _s[$ "dur"] ?? 120);
+			var _ss  = _dur mod 60;
+			upgrade_burst_start(_e.kind, _s.val, _dur);
+			assign_banner(_e.name + "  x" + string_format(_s.val, 1, 2) + " for "
+				+ string(floor(_dur / 60)) + ":" + ((_ss < 10) ? "0" : "") + string(_ss), _e.col, c_black);
+			play_sound_ext(snd_diamond, 1.1, 1.2, 0.4, 2);
+		} else {
+			if (_s.id == "new_slot") g.upg.bought += 1;
+			assign_banner("upgrade slot gained", c_white, c_black);
+			play_sound_ext(snd_diamond, 1, 1.05, 0.424, 2);
+		}
 	} else if (_s.tier >= upgrade_cap(_slot)) {
 		// THE LAST TIER FREES THE SLOT (DE's behaviour). The upgrade
 		// moves to the completed ledger, where it keeps paying out -

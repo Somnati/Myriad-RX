@@ -432,22 +432,30 @@ function stats_v2_content() {
 		// the derived totals, which is the only place they exist
 		stats_v2_line("tap profit",    "+" + string_format(_ub.tap_profit, 1, 1) + "%",
 			-1, (_ub.tap_profit > 0) ? c_gold : c_gray);
-		stats_v2_line("crit chance",   "+" + string_format(_ub.crit_rate, 1, 1) + "%",
-			-1, (_ub.crit_rate > 0) ? c_horange : c_gray);
-		stats_v2_line("crit payout",   "+" + string_format(_ub.crit_multi, 1, 2) + "x",
-			-1, (_ub.crit_multi > 0) ? c_horange : c_gray);
 		stats_v2_line("dial profit",   "+" + string_format(_ub.dial_profit, 1, 1) + "%",
-			-1, (_ub.dial_profit > 0) ? c_sgreen : c_gray);
-		stats_v2_line("dial speed",    "+" + string_format(_ub.dial_speed, 1, 1) + "%",
-			-1, (_ub.dial_speed > 0) ? c_sblue : c_gray);
-		stats_v2_line("dial discount", "-" + string_format(_ub.dial_cost, 1, 1) + "%",
-			-1, (_ub.dial_cost > 0) ? c_steelblue : c_gray);
-		stats_v2_line("credit refill", "+" + string_format(_ub.credit_rate, 1, 1) + "%",
-			-1, (_ub.credit_rate > 0) ? c_lavender : c_gray);
-		stats_v2_line("credit luck",   "+" + string_format(_ub.credit_luck, 1, 1) + "%",
-			-1, (_ub.credit_luck > 0) ? c_lavender : c_gray);
-		stats_v2_line("rebirth units", "+" + string_format(_ub.rebirth_units, 1, 1) + "%",
-			-1, (_ub.rebirth_units > 0) ? c_hred : c_gray);
+			-1, (_ub.dial_profit > 0) ? c_sgreen : c_gray,
+			"every dial. a single dial's own boost multiplies with it, "
+			+ "one lane per dial below.");
+		// the per-dial lanes (2026-09-16), for the dials you own
+		if (variable_global_exists("dial"))
+		for (var _di = 0; _di < g.dial_total; _di++) {
+			if (g.dial[_di].level <= 0 && _ub.dial_one[_di] <= 0) continue;
+			stats_v2_line("dial " + dial_config(_di).name + " profit",
+				"+" + string_format(_ub.dial_one[_di], 1, 1) + "%",
+				-1, (_ub.dial_one[_di] > 0) ? c_seagreen : c_gray);
+		}
+		// the bursts running right now
+		var _bl = g.upg[$ "bursts"];
+		var _bn = 0;
+		if (is_array(_bl)) for (var _bi = 0; _bi < array_length(_bl); _bi++)
+			if (_bl[_bi].until > universal_now()) _bn++;
+		stats_v2_line("tap burst",  "x" + string_format(upgrade_burst_mult("tap"),  1, 2), -1,
+			(upgrade_burst_mult("tap")  > 1) ? c_gold   : c_gray);
+		stats_v2_line("dial burst", "x" + string_format(upgrade_burst_mult("dial"), 1, 2), -1,
+			(upgrade_burst_mult("dial") > 1) ? c_sgreen : c_gray,
+			"bursts of one kind add their bonus parts and keep their own "
+			+ "clocks - the header's chips are one per burst. "
+			+ string(_bn) + " running.");
 	}
 	stats_v2_folder_end();
 

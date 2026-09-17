@@ -191,10 +191,12 @@ for (var _i = 0; _i < _n; _i++) {
 		draw_set_alpha(.6);
 		draw_text(_eff_r, _ry + 5, "retired");
 	} else if (_e.stat == "") {
-		// a grant has no running effect to quote - it does one thing once
-		draw_set_color(_dim);
+		// a grant has no running effect to quote - it does one thing once;
+		// a BURST quotes its multiplier and its clock (2026-09-16)
+		var _bst = (_e[$ "burst"] ?? false);
+		draw_set_color(_bst ? merge_colour(_e.col, c_white, .25) : _dim);
 		draw_set_alpha(.75);
-		draw_text(_eff_r, _ry + 5, "one-off");
+		draw_text(_eff_r, _ry + 5, _bst ? __burst_str(_s) : "one-off");
 	} else if (_own) {
 		draw_set_color((_e.col == c_white) ? c_white : merge_colour(_e.col, c_white, .25));
 		draw_set_alpha(.95);
@@ -313,10 +315,20 @@ if (!_has_pick) {
 		if (_ps.tier > 0)
 			array_push(_rows_txt,
 				{ k : "this slot", v : "+" + string_format(_mine, 1, 2) + _sfx, c : c_white });
+		// a per-dial boost totals on its own dial's lane (2026-09-16)
+		var _tot = (_pe.stat == "dial_one") ? _ub.dial_one[_pe.dial] : _ub[$ _pe.stat];
 		array_push(_rows_txt,
 			{ k : "total",
-			  v : "+" + string_format(_ub[$ _pe.stat], 1, 2) + _sfx,
+			  v : "+" + string_format(_tot, 1, 2) + _sfx,
 			  c : merge_colour(_pe.col, c_white, .3) });
+	} else if (_pe != -1 && (_pe[$ "burst"] ?? false)) {
+		// A BURST (2026-09-16): what it pays, for how long, and the rule
+		array_push(_rows_txt,
+			{ k : "burst", v : __burst_str(_ps), c : c_sgreen });
+		array_push(_rows_txt,
+			{ k : "gives", v : _pe.help, c : c_white });
+		array_push(_rows_txt,
+			{ k : "stacking", v : "same kind adds up, own clocks", c : _dim });
 	} else {
 		array_push(_rows_txt,
 			{ k : "a one-off", v : "spent when bought", c : _dim });
@@ -407,25 +419,29 @@ if (mod_a > .001) {
 
 	// the sections: one per stat family, every stat in it (zeros dim,
 	// so the sheet also says what CAN be raised)
+	// THE REWORK'S SHEET (2026-09-16): the tap, every dial you own with
+	// its own lane beside the all-dial number (they multiply), and the
+	// bursts running right now with their clocks
+	var _dl = [ { k : "all dials", v : _ub.dial_profit, s : "%" } ];
+	for (var _di = 0; _di < g.dial_total; _di++) {
+		if (g.dial[_di].level <= 0 && _ub.dial_one[_di] <= 0) continue;
+		array_push(_dl, { k : "dial " + dial_config(_di).name, v : _ub.dial_one[_di], s : "%" });
+	}
+	var _bl = [];
+	var _bb = g.upg[$ "bursts"];
+	var _bnow = universal_now();
+	if (is_array(_bb)) for (var _bi = 0; _bi < array_length(_bb); _bi++) {
+		var _bx = _bb[_bi];
+		var _lft = _bx.until - _bnow;
+		if (_lft <= 0) continue;
+		array_push(_bl, { k : _bx.kind + " burst   " + __mmss(_lft) + " left", v : _bx.mult, s : "", x : true });
+	}
+	if (array_length(_bl) == 0) array_push(_bl, { k : "none running", v : 0, s : "", t : "-" });
 	var _secs = [
 		{ n : "tapper", c : c_gold, rows : [
-			{ k : "tap profit",      v : _ub.tap_profit,  s : "%" },
-			{ k : "tap speed",       v : _ub.tap_rate,    s : "%" },
-			{ k : "critical chance", v : _ub.crit_rate,   s : "%" },
-			{ k : "critical payout", v : _ub.crit_multi,  s : "x" } ] },
-		{ n : "dials", c : c_sgreen, rows : [
-			{ k : "dial profit",     v : _ub.dial_profit, s : "%" },
-			{ k : "dial speed",      v : _ub.dial_speed,  s : "%" },
-			{ k : "dial discount",   v : _ub.dial_cost,   s : "%", neg : true } ] },
-		{ n : "credits", c : c_lavender, rows : [
-			{ k : "credit refill",   v : _ub.credit_rate, s : "%" },
-			{ k : "credit luck",     v : _ub.credit_luck, s : "%" } ] },
-		{ n : "rebirth", c : c_hred, rows : [
-			{ k : "rebirth units",   v : _ub.rebirth_units, s : "%" } ] },
-		{ n : "luck", c : c_seagreen, rows : [
-			{ k : "luck from upgrades", v : _ub.luck,          s : " pts", raw : true },
-			{ k : "luck in all",        v : luck_points(),     s : " pts", raw : true },
-			{ k : "every roll",         v : luck_mod(),        s : "",     raw : true, x : true } ] },
+			{ k : "tap profit",      v : _ub.tap_profit,  s : "%" } ] },
+		{ n : "dials", c : c_sgreen, rows : _dl },
+		{ n : "bursts", c : c_horange, rows : _bl },
 	];
 	for (var _si = 0; _si < array_length(_secs); _si++) {
 		var _sc = _secs[_si];
@@ -448,7 +464,9 @@ if (mod_a > .001) {
 			draw_set_halign(fa_right);
 			draw_set_color(_zero ? _dim : c_white);
 			draw_set_alpha(_zero ? .5 : .95);
-			if (_rw[$ "x"] ?? false)
+			if (variable_struct_exists(_rw, "t"))
+				draw_text(_lr - 3, _yy - 2, _rw.t);
+			else if (_rw[$ "x"] ?? false)
 				draw_text(_lr - 3, _yy - 2, "x" + string_format(_rw.v, 1, 2));
 			else if (_rw[$ "raw"] ?? false)
 				draw_text(_lr - 3, _yy - 2, string_format(_rw.v, 1, 0) + _rw.s);

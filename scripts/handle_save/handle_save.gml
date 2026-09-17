@@ -899,23 +899,62 @@ function handle_save(){
 		// rarity. 0 means "saved before offers had a depth"; upgrade_cap
 		// reads that as absent and falls back to the old formula.
 		var _cp  = handle("u" + string(_u) + "_cap",  _has ? (_s[$ "cap"] ?? 0) : 0);
+		// a burst offer's clock (2026-09-16) - part of the roll, like the value
+		var _du  = handle("u" + string(_u) + "_dur",  _has ? (_s[$ "dur"] ?? 0) : 0);
 		if (action == sv_load) {
 			// an id the roster no longer carries costs a SLOT, never the
 			// savefile - a retired upgrade must fail softly
 			var _e = (_id == "") ? -1 : upgrade_entry(_id);
 			g.upg.slot[_u] = (_e == -1) ? -1
 				: { id : _id, stat : _e.stat, rar : _rar, val : _val,
-				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)) };
+				    cap : max(0, floor(_cp)), tier : max(0, floor(_tir)),
+				    dur : max(0, floor(_du)) };
 			// a zero cap is the pre-depth marker, and upgrade_cap only
 			// recognises it as absent - so drop the field entirely
 			if (is_struct(g.upg.slot[_u]) && g.upg.slot[_u].cap <= 0)
 				variable_struct_remove(g.upg.slot[_u], "cap");
 		}
 	}
+	// THE RUNNING BURSTS (2026-09-16): "kind:mult:until:dur|..." on the
+	// wall clock - a burst bought before a save keeps its clock through
+	// it, and what has run out by the load simply drops
+	var _bt = "";
+	if (is_array(g.upg[$ "bursts"])) for (var _u = 0; _u < array_length(g.upg.bursts); _u++) {
+		var _bb = g.upg.bursts[_u];
+		_bt += ((_bt == "") ? "" : "|") + _bb.kind + ":" + string_format(_bb.mult, 1, 4) + ":"
+			+ string_format(_bb.until, 1, 2) + ":" + string(round(_bb.dur));
+	}
+	_bt = handle("bursts", _bt);
+	if (action == sv_load) {
+		g.upg.bursts = [];
+		if (_bt != "") {
+			var _bp = string_split(_bt, "|");
+			var _bnow = universal_now();
+			for (var _u = 0; _u < array_length(_bp); _u++) {
+				var _bf = string_split(_bp[_u], ":");
+				if (array_length(_bf) < 4) continue;
+				var _un = real(_bf[2]);
+				if (_un <= _bnow) continue;
+				array_push(g.upg.bursts, { kind : _bf[0], mult : real(_bf[1]), until : _un, dur : max(1, real(_bf[3])) });
+			}
+		}
+	}
 	if (action == sv_load) {
 		g.upg.bought = clamp(floor(g.upg.bought), 0, UPG_SLOT_MAX - UPG_SLOT_BASE);
 		g.upg.total  = max(0, floor(g.upg.total));
 		g.upg.rolls  = max(0, floor(g.upg.rolls));
+		// THE THREE-SLOT TABLE (2026-09-16): a save from the eight-slot days
+		// may hold offers past the visible range - they slide down into
+		// free visible slots, the rest drop (upgrade_bonus walks every
+		// index, so a hidden bought slot would keep paying invisibly)
+		var _vis = upgrade_slots();
+		for (var _u = _vis; _u < UPG_SLOT_MAX; _u++) {
+			if (!is_struct(g.upg.slot[_u])) continue;
+			var _to = -1;
+			for (var _k = 0; _k < _vis; _k++) if (!is_struct(g.upg.slot[_k])) { _to = _k; break; }
+			if (_to >= 0) g.upg.slot[_to] = g.upg.slot[_u];
+			g.upg.slot[_u] = -1;
+		}
 	}
 
 	// ---- dials: the LEVEL is the only owned number (every rate, cost

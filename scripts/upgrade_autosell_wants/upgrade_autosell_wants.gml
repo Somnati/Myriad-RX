@@ -29,5 +29,9 @@ function upgrade_autosell_wants(_slot) {
 	// an id the filter has never seen defaults to KEEP - a roster entry
 	// added after the player configured this must not start disappearing
 	// on its own
-	return !(_u.kind[$ _s.id] ?? true);
+	// the toggle key is the entry's GROUP where it has one (the per-dial
+	// rows share "dial_one" - see the automation panel)
+	var _e  = upgrade_entry(_s.id);
+	var _gk = (_e == -1) ? _s.id : (_e[$ "group"] ?? _s.id);
+	return !(_u.kind[$ _gk] ?? true);
 }

@@ -65,7 +65,9 @@ function upgrade_roll(_slot) {
 	// slot" is one more slot at every rung - so a rare one would be the
 	// identical thing at sixteen times the price. Nothing about that is
 	// a reward.
-	if (_pick.stat == "") _rar = 0;
+	// ...EXCEPT A BURST (2026-09-16), which has a value to scale: rarity
+	// widens its multiplier and its clock
+	if (_pick.stat == "" && !(_pick[$ "burst"] ?? false)) _rar = 0;
 	var _mult = upgrade_rarity_mult(_rar);
 
 	// HOW DEEP THIS ONE GOES, rolled once and kept: DE's per-rarity
@@ -76,8 +78,22 @@ function upgrade_roll(_slot) {
 	// gives the same two - upgrade_cap raises its clamp by two while it is on)
 	var _xt = abi_on("ad_upgradetier") ? irandom(2) : 0;
 	var _cap = min(upgrade_roll_tiers(_rar) + _xt, _pick.cap + (abi_on("ad_upgradetier") ? 2 : 0));
+	// a grant is one tier however lucky the roll (the tier+ ability's
+	// two extra would draw three dots under a one-off)
+	if (_pick.stat == "") _cap = 1;
 
-	var _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
+	var _val = 0, _dur = 0;
+	if (_pick[$ "burst"] ?? false) {
+		// A BURST ROLLS A MULTIPLIER AND A CLOCK (his ask, 2026-09-16:
+		// "make the x2 variable and the time be random so sometimes i
+		// might get x1.58 for 2:30min"). Rarity widens both by its SQUARE
+		// ROOT, so the burst's worth (multiplier x time) climbs with the
+		// full rarity multiplier - the law the price follows - without
+		// either number alone running silly. Clocks land on 5 s.
+		var _rs = sqrt(_mult);
+		_val = 1 + random_range(_pick.band[0], _pick.band[1]) * _rs;
+		_dur = round(random_range(_pick.dur[0], _pick.dur[1]) * _rs / 5) * 5;
+	} else _val = random_range(_pick.band[0], _pick.band[1]) * _mult;
 	// two decimals: the exact number is noise, and a readout that
 	// changes in the third decimal reads as instability rather than detail
 	_val = round(_val * 100) / 100;
@@ -89,6 +105,7 @@ function upgrade_roll(_slot) {
 		val  : _val,
 		cap  : _cap,         // how many tiers it can ever take
 		tier : 0,            // an offer, not yet owned
+		dur  : _dur,         // a burst's clock in seconds (0 for the rest)
 	};
 	g.upg.rolls += 1;
 	g.upg.seen[_rar] += 1;   // the histogram - see upgrade_init

@@ -73,3 +73,24 @@ prof_last = prof_shown;
 // contribution is visible at all.
 gain_f   = noone;   // the live float, or noone
 gain_val = 0;       // what it is currently showing
+
+// ---- THE BURST CHIPS (his spec, 2026-09-16): "top right minimal 8x8
+// icons with the progress bar 1 pixel below it 1 pixel height" ----
+// Two glyphs, one per burst kind, baked from rows of text into pixel
+// lists once here so the Draw stamps them without string work. A
+// finger under two ripple marks for the tap; a knob with its needle
+// up-right for the dial.
+__bake_glyph = function(_rows) {
+	var _o = [];
+	for (var _r = 0; _r < 8; _r++)
+		for (var _c = 0; _c < 8; _c++)
+			if (string_char_at(_rows[_r], _c + 1) == "#") array_push(_o, [_c, _r]);
+	return _o;
+};
+burst_px = {
+	tap  : __bake_glyph([ "..#..#..", ".#.##.#.", "...##...", "...##...",
+	                      "...##...", "..####..", "..####..", "..####.." ]),
+	dial : __bake_glyph([ "..####..", ".#....#.", "#....#.#", "#...#..#",
+	                      "#..##..#", "#......#", ".#....#.", "..####.." ]),
+};
+burst_col = { tap : c_gold, dial : c_sgreen };   // the roster's colours

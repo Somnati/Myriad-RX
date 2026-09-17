@@ -61,6 +61,10 @@ function tap_fire(_n, _x, _y, _fx = true, _hold = false, _stat = true, _vol = 1)
 	var _ub   = upgrade_bonus_live();
 	var _rate = (g.click_crit + _ub.crit_rate) * luck_mod();   // luck leans the crit (DE)
 	var _pay  = do_multi(g.click_gps, arb(_n));
+	// THE TAP BURST (2026-09-16): x for a while from the buy, result-side
+	// (see upgrade_burst_mult); the crit multiplies on top of it
+	var _bm = upgrade_burst_mult("tap");
+	if (_bm > 1) _pay = do_scale(_pay, _bm);
 	var _crit = false;
 	var _cx   = 1;
 	// ...once the Critical Taps ability is on (his call, 2026-09-14: DE's

@@ -15,7 +15,11 @@
 function upgrade_bonus() {
 	upgrade_init();
 
+	// ONE LANE PER DIAL for the per-dial boost (2026-09-16); update_dial
+	// multiplies its dial's lane with the all-dial number
+	var _dcount = variable_global_exists("dial_total") ? g.dial_total : 13;
 	var _b = {
+		dial_one      : array_create(_dcount, 0),
 		tap_profit    : 0,
 		tap_rate      : 0,
 		crit_rate     : 0,
@@ -38,7 +42,14 @@ function upgrade_bonus() {
 		if (_s.stat == "") continue;         // a grant; it has no accumulator
 		if (!variable_struct_exists(_b, _s.stat)) continue;
 		// the tier curve, not a flat multiply - see upgrade_tier_value
-		_b[$ _s.stat] += upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i));
+		var _tv = upgrade_tier_value(_s.val, _s.tier, upgrade_cap(_i));
+		// ONE DIAL'S PROFIT lands on that dial's lane - the entry names the dial
+		if (_s.stat == "dial_one") {
+			var _de = upgrade_entry(_s.id);
+			if (_de != -1 && _de.dial < _dcount) _b.dial_one[_de.dial] += _tv;
+			continue;
+		}
+		_b[$ _s.stat] += _tv;
 	}
 
 	// ---- THEN THE COMPLETED LEDGER ----
@@ -52,6 +63,11 @@ function upgrade_bonus() {
 		if (!is_struct(_d)) continue;
 		if (_d.stat == "") continue;
 		if (!variable_struct_exists(_b, _d.stat)) continue;
+		if (_d.stat == "dial_one") {
+			var _de2 = upgrade_entry(_dn[_i]);
+			if (_de2 != -1 && _de2.dial < _dcount) _b.dial_one[_de2.dial] += _d.sum;
+			continue;
+		}
 		_b[$ _d.stat] += _d.sum;
 	}
 

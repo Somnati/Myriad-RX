@@ -16,6 +16,7 @@
 function upgrade_bonus_live() {
 	if (UPG_LIVE) return upgrade_bonus();
 	return {
+		dial_one      : array_create(variable_global_exists("dial_total") ? g.dial_total : 13, 0),
 		tap_profit    : 0,
 		tap_rate      : 0,
 		crit_rate     : 0,

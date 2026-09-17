@@ -32,6 +32,21 @@
 ///   avail  a function returning whether this can be rolled yet. THE
 ///          UNLOCK GATE - an upgrade for a system that does not exist
 ///          must not appear, and this is where that is decided.
+///   dial   (per-dial entries) which dial the boost lands on
+///   group  (optional) the automation panel's toggle key - the thirteen
+///          per-dial entries share one, with `gname` as its label
+///   burst  (grants) true = a TIMED burst: `band` is the multiplier's
+///          excess (x1 + band x sqrt(rarity)), `dur` its clock in seconds
+///          (x sqrt(rarity)), `kind` the lane ("tap" / "dial")
+///
+/// THE REWORK (his call, 2026-09-16 - "scrap all the upgrade types you
+/// added"): three standing modifiers - tap profit, ALL-dial profit, ONE
+/// dial's profit (offered for the two highest dials you own, the ones
+/// carrying the run) - stacking MULTIPLICATIVELY in update_dial, and two
+/// bursts - x tap profit / x dial profit for a while, the number and the
+/// clock rolled ("sometimes i might get x1.58 for 2:30min"). Bursts of
+/// one kind ADD their bonus parts and keep SEPARATE clocks (his rule).
+/// Crit, speed, discount, credit, luck and rebirth rows are gone.
 function upgrade_config() {
 	// ⚖️ BUILT ONCE. upgrade_entry runs per row per frame on the screen,
 	// and rebuilding ten structs and ten closures each time is real
@@ -42,91 +57,59 @@ function upgrade_config() {
 	g.upg_cfg = [
 		{
 			id : "tap_profit", name : "tap profit", stat : "tap_profit",
-			band : [4, 9], cap : 12, cost : 6, col : c_gold,
+			band : [8, 16], cap : 10, cost : 6, col : c_gold,
 			help : "every tap pays more",
 			avail : function() { return true; },
 		},
 		{
-			id : "crit_rate", name : "critical chance", stat : "crit_rate",
-			band : [1, 2.5], cap : 10, cost : 9, col : c_horange,
-			help : "more taps roll a critical",
-			// no point offering it before crits exist: the Critical Taps
-			// ability (his call, 2026-09-14)
-			avail : function() { return abi_on("ad_critical"); },
-		},
-		{
-			id : "crit_multi", name : "critical payout", stat : "crit_multi",
-			band : [0.15, 0.4], cap : 10, cost : 11, col : c_horange,
-			help : "criticals pay a bigger multiple",
-			avail : function() { return abi_on("ad_critical"); },
-		},
-		{
 			id : "dial_profit", name : "dial profit", stat : "dial_profit",
-			band : [5, 11], cap : 14, cost : 8, col : c_sgreen,
+			band : [6, 12], cap : 10, cost : 8, col : c_sgreen,
 			help : "every dial pays more per cycle",
 			avail : function() { return true; },
 		},
-		{
-			id : "dial_speed", name : "dial speed", stat : "dial_speed",
-			band : [3, 7], cap : 10, cost : 10, col : c_sblue,
-			help : "every dial cycles faster",
-			avail : function() { return true; },
-		},
-		{
-			id : "dial_cost", name : "dial discount", stat : "dial_cost",
-			band : [1.5, 3.5], cap : 10, cost : 12, col : c_steelblue,
-			help : "dial levels cost less profit",
-			avail : function() { return true; },
-		},
-		{
-			id : "credit_rate", name : "credit refill", stat : "credit_rate",
-			band : [6, 14], cap : 10, cost : 7, col : c_lavender,
-			help : "the credit pool refills faster",
-			avail : function() { return variable_global_exists("credit_refill"); },
-		},
-		{
-			id : "credit_luck", name : "credit luck", stat : "credit_luck",
-			band : [4, 10], cap : 8, cost : 9, col : c_lavender,
-			help : "more taps find credits",
-			avail : function() { return variable_global_exists("credit_tap_chance"); },
-		},
-		{
-			// LUCK (DE's, his ask 2026-09-12): flat points, not a percent -
-			// luck_mod turns the points into the multiplier every chance
-			// in the game takes. DE's roster gave 1 a tier at rare up to
-			// 5 at ultimate for 25 credits; here the band is the points
-			// and the rarity multiplier does the climbing
-			id : "luck", name : "luck", stat : "luck",
-			band : [1, 2], cap : 10, cost : 25, col : c_seagreen,
-			help : "every roll in the game leans your way",
-			avail : function() { return true; },
-		},
-		{
-			id : "rebirth_units", name : "rebirth units", stat : "rebirth_units",
-			band : [3, 7], cap : 8, cost : 14, col : c_hred,
-			help : "rebirth awards more units",
-			// meaningless until a rebirth is actually reachable
-			avail : function() {
-				return variable_global_exists("rebirth") && g.rebirth.total > 0;
-			},
-		},
-		{
-			// the hold's rate, DE's u_tps lane. A percentage rather than
-			// DE's flat points because tap_rate is fractional here and a
-			// percentage keeps its value as the base grows through
-			// abilities and gear later.
-			id : "tap_rate", name : "tap speed", stat : "tap_rate",
-			band : [6, 14], cap : 12, cost : 7, col : c_gold,
-			help : "holding taps faster",
-			avail : function() { return true; },
-		},
+	];
 
-		// ---- GRANTS ----
-		// ⚖️ A GRANT IS NOT A MODIFIER, and mixing the two is what forced
-		// DE's effects to be accumulated rather than derived. A modifier
-		// is a number recomputed from what you own; a grant changes state
-		// once and is gone. Keeping them apart is what lets everything
-		// else be derived - see upgrade_bonus.
+	// ---- ONE DIAL'S PROFIT, an entry per dial ----
+	// The id names the dial (upgrade_bonus reads `dial` off the entry,
+	// so the completed ledger needs nothing new). Offered only for the
+	// TWO HIGHEST dials you own - the ones carrying the run; a boost on
+	// dial a while dial e is paying is a dead roll, and a boost on a
+	// dial you have not opened does nothing until you do.
+	var _dn = variable_global_exists("dial_total") ? g.dial_total : 13;
+	for (var _i = 0; _i < _dn; _i++) {
+		array_push(g.upg_cfg, {
+			id : "dial_one_" + string(_i), name : "dial " + dial_config(_i).name + " profit",
+			stat : "dial_one", dial : _i, group : "dial_one", gname : "one dial's profit",
+			band : [15, 30], cap : 8, cost : 5, col : c_seagreen,
+			help : "this one dial pays more per cycle - it multiplies with dial profit",
+			// self is the entry (a function literal in a struct literal
+			// binds to the struct), so `dial` is this entry's own
+			avail : function() { return upgrade_dial_hot(dial); },
+		});
+	}
+
+	// ---- THE BURSTS (grants with a value) ----
+	// ⚖️ A GRANT IS NOT A MODIFIER, and mixing the two is what forced
+	// DE's effects to be accumulated rather than derived. A modifier
+	// is a number recomputed from what you own; a grant changes state
+	// once and is gone. Keeping them apart is what lets everything
+	// else be derived - see upgrade_bonus. A burst is a grant: buying
+	// it frees the slot and starts a clock (upgrade_burst_start); the
+	// payout seats read the running bursts result-side
+	// (upgrade_burst_mult), never the slot.
+	array_push(g.upg_cfg,
+		{
+			id : "burst_tap", name : "tap burst", stat : "", burst : true, kind : "tap",
+			band : [0.5, 1.3], dur : [90, 180], cap : 1, cost : 10, col : c_gold,
+			help : "every tap pays x more for a while, from the moment you buy it",
+			avail : function() { return true; },
+		},
+		{
+			id : "burst_dial", name : "dial burst", stat : "", burst : true, kind : "dial",
+			band : [0.5, 1.3], dur : [90, 180], cap : 1, cost : 12, col : c_sgreen,
+			help : "every dial pays x more for a while, from the moment you buy it",
+			avail : function() { return true; },
+		},
 		{
 			id : "new_slot", name : "another slot", stat : "",
 			band : [1, 1], cap : 1, cost : 30, col : c_white,
@@ -134,7 +117,6 @@ function upgrade_config() {
 			avail : function() {
 				return upgrade_slots() < UPG_SLOT_MAX;
 			},
-		},
-	];
+		});
 	return g.upg_cfg;
 }

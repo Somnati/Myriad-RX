@@ -687,11 +687,17 @@ __page_rows = function() {
 			sfx : "", st : -1, col : c_horange, ram : 0,
 			help : "chips lit are kept - the dark ones get sold" });
 		var _cfg = upgrade_config();
+		var _gseen = {};
 		for (var _i = 0; _i < array_length(_cfg); _i++) {
 			var _e = _cfg[_i];
-			array_push(_o, { kind : 4, name : _e.name, tag : "upg_kind",
-				on : (_u.kind[$ _e.id] ?? true), val : 0, sfx : "",
-				st : -1, col : _e.col, id : _e.id, ram : 0,
+			// one row per GROUP (2026-09-16): the thirteen per-dial entries
+			// share one toggle - upgrade_autosell_wants reads the same key
+			var _gk = _e[$ "group"] ?? _e.id;
+			if (variable_struct_exists(_gseen, _gk)) continue;
+			_gseen[$ _gk] = true;
+			array_push(_o, { kind : 4, name : _e[$ "gname"] ?? _e.name, tag : "upg_kind",
+				on : (_u.kind[$ _gk] ?? true), val : 0, sfx : "",
+				st : -1, col : _e.col, id : _gk, ram : 0,
 				help : _e.help });
 		}
 	}

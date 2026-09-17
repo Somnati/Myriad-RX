@@ -164,3 +164,59 @@ if (variable_global_exists("profit")) {
 	draw_set_color(c_white);
 }
 
+// ---- THE BURST CHIPS (his spec, 2026-09-16): one 8x8 icon per running
+// burst, top right, a 1px bar a pixel under it that DRAINS TOWARD THE
+// LEFT with the time left - a health bar, his first pick. Bursts of one
+// kind add up but keep their own clocks (his rule), so every one gets a
+// chip: tap chips first, then dial chips, right to left. Under the
+// pointer a chip says its number and its clock. upgrade_burst_mult
+// prunes what has run out as it reads, so the row empties itself. ----
+// Left of the window buttons (room_width-48.., y 0..11) on a wide room;
+// under them on a portrait one, clear of the counter.
+var _bl = variable_global_exists("upg") ? g.upg[$ "bursts"] : undefined;
+if (is_array(_bl) && array_length(_bl) > 0) {
+	upgrade_burst_mult("tap");   // the prune
+	var _now   = universal_now();
+	var _wide  = (room_width >= 300);
+	var _cxr   = _wide ? (room_width - 54) : (room_width - 6);   // the row's right edge
+	var _cx    = _cxr;
+	var _cy    = _wide ? 4 : 15;
+	var _kinds = ["tap", "dial"];
+	var _hov   = -1;
+	for (var _k = 0; _k < 2; _k++) {
+		var _kind = _kinds[_k];
+		var _col  = burst_col[$ _kind];
+		var _px   = burst_px[$ _kind];
+		for (var _i = 0; _i < array_length(_bl); _i++) {
+			var _b = _bl[_i];
+			if (_b.kind != _kind) continue;
+			var _left = _b.until - _now;
+			if (_left <= 0) continue;
+			var _x0 = _cx - 8;
+			// the icon
+			for (var _p = 0; _p < array_length(_px); _p++)
+				draw_sprite_ext(spr_pixel_1x1, 0, _x0 + _px[_p][0], _cy + _px[_p][1], 1, 1, 0, _col, .9);
+			// the bar, a pixel under it: what is left, anchored left so
+			// its end walks leftward as the clock runs
+			var _f = clamp(_left / max(1, _b.dur), 0, 1);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x0, _cy + 9, 8, 1, 0, c_black, .6);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x0, _cy + 9, max(1, round(8 * _f)), 1, 0, _col, .95);
+			if (point_in_rectangle(mouse_x, mouse_y, _x0 - 1, _cy - 1, _x0 + 8, _cy + 10)) _hov = _i;
+			_cx -= 11;
+		}
+	}
+	// under the pointer: the number and the clock, right-aligned to the row
+	if (_hov >= 0) {
+		var _hb = _bl[_hov];
+		var _hl = max(0, round(_hb.until - _now));
+		var _ss = _hl mod 60;
+		draw_set_halign(fa_right);
+		draw_set_color(burst_col[$ _hb.kind]);
+		draw_set_alpha(.95);
+		draw_text(_cxr, _cy + 12, "x" + string_format(_hb.mult, 1, 2) + "  "
+			+ string(floor(_hl / 60)) + ":" + ((_ss < 10) ? "0" : "") + string(_ss));
+		draw_set_halign(fa_left);
+	}
+	draw_set_alpha(1);
+	draw_set_color(c_white);
+}

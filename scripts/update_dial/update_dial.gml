@@ -46,16 +46,14 @@ function update_dial(_i) {
 	if (_ms.profit > 1) _d.gpc = do_scale(_d.gpc, _ms.profit);
 
 	// ---- UPGRADES, RESULT-SIDE ----
-	// dial profit multiplies the per-cycle pay; dial speed divides the
-	// cycle, which is the same seat a SPEED milestone uses, so the two
-	// stack the way the player expects rather than one overriding the
-	// other.
+	// ALL DIALS x THIS DIAL (his rule, 2026-09-16: "the per-dial and
+	// all-dial stack instead of add during dial calc") - two factors
+	// multiplied on the per-cycle pay, never two percents summed. The
+	// dial burst is NOT here: it is a clock, read at the payout
+	// (prod_dials) so a running dial's pay changes the moment it starts.
 	var _ub = upgrade_bonus_live();
-	if (_ub.dial_profit > 0) _d.gpc = do_scale(_d.gpc, 1 + _ub.dial_profit / 100);
-	if (_ub.dial_speed > 0) {
-		_d.cycle_t /= (1 + _ub.dial_speed / 100);
-		_d.cps = 1 / _d.cycle_t;
-	}
+	var _dpm = (1 + _ub.dial_profit / 100) * (1 + _ub.dial_one[_i] / 100);
+	if (_dpm > 1) _d.gpc = do_scale(_d.gpc, _dpm);
 
 	// THE REBIRTH BOOST (DE's update_auto: give x total_rebirth_boost) -
 	// 1 + units, on the per-cycle pay, dials only (the tap takes the

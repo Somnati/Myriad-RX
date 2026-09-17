@@ -178,24 +178,28 @@ function main_macros() {
 #macro c_ap rgb(120,190,255)
 
 // ---- upgrades (game/upgrades) ----
-// EIGHT TO START (his call, so an end-game table can be looked at
-// now). The design wants 3 and the other five bought through the
-// "another slot" grant - put this back to 3 to restore that, and the
-// grant re-enters the roll pool by itself the moment it does, because
-// its avail closure is `upgrade_slots() < UPG_SLOT_MAX`.
-#macro UPG_SLOT_BASE 8     // slots you start with
+// THREE TO START (his call, 2026-09-16 - the rework: "default 3 slots");
+// the other five come through the "another slot" grant, which sits in
+// the roll pool while `upgrade_slots() < UPG_SLOT_MAX`. It was eight
+// while the end-game table was being looked at.
+#macro UPG_SLOT_BASE 3     // slots you start with
 // EIGHT. It was cut to five when a row was 38px tall and eight ran off
 // the bottom of a 270-tall room; at 19px a row they all fit with space
 // to spare, so this is the original intent restored rather than a new
 // decision. One number if you want it tighter.
 #macro UPG_SLOT_MAX  8     // and the most the "another slot" grant can reach
+// THE BURST CHIPS' CEILING per kind (2026-09-16): a fourth tap burst folds
+// into the one ending soonest (its bonus part joins, the later clock
+// wins) - nothing bought is lost, and the header stays readable
+#macro UPG_BURST_MAX 3
 
-// ⚖️ WIRED, NOT LIVE (his call, while the screen is being polished).
-// Every consumer reads upgrade_bonus_live(), which returns zeros while
-// this is false - so the seats stay written and the economy is
-// untouched. upgrade_bonus() itself stays truthful, so the screen shows
-// what the slots WOULD do. Flip this to turn the whole system on.
-#macro UPG_LIVE false
+// ⚖️ LIVE SINCE THE REWORK (2026-09-16: three standing modifiers, two
+// bursts - "that stretch to get to dial C is long"). It sat wired-but-off
+// while the screen was being polished: every consumer reads
+// upgrade_bonus_live(), which returns zeros while this is false, so the
+// seats stay written and the economy untouched. upgrade_bonus() itself
+// stays truthful either way - the screen shows what the slots do.
+#macro UPG_LIVE true
 
 // THE SPARK POOL's size - see syst_sparks. DE runs to 200 instances;
 // this is 200 preallocated structs in one object, and the number is a

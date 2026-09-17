@@ -313,6 +313,17 @@ __mod_rect = function() {
 __rar_name = function(_r) { return upgrade_rarity_info(_r).name; };
 __rar_col  = function(_r) { return upgrade_rarity_info(_r).col;  };
 
+// m:ss for a burst's clock
+__mmss = function(_t) {
+	_t = max(0, round(_t));
+	var _ss = _t mod 60;
+	return string(floor(_t / 60)) + ":" + ((_ss < 10) ? "0" : "") + string(_ss);
+};
+// a burst offer's one line: the multiplier and the clock it was rolled with
+__burst_str = function(_s) {
+	return "x" + string_format(_s.val, 1, 2) + " for " + __mmss(_s[$ "dur"] ?? 0);
+};
+
 // a slot's effect, as the one string the row has room for
 __eff_str = function(_i) {
 	var _s = g.upg.slot[_i];

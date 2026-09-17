@@ -74,6 +74,15 @@ function tap_breakdown() {
 		});
 		_lg += log10(_m);
 	}
+	// the tap burst (2026-09-16), where tap_fire takes it: after the upgrades
+	var _bm = upgrade_burst_mult("tap");
+	if (_bm > 1) {
+		array_push(_out.mults, {
+			name : "tap burst", note : "x" + string_format(_bm, 1, 2) + " while it runs",
+			mult : _bm, col : c_gold,
+		});
+		_lg += log10(_bm);
+	}
 	var _oc = overcharge_multi();
 	if (_oc > 1) {
 		array_push(_out.mults, {
