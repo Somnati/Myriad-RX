@@ -432,7 +432,7 @@ if (mod_a > .001) {
 	var _bnow = universal_now();
 	if (is_array(_bb)) for (var _bi = 0; _bi < array_length(_bb); _bi++) {
 		var _bx = _bb[_bi];
-		var _lft = _bx.until - _bnow;
+		var _lft = _bx.ends - _bnow;
 		if (_lft <= 0) continue;
 		array_push(_bl, { k : _bx.kind + " burst   " + __mmss(_lft) + " left", v : _bx.mult, s : "", x : true });
 	}

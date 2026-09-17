@@ -448,7 +448,7 @@ function stats_v2_content() {
 		var _bl = g.upg[$ "bursts"];
 		var _bn = 0;
 		if (is_array(_bl)) for (var _bi = 0; _bi < array_length(_bl); _bi++)
-			if (_bl[_bi].until > universal_now()) _bn++;
+			if (_bl[_bi].ends > universal_now()) _bn++;
 		stats_v2_line("tap burst",  "x" + string_format(upgrade_burst_mult("tap"),  1, 2), -1,
 			(upgrade_burst_mult("tap")  > 1) ? c_gold   : c_gray);
 		stats_v2_line("dial burst", "x" + string_format(upgrade_burst_mult("dial"), 1, 2), -1,

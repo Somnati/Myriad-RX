@@ -22,21 +22,21 @@ function upgrade_burst_start(_kind, _mult, _dur) {
 	var _bl  = g.upg.bursts;
 	// the dead ones go first
 	for (var _i = array_length(_bl) - 1; _i >= 0; _i--)
-		if (_bl[_i].until <= _now) array_delete(_bl, _i, 1);
+		if (_bl[_i].ends <= _now) array_delete(_bl, _i, 1);
 
 	var _n = 0, _soon = -1;
 	for (var _i = 0; _i < array_length(_bl); _i++) {
 		if (_bl[_i].kind != _kind) continue;
 		_n++;
-		if (_soon < 0 || _bl[_i].until < _bl[_soon].until) _soon = _i;
+		if (_soon < 0 || _bl[_i].ends < _bl[_soon].ends) _soon = _i;
 	}
 	if (_n >= UPG_BURST_MAX && _soon >= 0) {
 		var _b = _bl[_soon];
 		_b.mult += max(0, _mult - 1);
-		_b.until = max(_b.until, _now + _dur);
-		_b.dur   = _b.until - _now;   // the chip's bar reads full again
+		_b.ends = max(_b.ends, _now + _dur);
+		_b.dur   = _b.ends - _now;   // the chip's bar reads full again
 	} else {
-		array_push(_bl, { kind : _kind, mult : _mult, until : _now + _dur, dur : _dur });
+		array_push(_bl, { kind : _kind, mult : _mult, ends : _now + _dur, dur : _dur });
 	}
 	save_mark_dirty();
 }

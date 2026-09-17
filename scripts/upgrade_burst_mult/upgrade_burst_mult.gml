@@ -25,7 +25,7 @@ function upgrade_burst_mult(_kind) {
 	var _m = 1;
 	for (var _i = array_length(_bl) - 1; _i >= 0; _i--) {
 		var _b = _bl[_i];
-		if (_b.until <= _now) { array_delete(_bl, _i, 1); continue; }
+		if (_b.ends <= _now) { array_delete(_bl, _i, 1); continue; }
 		if (_b.kind == _kind) _m += max(0, _b.mult - 1);
 	}
 	return _m;

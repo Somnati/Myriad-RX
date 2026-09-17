@@ -190,7 +190,7 @@ if (is_array(_bl) && array_length(_bl) > 0) {
 		for (var _i = 0; _i < array_length(_bl); _i++) {
 			var _b = _bl[_i];
 			if (_b.kind != _kind) continue;
-			var _left = _b.until - _now;
+			var _left = _b.ends - _now;
 			if (_left <= 0) continue;
 			var _x0 = _cx - 8;
 			// the icon
@@ -208,7 +208,7 @@ if (is_array(_bl) && array_length(_bl) > 0) {
 	// under the pointer: the number and the clock, right-aligned to the row
 	if (_hov >= 0) {
 		var _hb = _bl[_hov];
-		var _hl = max(0, round(_hb.until - _now));
+		var _hl = max(0, round(_hb.ends - _now));
 		var _ss = _hl mod 60;
 		draw_set_halign(fa_right);
 		draw_set_color(burst_col[$ _hb.kind]);

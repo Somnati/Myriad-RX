@@ -922,7 +922,7 @@ function handle_save(){
 	if (is_array(g.upg[$ "bursts"])) for (var _u = 0; _u < array_length(g.upg.bursts); _u++) {
 		var _bb = g.upg.bursts[_u];
 		_bt += ((_bt == "") ? "" : "|") + _bb.kind + ":" + string_format(_bb.mult, 1, 4) + ":"
-			+ string_format(_bb.until, 1, 2) + ":" + string(round(_bb.dur));
+			+ string_format(_bb.ends, 1, 2) + ":" + string(round(_bb.dur));
 	}
 	_bt = handle("bursts", _bt);
 	if (action == sv_load) {
@@ -935,7 +935,7 @@ function handle_save(){
 				if (array_length(_bf) < 4) continue;
 				var _un = real(_bf[2]);
 				if (_un <= _bnow) continue;
-				array_push(g.upg.bursts, { kind : _bf[0], mult : real(_bf[1]), until : _un, dur : max(1, real(_bf[3])) });
+				array_push(g.upg.bursts, { kind : _bf[0], mult : real(_bf[1]), ends : _un, dur : max(1, real(_bf[3])) });
 			}
 		}
 	}

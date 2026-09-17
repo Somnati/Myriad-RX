@@ -12,11 +12,11 @@ var _glass = (_mat == 1 || _mat == 4);
 // THE EGG IT KEEPS (2026-09-16): on the floor where it was put down, its colour, a shell highlight, a shadow
 var _keg = s[$ "egg"];
 if (is_struct(_keg)) {
-	var _ex = floor(egg_x), _ey = floor(egg_y);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ex - 3, _ey, 7, 1, 0, c_black, .35);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ex - 1, _ey - 7, 3, 1, 0, _keg.col, 1); draw_sprite_ext(spr_pixel_1x1, 0, _ex - 2, _ey - 6, 5, 5, 0, _keg.col, 1); draw_sprite_ext(spr_pixel_1x1, 0, _ex - 1, _ey - 1, 3, 1, 0, _keg.col, 1);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ex - 2, _ey - 5, 1, 2, 0, merge_colour(_keg.col, c_black, .4), 1);
-	draw_sprite_ext(spr_pixel_1x1, 0, _ex, _ey - 6, 1, 1, 0, c_white, .6);
+	var _kx = floor(egg_x), _ky = floor(egg_y);
+	draw_sprite_ext(spr_pixel_1x1, 0, _kx - 3, _ky, 7, 1, 0, c_black, .35);
+	draw_sprite_ext(spr_pixel_1x1, 0, _kx - 1, _ky - 7, 3, 1, 0, _keg.col, 1); draw_sprite_ext(spr_pixel_1x1, 0, _kx - 2, _ky - 6, 5, 5, 0, _keg.col, 1); draw_sprite_ext(spr_pixel_1x1, 0, _kx - 1, _ky - 1, 3, 1, 0, _keg.col, 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, _kx - 2, _ky - 5, 1, 2, 0, merge_colour(_keg.col, c_black, .4), 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, _kx, _ky - 6, 1, 1, 0, c_white, .6);
 }
 // ---- the body's geometry: an ellipsoid squashed by the impulse ----
 var _idle_bob = (st == 0 || st == 3) ? dsin(bob) * .6 : 0;

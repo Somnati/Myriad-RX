@@ -61,7 +61,7 @@ function upgrade_init(_force = false) {
 		//   done[$ id] = { stat, sum, n }
 		done   : {},
 
-		// THE RUNNING BURSTS (2026-09-16): { kind, mult, until, dur } on the
+		// THE RUNNING BURSTS (2026-09-16): { kind, mult, ends, dur } on the
 		// wall clock (universal_now). The one other exception to the law
 		// at the top: a burst is a bought thing with a clock, and the
 		// clock is history. upgrade_burst_mult prunes what has run out.
