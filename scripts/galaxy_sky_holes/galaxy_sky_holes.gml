@@ -8,11 +8,15 @@ function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = unde
 	var _ct = mat3_transpose(_cam);
 	var _stars = _sky.stars;
 	if (!variable_struct_exists(_sky, "hbake")) _sky.hbake = {};   // THE FROZEN RENDERS (q196), by neighbour index: { surf, qw, up }
+	if (!variable_struct_exists(_sky, "hidx")) {   // (the holes' indices, found once - the pass walked two thousand stars a frame for a handful; bug hunt 2026-09-18)
+		_sky.hidx = [];
+		for (var _j = 0; _j < array_length(_stars); _j++) { var _sj = _stars[_j]; if ((_sj[$ "near"] ?? false) && (_sj[$ "skind"] ?? "main") == "hole") array_push(_sky.hidx, _j); }
+	}
 	var _pg = surface_get_target(), _pg_ok = (_pg >= 0 && surface_exists(_pg));
 	var _pw = _pg_ok ? surface_get_width(_pg) : _w, _ph = _pg_ok ? surface_get_height(_pg) : _h;
-	for (var _i = 0; _i < array_length(_stars); _i++) {
-		var _sk = _stars[_i];
-		if (!(_sk[$ "near"] ?? false) || (_sk[$ "skind"] ?? "main") != "hole") continue;
+	var _hidx = _sky.hidx;
+	for (var _hi = 0; _hi < array_length(_hidx); _hi++) {
+		var _i = _hidx[_hi], _sk = _stars[_i];
 		var _dv = mat3_apply(_ct, _sk.x, _sk.y, _sk.z);
 		if (_dv[2] > -.2) continue;
 		var _f  = 230 / -_dv[2];
