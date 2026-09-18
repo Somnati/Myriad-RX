@@ -145,15 +145,13 @@ function planet_lod_step(_pn, _l, _until) {
 					}
 				}
 			}
-			var _c = _pal[_b];
-			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
+			// (the sheets' texels through the ONE ENCODER the map's bake uses - planet_sheet_terrain / planet_sheet_height; q216)
+			var _vt = planet_sheet_terrain(_pal[_b], _glow[_b]);
+			buffer_poke(_tb, _o + _or, buffer_u8, _vt & $ff); buffer_poke(_tb, _o + _og, buffer_u8, (_vt >> 8) & $ff); buffer_poke(_tb, _o + _ob, buffer_u8, (_vt >> 16) & $ff); buffer_poke(_tb, _o + _oa, buffer_u8, (_vt >> 24) & $ff);
 			var _eh = _oe;
 			if (_b == 1 && _oe >= _sea && _hasr) _eh = max(_oe, _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11);   // (a lake's height is its water's - the fill level, flat)
-			var _h = _gas ? 0 : power(clamp((_eh - _base) / max(.001, 1 - _base), 0, 1), 1.6);
-			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11 || _b == 25)) ? 255 : 0;
-			var _for = (!_gas) ? ((_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0))) : 0;
-			if (_wat > 0) _for = (_oe >= _sea) ? 0 : max(6, floor(clamp((_sea - _oe) / .08, 0, 1) * 255));   // (the sea's at least 6 - the foam's mark; a river's or a lake's 0)
-			buffer_poke(_hb, _o + _or, buffer_u8, floor(_h * 255)); buffer_poke(_hb, _o + _og, buffer_u8, _wat); buffer_poke(_hb, _o + _ob, buffer_u8, _for); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
+			var _vh = planet_sheet_height(_eh, _oe, _sea, _base, _gas, _b);
+			buffer_poke(_hb, _o + _or, buffer_u8, _vh & $ff); buffer_poke(_hb, _o + _og, buffer_u8, (_vh >> 8) & $ff); buffer_poke(_hb, _o + _ob, buffer_u8, (_vh >> 16) & $ff); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
 			_o += 4;
 			// (the deadline inside the row too: a row of a tier is a thousand texels and more, and a frame's share is a few ms)
 			if ((_i & 31) == 31 && get_timer() >= _until) { _l.col = _i + 1; return false; }

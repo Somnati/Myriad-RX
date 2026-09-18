@@ -27,14 +27,9 @@ function galaxy_sky_build(_dw = undefined) {
 	var _cd = clamp(1 - point_distance(_me.x, _me.y, _sm.cx, _sm.cy) / (_cfg.gal_r * .33), 0, 1);
 	_out.rich = _ld; _out.core_in = _cd;
 	_out.fog_boost = 1 + (_cfg[$ "sky_core_fog"] ?? 1.6) * _cd + (_cfg[$ "sky_rich_fog"] ?? .6) * _ld;
-	// THE MAP'S BEARINGS INTO THE SKY (q197 - his catch, 2026-09-17: the core's black hole stood to the LEFT of the
-	// centre on the map and to the RIGHT of it in the sky): the map is y-down, and the sky's frame is x right, y down,
-	// z toward the eye - a LEFT-handed frame - seen from above (-y, the sky's up). A bearing laid down as x = cos az,
-	// z = +sin az put the map's north at world +z, which that camera shows at the BOTTOM of the page: the whole sky was
-	// the map's mirror image. So z = -sin az: the map's north is world -z (screen up from above, as the map reads), the
-	// map's east world +x; every body that takes a map bearing - the neighbours of every kind, the star clouds, the
-	// nebulae, the core's bearing - goes through this one law (the inside-a-nebula frame said so all along: "z = the
-	// map's south"). The siblings and the sun are the SYSTEM's own frame (orbit angles, no map meaning): untouched
+	// THE MAP'S BEARINGS INTO THE SKY go through frame_bearing (q197's law, written there since q216): every body that
+	// takes a map bearing - the neighbours of every kind, the star clouds, the nebulae, the core's bearing. The siblings
+	// and the sun are the SYSTEM's own frame (orbit angles, no map meaning): untouched
 	// the neighbourhood
 	var _rng = _cfg.sky_range;
 	var _cand = star_visible(_me.x - _rng, _me.y - _rng, 1, _rng * 2, _rng * 2);
@@ -74,7 +69,8 @@ function galaxy_sky_build(_dw = undefined) {
 		var _lum = sqr(_st.props.size / 2) * ((_skd == "giant") ? 3 : ((_skd == "dwarf" || _skd == "pulsar") ? .15 : 1));
 		var _fx = power(clamp(_lum * sqr(_nrf / max(_d, 20)), 0, 1), _gam);
 		var _sz = clamp(power(_lum, .3) * power(_nrf / max(_d, 20), _spw), 0, 1) * (_cfg[$ "sky_size_max"] ?? 31);
-		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : -dcos(_el) * dsin(_az),
+		var _dir = frame_bearing(_az, _el);   // (the map's bearing into the sky's frame - the laws are frame_bearing's; q216)
+		array_push(_out.stars, { x : _dir[0], y : _dir[1], z : _dir[2],
 		                         col : _st.props.color, b : (.2 + .45 * _ld) + (.8 - .45 * _ld) * _fx, s : clamp(_sz, 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true,
 		                         skind : (_st.props[$ "skind"] ?? "main"), sspin : (_st.props[$ "spin"] ?? 1), sseed : _st.seed,
 		                         d : _d, psz : _st.props.size });   // (d / psz: the hole's size law reads them plainly - the glyph law saturates; q196)   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16; skind: its kind shows from here too, 2026-09-17)
@@ -130,7 +126,8 @@ function galaxy_sky_build(_dw = undefined) {
 		_ncl -= 1;
 		var _el3 = (random(1) - .5 + random(1) - .5) * 12;   // (triangular: most within a few degrees of the plane)
 		var _cc = merge_colour(rgb(255, 205, 165), rgb(150, 170, 235), _dc);
-		array_push(_out.stars, { x : dcos(_el3) * dcos(_az3), y : -dsin(_el3), z : -dcos(_el3) * dsin(_az3),
+		var _dir3 = frame_bearing(_az3, _el3);
+		array_push(_out.stars, { x : _dir3[0], y : _dir3[1], z : _dir3[2],
 		                         col : merge_colour(_cc, c_white, .35), b : random_range(.08, .32) * (1 - .5 * abs(_el3) / 12), s : 1, ph : irandom(359), near : false, cl : true });   // (cl: drawn at its raw brightness - grain, not stars; bug hunt 2026-09-16)
 	}
 	rng_release(_oldsd);
@@ -148,7 +145,8 @@ function galaxy_sky_build(_dw = undefined) {
 		var _nar = clamp(darctan(_nb.r / max(_nd, 1)), 4, 55);   // the apparent radius, degrees
 		var _nel = clamp(darctan2(_nhg, max(_nd2, 1)), -72, 72);   // its height seen from here (never the zenith: the frame needs a side)
 		var _nbr = clamp(_nb.r / max(_nd, 1) * 1.4, .12, 1) * clamp((_nrng + _nb.r - _nd) / (_nrng * .35), 0, 1);   // (fading out at the edge of reach)
-		array_push(_out.nebs, { x : dcos(_nel) * dcos(_naz), y : -dsin(_nel), z : -dcos(_nel) * dsin(_naz), ar : _nar, b : _nbr, nb : _nb });
+		var _ndir = frame_bearing(_naz, _nel);
+		array_push(_out.nebs, { x : _ndir[0], y : _ndir[1], z : _ndir[2], ar : _nar, b : _nbr, nb : _nb });
 	}
 	array_sort(_out.nebs, function(_a, _b) { return (_b.b > _a.b) ? 1 : ((_b.b < _a.b) ? -1 : 0); });   // (the brightest first: the fog shader paints eight)
 	// INSIDE A NEBULA (his ask, 2026-09-16): a star's HEIGHT is its parallax depth read as plane px (d .85..1.15 about the
@@ -171,7 +169,7 @@ function galaxy_sky_build(_dw = undefined) {
 	}
 	// the fog's bearings
 	var _core_az = point_direction(_me.x, _me.y, _sm.cx, _sm.cy);
-	_out.core_dir = [dcos(_core_az), 0, -dsin(_core_az)];
+	_out.core_dir = frame_bearing(_core_az, 0);
 	_out.fog_seed = (_hm.planet_seed mod 4096) / 61.7;
 	_out.fog_edge = clamp(point_distance(_me.x, _me.y, _sm.cx, _sm.cy) / _cfg.gal_r, 0, 1);
 	return _out;

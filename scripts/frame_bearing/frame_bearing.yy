@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"frame_bearing",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"frame_bearing",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

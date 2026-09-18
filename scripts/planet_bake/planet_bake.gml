@@ -47,10 +47,9 @@ function planet_bake(_pn, _until = undefined) {
 			var _i = _tx + _ty * _tw;
 			var _r8 = 0, _g8 = 0, _b8 = 0, _a8 = 255;
 			if (_p == 0) {
-				// the terrain: rgb the biome's colour, alpha 1 - glow (the emissive mask)
-				var _b3 = _pn.biome[_i], _c3 = _pn.pal[_b3];
-				_r8 = colour_get_red(_c3); _g8 = colour_get_green(_c3); _b8 = colour_get_blue(_c3);
-				_a8 = floor(clamp(1 - _pn.glow[_b3], 0, 1) * 255);
+				// the terrain (planet_sheet_terrain - the one encoder, the tier's too)
+				var _b3 = _pn.biome[_i], _v3 = planet_sheet_terrain(_pn.pal[_b3], _pn.glow[_b3]);
+				_r8 = _v3 & $ff; _g8 = (_v3 >> 8) & $ff; _b8 = (_v3 >> 16) & $ff; _a8 = (_v3 >> 24) & $ff;
 			} else if (_p == 1) {
 				// the clouds: red the thickness (the cloud relief), green free, BLUE the sand under it (the dunes full, the desert
 				// half - the shader's dune grain, q209), alpha the coverage - never exactly 0 (a sheet read is gated on the thickness)
@@ -58,17 +57,12 @@ function planet_bake(_pn, _until = undefined) {
 				_r8 = floor(clamp(_pn.cthk[_i], 0, 1) * 255); _g8 = 255; _b8 = (_bs2 == 24) ? 255 : ((_bs2 == 3) ? 110 : 0);
 				_a8 = max(1, floor(clamp(_pn.carr[_i], 0, 1) * 255));
 			} else {
-				// the height above the sea (or the world's base level), 0..1 in red on a curve (the tallest 20% carries half the
-				// relief); a lake's is its water's (the fill level, flat), a river keeps its carved bed; green marks WATER for
-				// the glint; blue the WOODS (forest / jungle full, swamp thinner, taiga full, savanna sparse) - or under water
-				// the DEPTH (the sea's at least 6: the foam knows the sea's shore from a river's or a lake's, whose depth is 0)
+				// the height (planet_sheet_height - the one encoder, the tier's too): a lake's is its water's (the fill level, flat), a
+				// river keeps its carved bed
 				var _bw = _pn.biome[_i], _eh = _pn.elev[_i];
 				if (_bw == 1 && _eh >= _pn.sea && _hasf) _eh = max(_eh, _pn.rfill[_i]);
-				var _h = _gas ? 0 : power(clamp((_eh - _base) / max(.001, 1 - _base), 0, 1), 1.6);
-				var _wat = (!_gas && (_bw == 0 || _bw == 1 || _bw == 11 || _bw == 25)) ? 255 : 0;
-				var _for = (!_gas) ? ((_bw == 5 || _bw == 6 || _bw == 22) ? 255 : ((_bw == 12) ? 140 : ((_bw == 21) ? 90 : 0))) : 0;
-				if (_wat > 0) _for = (_pn.elev[_i] >= _pn.sea) ? 0 : max(6, floor(clamp((_pn.sea - _pn.elev[_i]) / .08, 0, 1) * 255));
-				_r8 = floor(_h * 255); _g8 = _wat; _b8 = _for;
+				var _vh = planet_sheet_height(_eh, _pn.elev[_i], _pn.sea, _base, _gas, _bw);
+				_r8 = _vh & $ff; _g8 = (_vh >> 8) & $ff; _b8 = (_vh >> 16) & $ff;
 			}
 			buffer_poke(_bf, _o + _or, buffer_u8, _r8); buffer_poke(_bf, _o + _og, buffer_u8, _g8); buffer_poke(_bf, _o + _ob, buffer_u8, _b8); buffer_poke(_bf, _o + _oa, buffer_u8, _a8);
 			_o += 4;

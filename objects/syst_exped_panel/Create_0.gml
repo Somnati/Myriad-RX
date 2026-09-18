@@ -484,9 +484,7 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 // sky and the sun come from the galaxy (pv_sky)
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
-lod_k3 = undefined;                       // THE ZOOM TIER (2026-09-17): the page's world at 3x the map (planet_lod_begin's struct, building or ready)
-lod_seed = -1;                            // ...whose world they are
-lod_c = [];                               // THE TIERS KEPT (q202): [{ seed, l }] - a world's tier survives leaving the page and swapping worlds (four kept; it was rebuilt on every return)
+tiers = new TierKeep();                   // THE ZOOM TIERS (2026-09-17; the keeper's own since q216): the page's world's 3x tier and four kept
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
@@ -494,24 +492,11 @@ pv_face  = -1;                       // the region the camera is turning to face
 pv_dw    = false; pv_dwa = 0;        // the region drawer on the right: open, and its ease
 pv_dtab  = 0;                        // THE DRAWER'S TAB (his ask, 2026-09-16): 0 regions, 1 active expeditions
 pv_sky   = undefined;                // galaxy_sky_build() (the page's world's - __sky_for)
-sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
+skies    = new SkyCache();           // A SKY A WORLD (2026-09-16; SkyCache's own since q216): galaxy_sky_build(d) by seed, the sun's bearing refreshed on every read
 sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy, t, life } in the orbit view's page space, one every sky_meteor seconds or so
 sky_met_t = 0;                       // ...seconds since the last
-/// a sky's frozen hole renders (galaxy_sky_holes' hbake) let go - q196
-__sky_bakes_free = function(_c) {
-	if (!is_struct(_c) || !is_struct(_c[$ "hbake"])) return;
-	var _ks = variable_struct_get_names(_c.hbake);
-	for (var _j = 0; _j < array_length(_ks); _j++) { var _b = _c.hbake[$ _ks[_j]]; if (is_struct(_b) && surface_exists(_b.surf)) surface_free(_b.surf); }
-	_c.hbake = {};
-};
-__sky_for = function(_d) {
-	// (a sky is rebuilt after ten minutes: the siblings' spots are where they were WHEN IT WAS BUILT - cached for a session
-	// they stood still while the system view's planets moved on; bug hunt 2026-09-16. The dust and the clouds are seeded: the same)
-	var _k = string(_d.seed), _c = sky_c[$ _k];
-	if (!is_struct(_c) || (current_time - (_c[$ "built"] ?? 0)) > 600000) { __sky_bakes_free(_c); _c = galaxy_sky_build(_d); _c.built = current_time; sky_c[$ _k] = _c; }
-	_c.light_w = galaxy_sun_dir(0, _d);
-	return _c;
-};
+__sky_bakes_free = function(_c) { skies.free_bakes(_c); };
+__sky_for = function(_d) { return skies.get(_d); };
 __gx_enter_r = function() { return { x : room_width - (land ? 14 : 4) - 80, y : room_height - 8 - 16, w : 80, h : 16 }; };   // [enter] the tapped star's system (bottom right, the demo's seat)
 // THE STAR SYSTEM VIEW (his ask, 2026-09-16: the tech demo's, ported whole): orbits in the GALACTIC plane (world y = 0,
 // the plane the sky's milky way lives in), a camera that orbits the star like the orbit view's orbits the world (drag +
@@ -529,16 +514,7 @@ sy_pd = [];                          // the lite worlds, one a planet (planet_ge
 /// __sy_enter, a quarter second in one frame): the first unfinished world takes three milliseconds a frame - rows of
 /// samples (planet_gen_step), then its textures (planet_bake with the deadline) - and stands within a few frames; the
 /// painter draws a plain ball in the world's colour until then. The cache keeps the finished ones: the next visit costs nothing
-__sy_lite_step = function() {
-	var _lim = get_timer() + 3000;
-	for (var _i = 0; _i < array_length(sy_pd); _i++) {
-		var _pn = sy_pd[_i];
-		if (planet_lite_ready(_pn)) continue;
-		while (_pn.row < _pn.th && get_timer() < _lim) planet_gen_step(_pn, 1);
-		if (_pn.row >= _pn.th) planet_bake(_pn, _lim);
-		return;
-	}
-};
+__sy_lite_step = function() { planet_lite_step_list(sy_pd, 3000); };   // (the builder is planet_lite_step_list's - q216)
 sy_stns = [];                        // THE STAR'S SPACE STATIONS (station_sys, 2026-09-17): on their own rings, picked like a world
 sy_belts = [];                       // THE ASTEROID BELTS (belt_sys, 2026-09-17): a crowd of rocks on a band, turning
 sy_bsel = -1;                        // the belt tapped (its name in the caption, its row lit - nothing to enter)
@@ -2605,20 +2581,11 @@ __worlds_step = function() {
 // Nothing about the camera. Under the camera's hand the build takes a smaller slice (q202a). A tier whose textures
 // the gpu dropped (the window going full screen) is re-uploaded from its kept buffers. A NEW world's tier builds
 // under the page's loading veil (q202: the world arrives finished - no pop-in anywhere on it); tiers are KEPT
-// (lod_c, four of them) so a world seen before has its tier at once
-__lod_stash = function(_l, _seed) {   // a tier into the keep (the oldest let go past four)
-	if (!is_struct(_l)) return;
-	for (var _i = 0; _i < array_length(lod_c); _i++) if (lod_c[_i].seed == _seed) { lod_c[_i].l = _l; return; }
-	array_insert(lod_c, 0, { seed : _seed, l : _l });
-	while (array_length(lod_c) > 4) { var _old = array_pop(lod_c); planet_lod_free(_old.l); }
-};
-__lod_take = function(_seed) {   // a kept tier out of the keep (undefined when none)
-	for (var _i = 0; _i < array_length(lod_c); _i++) if (lod_c[_i].seed == _seed) { var _l = lod_c[_i].l; array_delete(lod_c, _i, 1); return _l; }
-	return undefined;
-};
-__lod_drop = function() { if (is_struct(lod_k3)) __lod_stash(lod_k3, lod_seed); lod_k3 = undefined; lod_seed = -1; };   // (the page's tier into the keep, not freed - q202)
-__lod_free_all = function() { __lod_drop(); for (var _i = 0; _i < array_length(lod_c); _i++) planet_lod_free(lod_c[_i].l); lod_c = []; };
-__lod_ready = function(_pn) { return is_struct(_pn) && lod_seed == _pn.seed && is_struct(lod_k3) && lod_k3.ready; };
+// (TierKeep's keep, four of them) so a world seen before has its tier at once
+// (the tiers' keeping, building and re-uploading are TierKeep's; the panel keeps only the question the zoom answers)
+__lod_drop = function() { tiers.drop(); };
+__lod_free_all = function() { tiers.free_all(); };
+__lod_ready = function(_pn) { return tiers.ready(_pn); };
 __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
 	// FROM THE REGION VIEW'S OWN ZOOM (his ask, 2026-09-17: "trigger at the zoom level where viewing a region settles"):
@@ -2627,23 +2594,11 @@ __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
 	return (_zt >= PV_ZOOM_RG - .02) ? 3 : 0;
 };
-__lod_pick = function(_pn) {   // the tier for the draw, if it stands and the zoom asks for it
-	if (lod_seed != _pn.seed || !is_struct(lod_k3) || !lod_k3.ready || __lod_want() < 3) return undefined;
-	if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) return undefined;   // (dropped by the gpu: the Step re-uploads it; not here, inside the page's target)
-	return lod_k3;
-};
+__lod_pick = function(_pn) { return tiers.pick(_pn, __lod_want() >= 3); };
 __lod_step = function() {
-	if (view != "planet" || !is_struct(pl_dest)) { __lod_drop(); return; }
+	if (view != "planet" || !is_struct(pl_dest)) { tiers.drop(); return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
-	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; lod_k3 = __lod_take(_pn.seed); }   // (a kept tier back at once - q202)
-	if (is_struct(lod_k3) && lod_k3.ready) { if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) planet_lod_upload(lod_k3); return; }
-	if (!is_struct(lod_k3)) lod_k3 = planet_lod_begin(_pn, 3);
-	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms - and UNDER
-	// THE CAMERA'S HAND (a drag, a glide, a snap) a tenth of a sixtieth-frame, never nothing: it paused there before, so a
-	// world grabbed as it appeared kept its tier waiting (his call, 2026-09-18: "let's make it not pause")
-	var _hand = (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1);
-	planet_lod_step(_pn, lod_k3, get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000)));
+	tiers.step(_pn, (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1));   // (a smaller slice under the camera's hand - q202a)
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved
@@ -2680,8 +2635,8 @@ __loading = function() {
 	if (_brw < 3 * _pn.th) return { txt : "building " + _d.name, prog : .7 + .3 * _brw / max(1, 3 * _pn.th) };
 	// THE ZOOM TIER too (q202; his ask: "have it start baking the higher LOD as soon as possible" - under the veil is as
 	// soon as it gets): the planet page waits for its world's 3x tier (__lod_step rushed by the veil's loop), so the
-	// world arrives finished and no zoom ever pops; a kept tier (lod_c) answers at once
-	if (view == "planet" && !__lod_ready(_pn)) return { txt : "surveying " + _d.name, prog : (is_struct(lod_k3) && lod_seed == _pn.seed) ? lod_k3.row / max(1, lod_k3.h) : 0 };
+	// world arrives finished and no zoom ever pops; a kept tier (TierKeep's keep) answers at once
+	if (view == "planet" && !__lod_ready(_pn)) return { txt : "surveying " + _d.name, prog : tiers.progress(_pn) };
 	return undefined;
 };
 ld_v = 0;   // the veil's bar, easing
