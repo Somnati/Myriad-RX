@@ -1,21 +1,22 @@
 /// @description planet_ranges(pn) - THE RANGE SKELETON (his ask, 2026-09-17: "real mountains have branches"): mountain ranges grown as TREES of ridge - a spine, spurs off it, sub-spurs off those - lifted into the heights, the biome law re-run under them
-/// Two to five spines a world (hashed off the seed - nothing rolled),
+/// Three to five spines a world (hashed off the seed - nothing rolled),
 /// each begun on high ground and walked across the map a texel at a time
 /// with a wandering, slowly curving heading, ending at a length or where
-/// it meets the sea. Every six to twelve texels a SPUR leaves the spine at
+/// it meets the sea. Every five to nine texels a SPUR leaves the spine at
 /// fifty to ninety degrees, alternating sides, shorter and lower, wandering
 /// more; every four to six texels of a spur a SUB-SPUR leaves it, shorter
-/// and lower again. Each ridge texel carries its level's height (.22 /
-/// .13 / .07), tapered along its branch (a spine tallest at its middle, a
-/// spur tallest at its root; heights .30 / .19 / .11); the ground round each is lifted by a crest
-/// profile with a foothill shoulder, the highest lift winning where they
-/// meet, roughened by the detail field so no crest is a rail. The lifted
+/// and lower again. Each ridge texel carries its level's height (.30 /
+/// .19 / .11), tapered along its branch (a spine tallest at its middle, a
+/// spur tallest at its root) and a width that wanders along it; the ground
+/// round each is lifted by a crest profile with a foothill shoulder, the
+/// highest lift winning where they meet, roughened by the detail field so
+/// no crest is a rail. The lifted
 /// texels get their biome again from the kept fields (planet_biome), so
 /// crowns turn to rock and snow, flanks to tundra, exactly as the noise
 /// would have had them; the drainage after finds its valleys between the
 /// spurs. Once a world, from planet_bake before the rivers; the zoom tier
 /// reads the lifted heights like any other. The noise ridge that made the
-/// ranges before is roughness now (planet_fields, .07).
+/// ranges before is the massif's irregular mass under them now (planet_fields, .13).
 /// (The walkers are methods of one struct: a GML function literal cannot
 /// see the locals round it, but one inside a struct literal is bound to
 /// the struct and reads its fields as its own.)
