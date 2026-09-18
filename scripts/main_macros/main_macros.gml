@@ -431,6 +431,7 @@ function main_macros() {
 #macro PV_ZOOM_MAX   7       // THE WHEEL (his ask, 2026-09-17: "zoom in and out even when it artificially zooms in on the region"): the hand's zoom, on top of the mode's
 #macro PV_ZOOM_MIN   .7
 #macro RING_ALL      true    // DEBUG (his ask, 2026-09-17): every world wears a ring - false for the real odds (planet_gen_begin)
+#macro VOLCANO_ALL   true    // DEBUG (his ask, 2026-09-17): every rock world has at least one volcano - false for the real odds (planet_volcanoes)
 #macro EXPED_QUESTS    5     // quests a region offers at once (his ask, 2026-09-15), each slot on its own clock...
 #macro EXPED_QUEST_LIFE_LO 1800   // ...seconds a slot lives before it re-deals (the expedition clock: x the debug speed, offline too)...
 #macro EXPED_QUEST_LIFE_HI 4500   // ...to this (30-75 min; "other people take quests too")

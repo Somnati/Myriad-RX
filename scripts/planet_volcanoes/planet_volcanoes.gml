@@ -86,6 +86,7 @@ function planet_volcanoes(_pn) {
 	if (_arch == "lava")        { _nv = 2 + (_hv mod 4); _all_live = true; }
 	else if (_arch == "barren") { _nv = 1 + (_hv mod 2); _none_live = true; }
 	else                        { _nv = (_hv < 40) ? 0 : ((_hv < 80) ? 1 : 2); }
+	if (VOLCANO_ALL) _nv = max(1, _nv);   // (debug: at least one on every world - his ask 2026-09-17)
 	var _el = _c.el, _sea = _c.sea, _sc = _c.sc, _pole = _th * .10;
 	var _vents = [];
 	for (var _k = 0; _k < _nv; _k++) {
