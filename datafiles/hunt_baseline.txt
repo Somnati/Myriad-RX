@@ -861,6 +861,7 @@ dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn
 dupvar	scripts\exped_abort\exped_abort.gml                  _travel
 dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _r _rg _rgi_a _tr _who
 dupvar	scripts\exped_agent\exped_agent.gml                  _epn _et _nb _pab _rd _rg _tr
+dupvar	scripts\exped_away_after\exped_away_after.gml        _from _li _lines
 dupvar	scripts\exped_board_roll\exped_board_roll.gml        _e _i
 dupvar	scripts\exped_bond\exped_bond.gml                    _b
 dupvar	scripts\exped_bond_add\exped_bond_add.gml            _b
@@ -938,7 +939,7 @@ dupvar	scripts\moon_tex\moon_tex.gml                        _c1 _cl _d _ddx _h _
 dupvar	scripts\moon_view_pos\moon_view_pos.gml              _lw
 dupvar	scripts\objective_catchup\objective_catchup.gml      _j _k _s
 dupvar	scripts\objective_tick\objective_tick.gml            _k
-dupvar	scripts\offline_replay\offline_replay.gml            _from _hi _i _lg1 _li _lines _pool0 _ti
+dupvar	scripts\offline_replay\offline_replay.gml            _i _lg1 _pool0
 dupvar	scripts\pad_binds_load\pad_binds_load.gml            _nm
 dupvar	scripts\pad_glyph\pad_glyph.gml                      _i
 dupvar	scripts\pad_init\pad_init.gml                        _i

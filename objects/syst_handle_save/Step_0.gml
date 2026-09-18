@@ -67,6 +67,15 @@ if (boot_phase >= 2 && bg_rush) {
 	}
 	bg_rush = false;
 }
+// THE CHART UNDER PLAY, FOR A CREW OUT (q230, his call (b), 2026-09-18): with the chart off the boot a crew's hours were
+// OWED until the expedition panel opened - a session without the panel was a session nobody walked. So while a crew is
+// out and the chart is not there, it builds here at one millisecond a frame - the chart alone, no world (the walk reads
+// the regions' noise, not a map) - and lands a few seconds after boot, when exped_tick pays the owed hours back in
+// slices on the heartbeat. Nobody out, nothing builds: q202's rule stands for the base game
+else if (boot_phase >= 2 && !galaxy_ready() && variable_global_exists("exped") && is_struct(g.exped) && array_length(g.exped.trips) > 0) {
+	if (!is_struct(bg_gen) || bg_gen.seed != g.galaxy_seed) { bg_gen = starmap_gen_begin(g.galaxy_seed); bg_world_done = false; }
+	if (starmap_gen_step(bg_gen, 1)) bg_gen = undefined;
+}
 
 // ---- playtime clock ----
 // real seconds, saved per savefile, shown by the save menu slots

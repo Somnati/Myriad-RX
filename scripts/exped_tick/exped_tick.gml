@@ -15,7 +15,15 @@ function exped_tick(_secs) {
 	// OWED, not ticked; the first ready call walks the whole owed stretch -
 	// the very call the offline replay makes, so nothing is lost or doubled
 	if (!galaxy_ready()) { g.exped_owed = (g[$ "exped_owed"] ?? 0) + _secs; return; }
-	if ((g[$ "exped_owed"] ?? 0) > 0) { _secs += g.exped_owed; g.exped_owed = 0; }
+	// ...PAID BACK IN SLICES (q230): EXPED_OWED_SLICE of trip time a call on the heartbeat - an eight-hour night lands over
+	// a dozen frames, no hitch when the chart stands under play; the report's expedition section is written once the
+	// last slice has walked (exped_owed_report - the offline log's entry, by reference)
+	var _owed_done = false;
+	if ((g[$ "exped_owed"] ?? 0) > 0) {
+		var _pay = min(g.exped_owed, EXPED_OWED_SLICE);
+		_secs += _pay; g.exped_owed -= _pay;
+		if (g.exped_owed <= 0) { g.exped_owed = 0; _owed_done = true; }
+	}
 	exped_init();
 	var _e = g.exped;
 	if (array_length(_e.board) == 0) exped_board_roll();   // (a board the roll skipped while the chart was pending)
@@ -82,4 +90,5 @@ function exped_tick(_secs) {
 		                       tl : _tr[$ "tl"] ?? { slain : 0, mist : 0, items : 0, xp : 0, earned : 0 }, pocket : _tr[$ "credits"] ?? 0, stance : _tr[$ "stance"] ?? "steady", best : exped_haul_moment(_tr) });   // (the best moment, 2026-09-16)   // (the tally home, 2026-09-16)   // (rgi: the card's world faces the region - 2026-09-15)
 		save_mark_dirty();
 	}
+	if (_owed_done) exped_owed_report();   // (the absence's expedition section, now that it has been walked - q230)
 }

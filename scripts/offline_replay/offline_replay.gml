@@ -210,33 +210,11 @@ function offline_replay(_secs, _src = "boot return") {
 	_L.credits = { pool0 : _cp0, pool1 : g.credit_pool, cap : g.credit_cap,
 	               lv : g.ccore.lv, st0 : _cc0.st, st1 : g.ccore.st, xp0 : _cc0.xp, xp1 : g.ccore.xp,
 	               ccap : (g.ccore.lv > 0) ? ccore_values().cap : 0 };
-	var _ex1 = { n : array_length(g.exped.trips), homes : 0, routed : 0, trips : [] };
-	// still out: where each got to and what its diary added
-	for (var _ti = 0; _ti < array_length(g.exped.trips); _ti++) {
-		var _tr1 = g.exped.trips[_ti];
-		var _from = _ex0.logn[$ string(_tr1.id)] ?? array_length(_tr1.log);
-		var _lines = [];
-		for (var _li = _from; _li < array_length(_tr1.log); _li++) array_push(_lines, _tr1.log[_li]);
-		// THE OWED HOURS (bug hunt 5, 2026-09-18): since q202 the chart builds only under the expedition panel's veil, so
-		// exped_tick OWES the absence until then and walks it on the panel's first open - the report must say so, not
-		// name the spot the crew stood at when the game closed (a stale "resting at Orbury" for an eight-hour night)
-		var _owed = (g[$ "exped_owed"] ?? 0);
-		array_push(_ex1.trips, { name : exped_crew_txt(_tr1.names), planet : _tr1.dest.name, stage : _tr1.stage, room : _tr1.room_i,
-		                         where : (_owed > 0) ? ("still out - " + string(round(_owed / 360) / 10) + "h to walk when the expeditions open") : exped_where(_tr1),   // (the agent, 2026-09-14: "on the road to Orbury - 1.4h")
-		                         home : false, routed : _tr1.routed, lines : _lines });
-	}
-	// home during the absence: a haul whose trip was out when it began
-	for (var _hi = 0; _hi < array_length(g.exped.hauls); _hi++) {
-		var _h1 = g.exped.hauls[_hi];
-		var _from = _ex0.logn[$ string(_h1.id)];
-		if (is_undefined(_from)) continue;
-		var _lines = [];
-		for (var _li = _from; _li < array_length(_h1.log); _li++) array_push(_lines, _h1.log[_li]);
-		_ex1.homes += 1;
-		if (_h1.routed) _ex1.routed += 1;
-		array_push(_ex1.trips, { name : exped_crew_txt(_h1.names), planet : _h1.dest.name, stage : 2, room : EXPED_ROOMS,
-		                         home : true, routed : _h1.routed, lines : _lines });
-	}
+	var _ex1 = exped_away_after(_ex0.logn);   // (the section as one function - the owed walk writes it again; q230)
+	// THE OWED HOURS (bug hunt 5 / q230): the chart builds under play only once a crew is out (syst_handle_save), so this
+	// tick OWED the absence; the section above says so, and exped_owed_report rewrites it - this same entry, by
+	// reference - when the last owed slice has walked
+	if ((g[$ "exped_owed"] ?? 0) > 0) g.exped_owed_rep = { L : _L, logn : _ex0.logn };
 	_L.exped = { before : _ex0, after : _ex1 };
 
 	// the paid flags are for the drawer's motes; nothing flies for a

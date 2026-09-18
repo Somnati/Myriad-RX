@@ -438,6 +438,7 @@ function main_macros() {
 #macro EXPED_QUEST_LIFE_LO 1800   // ...seconds a slot lives before it re-deals (the expedition clock: x the debug speed, offline too)...
 #macro EXPED_QUEST_LIFE_HI 4500   // ...to this (30-75 min; "other people take quests too")
 #macro EXPED_TICK_MAX  5     // the trip clock walks in slices this long at most (exped_tick): a room a slice, so an absence walks the whole delve, fights and all
+#macro EXPED_OWED_SLICE 1800 // the hours OWED while the chart was not there are paid back this many seconds of trip time a heartbeat call (q230: an eight-hour night over sixteen frames, no hitch)
 #macro EXPED_FIGHT_T  .5     // seconds ONE ACTION takes on the clock (the engine's turn is one pawn acting, 2026-09-14 - a fight is twenty-odd of them)
 #macro EXPED_PARTY     3     // crew a trip can carry (his call: three, like KH; a fourth slot is a later ability)
 #macro EXPED_BOND_TRIP 6     // bond a pair gains for a trip together (exped_bond)...
