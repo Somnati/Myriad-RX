@@ -146,7 +146,7 @@ function planet_lod_step(_pn, _l, _until) {
 			var _c = _pal[_b];
 			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
 			var _eh = _oe;
-			if ((_b == 1 || _b == 11) && _oe >= _sea && _hasr) _eh = min(_oe, _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11);   // (a lake's height is its water's - flat)
+			if (_b == 1 && _oe >= _sea && _hasr) _eh = max(_oe, _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11);   // (a lake's height is its water's - the fill level, flat)
 			var _h = _gas ? 0 : power(clamp((_eh - _base) / max(.001, 1 - _base), 0, 1), 1.6);
 			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11 || _b == 25)) ? 255 : 0;
 			var _for = (!_gas) ? ((_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0))) : 0;

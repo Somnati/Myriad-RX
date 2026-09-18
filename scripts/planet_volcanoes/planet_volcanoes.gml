@@ -127,7 +127,7 @@ function planet_volcanoes(_pn) {
 		array_push(_vents, [_x, _y, _live, _rad, _b]);
 	}
 	// into the heights (the cone's lift joins rlift for the gullies and the carve), the biome law again under it
-	var _lift = _c.lift, _rl = _c.rl, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps;
+	var _lift = _c.lift, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps;   // (_rl is the site loop's, above)
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
 		_el[_i] = max(_el[_i] + _lift[_i], _sea + .004);

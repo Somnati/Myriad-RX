@@ -58,7 +58,7 @@ function planet_bake(_pn, _until = undefined) {
 				// (a LAKE's or a river's height is its water's - the flood's fill level, kept by planet_rivers - not the ground's under
 				// it, which the ranges and the carve had made ridged; his screenshot 2026-09-17: "water with ridgyness")
 				var _bw0 = _pn.biome[_i], _eh = _pn.elev[_i];
-				if ((_bw0 == 1 || _bw0 == 11) && _eh >= _pn.sea && is_array(_pn[$ "rfill"])) _eh = min(_eh, _pn.rfill[_i]);
+				if (_bw0 == 1 && _eh >= _pn.sea && is_array(_pn[$ "rfill"])) _eh = max(_eh, _pn.rfill[_i]);   // (a lake: its surface is the basin's fill level, flat; a river keeps its carved bed - bug hunt: min() put a lake on its carved floor)
 				var _h = (_pn.kind == "gas") ? 0 : clamp((_eh - _base) / max(.001, 1 - _base), 0, 1);
 				_h = power(_h, 1.6);
 				var _v = floor(_h * 255);

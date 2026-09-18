@@ -177,7 +177,7 @@ function planet_rivers(_pn) {
 		var _fc = .022 * clamp(ln(_acc[_i]) / ln(300), 0, 1) * (1 + (is_array(_rlm) ? 2 * clamp(_rlm[_i] / .06, 0, 1) : 0));
 		_cut[_i] = max(_cut[_i], _fc);
 	}
-	for (var _i = 0; _i < _n; _i++) if (_cut[_i] > 0 && !_wat[_i]) _el[_i] = max(_sea + .002, _el[_i] - _cut[_i]);
+	for (var _i = 0; _i < _n; _i++) if (_cut[_i] > 0 && !_wat[_i] && _bm[_i] != 1) _el[_i] = max(_sea + .002, _el[_i] - _cut[_i]);   // (never a lake's floor: its surface is its fill level, and the tier draws its shore from fill - ground; bug hunt)
 	var _wide = _t * 6, _delta = _t * 10;
 	for (var _k = 0; _k < _no; _k++) {
 		var _i = _order[_k];
