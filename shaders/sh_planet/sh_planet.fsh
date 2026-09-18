@@ -377,11 +377,13 @@ float rh1(float x) { return fract(sin(x * 127.1 + u_rseed * 311.7) * 43758.5453)
 float rvn(float x) { float i = floor(x); float f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(rh1(i), rh1(i + 1.0), f); }
 float ring_dens(float bf, float rr)
 {
-    float d = 0.55 + 0.45 * rvn(bf * 7.0 + 3.0);
-    d *= 0.72 + 0.28 * rvn(bf * 23.0 + 11.0);
-    for (int k = 0; k < 4; k++) {
-        float c = 0.10 + 0.80 * rh1(float(k) * 1.37 + 50.0);
-        float w = 0.008 + 0.028 * rh1(float(k) * 2.11 + 60.0);
+    float d = 0.60 + 0.40 * rvn(bf * 5.0 + 3.0);
+    d *= 0.86 + 0.14 * rvn(bf * 9.0 + 11.0);   // (the fine banding eased - "noisy with all its segments", his report 2026-09-17)
+    float ng = floor(rh1(99.0) * 3.999);        // none to three gaps, the ring's own
+    for (int k = 0; k < 3; k++) {
+        if (float(k) >= ng) break;
+        float c = 0.12 + 0.76 * rh1(float(k) * 1.37 + 50.0);
+        float w = 0.010 + 0.030 * rh1(float(k) * 2.11 + 60.0);
         d *= smoothstep(0.0, w, abs(bf - c));
     }
     d *= smoothstep(0.0, 0.06, bf) * (1.0 - smoothstep(0.90, 1.0, bf));

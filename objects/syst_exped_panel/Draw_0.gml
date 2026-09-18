@@ -1177,15 +1177,19 @@ if (view == "galaxy") {
 			draw_circle_colour(_gx0, _gy0, _hr + max(1, _gs * .5), merge_colour(_st.props.color, c_white, .4), merge_colour(_st.props.color, c_white, .4), true);
 			continue;
 		}
-		if (_skd == "dwarf") { draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, _gs, _gs, 0, merge_colour(_st.props.color, c_white, .6), 1); continue; }
-		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95);
-		if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8);   // (a dot stays its colour)
-		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _s * 3.2 * _gs / _gw0, _s * 3.2 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .35), .28);
-		else if (_skd == "pulsar") {
-			var _pa = ((current_time / 1000) * (_st.props[$ "spin"] ?? 1) * 360 + _st.seed) mod 360, _pl = max(4, _s * 4) * _gs;
-			draw_line_width_colour(_gx0 - dcos(_pa) * _pl, _gy0 + dsin(_pa) * _pl, _gx0 + dcos(_pa) * _pl, _gy0 - dsin(_pa) * _pl, max(1, _gs), c_white, c_white);
-			draw_sprite_ext(spr_star_glyph, 1, _gx0, _gy0, _gs, _gs, 0, c_white, 1);
+		if (_skd == "dwarf") {
+			// a tiny spark with a subtle line bloom, horizontal (his ask)
+			var _dc = merge_colour(_st.props.color, c_white, .6);
+			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, max(6, _s * 5) * _gs / _gw0, max(1, _gs * .8) / _gh0, 0, _dc, .30);
+			draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, _gs, _gs, 0, _dc, 1);
+			continue;
 		}
+		// a pulsar is a plain star here with a SUBTLE pulse on its own spin (his ask: "nearly identical to a regular star")
+		var _pk = 1;
+		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .82 + .18 * power(.5 + .5 * dsin(_pt * 360), 6); }
+		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95 * _pk);
+		if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8 * _pk);   // (a dot stays its colour)
+		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _s * 3.2 * _gs / _gw0, _s * 3.2 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .35), .28);
 	}
 	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped

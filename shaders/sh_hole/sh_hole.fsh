@@ -54,7 +54,7 @@ void main()
     vec3 col = sky * step(R, r) + mix(u_col, vec3(1.0), 0.55) * pr;
     float a = max(lens, step(r, R));
     // ---- the accretion disc: the galactic plane's normal in view space, the ray through the pixel, the plane hit ----
-    vec3 nrm = normalize(vec3(u_cam[0].y, u_cam[1].y, u_cam[2].y));
+    vec3 nrm = normalize(u_cam[1]);   // (world up into view space = cam^T (0,1,0) = the camera's second ROW; the column turned the disc with the camera - his report 2026-09-17)
     vec3 ro = vec3(0.0, 0.0, 6.0);
     vec3 rd = normalize(vec3(p.x, p.y, -6.0));
     float dn = dot(rd, nrm);

@@ -66,8 +66,27 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		// additive, whole scale); the grain and the dust stay points
 		if (_pass == 1) {
 			var _gi = star_glyph_frame(_sk.s), _gx0 = floor(_sx), _gy0 = floor(_sy);
-			draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, 1, 1, 0, _sk.col, _a);
-			if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8);   // (a dot stays its colour)
+			// THE KIND FROM HERE (his ask, 2026-09-17: "visible from local star systems just like stars"): the same marks the map wears
+			var _skn = _sk[$ "skind"] ?? "main";
+			var _gw1 = max(1, sprite_get_width(spr_vis_glow_soft)), _gh1 = max(1, sprite_get_height(spr_vis_glow_soft));
+			if (_skn == "hole") {
+				var _hr1 = max(1.5, _sk.s * .35);
+				draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr1 * 7 / _gw1, _hr1 * 2.2 / _gh1, 18, _sk.col, .30 * _a);
+				gpu_set_blendmode(bm_normal);
+				draw_circle_colour(_gx0, _gy0, _hr1, c_black, c_black, false);
+				gpu_set_blendmode(bm_add);
+				draw_circle_colour(_gx0, _gy0, _hr1 + 1, merge_colour(_sk.col, c_white, .4), merge_colour(_sk.col, c_white, .4), true);
+			} else if (_skn == "dwarf") {
+				var _dc1 = merge_colour(_sk.col, c_white, .6);
+				draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, max(6, _sk.s * 2) / _gw1, 1 / _gh1, 0, _dc1, .30 * _a);
+				draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, 1, 1, 0, _dc1, _a);
+			} else {
+				var _pk1 = 1;
+				if (_skn == "pulsar") { var _pt1 = (current_time / 1000) * (_sk[$ "sspin"] ?? 1) + ((_sk[$ "sseed"] ?? 0) mod 1000) / 1000; _pk1 = .82 + .18 * power(.5 + .5 * dsin(_pt1 * 360), 6); }
+				draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, 1, 1, 0, _sk.col, _a * _pk1);
+				if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, 1, 1, 0, c_white, _a * .8 * _pk1);   // (a dot stays its colour)
+				if (_skn == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _sk.s * 1.6 / _gw1, _sk.s * 1.6 / _gh1, 0, merge_colour(_sk.col, c_red, .35), .28 * _a);
+			}
 		} else draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sk.s * .5, _sy - _sk.s * .5, max(1, _sk.s), max(1, _sk.s), 0, _sk.col, _a);
 	}
 	}

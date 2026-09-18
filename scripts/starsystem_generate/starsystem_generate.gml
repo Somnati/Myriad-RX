@@ -10,7 +10,10 @@ function starsystem_generate(_seed, _star = undefined) {
 	random_set_seed(_seed);
 	var _pc = irandom_range(2, 7);
 	var _pl = [];
-	var _r  = 34;
+	// THE GREAT ONES (his ask, 2026-09-17: a giant or a hole "much larger than all the surrounding planets ... the distance
+	// from the first ring onward much higher"): their first ring starts far out and the system may reach further
+	var _skd0 = is_struct(_star) ? (_star[$ "skind"] ?? "main") : "main", _great = (_skd0 == "giant" || _skd0 == "hole");
+	var _r  = _great ? 96 : 34, _rmax = _great ? 210 : 112;
 	for (var _i = 0; _i < _pc; _i++) {
 		_r += random_range(11, 16) * (1 + .14 * _i);   // (the gaps grow outward, a seventh a ring - his report 2026-09-17: "outer rings are still dense"; the same rolls)
 		var _fr   = (_pc > 1) ? _i / (_pc - 1) : .5;
@@ -30,9 +33,13 @@ function starsystem_generate(_seed, _star = undefined) {
 			moon_n   : (_kind == "gas") ? irandom_range(2, 4) : irandom_range(0, 2),
 		});
 	}
-	if (_r > 112) { var _sc = 112 / _r; for (var _i = 0; _i < _pc; _i++) _pl[_i].orbit *= _sc; }
+	if (_r > _rmax) { var _sc = _rmax / _r; for (var _i = 0; _i < _pc; _i++) _pl[_i].orbit *= _sc; }
 	var _st = { col : color_set_random(), size : random_range(9, 16) };
-	if (is_struct(_star)) _st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false), skind : (_star[$ "skind"] ?? "main"), spin : (_star[$ "spin"] ?? 1), tilt : (_star[$ "tilt"] ?? 40) };   // (hole: a black hole; skind: giant / dwarf / pulsar / main - 2026-09-17)
+	if (is_struct(_star)) {
+		_st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false), skind : _skd0, spin : (_star[$ "spin"] ?? 1), tilt : (_star[$ "tilt"] ?? 40) };   // (hole: a black hole; skind: giant / dwarf / pulsar / main - 2026-09-17)
+		if (_skd0 == "giant") _st.size = 50 + _star.size * 4;        // (62-68: three times the biggest world across)
+		else if (_skd0 == "hole") _st.size = 44 + _star.size * 6;    // (53-60; the core 75-83)
+	}
 	// THE KIND'S WORLDS (2026-09-17): a red giant scorches its inner three rings (hot: ash and dust), a white dwarf
 	// leaves its worlds cold (toward ice), a pulsar's are dead and frozen. The rolls above stand; only clim moves
 	if (is_struct(_star)) {
