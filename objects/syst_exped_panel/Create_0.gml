@@ -595,6 +595,7 @@ __draw_station = function() {
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(_sky, st_cam, _cx, _cy, _w, _h, false, false);
 	galaxy_fog_draw(_sky, st_cam, _cx, _cy, _w, _h, sky_fog_surf, false);
+	galaxy_sky_holes(_sky, st_cam, _cx, _cy, _w, _h, false);   // (the holes over the fog - 2026-09-17)
 	// lit from its star: from where it stands on its ring, the star is at the origin
 	var _pp = __st_ppos(_st);
 	var _lw = [-dcos(_pp[3]), .15, -dsin(_pp[3])];
@@ -619,6 +620,7 @@ __draw_system = function() {
 	draw_clear_alpha(c_black, 1);
 	galaxy_sky_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false, false);
 	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf, false);   // (no sun on this sky: the star is drawn as itself)
+	galaxy_sky_holes(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false);   // (the neighbours' holes over the fog - 2026-09-17)
 	var _pls = sy_sys.planets, _np = array_length(_pls), _s = sy_warp_s;
 	var _cfgp = planet_config(), _pxs = max(1, _cfgp.px_size);
 	// the dive's focus: the picked world's spot anchors the swell
@@ -2398,6 +2400,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	for (var _mi0 = 0; _mi0 < _nmn0; _mi0++) { var _mv0 = moon_view_pos(_pn, _mns0[_mi0], _cam); var _k0 = 6 / max(6 - _mv0[2], .5); array_push(_occs, { kind : "moon", x : _pcx + _mv0[0] * _pr * _k0, y : _pcy + _mv0[1] * _pr * _k0, r : max(1, _mv0[3] * _pr * 1.02 * _k0) }); }
 	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, _occs);   // (the sun fades behind the world - his report 2026-09-16)
 	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+	galaxy_sky_holes(_sky, _cam, _pcx, _pcy, _w, _h, true, _occs);   // (the holes over the fog; a hole for a sun bends the fog too - 2026-09-17)
 	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
 	sky_met_t += delta / 60;
 	if (is_undefined(sky_met) && sky_met_t > (starmap_config()[$ "sky_meteor"] ?? 28) * random_range(.6, 1.5)) {

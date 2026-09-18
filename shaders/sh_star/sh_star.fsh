@@ -74,8 +74,12 @@ void main()
     vec3 hot = mix(u_col, vec3(1.0), 0.6);
     vec3 rgb = vec3(0.0);
 
-    // THE DISC: a turning sphere
-    if (r < R) {
+    // THE DISC: a turning sphere. edge = its COVERAGE (to the limb itself, a pixel of feather) - the colour's factor and
+    // the fragment's ALPHA: star_draw blends (one, inv_src_alpha), so inside the disc the star REPLACES the page (a world
+    // behind a giant showed through its additive disc - "assets drawn in front of it when they are behind it", his
+    // report 2026-09-17) while the corona, alpha 0, adds as before
+    float edge = 1.0 - smoothstep(R * 0.985, R * 1.005, r);
+    if (r < R * 1.005) {
         vec2 dd = uv / R;
         float z = sqrt(max(1.0 - dot(dd, dd), 0.0));
         // the point on the sphere in WORLD space (the camera's rows), then the star's own spin about the world's axis
@@ -86,9 +90,8 @@ void main()
         float gran  = fbm(sp * 7.0 + vec3(0.0, 0.0, tt * 0.6) + u_seed);
         float cells = fbm(sp * 2.2 + vec3(5.0, 1.0, tt * 0.15) + u_seed * 0.7);
         float spot  = smoothstep(0.64, 0.72, cells);
-        float limb  = 0.42 + 0.58 * z;
+        float limb  = 0.55 + 0.45 * z;   // (the limb no darker than the corona just outside it: the old .42 drew a dark ring round a giant - his report 2026-09-17)
         float bright = limb * (0.8 + 0.4 * gran) * (1.0 - 0.75 * spot);
-        float edge = 1.0 - smoothstep(R * 0.96, R, r);
         rgb += mix(u_col, hot, 0.25 + 0.75 * z) * bright * 1.25 * edge;
     }
 
@@ -105,7 +108,7 @@ void main()
     float halo = exp(-rr * 0.9) * 0.16;
     float promn = fbm(vec3(ca * 6.0, tt * 0.9 + 9.0) + u_seed * 0.5);
     float prom = smoothstep(0.0, 0.03, rr) * (1.0 - smoothstep(0.06, 0.26, rr)) * smoothstep(0.52, 0.78, promn);
-    float outside = smoothstep(R * 0.96, R * 1.02, r) * (1.0 - smoothstep(0.62, 0.98, r));   // (to nothing by the quad's edge - it showed as a square; his report)
+    float outside = (1.0 - edge) * (1.0 - smoothstep(0.62, 0.98, r));   // (the disc's complement exactly - no dip and no seam at the limb; to nothing by the quad's edge - it showed as a square; his report)
     rgb += (u_col * (cor * 0.85 + halo) + hot * prom * 1.1) * outside;
 
     // the breath: the whole star's light on smoothed hash noise (a sine would be a metronome)
@@ -122,7 +125,8 @@ void main()
     float g = hash12(ip);
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither * (1.0 - smoothstep(0.62, 0.98, r));
-    // (alpha ZERO: the quad is additive - one, one - and an alpha of one added the whole SQUARE into the page's alpha,
-    // a faint box round the star wherever the sky behind it was not yet opaque; his report 2026-09-17)
-    gl_FragColor = vec4(max(rgb, vec3(0.0)) * v_vColour.rgb * v_vColour.a, 0.0);
+    // alpha = the disc's coverage (times the fade), ZERO outside it: star_draw's blend is (one, inv_src_alpha) with the
+    // page's alpha untouched (sepalpha zero / one) - the disc covers, the corona adds, and the square never lands in the
+    // page's alpha (q188's faint box; his report 2026-09-17)
+    gl_FragColor = vec4(max(rgb, vec3(0.0)) * v_vColour.rgb * v_vColour.a, edge * u_fade * v_vColour.a);
 }

@@ -1160,7 +1160,7 @@ if (view == "galaxy") {
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
 		var _skd0 = _st.props[$ "skind"] ?? "main";
-		var _s = max(.8, _st.props.size * gx_zoom * ((_skd0 == "giant") ? 1.8 : 1));   // (a giant's glyph nearly twice its size's - "I can't tell which one is one", 2026-09-17)
+		var _s = max(.8, _st.props.size * gx_zoom * ((_skd0 == "giant") ? 1.35 : 1));   // (1.8 read too big - his report)   // (a giant's glyph nearly twice its size's - "I can't tell which one is one", 2026-09-17)
 		var _gi = star_glyph_frame(_s);
 		var _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
 		// THE KIND'S OWN MARK (his ask, 2026-09-17: "the stars on the galactic map match the type of stellar body"): a
@@ -1169,15 +1169,7 @@ if (view == "galaxy") {
 		// WHITE DWARF stays the smallest spark, blue-white
 		var _skd = _st.props[$ "skind"] ?? "main";
 		var _gw0 = max(1, sprite_get_width(spr_vis_glow_soft)), _gh0 = max(1, sprite_get_height(spr_vis_glow_soft));
-		if (_skd == "hole") {
-			var _hr = max(1.5, _s * .8) * _gs;
-			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 7 / _gw0, _hr * 2.2 / _gh0, 18, _st.props.color, .30);   // (the accretion disc, flat and tilted)
-			gpu_set_blendmode(bm_normal);
-			draw_circle_colour(_gx0, _gy0, _hr, c_black, c_black, false);
-			gpu_set_blendmode(bm_add);
-			draw_circle_colour(_gx0, _gy0, _hr + max(1, _gs * .5), merge_colour(_st.props.color, c_white, .4), merge_colour(_st.props.color, c_white, .4), true);
-			continue;
-		}
+		if (_skd == "hole") continue;   // (a black hole is drawn AFTER the fog, below: the fog lay over its black - 2026-09-17)
 		if (_skd == "dwarf") {
 			// a tiny spark with a subtle line bloom, horizontal (his ask); the bloom centred ON the spark's pixel (the glyph's
 			// canvas is even: its spark sits a pixel right and down of the origin), a pixel longer each side
@@ -1189,11 +1181,11 @@ if (view == "galaxy") {
 		// a pulsar is a plain star here with a pulse on its own spin - PLAIN to see now (his report: "too subtle"): dim
 		// between beats, the beat a sharp flash with its white core
 		var _pk = 1;
-		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .45 + .55 * power(.5 + .5 * dsin(_pt * 360), 4); }
+		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .55 + .45 * power(.5 + .5 * dsin(_pt * 360), 4); }   // (a touch gentler - his ask)
 		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95 * _pk);
 		if (_gi >= 2 && (_skd != "pulsar" || _pk > .7)) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8 * _pk);   // (a dot stays its colour)
 		if (_skd == "pulsar" && _pk > .85) draw_sprite_ext(spr_star_glyph, min(9, _gi + 1), _gx0, _gy0, _gs, _gs, 0, c_white, .5 * (_pk - .85) / .15);   // (the flash swells a frame)
-		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + _gs * .5, _gy0 + _gs * .5, _s * 4.5 * _gs / _gw0, _s * 4.5 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .4), .45);
+		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + _gs * .5, _gy0 + _gs * .5, _s * 3.6 * _gs / _gw0, _s * 3.6 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .4), .42);
 	}
 	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped
@@ -1226,6 +1218,25 @@ if (view == "galaxy") {
 	}
 	gpu_set_blendmode(bm_normal);
 	gpu_set_tex_filter(_ftf);
+	// THE BLACK HOLES, over the fog and the dust (2026-09-17: the fog added over the black made a grey dot of a hole; smaller
+	// than before - his report): a black disc, its disc's glow laid flat and tilted across it, a thin ring of its colour
+	var _gw2 = max(1, sprite_get_width(spr_vis_glow_soft)), _gh2 = max(1, sprite_get_height(spr_vis_glow_soft));
+	for (var _i = 0; _i < array_length(_vis); _i++) {
+		var _st = _sm.stars[_vis[_i]];
+		if ((_st.props[$ "skind"] ?? "main") != "hole") continue;
+		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
+		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
+		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
+		var _s = max(.8, _st.props.size * gx_zoom), _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
+		var _hr = max(1.2, _s * .45) * _gs;
+		gpu_set_blendmode(bm_add);
+		draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 6 / _gw2, _hr * 2.0 / _gh2, 18, _st.props.color, .30);   // (the accretion disc, flat and tilted)
+		gpu_set_blendmode(bm_normal);
+		draw_circle_colour(_gx0, _gy0, _hr, c_black, c_black, false);
+		gpu_set_blendmode(bm_add);
+		draw_circle_colour(_gx0, _gy0, _hr + max(1, _gs * .5), merge_colour(_st.props.color, c_white, .4), merge_colour(_st.props.color, c_white, .4), true);
+	}
+	gpu_set_blendmode(bm_normal);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid
 	// (no mark for the opened worlds' stars: the worlds need not know they have been - his call, 2026-09-16)
 	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);

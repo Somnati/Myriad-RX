@@ -527,6 +527,7 @@
     {"id":{"name":"galaxy_region_name","path":"scripts/galaxy_region_name/galaxy_region_name.yy",},},
     {"id":{"name":"galaxy_sky_build","path":"scripts/galaxy_sky_build/galaxy_sky_build.yy",},},
     {"id":{"name":"galaxy_sky_draw","path":"scripts/galaxy_sky_draw/galaxy_sky_draw.yy",},},
+    {"id":{"name":"galaxy_sky_holes","path":"scripts/galaxy_sky_holes/galaxy_sky_holes.yy",},},
     {"id":{"name":"galaxy_sun_dir","path":"scripts/galaxy_sun_dir/galaxy_sun_dir.yy",},},
     {"id":{"name":"galaxy_world_biome","path":"scripts/galaxy_world_biome/galaxy_world_biome.yy",},},
     {"id":{"name":"galaxy_world_sys","path":"scripts/galaxy_world_sys/galaxy_world_sys.yy",},},

@@ -15,10 +15,12 @@ function star_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined) {
 		return;
 	}
 	var _q = nebula_quad(), _hq = _r * 2.4;
-	// TRUE additive (one, one): GameMaker's bm_add is (src_alpha, one), and the shader writes alpha 0 so the square never
-	// lands in the page's alpha (q188's box) - under bm_add that meant the star added nothing at all (his report:
-	// "my star is invisible"). With (one, one) the colour adds and the alpha does not
-	gpu_set_blendmode_ext(bm_one, bm_one);
+	// (one, inv_src_alpha) on the colour, the page's alpha untouched (zero, one): the shader's alpha is the DISC's coverage,
+	// so inside the disc the star REPLACES the page - a world behind a giant showed through its additive disc (his report
+	// 2026-09-17) - and outside it, alpha 0, the corona ADDS (true one/one: GameMaker's bm_add is src_alpha/one, which with
+	// an alpha of 0 added nothing at all - "my star is invisible"; and an alpha of 1 stamped the square into the page's
+	// alpha, q188's faint box - hence the untouched alpha)
+	gpu_set_blendmode_ext_sepalpha(bm_one, bm_inv_src_alpha, bm_zero, bm_one);
 	shader_set(sh_star);
 	shader_set_uniform_f(_u.col, colour_get_red(_col) / 255, colour_get_green(_col) / 255, colour_get_blue(_col) / 255);
 	shader_set_uniform_f(_u.seed, _seed);
