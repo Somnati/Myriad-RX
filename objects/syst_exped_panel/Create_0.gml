@@ -698,7 +698,10 @@ __draw_system = function() {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
 			if (sy_sys.star[$ "hole"] ?? false) hole_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (a black hole: hole_draw bends the sky already on the page - 2026-09-17)
-			else star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
+			else {
+				star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
+				if ((sy_sys.star[$ "skind"] ?? "main") == "pulsar") pulsar_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, sy_sys.star.spin, sy_sys.star.tilt, 1);   // (the beams over it - 2026-09-17)
+			}
 		} else if (_it[1] >= 3000) {
 			// A BIG ROCK of a belt (the polish, 2026-09-17): a small tumbling solid, lit from the star
 			var _bb = sy_belts[(_it[1] - 3000) div 8].bigs[(_it[1] - 3000) mod 8], _bba = (_bb.a0 + _bb.spd * 60 * _bnow) mod 360;

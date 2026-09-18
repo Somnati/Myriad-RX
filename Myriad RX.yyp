@@ -687,6 +687,7 @@
     {"id":{"name":"profit_reserved","path":"scripts/profit_reserved/profit_reserved.yy",},},
     {"id":{"name":"profit_spendable","path":"scripts/profit_spendable/profit_spendable.yy",},},
     {"id":{"name":"puck_pay","path":"scripts/puck_pay/puck_pay.yy",},},
+    {"id":{"name":"pulsar_draw","path":"scripts/pulsar_draw/pulsar_draw.yy",},},
     {"id":{"name":"ram_cap","path":"scripts/ram_cap/ram_cap.yy",},},
     {"id":{"name":"ram_cost","path":"scripts/ram_cost/ram_cost.yy",},},
     {"id":{"name":"ram_oc_any","path":"scripts/ram_oc_any/ram_oc_any.yy",},},

@@ -32,7 +32,17 @@ function starsystem_generate(_seed, _star = undefined) {
 	}
 	if (_r > 112) { var _sc = 112 / _r; for (var _i = 0; _i < _pc; _i++) _pl[_i].orbit *= _sc; }
 	var _st = { col : color_set_random(), size : random_range(9, 16) };
-	if (is_struct(_star)) _st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false) };   // (hole: a black hole - hole_draw where star_draw would be; 2026-09-17)
+	if (is_struct(_star)) _st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false), skind : (_star[$ "skind"] ?? "main"), spin : (_star[$ "spin"] ?? 1), tilt : (_star[$ "tilt"] ?? 40) };   // (hole: a black hole; skind: giant / dwarf / pulsar / main - 2026-09-17)
+	// THE KIND'S WORLDS (2026-09-17): a red giant scorches its inner three rings (hot: ash and dust), a white dwarf
+	// leaves its worlds cold (toward ice), a pulsar's are dead and frozen. The rolls above stand; only clim moves
+	if (is_struct(_star)) {
+		var _skd = _star[$ "skind"] ?? "main";
+		for (var _i = 0; _i < array_length(_pl); _i++) {
+			if (_skd == "giant")       { if (_i < 3) _pl[_i].clim = clamp(_pl[_i].clim - .45 + .1 * _i, 0, 1); }
+			else if (_skd == "dwarf")  _pl[_i].clim = clamp(_pl[_i].clim + .30, 0, 1);
+			else if (_skd == "pulsar") _pl[_i].clim = clamp(_pl[_i].clim + .55, 0, 1);
+		}
+	}
 	var _sr2 = colour_get_red(_st.col), _sb2 = colour_get_blue(_st.col);
 	_st.temp_k = round(lerp(2600, 21000, clamp((_sb2 - _sr2 + 255) / 510, 0, 1)) / 100) * 100 + irandom_range(-2, 2) * 100;
 	_st.age = round(random_range(.4, 12) * 10) / 10;

@@ -357,16 +357,24 @@ function starmap_gen_step(_c, _budget_ms = 8) {
 						id : _si, x : _pts[_si].x, y : _pts[_si].y, seed : _sseed,
 						d : .85 + .3 * ((_sseed mod 997) / 997),
 						props : { name : "", stellar_class : _cl.cls, color : color_set_random(), size : random_range(_cl.lo, _cl.hi),
-						          rarity : _tier, rarity_color : _rarity_cols[_tier], region : 0,
+						          rarity : _tier, rarity_color : _rarity_cols[_tier], region : 0, skind : "main",
 						          resources : undefined, hazards : undefined, inhabitants : undefined },
 					};
+					// THE KINDS (his picks, 2026-09-17): a RED GIANT six in a hundred - huge, orange-red, its inner worlds
+					// scorched; a WHITE DWARF five in a hundred - a blue-white pinprick, its worlds cold; a PULSAR one and a
+					// half in a hundred - a white point with a lighthouse beam, its worlds dead and frozen. Hashed off the
+					// seed like the holes; the rolls after the star's own are safe
+					var _sk = hash_mix(_sseed, 4050) mod 1000, _pk = _c.stars[_si].props;
+					if (_sk < 60)       { _pk.skind = "giant";  _pk.size = random_range(3.0, 4.6); _pk.color = merge_colour(_pk.color, rgb(255, 128, 66), .72); _pk.stellar_class = choose("K III", "M III", "M II"); }
+					else if (_sk < 110) { _pk.skind = "dwarf";  _pk.size = random_range(.35, .55); _pk.color = merge_colour(_pk.color, rgb(205, 218, 255), .8); _pk.stellar_class = choose("DA", "DB", "DQ"); }
+					else if (_sk < 125) { _pk.skind = "pulsar"; _pk.size = random_range(.30, .42); _pk.color = merge_colour(_pk.color, rgb(235, 240, 255), .85); _pk.stellar_class = "PSR"; _pk.spin = random_range(.7, 2.4); _pk.tilt = random_range(20, 70); }
 					// BLACK HOLES (his ask, 2026-09-17): one star in two hundred, hashed off its seed - and the core's own,
 					// supermassive, whatever sits nearest the galaxy's centre. The rolls after the star's own are safe: the
 					// next star seeds afresh. Its colour is its accretion disc's - a hot blue-white or an orange-white
 					var _hole = ((hash_mix(_sseed, 4040) mod 1000) < 5), _core = (_rd < .012);
 					if (_hole || _core) {
 						var _pp = _c.stars[_si].props;
-						_pp.hole = true; _pp.stellar_class = "BH";
+						_pp.hole = true; _pp.stellar_class = "BH"; _pp.skind = "hole";
 						_pp.size = _core ? random_range(5.2, 6.5) : random_range(1.5, 2.6);
 						_pp.color = merge_colour(_pp.color, ((hash_mix(_sseed, 4041) mod 2) == 0) ? rgb(175, 205, 255) : rgb(255, 195, 130), .65);
 					}

@@ -109,6 +109,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		// THE SUN ITSELF (2026-09-16): sh_star - the disc, its corona and prominences (star_draw); the flare rides on
 		if (_sky[$ "hole"] ?? false) { hole_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam); return; }   // (a black hole: the lens, the disc - no flare; 2026-09-17)
 		star_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam);
+		if ((_sky[$ "skind"] ?? "main") == "pulsar") pulsar_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sky.sspin, _sky.stilt, _sfade);   // (its beams sweep the sky - 2026-09-17)
 		gpu_set_blendmode(bm_add);
 		// THE FLARE: an anamorphic streak (the soft glow stretched flat) and two ghosts along the line through the view's centre
 		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs * 3.2, _gs * .10, 0, merge_colour(_sky.sun_col, c_white, .4), .22 * _sfade);
