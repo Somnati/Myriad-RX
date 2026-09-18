@@ -4,8 +4,7 @@ function planet_lite_step_list(_list, _budget) {
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		var _pn = _list[_i];
 		if (planet_lite_ready(_pn)) continue;
-		while (_pn.row < _pn.th && get_timer() < _lim) planet_gen_step(_pn, 1);
-		if (_pn.row >= _pn.th) planet_bake(_pn, _lim);
+		planet_build_step(_pn, _lim);   // (the one builder's step, q225)
 		return;
 	}
 }

@@ -63,8 +63,7 @@ if (boot_phase >= 2 && bg_rush) {
 	if (galaxy_ready() && !bg_world_done && variable_global_exists("exped") && array_length(g.exped.board) > 0) {
 		var _blim = get_timer() + _bgb * 1000;
 		var _bpn = planet_get(g.exped.board[0].seed, exped_planet_hint(g.exped.board[0]));
-		while (_bpn.row < _bpn.th && get_timer() < _blim) planet_gen_step(_bpn, 1);
-		if (_bpn.row >= _bpn.th && planet_bake(_bpn, _blim)) bg_world_done = true;
+		if (planet_build_step(_bpn, _blim)) bg_world_done = true;   // (rows, then the sheets, on the deadline - the one builder's step, q225)
 	}
 	bg_rush = false;
 }

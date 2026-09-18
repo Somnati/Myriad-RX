@@ -534,16 +534,14 @@ __loading = function() {
 		for (var _i = 0; _i < _n; _i++) {
 			var _sp = sy_pd[_i];
 			if (planet_lite_ready(_sp)) { _rdy++; continue; }
-			if (_part == 0 && is_struct(_sp)) _part = .7 * _sp.row / max(1, _sp.th) + .3 * (_sp[$ "brow"] ?? 0) / max(1, 3 * _sp.th);
+			if (_part == 0 && is_struct(_sp)) _part = planet_build_progress(_sp);
 		}
 		if (_rdy < _n) return { txt : "surveying the " + star_name(sy_star) + " system", prog : (_rdy + _part) / max(1, _n) };
 		return undefined;
 	}
 	if (!is_struct(_d)) return undefined;
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
-	if (_pn.row < _pn.th) return { txt : "building " + _d.name, prog : .7 * _pn.row / max(1, _pn.th) };
-	var _brw = _pn[$ "brow"] ?? 0;
-	if (_brw < 3 * _pn.th) return { txt : "building " + _d.name, prog : .7 + .3 * _brw / max(1, 3 * _pn.th) };
+	if (!planet_lite_ready(_pn)) return { txt : "building " + _d.name, prog : planet_build_progress(_pn) };   // (rows, then sheets - one bar, q225)
 	// THE ZOOM TIER too (q202; his ask: "have it start baking the higher LOD as soon as possible" - under the veil is as
 	// soon as it gets): the planet page waits for its world's 3x tier (__lod_step rushed by the veil's loop), so the
 	// world arrives finished and no zoom ever pops; a kept tier (TierKeep's keep) answers at once

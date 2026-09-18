@@ -16,11 +16,11 @@ function planet_get_lite(_seed, _hint = undefined, _whole = true) {
 	var _c = g.planet_lite_c;
 	for (var _i = 0; _i < array_length(_c); _i++) if (_c[_i].seed == _seed) {
 		var _h = _c[_i];
-		if (_whole && !planet_lite_ready(_h)) { if (_h.row < _h.th) planet_gen_step(_h, _h.th); planet_bake(_h); }
+		if (_whole && !planet_lite_ready(_h)) planet_build_step(_h);   // (finished whole - the one builder's step, q225)
 		return _h;
 	}
 	var _pn = planet_gen_begin(_seed, _hint, 48, 24);
-	if (_whole) { planet_gen_step(_pn, _pn.th); planet_bake(_pn); }
+	if (_whole) planet_build_step(_pn);   // (whole, in one call)
 	array_insert(_c, 0, _pn);
 	while (array_length(_c) > 20) {
 		var _old = array_pop(_c);

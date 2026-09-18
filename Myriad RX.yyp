@@ -698,6 +698,8 @@
     {"id":{"name":"pixel_snap","path":"scripts/pixel_snap/pixel_snap.yy",},},
     {"id":{"name":"planet_bake","path":"scripts/planet_bake/planet_bake.yy",},},
     {"id":{"name":"planet_biome","path":"scripts/planet_biome/planet_biome.yy",},},
+    {"id":{"name":"planet_build_progress","path":"scripts/planet_build_progress/planet_build_progress.yy",},},
+    {"id":{"name":"planet_build_step","path":"scripts/planet_build_step/planet_build_step.yy",},},
     {"id":{"name":"planet_coast","path":"scripts/planet_coast/planet_coast.yy",},},
     {"id":{"name":"planet_config","path":"scripts/planet_config/planet_config.yy",},},
     {"id":{"name":"planet_craters","path":"scripts/planet_craters/planet_craters.yy",},},

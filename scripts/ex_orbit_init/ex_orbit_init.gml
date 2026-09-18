@@ -191,8 +191,7 @@ __worlds_step = function() {
 	if (view == "haul") { var _wh = __haul_i(); if (_wh >= 0) array_push(_list, _e.hauls[_wh].dest); }
 	for (var _i = 0; _i < array_length(_list); _i++) {
 		var _pn = planet_get(_list[_i].seed, exped_planet_hint(_list[_i]));
-		if (_pn.row < _pn.th) { planet_gen_step(_pn, 6); return; }   // (six rows a frame: a fresh world in a quarter second)
-		if ((_pn[$ "brow"] ?? 0) < 3 * _pn.th) { planet_bake(_pn, get_timer() + 4000); return; }   // (then its textures, four ms a frame - a world opened on the map baked whole on its first draw, a hitch; bug hunt 2026-09-16)
+		if (!planet_lite_ready(_pn)) { planet_build_step(_pn, get_timer() + 4000, 6); return; }   // (six rows a frame - a fresh world in a quarter second - then its sheets four ms a frame: the one builder's step, q225)
 	}
 };
 // THE ZOOM TIER (his call, 2026-09-17: "LOD triggers based off zoom distance, not camera movement"): the WHOLE
