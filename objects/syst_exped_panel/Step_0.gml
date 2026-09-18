@@ -453,6 +453,7 @@ if (view == "galaxy") {
 // ======================= THE STAR SYSTEM VIEW (the demo's): orbit the camera, glide, the wheel's distance, the dive =======================
 if (view == "system" && is_struct(sy_sys)) {
 	var _ocf = starmap_config();
+	__sy_lite_step();   // (the stamps, a slice a frame - q201)
 	// the dive: an eased swell about the picked world (or station - 2026-09-17), then its page (behind the veil)
 	if (sy_warp_pl >= 0 || sy_warp_st >= 0) {
 		sy_warp_t = min(sy_warp_t + delta / 30, 1);

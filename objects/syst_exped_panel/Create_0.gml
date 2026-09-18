@@ -521,7 +521,21 @@ sy_star = -1; sy_sys = undefined; sy_sel = -1; sy_dest = undefined; sy_from = "g
 sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230;
 sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
-sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite)
+sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite - begun on entry, built a slice a frame: __sy_lite_step)
+/// THE STAMPS' BUILDER (q201; his report: "a hitch when hitting view starmap" - eight worlds sampled and baked whole in
+/// __sy_enter, a quarter second in one frame): the first unfinished world takes three milliseconds a frame - rows of
+/// samples (planet_gen_step), then its textures (planet_bake with the deadline) - and stands within a few frames; the
+/// painter draws a plain ball in the world's colour until then. The cache keeps the finished ones: the next visit costs nothing
+__sy_lite_step = function() {
+	var _lim = get_timer() + 3000;
+	for (var _i = 0; _i < array_length(sy_pd); _i++) {
+		var _pn = sy_pd[_i];
+		if (planet_lite_ready(_pn)) continue;
+		while (_pn.row < _pn.th && get_timer() < _lim) planet_gen_step(_pn, 1);
+		if (_pn.row >= _pn.th) planet_bake(_pn, _lim);
+		return;
+	}
+};
 sy_stns = [];                        // THE STAR'S SPACE STATIONS (station_sys, 2026-09-17): on their own rings, picked like a world
 sy_belts = [];                       // THE ASTEROID BELTS (belt_sys, 2026-09-17): a crowd of rocks on a band, turning
 sy_bsel = -1;                        // the belt tapped (its name in the caption, its row lit - nothing to enter)
@@ -574,7 +588,7 @@ __sy_enter = function(_star) {
 		var _p = sy_sys.planets[_i];
 		var _gw = galaxy_world(_star, _i);
 		var _hint = is_struct(_gw) ? exped_planet_hint(_gw) : { kind : _p.kind, clim : _p.clim, ring : (_p[$ "has_ring"] ?? false) };
-		array_push(sy_pd, planet_get_lite(_p.seed, _hint));
+		array_push(sy_pd, planet_get_lite(_p.seed, _hint, false));   // (begun here, built a slice a frame by __sy_lite_step - q201: the whole build was the hitch on [star system])
 		array_push(sy_moons, planet_moons(_p.seed));
 		array_push(sy_info, is_struct(_gw) ? _gw.tier : 0);
 		if (is_struct(pl_dest) && pl_dest.seed == _p.seed) sy_sel = _i;
@@ -738,8 +752,10 @@ __draw_system = function() {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
 			var _pw = __sy_ppos(_p);
 			var _rad = max(1.5, _p.size * _k * 1.2);
-			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera)
-			planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
+			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera);
+			// a world still building (q201) is a plain ball in its colour, its edge dark, until its textures stand
+			if (planet_lite_ready(_pd)) planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
+			else { draw_set_circle_precision(32); draw_circle_colour(_sx, _sy, _rad, _p.col, merge_colour(_p.col, c_black, .65), false); draw_set_circle_precision(24); }
 			// its moons at their true phases, as the demo drew them: pixel dots on the plane
 			var _mns = sy_moons[_i], _mn = min(4, _p[$ "moon_n"] ?? 0);
 			for (var _m = 0; _m < _mn; _m++) {

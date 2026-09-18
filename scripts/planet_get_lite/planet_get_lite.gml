@@ -5,13 +5,22 @@
 /// orbit. A stamp is a thousand samples and three thousand texels: one
 /// call builds it whole (planet_gen_step, planet_bake), no slicing.
 /// Its own cache (g.planet_lite_c, twenty kept) beside planet_get's.
-function planet_get_lite(_seed, _hint = undefined) {
+/// whole = false (q201; his report: a hitch on [star system] - eight
+/// stamps built whole in one frame, a quarter second): BEGIN only - the
+/// world comes back with its rows unbuilt (row < th, no textures) for the
+/// caller to step a slice a frame (planet_gen_step, then planet_bake with
+/// a deadline; planet_lite_ready tells when); a whole request finishes a
+/// half-built one from the cache before handing it over
+function planet_get_lite(_seed, _hint = undefined, _whole = true) {
 	if (!variable_global_exists("planet_lite_c")) g.planet_lite_c = [];
 	var _c = g.planet_lite_c;
-	for (var _i = 0; _i < array_length(_c); _i++) if (_c[_i].seed == _seed) return _c[_i];
+	for (var _i = 0; _i < array_length(_c); _i++) if (_c[_i].seed == _seed) {
+		var _h = _c[_i];
+		if (_whole && !planet_lite_ready(_h)) { if (_h.row < _h.th) planet_gen_step(_h, _h.th); planet_bake(_h); }
+		return _h;
+	}
 	var _pn = planet_gen_begin(_seed, _hint, 48, 24);
-	planet_gen_step(_pn, _pn.th);
-	planet_bake(_pn);
+	if (_whole) { planet_gen_step(_pn, _pn.th); planet_bake(_pn); }
 	array_insert(_c, 0, _pn);
 	while (array_length(_c) > 20) {
 		var _old = array_pop(_c);
