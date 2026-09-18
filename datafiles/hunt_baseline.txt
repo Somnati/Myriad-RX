@@ -939,7 +939,7 @@ dupvar	scripts\moon_tex\moon_tex.gml                        _c1 _cl _d _ddx _h _
 dupvar	scripts\moon_view_pos\moon_view_pos.gml              _lw
 dupvar	scripts\objective_catchup\objective_catchup.gml      _j _k _s
 dupvar	scripts\objective_tick\objective_tick.gml            _k
-dupvar	scripts\offline_replay\offline_replay.gml            _i _lg1 _pool0
+dupvar	scripts\offline_replay\offline_replay.gml            _i _pool0
 dupvar	scripts\pad_binds_load\pad_binds_load.gml            _nm
 dupvar	scripts\pad_glyph\pad_glyph.gml                      _i
 dupvar	scripts\pad_init\pad_init.gml                        _i

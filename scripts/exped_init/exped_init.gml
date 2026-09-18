@@ -22,6 +22,7 @@ function exped_init(_force = false) {
 	if (_force) g.galaxy_seed = irandom($7fffffff);
 	else if (!variable_global_exists("galaxy_seed")) g.galaxy_seed = 1337;
 	if (!_force && variable_global_exists("exped")) return;
+	g.exped_owed = 0; g.exped_owed_rep = undefined;   // (the trip clock's debt and the report it owes: a fresh start owes nothing - q231)
 	g.exped = { board : [], trips : [], hauls : [], depth : 1, charms : 0, mats : {}, seq : 0, spd : 1,
 	            recent : [], retired : [], st : {}, seen : [], worlds : [] };   // (worlds: the star map's, opened - exped_world_open, 2026-09-16)
 	exped_board_roll();

@@ -59,7 +59,6 @@ g.bit_pick = { profit : "glow", credit : "glow", unit : "glow", tile : "plain" }
 // recolour their money and have the whole game agree. When the
 // settings row for it lands it needs to change nothing but this value.
 g.profit_color = c_sgreen;
-g.tile_boost_override = undefined;   // offline_replay's mean boost, set and cleared there only
 // THE DIAL RATE VIEW (DE's view button): 0 = profit per cycle, 1 = per
 // second. A display pref, so it rides settings.ini like the tint
 // 0 profit per cycle / 1 per second / 2 this dial's SHARE of the fleet

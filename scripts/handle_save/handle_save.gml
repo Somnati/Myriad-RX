@@ -567,6 +567,10 @@ function handle_save(){
 	if (action == sv_load) g.galaxy_seed = max(1, floor(g.galaxy_seed));
 	exped_init();
 	g.exped.depth  = handle("ex_depth",  g.exped.depth);
+	// THE OWED SECONDS (q231): the trip clock's debt while the chart was not there (exped_tick) - kept across a close, so
+	// a session shut before the chart landed still walks its minutes on the next boot
+	g.exped_owed = handle("ex_owed", g[$ "exped_owed"] ?? 0);
+	if (action == sv_load) g.exped_owed = max(0, real(g.exped_owed));
 	// THE STAR MAP'S WORLDS (2026-09-16): star:pi|... - read before the board roll below rebuilds the board
 	var _xww = "";
 	if (is_array(g.exped[$ "worlds"])) for (var _i = 0; _i < array_length(g.exped.worlds); _i++) _xww += ((_i > 0) ? "|" : "") + string(g.exped.worlds[_i].star) + ":" + string(g.exped.worlds[_i].pl);

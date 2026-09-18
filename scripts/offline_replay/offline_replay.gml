@@ -127,18 +127,13 @@ function offline_replay(_secs, _src = "boot return") {
 	// being finalised - a bug in the tile replay must not be able to
 	// break a LOAD, which is the one path a player cannot route around.
 	//
-	// ⚖️ AND THE DIALS PAY AT THE MEAN OF THE BOARD, NOT ITS START (the
-	// offline audit, 2026-09-10). The table multiplies every dial payout
-	// (tile_dial_boost), and online that boost climbs every second as
-	// the board merges upward. The replay paid the whole absence at the
-	// boost you LEFT with - the dials ran first and the table after -
-	// which under-paid a night away by whatever the board did in it.
-	// Now the table goes first, and the dials pay at the LOGARITHMIC
-	// MEAN of the boost you left at and the boost you returned to: for
-	// a quantity that grows geometrically that is the exact time
-	// average, and (B1 - B0) / ln(B1 / B0) is one line in log space
-	// whatever size the arbs are. Offline == online to within the
-	// board's own replay, which was already the honest half.
+	// THE BOARD NEVER TOUCHES THE DIALS (his law, restated 2026-09-18:
+	// "tiles' additive value isn't supposed to contribute to dial output").
+	// Since the 09-13 rebalance tile_dial_boost is the flux ladder's PROFIT
+	// RUNG alone - (1 + TILE_PROFIT_STEP)^rung - and a rung is bought by
+	// hand, never by the replay, so the dials' boost is one constant across
+	// the absence. (The logarithmic-mean-of-the-board machinery that stood
+	// here was the pre-rebalance law, a no-op since; gone - q231)
 	var _ts = undefined;   // the table before the replay (the log's tiles block)
 	// ...AND NOT BEFORE THE TABLE IS UNLOCKED (his report, 2026-09-17:
 	// tiles had run offline before he ever opened them) - tiles_tick
@@ -148,23 +143,15 @@ function offline_replay(_secs, _src = "boot return") {
 		_ts = { hi0 : g.tiles.highest, sh0 : g.tiles.shards, gps0 : g.tiles.gps,
 		        made0 : g.tiles.made, mg0 : g.tiles.merges, bailed : false,
 		        merge_on : g.tiles.automerge };   // (the log hides the merge row while it is off)
-	var _lg0 = arb_log10(tile_dial_boost());
 	if (_tiles_on)
 		if (variable_global_exists("tiles")) {
 			var _ff = tiles_fastforward(_cov);
 			if (is_struct(_ff) && !is_undefined(_ts)) _ts.bailed = _ff[$ "bailed"] ?? false;
 		}
-	var _lg1 = arb_log10(tile_dial_boost());
-	var _lgm = max(_lg0, _lg1);
-	if (abs(_lg1 - _lg0) > .0001) {
-		var _hi = max(_lg0, _lg1), _lo = min(_lg0, _lg1);
-		_lgm = _hi + log10(1 - power(10, _lo - _hi)) - log10((_hi - _lo) * ln(10));
-	}
-	g.tile_boost_override = log_to_arb(max(0, _lgm));
 	if (!is_undefined(_ts)) {
 		_ts.hi1 = g.tiles.highest; _ts.sh1 = g.tiles.shards; _ts.gps1 = g.tiles.gps;
 		_ts.made1 = g.tiles.made; _ts.mg1 = g.tiles.merges;
-		_ts.lg0 = _lg0; _ts.lg1 = _lg1; _ts.lgm = _lgm;
+		_ts.lg = arb_log10(tile_dial_boost());   // (the rung's boost the dials paid at - constant; the log's debug row)
 	}
 	_L.tiles = _ts;
 
@@ -192,7 +179,6 @@ function offline_replay(_secs, _src = "boot return") {
 	g.offline_pooling = false;
 	g.offline_replaying = false;
 	g.battery.opt_rate = undefined;
-	g.tile_boost_override = undefined;
 	if (!is_undefined(_online)) autom_unpack(_online);   // the away mode comes off
 	// the wall-clock systems, with a before/after for the log
 	credits_init(); ccore_init(); exped_init();

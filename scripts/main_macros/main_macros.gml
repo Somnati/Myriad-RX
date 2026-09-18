@@ -672,11 +672,6 @@ function main_macros() {
 // destination is the BOARD - the hopper is what catches overflow, not a
 // conveyor everything has to pass through.
 #macro TILE_BANK_BASE     0
-// ⚖️ THE TILE TABLE'S DIVISOR INTO DIAL PROFIT (DE's get_allmodgps).
-// 100 points of board output = +100% = every dial pays double. The SHIFT
-// is that number's digit count, because arb subtracts exponents to
-// divide - they are one quantity said twice, and out of step they would
-// silently rescale every dial in the game. See tile_dial_boost.
 // ⚖️ THE TABLE'S OWN PRESTIGE pays FLUX, a currency (his call - not
 // units). A rebirth pays earned / FLUX_DIV, so the amount is literally a
 // share of the shards the board produced, and the pile held multiplies
@@ -722,8 +717,8 @@ function main_macros() {
 // sections 3-5, checked across seeds)
 #macro TILE_FLUX_POW      .5  // sqrt (2026-09-13, his rebalance ask: linear ran away - 7000 flux held was x73 on the board, and the board feeds the next reset's flux)
 
-#macro TILE_DIAL_DIV    100
-#macro TILE_DIAL_SHIFT    2
+// (TILE_DIAL_DIV / TILE_DIAL_SHIFT - DE's "100 points of board output = every dial pays double" - retired q231: the
+// board's total never reaches the dials; the flux ladder's profit rung is the whole chain, see tile_dial_boost)
 
 #macro TILE_PROFIT_STEP .25  // profit boost: the board's share of the
                              // dial multiplier is (1 + STEP)^lv - 1,

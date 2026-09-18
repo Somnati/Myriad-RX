@@ -56,13 +56,8 @@
 function tile_dial_boost(_lv = undefined) {
 	if (!TILES_LIVE) return arb(1);
 	if (!variable_global_exists("tiles")) return arb(1);
-	// THE REPLAY'S MEAN (offline_replay, 2026-09-10): while an absence
-	// is being paid, the boost is the logarithmic mean of the board you
-	// left and the board you came back to - set there, cleared there.
-	// A quote for a specific level (the drawer's now > next) ignores it.
-	if (_lv == undefined && variable_global_exists("tile_boost_override")
-	&& g.tile_boost_override != undefined) return g.tile_boost_override;
-
+	// (the replay's logarithmic-mean override that read here was the pre-rebalance law - the rung cannot move in a
+	// replay, so the live value IS the replay's; gone, q231)
 	var _t = g.tiles;
 	if (_lv == undefined) _lv = _t.fupg[$ "profit"] ?? 0;   // the flux ladder's, permanent (2026-09-12)
 	if (_lv <= 0) return arb(1);              // unbought: the board is not wired in

@@ -173,7 +173,7 @@ __rows = function() {
 				if (_t.sh1 > _t.sh0) _push(_out, "row", RH_ROW, { l : "shards", v : "+" + __ar(do_subtract(_t.sh1, _t.sh0)), col : c_aqua });
 				if (_dbg) {
 					_push(_out, "sub", RH_SUB, { l : "board rate before > after", v : __lg(_t.gps0) + " > " + __lg(_t.gps1), col : dim });
-					_push(_out, "sub", RH_SUB, { l : "dial boost lg before / after / used", v : __n(_t.lg0, 3) + " / " + __n(_t.lg1, 3) + " / " + __n(_t.lgm, 3), col : dim });
+					_push(_out, "sub", RH_SUB, { l : "dial boost lg (the profit rung's)", v : __n(_t[$ "lg"] ?? (_t[$ "lgm"] ?? 0), 3), col : dim });   // (one constant across a replay - q231; an older entry's lgm read the same)
 					_push(_out, "sub", RH_SUB, { l : "made lifetime", v : string(_t.made0) + " > " + string(_t.made1), col : dim });
 					if (_t.bailed) _push(_out, "sub", RH_SUB, { l : "merge loop", v : "bailed on the budget", col : c_horange });
 				}
