@@ -166,6 +166,16 @@ function planet_rivers(_pn) {
 			}
 		}
 	}
+	// THE FLUVIAL CARVE (his reference maps, 2026-09-17: ridges feathered by countless fine valleys): EVERY land texel
+	// is cut by its own flow - the drainage tree is dendritic by nature, so the cut is a tree of channels down every
+	// flank, three times as deep on the ranges (the skeleton's kept lift) - the small streams no river is drawn for
+	var _rlm = _pn[$ "rlift"];
+	for (var _k = 0; _k < _no; _k++) {
+		var _i = _order[_k];
+		if (_acc[_i] < 2) continue;
+		var _fc = .022 * clamp(ln(_acc[_i]) / ln(300), 0, 1) * (1 + (is_array(_rlm) ? 2 * clamp(_rlm[_i] / .06, 0, 1) : 0));
+		_cut[_i] = max(_cut[_i], _fc);
+	}
 	for (var _i = 0; _i < _n; _i++) if (_cut[_i] > 0 && !_wat[_i]) _el[_i] = max(_sea + .002, _el[_i] - _cut[_i]);
 	var _wide = _t * 6, _delta = _t * 10;
 	for (var _k = 0; _k < _no; _k++) {

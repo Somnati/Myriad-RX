@@ -81,7 +81,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.cvol, 0); shader_set_uniform_f(_u.crelief, 0); shader_set_uniform_f(_u.canopy, 0);
 	shader_set_uniform_f(_u.grass, .5, .5, .5); shader_set_uniform_f(_u.sea0, 0, 0, 0); shader_set_uniform_f(_u.sea1, 0, 0, 0);
 	shader_set_uniform_f(_u.pk, 0); shader_set_uniform_f(_u.pwin, 0, 0, 1, 1);   // (no zoom tier: its own texture, whole)
-	shader_set_uniform_f(_u.season, 0);
+	shader_set_uniform_f(_u.season, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_snowb"), 3);
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);
 	shader_set_uniform_f_array(_u.city, array_create(24, 0));
 	shader_set_uniform_f(_u.cityn, 0);

@@ -218,16 +218,19 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _ringc = merge_colour(color_set_comp(_atmo), rgb(205, 195, 178), .55);
 	var _ring  = (_kind == "gas") ? (random(1) < .45) : (random(1) < .12);
 	if (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])) _ring = _hint.ring;   // (the galaxy's planet says - the home world, 2026-09-15; the roll above still runs)
+	if (RING_ALL) _ring = true;   // (debug: every world ringed - his ask 2026-09-17)
 	// THE RING'S MAKE (his picks, 2026-09-17): its kind - ice (bright, banded) five in nine, dust (faint, wide, smooth)
 	// a quarter, debris (sparse chunks) the rest - its reach, its two colours across the bands (from the world's own),
 	// and the seed of its bands and gaps; hashed off the seed, nothing rolled
 	var _rh = hash_mix(_seed, 4747);
 	var _rkind = ((_rh mod 100) < 55) ? 0 : (((_rh mod 100) < 80) ? 1 : 2);
 	var _rin = (_rkind == 1) ? 1.40 : (1.50 + ((_rh div 100) mod 25) / 100), _rout = (_rkind == 1) ? 2.55 : (2.05 + ((_rh div 10000) mod 40) / 100);
-	var _ringc2;
-	if (_rkind == 0)      { _ringc = merge_colour(color_set_comp(_atmo), rgb(222, 226, 232), .75); _ringc2 = merge_colour(_ringc, rgb(160, 150, 135), .55); }
-	else if (_rkind == 1) { _ringc = merge_colour(rgb(196, 176, 146), _atmo, .25); _ringc2 = merge_colour(_ringc, c_black, .35); }
-	else                  { _ringc = rgb(150, 148, 145); _ringc2 = rgb(108, 104, 100); }
+	// VIVID (his ask, 2026-09-17): the ring's hue is the sky's far side with a hashed lean, saturated; the second colour
+	// a turn round the wheel from it - ice pale and bright, dust gold and deep, debris a hue and its opposite
+	var _ringc2, _rhue = (colour_get_hue(_atmo) + 128 + ((_rh div 3) mod 61) - 30 + 256) mod 256;
+	if (_rkind == 0)      { _ringc = make_colour_hsv(_rhue, 105, 248); _ringc2 = make_colour_hsv((_rhue + 36) mod 256, 185, 225); }
+	else if (_rkind == 1) { _ringc = make_colour_hsv((18 + ((_rh div 13) mod 24) + 256) mod 256, 165, 238); _ringc2 = make_colour_hsv((_rhue + 200) mod 256, 200, 170); }
+	else                  { _ringc = make_colour_hsv(_rhue, 120, 205); _ringc2 = make_colour_hsv((_rhue + 128) mod 256, 150, 165); }
 	var _rseed = ((_rh div 7) mod 1000) / 1000;
 
 	// ---- the texel sampler's params ----

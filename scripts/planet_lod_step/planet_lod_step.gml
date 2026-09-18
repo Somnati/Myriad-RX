@@ -29,7 +29,6 @@ function planet_lod_step(_pn, _l, _until) {
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _w = _l.w;
 	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _rf = _pn[$ "rfill"], _ra = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _hasr = is_array(_rf) && is_array(_ra);   // (planet_rivers' keep)
-	var _rl = _pn[$ "rlift"], _hasl = is_array(_rl);   // (planet_ranges' keep: the gullies' mask)
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
@@ -128,9 +127,7 @@ function planet_lod_step(_pn, _l, _until) {
 			}
 			var _c = _pal[_b];
 			buffer_poke(_tb, _o + _or, buffer_u8, colour_get_red(_c)); buffer_poke(_tb, _o + _og, buffer_u8, colour_get_green(_c)); buffer_poke(_tb, _o + _ob, buffer_u8, colour_get_blue(_c)); buffer_poke(_tb, _o + _oa, buffer_u8, 255 - floor(_glow[_b] * 255));
-			var _eg = _oe;
-			if (!_gas && _hasl && _oe >= _sea) _eg += planet_gully(_pn, _u, _v, _rl[_i00] * _w00 + _rl[_i10] * _w10 + _rl[_i01] * _w01 + _rl[_i11] * _w11);   // (the gullies, the same field as the bake's)
-			var _h = _gas ? 0 : power(clamp((_eg - _base) / max(.001, 1 - _base), 0, 1), 1.6);
+			var _h = _gas ? 0 : power(clamp((_oe - _base) / max(.001, 1 - _base), 0, 1), 1.6);
 			var _wat = (!_gas && (_b == 0 || _b == 1 || _b == 11 || _b == 25)) ? 255 : 0;
 			var _for = (!_gas) ? ((_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0))) : 0;
 			if (_wat > 0) _for = (_oe >= _sea) ? 0 : max(6, floor(clamp((_sea - _oe) / .08, 0, 1) * 255));   // (the sea's at least 6 - the foam's mark; a river's or a lake's 0)

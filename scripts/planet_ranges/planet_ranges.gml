@@ -55,7 +55,7 @@ function planet_ranges(_pn) {
 			for (var _s = 0; _s < _len; _s++) {
 				var _f = _s / max(1, _len - 1);
 				var _tap = _mid ? (1 - .6 * power(abs(_f - .5) * 2, 2)) : (1 - .7 * _f);
-				stamp(_x, _y, _lvl, _tap, .75 + .5 * h(_salt + _s * 3 + 1));
+				stamp(_x, _y, _lvl, _tap, .55 + .9 * h(_salt + _s * 3 + 1));   // (the width wanders .55-1.45: no noodle)
 				array_push(_pts, [_x, _y, _hd]);
 				_hd += (h(_salt + _s * 3) - .5) * 2 * _wob + _bias;
 				_x += dcos(_hd); _y -= dsin(_hd);
@@ -102,10 +102,10 @@ function planet_ranges(_pn) {
 	}
 	// ---- into the heights, and the biome law again under every lift ----
 	var _lift = _c.lift, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _n = _tw * _th;
-	_pn.rlift = _lift;   // (kept: the gullies (planet_gully) run down the flanks by it, in the bake and the tier)
+	_pn.rlift = _lift;   // (kept: the gullies' mask)
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
-		_el[_i] += _lift[_i];
+		_el[_i] += _lift[_i] + planet_gully(_pn, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th, _lift[_i]);   // (the gullies, into the heights - 2026-09-17)
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
 		_bm[_i] = _ps.ob;

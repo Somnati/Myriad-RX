@@ -54,6 +54,7 @@ uniform vec4  u_pwin;         // the window in map uv: x0, y0, x1, y1 (x1 may pa
 uniform float u_pk;           // the patch's resolution over the map's (0 = no patch)
 uniform vec3  u_sea0;     // THE SEA'S DEPTH (2026-09-17): the deep, and the open ocean - the water grades between the shore's own colour and these
 uniform vec3  u_sea1;
+uniform float u_snowb;    // THE SNOW BIAS (2026-09-17): the snow line raised by the world's heat - a lava world never (his report: snow on hot worlds)
 uniform float u_season;   // THE SEASON (2026-09-17): -1..1 on the world's own year - the snow line climbs in summer, comes down in winter, each hemisphere its own
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
@@ -463,14 +464,12 @@ void main()
                         float grain = 0.82 + 0.36 * hash12(vec2(floor(ang * 90.0 + 300.0), floor(rr * 150.0)));
                         // two colours across the bands
                         vec3 rc = mix(u_ringcol, u_ringcol2, rvn(bf * 5.0 + 21.0)) * grain;
-                        // THE UNLIT FACE: the sun and the eye on the same side of the ring's plane, or not - then it is dark, and thinner
-                        float face = sign(u_raxis.z) * sign(dot(u_raxis, u_light) + 0.0001);
-                        float litf = step(0.0, face);
+                        // (the unlit face went - both faces lit alike, for the look; his call 2026-09-17)
                         // THE WORLD'S SHADOW across the ring, with a penumbra
                         float pl = dot(rp, u_light);
                         float sh = (pl < 0.0) ? (1.0 - smoothstep(0.92, 1.06, length(rp - u_light * pl))) : 0.0;
-                        ringC = rc * mix(0.32, 1.0, litf) * (1.0 - 0.85 * sh);
-                        ringA = u_ring * clamp(dens * 1.15, 0.0, 1.0) * mix(0.8, 1.0, litf);
+                        ringC = rc * (1.0 - 0.85 * sh);
+                        ringA = u_ring * clamp(dens * 1.15, 0.0, 1.0);
                         ringZ = rp.z;
                     }
                 }
@@ -648,7 +647,7 @@ void main()
         // Laid on BEFORE the light (his screenshot: snowy crowns shone on the night side - the white was mixed in
         // after the band and never darkened): it is the ground's own colour, and takes the night like the rest
         float slat = abs(t.y);
-        float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001);
+        float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001) + u_snowb;
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         // THE HORIZON (his screenshot, 2026-09-17: ridges lit on the night side): the band read the BUMPED normal, and a
