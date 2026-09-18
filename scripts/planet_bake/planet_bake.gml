@@ -51,7 +51,11 @@ function planet_bake(_pn, _until = undefined) {
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, _pn.pal[_b3], 1 - _pn.glow[_b3]);
 			} else if (_p == 1) {
 				var _ca2 = _pn.carr[_i];
-				if (_ca2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, 255), _ca2);   // (red = the thickness - the cloud relief, 2026-09-17; the plumes left the green for the shader)
+				// (red = the thickness - the cloud relief, 2026-09-17; the plumes left the green for the shader; BLUE = the SAND under
+				// it - the dunes full, the desert half - for the shader's dune grain, q209: every texel written, the alpha 0 where
+				// there is no cloud - the blend is a straight write)
+				var _bs2 = _pn.biome[_i], _sand2 = (_bs2 == 24) ? 255 : ((_bs2 == 3) ? 110 : 0);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, _sand2), _ca2);
 			} else {
 				// height above the sea (or the world's base level), 0..1 in red:
 				// water is flat, the land climbs, peaks reach 1; the gradient rides

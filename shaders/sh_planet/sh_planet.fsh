@@ -771,6 +771,22 @@ void main()
         // the horizon lit up on the night side); the shade side keeps its full darkening
         float sunup = smoothstep(-0.02, 0.12, dot(n, u_light));
         col *= 1.0 + clamp(bumpl * 2.8 * u_bump, -0.62, 0.50 * sunup);   // (a notch stronger: the relief maps he showed are hillshade-strong - 2026-09-17)
+        // THE DUNES' GRAIN (q209; his pick: "dune fields with the wind's grain"): on the sand (the cloud sheet's blue: the
+        // map's dune texels full, its desert half) crest lines square to the prevailing wind - zonal, veering a little
+        // with the latitude - curving on noise, ninety round the world; each crest's two faces lit and shadowed against
+        // the sun (the slope's sign against the light's eastward share), a little albedo ripple besides. Drawn at any
+        // zoom; nothing of it under the night
+        float sand = texture2D(u_cloud, sphere_uv(t, u_tsize)).b;
+        if (sand > 0.05) {
+            float lon = atan(t.z, t.x), lat = asin(clamp(t.y, -1.0, 1.0));
+            float wan = vn2a(vec2(lon * 5.0 + 7.0, lat * 5.0)) * 4.0;
+            float ph = lon * 90.0 + lat * 22.0 + wan;
+            float ph2 = ph + 1.1 * sin(ph * 0.5 + wan);
+            float rip = sin(ph2), drip = cos(ph2);
+            vec3 east = normalize(cross(vec3(0.0, 1.0, 0.0), t));
+            float lit = dot(east, to_tex(u_light));
+            col *= 1.0 + sand * (0.08 * rip + 0.20 * drip * lit) * sunup;
+        }
         col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
         // THE NIGHT (2026-09-17, his ask: "dark yes but also grey ... the landscape hard to see"): a moonlit
         // blue that MULTIPLIES the land (its contrast survives) with the faintest floor, instead of a flat dark blue mixed over it
