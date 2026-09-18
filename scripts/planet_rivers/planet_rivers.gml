@@ -150,6 +150,11 @@ function planet_rivers(_pn) {
 	// ---- neighbours by half - a V of a valley the bump shading reads as gullied flanks; never under the sea. The ----
 	// ---- great rivers (six slices) widen to two texels - their lowest dry bank joins them; a mouth of ten slices ----
 	// ---- spreads a DELTA of shallows over its low neighbours ----
+	// (the heights BEFORE the carve, kept: the base map's biomes were decided on them, and the zoom tier decides its
+	// own on the same - else a carved channel through a snowy crown was rock in the tier and snow in the map; bug hunt)
+	var _e0 = array_create(_n, 0);
+	array_copy(_e0, 0, _el, 0, _n);
+	_pn.elev0 = _e0;
 	var _cut = array_create(_n, 0);
 	for (var _k = 0; _k < _no; _k++) {
 		var _i = _order[_k];

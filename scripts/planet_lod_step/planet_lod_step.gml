@@ -29,6 +29,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _ps = _pn.smp, _tw = _pn.tw, _th = _pn.th, _k = _l.k, _w = _l.w;
 	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _rf = _pn[$ "rfill"], _ra = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _hasr = is_array(_rf) && is_array(_ra);   // (planet_rivers' keep)
+	var _e0 = _pn[$ "elev0"] ?? _el;   // (the heights the biomes were decided on - before the carve; the biome law reads these, the height the carved)
 	var _base = _gas ? 1 : max(_sea, .34);
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
@@ -54,13 +55,14 @@ function planet_lod_step(_pn, _l, _until) {
 			var _hr0 = _el[_r0 + _xm] * _cx0 + _el[_r0 + _x0] * _cx1 + _el[_r0 + _x1] * _cx2 + _el[_r0 + _x2] * _cx3;
 			var _hr1 = _el[_r1 + _xm] * _cx0 + _el[_r1 + _x0] * _cx1 + _el[_r1 + _x1] * _cx2 + _el[_r1 + _x2] * _cx3;
 			var _hr2 = _el[_r2 + _xm] * _cx0 + _el[_r2 + _x0] * _cx1 + _el[_r2 + _x1] * _cx2 + _el[_r2 + _x2] * _cx3;
-			_ps.oe = _hrm * _cy0 + _hr0 * _cy1 + _hr1 * _cy2 + _hr2 * _cy3;
+			var _oe = _hrm * _cy0 + _hr0 * _cy1 + _hr1 * _cy2 + _hr2 * _cy3;   // (the carved height: the texture's)
 			_tx = _tx * _tx * (3 - 2 * _tx);
 			var _w00 = (1 - _tx) * (1 - _ty), _w10 = _tx * (1 - _ty), _w01 = (1 - _tx) * _ty, _w11 = _tx * _ty;
+			_ps.oe = _e0[_i00] * _w00 + _e0[_i10] * _w10 + _e0[_i01] * _w01 + _e0[_i11] * _w11;   // (the biome law on the uncarved heights, as the map's was)
 			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
 			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
 			planet_biome(_ps, _u, _v);
-			var _b = _ps.ob, _oe = _ps.oe;
+			var _b = _ps.ob;
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);
@@ -92,7 +94,7 @@ function planet_lod_step(_pn, _l, _until) {
 						var _bl00 = (_bm[_i00] == 1 && _el[_i00] >= _sea), _bl10 = (_bm[_i10] == 1 && _el[_i10] >= _sea), _bl01 = (_bm[_i01] == 1 && _el[_i01] >= _sea), _bl11 = (_bm[_i11] == 1 && _el[_i11] >= _sea);
 						if (_bl00 || _bl10 || _bl01 || _bl11) {
 							var _fl = _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11;
-							_lk = (_fl - _oe > .010);
+							_lk = (_fl - _ps.oe > .010);   // (against the UNCARVED ground, as the map's own lake test was)
 						}
 					} else _lk = (_bb == 1);
 					if (_lk) _b = 1;
