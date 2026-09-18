@@ -658,7 +658,7 @@ void main()
         // the slope's own light, over the band - the LIFT only where the sun is up at all (a slope facing a sun below
         // the horizon lit up on the night side); the shade side keeps its full darkening
         float sunup = smoothstep(-0.02, 0.12, dot(n, u_light));
-        col *= 1.0 + clamp(bumpl * 2.4 * u_bump, -0.55, 0.45 * sunup);
+        col *= 1.0 + clamp(bumpl * 2.8 * u_bump, -0.62, 0.50 * sunup);   // (a notch stronger: the relief maps he showed are hillshade-strong - 2026-09-17)
         col *= 1.0 - 0.5 * shadow * min(1.0, u_bump) * li;                            // the peak's shadow (only where there is light to take)
         // THE NIGHT (2026-09-17, his ask: "dark yes but also grey ... the landscape hard to see"): a moonlit
         // blue that MULTIPLIES the land (its contrast survives) with the faintest floor, instead of a flat dark blue mixed over it

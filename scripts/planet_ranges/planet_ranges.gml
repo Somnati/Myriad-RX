@@ -28,7 +28,7 @@ function planet_ranges(_pn) {
 		tw : _pn.tw, th : _pn.th, el : _pn.elev, dt : _pn.det, seed : _pn.seed, sea : _pn.sea,
 		sc : _pn.tw / 320,   // (the lite worlds scale every length)
 		lift : array_create(_pn.tw * _pn.th, 0),
-		H : [0, .30, .19, .11], W : [0, 6 * _pn.tw / 320, 4 * _pn.tw / 320, 2.6 * _pn.tw / 320],   // (taller and broader - his verdict on the first cut: "smaller in height", 2026-09-17)
+		H : [0, .30, .24, .15], W : [0, 6 * _pn.tw / 320, 4 * _pn.tw / 320, 2.6 * _pn.tw / 320],   // (the spurs taller still, so their crowns reach the peaks' line and the branching SHOWS - his screenshots, 2026-09-17)
 		h : function(_k) { return (hash_mix(seed, 20000 + _k) mod 10000) / 10000; },
 		// a ridge texel: the highest lift wins; its crest profile (with a foothill shoulder) spreads over the window round it
 		stamp : function(_x, _y, _lvl, _tap, _wj) {
@@ -102,12 +102,23 @@ function planet_ranges(_pn) {
 	}
 	// ---- into the heights, and the biome law again under every lift ----
 	var _lift = _c.lift, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _n = _tw * _th;
-	_pn.rlift = _lift;   // (kept: the gullies' mask)
+	// THE GULLIES (his screenshots, 2026-09-17: two ranges read as spiky branching things, two as a smooth noodle and a
+	// smooth brown dome): the gully noise MULTIPLIES the lift (a crest a third taller here, a third lower there) as
+	// well as adding its channels, so the crown's own outline - where the lift crosses the peaks' line - breaks into
+	// lobes and spikes, and a spur's crown comes and goes along it. The noise's OWN high ground (a dome, no lift)
+	// takes the gullies too, by its height above the sea, so no mountain is smooth; the fluvial carve reads the
+	// same mask (rlift) and cuts three times as deep on both
+	var _sea2 = _pn.sea;
 	for (var _i = 0; _i < _n; _i++) {
-		if (_lift[_i] <= 0) continue;
-		_el[_i] += _lift[_i] + planet_gully(_pn, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th, _lift[_i]);   // (the gullies, into the heights - 2026-09-17)
+		var _lf = _lift[_i], _hi = clamp((_el[_i] - _sea2 - .10) / .12, 0, 1) * .06;
+		var _mk = max(_lf, _hi);
+		if (_mk <= 0) continue;
+		_lift[_i] = _mk;   // (rlift: the gullies' and the carve's mask)
+		var _g = planet_gully(_pn, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th, _mk);
+		_el[_i] += _lf * (1 + 4 * _g) + _g * .7;
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
 		_bm[_i] = _ps.ob;
 	}
+	_pn.rlift = _lift;   // (kept: the gullies' and the fluvial carve's mask - the ranges' lift, or a dome's height)
 }
