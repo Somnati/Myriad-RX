@@ -25,6 +25,7 @@ function planet_get_lite(_seed, _hint = undefined, _whole = true) {
 	while (array_length(_c) > 20) {
 		var _old = array_pop(_c);
 		if (surface_exists(_old.tsurf)) surface_free(_old.tsurf);
+		if (buffer_exists(_old[$ "tbuf"] ?? -1)) buffer_delete(_old.tbuf); if (buffer_exists(_old[$ "cbuf"] ?? -1)) buffer_delete(_old.cbuf); if (buffer_exists(_old[$ "hbuf"] ?? -1)) buffer_delete(_old.hbuf);   // (the kept sheets' buffers - q213)
 		if (surface_exists(_old.csurf)) surface_free(_old.csurf);
 		if (surface_exists(_old[$ "hsurf"] ?? -1)) surface_free(_old.hsurf);
 	}
