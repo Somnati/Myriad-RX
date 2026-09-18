@@ -2619,10 +2619,12 @@ __lod_step = function() {
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; }
 	if (is_struct(lod_k3) && lod_k3.ready) { if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) planet_lod_upload(lod_k3); return; }
-	if (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1) return;   // (never under the camera's hand)
 	if (!is_struct(lod_k3)) lod_k3 = planet_lod_begin(_pn, 3);
-	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms
-	planet_lod_step(_pn, lod_k3, get_timer() + clamp(delta * 16667 * .4, 1500, 6000));
+	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms - and UNDER
+	// THE CAMERA'S HAND (a drag, a glide, a snap) a tenth of a sixtieth-frame, never nothing: it paused there before, so a
+	// world grabbed as it appeared kept its tier waiting (his call, 2026-09-18: "let's make it not pause")
+	var _hand = (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1);
+	planet_lod_step(_pn, lod_k3, get_timer() + (_hand ? 1500 : clamp(delta * 16667 * .4, 1500, 6000)));
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved
