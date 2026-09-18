@@ -16,6 +16,7 @@ function cbt_fight_new(_party, _foes) {
 		turn : 0, over : false, won : false,
 		log : [], ev : [], t : 0, last : undefined,
 		thr : 1,
+		actor : undefined,   // the pawn between cbt_fight_next and cbt_fight_act (the arena holds it there; q227)
 	};
 	return _f;
 }

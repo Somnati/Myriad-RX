@@ -811,7 +811,8 @@ dupvar	scripts\blur_snap\blur_snap.gml                      _d _i
 dupvar	scripts\capsule_bevel\capsule_bevel.gml              _r
 dupvar	scripts\cbt_ai\cbt_ai.gml                            _i _sc _t
 dupvar	scripts\cbt_fight_new\cbt_fight_new.gml              _i
-dupvar	scripts\cbt_fight_turn\cbt_fight_turn.gml            _actor _i _p _plan _rts
+dupvar	scripts\cbt_fight_next\cbt_fight_next.gml            _i _p _rts
+dupvar	scripts\cbt_fight_options\cbt_fight_options.gml      _i _t
 dupvar	scripts\cbt_film\cbt_film.gml                        _q
 dupvar	scripts\cbt_hit\cbt_hit.gml                          _q _tk _vb
 dupvar	scripts\cbt_skill_gen\cbt_skill_gen.gml              _d _sc _t _u elem magic mult name
