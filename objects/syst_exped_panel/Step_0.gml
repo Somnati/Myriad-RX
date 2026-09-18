@@ -442,7 +442,7 @@ if (view == "galaxy") {
 				var _dd = point_distance(_sx, _sy, mouse_x, mouse_y);
 				if (_dd < _bd) { _bd = _dd; _bi = _vis[_i]; }
 			}
-			if (_bi >= 0 && _bi != gx_sel) { gx_sel = _bi; gx_sys = starsystem_generate(_sm.stars[_bi].seed, _sm.stars[_bi].props); play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+			if (_bi >= 0 && _bi != gx_sel) { gx_sel = _bi; gx_sys = starsystem_get(_sm.stars[_bi].seed, _sm.stars[_bi].props); play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
 			else if (_bi < 0) gx_sel = -1;
 		}
 	}

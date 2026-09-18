@@ -12,7 +12,7 @@ function galaxy_world(_star, _pi) {
 	var _sm = starmap_get();
 	if (_star < 0 || _star >= _sm.count) return undefined;
 	var _st = _sm.stars[_star];
-	var _sys = starsystem_generate(_st.seed, _st.props);
+	var _sys = starsystem_get(_st.seed, _st.props);
 	if (_pi < 0 || _pi >= array_length(_sys.planets)) return undefined;
 	var _pl = _sys.planets[_pi];
 	var _b = galaxy_world_biome(_pl);

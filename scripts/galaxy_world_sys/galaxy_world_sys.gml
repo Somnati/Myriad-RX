@@ -15,7 +15,7 @@ function galaxy_world_sys(_d) {
 	var _sm = starmap_get();
 	_star = clamp(_star, 0, _sm.count - 1);
 	var _st = _sm.stars[_star];
-	var _sys = starsystem_generate(_st.seed, _st.props);
+	var _sys = starsystem_get(_st.seed, _st.props);
 	_pi = clamp(_pi, 0, array_length(_sys.planets) - 1);
 	_d.gw = { seed : _sm.seed, star : _star, sys : _sys, planet : _pi, planet_seed : _sys.planets[_pi].seed, name : star_name(_star) + " " + _rom[clamp(_pi, 0, 7)] };
 	return _d.gw;

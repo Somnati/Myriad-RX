@@ -580,7 +580,7 @@ __sy_enter = function(_star) {
 	var _sm = starmap_get();
 	if (_star < 0 || _star >= _sm.count) return;
 	sy_star = _star;
-	sy_sys = starsystem_generate(_sm.stars[_star].seed, _sm.stars[_star].props);
+	sy_sys = starsystem_get(_sm.stars[_star].seed, _sm.stars[_star].props);   // (kept by seed - q212)
 	sy_sel = -1; sy_pd = []; sy_moons = []; sy_info = [];
 	sy_stns = station_sys(_sm.stars[_star].seed, sy_sys); sy_ssel = -1; sy_warp_st = -1;   // (the star's stations, 2026-09-17)
 	sy_belts = belt_sys(_sm.stars[_star].seed, sy_sys, sy_stns); sy_bsel = -1;   // (its belts, in the gaps the stations left)

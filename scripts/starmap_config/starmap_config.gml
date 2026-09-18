@@ -80,7 +80,6 @@ function starmap_config() {
 		sky_near_ref : 45,  // THE FLUX LAW (q198): a sun-like star this far fills the biggest glyph; flux = luminosity x (this / d)^2 (the inverse square)...
 		sky_flux_gamma : .5, // ...its ALPHA = flux ^ gamma (.5 = the eye's square root: the class shows as brightness)...
 		sky_size_pow : 2,   // ...its SIZE = (ref / d) ^ this, the class barely in it (q199: size says NEAR - 2 = the inverse square straight; higher = fewer big glyphs)
-		sky_near_pow : 2.2, // (retired by q198 - the old (ref / d)^pow size law; kept for the record)
 		sky_size_max : 31,  // the biggest glyph, px (spr_star_glyph's 31)
 		dust_count  : 240, // full-sphere faint fill
 		sky_cloud   : 520, // THE STAR CLOUDS (2026-09-16): faint points packed along the band - the milky way's grain (galaxy_sky_build)

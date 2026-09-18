@@ -27,9 +27,7 @@ function exped_planet_hint(_d) {
 		var _gp = _gws.sys.planets[_gws.planet];
 		_h.ring = _gp[$ "has_ring"] ?? false;
 		_h.moon_n = max(1, _gp[$ "moon_n"] ?? 1);   // (at least one - his ask, 2026-09-16: "give the starter planet a moon")
+		if (_gp[$ "plateau"] ?? false) _h.plateau = true;   // (a plateau asked for by the galaxy's planet - planet_plateaus sites it on the biggest river; q212)
 	}
-	// DEBUG_HOME (q210): the home world and the home system's desert world take a PLATEAU (planet_plateaus sites it on the
-	// biggest river: the canyon) - his ask, "plateaus on the starter planet... a desert planet with canyons"
-	if (DEBUG_HOME && is_struct(_gws)) { var _hm0 = galaxy_home(); if (_gws.star == _hm0.star && (_gws.planet_seed == _hm0.planet_seed || _b.name == "dust")) _h.plateau = true; }
 	return _h;
 }

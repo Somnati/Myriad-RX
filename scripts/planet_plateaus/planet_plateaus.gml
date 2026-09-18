@@ -22,7 +22,7 @@ function planet_plateaus(_pn) {
 	var _hc = hash_mix(_sd, 4500) mod 100, _np = 0;
 	if (_pn.arch == "barren") _np = (_hc < 40) ? 1 : 0;
 	else _np = (_hc < 30) ? 0 : ((_hc < 85) ? 1 : 2);
-	var _forced = (_pn[$ "dbg_plateau"] ?? false);   // (DEBUG_HOME, q210: a plateau asked for - at least one, on the biggest river there is)
+	var _forced = (_pn[$ "plateau_ask"] ?? false);   // (a plateau asked for by the hint - at least one, on the biggest river there is; q210/q212)
 	if (_forced) _np = max(1, _np);
 	if (_np == 0) return;
 	var _el = _pn.elev, _e0 = _pn.elev0, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _sea = _pn.sea;
