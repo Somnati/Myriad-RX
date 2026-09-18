@@ -102,6 +102,7 @@ function planet_ranges(_pn) {
 	}
 	// ---- into the heights, and the biome law again under every lift ----
 	var _lift = _c.lift, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _n = _tw * _th;
+	_pn.rlift = _lift;   // (kept: the gullies (planet_gully) run down the flanks by it, in the bake and the tier)
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
 		_el[_i] += _lift[_i];

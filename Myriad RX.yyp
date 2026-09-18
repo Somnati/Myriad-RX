@@ -659,6 +659,8 @@
     {"id":{"name":"planet_gen_step","path":"scripts/planet_gen_step/planet_gen_step.yy",},},
     {"id":{"name":"planet_get_lite","path":"scripts/planet_get_lite/planet_get_lite.yy",},},
     {"id":{"name":"planet_get","path":"scripts/planet_get/planet_get.yy",},},
+    {"id":{"name":"planet_gully_h","path":"scripts/planet_gully_h/planet_gully_h.yy",},},
+    {"id":{"name":"planet_gully","path":"scripts/planet_gully/planet_gully.yy",},},
     {"id":{"name":"planet_lod_begin","path":"scripts/planet_lod_begin/planet_lod_begin.yy",},},
     {"id":{"name":"planet_lod_free","path":"scripts/planet_lod_free/planet_lod_free.yy",},},
     {"id":{"name":"planet_lod_step","path":"scripts/planet_lod_step/planet_lod_step.yy",},},

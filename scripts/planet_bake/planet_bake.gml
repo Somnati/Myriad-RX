@@ -53,7 +53,9 @@ function planet_bake(_pn, _until = undefined) {
 				// water is flat, the land climbs, peaks reach 1; the gradient rides
 				// a curve so lowlands stay low and the peaks stand up (the tallest
 				// 20% carries half the relief)
-				var _h = (_pn.kind == "gas") ? 0 : clamp((_pn.elev[_i] - _base) / max(.001, 1 - _base), 0, 1);
+				var _eg = _pn.elev[_i];
+				if (_pn.kind != "gas" && _eg >= _pn.sea && is_array(_pn[$ "rlift"])) _eg += planet_gully(_pn, (_tx + .5) / _tw, (_ty + .5) / _th, _pn.rlift[_i]);   // (the gullies down the ranges' flanks - height only, 2026-09-17)
+				var _h = (_pn.kind == "gas") ? 0 : clamp((_eg - _base) / max(.001, 1 - _base), 0, 1);
 				_h = power(_h, 1.6);
 				var _v = floor(_h * 255);
 				// (green marks WATER - deep ocean, ocean, shallows - for the shader's glint, 2026-09-15)
