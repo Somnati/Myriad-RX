@@ -109,32 +109,7 @@ if (is_struct(pv_sky)) pv_sky.light_w = galaxy_sun_dir(0, pl_dest);   // (every 
 // clock sets it the first time), the camera rides the spin (geosync), and
 // turns to face a picked region (pv_face) - a rotation about the view axis
 // that lifts the spot's view z toward one; the sign is tried both ways
-if (view == "planet" && is_struct(pl_dest)) {
-	var _pn4 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-	if (pv_spin_seed != pl_dest.seed) { pv_spin_seed = pl_dest.seed; pv_spin = planet_spin_now(_pn4); pv_sky = __sky_for(pl_dest); }   // (the world's own sky, 2026-09-16)
-	// (the clock's spin, exactly: the agent's daylight reads the same clock)
-	var _ns = planet_spin_now(_pn4);
-	var _ds = angle_difference(_ns, pv_spin);
-	pv_spin = _ns;
-	// geosync: the camera rides the spin (pre-multiplied, world space)
-	var _sax = mat3_apply(mat3_rot(0, 0, 1, _pn4.tilt), 0, 1, 0);
-	if (pv_geo) pv_cam = mat3_mul(mat3_rot(_sax[0], _sax[1], _sax[2], _ds), pv_cam);
-	// THE SNAP (2026-09-16): toward the turntable's north-up view of the region,
-	// along the one rotation between here and there; the hand stays an arcball
-	if (pv_face >= 0) {
-		var _yp = __spot_yp(_pn4, pv_spin, region_get(pl_dest, pv_face));
-		var _tgt = __cam_tt(_pn4, _yp.yaw, _yp.pitch);
-		var _stp = __cam_toward(pv_cam, _tgt, 1 - power(.88, delta));
-		if (is_undefined(_stp)) { pv_cam = _tgt; pv_face = -1; } else pv_cam = _stp;
-	}
-	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
-	// region mode: the pull-in, the clouds thinning (both eased)
-	var _zt0 = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	pv_zoom  = lerp(pv_zoom, _zt0, 1 - power(.88, delta));   // (the mode's pull-in x the wheel's - 2026-09-17)
-	if (abs(pv_zoom - _zt0) < .002) pv_zoom = _zt0;        // (and lands, rather than creeping under a pixel for a second - the cells would flicker)
-	pv_cfade = lerp(pv_cfade, 1 - .88 * clamp((pv_zoom - 1.2) / (PV_ZOOM_RG - 1.2), 0, 1), 1 - power(.88, delta));   // (by the ZOOM, his ask 2026-09-17: the wheel past 1.2 thins them, region mode's 1.55 is the same .12 as before)
-	pv_pfade = 1 - .75 * clamp((pv_zoom - 3.5) / 2.5, 0, 1);   // (the volcanoes' plumes hold until much closer: full to x3.5, a quarter by x6 - his ask 2026-09-17)
-}
+if (ex_planet_clock()) exit;   // (the orbit view's clock - ex_planet_clock, q219)
 // THE TRIP PAGE'S WORLD: the same render, its camera turned to the trip's
 // region once (a new trip on the page), riding the spin after (geosync)
 if (view == "trip") {
@@ -340,57 +315,7 @@ if (variable_global_exists("click_owner") && g.click_owner != noone) exit;
 
 // ======================= THE ORBIT VIEW: the grab, the drag, the glide, the tap =======================
 // (held and released input - above the press gate)
-if (view == "planet" && is_struct(pl_dest)) {
-	var _ocf = starmap_config();
-	var _pvr = __pv_r();
-	var _pin = point_in_rectangle(mouse_x, mouse_y, _pvr.x, _pvr.y, _pvr.x + _pvr.w, _pvr.y + _pvr.h);
-	// THE WHEEL (his ask, 2026-09-17): closer or further, in either mode - on top of region mode's pull-in.
-	// The drag turns fewer degrees a pixel the closer you are, so the ground under the hand keeps pace with it
-	if (_pin && !__pv_ui_hit()) {
-		if (mouse_wheel_up())   pv_zuser = min(pv_zuser * 1.18, PV_ZOOM_MAX);
-		if (mouse_wheel_down()) pv_zuser = max(pv_zuser / 1.18, PV_ZOOM_MIN);
-	}
-	var _osens = _ocf.orbit_sens / max(.5, pv_zoom);
-	if (!pv_drag && mouse_check_button_pressed(mb_left) && _pin && !__pv_ui_hit()) { pv_drag = true; pv_px = 0; pv_dx = mouse_x; pv_dy = mouse_y; pv_vx = 0; pv_vy = 0; }
-	if (pv_drag && mouse_check_button(mb_left)) {
-		var _mx = mouse_x - pv_dx, _my = mouse_y - pv_dy;
-		pv_px += abs(_mx) + abs(_my);
-		if (pv_px > 4) pv_face = -1;   // a real drag lets go of the turn
-		// swipe = grab the world and pull it with you (the demo's sign - the arcball, his call 2026-09-16)
-		if (_mx != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  _mx * _osens));
-		if (_my != 0) pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -_my * _osens));
-		pv_vx = lerp(pv_vx, _mx, .5); pv_vy = lerp(pv_vy, _my, .5);
-		pv_dx = mouse_x; pv_dy = mouse_y;
-	} else if (pv_drag) {
-		pv_drag = false;
-		if (pv_px <= 4 && pv_mode == "planet") {
-			// a still tap: the region under it - planet_pick (the render run
-			// backwards, at the drawn radius) then the nearest spot within twelve degrees
-			var _pc = __pv_c();
-			var _ppn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
-			var _pk = planet_pick(_ppn, mouse_x, mouse_y, _pc.x, _pc.y, _ocf.pr * pv_zoom, pv_mat_m);
-			if (_pk.hit) {
-				var _best = -1, _bd = dcos(12);
-				for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-					var _rgp = region_get(pl_dest, _i);
-					var _tp = __spot_dir(_rgp.spot.lon, _rgp.spot.lat);
-					var _dot = _tp[0] * _pk.tx + _tp[1] * _pk.ty + _tp[2] * _pk.tz;
-					if (_dot > _bd) { _bd = _dot; _best = _i; }
-				}
-				if (_best >= 0) __pv_pick(_best);
-				else play_sound_ext(snd_matclick2, .7, .8, .3, 0);
-			}
-		}
-	}
-	if (!pv_drag) {
-		if (abs(pv_vx) > .02 || abs(pv_vy) > .02) {
-			pv_cam = mat3_mul(pv_cam, mat3_rot(0, 1, 0,  pv_vx * _osens * delta));
-			pv_cam = mat3_mul(pv_cam, mat3_rot(1, 0, 0, -pv_vy * _osens * delta));
-			var _dk = power(_ocf.orbit_glide, delta);
-			pv_vx *= _dk; pv_vy *= _dk;
-		} else { pv_vx = 0; pv_vy = 0; }
-	}
-}
+if (ex_planet_hold()) exit;   // (the orbit view under the hand - ex_planet_hold, q219)
 // ======================= THE GALAXY VIEW: pan, zoom, tap a star =======================
 if (ex_galaxy_step()) exit;   // (the galaxy view's step - ex_galaxy_step, q218)
 
@@ -517,85 +442,7 @@ if (view == "map") {
 
 // ======================= THE PLANET PAGE: its buttons, the drawer =======================
 // (the grab / drag / tap are above the press gate)
-if (view == "planet") {
-	if (rg_leave) exit;   // (region mode is swinging out: nothing to press until it has)
-	// [galaxy]: the star map
-	var _gl = __galaxy_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _gl.x, _gl.y, _gl.x + _gl.w, _gl.y + _gl.h)) {
-		gx_from = "planet"; __page_go("galaxy");
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-		exit;
-	}
-	// [star system] (2026-09-16): the demo's view of this world's system
-	var _syr = __system_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _syr.x, _syr.y, _syr.x + _syr.w, _syr.y + _syr.h)) {
-		__sy_enter(galaxy_world_sys(pl_dest).star); sy_from = "planet"; __page_go("system");
-		play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-		exit;
-	}
-	// REGION MODE (his ask: no separate window - the camera pulls in, the
-	// info box left): [quests] / [explore] bottom right deal THE HAND (the
-	// cards pick the departure); [map] is in the strip (2026-09-16)
-	if (pv_mode == "region") {
-		var _ibr = __rg_banner_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _ibr.x, _ibr.y, _ibr.x + _ibr.w, _ibr.y + _ibr.h)) { rg_box_open = !rg_box_open; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }   // (the fold, 2026-09-16)
-		var _qb = __quests_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _qb.x, _qb.y, _qb.x + _qb.w, _qb.y + _qb.h)) { __hand_open("quests"); exit; }
-		var _xb = __explore_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _xb.x, _xb.y, _xb.x + _xb.w, _xb.y + _xb.h)) { __hand_open("explore"); exit; }
-		exit;
-	}
-	// [view region]: the pull-in (region mode) on the picked one
-	if (pl_focus >= 0) {
-		var _vr = __view_rg_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
-			rg_sel = pl_focus; pv_face = pl_focus; pv_mode = "region"; pv_dw = false;
-			pv_zuser = 1;   // (the region's own distance every time, wherever the wheel was - his ask 2026-09-17)
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	// the drawer's tab: open / close
-	var _tb = __pv_tab_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
-		pv_dw = !pv_dw;
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-		exit;
-	}
-	// a region row (the drawer open): the camera turns to it
-	if (pv_dwa > .5) {
-		// the tabs (2026-09-16)
-		for (var _ti = 0; _ti < 2; _ti++) { var _tr2 = __pv_dtab_r(_ti); if (point_in_rectangle(mouse_x, mouse_y, _tr2.x, _tr2.y, _tr2.x + _tr2.w, _tr2.y + _tr2.h)) { if (pv_dtab != _ti) { pv_dtab = _ti; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); } exit; } }
-		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
-			var _pr0 = __pv_row_r(_i);
-			if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
-			if (pl_focus == _i && pv_face < 0) { pv_face = _i; play_sound_ext(snd_softclick, .95, 1.05, .3, 1); exit; }
-			__pv_pick(_i);
-			exit;
-		}
-		// THE EXPEDITIONS in the drawer (2026-09-16): a haul's row opens the haul, a trip's the trip
-		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
-		for (var _k = 0; _k < _nl; _k++) {
-			var _pr1 = __pv_trip_r(_k);
-			if (_pr1.y + _pr1.h > room_height - 32) break;
-			if (!point_in_rectangle(mouse_x, mouse_y, _pr1.x, _pr1.y, _pr1.x + _pr1.w, _pr1.y + _pr1.h)) continue;
-			if (_k < array_length(_e.hauls)) { view_id = _e.hauls[_k].id; __page_go("haul"); }
-			else { view_id = _e.trips[_k - array_length(_e.hauls)].id; __page_go("trip"); }
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	// [bestiary] in the left column (planet mode)
-	if (pv_mode == "planet") {
-		var _bsr = __best_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _bsr.x, _bsr.y, _bsr.x + _bsr.w, _bsr.y + _bsr.h)) {
-			bs_from = "planet"; __page_go("bestiary");
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	exit;
-}
+if (ex_planet_press(_e)) exit;   // (the planet page's presses - ex_planet_press, q219)
 // ======================= THE GALAXY: presses do nothing here (the pan / tap are above) =======================
 if (view == "galaxy") exit;
 

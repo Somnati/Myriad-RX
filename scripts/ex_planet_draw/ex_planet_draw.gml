@@ -1,0 +1,153 @@
+/// @description ex_planet_draw(e, ea, dim) -> true when the page is drawn (the old exit): THE PLANET PAGE - the orbit view (__draw_orbit), the drawer and its tabs, region mode's box and banner, the hand's cards, the buttons (syst_exped_panel's Draw, q219; self = the panel; e = g.exped, ea / dim the event's ease and colour)
+function ex_planet_draw(_e, _ea, _dim) {
+	var _d = pl_dest;
+	var _b = exped_biomes()[_d.biome];
+	var _ocf = starmap_config();
+	var _pvr = __pv_r(), _pvc = __pv_c();
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _built = (_pn.row >= _pn.th);
+	var _w = _pvr.w, _h = _pvr.h;
+	if (!surface_exists(wb_surf) || surface_get_width(wb_surf) != _w || surface_get_height(wb_surf) != _h) {
+		if (surface_exists(wb_surf)) surface_free(wb_surf);
+		wb_surf = page_surface(_w, _h);
+	}
+	if (!surface_exists(sky_fog_surf) || surface_get_width(sky_fog_surf) != _w || surface_get_height(sky_fog_surf) != _h) {
+		if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
+		sky_fog_surf = surface_create(_w, _h);
+	}
+	var _lcx = _pvc.x - _pvr.x, _lcy = _pvc.y - _pvr.y;
+	var _pr = _ocf.pr * pv_zoom;
+	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, (pv_mode == "region") ? pl_focus : -2, pl_focus, pv_cfade);
+	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
+	ui_fade_set(_ea);
+	// the facts over the sky (the world's name lives in the strip now - his
+	// ask, 2026-09-15; the tier and the flight time are gone)
+	if (is_struct(pv_sky)) {
+		var _sm = starmap_get(), _hm = galaxy_world_sys(pl_dest);   // (the world's own star, 2026-09-16)
+		draw_set_color(_dim); draw_set_alpha(.7);
+		draw_text(land ? 14 : 4, list_y + 6, "the " + star_name(_hm.star) + " system  -  " + _sm.regions[_sm.stars[_hm.star].props.region].name + "  -  " + string(array_length(_hm.sys.planets)) + " worlds" + ((_hm.star == galaxy_home().star && _hm.planet == galaxy_home().planet) ? "" : ("  -  tier " + string(pl_dest.tier))));
+	}
+	// THE WORLD BOX (2026-09-15): what the world is - out of the way as the region box comes in
+	if (rg_in < .99) __draw_world_box(_d);
+	// the hint, bottom middle
+	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
+	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit  -  wheel to zoom" : "drag to orbit  -  wheel to zoom  -  tap a region");
+	draw_set_halign(fa_left);
+	// the left column: [galaxy] at the foot, [star system] over it ([map] is in the strip; the geosync toggle went - his call, 2026-09-16)
+	var _gl = __galaxy_r();
+	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);
+	var _syr = __system_r();
+	draw_ui_button(_syr.x, _syr.y, _syr.w, _syr.h, "star system", c_steelblue, true, false);   // (the demo's system view, 2026-09-16)
+	if (pv_mode == "planet") { var _bsr = __best_r(); draw_ui_button(_bsr.x, _bsr.y, _bsr.w, _bsr.h, "bestiary", c_steelblue, true, false); }   // (the hub's button, rehomed - 2026-09-16)
+	if (pv_mode == "region") {
+		// REGION MODE: THE INFO BOX left (his shape, 2026-09-15: the name, then
+		// "level 1 - peaceful / temperature - warm / weather - calm / time -
+		// dusk / flora - bountiful / fauna - passive / civilization -
+		// farmlands", the word coloured by its threat - region_info), [region
+		// map] in the left column, [quests] over [explore] bottom right
+		var _rg = region_get(_d, rg_sel);
+		__draw_info_box(_d, _rg, __rg_banner_r());
+		var _qb = __quests_r();
+		draw_ui_button(_qb.x, _qb.y, _qb.w, _qb.h, "quests", c_gold, true, true);
+		var _xb = __explore_r();
+		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
+		// THE HAND'S VEIL (the cards themselves are obj_card instances over the panel)
+		if (hand_a > .001) {
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .85 * hand_a);   // (darker - his ask)
+			draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.7 * hand_a);
+			draw_text(room_width * .5, list_y + 24, (hand == "quests") ? "quests on offer  -  tap one; off the cards to close" : "explore  -  tap a card; off the cards to close");
+			// THE CLOCK under each card (his ask): grey, reddening as the slot
+			// nears its re-deal (the last half hour); a taken one says so
+			for (var _hc = 0; _hc < array_length(hand_ids); _hc++) {
+				var _cd = hand_ids[_hc];
+				if (!instance_exists(_cd) || !_cd.visible || !_cd.settled) continue;
+				var _csl = _cd.face[$ "slot"];
+				if (!is_struct(_csl)) continue;
+				if (_csl.taken != 0) { draw_set_color(c_steelblue); draw_set_alpha(.8 * hand_a); draw_text(_cd.x, _cd.y + _cd.card_h * .5 + 4, "taken"); }
+				else {
+					var _urg = 1 - clamp(_csl.left / EXPED_QUEST_LIFE_LO, 0, 1);
+					draw_set_color(merge_colour(c_gray, c_hred, _urg)); draw_set_alpha((.7 + .3 * _urg) * hand_a);
+					draw_text(_cd.x, _cd.y + _cd.card_h * .5 + 4, "gone in " + crunch_time_long(_csl.left / max(1, g.exped.spd)));
+				}
+			}
+			draw_set_halign(fa_left);
+		}
+	} else if (pl_focus >= 0) {
+		var _vr = __view_rg_r();
+		draw_ui_button(_vr.x, _vr.y, _vr.w, _vr.h, "view region", c_gold, true, true);
+	} else {
+		draw_set_halign(fa_right); draw_set_color(_dim); draw_set_alpha(.5);
+		draw_text(room_width - (land ? 14 : 4), room_height - 8 - 12, "pick a region to view it");
+		draw_set_halign(fa_left);
+	}
+	// THE DRAWER: the tab on the right edge, the regions when open (planet mode only)
+	var _dwx = __pv_dw_x();
+	if (pv_mode == "region") { __draw_back(); ui_fade_set(1); return true; }
+	if (pv_dwa > .01) { var _pbx = __pv_box_r(); draw_sprite_ext(spr_pixel_1x1, 0, _pbx.x, _pbx.y, _pbx.w, _pbx.h, 0, c_black, .82 * pv_dwa); draw_px_rect(_pbx.x, _pbx.y, _pbx.w, _pbx.h, c_steelblue, .55 * pv_dwa); }   // (ends above the button row; outlined - his ask 2026-09-16)
+	var _tb = __pv_tab_r();
+	draw_sprite_ext(spr_pixel_1x1, 0, _tb.x, _tb.y, _tb.w, _tb.h, 0, c_black, .85);
+	draw_px_rect(_tb.x, _tb.y, _tb.w, _tb.h, c_steelblue, .6);
+	draw_set_color(c_steelblue); draw_set_alpha(.9);
+	draw_text(_tb.x + 2, _tb.y + _tb.h * .5 - 4, pv_dw ? ">" : "<");
+	if (pv_dwa > .3) {
+		// THE TABS (his ask, 2026-09-16): [regions] and [active / expeditions] - the second on two lines
+		for (var _ti = 0; _ti < 2; _ti++) {
+			var _tr2 = __pv_dtab_r(_ti), _ton = (pv_dtab == _ti);
+			draw_sprite_ext(spr_pixel_1x1, 0, _tr2.x, _tr2.y, _tr2.w, _tr2.h, 0, _ton ? merge_colour(c_steelblue, c_black, .75) : c_black, .85 * pv_dwa);
+			draw_px_rect(_tr2.x, _tr2.y, _tr2.w, _tr2.h, _ton ? c_gold : c_steelblue, (_ton ? .9 : .45) * pv_dwa);
+			draw_set_halign(fa_center); draw_set_color(_ton ? c_white : _dim); draw_set_alpha((_ton ? .95 : .7) * pv_dwa);
+			if (_ti == 0) draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 7, "regions");
+			else { draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 2, "active"); draw_text(_tr2.x + _tr2.w * .5, _tr2.y + 11, __sheet_cut("expeditions", _tr2.w - 4)); }
+			draw_set_halign(fa_left);
+		}
+		var _kk = region_kinds();
+		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+			var _rg = region_get(_d, _i);
+			var _rr = __pv_row_r(_i);
+			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
+			for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
+				var _kd = _kk[$ _rg.nodes[_j].kind];
+				if (is_undefined(_kd)) continue;
+				if (_kd.civ) _nciv++;
+				if (_rg.nodes[_j].kind == "dungeon") _ndun++;
+				if (_rg.nodes[_j].kind == "camp") _ncmp++;
+				if (_rg.nodes[_j].kind == "landing") _nlnd++;
+			}
+			var _on = (pl_focus == _i);
+			draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
+			draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : c_steelblue, _on ? .9 : .5);
+			draw_set_color(c_white); draw_set_alpha(.95);
+			draw_text(_rr.x + 5, _rr.y + 3, string_copy(_rg.name, 1, land ? 18 : 14));
+			draw_set_halign(fa_right);
+			draw_set_color((_i == 0) ? c_sgreen : ((_i == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
+			draw_text(_rr.x + _rr.w - 5, _rr.y + 3, "lv " + string(_rg.lv));
+			draw_set_halign(fa_left);
+			draw_set_color(_dim); draw_set_alpha(.7);
+			var _rinf = region_info(_d, _rg), _rbio = "";
+			for (var _ri2 = 0; _ri2 < array_length(_rinf); _ri2++) if (_rinf[_ri2].k == "biome") _rbio = _rinf[_ri2].v;
+			draw_text(_rr.x + 5, _rr.y + 13, (_rg[$ "mood"] ?? "quiet") + "  -  " + _rbio);   // (the mood and the biome, the info box's words)
+			var _out = 0;
+			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
+			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
+		}
+		if (pv_dtab == 0) { draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa); draw_text(_dwx + 13, list_y + 48 + EXPED_REGIONS * 26 + 2, "tap a row: the world turns to it"); }
+		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16; its own tab since): hauls home first, then the trips out; a row each, tap for its page
+		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
+		for (var _k = 0; _k < _nl; _k++) {
+			var _pr1 = __pv_trip_r(_k);
+			if (_pr1.y + _pr1.h > room_height - 32) break;
+			var _ish = (_k < array_length(_e.hauls));
+			var _rec = _ish ? _e.hauls[_k] : _e.trips[_k - array_length(_e.hauls)];
+			draw_sprite_ext(spr_pixel_1x1, 0, _pr1.x, _pr1.y, _pr1.w, _pr1.h, 0, c_black, .7 * pv_dwa);
+			draw_px_rect(_pr1.x, _pr1.y, _pr1.w, _pr1.h, _ish ? c_gold : _rec.cols[0], .6 * pv_dwa);
+			__dot(_pr1.x + 6, _pr1.y + 6, 2, _rec.cols[0], .95 * pv_dwa);
+			draw_set_color(_ish ? c_gold : c_white); draw_set_alpha(.95 * pv_dwa);
+			draw_text(_pr1.x + 12, _pr1.y + 2, __sheet_cut(exped_crew_txt(_rec.names) + (_ish ? " - home, collect" : (" - " + exped_where(_rec))), _pr1.w - 16));
+		}
+		if (pv_dtab == 1 && _nl == 0) { draw_set_color(_dim); draw_set_alpha(.45 * pv_dwa); draw_text(_dwx + 13, list_y + 52, "no expeditions out"); }
+	}
+	__draw_back();
+	ui_fade_set(1);
+	return true;
+	return true;
+}
