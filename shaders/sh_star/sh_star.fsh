@@ -122,5 +122,7 @@ void main()
     float g = hash12(ip);
     float lum = dot(rgb, vec3(0.299, 0.587, 0.114));
     rgb += (g - 0.5) * (min(lum * 255.0 * 0.5, 1.4) / 255.0) * u_dither * (1.0 - smoothstep(0.62, 0.98, r));
-    gl_FragColor = vec4(max(rgb, vec3(0.0)), 1.0) * v_vColour;
+    // (alpha ZERO: the quad is additive - one, one - and an alpha of one added the whole SQUARE into the page's alpha,
+    // a faint box round the star wherever the sky behind it was not yet opaque; his report 2026-09-17)
+    gl_FragColor = vec4(max(rgb, vec3(0.0)) * v_vColour.rgb * v_vColour.a, 0.0);
 }

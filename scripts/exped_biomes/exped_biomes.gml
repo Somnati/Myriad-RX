@@ -40,6 +40,11 @@ function exped_biomes() {
 		  col1 : rgb(38, 22, 58),   col2 : rgb(150, 92, 182),  col3 : rgb(200, 240, 222), sea : .45,
 		  rooms : { find : 35, rest : 25, trap : 15, fight : 25 },
 		  loot  : { mats : 20, sprite : 30, offer : 8, credits : 17, charm : 8, chart : 5, gear : 12 } },
+		// THE GAS GIANTS (his call, 2026-09-17: "let me see gas giants" - cloud cities to come): index 8, "cloud"
+		{ name : "cloud",  hint : "charts and offers",
+		  col1 : rgb(120, 78, 40),  col2 : rgb(214, 170, 110), col3 : rgb(245, 232, 210), sea : 0,
+		  rooms : { find : 35, rest : 25, trap : 20, fight : 20 },
+		  loot  : { mats : 10, sprite : 8, offer : 25, credits : 20, charm : 10, chart : 20, gear : 7 } },
 	];
 	return _b;
 }

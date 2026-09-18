@@ -19,6 +19,7 @@ function exped_planet_hint(_d) {
 		case "ocean":  _h = { kind : "rock", clim : .50, hue : _hue, arch : "terra",  wet : .96 }; break;
 		case "dust":   _h = { kind : "rock", clim : .26, hue : _hue, arch : "terra",  wet : .10 }; break;
 		case "fungal": _h = { kind : "rock", clim : .55, hue : _hue, arch : "terra",  wet : .66 }; break;
+		case "cloud":  _h = { kind : "gas",  clim : .5,  hue : hash_mix(_d.seed, 505) mod 256 }; break;   // (a giant: its own hue off its seed, not the family's - 2026-09-17)
 		default:       _h = { kind : "rock", clim : .5 }; break;
 	}
 	var _gws = galaxy_world_sys(_d);   // (any world of the map: its ring and moons - 2026-09-16)

@@ -233,6 +233,49 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	else                  { _ringc = make_colour_hsv(_rhue, 120, 205); _ringc2 = make_colour_hsv((_rhue + 128) mod 256, 150, 165); }
 	var _rseed = ((_rh div 7) mod 1000) / 1000;
 
+	// THE CLOUD REGIMES (his picks, 2026-09-17: "more unique cloud patterns"): a rock world's sky is one of four -
+	// cumulus (the old recipe: puffs and belts), SCATTERED (many small puffs, no belts, well torn - a dry world's
+	// sky), STREAKED (no puffs: thin belts torn along their length, a fast world's sky), FRONTS (long arcs of
+	// cloud with a clear wake behind each, a few puffs) - hashed off the seed; nothing rolled, so every roll below
+	// lands where it did. A giant keeps its bands (creg 0)
+	var _creg = 0, _cregp = {};
+	if (_kind != "gas") {
+		var _crh = hash_mix(_seed, 6161), _crv = _crh mod 100;
+		if (_dry || _wet < .25) _creg = (_crv < 55) ? 1 : ((_crv < 80) ? 2 : 0);
+		else if (_dayh < 2.4)   _creg = (_crv < 50) ? 2 : ((_crv < 75) ? 3 : 0);
+		else                    _creg = (_crv < 40) ? 0 : ((_crv < 60) ? 1 : ((_crv < 78) ? 3 : 2));
+		if (_creg == 1) {
+			// scattered: twenty to forty small puffs of the seed's own
+			var _sp = [];
+			var _spn = 20 + (hash_mix(_seed, 6200) mod 21);
+			for (var _q = 0; _q < _spn; _q++) {
+				var _qz = (hash_mix(_seed, 6300 + _q * 3) mod 1000) / 1000 * 1.8 - .9, _qa = (hash_mix(_seed, 6301 + _q * 3) mod 1000) / 1000 * 2 * pi, _qr = sqrt(max(0, 1 - _qz * _qz));
+				array_push(_sp, { x : _qr * cos(_qa), y : _qz, z : _qr * sin(_qa), r : .05 + .06 * (hash_mix(_seed, 6302 + _q * 3) mod 1000) / 1000 });
+			}
+			_cregp = { puffs : _sp };
+		} else if (_creg == 2) {
+			// streaked: six to ten thin belts across the latitudes
+			var _st = [];
+			var _stn = 6 + (hash_mix(_seed, 6400) mod 5);
+			for (var _q = 0; _q < _stn; _q++) array_push(_st, { v : .12 + .76 * (hash_mix(_seed, 6500 + _q * 2) mod 1000) / 1000, w : .010 + .018 * (hash_mix(_seed, 6501 + _q * 2) mod 1000) / 1000 });
+			_cregp = { streaks : _st };
+		} else if (_creg == 3) {
+			// fronts: two to four arcs - each a band about a great circle (its axis), over a window of that circle (its span)
+			var _fr = [];
+			var _frn = 2 + (hash_mix(_seed, 6600) mod 3);
+			for (var _q = 0; _q < _frn; _q++) {
+				var _fz = (hash_mix(_seed, 6700 + _q * 5) mod 1000) / 1000 * 2 - 1, _fa = (hash_mix(_seed, 6701 + _q * 5) mod 1000) / 1000 * 2 * pi, _fr2 = sqrt(max(0, 1 - _fz * _fz));
+				var _ax = [_fr2 * cos(_fa), _fz, _fr2 * sin(_fa)];
+				// a second axis, perpendicular to the first, for the window along the circle
+				var _bx = [-_ax[2], 0, _ax[0]], _bl = max(.001, sqrt(_bx[0] * _bx[0] + _bx[2] * _bx[2])); _bx = [_bx[0] / _bl, 0, _bx[2] / _bl];
+				var _rot = (hash_mix(_seed, 6702 + _q * 5) mod 1000) / 1000 * 2 * pi;
+				var _cx2 = [_ax[1] * _bx[2] - _ax[2] * _bx[1], _ax[2] * _bx[0] - _ax[0] * _bx[2], _ax[0] * _bx[1] - _ax[1] * _bx[0]];
+				var _bx2 = [_bx[0] * cos(_rot) + _cx2[0] * sin(_rot), _bx[1] * cos(_rot) + _cx2[1] * sin(_rot), _bx[2] * cos(_rot) + _cx2[2] * sin(_rot)];
+				array_push(_fr, { ax : _ax, bx : _bx2, c : (hash_mix(_seed, 6703 + _q * 5) mod 1000) / 1000 * .5 - .25, w : .04 + .04 * (hash_mix(_seed, 6704 + _q * 5) mod 1000) / 1000, span : .55 + .35 * (hash_mix(_seed, 6705 + _q * 5) mod 1000) / 1000 });
+			}
+			_cregp = { fronts : _fr };
+		}
+	}
 	// ---- the texel sampler's params ----
 	var _ps = {
 		ctx : _ctx, o1 : _o1, o2 : _o2, o3 : _o3, o4 : _o4,
@@ -275,6 +318,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		sea : _sea, wet : _wet, tilt : _tilt, spin : _spin, atmo : _atmo,
 		ring : _ring, ring_col : _ringc, ring_col2 : _ringc2, ring_kind : _rkind, ring_in : _rin, ring_out : _rout, ring_seed : _rseed, civ : _civ,
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
+		creg : _creg, cregp : _cregp,   // THE CLOUD REGIME (2026-09-17): 0 cumulus / 1 scattered / 2 streaked / 3 fronts, and its hashed makings
 		elev : array_create(_tw * _th, 0), biome : array_create(_tw * _th, 0), carr : array_create(_tw * _th, 0), cthk : array_create(_tw * _th, 0), det : array_create(_tw * _th, 0), moi : array_create(_tw * _th, 0),
 		row : 0,            // planet_gen_step's cursor; ready when row == th
 		brow : 0,           // planet_bake's cursor: rows stamped across the three textures (0..3*th)
