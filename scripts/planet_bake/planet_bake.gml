@@ -47,9 +47,8 @@ function planet_bake(_pn, _until = undefined) {
 				var _b3 = _pn.biome[_i];
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, _pn.pal[_b3], 1 - _pn.glow[_b3]);
 			} else if (_p == 1) {
-				var _ca2 = _pn.carr[_i], _sm2 = is_array(_pn[$ "csmk"]) ? _pn.csmk[_i] : 0;
-				// (red = the thickness - the cloud relief; GREEN = the volcanoes' smoke, read in the ground's frame - 2026-09-17)
-				if (_ca2 > 0 || _sm2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), floor(clamp(_sm2, 0, 1) * 255), 255), _ca2);
+				var _ca2 = _pn.carr[_i];
+				if (_ca2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, 255), _ca2);   // (red = the thickness - the cloud relief, 2026-09-17; the plumes left the green for the shader)
 			} else {
 				// height above the sea (or the world's base level), 0..1 in red:
 				// water is flat, the land climbs, peaks reach 1; the gradient rides

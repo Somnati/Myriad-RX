@@ -46,6 +46,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		season : shader_get_uniform(sh_planet, "u_season"), snowb : shader_get_uniform(sh_planet, "u_snowb"),
 		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
+		vent : shader_get_uniform(sh_planet, "u_vent"), ventn : shader_get_uniform(sh_planet, "u_ventn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
 		aurora : shader_get_uniform(sh_planet, "u_aurora"),
 		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
@@ -156,6 +157,11 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	if (is_array(_msh)) { _mshn = min(4, array_length(_msh)); for (var _i = 0; _i < _mshn; _i++) { _mshv[_i * 4] = _msh[_i][0]; _mshv[_i * 4 + 1] = _msh[_i][1]; _mshv[_i * 4 + 2] = _msh[_i][2]; _mshv[_i * 4 + 3] = _msh[_i][3]; } }
 	shader_set_uniform_f_array(_u.moonsh, _mshv);
 	shader_set_uniform_f(_u.moonn, _mshn);
+	// THE VOLCANOES' PLUMES (2026-09-17): the live vents, in texture space (x, y, z, the ring's reach in radians)
+	var _vnt = _pn[$ "vents"], _vv = array_create(24, 0), _vn = 0;
+	if (is_array(_vnt)) { _vn = min(6, array_length(_vnt)); for (var _i = 0; _i < _vn; _i++) { _vv[_i * 4] = _vnt[_i][0]; _vv[_i * 4 + 1] = _vnt[_i][1]; _vv[_i * 4 + 2] = _vnt[_i][2]; _vv[_i * 4 + 3] = _vnt[_i][3]; } }
+	shader_set_uniform_f_array(_u.vent, _vv);
+	shader_set_uniform_f(_u.ventn, _vn);
 	var _stv = array_create(12, 0), _stn = 0;
 	if (is_array(_storms)) { _stn = min(3, array_length(_storms)); for (var _i = 0; _i < _stn; _i++) { _stv[_i * 4] = _storms[_i][0]; _stv[_i * 4 + 1] = _storms[_i][1]; _stv[_i * 4 + 2] = _storms[_i][2]; _stv[_i * 4 + 3] = 1; } }
 	shader_set_uniform_f_array(_u.storm, _stv);

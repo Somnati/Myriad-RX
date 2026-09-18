@@ -59,7 +59,47 @@ uniform float u_season;   // THE SEASON (2026-09-17): -1..1 on the world's own y
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
 uniform float u_pfade;    // THE PLUMES' fade (2026-09-17): their own, later than the clouds' - a volcano smokes until you are close
+uniform vec4  u_vent[6];  // THE PLUMES (2026-09-17): the live vents in texture space - xyz the direction, w the ring's reach (radians)
+uniform float u_ventn;
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
+
+float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
+// THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
+// round each live vent - hollow over the crater, full round it - that TURNS slowly and BILLOWS: its edges wobble
+// on a noise of the angle round the vent, its body is puffs that drift outward on the clock, so no frame is the last.
+// In the GROUND's frame (t is the terrain's own coordinate), so the wind never carries a plume off its vent
+float plume_at(vec3 t, out float glow)
+{
+    float s = 0.0; glow = 0.0;
+    for (int i = 0; i < 6; i++) {
+        if (float(i) >= u_ventn) break;
+        vec3 vd = u_vent[i].xyz;
+        float rr = u_vent[i].w;
+        float cd = dot(t, vd);
+        if (cd < 0.0) continue;
+        float ang = acos(clamp(cd, -1.0, 1.0));
+        float d = ang / rr;
+        if (d > 1.15) continue;
+        // the vent's own frame: two tangents, the angle round it
+        vec3 e1 = normalize(cross(vd, (abs(vd.y) < 0.9) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+        vec3 e2 = cross(vd, e1);
+        vec3 tt = t - vd * cd;
+        float th = atan(dot(tt, e2), dot(tt, e1));
+        float spin = u_time * 0.07;
+        // the ring, its edges wobbling with the angle, turning
+        float w1 = sin(th * 5.0 + spin * 2.0) * 0.5 + sin(th * 3.0 - spin * 1.3 + 1.7) * 0.5;
+        float dd = d * (1.0 + 0.10 * w1);
+        float ring = smoothstep(0.24, 0.44, dd) * (1.0 - smoothstep(0.72, 1.02, dd));
+        // the puffs: cells in (angle, radius) drifting outward, each its own brightness - the billow
+        vec2 pc = vec2(th * 2.5 + spin * 3.0, d * 9.0 - u_time * 0.35);
+        vec2 pi0 = floor(pc), pf = fract(pc); pf = pf * pf * (3.0 - 2.0 * pf);
+        float pn = mix(mix(cw_h(vec3(pi0, float(i))), cw_h(vec3(pi0 + vec2(1.0, 0.0), float(i))), pf.x), mix(cw_h(vec3(pi0 + vec2(0.0, 1.0), float(i))), cw_h(vec3(pi0 + vec2(1.0, 1.0), float(i))), pf.x), pf.y);
+        float body = ring * (0.55 + 0.75 * pn);
+        s = max(s, body);
+        glow = max(glow, (1.0 - smoothstep(0.30, 0.55, d)) * ring);
+    }
+    return clamp(s, 0.0, 1.0);
+}
 
 float cw_h(vec3 p)
 {
@@ -440,16 +480,20 @@ void main()
     // GROUND's frame (u_rot, not the decks' u_crot), so the wind never carries a plume off its vent. A dark disc
     // of cloud at the top deck's height, in the deck's steps, lit by its own terminator; it thins with the region
     // zoom only half as much as the clouds do
-    if (r2 <= CR * CR) {
+    if (u_ventn > 0.5 && r2 <= CR * CR) {
         vec3 ns = vec3(p, sqrt(CR * CR - r2)) / CR;
-        float smk = texture2D(u_cloud, sphere_uv(to_tex(ns), u_tsize)).g * u_pfade;
+        float pglow = 0.0;
+        float smk = plume_at(to_tex(ns), pglow) * u_pfade;
         if (smk > 0.03) {
             float smq = floor(smk * 6.0 + 0.5) / 6.0;
             float sl2 = cloudband(dot(ns, u_light));
-            vec3 scol = vec3(0.34, 0.31, 0.29) * sl2 * (0.85 + 0.30 * hash12(floor(sphere_uv(to_tex(ns), u_tsize) * u_tsize) + 5.3));
-            float sw = clamp(smk * 1.6, 0.0, 1.0);
+            // dark smoke, its body lit by the terminator; the sunward edge of a puff a shade lighter; and by night the
+            // underside over the crater glows from the lava beneath
+            vec3 scol = vec3(0.33, 0.30, 0.28) * sl2 * (0.80 + 0.45 * smk);
+            scol += vec3(0.95, 0.42, 0.12) * pglow * (1.0 - sl2) * 0.6;
+            float sw = clamp(smk * 1.8, 0.0, 1.0);
             ctcol = mix(ctcol, scol, sw);
-            clit = mix(clit, sl2, sw);
+            clit = mix(clit, max(sl2, pglow * 0.5), sw);
             cat = max(cat, smq);
         }
     }
@@ -668,6 +712,7 @@ void main()
         float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001) + u_snowb;
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
+        if (u_ventn > 0.5) { float pg0 = 0.0; col *= 1.0 - plume_at(to_tex(normalize(n - u_light * 0.15)), pg0) * u_pfade * 0.35; }   // (a plume's shadow, the same offset)
         // THE HORIZON (his screenshot, 2026-09-17: ridges lit on the night side): the band read the BUMPED normal, and a
         // steep sunward flank tilts it into the sun even where the sun is under the world's own horizon. The bumped
         // dot may run ahead of the ground's by .15 at most - a sunward slope brightens by day, never past the dark

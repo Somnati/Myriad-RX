@@ -1,4 +1,4 @@
-/// @description planet_volcanoes(pn) - VOLCANOES (his ask, 2026-09-17): cones with craters on the land, some live with a lava vent and flows down a flank, a plume of smoke round every live one
+/// @description planet_volcanoes(pn) - VOLCANOES (his ask, 2026-09-17): cones with craters on the land, some live with a lava vent and flows down a flank; the live vents out as pn.vents for the shader's plumes
 /// A terra world has none two times in five, else one or two; a lava
 /// world two to five, every one live; a barren world one or two, all
 /// dead. Its size procedural (his call): a stratovolcano two in three -
@@ -10,11 +10,11 @@
 /// shoulders), then the crater takes basalt (17), a live vent lava (18 -
 /// the palette's emissive slot, so it glows by night) and one to three
 /// FLOWS of lava walk downhill from it. The cone's lift joins rlift, so
-/// the gullies and the fluvial carve work its flanks. THE PLUME (his ask):
-/// round each live vent a RING of smoke - hollow over the crater - in the cloud map's GREEN
-/// (pn.csmk; the bake writes it) - sh_planet reads that channel in the
-/// GROUND's frame, so the wind that carries the clouds never carries a
-/// plume off its vent. Once a world, from planet_bake after the ranges
+/// the gullies and the fluvial carve work its flanks. THE PLUMES are the
+/// shader's: the live vents go out as pn.vents (direction + reach) and
+/// sh_planet draws a ring of turning, billowing smoke round each, in the
+/// ground's frame, so the wind never carries a plume off its vent, and
+/// throws its shadow. Once a world, from planet_bake after the ranges
 /// and before the rivers. The walkers are methods of one struct (a GML
 /// function literal cannot see the locals round it).
 function planet_volcanoes(_pn) {
@@ -22,11 +22,10 @@ function planet_volcanoes(_pn) {
 	_pn.volcanoes = true;
 	if (_pn.kind == "gas") return;
 	var _tw = _pn.tw, _th = _pn.th, _n = _tw * _th;
-	if (is_undefined(_pn[$ "csmk"])) _pn.csmk = array_create(_n, 0);
 	if (is_undefined(_pn[$ "rlift"])) _pn.rlift = array_create(_n, 0);
 	var _c = {
 		tw : _tw, th : _th, el : _pn.elev, bm : _pn.biome, dt : _pn.det, mo : _pn.moi, ps : _pn.smp, seed : _pn.seed, sea : _pn.sea,
-		sc : _tw / 320, lift : array_create(_n, 0), rl : _pn.rlift, smk : _pn.csmk, vent : array_create(_n, 0),
+		sc : _tw / 320, lift : array_create(_n, 0), rl : _pn.rlift, vent : array_create(_n, 0),
 		h : function(_k) { return (hash_mix(seed, 30000 + _k) mod 10000) / 10000; },
 		// the cone: a lift by ground distance - the flank to the rim, the crater's bowl inside, the vent's pit
 		cone : function(_x, _y, _rad, _hgt, _live, _stp) {   // (stp: the flank's exponent - the steeper, the more the height sits at the summit)
@@ -71,24 +70,6 @@ function planet_volcanoes(_pn) {
 				if (el[_bi] < sea) break;   // (it stops at the water)
 				_cx = _bi mod tw; _cy = _bi div tw;
 				if (vent[_bi] < 2) vent[_bi] = 3;   // (3 a flow)
-			}
-		},
-		// the plume: a disc of smoke round the vent in the cloud map's green, thick inside, ragged at the rim
-		plume : function(_x, _y, _rad) {
-			var _cl = max(.2, sin(pi * (_y + .5) / th)), _r = ceil(_rad), _rx = min(tw div 2, ceil(_rad / _cl));
-			for (var _dy = -_r; _dy <= _r; _dy++) {
-				var _yy = _y + _dy;
-				if (_yy < 0 || _yy >= th) continue;
-				for (var _dx = -_rx; _dx <= _rx; _dx++) {
-					var _xx = (((_x + _dx) mod tw) + tw) mod tw, _i = _xx + _yy * tw;
-					var _d = sqrt(_dx * _dx * _cl * _cl + _dy * _dy) / _rad;
-					if (_d > 1) continue;
-					// A RING (his ask, 2026-09-17): hollow over the crater, full round it, fading at the edge
-					var _a = clamp((_d - .30) / .18, 0, 1) * (1 - clamp((_d - .70) / .30, 0, 1));
-					_a *= .85 + .3 * dt[_i];   // (ragged)
-					if (_d > .78 && dt[_i] < .35) _a *= .5;
-					if (_a > smk[_i]) smk[_i] = min(1, _a);
-				}
 			}
 		},
 	};
@@ -147,6 +128,16 @@ function planet_volcanoes(_pn) {
 		if (_vent[_i] == 2 || _vent[_i] == 3) _bm[_i] = 18;   // lava: the live vent, the flows
 		else _bm[_i] = 17;                                     // basalt: the crater's floor, a dead vent
 	}
-	for (var _k = 0; _k < array_length(_vents); _k++) { var _vt = _vents[_k]; if (_vt[2]) _c.plume(_vt[0], _vt[1], _vt[3] * .55); }   // (the ring hugs the crater's rim - tighter, his ask 2026-09-17)
+	// THE PLUMES are the shader's now (2026-09-17, "higher quality plumes"): the live vents go to planet_draw as
+	// directions on the sphere with the plume's angular radius - sh_planet draws each as a ring of turning, billowing
+	// smoke in the ground's frame, at any zoom, and throws its shadow on the ground
+	var _pl = [];
+	for (var _k = 0; _k < array_length(_vents); _k++) {
+		var _vt = _vents[_k];
+		if (!_vt[2]) continue;
+		var _vu = (_vt[0] + .5) / _tw, _vv = (_vt[1] + .5) / _th, _vsl = sin(_vv * pi);
+		array_push(_pl, [_vsl * cos(_vu * 2 * pi), cos(_vv * pi), _vsl * sin(_vu * 2 * pi), _vt[3] * .62 * 2 * pi / _tw]);   // (the ring's reach: .62 of the cone, in radians)
+	}
+	_pn.vents = _pl;
 	_pn.vmask = _vent;   // (kept: planet_rivers treats the craters and flows as sinks - no river climbs the cone into the crater, no lake fills it; his report 2026-09-17)
 }
