@@ -20,6 +20,7 @@ function planet_bake(_pn, _until = undefined) {
 	for (var _p0 = 0; _p0 < 3; _p0++) if (_brow > _p0 * _th && !surface_exists(_srf[_p0])) { _brow = _p0 * _th; break; }
 	if (_brow >= _n3) { _pn.brow = _brow; return true; }
 	planet_ranges(_pn);   // (once a world, before the first stamp - the range skeleton, 2026-09-17; it guards itself)
+	planet_coast(_pn);    // (then the shores frayed and the island arcs - q207)
 	planet_volcanoes(_pn);   // (then the volcanoes on the land the ranges left, and their plumes into the cloud map's green)
 	planet_craters(_pn);     // (then the impact craters - q206; before the rivers, so a living world's may fill as a lake)
 	planet_rivers(_pn);   // (then the drainage, in the valleys the ranges leave - it guards itself)
