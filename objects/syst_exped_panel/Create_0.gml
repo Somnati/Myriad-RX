@@ -773,7 +773,7 @@ __draw_system = function() {
 			if (_here && sy_warp_pl < 0) {
 				var _bob = abs(dsin(current_time * .25)) * 3, _ty = floor(_sy - _rad - 6 - _bob);
 				draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 3, _ty - 3, 7, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 2, _ty - 2, 5, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx) - 1, _ty - 1, 3, 1, 0, c_sgreen, .95); draw_sprite_ext(spr_pixel_1x1, 0, floor(_sx), _ty, 1, 1, 0, c_sgreen, .95);
-				draw_set_halign(fa_center); draw_set_color(c_sgreen); draw_set_alpha(.95); draw_text(floor(_sx), _ty - 13, "you"); draw_set_halign(fa_left);
+				draw_set_halign(fa_center); draw_set_color(c_sgreen); draw_set_alpha(.95); draw_text(floor(_sx), _ty - 13, "you"); draw_set_halign(fa_left); draw_set_alpha(1);   // (the alpha put back - it leaked .95 into every later draw that reads it; bug hunt 2026-09-18)
 			}
 		}
 	}
@@ -2624,7 +2624,7 @@ __lod_step = function() {
 	// THE CAMERA'S HAND (a drag, a glide, a snap) a tenth of a sixtieth-frame, never nothing: it paused there before, so a
 	// world grabbed as it appeared kept its tier waiting (his call, 2026-09-18: "let's make it not pause")
 	var _hand = (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1);
-	planet_lod_step(_pn, lod_k3, get_timer() + (_hand ? 1500 : clamp(delta * 16667 * .4, 1500, 6000)));
+	planet_lod_step(_pn, lod_k3, get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000)));
 };
 /// a sprite by id (undefined when gone)
 /// THE LOADING VEIL's question (his call, 2026-09-17: the boot's spinner moved

@@ -57,7 +57,7 @@ void main()
     for (int i = 0; i < 96; i++) {
         float rr = length(x);
         if (rr < RS * 1.05) { captured = 1.0; done = 1.0; break; }
-        if (x.z < -7.0) { done = 1.0; break; }
+        if (x.z < -7.0 || rr > 14.0) { done = 1.0; break; }   // (away: past the hole, or flung off any way - counted captured before, a dark ring; bug hunt 2026-09-18)
         float dt = clamp(rr * 0.25, 0.06, 0.5);
         vec3 acc = -1.5 * RS * h2 * x / (rr * rr * rr * rr * rr);
         v = normalize(v + acc * dt);

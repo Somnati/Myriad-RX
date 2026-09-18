@@ -40,6 +40,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		}
 	}
 	var _glr = (_cfg[$ "sky_glare"] ?? 70) * _ss;
+	var _glare = _sun_on && _sfade > 0 && !(_sky[$ "hole"] ?? false);   // (a black hole for a sun throws no glare - the stars round it stayed dimmed; bug hunt 2026-09-18)
 	var _tt = current_time;
 	// (the nebulae are painted on the sphere by the fog pass - galaxy_fog_draw / sh_sky_fog; 2026-09-16)
 	var _stars = _sky.stars;
@@ -61,7 +62,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		// the twinkle: the small ones only, two sines that never line up, the star's own phase
 		if (_sk.s <= 2) { var _ph = _sk[$ "ph"] ?? 0; _a *= 1 - .22 * (.5 + .5 * dsin(_tt * (.11 + .0004 * _ph) + _ph) * dsin(_tt * .073 + _ph * 2.618)); }
 		// the glare: inside the sun's reach a star fades toward it
-		if (_sun_on && _sfade > 0) { var _gd = point_distance(_sx, _sy, _ssx, _ssy); if (_gd < _glr) _a *= 1 - .85 * _sfade * (1 - _gd / _glr); }
+		if (_glare) { var _gd = point_distance(_sx, _sy, _ssx, _ssy); if (_gd < _glr) _a *= 1 - .85 * _sfade * (1 - _gd / _glr); }
 		// a real neighbour is a GLYPH (his ask, 2026-09-16: spr_star_glyph - core, halo, spikes by its size, tinted, its core white,
 		// additive, whole scale); the grain and the dust stay points
 		if (_pass == 1) {
