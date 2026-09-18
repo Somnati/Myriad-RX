@@ -57,14 +57,20 @@ function galaxy_sky_build(_dw = undefined) {
 		// THE REAL ELEVATION (2026-09-16 - he took it for granted, and it was a hash): the neighbour's height off the plane against
 		// ours (the parallax depth read as plane px, the nebulae's law), over its distance
 		var _el = clamp(darctan2((_st.d - _me.d) * (_cfg[$ "star_height"] ?? 900), max(_d, 1)), -75, 75);
-		// THE DISTANCE, EXAGGERATED (his ask, 2026-09-16: a star next door should be OBVIOUS by its size, the spikes on the near ones
-		// and gone fast beyond): the glyph's size falls off as (ref / distance) to a steep power - a middling star at the reference
-		// distance fills the biggest glyph, twice as far a mid one, four times as far a spark
-		var _nrf = _cfg[$ "sky_near_ref"] ?? 60, _npw = _cfg[$ "sky_near_pow"] ?? 2.2;
-		var _ap = (_st.props.size / 2) * power(_nrf / max(_d, 20), _npw);
-		var _apb = (_st.props.size / 2) * 3 * power(_nrf / max(_d, 20), 1.2);
+		// THE FLUX LAW (q198; his question, 2026-09-17: "how accurate are the sizes... I feel like we are winging it on vibes" -
+		// they were: a (ref / d)^2.2 pick). A star is a point: the glyph IS its brightness, so its size and its alpha are
+		// ONE thing, the star's FLUX - a class luminosity (the map's size squared; the true range, eight decades, would hand
+		// the sky to the far bright ones - compressed to the game's), a giant's three times that, a white dwarf's or a
+		// pulsar's a seventh, over the distance SQUARED (the inverse square, real) against the reference distance, then a
+		// square-root display curve (how the eye reads light). A sun-like star fills the glyph at the reference, half of
+		// it twice as far, a quarter at four times; a giant holds the full glyph out to three or four neighbours' spacing;
+		// a dwarf is a spark unless it is next door - true to life, its line bloom still marks it
+		var _nrf = _cfg[$ "sky_near_ref"] ?? 60, _gam = _cfg[$ "sky_flux_gamma"] ?? .5;
+		var _skd = _st.props[$ "skind"] ?? "main";
+		var _lum = sqr(_st.props.size / 2) * ((_skd == "giant") ? 3 : ((_skd == "dwarf" || _skd == "pulsar") ? .15 : 1));
+		var _fx = power(clamp(_lum * sqr(_nrf / max(_d, 20)), 0, 1), _gam);
 		array_push(_out.stars, { x : dcos(_el) * dcos(_az), y : -dsin(_el), z : -dcos(_el) * dsin(_az),
-		                         col : _st.props.color, b : (.2 + .45 * _ld) + (.8 - .45 * _ld) * clamp(_apb, 0, 1), s : clamp(1 + 30 * _ap, 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true,
+		                         col : _st.props.color, b : (.2 + .45 * _ld) + (.8 - .45 * _ld) * _fx, s : clamp(_fx * (_cfg[$ "sky_size_max"] ?? 31), 1, _cfg[$ "sky_size_max"] ?? 31), ph : (_hh mod 360), near : true,
 		                         skind : (_st.props[$ "skind"] ?? "main"), sspin : (_st.props[$ "spin"] ?? 1), sseed : _st.seed,
 		                         d : _d, psz : _st.props.size });   // (d / psz: the hole's size law reads them plainly - the glyph law saturates; q196)   // (ph: the twinkle's phase; near: a real neighbour - a halo when big, 2026-09-16; skind: its kind shows from here too, 2026-09-17)
 	}
