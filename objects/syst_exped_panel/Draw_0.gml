@@ -1227,14 +1227,13 @@ if (view == "galaxy") {
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
-		var _s = max(.8, _st.props.size * gx_zoom), _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
-		var _hr = max(1.2, _s * .45) * _gs;
+		var _s = max(.8, _st.props.size * gx_zoom), _gx0 = floor(_sx * _gs) + _gs * .5, _gy0 = floor(_sy * _gs) + _gs * .5;
+		var _hr = max(1, _s * .4) * _gs;   // (smaller again, and no drawn ring - it read as a selection circle; his report q195)
 		gpu_set_blendmode(bm_add);
-		draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 6 / _gw2, _hr * 2.0 / _gh2, 18, _st.props.color, .30);   // (the accretion disc, flat and tilted)
+		draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 5 / _gw2, _hr * 1.6 / _gh2, 18, _st.props.color, .28);   // (the accretion disc, flat and tilted)
+		draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 2.8 / _gw2, _hr * 2.8 / _gh2, 0, merge_colour(_st.props.color, c_white, .4), .20);   // (the lensed light round the black)
 		gpu_set_blendmode(bm_normal);
 		draw_circle_colour(_gx0, _gy0, _hr, c_black, c_black, false);
-		gpu_set_blendmode(bm_add);
-		draw_circle_colour(_gx0, _gy0, _hr + max(1, _gs * .5), merge_colour(_st.props.color, c_white, .4), merge_colour(_st.props.color, c_white, .4), true);
 	}
 	gpu_set_blendmode(bm_normal);
 	// the home star: a pulsing hollow square and its name; the tapped star: a white one - gs times over, on the window's grid

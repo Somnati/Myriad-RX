@@ -73,7 +73,7 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 				// (a neighbour hole is galaxy_sky_holes' - drawn after the fog; 2026-09-17)
 			} else if (_skn == "dwarf") {
 				var _dc1 = merge_colour(_sk.col, c_white, .6);
-				draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + .5, _gy0 + .5, (max(6, _sk.s * 2) + 2) / _gw1, 1 / _gh1, 0, _dc1, .30 * _a);
+				draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + .5, _gy0 + .5, (max(6, _sk.s * 5) + 2) / _gw1, 1 / _gh1, 0, _dc1, .30 * _a);   // (the map's width - his ask, q195)
 				draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, 1, 1, 0, _dc1, _a);
 			} else {
 				var _pk1 = 1;
@@ -123,7 +123,9 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		// THE SUN ITSELF (2026-09-16): sh_star - the disc, its corona and prominences (star_draw); the flare rides on
 		if (_sky[$ "hole"] ?? false) return;   // (a black hole for a sun is galaxy_sky_holes' - drawn AFTER the fog, so the fog never lies over its black and the lens bends the fog too; 2026-09-17)
 		star_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam);
-		if ((_sky[$ "skind"] ?? "main") == "pulsar") pulsar_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sky.sspin, _sky.stilt, _sfade);   // (its beams sweep the sky - 2026-09-17)
+		var _skd1 = _sky[$ "skind"] ?? "main";
+		if (_skd1 == "pulsar") pulsar_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sky.sspin, _sky.stilt, _sfade, _cam);   // (its beams sweep the sky, held to the world - 2026-09-17)
+		else if (_skd1 == "dwarf") dwarf_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, _sfade);   // (a white dwarf's blaze - q195)
 		gpu_set_blendmode(bm_add);
 		// THE FLARE: an anamorphic streak (the soft glow stretched flat) and two ghosts along the line through the view's centre
 		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs * 3.2, _gs * .10, 0, merge_colour(_sky.sun_col, c_white, .4), .22 * _sfade);

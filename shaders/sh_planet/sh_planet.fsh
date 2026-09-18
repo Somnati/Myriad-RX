@@ -377,17 +377,18 @@ float rh1(float x) { return fract(sin(x * 127.1 + u_rseed * 311.7) * 43758.5453)
 float rvn(float x) { float i = floor(x); float f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(rh1(i), rh1(i + 1.0), f); }
 float ring_dens(float bf, float rr)
 {
-    float d = 0.60 + 0.40 * rvn(bf * 5.0 + 3.0);
-    d *= 0.86 + 0.14 * rvn(bf * 9.0 + 11.0);   // (the fine banding eased - "noisy with all its segments", his report 2026-09-17)
+    // BROAD BANDS (q195; his ask: "0-3 segments... less noisy"): one slow swell across the ring, none to three GAPS cut
+    // clean and wide, the edges soft - no fine banding, no grain
+    float d = 0.72 + 0.28 * rvn(bf * 2.2 + 3.0);
     float ng = floor(rh1(99.0) * 3.999);        // none to three gaps, the ring's own
     for (int k = 0; k < 3; k++) {
         if (float(k) >= ng) break;
-        float c = 0.12 + 0.76 * rh1(float(k) * 1.37 + 50.0);
-        float w = 0.010 + 0.030 * rh1(float(k) * 2.11 + 60.0);
+        float c = 0.14 + 0.72 * rh1(float(k) * 1.37 + 50.0);
+        float w = 0.025 + 0.045 * rh1(float(k) * 2.11 + 60.0);
         d *= smoothstep(0.0, w, abs(bf - c));
     }
     d *= smoothstep(0.0, 0.06, bf) * (1.0 - smoothstep(0.90, 1.0, bf));
-    if (u_rkind > 1.5) d *= 0.35 + 0.65 * step(0.45, rvn(bf * 70.0 + 5.0));
+    if (u_rkind > 1.5) d *= 0.55 + 0.45 * rvn(bf * 12.0 + 5.0);   // (debris: coarse clumps, not the old seventy-cell stipple)
     else if (u_rkind > 0.5) d = (0.30 + 0.30 * rvn(bf * 3.0 + 7.0)) * smoothstep(0.0, 0.15, bf) * (1.0 - smoothstep(0.70, 1.0, bf));
     if (u_rgap.x > 0.0) d *= smoothstep(0.0, 0.035, abs(rr - u_rgap.x));
     if (u_rgap.y > 0.0) d *= smoothstep(0.0, 0.035, abs(rr - u_rgap.y));
@@ -521,13 +522,8 @@ void main()
                     float bf = (rr - u_rin) / (u_rout - u_rin);
                     float dens = ring_dens(bf, rr);
                     if (dens > 0.01) {
-                        // the ring's own frame - an angle round the axis - for the GRAIN: countless particles, not a gradient
-                        vec3 ta = normalize(cross(u_raxis, (abs(u_raxis.y) < 0.9) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
-                        vec3 tb = cross(u_raxis, ta);
-                        float ang = atan(dot(rp, tb), dot(rp, ta));
-                        float grain = 0.90 + 0.20 * hash12(vec2(floor(rr * 110.0), 7.0));   // (by the radius alone - fine concentric threads; the angle's cells read as line segments, his report 2026-09-17)
-                        // two colours across the bands
-                        vec3 rc = mix(u_ringcol, u_ringcol2, rvn(bf * 5.0 + 21.0)) * grain;
+                        // (the grain and its angular frame went with q195 - the concentric threads were the noise; two colours across the broad bands)
+                        vec3 rc = mix(u_ringcol, u_ringcol2, rvn(bf * 2.5 + 21.0));
                         // (the unlit face went - both faces lit alike, for the look; his call 2026-09-17)
                         // THE WORLD'S SHADOW across the ring, with a penumbra
                         float pl = dot(rp, u_light);

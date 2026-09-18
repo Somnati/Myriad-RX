@@ -397,6 +397,7 @@
     {"id":{"name":"draw_status_pill","path":"scripts/draw_status_pill/draw_status_pill.yy",},},
     {"id":{"name":"draw_ui_back","path":"scripts/draw_ui_back/draw_ui_back.yy",},},
     {"id":{"name":"draw_ui_button","path":"scripts/draw_ui_button/draw_ui_button.yy",},},
+    {"id":{"name":"dwarf_draw","path":"scripts/dwarf_draw/dwarf_draw.yy",},},
     {"id":{"name":"egg_word","path":"scripts/egg_word/egg_word.yy",},},
     {"id":{"name":"exped_abort","path":"scripts/exped_abort/exped_abort.yy",},},
     {"id":{"name":"exped_act_step","path":"scripts/exped_act_step/exped_act_step.yy",},},

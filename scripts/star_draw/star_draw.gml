@@ -15,6 +15,16 @@ function star_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined) {
 		return;
 	}
 	var _q = nebula_quad(), _hq = _r * 2.4;
+	// THE DISC'S BACKING (q195): a plain black disc under the star, the width of its disc - whatever lies behind the
+	// star on the page is gone before the shader paints it (the belt behind a giant showed across its face - his
+	// report, twice, 2026-09-17); faded as the star is
+	var _da0 = draw_get_alpha();
+	gpu_set_blendmode(bm_normal);
+	draw_set_alpha(_fade);
+	draw_set_circle_precision(64);
+	draw_circle_colour(_x, _y, _r * .985, c_black, c_black, false);
+	draw_set_circle_precision(24);
+	draw_set_alpha(_da0);
 	// (one, inv_src_alpha) on the colour, the page's alpha untouched (zero, one): the shader's alpha is the DISC's coverage,
 	// so inside the disc the star REPLACES the page - a world behind a giant showed through its additive disc (his report
 	// 2026-09-17) - and outside it, alpha 0, the corona ADDS (true one/one: GameMaker's bm_add is src_alpha/one, which with

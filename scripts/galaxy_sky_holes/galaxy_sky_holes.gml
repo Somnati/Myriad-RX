@@ -6,7 +6,6 @@
 /// when viewed in the skybox draw in front of the galactic fog"
 function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = undefined) {
 	var _ct = mat3_transpose(_cam);
-	var _gw1 = max(1, sprite_get_width(spr_vis_glow_soft)), _gh1 = max(1, sprite_get_height(spr_vis_glow_soft));
 	var _stars = _sky.stars;
 	for (var _i = 0; _i < array_length(_stars); _i++) {
 		var _sk = _stars[_i];
@@ -19,15 +18,10 @@ function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = unde
 		if (_sx < -_m || _sx > _w + _m || _sy < -_m || _sy > _h + _m) continue;
 		var _fade = clamp((min(_sx, _w - _sx) + _m) / _m, 0, 1) * clamp((min(_sy, _h - _sy) + _m) / _m, 0, 1) * clamp((-_dv[2] - .2) / .1, 0, 1);
 		var _a = (.3 + .7 * _sk.b) * _fade;
-		var _gx0 = floor(_sx), _gy0 = floor(_sy), _hr1 = _sk.s * .22;
-		if (_hr1 < 1.6) { gpu_set_blendmode(bm_normal); draw_sprite_ext(spr_pixel_1x1, 0, _gx0, _gy0, 2, 2, 0, c_black, _a); }
-		else {
-			gpu_set_blendmode(bm_add);
-			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + .5, _gy0 + .5, _hr1 * 6 / _gw1, _hr1 * 1.8 / _gh1, 18, _sk.col, .28 * _a);
-			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + .5, _gy0 + .5, _hr1 * 3.2 / _gw1, _hr1 * 3.2 / _gh1, 0, merge_colour(_sk.col, c_white, .4), .22 * _a);
-			gpu_set_blendmode(bm_normal);
-			draw_circle_colour(_gx0 + .5, _gy0 + .5, _hr1, c_black, c_black, false);
-		}
+		// THE REAL THING at every size (q195; his report: "a black sprite in the sky", the far ones "tiny squares"): hole_draw
+		// bends the sky and the fog round it, the disc over and under - a far one is a dark speck in a hairline of light
+		var _gx0 = floor(_sx), _gy0 = floor(_sy), _hr1 = max(1, _sk.s * .22);
+		hole_draw(_gx0 + .5, _gy0 + .5, _hr1 * 2, _sk.col, ((_sk[$ "sseed"] ?? 0) mod 1000) * .37, _a, _cam);
 	}
 	gpu_set_blendmode(bm_normal);
 	// the system's own hole for a sun: where the sun stands, faded as the sun is (behind the world, under a moon)

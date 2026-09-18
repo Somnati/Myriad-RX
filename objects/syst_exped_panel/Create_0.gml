@@ -627,6 +627,9 @@ __draw_system = function() {
 	sy_wfx = sy_cx; sy_wfy = sy_cy;
 	if (sy_warp_pl >= 0) { var _fpp0 = __sy_ppos(_pls[sy_warp_pl]); var _fpp = __sy_proj(_fpp0[0], 0, _fpp0[2]); if (!is_undefined(_fpp)) { sy_wfx = _fpp[0]; sy_wfy = _fpp[1]; } }
 	if (sy_warp_st >= 0) { var _fsp0 = __st_ppos(sy_stns[sy_warp_st]); var _fsp = __sy_proj(_fsp0[0], 0, _fsp0[2]); if (!is_undefined(_fsp)) { sy_wfx = _fsp[0]; sy_wfy = _fsp[1]; } }   // (the dive to a station - 2026-09-17)
+	// the star's place and depth first: the rings split at it (q195 - the near half of a ring passes IN FRONT of the star:
+	// its cells wait and are drawn right after the star; a great star's disc hid them)
+	var _sp0 = __sy_proj(0, 0, 0), _sdz = is_undefined(_sp0) ? sy_D : _sp0[3], _rc_near = [];
 	// the orbit rings: true circles in the plane, as grid-snapped cells (the demo's)
 	for (var _i = 0; _i < _np; _i++) {
 		var _or = _pls[_i].orbit, _stp = max(.4, _pxs * 55 / max(1, _or)), _lcx = -10000, _lcy = -10000;
@@ -636,7 +639,8 @@ __draw_system = function() {
 			var _gx = floor((sy_wfx + (_rp[0] - sy_wfx) * _s) / _pxs) * _pxs, _gy = floor((sy_wfy + (_rp[1] - sy_wfy) * _s) / _pxs) * _pxs;
 			if (_gx == _lcx && _gy == _lcy) continue;
 			_lcx = _gx; _lcy = _gy;
-			draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _pxs, _pxs, 0, (sy_sel == _i) ? c_gold : c_white, (sy_sel == _i) ? .3 : .14);
+			if (_rp[3] < _sdz && !is_undefined(_sp0)) array_push(_rc_near, [_gx, _gy, (sy_sel == _i) ? c_gold : c_white, (sy_sel == _i) ? .3 : .14]);
+			else draw_sprite_ext(spr_pixel_1x1, 0, _gx, _gy, _pxs, _pxs, 0, (sy_sel == _i) ? c_gold : c_white, (sy_sel == _i) ? .3 : .14);
 		}
 	}
 	// THE STATIONS' RINGS (2026-09-17): dashed, in the hull's colour - one in twelve cells, so a world's ring and a station's read apart
@@ -649,19 +653,19 @@ __draw_system = function() {
 			if (_sgx == _slcx && _sgy == _slcy) continue;
 			_slcx = _sgx; _slcy = _sgy; _dash++;
 			if ((_dash mod 3) != 0) continue;
-			draw_sprite_ext(spr_pixel_1x1, 0, _sgx, _sgy, _pxs, _pxs, 0, (sy_ssel == _j) ? c_gold : sy_stns[_j].hull, (sy_ssel == _j) ? .4 : .22);
+			if (_srp[3] < _sdz && !is_undefined(_sp0)) array_push(_rc_near, [_sgx, _sgy, (sy_ssel == _j) ? c_gold : sy_stns[_j].hull, (sy_ssel == _j) ? .4 : .22]);
+			else draw_sprite_ext(spr_pixel_1x1, 0, _sgx, _sgy, _pxs, _pxs, 0, (sy_ssel == _j) ? c_gold : sy_stns[_j].hull, (sy_ssel == _j) ? .4 : .22);
 		}
 	}
 	// z-sort the star, the worlds and the stations, far to near (a station is item 1000 + its index)
 	var _items = [];
-	var _sp0 = __sy_proj(0, 0, 0);
 	if (!is_undefined(_sp0)) array_push(_items, [_sp0[3], -1, _sp0[0], _sp0[1], _sp0[2]]);
 	for (var _i = 0; _i < _np; _i++) { var _pp0 = __sy_ppos(_pls[_i]); var _pp = __sy_proj(_pp0[0], 0, _pp0[2]); if (!is_undefined(_pp)) array_push(_items, [_pp[3], _i, _pp[0], _pp[1], _pp[2]]); }
 	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _sq0 = __st_ppos(sy_stns[_j]); var _sq = __sy_proj(_sq0[0], 0, _sq0[2]); if (!is_undefined(_sq)) array_push(_items, [_sq[3], 1000 + _j, _sq[0], _sq[1], _sq[2]]); }
 	// THE BELTS' ROCKS (2026-09-17): every rock where it stands now - NOT in the sort (five hundred of them, sorted
 	// every frame, would be the cost): split at the star's depth, the far half painted before everything, the
 	// near half after (a rock over a far world reads right; a rock behind the star but before a farther world is a pixel wrong)
-	var _bnow = universal_now(), _rk_far = [], _rk_near = [], _sdz = is_undefined(_sp0) ? sy_D : _sp0[3];
+	var _bnow = universal_now(), _rk_far = [], _rk_near = [];
 	var _gslot = floor(_bnow / .45), _gfr = frac(_bnow / .45);   // THE GLINTS' clock: a slot a little under half a second (each rock its own phase below)
 	for (var _b = 0; _b < array_length(sy_belts); _b++) {
 		var _bl = sy_belts[_b], _rks = _bl.rocks;
@@ -702,8 +706,12 @@ __draw_system = function() {
 			if (sy_sys.star[$ "hole"] ?? false) hole_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (a black hole: hole_draw bends the sky already on the page - 2026-09-17)
 			else {
 				star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
-				if ((sy_sys.star[$ "skind"] ?? "main") == "pulsar") pulsar_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, sy_sys.star.spin, sy_sys.star.tilt, 1);   // (the beams over it - 2026-09-17)
+				var _skd2 = sy_sys.star[$ "skind"] ?? "main";
+				if (_skd2 == "pulsar") pulsar_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, sy_sys.star.spin, sy_sys.star.tilt, 1, sy_cam);   // (the beams over it, held to the world - 2026-09-17)
+				else if (_skd2 == "dwarf") dwarf_draw(_sx, _sy, 6 * _ss, _stc, 1);   // (a white dwarf's blaze - his ask, q195)
 			}
+			// the rings' near halves, over the star (their far halves went under everything)
+			for (var _rc = 0; _rc < array_length(_rc_near); _rc++) { var _rcc = _rc_near[_rc]; draw_sprite_ext(spr_pixel_1x1, 0, _rcc[0], _rcc[1], _pxs, _pxs, 0, _rcc[2], _rcc[3]); }
 		} else if (_it[1] >= 3000) {
 			// A BIG ROCK of a belt (the polish, 2026-09-17): a small tumbling solid, lit from the star
 			var _bb = sy_belts[(_it[1] - 3000) div 8].bigs[(_it[1] - 3000) mod 8], _bba = (_bb.a0 + _bb.spd * 60 * _bnow) mod 360;
