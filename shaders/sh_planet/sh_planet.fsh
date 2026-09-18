@@ -600,6 +600,14 @@ void main()
                 }
             }
         }
+        // THE ALTITUDE TINT (his pick, 2026-09-17): the ground's colour by its height - the valley floors a touch warmer
+        // and darker, the high ground greyer and lighter (the rock's colour thins toward the sky) - so a range's
+        // relief reads in colour as well as in shade. Land only; laid on before the light, an albedo like the snow
+        if (hsmp.g < 0.5 && u_bump > 0.001) {
+            float alt = smoothstep(0.10, 0.85, h0);
+            col *= mix(vec3(0.95, 0.92, 0.88), vec3(1.07, 1.07, 1.09), alt);
+            col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), 0.30 * smoothstep(0.45, 0.95, h0));
+        }
         // THE SNOW LINE BY LATITUDE (his pick, 2026-09-17): at the equator only the crowns (.95); toward the poles it
         // comes down the flanks (.40 at the pole); and the season moves it - a hemisphere's winter brings it lower.
         // Laid on BEFORE the light (his screenshot: snowy crowns shone on the night side - the white was mixed in
