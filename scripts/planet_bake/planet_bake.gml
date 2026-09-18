@@ -20,6 +20,7 @@ function planet_bake(_pn, _until = undefined) {
 	for (var _p0 = 0; _p0 < 3; _p0++) if (_brow > _p0 * _th && !surface_exists(_srf[_p0])) { _brow = _p0 * _th; break; }
 	if (_brow >= _n3) { _pn.brow = _brow; return true; }
 	planet_ranges(_pn);   // (once a world, before the first stamp - the range skeleton, 2026-09-17; it guards itself)
+	planet_volcanoes(_pn);   // (then the volcanoes on the land the ranges left, and their plumes into the cloud map's green)
 	planet_rivers(_pn);   // (then the drainage, in the valleys the ranges leave - it guards itself)
 	// a bake under a shader someone left set (the ui fade) would keep its
 	// tint for good: the stamps go through the plain pipeline (bug hunt 2026-09-15)
@@ -46,8 +47,9 @@ function planet_bake(_pn, _until = undefined) {
 				var _b3 = _pn.biome[_i];
 				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, _pn.pal[_b3], 1 - _pn.glow[_b3]);
 			} else if (_p == 1) {
-				var _ca2 = _pn.carr[_i];
-				if (_ca2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, 255), _ca2);   // (red = the thickness - the cloud relief, 2026-09-17)
+				var _ca2 = _pn.carr[_i], _sm2 = is_array(_pn[$ "csmk"]) ? _pn.csmk[_i] : 0;
+				// (red = the thickness - the cloud relief; GREEN = the volcanoes' smoke, read in the ground's frame - 2026-09-17)
+				if (_ca2 > 0 || _sm2 > 0) draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), floor(clamp(_sm2, 0, 1) * 255), 255), _ca2);
 			} else {
 				// height above the sea (or the world's base level), 0..1 in red:
 				// water is flat, the land climbs, peaks reach 1; the gradient rides

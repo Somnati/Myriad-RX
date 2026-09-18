@@ -673,6 +673,7 @@
     {"id":{"name":"planet_sky_draw","path":"scripts/planet_sky_draw/planet_sky_draw.yy",},},
     {"id":{"name":"planet_spin_now","path":"scripts/planet_spin_now/planet_spin_now.yy",},},
     {"id":{"name":"planet_texel","path":"scripts/planet_texel/planet_texel.yy",},},
+    {"id":{"name":"planet_volcanoes","path":"scripts/planet_volcanoes/planet_volcanoes.yy",},},
     {"id":{"name":"play_sound_ext","path":"scripts/play_sound_ext/play_sound_ext.yy",},},
     {"id":{"name":"port_log_to_arb","path":"scripts/port_log_to_arb/port_log_to_arb.yy",},},
     {"id":{"name":"port_vis_line","path":"scripts/port_vis_line/port_vis_line.yy",},},

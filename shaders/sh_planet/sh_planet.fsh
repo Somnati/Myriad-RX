@@ -435,6 +435,23 @@ void main()
     cbcol += mix(vec3(0.85, 0.35, 0.45), u_atmo, 0.30) * (duskb * 0.30);
     cbcol *= cshb;   // (the shape's shading last: the underside dark by day and by night alike - 2026-09-17)
     vec3 ctcol = vec3(0.97, 0.98, 1.0) * clit * emb;
+    // THE PLUMES (his ask, 2026-09-17): the volcanoes' smoke lives in the cloud map's GREEN and is read in the
+    // GROUND's frame (u_rot, not the decks' u_crot), so the wind never carries a plume off its vent. A dark disc
+    // of cloud at the top deck's height, in the deck's steps, lit by its own terminator; it thins with the region
+    // zoom only half as much as the clouds do
+    if (r2 <= CR * CR) {
+        vec3 ns = vec3(p, sqrt(CR * CR - r2)) / CR;
+        float smk = texture2D(u_cloud, sphere_uv(to_tex(ns), u_tsize)).g * max(u_cfade, 0.5);
+        if (smk > 0.03) {
+            float smq = floor(smk * 6.0 + 0.5) / 6.0;
+            float sl2 = cloudband(dot(ns, u_light));
+            vec3 scol = vec3(0.34, 0.31, 0.29) * sl2 * (0.85 + 0.30 * hash12(floor(sphere_uv(to_tex(ns), u_tsize) * u_tsize) + 5.3));
+            float sw = clamp(smk * 1.6, 0.0, 1.0);
+            ctcol = mix(ctcol, scol, sw);
+            clit = mix(clit, sl2, sw);
+            cat = max(cat, smq);
+        }
+    }
     if (clit < 0.9) ctcol = mix(ctcol, vec3(0.05, 0.06, 0.13), 0.55 * (1.0 - clit));
     float duskc = smoothstep(0.25, 0.55, clit) * (1.0 - smoothstep(0.55, 0.95, clit));
     ctcol += mix(vec3(0.80, 0.30, 0.55), u_atmo, 0.22) * (duskc * 0.30);

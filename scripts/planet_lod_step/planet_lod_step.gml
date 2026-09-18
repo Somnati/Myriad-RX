@@ -64,6 +64,24 @@ function planet_lod_step(_pn, _l, _until) {
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);
+				// THE VOLCANOES' LAVA AND BASALT (2026-09-17) ride over from the base map: spokes from the texel's centre toward
+				// every neighbour of the same kind (a crater's floor fills, a flow runs as a line), like a river's
+				if ((_bb == 17 || _bb == 18) && _b != _bb && _natl) {
+					var _vh = false, _vn = 0, _vw = .55 / _k;
+					for (var _dy = -1; _dy <= 1 && !_vh; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
+						if (_dx == 0 && _dy == 0) continue;
+						var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
+						var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
+						if (_nb != 17 && _nb != 18) continue;
+						_vn++;
+						var _px2 = _fx - .5, _py2 = _fy - .5, _sx = _dx * .5, _sy = _dy * .5;
+						var _tt = clamp((_px2 * _sx + _py2 * _sy) / (_sx * _sx + _sy * _sy), 0, 1);
+						var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
+						if (sqrt(_ddx * _ddx + _ddy * _ddy) < _vw) { _vh = true; break; }
+					}
+					if (_vn == 0 && point_distance(_fx, _fy, .5, .5) < _vw) _vh = true;
+					if (_vh) _b = _bb;
+				}
 				if (_natl && _el[_bi] >= _sea) {   // (the base texel is land: its water is a lake or a river, not the coast's own call)
 					// A LAKE BY ITS OWN SHORE (his report, 2026-09-17: "ponds with hard pixel shores"): where a lake texel
 					// lies among the four base texels round this point, the lake is wherever the flood's filled surface
