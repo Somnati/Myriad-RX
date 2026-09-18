@@ -580,7 +580,11 @@ __sy_enter = function(_star) {
 		if (is_struct(pl_dest) && pl_dest.seed == _p.seed) sy_sel = _i;
 	}
 	if (sy_sel < 0 && _star == _hm.star) sy_sel = _hm.planet;
-	sy_dest = { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };   // (a stand-in world of this star: the sky builder wants one)
+	// the sky's world: the one we came from when it is of this star - its sky is built and its holes baked already, and the
+	// system page draws no sun and no siblings, so nothing of it is the wrong planet's (q200; his question: "are you rebaking
+	// the skybox?" - the stand-in below was planets[0], a different cache key from any other world's, so yes, it was);
+	// else a stand-in world of this star (the sky builder wants one)
+	sy_dest = (sy_sel >= 0 && is_struct(pl_dest) && pl_dest.seed == sy_sys.planets[sy_sel].seed) ? pl_dest : { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };
 	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
 };
