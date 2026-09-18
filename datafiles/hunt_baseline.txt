@@ -1,0 +1,1037 @@
+calls	call   objects\obj_dialogue\Create_0.gml                            _tree x1
+calls	call   objects\system\Step_1.gml                                    Haptics_VibrateIntensity x1
+calls	call   scripts\clipboard_get\clipboard_get.gml                      Clipboard_GetClipString x1
+calls	call   scripts\clipboard_set\clipboard_set.gml                      Clipboard_SetClipString x1
+calls	call   scripts\save_export_saf\save_export_saf.gml                  FileTransfer_Export x1
+calls	call   scripts\save_import_saf\save_import_saf.gml                  FileTransfer_Import x1
+calls	keyvar scripts\galaxy_fog_draw\galaxy_fog_draw.gml                  key =  x1
+arity	objects/obj_debug_pro/Create_0.gml                         debug_pro_watch          got 0, wants 2..2  x1
+arity	objects/obj_scale_de/Create_0.gml                          clamp_min                got 2, wants 0..0  x1
+arity	objects/obj_scale_de/Draw_0.gml                            clamp_min                got 2, wants 0..0  x1
+arity	objects/obj_scale_de/Step_0.gml                            clamp_min                got 2, wants 0..0  x4
+arity	objects/obj_scale_rx/Create_0.gml                          clamp_min                got 2, wants 0..0  x1
+arity	objects/obj_scale_rx/Step_0.gml                            clamp_min                got 2, wants 0..0  x3
+arity	objects/obj_scrollbar/Step_0.gml                           clamp_min                got 2, wants 0..0  x13
+arity	scripts/bezier_approach/bezier_approach.gml                clamp_min                got 2, wants 0..0  x1
+globals	menu2_guard                  objects/syst_menu2/Create_0.gml
+globals	profile_color                objects/obj_save_menu/Create_0.gml, objects/obj_save_menu/Draw_0.gml, objects/obj_save_menu/Step_0.gml, objects/setgame/
+globals	profile_name                 objects/obj_save_menu/Create_0.gml, objects/obj_save_menu/Draw_0.gml, objects/setgame/Create_0.gml, objects/syst_menu2/D
+globals	resin                        scripts/stats_session_base/stats_session_base.gml
+svars	ability                      _a
+svars	ability                      _open
+svars	ability                      a
+svars	ability                      ap_multi
+svars	ability_flavor               _a
+svars	ability_flavor               _input
+svars	ability_flavor               a
+svars	ability_flavor               flavor
+svars	ability_flavor               flavor_color
+svars	ability_flavor               flavor_text
+svars	bezier_approach              _move_scale
+svars	bezier_approach              _point_dist
+svars	bezier_approach              _zero_adj
+svars	bezier_find                  _zero
+svars	bezier_get_x                 _lx
+svars	bezier_get_x                 _zero
+svars	bezier_get_y                 _ly
+svars	bezier_get_y                 _zero
+svars	bezier_set_point             _bpoints
+svars	bezier_set_point             _lx
+svars	bezier_set_point             _ly
+svars	calculate_rarity             _max_rarity
+svars	calculate_rarity             _min_rarity
+svars	do_pillbox                   _pills
+svars	do_pillbox                   obj
+svars	do_throwable                 _bounceresist_
+svars	do_throwable                 _cangrab
+svars	do_throwable                 _dmx
+svars	do_throwable                 _dmy
+svars	do_throwable                 _do_bounces
+svars	do_throwable                 _do_slide
+svars	do_throwable                 _gosx
+svars	do_throwable                 _gosy
+svars	do_throwable                 _has_snap
+svars	do_throwable                 _readytolaunch
+svars	do_throwable                 _wrx
+svars	do_throwable                 _wry
+svars	do_throwable                 _ws_
+svars	draw_status_pill             critical
+svars	draw_status_pill             neutral
+svars	draw_status_pill             positive
+svars	draw_status_pill             warning
+svars	ex_bestiary_draw             bs_sel
+svars	ex_bestiary_draw             land
+svars	ex_bestiary_draw             list_y
+svars	ex_crew_draw                 conf_a
+svars	ex_crew_draw                 conf_kind
+svars	ex_crew_draw                 crew_trip
+svars	ex_crew_draw                 land
+svars	ex_crew_draw                 list_y
+svars	ex_crew_draw                 mode
+svars	ex_crew_draw                 sheet_id
+svars	ex_crew_press                it_pop
+svars	ex_depart_draw               dp_in
+svars	ex_depart_draw               dp_mode
+svars	ex_depart_draw               dp_sheet
+svars	ex_depart_draw               dp_slots
+svars	ex_depart_draw               dp_stance
+svars	ex_depart_draw               land
+svars	ex_depart_draw               list_y
+svars	ex_depart_draw               pl_dest
+svars	ex_depart_list               dp_ldrag
+svars	ex_depart_press              dp_mode
+svars	ex_depart_press              dp_quest
+svars	ex_depart_press              dp_sheet
+svars	ex_depart_press              dp_slot
+svars	ex_depart_press              dp_stance
+svars	ex_depart_press              dp_stance_rects
+svars	ex_depart_press              pl_dest
+svars	ex_depart_press              rg_sel
+svars	ex_depart_press              sel_crew
+svars	ex_galaxy_draw               gx_init
+svars	ex_galaxy_draw               gx_mm
+svars	ex_galaxy_draw               gx_mm_seed
+svars	ex_galaxy_draw               gx_para
+svars	ex_galaxy_draw               gx_sel
+svars	ex_galaxy_draw               gx_sys
+svars	ex_galaxy_draw               gxf_u
+svars	ex_galaxy_draw               land
+svars	ex_galaxy_draw               list_y
+svars	ex_galaxy_draw               wb_surf
+svars	ex_galaxy_init               land
+svars	ex_galaxy_init               list_y
+svars	ex_galaxy_step               gx_press
+svars	ex_galaxy_step               gx_sel
+svars	ex_galaxy_step               gx_sys
+svars	ex_galaxy_step               gx_x
+svars	ex_galaxy_step               view
+svars	ex_haul_draw                 hl_open
+svars	ex_haul_draw                 land
+svars	ex_haul_draw                 list_y
+svars	ex_haul_draw                 pg_dir
+svars	ex_haul_draw                 swap_a
+svars	ex_haul_draw                 swap_pick
+svars	ex_haul_press                land
+svars	ex_haul_press                swap_pick
+svars	ex_log_bar                   closing
+svars	ex_log_bar                   log_follow
+svars	ex_log_bar                   log_lay
+svars	ex_log_bar                   log_n
+svars	ex_log_bar                   log_scroll
+svars	ex_log_bar                   oa
+svars	ex_log_bar                   sb
+svars	ex_log_init                  land
+svars	ex_log_init                  list_y
+svars	ex_log_init                  log_w
+svars	ex_log_init                  log_x
+svars	ex_log_init                  log_y
+svars	ex_log_init                  rp
+svars	ex_log_init                  view
+svars	ex_log_init                  view_id
+svars	ex_map_draw                  land
+svars	ex_map_draw                  list_y
+svars	ex_map_draw                  map_dest
+svars	ex_map_draw                  map_legend
+svars	ex_map_draw                  map_pop
+svars	ex_map_init                  big_w
+svars	ex_map_init                  big_x
+svars	ex_map_init                  big_y
+svars	ex_map_init                  dim
+svars	ex_map_init                  isle_h
+svars	ex_map_init                  land
+svars	ex_map_init                  list_y
+svars	ex_map_init                  rg_box_h
+svars	ex_map_init                  rg_box_open
+svars	ex_map_init                  rg_box_w
+svars	ex_map_init                  rg_in
+svars	ex_map_press                 land
+svars	ex_map_press                 map_dest
+svars	ex_orbit_init                pl_dest
+svars	ex_orbit_init                pv_drag
+svars	ex_orbit_init                pv_face
+svars	ex_orbit_init                pv_mode
+svars	ex_orbit_init                pv_vx
+svars	ex_orbit_init                pv_vy
+svars	ex_orbit_init                pv_zuser
+svars	ex_orbit_init                sky_fog_surf
+svars	ex_orbit_init                sky_met
+svars	ex_orbit_init                tiers
+svars	ex_orbit_init                view
+svars	ex_orbit_init                wb_surf
+svars	ex_planet_clock              pl_dest
+svars	ex_planet_clock              pv_dw
+svars	ex_planet_clock              pv_geo
+svars	ex_planet_clock              pv_mode
+svars	ex_planet_clock              pv_spin_seed
+svars	ex_planet_clock              pv_zuser
+svars	ex_planet_clock              view
+svars	ex_planet_draw               hand
+svars	ex_planet_draw               hand_a
+svars	ex_planet_draw               hand_ids
+svars	ex_planet_draw               land
+svars	ex_planet_draw               list_y
+svars	ex_planet_draw               pl_dest
+svars	ex_planet_draw               pv_dtab
+svars	ex_planet_draw               pv_dw
+svars	ex_planet_draw               pv_dwa
+svars	ex_planet_draw               pv_mode
+svars	ex_planet_draw               pv_sky
+svars	ex_planet_draw               pv_zoom
+svars	ex_planet_draw               rg_in
+svars	ex_planet_draw               sky_fog_surf
+svars	ex_planet_draw               wb_surf
+svars	ex_planet_hold               pl_dest
+svars	ex_planet_hold               pv_drag
+svars	ex_planet_hold               pv_mode
+svars	ex_planet_hold               view
+svars	ex_planet_init               card_h
+svars	ex_planet_init               card_w
+svars	ex_planet_init               face
+svars	ex_planet_init               hand_ids
+svars	ex_planet_init               land
+svars	ex_planet_init               list_y
+svars	ex_planet_init               log_w
+svars	ex_planet_init               log_x
+svars	ex_planet_init               log_y
+svars	ex_planet_init               pl_dest
+svars	ex_planet_init               pl_focus
+svars	ex_planet_init               pv_dwa
+svars	ex_planet_init               rg_in
+svars	ex_planet_press              pl_dest
+svars	ex_planet_press              pl_focus
+svars	ex_planet_press              pv_dtab
+svars	ex_planet_press              pv_dwa
+svars	ex_planet_press              pv_mode
+svars	ex_planet_press              rg_leave
+svars	ex_planet_press              view
+svars	ex_sheet_init                card_x0
+svars	ex_sheet_init                dim
+svars	ex_sheet_init                fight_s
+svars	ex_sheet_init                it_pop
+svars	ex_sheet_init                it_rects
+svars	ex_sheet_init                land
+svars	ex_sheet_init                log_w
+svars	ex_sheet_init                log_x
+svars	ex_sheet_init                log_y
+svars	ex_sheet_init                sheet_id
+svars	ex_sheet_init                sheet_pg
+svars	ex_station_draw              land
+svars	ex_station_draw              list_y
+svars	ex_station_draw              st_sel
+svars	ex_station_draw              sy_star
+svars	ex_station_draw              sy_stns
+svars	ex_station_draw              sy_sys
+svars	ex_station_step              st_drag
+svars	ex_station_step              st_sel
+svars	ex_station_step              sy_stns
+svars	ex_station_step              view
+svars	ex_system_draw               list_y
+svars	ex_system_draw               sy_belts
+svars	ex_system_draw               sy_bsel
+svars	ex_system_draw               sy_cx
+svars	ex_system_draw               sy_dw
+svars	ex_system_draw               sy_dwa
+svars	ex_system_draw               sy_info
+svars	ex_system_draw               sy_sel
+svars	ex_system_draw               sy_ssel
+svars	ex_system_draw               sy_star
+svars	ex_system_draw               sy_stns
+svars	ex_system_draw               sy_sys
+svars	ex_system_draw               sy_warp_pl
+svars	ex_system_draw               sy_warp_st
+svars	ex_system_draw               sy_warp_t
+svars	ex_system_init               land
+svars	ex_system_init               list_y
+svars	ex_system_init               sky_fog_surf
+svars	ex_system_init               wb_surf
+svars	ex_system_press              sy_belts
+svars	ex_system_press              sy_dwa
+svars	ex_system_press              sy_sel
+svars	ex_system_press              sy_ssel
+svars	ex_system_press              sy_stns
+svars	ex_system_press              sy_sys
+svars	ex_system_press              sy_warp_pl
+svars	ex_system_press              view
+svars	ex_system_step               sy_belts
+svars	ex_system_step               sy_drag
+svars	ex_system_step               sy_dw
+svars	ex_system_step               sy_dwa
+svars	ex_system_step               sy_ssel
+svars	ex_system_step               sy_star
+svars	ex_system_step               sy_stns
+svars	ex_system_step               sy_sys
+svars	ex_system_step               sy_warp_st
+svars	ex_system_step               view
+svars	ex_trip_draw                 big_h
+svars	ex_trip_draw                 big_w
+svars	ex_trip_draw                 big_x
+svars	ex_trip_draw                 big_y
+svars	ex_trip_draw                 conf_a
+svars	ex_trip_draw                 conf_kind
+svars	ex_trip_draw                 fight_s
+svars	ex_trip_draw                 land
+svars	ex_trip_draw                 log_w
+svars	ex_trip_draw                 log_x
+svars	ex_trip_draw                 log_y
+svars	ex_trip_draw                 rp
+svars	ex_trip_draw                 tp_cam
+svars	ex_trip_draw                 tp_sheet
+svars	ex_trip_draw                 tp_spin
+svars	ex_trip_press                log_w
+svars	ex_trip_press                log_x
+svars	ex_trip_press                rp
+svars	ex_trip_press                tp_sheet
+svars	ex_trip_replay               rp
+svars	ex_trip_world                tp_id
+svars	exped_unpack_v1              _pocket
+svars	faq_entry                    cur_sec
+svars	faq_entry                    entries
+svars	faq_section                  sections
+svars	free_banner                  alpha
+svars	get_abri_scientific          _e
+svars	get_ap                       ap_multi
+svars	grab_deck                    a
+svars	grab_deck                    a_
+svars	grab_deck                    flavor_color
+svars	grab_deck                    flavor_text
+svars	grab_deck_dials              _a
+svars	grab_deck_dials              a_
+svars	grab_deck_dials              oo
+svars	grab_deck_dials              uncommon
+svars	grab_deck_overcharge         _a
+svars	grab_deck_overcharge         a_
+svars	grab_deck_overcharge         common
+svars	grab_deck_overcharge         oo
+svars	grab_deck_overcharge         uncommon
+svars	grab_deck_puck               _a
+svars	grab_deck_puck               a_
+svars	grab_deck_puck               common
+svars	grab_deck_puck               oo
+svars	grab_deck_puck               uncommon
+svars	grab_deck_rebirth            _a
+svars	grab_deck_rebirth            a_
+svars	grab_deck_rebirth            epic
+svars	grab_deck_rebirth            legendary
+svars	grab_deck_rebirth            oo
+svars	grab_deck_rebirth            rare
+svars	grab_deck_rebirth            uncommon
+svars	grab_deck_support            _a
+svars	grab_deck_support            a_
+svars	grab_deck_support            common
+svars	grab_deck_support            oo
+svars	grab_deck_support            rare
+svars	grab_deck_tapper             _a
+svars	grab_deck_tapper             a_
+svars	grab_deck_tapper             common
+svars	grab_deck_tapper             legendary
+svars	grab_deck_tapper             oo
+svars	grab_deck_tapper             rare
+svars	grab_deck_tapper             uncommon
+svars	grab_deck_tiles              _a
+svars	grab_deck_tiles              a_
+svars	grab_deck_tiles              common
+svars	grab_deck_tiles              oo
+svars	grab_deck_tiles              rare
+svars	grab_deck_tiles              uncommon
+svars	grab_deck_upgrades           _a
+svars	grab_deck_upgrades           a_
+svars	grab_deck_upgrades           common
+svars	grab_deck_upgrades           oo
+svars	grab_deck_upgrades           rare
+svars	grab_deck_upgrades           uncommon
+svars	handle                       action
+svars	handle_save                  action
+svars	handle_save                  file_to_handle
+svars	letter_get_e_planet          e
+svars	letter_get_e_planet          has_m
+svars	letter_get_m_planet          e
+svars	letter_get_s_planet          has_m
+svars	line                         _sec_text
+svars	line                         cname
+svars	line                         ctexta
+svars	line                         ctextb
+svars	line                         l
+svars	menu2_button                 btns
+svars	menu2_button                 cur_sec
+svars	menu2_section                secs
+svars	read                         section
+svars	region_gen                   _kbest
+svars	region_gen                   _kkr
+svars	region_gen                   _kn
+svars	return_ability               _a
+svars	return_ability               a
+svars	return_ability               input
+svars	scr_display1                 _center_x
+svars	scr_display1                 _center_y
+svars	scr_display1                 _d_adj
+svars	scr_display1                 _dis_w
+svars	scr_display1                 _selected
+svars	scr_display1                 minimize
+svars	scr_ds_say                   CHOOSING
+svars	scr_ds_say                   IDLE
+svars	scr_ds_say                   PAUSED
+svars	scr_ds_say                   TYPING
+svars	scr_ds_say                   WAITING
+svars	set_pill                     _pills
+svars	settings_action              rows
+svars	settings_close               confirm_active
+svars	settings_close               confirm_revert
+svars	settings_close               dirty_tic
+svars	settings_group               rows
+svars	settings_info                rows
+svars	settings_pill                rows
+svars	settings_section             rows
+svars	settings_section             sections
+svars	settings_slider              pool
+svars	settings_slider              rows
+svars	settings_slider              sections
+svars	settings_slider              sl_scale
+svars	settings_slider              sl_x
+svars	settings_toggle              rows
+svars	spark_burst                  n
+svars	spark_burst                  p
+svars	sprite_stats                 _abil
+svars	sprite_stats                 _gear
+svars	sprite_stats                 _pts
+svars	stats_v2_bar                 _fdepth
+svars	stats_v2_bar                 _fhid
+svars	stats_v2_bar                 _fpath
+svars	stats_v2_bar                 rows
+svars	stats_v2_bar                 search
+svars	stats_v2_cycle               _fdepth
+svars	stats_v2_cycle               _fhid
+svars	stats_v2_cycle               _fpath
+svars	stats_v2_cycle               dump
+svars	stats_v2_cycle               rows
+svars	stats_v2_cycle               search
+svars	stats_v2_folder              _fdepth
+svars	stats_v2_folder              _fhid
+svars	stats_v2_folder              _fstack
+svars	stats_v2_folder              dump
+svars	stats_v2_folder              rows
+svars	stats_v2_folder              search
+svars	stats_v2_folder_end          _fstack
+svars	stats_v2_line                __prev
+svars	stats_v2_line                __pulse
+svars	stats_v2_line                __tick
+svars	stats_v2_line                _fdepth
+svars	stats_v2_line                _fhid
+svars	stats_v2_line                _fpath
+svars	stats_v2_line                dump
+svars	stats_v2_line                fav_rows
+svars	stats_v2_line                rows
+svars	stats_v2_line                search
+svars	stats_v2_rarity              _fdepth
+svars	stats_v2_rarity              _fhid
+svars	stats_v2_rarity              _fpath
+svars	stats_v2_rarity              row_h
+svars	stats_v2_rarity              rows
+svars	stats_v2_rarity              search
+svars	stats_v2_spark               _fdepth
+svars	stats_v2_spark               _fhid
+svars	stats_v2_spark               _fpath
+svars	stats_v2_spark               rows
+svars	stats_v2_spark               search
+svars	stats_v2_toggle              _fdepth
+svars	stats_v2_toggle              _fhid
+svars	stats_v2_toggle              _fpath
+svars	stats_v2_toggle              dump
+svars	stats_v2_toggle              rows
+svars	stats_v2_toggle              search
+svars	stats_v2_widget              _fdepth
+svars	stats_v2_widget              _fhid
+svars	stats_v2_widget              rows
+svars	stats_v2_widget              search
+svars	stats_v2_widget              widgets
+svars	stats_v2_widget              widgets_all
+svars	tile_roll_tier               _base_rarity
+svars	unlock_deck                  abi
+svars	write                        section
+ivars	obj_blob                   Create_0.gml                             macro x1
+ivars	obj_blob                   Create_0.gml                             ph x1
+ivars	obj_blob                   Create_0.gml                             x1 x2
+ivars	obj_blob                   Create_0.gml                             x2 x2
+ivars	obj_blob                   Create_0.gml                             y1 x2
+ivars	obj_blob                   Create_0.gml                             y2 x2
+ivars	obj_card                   Create_0.gml                             C9B8E8 x1
+ivars	obj_card                   Create_0.gml                             F0EBDC x1
+ivars	obj_debug_pro              Create_0.gml                             DISPLAY x1
+ivars	obj_debug_pro              Create_0.gml                             GLOBALS x1
+ivars	obj_debug_pro              Create_0.gml                             LOG x1
+ivars	obj_debug_pro              Create_0.gml                             OBJECTS x1
+ivars	obj_debug_pro              Create_0.gml                             SYSTEM x1
+ivars	obj_debug_pro              Create_0.gml                             call x1
+ivars	obj_debug_pro              Create_0.gml                             draw x2
+ivars	obj_debug_pro              Create_0.gml                             game x1
+ivars	obj_debug_pro              Create_0.gml                             gui x1
+ivars	obj_debug_pro              Create_0.gml                             holder x5
+ivars	obj_debug_pro              Create_0.gml                             index x1
+ivars	obj_debug_pro              Create_0.gml                             inst x2
+ivars	obj_debug_pro              Create_0.gml                             nothing x1
+ivars	obj_debug_pro              Create_0.gml                             object x1
+ivars	obj_debug_pro              Create_0.gml                             pages x3
+ivars	obj_debug_pro              Create_0.gml                             registered x1
+ivars	obj_debug_pro              Create_0.gml                             step x1
+ivars	obj_debug_pro              Create_0.gml                             x1 x1
+ivars	obj_debug_pro              Create_0.gml                             x2 x1
+ivars	obj_debug_pro              Create_0.gml                             y1 x1
+ivars	obj_debug_pro              Create_0.gml                             y2 x1
+ivars	obj_debug_pro              Draw_64.gml                              pages x7
+ivars	obj_debug_pro              Step_0.gml                               pages x2
+ivars	obj_dialogue               Create_0.gml                             blue x1
+ivars	obj_dialogue               Create_0.gml                             ch x1
+ivars	obj_dialogue               Create_0.gml                             dkblue x1
+ivars	obj_dialogue               Create_0.gml                             gray x1
+ivars	obj_dialogue               Create_0.gml                             green x1
+ivars	obj_dialogue               Create_0.gml                             horange x1
+ivars	obj_dialogue               Create_0.gml                             hpurple x1
+ivars	obj_dialogue               Create_0.gml                             hred x1
+ivars	obj_dialogue               Create_0.gml                             lavender x1
+ivars	obj_dialogue               Create_0.gml                             pink x1
+ivars	obj_dialogue               Create_0.gml                             rarity_ancient x1
+ivars	obj_dialogue               Create_0.gml                             rarity_basic x1
+ivars	obj_dialogue               Create_0.gml                             rarity_common x1
+ivars	obj_dialogue               Create_0.gml                             rarity_cosmic x1
+ivars	obj_dialogue               Create_0.gml                             rarity_divine x1
+ivars	obj_dialogue               Create_0.gml                             rarity_elite x1
+ivars	obj_dialogue               Create_0.gml                             rarity_epic x1
+ivars	obj_dialogue               Create_0.gml                             rarity_exotic x1
+ivars	obj_dialogue               Create_0.gml                             rarity_legendary x1
+ivars	obj_dialogue               Create_0.gml                             rarity_master x1
+ivars	obj_dialogue               Create_0.gml                             rarity_mythic x1
+ivars	obj_dialogue               Create_0.gml                             rarity_rare x1
+ivars	obj_dialogue               Create_0.gml                             rarity_ultimate x1
+ivars	obj_dialogue               Create_0.gml                             rarity_uncommon x1
+ivars	obj_dialogue               Create_0.gml                             red x1
+ivars	obj_dialogue               Create_0.gml                             salmon x1
+ivars	obj_dialogue               Create_0.gml                             sblue x1
+ivars	obj_dialogue               Create_0.gml                             seagreen x1
+ivars	obj_dialogue               Create_0.gml                             sgreen x1
+ivars	obj_dialogue               Create_0.gml                             shake x1
+ivars	obj_dialogue               Create_0.gml                             steelblue x1
+ivars	obj_dialogue               Create_0.gml                             wave x1
+ivars	obj_dialogue               Create_0.gml                             white x1
+ivars	obj_dialogue               Create_0.gml                             yellow x1
+ivars	obj_puck                   Create_0.gml                             l0 x1
+ivars	obj_puck                   Create_0.gml                             x1 x1
+ivars	obj_puck                   Create_0.gml                             x2 x1
+ivars	obj_puck                   Create_0.gml                             y1 x1
+ivars	obj_puck                   Create_0.gml                             y2 x1
+ivars	obj_save_menu              Create_0.gml                             idx x1
+ivars	obj_save_menu              Create_0.gml                             x1 x2
+ivars	obj_save_menu              Create_0.gml                             x2 x2
+ivars	obj_save_menu              Create_0.gml                             y1 x2
+ivars	obj_save_menu              Create_0.gml                             y2 x2
+ivars	obj_set_radio              Step_0.gml                               clicked x1
+ivars	obj_set_slider             Create_0.gml                             ww x5
+ivars	obj_set_slider             Draw_0.gml                               abar x2
+ivars	obj_set_slider             Draw_0.gml                               bh x4
+ivars	obj_set_slider             Draw_0.gml                               tfiller x1
+ivars	obj_set_slider             Draw_0.gml                               ww x5
+ivars	obj_set_toggle             Create_0.gml                             x0 x1
+ivars	obj_set_toggle             Create_0.gml                             x1 x1
+ivars	obj_set_toggle             Step_0.gml                               clicked x1
+ivars	obj_tile_tower             Create_0.gml                             fade x1
+ivars	obj_tile_tower             Create_0.gml                             p x1
+ivars	par_toggle                 Create_0.gml                             hue x4
+ivars	par_toggle                 Create_0.gml                             lum x1
+ivars	par_toggle                 Create_0.gml                             sat x1
+ivars	par_toggle_single          Create_0.gml                             hue x2
+ivars	par_toggle_single          Create_0.gml                             lum x1
+ivars	par_toggle_single          Create_0.gml                             sat x1
+ivars	syst_automation_panel      Create_0.gml                             btn x1
+ivars	syst_automation_panel      Create_0.gml                             btns x6
+ivars	syst_automation_panel      Create_0.gml                             chev x1
+ivars	syst_automation_panel      Create_0.gml                             help x36
+ivars	syst_automation_panel      Create_0.gml                             lo x14
+ivars	syst_automation_panel      Create_0.gml                             macro x5
+ivars	syst_automation_panel      Create_0.gml                             nocap x1
+ivars	syst_automation_panel      Create_0.gml                             ock x7
+ivars	syst_automation_panel      Create_0.gml                             ram x36
+ivars	syst_automation_panel      Create_0.gml                             sfx x19
+ivars	syst_automation_panel      Create_0.gml                             tag x18
+ivars	syst_battery_panel         Create_0.gml                             cost x2
+ivars	syst_crt                   Create_0.gml                             macro x3
+ivars	syst_crt                   Draw_0.gml                               chroma x1
+ivars	syst_crt                   Draw_0.gml                               grille x1
+ivars	syst_crt                   Draw_0.gml                               res x1
+ivars	syst_crt                   Draw_0.gml                               scan x1
+ivars	syst_crt                   Draw_0.gml                               vig x1
+ivars	syst_exped_panel           Create_0.gml                             bare x1
+ivars	syst_exped_panel           Create_0.gml                             cols x1
+ivars	syst_exped_panel           Create_0.gml                             crew x1
+ivars	syst_exped_panel           Create_0.gml                             dest x3
+ivars	syst_exped_panel           Create_0.gml                             di x1
+ivars	syst_exped_panel           Create_0.gml                             dither x1
+ivars	syst_exped_panel           Create_0.gml                             gal x1
+ivars	syst_exped_panel           Create_0.gml                             held x1
+ivars	syst_exped_panel           Create_0.gml                             hz x1
+ivars	syst_exped_panel           Create_0.gml                             ns x1
+ivars	syst_exped_panel           Create_0.gml                             para_on x1
+ivars	syst_exped_panel           Create_0.gml                             prog x5
+ivars	syst_exped_panel           Create_0.gml                             seat_y0 x1
+ivars	syst_exped_panel           Create_0.gml                             short x1
+ivars	syst_exped_panel           Create_0.gml                             slot x1
+ivars	syst_exped_panel           Create_0.gml                             sy_from x1
+ivars	syst_exped_panel           Create_0.gml                             tw x1
+ivars	syst_exped_panel           Create_0.gml                             warp x1
+ivars	syst_exped_panel           Create_0.gml                             why x4
+ivars	syst_faq                   Create_0.gml                             idx x1
+ivars	syst_faq                   Create_0.gml                             x1 x1
+ivars	syst_faq                   Create_0.gml                             x2 x1
+ivars	syst_faq                   Create_0.gml                             y1 x1
+ivars	syst_faq                   Create_0.gml                             y2 x1
+ivars	syst_menu2                 Create_0.gml                             idx x3
+ivars	syst_menu2                 Create_0.gml                             x1 x3
+ivars	syst_menu2                 Create_0.gml                             x2 x3
+ivars	syst_menu2                 Create_0.gml                             y1 x3
+ivars	syst_menu2                 Create_0.gml                             y2 x3
+ivars	syst_rm_ability            Create_0.gml                             desc x1
+ivars	syst_rm_ability            Create_0.gml                             rword x1
+ivars	syst_scene_light           Create_0.gml                             macro x1
+ivars	syst_settings              Create_0.gml                             data x3
+ivars	syst_settings              Create_0.gml                             help x3
+ivars	syst_settings              Create_0.gml                             idx x1
+ivars	syst_settings              Create_0.gml                             ind x3
+ivars	syst_settings              Create_0.gml                             inst x3
+ivars	syst_settings              Create_0.gml                             kx1 x1
+ivars	syst_settings              Create_0.gml                             kx2 x1
+ivars	syst_settings              Create_0.gml                             ky1 x1
+ivars	syst_settings              Create_0.gml                             ky2 x1
+ivars	syst_settings              Create_0.gml                             rx1 x1
+ivars	syst_settings              Create_0.gml                             rx2 x1
+ivars	syst_settings              Create_0.gml                             ry1 x1
+ivars	syst_settings              Create_0.gml                             ry2 x1
+ivars	syst_settings              Create_0.gml                             x1 x1
+ivars	syst_settings              Create_0.gml                             x2 x1
+ivars	syst_settings              Create_0.gml                             y1 x1
+ivars	syst_settings              Create_0.gml                             y2 x1
+ivars	syst_settings              Step_0.gml                               grabbed x1
+ivars	syst_sprites               Step_0.gml                               tile_room x2
+ivars	syst_statistics_v2         Create_0.gml                             c1 x1
+ivars	syst_statistics_v2         Create_0.gml                             c2 x1
+ivars	syst_statistics_v2         Create_0.gml                             data x1
+ivars	syst_statistics_v2         Create_0.gml                             fav x1
+ivars	syst_statistics_v2         Create_0.gml                             help x1
+ivars	syst_statistics_v2         Create_0.gml                             idx x1
+ivars	syst_statistics_v2         Create_0.gml                             inst x1
+ivars	syst_statistics_v2         Create_0.gml                             macro x1
+ivars	syst_statistics_v2         Create_0.gml                             span x1
+ivars	syst_statistics_v2         Create_0.gml                             x1 x1
+ivars	syst_statistics_v2         Create_0.gml                             x2 x1
+ivars	syst_statistics_v2         Create_0.gml                             y1 x1
+ivars	syst_statistics_v2         Create_0.gml                             y2 x1
+ivars	syst_tapfx                 Create_0.gml                             a0 x2
+ivars	syst_tapfx                 Create_0.gml                             shade x1
+ivars	syst_tiles                 Create_0.gml                             cfg x2
+ivars	syst_tiles                 Create_0.gml                             cost x1
+ivars	syst_tiles                 Create_0.gml                             dec x1
+ivars	syst_tiles                 Create_0.gml                             fabbed x1
+ivars	syst_tiles                 Create_0.gml                             hi_from x1
+ivars	syst_tiles                 Create_0.gml                             hi_to x1
+ivars	syst_tiles                 Create_0.gml                             pre x1
+ivars	syst_tiles                 Create_0.gml                             suf x1
+ivars	syst_tiles                 Step_0.gml                               cost x2
+ivars	syst_tiletimer             Step_0.gml                               th x1
+ivars	syst_tiletimer             Step_0.gml                               tw x1
+ivars	syst_timebank_panel        Create_0.gml                             cost x2
+ivars	syst_timebank_panel        Create_0.gml                             maxed x2
+ivars	syst_timebank_panel        Step_0.gml                               cost x2
+ivars	syst_timebank_panel        Step_0.gml                               maxed x2
+ivars	syst_titlescreen           Create_0.gml                             area x1
+ivars	syst_titlescreen           Create_0.gml                             ax1 x1
+ivars	syst_titlescreen           Create_0.gml                             ax2 x1
+ivars	syst_titlescreen           Create_0.gml                             ay1 x1
+ivars	syst_titlescreen           Create_0.gml                             ay2 x1
+ivars	syst_titlescreen           Create_0.gml                             big_glow x1
+ivars	syst_titlescreen           Create_0.gml                             br x1
+ivars	syst_titlescreen           Create_0.gml                             ca x1
+ivars	syst_titlescreen           Create_0.gml                             cb x1
+ivars	syst_titlescreen           Create_0.gml                             cycle_len x1
+ivars	syst_titlescreen           Create_0.gml                             d1 x1
+ivars	syst_titlescreen           Create_0.gml                             d2 x1
+ivars	syst_titlescreen           Create_0.gml                             decay x2
+ivars	syst_titlescreen           Create_0.gml                             dim x1
+ivars	syst_titlescreen           Create_0.gml                             dmp x2
+ivars	syst_titlescreen           Create_0.gml                             effs x1
+ivars	syst_titlescreen           Create_0.gml                             fx1 x1
+ivars	syst_titlescreen           Create_0.gml                             fx2 x1
+ivars	syst_titlescreen           Create_0.gml                             fy1 x1
+ivars	syst_titlescreen           Create_0.gml                             fy2 x1
+ivars	syst_titlescreen           Create_0.gml                             glow_scale x1
+ivars	syst_titlescreen           Create_0.gml                             hs x1
+ivars	syst_titlescreen           Create_0.gml                             hx x1
+ivars	syst_titlescreen           Create_0.gml                             p1 x1
+ivars	syst_titlescreen           Create_0.gml                             p2 x1
+ivars	syst_titlescreen           Create_0.gml                             ph x2
+ivars	syst_titlescreen           Create_0.gml                             px x1
+ivars	syst_titlescreen           Create_0.gml                             px1 x1
+ivars	syst_titlescreen           Create_0.gml                             px2 x1
+ivars	syst_titlescreen           Create_0.gml                             py x1
+ivars	syst_titlescreen           Create_0.gml                             py1 x1
+ivars	syst_titlescreen           Create_0.gml                             py2 x1
+ivars	syst_titlescreen           Create_0.gml                             rec x2
+ivars	syst_titlescreen           Create_0.gml                             rings x1
+ivars	syst_titlescreen           Create_0.gml                             rot_spd x1
+ivars	syst_titlescreen           Create_0.gml                             scale_min x1
+ivars	syst_titlescreen           Create_0.gml                             sparks x1
+ivars	syst_titlescreen           Create_0.gml                             tw x1
+ivars	syst_titlescreen           Create_0.gml                             wind_spd x1
+ivars	syst_titlescreen           Create_0.gml                             wind_trick x1
+ivars	syst_titlescreen           Create_0.gml                             x0 x1
+ivars	syst_titlescreen           Create_0.gml                             y0 x2
+ivars	syst_upgrades              Draw_0.gml                               applied x1
+ivars	syst_upgrades              Draw_0.gml                               game x1
+ivars	syst_upgrades              Draw_0.gml                               is x1
+ivars	syst_upgrades              Draw_0.gml                               neg x1
+ivars	syst_upgrades              Draw_0.gml                               of x1
+ivars	syst_upgrades              Draw_0.gml                               preview x1
+ivars	syst_upgrades              Draw_0.gml                               raw x1
+ivars	syst_upgrades              Draw_0.gml                               rows x3
+ivars	syst_upgrades              Draw_0.gml                               the x1
+ivars	syst_upgrades              Draw_0.gml                               this x1
+ivars	syst_upgrades              Draw_0.gml                               to x1
+ivars	syst_upgrades              Draw_0.gml                               yet x1
+dupvar	objects\obj_ability_slot\Draw_0.gml                  _on c_black rgb
+dupvar	objects\obj_bezier_bit\Draw_0.gml                    _bx _by _f _i _s
+dupvar	objects\obj_blob\Create_0.gml                        _b _bw _bx _by _p _pl array_length room_width
+dupvar	objects\obj_blob\Draw_0.gml                          _eh _ew _k _ry array_length
+dupvar	objects\obj_blob\Step_0.gml                          _db _dr _dt _spd tx ty y
+dupvar	objects\obj_card\Draw_0.gml                          _cx _cy _cz _sx _sy _sz i idx2 j jj k ly u2 v2
+dupvar	objects\obj_clicker\Draw_0.gml                       _mn
+dupvar	objects\obj_clicker\Step_0.gml                       _bi mousey
+dupvar	objects\obj_coin\Create_0.gml                        _a _c _cx _cy _cz _en _fay _faz _fy _fz _i _j _jt _k _kay _kaz _ky _kz _l _ox3 _oy3 _oz3 _pen _qy _qz _tl _tx _ty _tz _vn _vn2
+dupvar	objects\obj_coin\Step_0.gml                          _ang _s2
+dupvar	objects\obj_cursor\Draw_0.gml                        _bx _by _tx _ty
+dupvar	objects\obj_debug_pro\Create_0.gml                   _n _r _yy i
+dupvar	objects\obj_debug_pro\Step_0.gml                     i
+dupvar	objects\obj_dialogue\Create_0.gml                    _c _close _eq _i _p _tag _x i
+dupvar	objects\obj_dialogue\Draw_0.gml                      i
+dupvar	objects\obj_dice\Create_0.gml                        _cx _cy _cz _en _i _j _jt _l _ox3 _oy3 _oz3 _pen _qy _qz _tl _tx _ty _tz _vn _vn2
+dupvar	objects\obj_dice\Step_0.gml                          _ang _mdx _mdy _s2
+dupvar	objects\obj_puck\Create_0.gml                        _i _t
+dupvar	objects\obj_puck\Draw_0.gml                          _b _bx _by _fr _i _k _mx _pa dir
+dupvar	objects\obj_puck\Step_0.gml                          __cy _i _rl mousex mousey room_height
+dupvar	objects\obj_save_menu\Create_0.gml                   _back _f _g _h _i _out _w sel_prof
+dupvar	objects\obj_save_menu\Draw_0.gml                     _b _has _i _lbl _t
+dupvar	objects\obj_save_menu\Step_0.gml                     _b _i sel_row
+dupvar	objects\obj_scale_rx\Draw_0.gml                      _a _ms _px cnext
+dupvar	objects\obj_tickets\Create_0.gml                     _cx _cy _e _r _s _x1 _y1
+dupvar	objects\obj_tickets\Draw_0.gml                       _i _rc _xr c_white
+dupvar	objects\obj_tickets\Step_0.gml                       _xr mouse_y
+dupvar	objects\obj_tile_tower\Draw_0.gml                    _t clamp round
+dupvar	objects\obj_ui_gear\Create_0.gml                     _f _k _n _sc _v
+dupvar	objects\obj_ui_gear\Step_0.gml                       _i
+dupvar	objects\obj_ui_header\Draw_0.gml                     _b shown_peak
+dupvar	objects\obj_ui_menu2\Draw_0.gml                      _k
+dupvar	objects\syst_automation_panel\Create_0.gml           _a _bd _bf _bv _d _dd _e _f _i _k _m _n _nf _o _p _pm _q _r _sp _st _tn _u _v
+dupvar	objects\syst_automation_panel\Draw_0.gml             _b _c _ch _dn9 _f _i _k _nb _oc _on _q _rw _ry _sr _sx _u _vc
+dupvar	objects\syst_automation_panel\Step_0.gml             _b _ch _cy _cy9 _dn9 _k _nb _rw
+dupvar	objects\syst_battery_panel\Draw_0.gml                _bot _cap _hw _k _ry _top ang c_black sqr
+dupvar	objects\syst_battery_panel\Step_0.gml                _t _v clamp
+dupvar	objects\syst_ccore_panel\Draw_0.gml                  _bot _dy _hw _top _v c_black sqr
+dupvar	objects\syst_changelog\Create_0.gml                  _i
+dupvar	objects\syst_changelog\Draw_0.gml                    _i _k _y col_x
+dupvar	objects\syst_changelog\Step_0.gml                    _k
+dupvar	objects\syst_cheat_panel\Step_0.gml                  _b
+dupvar	objects\syst_crt\Create_0.gml                        _d _i
+dupvar	objects\syst_crt\Draw_0.gml                          _ah _aw
+dupvar	objects\syst_dials\Create_0.gml                      _i _n
+dupvar	objects\syst_dials\Draw_0.gml                        _bp _bw _c _can _cost _d _i _lg _p _px _y c_black string_width
+dupvar	objects\syst_dials\Step_0.gml                        _d _i _ry clamp g row_w2 true
+dupvar	objects\syst_exped_panel\Create_0.gml                _b _bw _c _e _g _h _hpc _hpr _i _j _k _l _mpc _mpr _o _out _pn _q _r _rg _rgi _sp _t _tw _up _w _x _xc _y _z array_length rg_sel
+dupvar	objects\syst_exped_panel\Draw_0.gml                  _i _k _r _ri _t
+dupvar	objects\syst_exped_panel\Step_0.gml                  _c _d _i _k delta
+dupvar	objects\syst_faq\Create_0.gml                        _i _out
+dupvar	objects\syst_faq\Draw_0.gml                          _i _t
+dupvar	objects\syst_gamepad_bench\Draw_0.gml                _i _k _ll _nm _ry
+dupvar	objects\syst_gift_panel\Draw_0.gml                   _b _pw
+dupvar	objects\syst_handle_save\Create_0.gml                _d
+dupvar	objects\syst_menu2\Create_0.gml                      _i
+dupvar	objects\syst_menu2\Draw_0.gml                        _o
+dupvar	objects\syst_menu2\Step_0.gml                        _q
+dupvar	objects\syst_objectives\Create_0.gml                 _i _o
+dupvar	objects\syst_objectives\Draw_0.gml                   _e _oe _rd _ry _x
+dupvar	objects\syst_objectives\Step_0.gml                   _i
+dupvar	objects\syst_objectives_panel\Create_0.gml           _i
+dupvar	objects\syst_objectives_panel\Draw_0.gml             _bx _by _n
+dupvar	objects\syst_offlog\Create_0.gml                     _b _dbg _k _t
+dupvar	objects\syst_offlog\Draw_0.gml                       _e _i
+dupvar	objects\syst_rm_ability\Create_0.gml                 _i
+dupvar	objects\syst_rm_ability\Draw_0.gml                   _known c_black rgb
+dupvar	objects\syst_rm_ability\Step_0.gml                   _c _c2 _d _i mouse_y
+dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
+dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
+dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
+dupvar	objects\syst_roomtrans\Draw_73.gml                   _e _w2
+dupvar	objects\syst_scene_light\Create_0.gml                _i
+dupvar	objects\syst_services\Draw_0.gml                     _i _ry btn_x
+dupvar	objects\syst_settings\Create_0.gml                   _i _r _s
+dupvar	objects\syst_settings\Draw_0.gml                     _t
+dupvar	objects\syst_settings\Draw_73.gml                    _w
+dupvar	objects\syst_settings\Step_0.gml                     _i
+dupvar	objects\syst_sparks\Draw_0.gml                       _s
+dupvar	objects\syst_statistics_v2\Create_0.gml              _bby _i _w
+dupvar	objects\syst_statistics_v2\Draw_0.gml                _arr _cy _first _g _gw _gx _gy _lit _nn _re _rfw _rfx _rg _row _rsn _rsw _s _t c_white floor frac
+dupvar	objects\syst_statistics_v2\Step_0.gml                _first _i
+dupvar	objects\syst_tapfx\Create_0.gml                      _f _rx
+dupvar	objects\syst_tapfx\Draw_0.gml                        _a _c _f _i _k _n _rmax _steps _x1 _y0 _y1
+dupvar	objects\syst_tapfx\Step_0.gml                        _i
+dupvar	objects\syst_tiles\Create_0.gml                      _anow _cx _cy _gap _h _i _j _k _n _nb _q _rc _rows _sh _t _tr _uc _uq _y c_white
+dupvar	objects\syst_tiles\Draw_0.gml                        _af _am0 _amthr _ap _i _r _sr c_steelblue
+dupvar	objects\syst_tiles\Step_0.gml                        _am _dst _e _i _k false mouse_y true
+dupvar	objects\syst_tiletimer\Step_0.gml                    _whole
+dupvar	objects\syst_timebank_panel\Draw_0.gml               _k
+dupvar	objects\syst_timebank_panel\Step_0.gml               _k false
+dupvar	objects\syst_titlescreen\Create_0.gml                _a _c _cx _cy _d _e _f _i _m _n _p _r _s _sz random
+dupvar	objects\syst_titlescreen\Step_0.gml                  _i _ry
+dupvar	objects\syst_upgrades\Create_0.gml                   _cap _in _k _n _s _t
+dupvar	objects\syst_upgrades\Draw_0.gml                     _hov _r c_black
+dupvar	objects\syst_upgrades\Step_0.gml                     _i _r
+dupvar	scripts\BignumVisRenderer\BignumVisRenderer.gml      _d _full _px _py _t _ut _w _wm
+dupvar	scripts\DigitWindow\DigitWindow.gml                  _h _len i
+dupvar	scripts\SkyCache\SkyCache.gml                        _ks
+dupvar	scripts\TierKeep\TierKeep.gml                        _i
+dupvar	scripts\ability_gen\ability_gen.gml                  _i _pick
+dupvar	scripts\autom_order\autom_order.gml                  _i _lp _lq
+dupvar	scripts\autom_pack\autom_pack.gml                    _k
+dupvar	scripts\autom_piece\autom_piece.gml                  _budget
+dupvar	scripts\autom_strategy\autom_strategy.gml            _budget _i
+dupvar	scripts\autom_tiles\autom_tiles.gml                  _budget _p
+dupvar	scripts\autom_unpack\autom_unpack.gml                _j _l _q
+dupvar	scripts\autom_upgrades\autom_upgrades.gml            _c _i _u
+dupvar	scripts\battery_optimise\battery_optimise.gml        _a _b _k _r0
+dupvar	scripts\battery_upg\battery_upg.gml                  _lv
+dupvar	scripts\belt_sys\belt_sys.gml                        _j _np
+dupvar	scripts\bestiary_lore\bestiary_lore.gml              _i
+dupvar	scripts\bestiary_payout\bestiary_payout.gml          _ctx _i _kd
+dupvar	scripts\bignum_vis_mantissa_string\bignum_vis_mantissa_string.gml _n
+dupvar	scripts\bignum_visualizer_create\bignum_visualizer_create.gml _ft _oc _ot _wm i
+dupvar	scripts\blur_snap\blur_snap.gml                      _d _i
+dupvar	scripts\capsule_bevel\capsule_bevel.gml              _r
+dupvar	scripts\cbt_ai\cbt_ai.gml                            _i _sc _t
+dupvar	scripts\cbt_fight_new\cbt_fight_new.gml              _i
+dupvar	scripts\cbt_fight_turn\cbt_fight_turn.gml            _actor _i _p _plan _rts
+dupvar	scripts\cbt_film\cbt_film.gml                        _q
+dupvar	scripts\cbt_hit\cbt_hit.gml                          _q _tk _vb
+dupvar	scripts\cbt_skill_gen\cbt_skill_gen.gml              _d _sc _t _u elem magic mult name
+dupvar	scripts\cbt_skills\cbt_skills.gml                    _d _s _t _u elem magic mult name
+dupvar	scripts\cbt_status\cbt_status.gml                    round
+dupvar	scripts\ccore_tick\ccore_tick.gml                    _c
+dupvar	scripts\crunch_time_ago\crunch_time_ago.gml          _n
+dupvar	scripts\debug_scenario\debug_scenario.gml            _hy _i _k _npl _st _st2
+dupvar	scripts\dial_breakdown\dial_breakdown.gml            _cfg _d _ms _s
+dupvar	scripts\dial_buy\dial_buy.gml                        _d
+dupvar	scripts\dial_buy_ext\dial_buy_ext.gml                _from _to
+dupvar	scripts\dial_cost\dial_cost.gml                      _ca _m _pp _to log_to_arb
+dupvar	scripts\dial_lvdiv\dial_lvdiv.gml                    _mx clamp
+dupvar	scripts\dims_tick\dims_tick.gml                      _i _j
+dupvar	scripts\do_pillbox\do_pillbox.gml                    _i
+dupvar	scripts\do_throwable\do_throwable.gml                _rx _ry
+dupvar	scripts\draw_blur_region\draw_blur_region.gml        _sh _sw
+dupvar	scripts\draw_pixel_region\draw_pixel_region.gml      _l _sh _sw _t
+dupvar	scripts\draw_px_line\draw_px_line.gml                _x2 _y1 _y2
+dupvar	scripts\ex_bestiary_draw\ex_bestiary_draw.gml        _bb _i _known _li _r _tw
+dupvar	scripts\ex_crew_draw\ex_crew_draw.gml                _sp array_length
+dupvar	scripts\ex_depart_draw\ex_depart_draw.gml            _can _crew _j _k _np _q _rg rg_sel
+dupvar	scripts\ex_depart_list\ex_depart_list.gml            _dl
+dupvar	scripts\ex_depart_press\ex_depart_press.gml          _sp
+dupvar	scripts\ex_galaxy_draw\ex_galaxy_draw.gml            _gx0 _gy0 _i _l _nb _ni _nr _nx _ny _pl _s _st _sx _sy _vh _vw gx_zoom sprite_get_height sprite_get_width
+dupvar	scripts\ex_galaxy_init\ex_galaxy_init.gml            floor
+dupvar	scripts\ex_galaxy_step\ex_galaxy_step.gml            _gbk _ger _gr _mmr _sy mouse_y
+dupvar	scripts\ex_haul_draw\ex_haul_draw.gml                _cw _flw _i _k string
+dupvar	scripts\ex_log_bar\ex_log_bar.gml                    _li _lr
+dupvar	scripts\ex_log_init\ex_log_init.gml                  _cw _h _i _ish _isk _isv _lx _pre _r _t _w floor
+dupvar	scripts\ex_map_draw\ex_map_draw.gml                  _d _ed _i _k _lkey _mr _named _q _rg _tr2 array_length
+dupvar	scripts\ex_map_init\ex_map_init.gml                  _b _bn _bny _bs _e _ed _h _i _inf _iw _k _kk _lc _li _ln _m1 _m2 _mi _mks _mr _n1 _nd _ni _o _p1 _pp _pts _rg _ri _sc _seq _t _tc _tr _w _w1 _wmax _wmin array_length c_gold c_horange c_hred rg_box_a
+dupvar	scripts\ex_map_press\ex_map_press.gml                _hp _mr0 _rg0
+dupvar	scripts\ex_orbit_init\ex_orbit_init.gml              _ay _az _cam _i _mi _mns0 _pn _rg _rr _rsy _si _sky _spin _stp _t exped_planet_hint mat3_transpose planet_props
+dupvar	scripts\ex_planet_clock\ex_planet_clock.gml          _pn4 _tgt _yp pv_spin
+dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _h _i _lcx _lcy _pr _pvr _rg _w
+dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _ocf _pc _pvr _rgp mouse_y
+dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _g _i _mid _n _rg _sl _ty _w _x _x0 rg_sel
+dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
+dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y
+dupvar	scripts\ex_system_draw\ex_system_draw.gml            _bj
+dupvar	scripts\ex_system_init\ex_system_init.gml            _a _bg _bl _cfgp _dd _fa _fpp0 _fsp0 _gph _h _i _j _k _mo _or _p _pp _pp0 _pw _pxs _rk _rp _sky _sor _sq0 _sq1 _stj _vr _w _x c_gold dsin
+dupvar	scripts\ex_system_step\ex_system_step.gml            _bk0 _pw2 _ser _sgl0 _sq2 _svr mouse_y
+dupvar	scripts\ex_trip_draw\ex_trip_draw.gml                _f _fo _j _k _ltw _m _pi _tr
+dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn
+dupvar	scripts\exped_abort\exped_abort.gml                  _travel
+dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _r _rg _rgi_a _tr _who
+dupvar	scripts\exped_agent\exped_agent.gml                  _epn _et _nb _pab _rd _rg _tr
+dupvar	scripts\exped_board_roll\exped_board_roll.gml        _e _i
+dupvar	scripts\exped_bond\exped_bond.gml                    _b
+dupvar	scripts\exped_bond_add\exped_bond_add.gml            _b
+dupvar	scripts\exped_collect\exped_collect.gml              _i _sp
+dupvar	scripts\exped_compose\exped_compose.gml              _nm _nm2 _pred _rg _subj
+dupvar	scripts\exped_dice\exped_dice.gml                    _stake array_length
+dupvar	scripts\exped_drink\exped_drink.gml                  _hpm _hpn _j _k
+dupvar	scripts\exped_drink_open\exped_drink_open.gml        _bk _it _j _wk
+dupvar	scripts\exped_encounter\exped_encounter.gml          _nm _rgi_e
+dupvar	scripts\exped_event_tick\exped_event_tick.gml        _rg _ri
+dupvar	scripts\exped_explore_pick\exped_explore_pick.gml    _i
+dupvar	scripts\exped_fight_loot\exped_fight_loot.gml        _d _it _j _own _rar _tagf
+dupvar	scripts\exped_fight_new\exped_fight_new.gml          _fk _foes _hz _lrg _lseas _seed _tr array_length
+dupvar	scripts\exped_haul_moment\exped_haul_moment.gml      _a _l _rest _sp
+dupvar	scripts\exped_hazard\exped_hazard.gml                _n _rg
+dupvar	scripts\exped_loot_roll\exped_loot_roll.gml          _d _eseed _rar _rgl_lv _tagl irandom_range
+dupvar	scripts\exped_mem_unpack\exped_mem_unpack.gml        _eq _recs _tl _v
+dupvar	scripts\exped_next_node\exped_next_node.gml          _tr
+dupvar	scripts\exped_node_event\exped_node_event.gml        _qm _rg _rm _rvc _rvq _tr
+dupvar	scripts\exped_note_beat\exped_note_beat.gml          _k _nd _rg
+dupvar	scripts\exped_note_fight\exped_note_fight.gml        _ctxf _txt
+dupvar	scripts\exped_odds\exped_odds.gml                    _ri _theirs
+dupvar	scripts\exped_offer_deal\exped_offer_deal.gml        _j _o
+dupvar	scripts\exped_offer_fill\exped_offer_fill.gml        _i
+dupvar	scripts\exped_offer_pack\exped_offer_pack.gml        _i
+dupvar	scripts\exped_offer_tick\exped_offer_tick.gml        _i
+dupvar	scripts\exped_pack\exped_pack.gml                    _i _k
+dupvar	scripts\exped_pick\exped_pick.gml                    _i
+dupvar	scripts\exped_quest_after\exped_quest_after.gml      _q _rg _ri _tn _vst
+dupvar	scripts\exped_quest_finish\exped_quest_finish.gml    _h _stops
+dupvar	scripts\exped_quest_gen\exped_quest_gen.gml          _a _b _bh _bi _c _camp _dung _f _hh _i _k _left _n _nd _ns _pi2 _picked _spec _sum _wild array_length
+dupvar	scripts\exped_quest_obj\exped_quest_obj.gml          _nn
+dupvar	scripts\exped_quest_txt\exped_quest_txt.gml          _nn _rg
+dupvar	scripts\exped_region_quests\exped_region_quests.gml  _i
+dupvar	scripts\exped_retire\exped_retire.gml                _i
+dupvar	scripts\exped_road_beat\exped_road_beat.gml          _k
+dupvar	scripts\exped_room\exped_room.gml                    _k _l
+dupvar	scripts\exped_room_find\exped_room_find.gml          _l
+dupvar	scripts\exped_say\exped_say.gml                      _i _nn _t _tr array_length
+dupvar	scripts\exped_shop\exped_shop.gml                    _it _it2 _it3 _j _k0 _rg _s _slot _st _tr
+dupvar	scripts\exped_start\exped_start.gml                  _i _sp
+dupvar	scripts\exped_tick\exped_tick.gml                    _e _si
+dupvar	scripts\exped_tick_one\exped_tick_one.gml            _j _k _q _rg _tr
+dupvar	scripts\exped_unpack\exped_unpack.gml                _fl _i _k _rgi _t
+dupvar	scripts\exped_unpack_v1\exped_unpack_v1.gml          _i _k _t _trn
+dupvar	scripts\exped_villain_card\exped_villain_card.gml    _rg _v
+dupvar	scripts\exped_world_open\exped_world_open.gml        _i
+dupvar	scripts\exped_xp_grant\exped_xp_grant.gml            _k _share
+dupvar	scripts\faq_content\faq_content.gml                  _cs _cx _cy _k
+dupvar	scripts\flaw_gen\flaw_gen.gml                        _pick
+dupvar	scripts\fleet_total\fleet_total.gml                  _tb
+dupvar	scripts\float_text\float_text.gml                    _dp
+dupvar	scripts\foe_gen\foe_gen.gml                          _k _r _vi
+dupvar	scripts\foe_kinds_at\foe_kinds_at.gml                _i
+dupvar	scripts\foe_sprite_frame\foe_sprite_frame.gml        _i
+dupvar	scripts\galaxy_fog_draw\galaxy_fog_draw.gml          _ci _i
+dupvar	scripts\galaxy_home\galaxy_home.gml                  _p _sm _st
+dupvar	scripts\galaxy_nebulae\galaxy_nebulae.gml            _i _sm rgb
+dupvar	scripts\galaxy_sky_build\galaxy_sky_build.gml        _cfg _core_az0 _d _dc _dd _edge0 _el _el3 _ev _gam _i _me _nb _nel _p1z _p2x _p2z _rng _sm _spw _st max
+dupvar	scripts\galaxy_sky_draw\galaxy_sky_draw.gml          _bf _f _fade _i _ldx _ldy _lw _n1 _o _rr _sb _ssx _ssy _sx _sy c_white sprite_get_width
+dupvar	scripts\galaxy_sky_holes\galaxy_sky_holes.gml        _bk _cam _fr _lw _lw0 _o _qw _rs _sk _ssy _sux round
+dupvar	scripts\galaxy_world\galaxy_world.gml                _st
+dupvar	scripts\galaxy_world_sys\galaxy_world_sys.gml        _st
+dupvar	scripts\gear_gen\gear_gen.gml                        _i
+dupvar	scripts\gear_score\gear_score.gml                    _i
+dupvar	scripts\gift_board\gift_board.gml                    _r
+dupvar	scripts\handle_save\handle_save.gml                  _cp _d _f _has _i _k _kv _old _pp _s _sl _sp _tk _tp _u _v floor g string_join_ext true variable_struct_get_names
+dupvar	scripts\handle_settings\handle_settings.gml          _i
+dupvar	scripts\hole_draw\hole_draw.gml                      _ph _pw _qw
+dupvar	scripts\hole_frame\hole_frame.gml                    sqrt
+dupvar	scripts\loading_draw\loading_draw.gml                _back _k
+dupvar	scripts\merge_colour_smooth\merge_colour_smooth.gml  _a sqr
+dupvar	scripts\moon_draw\moon_draw.gml                      _ang _light_w _lw _mo _pp2
+dupvar	scripts\moon_tex\moon_tex.gml                        _c1 _cl _d _ddx _h _i _x _y sin
+dupvar	scripts\moon_view_pos\moon_view_pos.gml              _lw
+dupvar	scripts\objective_catchup\objective_catchup.gml      _j _k _s
+dupvar	scripts\objective_tick\objective_tick.gml            _k
+dupvar	scripts\offline_replay\offline_replay.gml            _from _hi _i _lg1 _li _lines _pool0 _ti
+dupvar	scripts\pad_binds_load\pad_binds_load.gml            _nm
+dupvar	scripts\pad_glyph\pad_glyph.gml                      _i
+dupvar	scripts\pad_init\pad_init.gml                        _i
+dupvar	scripts\pad_tick\pad_tick.gml                        _a _av _b _di _hx _hy _i _p
+dupvar	scripts\pixel_snap\pixel_snap.gml                    _ah _aw
+dupvar	scripts\planet_bake\planet_bake.gml                  _base _bw _gas _pn
+dupvar	scripts\planet_biome\planet_biome.gml                _b _c _ct9 _gy9 _h _k _k9 _py _pz
+dupvar	scripts\planet_coast\planet_coast.gml                _dx _dy _i _th _u _v sin
+dupvar	scripts\planet_craters\planet_craters.gml            _bn _i _th
+dupvar	scripts\planet_draw\planet_draw.gml                  _cam _i _light_w _pn _spin _veer _wl mat3_rot
+dupvar	scripts\planet_eclipse\planet_eclipse.gml            _mo _pn _py _pz
+dupvar	scripts\planet_fields\planet_fields.gml              _ps _py _pz _qz
+dupvar	scripts\planet_gen_begin\planet_gen_begin.gml        _act _ax _bx _fr2 _fz _n _q _sand c_white colour_get_saturation colour_get_value max min power rgb
+dupvar	scripts\planet_gen_step\planet_gen_step.gml          _cb _db _dd2 _k _ps _py _pz
+dupvar	scripts\planet_get\planet_get.gml                    _pn
+dupvar	scripts\planet_gully\planet_gully.gml                _c10 _c11 _iy _iz _tx _ty _tz planet_gully_h
+dupvar	scripts\planet_lod_step\planet_lod_step.gml          _b _base _ddx _ddy _dx _dy _gas _glow _nb _ny _oe _px2 _py2 _ra _sea _sx _sy _th _tt _vh _vx
+dupvar	scripts\planet_pick\planet_pick.gml                  _pn _px _py _t _z
+dupvar	scripts\planet_plateaus\planet_plateaus.gml          _a _bn _bs _cl0 _cx _cy _dx _dy _i _m _px _py _rb _tgt _th _wet _xx _yy sin
+dupvar	scripts\planet_props\planet_props.gml                _cp _dp _mp _sp _wp
+dupvar	scripts\planet_ranges\planet_ranges.gml              _base _bias _hd _hi _i _len _mk _pt _r _sb _shd _slen _sy _xi _yi
+dupvar	scripts\planet_rivers\planet_rivers.gml              _bk _cx _cy _dx _dy _i _k _nb _ni _ny _p false round
+dupvar	scripts\planet_sky_draw\planet_sky_draw.gml          rgb
+dupvar	scripts\planet_vn3\planet_vn3.gml                    _iy _iz _tx planet_gully_h
+dupvar	scripts\planet_volcanoes\planet_volcanoes.gml        _bn _bs _cx _cy _dx _dy _i _k _ny _th _vt
+dupvar	scripts\potion_pick\potion_pick.gml                  _i _sum
+dupvar	scripts\prod_dials\prod_dials.gml                    _n
+dupvar	scripts\profit_spendable\profit_spendable.gml        _p
+dupvar	scripts\puck_pay\puck_pay.gml                        _hi true
+dupvar	scripts\pulsar_draw\pulsar_draw.gml                  _ax _e1 _ux dsin
+dupvar	scripts\rarity_odds\rarity_odds.gml                  _r
+dupvar	scripts\rebirth_do\rebirth_do.gml                    _i
+dupvar	scripts\region_daylight\region_daylight.gml          _pn _spin _t
+dupvar	scripts\region_event\region_event.gml                _rg _ri
+dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _sd _sy _t
+dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
+dupvar	scripts\region_hazards\region_hazards.gml            _j
+dupvar	scripts\region_info\region_info.gml                  _epn _et _i _rg exped_planet_hint
+dupvar	scripts\region_nearest_civ\region_nearest_civ.gml    _i
+dupvar	scripts\region_nearest_landing\region_nearest_landing.gml _l
+dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went
+dupvar	scripts\region_node_info\region_node_info.gml        _base _i _o _seed
+dupvar	scripts\region_node_leader\region_node_leader.gml    _base _hi _k _tl _trs _wts max
+dupvar	scripts\region_path\region_path.gml                  _u
+dupvar	scripts\region_road_name\region_road_name.gml        _base
+dupvar	scripts\region_road_point\region_road_point.gml      _k _pts array_length
+dupvar	scripts\region_season\region_season.gml              _d _tilt
+dupvar	scripts\region_villain\region_villain.gml            _h
+dupvar	scripts\region_weather\region_weather.gml            _rg _slot _wet
+dupvar	scripts\save_export\save_export.gml                  _b
+dupvar	scripts\settings_content\settings_content.gml        _cur _j _l _on _sel
+dupvar	scripts\sprite_ability_autofill\sprite_ability_autofill.gml _all _s
+dupvar	scripts\sprite_ability_worn\sprite_ability_worn.gml  _i
+dupvar	scripts\sprite_inv_trim\sprite_inv_trim.gml          _sh
+dupvar	scripts\sprite_name_gen\sprite_name_gen.gml          _cl _h _v
+dupvar	scripts\sprite_note\sprite_note.gml                  _i
+dupvar	scripts\sprite_pawn\sprite_pawn.gml                  _w
+dupvar	scripts\sprite_sheet_pack\sprite_sheet_pack.gml      _i
+dupvar	scripts\sprite_sheet_unpack\sprite_sheet_unpack.gml  _i _it
+dupvar	scripts\sprite_skill_learn\sprite_skill_learn.gml    _new _old _sh _tmpl
+dupvar	scripts\sprite_stats\sprite_stats.gml                _i
+dupvar	scripts\sprite_take\sprite_take.gml                  _arr _it _m _ms
+dupvar	scripts\star_name\star_name.gml                      _nm _sp
+dupvar	scripts\star_visible\star_visible.gml                _hh _sm
+dupvar	scripts\starmap_generate\starmap_generate.gml        _a _c _d _gx _gy _iy _py _salt _u
+dupvar	scripts\starmap_generate\starmap_generate.gml        _aa2 _bx2 _by _by2 _c _cfg _cx _cy _dgh _dgw _dir _ed _fa _fy _iaa _is _isl _la _ngw _nisl _pcount _pts _sy2 _t _vregs _vstars round
+dupvar	scripts\starsystem_generate\starsystem_generate.gml  _fr _i
+dupvar	scripts\station_render\station_render.gml            _cam2 _cy _light_w sqrt
+dupvar	scripts\station_sys\station_sys.gml                  random random_range rgb
+dupvar	scripts\stats_hist_offline\stats_hist_offline.gml    _f _m
+dupvar	scripts\stats_v2_content\stats_v2_content.gml        _d _hd _i _k _mm _s _st _sv _tb2
+dupvar	scripts\stats_v2_cycle\stats_v2_cycle.gml            _n
+dupvar	scripts\surface_byte_order\surface_byte_order.gml    false
+dupvar	scripts\tap_breakdown\tap_breakdown.gml              _i
+dupvar	scripts\tap_fire\tap_fire.gml                        _col _fly _fstr
+dupvar	scripts\ticket_grant\ticket_grant.gml                _i
+dupvar	scripts\ticket_prize\ticket_prize.gml                _amt _n _sd
+dupvar	scripts\tile_fupg\tile_fupg.gml                      _lv
+dupvar	scripts\tile_out\tile_out.gml                        _lg
+dupvar	scripts\tile_shape_draw\tile_shape_draw.gml          _gx _gy _k
+dupvar	scripts\tile_skin_roll\tile_skin_roll.gml            _n
+dupvar	scripts\tile_upg_bulk\tile_upg_bulk.gml              _c false
+dupvar	scripts\tiles_fab_finish\tiles_fab_finish.gml        _i
+dupvar	scripts\tiles_fastforward\tiles_fastforward.gml      _k _t
+dupvar	scripts\tiles_skin_heal\tiles_skin_heal.gml          _i
+dupvar	scripts\tiles_sync\tiles_sync.gml                    _i
+dupvar	scripts\tiles_tick\tiles_tick.gml                    _i _j _t
+dupvar	scripts\timebank_add\timebank_add.gml                _cap
+dupvar	scripts\timebank_burn\timebank_burn.gml              _before
+dupvar	scripts\timebank_spend\timebank_spend.gml            _tb
+dupvar	scripts\unfold_tick\unfold_tick.gml                  _vis
+dupvar	scripts\update_dial\update_dial.gml                  _d
+dupvar	scripts\upgrade_bonus\upgrade_bonus.gml              _i _s
+dupvar	scripts\upgrade_burst_start\upgrade_burst_start.gml  _i
+dupvar	scripts\upgrade_buy\upgrade_buy.gml                  _s
+dupvar	scripts\upgrade_cost\upgrade_cost.gml                _s
+dupvar	scripts\upgrade_roll\upgrade_roll.gml                _pick

@@ -822,6 +822,34 @@ for _e in _yyp.get("resources", []):
         _bad.append(_e["id"]["path"])
 check("every registered .yy has resourceType + resourceVersion", not _bad, "; ".join(_bad[:3]))
 
+# ------------------------------------------- 14. the static hunters (q226)
+# datafiles/hunt.py runs every hunter in datafiles/hunters/ (calls, arity,
+# events, nested seeds, globals, fields, svars, ivars, dupvar, the panel's
+# undefined reads) and diffs their findings against hunt_baseline.txt -
+# the ones read and judged benign. A NEW finding is a hard gate: read it,
+# fix it or accept it (hunt.py --accept) - never leave it in the diff.
+import subprocess
+_h = subprocess.run([sys.executable, os.path.join(ROOT, "datafiles", "hunt.py")], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+_hl = [l for l in (_h.stdout or "").split("\n") if l.strip()]
+check("the static hunters find nothing new (datafiles/hunt.py)", _h.returncode == 0, " | ".join(_hl[:4]))
+if _hl: print("        " + _hl[-1])
+
+# ------------------------------------------- 15. the shaders compile (q226)
+# GM compiles GLSL ES only at RUNTIME (Igor's log never mentions a shader),
+# so a broken shader draws nothing and says nothing until the game runs.
+# glsl_check.py compiles + links every shader through a real GL context
+# (moderngl on the machine's driver) as ES 1.00 with GM's preamble - the
+# nearest compiler to the runner's we can run. Without moderngl it warns.
+_g = subprocess.run([sys.executable, os.path.join(ROOT, "datafiles", "hunters", "glsl_check.py"), ROOT], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+_gl = [l for l in (_g.stdout or "").split("\n") if l.strip()]
+if _g.returncode == 2:
+    warn("every shader compiles as GLSL ES 1.00 (glsl_check.py)", False, _gl[0] if _gl else "moderngl missing")
+else:
+    _gb = [l for l in _gl if l.startswith("FAIL")]
+    check("every shader compiles as GLSL ES 1.00 (glsl_check.py)", _g.returncode == 0, "; ".join(_gb[:3]) or (_gl[-1] if _gl else "no output"))
+    if _g.returncode != 0: print("\n".join("        " + l for l in _gl if not l.startswith("ok")))
+    elif _gl: print("        " + _gl[-1])
+
 print("-" * 60)
 if fails:
     print(f"{len(fails)} CHECK(S) FAILED: {', '.join(fails)}\n")
