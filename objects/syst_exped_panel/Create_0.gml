@@ -484,6 +484,7 @@ pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
 lod_k3 = undefined;                       // THE ZOOM TIER (2026-09-17): the page's world at 3x the map (planet_lod_begin's struct, building or ready)
 lod_seed = -1;                            // ...whose world they are
+lod_c = [];                               // THE TIERS KEPT (q202): [{ seed, l }] - a world's tier survives leaving the page and swapping worlds (four kept; it was rebuilt on every return)
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
 pv_geo   = true;                     // (the camera rides the spin, always - the toggle went, his call 2026-09-16)
@@ -2596,10 +2597,23 @@ __worlds_step = function() {
 // on a smooth kernel, the biome law run on them; k odd, so the base texels' own centres are exact), built once
 // for the page's world, AHEAD, as soon as its base map stands, and kept while the page shows it. It shows from
 // region mode's own zoom (PV_ZOOM_RG - his ask) and any wheel zoom past it.
-// Nothing about the camera. No build runs while the camera moves (a drag, a glide, a snap): the frames it costs
-// would stutter the motion. A tier whose textures the gpu dropped (the window going full screen) is re-uploaded
-// from its kept buffers
-__lod_drop = function() { lod_k3 = planet_lod_free(lod_k3); lod_seed = -1; };
+// Nothing about the camera. Under the camera's hand the build takes a smaller slice (q202a). A tier whose textures
+// the gpu dropped (the window going full screen) is re-uploaded from its kept buffers. A NEW world's tier builds
+// under the page's loading veil (q202: the world arrives finished - no pop-in anywhere on it); tiers are KEPT
+// (lod_c, four of them) so a world seen before has its tier at once
+__lod_stash = function(_l, _seed) {   // a tier into the keep (the oldest let go past four)
+	if (!is_struct(_l)) return;
+	for (var _i = 0; _i < array_length(lod_c); _i++) if (lod_c[_i].seed == _seed) { lod_c[_i].l = _l; return; }
+	array_insert(lod_c, 0, { seed : _seed, l : _l });
+	while (array_length(lod_c) > 4) { var _old = array_pop(lod_c); planet_lod_free(_old.l); }
+};
+__lod_take = function(_seed) {   // a kept tier out of the keep (undefined when none)
+	for (var _i = 0; _i < array_length(lod_c); _i++) if (lod_c[_i].seed == _seed) { var _l = lod_c[_i].l; array_delete(lod_c, _i, 1); return _l; }
+	return undefined;
+};
+__lod_drop = function() { if (is_struct(lod_k3)) __lod_stash(lod_k3, lod_seed); lod_k3 = undefined; lod_seed = -1; };   // (the page's tier into the keep, not freed - q202)
+__lod_free_all = function() { __lod_drop(); for (var _i = 0; _i < array_length(lod_c); _i++) planet_lod_free(lod_c[_i].l); lod_c = []; };
+__lod_ready = function(_pn) { return is_struct(_pn) && lod_seed == _pn.seed && is_struct(lod_k3) && lod_k3.ready; };
 __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
 	// FROM THE REGION VIEW'S OWN ZOOM (his ask, 2026-09-17: "trigger at the zoom level where viewing a region settles"):
@@ -2617,7 +2631,7 @@ __lod_step = function() {
 	if (view != "planet" || !is_struct(pl_dest)) { __lod_drop(); return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 	if (_pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
-	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; }
+	if (lod_seed != _pn.seed) { __lod_drop(); lod_seed = _pn.seed; lod_k3 = __lod_take(_pn.seed); }   // (a kept tier back at once - q202)
 	if (is_struct(lod_k3) && lod_k3.ready) { if (!surface_exists(lod_k3.tsurf) || !surface_exists(lod_k3.hsurf)) planet_lod_upload(lod_k3); return; }
 	if (!is_struct(lod_k3)) lod_k3 = planet_lod_begin(_pn, 3);
 	// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms - and UNDER
@@ -2641,11 +2655,28 @@ __loading = function() {
 	var _d = undefined;
 	if (view == "planet") _d = pl_dest;
 	else if (view == "trip") { var _lt = __trip(); if (!is_undefined(_lt)) _d = _lt.dest; }
+	// THE SYSTEM'S STAMPS (q202; his call: "any planets I view in new systems should also show a loading screen"): the
+	// veil until every world of the system stands (planet_lite_ready; __sy_lite_step rushed by the veil's loop) - not
+	// once a dive is under way (the veil would hold the dive)
+	if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0 && sy_warp_st < 0) {
+		var _n = array_length(sy_pd), _rdy = 0, _part = 0;
+		for (var _i = 0; _i < _n; _i++) {
+			var _sp = sy_pd[_i];
+			if (planet_lite_ready(_sp)) { _rdy++; continue; }
+			if (_part == 0 && is_struct(_sp)) _part = .7 * _sp.row / max(1, _sp.th) + .3 * (_sp[$ "brow"] ?? 0) / max(1, 3 * _sp.th);
+		}
+		if (_rdy < _n) return { txt : "surveying the " + star_name(sy_star) + " system", prog : (_rdy + _part) / max(1, _n) };
+		return undefined;
+	}
 	if (!is_struct(_d)) return undefined;
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
 	if (_pn.row < _pn.th) return { txt : "building " + _d.name, prog : .7 * _pn.row / max(1, _pn.th) };
 	var _brw = _pn[$ "brow"] ?? 0;
 	if (_brw < 3 * _pn.th) return { txt : "building " + _d.name, prog : .7 + .3 * _brw / max(1, 3 * _pn.th) };
+	// THE ZOOM TIER too (q202; his ask: "have it start baking the higher LOD as soon as possible" - under the veil is as
+	// soon as it gets): the planet page waits for its world's 3x tier (__lod_step rushed by the veil's loop), so the
+	// world arrives finished and no zoom ever pops; a kept tier (lod_c) answers at once
+	if (view == "planet" && !__lod_ready(_pn)) return { txt : "surveying " + _d.name, prog : (is_struct(lod_k3) && lod_seed == _pn.seed) ? lod_k3.row / max(1, lod_k3.h) : 0 };
 	return undefined;
 };
 ld_v = 0;   // the veil's bar, easing

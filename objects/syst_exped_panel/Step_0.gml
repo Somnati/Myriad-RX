@@ -93,7 +93,8 @@ if (!is_struct(pl_dest) && is_struct(g[$ "exped"]) && array_length(g.exped.board
 var _ldg = __loading();
 if (is_struct(_ldg)) {
 	if (instance_exists(syst_handle_save)) syst_handle_save.bg_rush = true;
-	if (galaxy_ready() && mode != "sprites") { var _llim = get_timer() + 9000; while (get_timer() < _llim && is_struct(__loading())) __worlds_step(); }
+	// (the veil's work, nine ms a frame: the page's world and its zoom tier, or the system's stamps - q202)
+	if (galaxy_ready() && mode != "sprites") { var _llim = get_timer() + 9000; while (get_timer() < _llim && is_struct(__loading())) { if (view == "system") __sy_lite_step(); else { __worlds_step(); __lod_step(); } } }
 	ld_v = trickle(ld_v, _ldg.prog, 4);
 	if (!_under && input_free(ui_layer_overlay) && mouse_check_button_pressed(mb_left) && __back_on()) { var _lbk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _lbk.x, _lbk.y, _lbk.x + _lbk.w, _lbk.y + _lbk.h)) __back(); }
 	exit;

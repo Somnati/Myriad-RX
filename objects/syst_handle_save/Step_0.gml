@@ -39,15 +39,20 @@ action = -1;}
 // the load ran (the handler above): the title may come
 if (boot_phase == 1 && action == -1) { boot_phase = 2; boot_prog = 1; }
 boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
-// ---- THE CHART IN THE BACKGROUND (his call, 2026-09-17: "the loading screen
-// on boot needs to go"): the galaxy in slices of bg_budget ms a frame under
-// play - invisible - then the home world's rows and its bake the same way
-// (the panel opens on the finished model; his report 2026-09-15). The
-// expedition panel's veil sets bg_rush while it waits, and the slice grows
-// to the boot's 9 ms. A new game's fresh seed restarts it (starmap_get
-// finishes a half-built one in place if anything asks first) ----
-if (boot_phase >= 2) {
-	var _bgb = bg_rush ? 9 : bg_budget;
+// ---- THE CHART, ON DEMAND (q202, his call 2026-09-18: "take the loading of
+// any planets off the base game - it's causing lag and a hitch when booting
+// up... when I hit the expedition header button, if needed, take me to a
+// loading screen"): NOTHING of the galaxy or its worlds builds under play.
+// The builder below - the chart in slices, then the home world's rows and
+// its bake - runs only in the frames the expedition panel's VEIL asks for
+// it (bg_rush, set every frame the veil shows), nine ms a frame behind the
+// loading screen; the expeditions' clock owes its seconds until the chart
+// stands (exped_tick) and replays them then. A new game's fresh seed
+// restarts it (starmap_get finishes a half-built one in place if anything
+// asks first). (Before: bg_budget slices under play from boot - the 09-17
+// design, retired) ----
+if (boot_phase >= 2 && bg_rush) {
+	var _bgb = 9;
 	if (galaxy_ready()) { if (is_struct(bg_gen)) bg_gen = undefined; }
 	else {
 		if (!is_struct(bg_gen) || bg_gen.seed != g.galaxy_seed) { bg_gen = starmap_gen_begin(g.galaxy_seed); bg_world_done = false; }
