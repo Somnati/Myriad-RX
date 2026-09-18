@@ -2461,6 +2461,9 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	var _lod = (view == "planet") ? __lod_pick(_pn) : undefined;   // (the zoom tier standing for this zoom, the page's own - 2026-09-17)
+	// the aurora's strength is the star's (q205): main 1, a red giant 1.6, a white dwarf .45, a pulsar 2.2, a black hole's disc 1.2
+	var _askd = _sky[$ "skind"] ?? "main";
+	_pn.astr = (_sky[$ "hole"] ?? false) ? 1.2 : ((_askd == "giant") ? 1.6 : ((_askd == "dwarf") ? .45 : ((_askd == "pulsar") ? 2.2 : 1)));
 	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod, (view == "planet") ? pv_pfade : 1);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind

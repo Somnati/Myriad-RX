@@ -48,7 +48,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		vent : shader_get_uniform(sh_planet, "u_vent"), ventn : shader_get_uniform(sh_planet, "u_ventn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
-		aurora : shader_get_uniform(sh_planet, "u_aurora"),
+		aurora : shader_get_uniform(sh_planet, "u_aurora"), amag : shader_get_uniform(sh_planet, "u_amag"), astr : shader_get_uniform(sh_planet, "u_astr"),
 		cloud : shader_get_sampler_index(sh_planet, "u_cloud"),
 		height : shader_get_sampler_index(sh_planet, "u_height"),
 	};
@@ -167,6 +167,12 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f_array(_u.storm, _stv);
 	shader_set_uniform_f(_u.stormn, _stn);
 	shader_set_uniform_f(_u.aurora, (_pn.kind != "gas" && ((_pn.clim > .6) || (hash_mix(_pn.seed, 4242) mod 100 < 35))) ? 1 : 0);   // (cold worlds, and a third of the rest)
+	// THE MAGNETIC POLE (q205): eight to fifteen degrees off the spin axis, toward a hashed longitude - the oval is lopsided
+	// and swings round with the day; the STRENGTH is the star's (pn.astr, set by the page from the world's sky: a giant's
+	// or a pulsar's wind fierce, a dwarf's faint; 1 when nobody said)
+	var _mt = 8 + 7 * ((hash_mix(_pn.seed, 4243) mod 1000) / 1000), _ml = (hash_mix(_pn.seed, 4244) mod 360);
+	shader_set_uniform_f(_u.amag, dsin(_mt) * dcos(_ml), dcos(_mt), dsin(_mt) * dsin(_ml));
+	shader_set_uniform_f(_u.astr, _pn[$ "astr"] ?? 1);
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);   // (into a float page: the page dithers once at its blit)
 	var _cty = array_create(24, 0);
 	var _ctn = 0;

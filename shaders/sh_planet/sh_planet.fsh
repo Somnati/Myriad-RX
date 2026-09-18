@@ -44,6 +44,8 @@ uniform float u_moonn;
 uniform vec4  u_storm[3];    // LIGHTNING: the spots (texture space) of the regions whose weather is a storm, w = on
 uniform float u_stormn;
 uniform float u_aurora;      // AURORA: 1 on the worlds that have one
+uniform vec3  u_amag;        // ...its MAGNETIC pole in the world's frame (8-15 deg off the spin axis, hashed - the oval swings round with the day; q205)
+uniform float u_astr;        // ...its strength: the star's doing (a giant's or a pulsar's wind fierce, a dwarf's faint; q205)
 uniform float u_relief;
 uniform float u_bump;      // the mountains' exaggeration (settings > visuals: 1 = the base look; 0 flattens the shading, not the silhouette)
 uniform float u_cfade;    // cloud visibility 0..1: zooming in on a region thins the deck (and its shadows) so the land shows through
@@ -405,6 +407,55 @@ float hash12(vec2 p)
     return fract((p3.x + p3.y) * p3.z);
 }
 
+// THE AURORA (q205, 2026-09-18; his ask: "we do need to improve the auroras" - the old one was a latitude band painted
+// on the ground). What it is: an OVAL round the MAGNETIC pole (u_amag - a few degrees off the spin axis, so the
+// oval is lopsided and swings round with the day), a CURTAIN with height - it lives above the decks, AR0..AR1
+// radii, so from orbit it STANDS OFF THE LIMB on the night side with rays along the field lines - green at the
+// foot, red-violet at the crown, folding on noise (never a beat), bright only in the night. Marched: the ray's
+// segment through the shell, N samples, each read by its direction on the sphere and its height
+const float AR0 = 1.16;   // the shell's foot (above the top deck, CR)
+const float AR1 = 1.27;   // ...and its crown
+float vn2a(vec2 p)
+{
+    vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), f.x), mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+vec3 aurora_seg(vec2 p, float za, float zb)   // the light gathered along the ray's segment from z = za to zb (the orthographic ray through p)
+{
+    vec3 acc = vec3(0.0);
+    vec3 m = normalize(u_amag);
+    vec3 e1 = normalize(cross(m, (abs(m.y) < 0.9) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+    vec3 e2 = cross(m, e1);
+    float T = u_time;
+    for (int i = 0; i < 6; i++) {
+        float zz = mix(za, zb, (float(i) + 0.5) / 6.0);
+        vec3 x = vec3(p, zz);
+        float rr = length(x);
+        float h = clamp((rr - AR0) / (AR1 - AR0), 0.0, 1.0);
+        vec3 d = x / rr;
+        vec3 t = to_tex(d);
+        // the oval: the colatitude from the nearer magnetic pole, its edge wobbling on noise round the pole
+        float cdn = dot(t, m);
+        float ang = acos(clamp(abs(cdn), 0.0, 1.0));
+        float az = atan(dot(t, e2), dot(t, e1)) * sign(cdn + 0.0001);
+        float wob = 0.35 * (vn2a(vec2(az * 1.2 + T * 0.05, 3.0)) - 0.5) + 0.16 * (vn2a(vec2(az * 4.0 - T * 0.08, 9.0)) - 0.5);
+        float c0 = 0.37 + wob * 0.35;                       // (~21 degrees, in radians)
+        float w  = 0.075 * (1.0 + 0.4 * u_astr);            // (~4 degrees, wider under a fierce wind)
+        float oval = exp(-pow((ang - c0) / w, 2.0));
+        float night = 1.0 - smoothstep(-0.12, 0.22, dot(d, u_light));
+        if (oval * night < 0.01) continue;   // (the oval is a thin ring in the night: most samples are nothing - out before the noise)
+        // the curtains: folds along the oval on two noises, and the rays' fine shimmer along the field
+        float fold = vn2a(vec2(az * 3.0 + T * 0.12, T * 0.07)) * 0.6 + vn2a(vec2(az * 11.0 - T * 0.2, 5.0 + T * 0.05)) * 0.4;
+        float curt = smoothstep(0.30, 0.78, fold);
+        float rays = 0.72 + 0.28 * vn2a(vec2(az * 40.0, T * 1.5 + h * 3.0));
+        // the height: bright a little above the foot, gone at the crown; the night alone
+        float prof = smoothstep(0.0, 0.18, h) * (1.0 - smoothstep(0.25, 1.0, h));
+        vec3 ac = mix(vec3(0.12, 0.95, 0.45), vec3(0.62, 0.22, 0.92), smoothstep(0.15, 0.85, h));
+        acc += ac * oval * curt * rays * prof * night;
+    }
+    return acc * (u_astr * 0.42);
+}
+
 float lightband(float d)
 {
     return mix(0.13, 1.0, smoothstep(-0.22, 0.30, d));   // (the night floor: .10 -> .13, the land reads - his ask 2026-09-17)
@@ -757,18 +808,7 @@ void main()
         }
         col *= 1.0 - 0.9 * ecl * li;
 
-        // AURORA (2026-09-16): a shimmering curtain at high latitudes on the
-        // night side - green at its foot, violet at its crown, waving slowly
-        if (u_aurora > 0.5) {
-            float alat = abs(t.y);
-            float band = smoothstep(0.78, 0.88, alat) * (1.0 - smoothstep(0.965, 1.0, alat));
-            float lon = atan(t.z, t.x);
-            // (phase-modulated by two slow sines at irrational ratios: the curtain never repeats a beat - "too rhythmic", his report 2026-09-16)
-            float wave = 0.5 + 0.5 * sin(lon * 5.0 + u_time * 0.6 + 2.0 * sin(u_time * 0.173 + lon * 2.3)) * sin(lon * 11.0 - u_time * 0.35 + alat * 20.0 + 3.0 * sin(u_time * 0.091 + lon * 0.7));
-            float curtain = smoothstep(0.30, 0.85, wave);
-            float night = 1.0 - smoothstep(-0.05, 0.22, dot(n, u_light));
-            col += mix(vec3(0.15, 0.95, 0.55), vec3(0.55, 0.30, 0.90), smoothstep(0.86, 0.95, alat)) * band * curtain * night * 0.6;
-        }
+        // (the AURORA moved above the decks - aurora_seg, after the cloud composite below; q205)
 
         // LIGHTNING (2026-09-16): in dense cloud on the night side a cell
         // flashes now and then (a hash per cell per third-of-a-second slot,
@@ -818,6 +858,8 @@ void main()
         col = mix(col, cbcol, cab * 0.80);
         col = mix(col, ctcol, cat * 0.95);
         col += vec3(0.92, 0.95, 1.0) * fl * 1.1;   // the cloud itself, lit from within
+        // THE AURORA over the decks (q205): the shell's front segment, from its crown down to its foot
+        if (u_aurora > 0.5) col += aurora_seg(p, sqrt(max(AR1 * AR1 - r2, 0.0)), sqrt(max(AR0 * AR0 - r2, 0.0)));
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
         col += dn * (min(dot(col, vec3(0.299, 0.587, 0.114)) * 255.0 * 0.5, 2.0) / 255.0);
@@ -837,6 +879,18 @@ void main()
         if (cab > 0.04) { col = cbcol; a = max(a, cab * 0.80); }
         if (cat > 0.04) { col = ctcol; a = max(a, cat * 0.95); }
         if (ringA > 0.0 && ringZ > czf)  { col = ringC; a = max(a, ringA); }
+        // THE AURORA OFF THE LIMB (q205): past the ground the ray still crosses the shell - its front, and its back
+        // through the decks (dimmed by them) - the curtain standing up over the night limb, the look of the thing
+        if (u_aurora > 0.5 && r2 < AR1 * AR1) {
+            float zn = sqrt(AR1 * AR1 - r2);
+            vec3 al;
+            if (r2 < AR0 * AR0) { float zf = sqrt(AR0 * AR0 - r2); al = aurora_seg(p, zn, zf) + aurora_seg(p, -zf, -zn) * (1.0 - max(cat, cab)); }
+            else al = aurora_seg(p, zn, -zn);
+            float aa = clamp(max(al.r, max(al.g, al.b)) * 1.3, 0.0, 1.0);
+            vec3 pm = col * a + al;
+            a = a + aa * (1.0 - a);
+            col = (a > 0.001) ? pm / a : col;
+        }
         gl_FragColor = vec4(col, a);
     }
 }
