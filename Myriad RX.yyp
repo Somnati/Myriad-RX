@@ -674,6 +674,7 @@
     {"id":{"name":"planet_lod_upload","path":"scripts/planet_lod_upload/planet_lod_upload.yy",},},
     {"id":{"name":"planet_moons","path":"scripts/planet_moons/planet_moons.yy",},},
     {"id":{"name":"planet_pick","path":"scripts/planet_pick/planet_pick.yy",},},
+    {"id":{"name":"planet_plateaus","path":"scripts/planet_plateaus/planet_plateaus.yy",},},
     {"id":{"name":"planet_props","path":"scripts/planet_props/planet_props.yy",},},
     {"id":{"name":"planet_ranges","path":"scripts/planet_ranges/planet_ranges.yy",},},
     {"id":{"name":"planet_rivers","path":"scripts/planet_rivers/planet_rivers.yy",},},

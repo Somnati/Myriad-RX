@@ -24,6 +24,7 @@ function planet_bake(_pn, _until = undefined) {
 	planet_volcanoes(_pn);   // (then the volcanoes on the land the ranges left, and their plumes into the cloud map's green)
 	planet_craters(_pn);     // (then the impact craters - q206; before the rivers, so a living world's may fill as a lake)
 	planet_rivers(_pn);   // (then the drainage, in the valleys the ranges leave - it guards itself)
+	planet_plateaus(_pn); // (then the tablelands rise round the rivers that cross them: the canyons - q208)
 	// a bake under a shader someone left set (the ui fade) would keep its
 	// tint for good: the stamps go through the plain pipeline (bug hunt 2026-09-15)
 	var _sh = shader_current();
