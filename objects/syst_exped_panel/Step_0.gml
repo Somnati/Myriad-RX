@@ -55,29 +55,7 @@ if (mode != "sprites" && galaxy_ready()) {   // (never before the chart: a hint 
 // THE REPLAY: a trip page with an unseen film (and no live fight)
 // plays it in the combat window, a swing every half second; the last
 // frame holds a moment, then it is seen. A tap on the window skips it
-if (view == "trip") {
-	var _tvr = __trip();
-	if (!is_undefined(_tvr)) {
-		var _rr = _tvr[$ "replay"];
-		// a fight watched LIVE on this page is not replayed after
-		if (!is_undefined(_tvr.fight)) seen_live = string(_tvr.id) + ":" + string(_tvr[$ "fights"] ?? 0);
-		if (!is_undefined(_rr) && !_rr.seen && seen_live == string(_tvr.id) + ":" + string(_rr.room)) _rr.seen = true;
-		if (is_undefined(rp) && !is_undefined(_rr) && !_rr.seen && is_undefined(_tvr.fight) && array_length(_rr.ev) > 0)
-			rp = { i : 0, t : 0, r : _rr, id : _tvr.id };
-		if (!is_undefined(rp)) {
-			if (rp.id != _tvr.id || !is_undefined(_tvr.fight)) rp = undefined;
-			else {
-				rp.t += delta / 60;
-				var _step = (rp.i < array_length(rp.r.ev) - 1) ? .5 : 1.6;
-				if (rp.t >= _step) {
-					rp.t = 0;
-					if (rp.i < array_length(rp.r.ev) - 1) rp.i += 1;
-					else { rp.r.seen = true; rp = undefined; }
-				}
-			}
-		}
-	} else rp = undefined;
-} else rp = undefined;
+if ((view == "trip")) ex_trip_replay();  else rp = undefined;   // (ex_trip_replay - q220)
 // a trip that got home while its page was open: the page turns to the haul
 if (view == "trip" && is_undefined(__trip())) { view = (__haul_i() >= 0) ? "haul" : "planet"; if (view == "haul") { pg_a = 0; pg_dir = 1; hl_open = false; } }   // (the haul fades in - his ask, 2026-09-15)
 if (view == "haul" && __haul_i() < 0 && pg_dir >= 0) { view = "planet"; swap_pick = false; }   // (not mid-turn: the collect's fade-out finishes on the card)
@@ -112,58 +90,11 @@ if (is_struct(pv_sky)) pv_sky.light_w = galaxy_sun_dir(0, pl_dest);   // (every 
 if (ex_planet_clock()) exit;   // (the orbit view's clock - ex_planet_clock, q219)
 // THE TRIP PAGE'S WORLD: the same render, its camera turned to the trip's
 // region once (a new trip on the page), riding the spin after (geosync)
-if (view == "trip") {
-	var _ttr = __trip();
-	if (!is_undefined(_ttr)) {
-		var _tpn = planet_get(_ttr.dest.seed, exped_planet_hint(_ttr.dest));
-		if (tp_id != _ttr.id) { tp_id = _ttr.id; tp_spin = planet_spin_now(_tpn); tp_cam = __cam_face(_tpn, tp_spin, exped_region(_ttr), mat3_rot(1, 0, 0, -32)); }
-		var _tns = planet_spin_now(_tpn);
-		var _tds = angle_difference(_tns, tp_spin);
-		tp_spin = _tns;
-		var _tax = mat3_apply(mat3_rot(0, 0, 1, _tpn.tilt), 0, 1, 0);
-		tp_cam = mat3_mul(mat3_rot(_tax[0], _tax[1], _tax[2], _tds), tp_cam);
-	}
-}
+if ((view == "trip")) ex_trip_world();   // (ex_trip_world - q220)
 if (view != "planet") { pv_drag = false; pv_vx = 0; pv_vy = 0; }
 // THE DIARY'S BAR: seated on the log's column while a diary shows, hidden
 // otherwise; it follows the newest line unless you scrolled up
-if (view == "trip" || view == "haul") {
-	var _lr = __log_r();
-	var _ll = __log_lines();
-	// A RE-WRAP KEEPS YOUR PLACE (his ask, 2026-09-15): the band's width
-	// changed (the trip page turned into the haul) - the line at the top of
-	// the band before is the line at the top after
-	if (is_array(_ll) && log_lay.w != _lr.w - 8 && log_lay.n == array_length(_ll) && array_length(log_lay.hs) > 0) {
-		var _acc = 0, _top = array_length(log_lay.hs), _off = 0;
-		for (var _li = 0; _li < array_length(log_lay.hs); _li++) { if (_acc + log_lay.hs[_li] > log_scroll) { _top = _li; _off = log_scroll - _acc; break; } _acc += log_lay.hs[_li]; }
-		var _lay2 = __log_layout(_ll, _lr.w - 8);
-		var _acc2 = 0;
-		for (var _li = 0; _li < min(_top, array_length(_lay2.hs)); _li++) _acc2 += _lay2.hs[_li];
-		log_scroll = _acc2 + ((_top < array_length(_lay2.hs)) ? min(_off, _lay2.hs[_top] - 1) : 0);
-		if (instance_exists(sb)) { sb.ty = log_scroll; sb.input = log_scroll; sb.ty_speed_actual = 0; }
-	}
-	var _lmax = (_lr.h > 0) ? max(0, __log_content_h() - _lr.h) : 0;   // (no band, no bar: the haul's diary shut - bug hunt 2026-09-16)
-	if (is_array(_ll)) {
-		// THE FOLLOW: at the bottom, a new line pulls the band down with it;
-		// scrolled up at all, the band holds still (the bar's own ty is the
-		// scroll's truth every step, so the bar is told too - his report:
-		// it never followed)
-		if (log_n != array_length(_ll)) {
-			if (log_follow) { log_scroll = _lmax; if (instance_exists(sb)) { sb.ty = _lmax; sb.input = _lmax; sb.ty_speed_actual = 0; } }
-			log_n = array_length(_ll);
-		}
-		log_follow = (log_scroll >= _lmax - 2);
-	}
-	log_scroll = clamp(log_scroll, 0, _lmax);
-	if (instance_exists(sb)) {
-		sb.x = _lr.x + _lr.w - sprite_get_width(spr_scrollbar);
-		sb.y = _lr.y;
-		sb.image_yscale = _lr.h / max(1, sprite_get_height(spr_scrollbar));
-		sb.wheel_x1 = _lr.x; sb.wheel_x2 = _lr.x + _lr.w;
-		sb.visible = (oa >= .999 && !closing && _lmax > 0);
-		sb.enabled = (oa >= .999 && !closing && !_under);
-	}
-} else {
+if ((view == "trip" || view == "haul")) ex_log_bar(_under);  else {   // (ex_log_bar - q220)
 	log_n = -1; log_follow = true; log_scroll = 0;
 	if (instance_exists(sb)) { sb.visible = false; sb.enabled = false; }
 }
@@ -210,20 +141,7 @@ if (conf_a > .01) exit;   // (fading out: nothing under it acts yet)
 if (pg_dir < 0) exit;     // (the page is turning to black; a page lighting up already takes presses - snappier)
 if (view == "depart" && (dp_dir != 0 || dp_in < 1)) exit;   // (the page is swinging)
 // ---- THE PREPARATION PAGE'S LIST: the wheel, or a drag on it (held input - above the press gate) ----
-if (view == "depart" && is_struct(pl_dest) && dp_sheet < 0) {
-	var _dl = __dp_list_r();
-	var _din = point_in_rectangle(mouse_x, mouse_y, _dl.x, _dl.y, _dl.x + _dl.w, _dl.y + _dl.h);
-	if (_din && __dp_off_max() > 0) {
-		if (mouse_wheel_up())   dp_off -= __dp_bh() + 4;
-		if (mouse_wheel_down()) dp_off += __dp_bh() + 4;
-	}
-	if (!is_struct(dp_ldrag) && _din && mouse_check_button_pressed(mb_left) && __dp_off_max() > 0) dp_ldrag = { y0 : mouse_y, off0 : dp_off, moved : 0 };
-	if (is_struct(dp_ldrag)) {
-		if (mouse_check_button(mb_left)) { dp_off = dp_ldrag.off0 - (mouse_y - dp_ldrag.y0); dp_ldrag.moved = max(dp_ldrag.moved, abs(mouse_y - dp_ldrag.y0)); }
-		else dp_ldrag = undefined;
-	}
-	dp_off = clamp(dp_off, 0, __dp_off_max());
-}
+if ((view == "depart" && is_struct(pl_dest) && dp_sheet < 0)) ex_depart_list();   // (ex_depart_list - q220)
 // THE [misc] LISTS scroll (2026-09-17): the wheel over the notepad or the friendships
 if ((view == "crew" || view == "sheet") && sheet_pg == 2) {
 	if (is_struct(misc_nrect) && point_in_rectangle(mouse_x, mouse_y, misc_nrect.x, misc_nrect.y, misc_nrect.x + misc_nrect.w, misc_nrect.y + misc_nrect.h)) {
@@ -391,54 +309,12 @@ if (view != "hub") {
 
 // ======================= THE CREW MENU: tabs on the left =======================
 // ======================= THE BESTIARY: a cell =======================
-if (view == "bestiary") {
-	var _nk = array_length(foe_roster());
-	for (var _i = 0; _i < _nk; _i++) {
-		var _cr = __bs_cell_r(_i);
-		if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) { bs_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
-	}
-	exit;
-}
+if ((view == "bestiary")) { if (ex_bestiary_press()) exit; }   // (ex_bestiary_press - q220)
 
-if (view == "crew") {
-	// the ability picker up: a row picks, anywhere else folds (2026-09-17; vaulted behind SPRITE_AB_PICK - the tooltip folds like any popup)
-	if (SPRITE_AB_PICK && is_struct(it_pop) && !is_undefined(it_pop[$ "ab"]) && it_pop.ab < 4) { __ab_pick_tap(); exit; }
-	// a popup up: any press closes it
-	if (is_struct(it_pop)) { it_pop = undefined; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
-	var _cl = __crew_list();
-	for (var _k = 0; _k < array_length(_cl); _k++) {
-		var _tb = __tab_r(_k);
-		if (point_in_rectangle(mouse_x, mouse_y, _tb.x, _tb.y, _tb.x + _tb.w, _tb.y + _tb.h)) {
-			sheet_id = _cl[_k].id;
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	// an item row: its popup (the rects the Draw laid down - __sheet_tap, the one handler)
-	__sheet_tap();
-	exit;
-}
+if ((view == "crew")) { if (ex_crew_press()) exit; }   // (ex_crew_press - q220)
 
 // ======================= THE MAP: [legend] =======================
-if (view == "map") {
-	if (land) { var _ibx = __map_box_r(); if (point_in_rectangle(mouse_x, mouse_y, _ibx.x, _ibx.y, _ibx.x + _ibx.w, _ibx.y + _ibx.h)) { rg_box_open = !rg_box_open; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; } }   // (the info box's fold, 2026-09-16)
-	var _lgr = __legend_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _lgr.x, _lgr.y, _lgr.x + _lgr.w, _lgr.y + _lgr.h)) { map_legend = !map_legend; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
-	if (map_legend) { map_legend = false; exit; }   // (any other press folds it)
-	// a place: its card (his ask, 2026-09-16); the same place again, or a press elsewhere, folds it
-	if (is_struct(map_dest)) {
-		var _rg0 = region_get(map_dest, map_rgi), _mr0 = __map_r();
-		var _hit = -1, _hd = 9;
-		for (var _i = 0; _i < array_length(_rg0.nodes); _i++) {
-			var _hp = __map_xy(_rg0.nodes[_i], _rg0, _mr0);
-			var _dd = point_distance(mouse_x, mouse_y, _hp.x, _hp.y);
-			if (_dd < _hd) { _hd = _dd; _hit = _i; }
-		}
-		if (_hit >= 0) { map_pop = (map_pop == _hit) ? -1 : _hit; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
-		if (map_pop >= 0) { map_pop = -1; exit; }
-	}
-	exit;
-}
+if ((view == "map")) { if (ex_map_press()) exit; }   // (ex_map_press - q220)
 
 // ======================= THE PLANET PAGE: its buttons, the drawer =======================
 // (the grab / drag / tap are above the press gate)
@@ -449,202 +325,13 @@ if (view == "galaxy") exit;
 // (the region window is gone - the planet page's region mode, 2026-09-15)
 
 // ======================= THE DEPARTURE: [+] / [-], a banner = its sheet, [depart] =======================
-if (view == "depart") {
-	// THE SHEET MODAL owns the page while it is up: its rows and popups, or a press off it closes it
-	if (dp_sheet >= 0) {
-		if (__sheet_tap()) exit;
-		var _msr = __dp_sheet_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _msr.x, _msr.y, _msr.x + _msr.w, _msr.y + _msr.h)) exit;
-		// off the sheet: it closes, and the press goes on to whatever it hit
-		// (another banner opens its sheet in the same press - his ask
-		// 2026-09-15); [depart] under the box only closes it
-		dp_sheet = -1; it_pop = undefined; it_rects = [];
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-		var _dr0 = __depart_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _dr0.x, _dr0.y, _dr0.x + _dr0.w, _dr0.y + _dr0.h)) exit;
-	}
-	var _dr = __depart_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _dr.x, _dr.y, _dr.x + _dr.w, _dr.y + _dr.h)) {
-		__dp_sync();
-		var _crew = [];
-		for (var _c = 0; _c < array_length(sel_crew); _c++) { var _sp = __sp_by_id(sel_crew[_c]); if (!is_undefined(_sp)) array_push(_crew, _sp); }
-		var _di = -1;
-		for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].seed == pl_dest.seed) _di = _i;
-		if (_di >= 0 && array_length(_crew) > 0 && exped_start(_di, _crew, dp_mode, dp_quest, rg_sel, dp_stance)) {   // (the stance rides along, 2026-09-16)
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			if (dp_mode == "quest" && dp_slot >= 0) exped_offer_take(pl_dest, rg_sel, dp_slot, g.exped.seq, dp_quest);   // (the board marks it taken - 2026-09-15; not if the slot turned over meanwhile)
-			dp_slot = -1;
-			sel_crew = []; dp_slots = array_create(exped_party_max(), -1); dp_pos = {};
-			view_id = g.exped.seq;   // (the trip that just left - its page, his ask 2026-09-16)
-			__dp_leave("trip");   // (the page swings out, then the trip's page with the diary)
-		} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
-		exit;
-	}
-	// THE STANCE pills (2026-09-16): a press picks the word
-	for (var _si = 0; _si < array_length(dp_stance_rects); _si++) {
-		var _sr2 = dp_stance_rects[_si];
-		if (!point_in_rectangle(mouse_x, mouse_y, _sr2.x, _sr2.y, _sr2.x + _sr2.w, _sr2.y + _sr2.h)) continue;
-		if (dp_stance != _sr2.key) { dp_stance = _sr2.key; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); }
-		exit;
-	}
-	// a seat row: a press unseats it
-	for (var _j = 0; _j < array_length(dp_slots); _j++) {
-		if (dp_slots[_j] < 0) continue;
-		var _mr2 = __dp_minus_r(_j);
-		if (!point_in_rectangle(mouse_x, mouse_y, _mr2.x, _mr2.y, _mr2.x + _mr2.w, _mr2.y + _mr2.h)) continue;
-		__dp_unseat(dp_slots[_j]);
-		exit;
-	}
-	// the list: [+] seats a banner, [-] unseats it (the banner stays put); the banner itself opens its sheet
-	for (var _k = 0; _k < array_length(g.sprites); _k++) {
-		if (!__dp_row_in(_k)) continue;
-		var _sp = g.sprites[_k];
-		var _pr = __dp_plus_r(_k);
-		if (point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) {
-			if (__dp_seat_of(_sp.id) >= 0) __dp_unseat(_sp.id); else __dp_seat(_sp.id);
-			exit;
-		}
-		var _rr = __dp_row_r(_k);
-		if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) {
-			// the sheet, as a modal over this page (his call: snappy, click off to close)
-			dp_sheet = _sp.id; sheet_id = _sp.id; it_pop = undefined; it_rects = [];
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	exit;
-}
+if ((view == "depart")) { if (ex_depart_press(_e)) exit; }   // (ex_depart_press - q220)
 
 // ======================= THE HAUL: collect, or the recruit moment =======================
-if (view == "haul") {
-	var _hi = __haul_i();
-	if (land && !swap_pick) { var _hlr = __hlog_r(); if (point_in_rectangle(mouse_x, mouse_y, _hlr.x, _hlr.y, _hlr.x + _hlr.w, _hlr.y + _hlr.h)) { hl_open = !hl_open; log_follow = true; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; } }   // (2026-09-16)
-	if (swap_pick) {
-		// the roster: tap who retires
-		for (var _k = 0; _k < array_length(g.sprites); _k++) {
-			var _pr = __pick_r(_k);
-			if (point_in_rectangle(mouse_x, mouse_y, _pr.x, _pr.y, _pr.x + _pr.w, _pr.y + _pr.h)) {
-				var _sid = g.sprites[_k].id;
-				exped_collect(_hi, room_width * .5, room_height * .5, "swap:" + string(_sid));
-				swap_pick = false;
-				__page_go("planet");
-				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-				exit;
-			}
-		}
-		exit;
-	}
-	var _h = _e.hauls[_hi];
-	var _found = 0;
-	for (var _i = 0; _i < array_length(_h.finds); _i++) if (_h.finds[_i].kind == "sprite") _found++;
-	var _recruit = (_found > 0 && array_length(g.sprites) + _found > SPRITE_CAP);
-	if (_recruit) {
-		var _sw = __swap_r(), _go = __go_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _sw.x, _sw.y, _sw.x + _sw.w, _sw.y + _sw.h)) { swap_pick = true; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
-		if (point_in_rectangle(mouse_x, mouse_y, _go.x, _go.y, _go.x + _go.w, _go.y + _go.h)) {
-			exped_collect(_hi, room_width * .5, room_height * .5, "letgo");
-			__page_go("planet");
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			exit;
-		}
-	} else {
-		var _cb = __col_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _cb.x, _cb.y, _cb.x + _cb.w, _cb.y + _cb.h)) {
-			exped_collect(_hi, room_width * .5, room_height * .5);
-			__page_go("planet");
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			exit;
-		}
-		// [SEND AGAIN] (2026-09-15): collect, wake this crew as they are (the
-		// seat's rule), and off on the easiest open card
-		var _ag = __again_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _ag.x, _ag.y, _ag.x + _ag.w, _ag.y + _ag.h)) {
-			var _pl = __again_plan(_h);
-			if (!_pl.ok) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
-			var _rgi2 = _h[$ "rgi"] ?? 0, _dest2 = _h.dest;
-			exped_collect(_hi, room_width * .5, room_height * .5);
-			for (var _c = 0; _c < array_length(_pl.crew); _c++) { var _csp = _pl.crew[_c]; if (_csp.asleep) { _csp.asleep = false; _csp.hurt = 0; } }
-			if (exped_start(_pl.di, _pl.crew, _pl.mode, _pl.pick, _rgi2, _h[$ "stance"] ?? "steady")) {   // (the haul's stance again)
-				if (_pl.mode == "quest" && _pl.slot >= 0) exped_offer_take(_dest2, _rgi2, _pl.slot, g.exped.seq, _pl.pick);
-				play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			} else play_sound_ext(snd_matclick2, .7, .8, .35, 0);
-			save_mark_dirty();
-			__page_go("planet");
-			exit;
-		}
-	}
-	exit;
-}
+if ((view == "haul")) { if (ex_haul_press(_e)) exit; }   // (ex_haul_press - q220)
 
 // ======================= THE TRIP: a fight can be stepped by hand =======================
-if (view == "trip") {
-	var _tr = __trip();
-	// THE SHEET MODAL owns the page while it is up (the preparation page's rule):
-	// its rows and popups, a press on it stays, a press off it closes it and goes on
-	if (tp_sheet >= 0) {
-		if (__sheet_tap()) exit;
-		var _tsr = __tp_sheet_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _tsr.x, _tsr.y, _tsr.x + _tsr.w, _tsr.y + _tsr.h)) exit;
-		tp_sheet = -1; it_pop = undefined; it_rects = [];
-		play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-	}
-	// a tap on the replay's window skips the rest of it
-	if (!is_undefined(rp)) {
-		var _fw = __fight_r();
-		if (point_in_rectangle(mouse_x, mouse_y, log_x, _fw.y, log_x + log_w, _fw.y + _fw.h)) {
-			rp.r.seen = true; rp = undefined;
-			play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-			exit;
-		}
-	}
-	// [recall]: an exploring crew comes home
-	if (!is_undefined(_tr) && (_tr[$ "mode"] ?? "quest") == "explore" && !(_tr[$ "recall"] ?? false)) {
-		var _rr2 = __recall_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) {
-			exped_recall(_tr);
-			play_sound_ext(snd_apply, 1, 1.2, .5, 1);
-			exit;
-		}
-	}
-	// [crew]: this trip's crew, in the crew menu (his ask: only the sprites on the quest)
-	if (!is_undefined(_tr)) {
-		var _tcr = __trip_crew_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _tcr.x, _tcr.y, _tcr.x + _tcr.w, _tcr.y + _tcr.h)) {
-			crew_trip = _tr.id; sheet_id = _tr.sids[0]; __page_go("crew"); it_pop = undefined;
-			play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-			exit;
-		}
-	}
-	// [abort]: the question first (the confirm popup); the crew comes home
-	if (!is_undefined(_tr) && !(_tr[$ "aborted"] ?? false) && _tr.stage != 2) {
-		var _abr = __trip_abort_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _abr.x, _abr.y, _abr.x + _abr.w, _abr.y + _abr.h)) {
-			confirm = "abort";
-			play_sound_ext(snd_softclick, .95, 1.05, .4, 1);
-			exit;
-		}
-	}
-	// a crew row opens that sprite's sheet (this crew only)
-	if (!is_undefined(_tr)) {
-		for (var _k = 0; _k < array_length(_tr.sids); _k++) {
-			var _cr = __crew_row_r(_k);
-			if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) {
-				// (the sheet as a modal here, not the crew menu - his ask, 2026-09-16)
-				tp_sheet = _tr.sids[_k]; sheet_id = _tr.sids[_k]; it_pop = undefined; it_rects = [];
-				play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
-				exit;
-			}
-		}
-	}
-	if (!is_undefined(_tr) && !is_undefined(_tr.fight) && !_tr.fight.over) {
-		var _sr = __step_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _sr.x, _sr.y, _sr.x + _sr.w, _sr.y + _sr.h)) {
-			exped_fight_turn(_tr.fight);
-			play_sound_ext(snd_matclick2, .9, 1.1, .4, 1);
-		}
-	}
-	exit;
-}
+if ((view == "trip")) { if (ex_trip_press()) exit; }   // (ex_trip_press - q220)
 
 // ======================= THE HUB (went 2026-09-16 - the code stays behind this gate) =======================
 if (view != "hub") exit;
