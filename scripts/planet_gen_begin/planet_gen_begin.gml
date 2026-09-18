@@ -218,6 +218,17 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _ringc = merge_colour(color_set_comp(_atmo), rgb(205, 195, 178), .55);
 	var _ring  = (_kind == "gas") ? (random(1) < .45) : (random(1) < .12);
 	if (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])) _ring = _hint.ring;   // (the galaxy's planet says - the home world, 2026-09-15; the roll above still runs)
+	// THE RING'S MAKE (his picks, 2026-09-17): its kind - ice (bright, banded) five in nine, dust (faint, wide, smooth)
+	// a quarter, debris (sparse chunks) the rest - its reach, its two colours across the bands (from the world's own),
+	// and the seed of its bands and gaps; hashed off the seed, nothing rolled
+	var _rh = hash_mix(_seed, 4747);
+	var _rkind = ((_rh mod 100) < 55) ? 0 : (((_rh mod 100) < 80) ? 1 : 2);
+	var _rin = (_rkind == 1) ? 1.40 : (1.50 + ((_rh div 100) mod 25) / 100), _rout = (_rkind == 1) ? 2.55 : (2.05 + ((_rh div 10000) mod 40) / 100);
+	var _ringc2;
+	if (_rkind == 0)      { _ringc = merge_colour(color_set_comp(_atmo), rgb(222, 226, 232), .75); _ringc2 = merge_colour(_ringc, rgb(160, 150, 135), .55); }
+	else if (_rkind == 1) { _ringc = merge_colour(rgb(196, 176, 146), _atmo, .25); _ringc2 = merge_colour(_ringc, c_black, .35); }
+	else                  { _ringc = rgb(150, 148, 145); _ringc2 = rgb(108, 104, 100); }
+	var _rseed = ((_rh div 7) mod 1000) / 1000;
 
 	// ---- the texel sampler's params ----
 	var _ps = {
@@ -259,7 +270,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	return {
 		seed : _seed, kind : _kind, clim : _clim, arch : _arch, tw : _tw, th : _th,
 		sea : _sea, wet : _wet, tilt : _tilt, spin : _spin, atmo : _atmo,
-		ring : _ring, ring_col : _ringc, civ : _civ,
+		ring : _ring, ring_col : _ringc, ring_col2 : _ringc2, ring_kind : _rkind, ring_in : _rin, ring_out : _rout, ring_seed : _rseed, civ : _civ,
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
 		elev : array_create(_tw * _th, 0), biome : array_create(_tw * _th, 0), carr : array_create(_tw * _th, 0), cthk : array_create(_tw * _th, 0), det : array_create(_tw * _th, 0), moi : array_create(_tw * _th, 0),
 		row : 0,            // planet_gen_step's cursor; ready when row == th

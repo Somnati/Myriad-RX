@@ -31,6 +31,12 @@ uniform float u_cells;
 uniform float u_ring;
 uniform vec3  u_raxis;
 uniform vec3  u_ringcol;
+uniform vec3  u_ringcol2;  // THE RING'S MAKE (2026-09-17): the second colour across the bands
+uniform float u_rkind;     // 0 ice (bright, banded), 1 dust (faint, wide, smooth), 2 debris (sparse chunks)
+uniform float u_rin;       // the ring's reach, in world radii
+uniform float u_rout;
+uniform float u_rseed;     // the bands' and gaps' seed
+uniform vec2  u_rgap;      // a gap where a moon rides inside the ring (radii; 0 = none)
 uniform vec4  u_city[6];
 uniform float u_cityn;
 uniform vec4  u_moonsh[4];   // MOON SHADOWS (2026-09-16): each moon's view-space position (planet radii) and its radius
@@ -322,6 +328,28 @@ float deck_march(float R, float H, vec2 p, float r2, bool base, out vec3 dirn, o
     return zh;
 }
 
+// THE RINGS (2026-09-17, his picks): the ring's density across its width - broad bands and finer banding from a
+// hashed 1d noise, four sharp gaps, the edges fading in and out, the kind's own character (dust faint and smooth,
+// debris broken into chunks), and a gap where a moon rides. The shadow the ring throws on the world reads it too
+float rh1(float x) { return fract(sin(x * 127.1 + u_rseed * 311.7) * 43758.5453); }
+float rvn(float x) { float i = floor(x); float f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(rh1(i), rh1(i + 1.0), f); }
+float ring_dens(float bf, float rr)
+{
+    float d = 0.55 + 0.45 * rvn(bf * 7.0 + 3.0);
+    d *= 0.72 + 0.28 * rvn(bf * 23.0 + 11.0);
+    for (int k = 0; k < 4; k++) {
+        float c = 0.10 + 0.80 * rh1(float(k) * 1.37 + 50.0);
+        float w = 0.008 + 0.028 * rh1(float(k) * 2.11 + 60.0);
+        d *= smoothstep(0.0, w, abs(bf - c));
+    }
+    d *= smoothstep(0.0, 0.06, bf) * (1.0 - smoothstep(0.90, 1.0, bf));
+    if (u_rkind > 1.5) d *= 0.35 + 0.65 * step(0.45, rvn(bf * 70.0 + 5.0));
+    else if (u_rkind > 0.5) d = (0.30 + 0.30 * rvn(bf * 3.0 + 7.0)) * smoothstep(0.0, 0.15, bf) * (1.0 - smoothstep(0.70, 1.0, bf));
+    if (u_rgap.x > 0.0) d *= smoothstep(0.0, 0.035, abs(rr - u_rgap.x));
+    if (u_rgap.y > 0.0) d *= smoothstep(0.0, 0.035, abs(rr - u_rgap.y));
+    return d;
+}
+
 // white noise, no lattice (Hoskins' hash12): the grain that reads as film
 // grain, not the diagonal checkerboard interleaved-gradient noise makes
 // on pixel cells (his report, 2026-09-15)
@@ -424,18 +452,25 @@ void main()
             if (tt > 0.0) {
                 vec3 rp = ro + rd * tt;
                 float rr = length(rp);
-                if (rr > 1.55 && rr < 2.25) {
-                    float bf = (rr - 1.55) / 0.7;
-                    float tone = 0.55;
-                    if (bf > 0.22) tone = 0.95;
-                    if (bf > 0.48 && bf < 0.58) tone = 0.0;
-                    if (bf > 0.58) tone = 0.75;
-                    if (bf > 0.85) tone = 0.4;
-                    if (tone > 0.01) {
-                        ringC = u_ringcol * tone;
+                if (rr > u_rin && rr < u_rout) {
+                    float bf = (rr - u_rin) / (u_rout - u_rin);
+                    float dens = ring_dens(bf, rr);
+                    if (dens > 0.01) {
+                        // the ring's own frame - an angle round the axis - for the GRAIN: countless particles, not a gradient
+                        vec3 ta = normalize(cross(u_raxis, (abs(u_raxis.y) < 0.9) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+                        vec3 tb = cross(u_raxis, ta);
+                        float ang = atan(dot(rp, tb), dot(rp, ta));
+                        float grain = 0.82 + 0.36 * hash12(vec2(floor(ang * 90.0 + 300.0), floor(rr * 150.0)));
+                        // two colours across the bands
+                        vec3 rc = mix(u_ringcol, u_ringcol2, rvn(bf * 5.0 + 21.0)) * grain;
+                        // THE UNLIT FACE: the sun and the eye on the same side of the ring's plane, or not - then it is dark, and thinner
+                        float face = sign(u_raxis.z) * sign(dot(u_raxis, u_light) + 0.0001);
+                        float litf = step(0.0, face);
+                        // THE WORLD'S SHADOW across the ring, with a penumbra
                         float pl = dot(rp, u_light);
-                        if (pl < 0.0 && length(rp - u_light * pl) < 1.0) ringC *= 0.15;
-                        ringA = u_ring;
+                        float sh = (pl < 0.0) ? (1.0 - smoothstep(0.92, 1.06, length(rp - u_light * pl))) : 0.0;
+                        ringC = rc * mix(0.32, 1.0, litf) * (1.0 - 0.85 * sh);
+                        ringA = u_ring * clamp(dens * 1.15, 0.0, 1.0) * mix(0.8, 1.0, litf);
                         ringZ = rp.z;
                     }
                 }
@@ -711,8 +746,7 @@ void main()
                 float st = -dot(n, u_raxis) / sdn;
                 if (st > 0.0) {
                     float sr = length(n + u_light * st);
-                    float rsh = smoothstep(1.48, 1.62, sr) * (1.0 - smoothstep(2.16, 2.30, sr));
-                    col *= 1.0 - rsh * 0.13 * u_ring;
+                    if (sr > u_rin && sr < u_rout) col *= 1.0 - ring_dens((sr - u_rin) / (u_rout - u_rin), sr) * 0.22 * u_ring;   // (the bands cast, the gaps do not)
                 }
             }
         }

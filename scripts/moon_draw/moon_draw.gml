@@ -68,6 +68,9 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.ring, 0);
 	shader_set_uniform_f(_u.raxis, 0, 1, 0);
 	shader_set_uniform_f(_u.rcol, 0, 0, 0);
+	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_ringcol2"), 0, 0, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rkind"), 0);
+	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rin"), 1.55); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rout"), 2.25);
+	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rseed"), 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rgap"), 0, 0);
 	shader_set_uniform_f(_u.relief, 0);
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_bump"), 0);
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_moonn"), 0);

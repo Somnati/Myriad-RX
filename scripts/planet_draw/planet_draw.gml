@@ -31,6 +31,8 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		ring  : shader_get_uniform(sh_planet, "u_ring"),
 		raxis : shader_get_uniform(sh_planet, "u_raxis"),
 		rcol  : shader_get_uniform(sh_planet, "u_ringcol"),
+		rcol2 : shader_get_uniform(sh_planet, "u_ringcol2"), rkind : shader_get_uniform(sh_planet, "u_rkind"), rin : shader_get_uniform(sh_planet, "u_rin"), rout : shader_get_uniform(sh_planet, "u_rout"),
+		rseed : shader_get_uniform(sh_planet, "u_rseed"), rgap : shader_get_uniform(sh_planet, "u_rgap"),
 		city  : shader_get_uniform(sh_planet, "u_city"),
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
 		relief : shader_get_uniform(sh_planet, "u_relief"),
@@ -85,7 +87,8 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	_lv = [_lv[0] / _ll, _lv[1] / _ll, _lv[2] / _ll];
 	var _ax = mat3_apply(mat3_rot(0, 0, 1, _pn.tilt), 0, 1, 0);
 	_ax = mat3_apply(_ct, _ax[0], _ax[1], _ax[2]);
-	var _pad = _pn.ring ? 2.35 : _cfg.pad;
+	var _rout = _pn[$ "ring_out"] ?? 2.25;
+	var _pad = _pn.ring ? (_rout + .12) : _cfg.pad;   // (room for the ring's reach - a dust ring is wide)
 	var _q = _pr * _pad;
 	// THE QUAD ON THE PIXEL GRID (his report, 2026-09-15: "higher res while
 	// zooming, hard pixels when it settles"): the shader's cells are px_size
@@ -114,6 +117,19 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.ring, _pn.ring ? .85 : 0);
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
+	// THE RING'S MAKE (2026-09-17): its kind, reach, second colour and band seed; and a gap where a moon rides inside it
+	// (the casters carry the moons' view positions - a moon's distance is their length)
+	var _rc2 = _pn[$ "ring_col2"] ?? _pn.ring_col, _rin = _pn[$ "ring_in"] ?? 1.55;
+	shader_set_uniform_f(_u.rcol2, colour_get_red(_rc2) / 255, colour_get_green(_rc2) / 255, colour_get_blue(_rc2) / 255);
+	shader_set_uniform_f(_u.rkind, _pn[$ "ring_kind"] ?? 0);
+	shader_set_uniform_f(_u.rin, _rin); shader_set_uniform_f(_u.rout, _rout);
+	shader_set_uniform_f(_u.rseed, _pn[$ "ring_seed"] ?? .5);
+	var _g1 = 0, _g2 = 0;
+	if (_pn.ring && is_array(_msh)) for (var _gi = 0; _gi < array_length(_msh); _gi++) {
+		var _gm = _msh[_gi], _gd = sqrt(_gm[0] * _gm[0] + _gm[1] * _gm[1] + _gm[2] * _gm[2]);
+		if (_gd > _rin + .05 && _gd < _rout - .05) { if (_g1 == 0) _g1 = _gd; else if (_g2 == 0) _g2 = _gd; }
+	}
+	shader_set_uniform_f(_u.rgap, _g1, _g2);
 	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;   // settings > visuals: mountain relief
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief * max(.4, _bump));   // (the silhouette rides the knob too, gently)
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
