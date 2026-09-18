@@ -1117,6 +1117,42 @@ function handle_save(){
 			g.stats_fav[$ _fs[_i]] = true;
 	}
 
+	// THE DIMENSIONS (the antimatter-dimensions cascade, ported from the tech demo 2026-09-18; stand-alone). counts/dark matter are
+	// LOG10 values now (the float era hit 1.8e308 and drowned in NaN -
+	// keys renamed lflux/lc* so old float saves are simply ignored, the
+	// pre-split "gold" precedent; no migration). `last` is the wall
+	// clock stamp - saving it is what makes closed-game absence count:
+	// the next dims_tick advances the exact closed form over the gap
+	section = "dimensions";
+	if (!variable_global_exists("dims")) dims_init();
+	// format version: missing key = the float era (v1); v2 = log10 but
+	// pre-balance (the 10-minute runaway). old versions are wiped
+	// WHOLESALE below - counts/dark matter/bought are one coupled economy,
+	// half-loading it strands the bench (bought-driven prices with no
+	// dark matter to pay them). best survives a wipe (dims_init carries it)
+	var _dims_v = handle("v", (action == sv_load) ? 1 : 3);
+	g.dims.dark        = handle("ldark", g.dims.dark);
+	g.dims.tick_bought = handle("tick", g.dims.tick_bought);
+	g.dims.last        = handle("last", g.dims.last);
+	g.dims.start       = handle("start", g.dims.start);
+	g.dims.best        = handle("best", g.dims.best);
+	g.dims.run         = handle("run", g.dims.run);
+	g.dims.inf         = (handle("inf", g.dims.inf ? 1 : 0) == 1);
+	for (var _i = 0; _i < g.dims.n; _i++) {
+		g.dims.bought[_i] = handle("b" + string(_i), g.dims.bought[_i]);
+		g.dims.count[_i]  = handle("lc" + string(_i), g.dims.count[_i]);
+	}
+	if (action == sv_load) {
+		if (_dims_v < 3) dims_init(true); // stale-format save: fresh bench
+		// and sanitize: a poisoned/hand-edited save (inf/NaN) must
+		// never re-freeze the bench
+		if (is_nan(g.dims.dark) || is_infinity(g.dims.dark))
+			g.dims.dark = 1;
+		for (var _i = 0; _i < g.dims.n; _i++)
+			if (is_nan(g.dims.count[_i]) || is_infinity(g.dims.count[_i]))
+				g.dims.count[_i] = g.dims.lz;
+	}
+
 	//////////////////////////////////////////////////////////////////
 	ini_close();
 	//////////////////////////////////////////////////////////////////

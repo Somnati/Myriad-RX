@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dims_tick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dims_tick",
+  "parent":{
+    "name":"dimensions",
+    "path":"folders/game/dimensions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

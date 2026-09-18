@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"dims_cost",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"dims_cost",
+  "parent":{
+    "name":"dimensions",
+    "path":"folders/game/dimensions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
