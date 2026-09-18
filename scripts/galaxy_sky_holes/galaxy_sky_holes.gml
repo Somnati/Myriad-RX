@@ -43,7 +43,10 @@ function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = unde
 		var _key = string(_i), _bk = _sky.hbake[$ _key];
 		var _ok = is_struct(_bk) && surface_exists(_bk.surf) && _bk.qw == _qw;
 		var _x0 = floor(_sx - _hq), _y0 = floor(_sy - _hq);
-		if (!_ok && _pg_ok && _x0 >= 0 && _y0 >= 0 && _x0 + _qw <= _pw && _y0 + _qw <= _ph) {
+		// (not while the sun's glare lies over the patch - the glare would freeze into the bake; bug hunt 2026-09-18)
+		var _sun_clear = true;
+		if (_sun && !(_sky[$ "hole"] ?? false)) { var _lw0 = _sky.light_w; var _sv0 = mat3_apply(_ct, _lw0[0], _lw0[1], _lw0[2]); if (_sv0[2] < -.1) { var _sf0 = 230 / -_sv0[2]; if (point_distance(_sx, _sy, _cx + _sv0[0] * _sf0, _cy + _sv0[1] * _sf0) < 90 * (_sky.sun_size / 12) + _hq) _sun_clear = false; } }
+		if (!_ok && _pg_ok && _sun_clear && _x0 >= 0 && _y0 >= 0 && _x0 + _qw <= _pw && _y0 + _qw <= _ph) {
 			var _bs = surface_create(_qw, _qw, surface_get_format(_pg));
 			surface_reset_target();
 			surface_set_target(_bs);

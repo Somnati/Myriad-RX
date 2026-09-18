@@ -82,7 +82,7 @@ function planet_plateaus(_pn) {
 				if (_el[_i] < _sea) continue;
 				var _bb = _bm[_i];
 				if (_bb == 11 && _has_r && _acc[_i] >= _rt) { array_push(_riv, [_dx, _dy, _i, clamp(_acc[_i] / (6 * _rt), 0, 1)]); continue; }   // (a river: it keeps its bed - the canyon's floor)
-				if (_bb == 1 || _bb == 0 || _bb == 25) continue;
+				if (_bb == 1 || _bb == 0 || _bb == 25 || _bb == 11) continue;   // (the waters, and a shallows or a lesser river: never lifted; bug hunt 2026-09-18)
 				array_push(_mem, [_dx, _dy, _i, _m]);
 			}
 		}

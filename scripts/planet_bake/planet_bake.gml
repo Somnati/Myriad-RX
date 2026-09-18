@@ -55,7 +55,7 @@ function planet_bake(_pn, _until = undefined) {
 				// it - the dunes full, the desert half - for the shader's dune grain, q209: every texel written, the alpha 0 where
 				// there is no cloud - the blend is a straight write)
 				var _bs2 = _pn.biome[_i], _sand2 = (_bs2 == 24) ? 255 : ((_bs2 == 3) ? 110 : 0);
-				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, _sand2), _ca2);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _ty, 1, 1, 0, make_colour_rgb(floor(clamp(_pn.cthk[_i], 0, 1) * 255), 255, _sand2), max(_ca2, .004));   // (never an alpha of exactly 0: a fully transparent draw may be dropped and the sand with it; the shader gates cloud on the thickness, 0 here - bug hunt 2026-09-18)
 			} else {
 				// height above the sea (or the world's base level), 0..1 in red:
 				// water is flat, the land climbs, peaks reach 1; the gradient rides
