@@ -217,8 +217,12 @@ function offline_replay(_secs, _src = "boot return") {
 		var _from = _ex0.logn[$ string(_tr1.id)] ?? array_length(_tr1.log);
 		var _lines = [];
 		for (var _li = _from; _li < array_length(_tr1.log); _li++) array_push(_lines, _tr1.log[_li]);
+		// THE OWED HOURS (bug hunt 5, 2026-09-18): since q202 the chart builds only under the expedition panel's veil, so
+		// exped_tick OWES the absence until then and walks it on the panel's first open - the report must say so, not
+		// name the spot the crew stood at when the game closed (a stale "resting at Orbury" for an eight-hour night)
+		var _owed = (g[$ "exped_owed"] ?? 0);
 		array_push(_ex1.trips, { name : exped_crew_txt(_tr1.names), planet : _tr1.dest.name, stage : _tr1.stage, room : _tr1.room_i,
-		                         where : exped_where(_tr1),   // (the agent, 2026-09-14: "on the road to Orbury - 1.4h")
+		                         where : (_owed > 0) ? ("still out - " + string(round(_owed / 360) / 10) + "h to walk when the expeditions open") : exped_where(_tr1),   // (the agent, 2026-09-14: "on the road to Orbury - 1.4h")
 		                         home : false, routed : _tr1.routed, lines : _lines });
 	}
 	// home during the absence: a haul whose trip was out when it began
