@@ -1162,8 +1162,30 @@ if (view == "galaxy") {
 		var _s = max(.8, _st.props.size * gx_zoom);
 		var _gi = star_glyph_frame(_s);
 		var _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
+		// THE KIND'S OWN MARK (his ask, 2026-09-17: "the stars on the galactic map match the type of stellar body"): a
+		// BLACK HOLE is a black disc in a thin ring of its disc's colour with the disc's glow laid flat across it; a
+		// RED GIANT wears a wide deep-red halo; a PULSAR is a white point with two beams turning on its own spin; a
+		// WHITE DWARF stays the smallest spark, blue-white
+		var _skd = _st.props[$ "skind"] ?? "main";
+		var _gw0 = max(1, sprite_get_width(spr_vis_glow_soft)), _gh0 = max(1, sprite_get_height(spr_vis_glow_soft));
+		if (_skd == "hole") {
+			var _hr = max(1.5, _s * .8) * _gs;
+			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _hr * 7 / _gw0, _hr * 2.2 / _gh0, 18, _st.props.color, .30);   // (the accretion disc, flat and tilted)
+			gpu_set_blendmode(bm_normal);
+			draw_circle_colour(_gx0, _gy0, _hr, c_black, c_black, false);
+			gpu_set_blendmode(bm_add);
+			draw_circle_colour(_gx0, _gy0, _hr + max(1, _gs * .5), merge_colour(_st.props.color, c_white, .4), merge_colour(_st.props.color, c_white, .4), true);
+			continue;
+		}
+		if (_skd == "dwarf") { draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, _gs, _gs, 0, merge_colour(_st.props.color, c_white, .6), 1); continue; }
 		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95);
 		if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8);   // (a dot stays its colour)
+		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _s * 3.2 * _gs / _gw0, _s * 3.2 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .35), .28);
+		else if (_skd == "pulsar") {
+			var _pa = ((current_time / 1000) * (_st.props[$ "spin"] ?? 1) * 360 + _st.seed) mod 360, _pl = max(4, _s * 4) * _gs;
+			draw_line_width_colour(_gx0 - dcos(_pa) * _pl, _gy0 + dsin(_pa) * _pl, _gx0 + dcos(_pa) * _pl, _gy0 - dsin(_pa) * _pl, max(1, _gs), c_white, c_white);
+			draw_sprite_ext(spr_star_glyph, 1, _gx0, _gy0, _gs, _gs, 0, c_white, 1);
+		}
 	}
 	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped

@@ -28,6 +28,7 @@ function hole_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined) {
 	} else {
 		surface_set_target(_lens); draw_clear_alpha(c_black, 1); surface_reset_target();
 	}
+	gpu_set_blendmode(bm_normal);   // (the lens REPLACES the page inside its reach: a plain blend, whatever the caller left set)
 	shader_set(sh_hole);
 	shader_set_uniform_f(_u.col, colour_get_red(_col) / 255, colour_get_green(_col) / 255, colour_get_blue(_col) / 255);
 	shader_set_uniform_f(_u.seed, _seed);
