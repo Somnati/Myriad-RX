@@ -30,8 +30,8 @@ function planet_fields(_ps, _u, _v) {
 	var _rg = power(clamp(1 - abs(_n - .5) / .06, 0, 1), 1.3);
 	var _lm = clamp((_e - _ps.sea) / .10, 0, 1);
 	_lm = _lm * _lm * (3 - 2 * _lm);
-	if (_e > _ps.sea) _e = _ps.sea + (_e - _ps.sea) * .6;   // (.6 since the skeleton: the noise's lumps are hills, never peaks - the ranges are planet_ranges')
-	_ps.oe = _e + _rg * .07 * _lm;   // (roughness now: the ranges themselves are planet_ranges' skeleton, 2026-09-17; was .22)
+	if (_e > _ps.sea) _e = _ps.sea + (_e - _ps.sea) * .65;   // (the noise's lumps are hills; the ranges are planet_ranges' skeleton + the ridge noise's mass)
+	_ps.oe = _e + _rg * .13 * _lm;   // (a massif's irregular mass under the skeleton's branches - he liked the look of the noise ridges; .07 was too little, .22 the old whole, 2026-09-17)
 	_ps.od = _ps.ctx.fbm3(_qx * 6.1, _py * 6.1, _qz * 6.1, _ps.o2, 2);
 	_ps.om = _ps.ctx.fbm3(_qx * 3.2, _py * 3.2, _qz * 3.2, _ps.o3, 2);
 }

@@ -7,7 +7,7 @@
 /// more; every four to six texels of a spur a SUB-SPUR leaves it, shorter
 /// and lower again. Each ridge texel carries its level's height (.22 /
 /// .13 / .07), tapered along its branch (a spine tallest at its middle, a
-/// spur tallest at its root); the ground round each is lifted by a crest
+/// spur tallest at its root; heights .30 / .19 / .11); the ground round each is lifted by a crest
 /// profile with a foothill shoulder, the highest lift winning where they
 /// meet, roughened by the detail field so no crest is a rail. The lifted
 /// texels get their biome again from the kept fields (planet_biome), so
@@ -27,11 +27,11 @@ function planet_ranges(_pn) {
 		tw : _pn.tw, th : _pn.th, el : _pn.elev, dt : _pn.det, seed : _pn.seed, sea : _pn.sea,
 		sc : _pn.tw / 320,   // (the lite worlds scale every length)
 		lift : array_create(_pn.tw * _pn.th, 0),
-		H : [0, .22, .13, .07], W : [0, 4.5 * _pn.tw / 320, 3 * _pn.tw / 320, 2 * _pn.tw / 320],
+		H : [0, .30, .19, .11], W : [0, 6 * _pn.tw / 320, 4 * _pn.tw / 320, 2.6 * _pn.tw / 320],   // (taller and broader - his verdict on the first cut: "smaller in height", 2026-09-17)
 		h : function(_k) { return (hash_mix(seed, 20000 + _k) mod 10000) / 10000; },
 		// a ridge texel: the highest lift wins; its crest profile (with a foothill shoulder) spreads over the window round it
-		stamp : function(_x, _y, _lvl, _tap) {
-			var _hh = H[_lvl] * _tap, _w = W[_lvl], _r = ceil(_w * 1.7);
+		stamp : function(_x, _y, _lvl, _tap, _wj) {
+			var _hh = H[_lvl] * _tap, _w = W[_lvl] * _wj, _r = ceil(_w * 1.7);   // (wj: the width's own wander along the branch - a massif, not a tube)
 			var _xi = floor(_x), _yi = floor(_y);
 			for (var _dy = -_r; _dy <= _r; _dy++) {
 				var _yy = _yi + _dy;
@@ -40,8 +40,8 @@ function planet_ranges(_pn) {
 					var _xx = (((_xi + _dx) mod tw) + tw) mod tw, _i = _xx + _yy * tw;
 					var _d = sqrt((_xi + _dx - _x) * (_xi + _dx - _x) + (_yy - _y) * (_yy - _y)) / _w;
 					if (_d > 1.7) continue;
-					var _crest = power(max(0, 1 - _d), 1.6) * .8, _shoulder = power(max(0, 1 - _d / 1.7), 2) * .35;
-					var _l = _hh * (_crest + _shoulder) * (.8 + .4 * dt[_i]);
+					var _crest = power(max(0, 1 - _d), 1.5) * .85, _shoulder = power(max(0, 1 - _d / 1.7), 2) * .40;
+					var _l = _hh * (_crest + _shoulder) * (.7 + .6 * dt[_i]);
 					if (_l > lift[_i]) lift[_i] = _l;
 				}
 			}
@@ -54,7 +54,7 @@ function planet_ranges(_pn) {
 			for (var _s = 0; _s < _len; _s++) {
 				var _f = _s / max(1, _len - 1);
 				var _tap = _mid ? (1 - .6 * power(abs(_f - .5) * 2, 2)) : (1 - .7 * _f);
-				stamp(_x, _y, _lvl, _tap);
+				stamp(_x, _y, _lvl, _tap, .75 + .5 * h(_salt + _s * 3 + 1));
 				array_push(_pts, [_x, _y, _hd]);
 				_hd += (h(_salt + _s * 3) - .5) * 2 * _wob + _bias;
 				_x += dcos(_hd); _y -= dsin(_hd);
@@ -66,7 +66,7 @@ function planet_ranges(_pn) {
 		},
 	};
 	var _tw = _c.tw, _th = _c.th, _sc = _c.sc, _el = _c.el;
-	var _nsp = 2 + (hash_mix(_c.seed, 19001) mod 4);   // two to five spines
+	var _nsp = 3 + (hash_mix(_c.seed, 19001) mod 3);   // three to five spines
 	for (var _r = 0; _r < _nsp; _r++) {
 		var _base = 500 * _r;
 		// the start: high ground, off the poles - thirty tries
@@ -76,15 +76,15 @@ function planet_ranges(_pn) {
 			if (_el[_cx + _cy * _tw] >= _c.sea + .03) { _sx = _cx; _sy = _cy; }
 		}
 		if (_sx < 0) continue;
-		var _hd = _c.h(_base + 61) * 360, _len = round((40 + 80 * _c.h(_base + 62)) * _sc), _bias = (_c.h(_base + 63) - .5) * 2.4;
+		var _hd = _c.h(_base + 61) * 360, _len = round((60 + 90 * _c.h(_base + 62)) * _sc), _bias = (_c.h(_base + 63) - .5) * 2.4;
 		var _spine = _c.walk(_sx, _sy, _hd, _len, 12, _bias, 1, true, _base + 100);
 		// the spurs, every six to twelve texels, alternating sides
 		var _side = (_c.h(_base + 64) < .5) ? 1 : -1, _next = round((4 + 6 * _c.h(_base + 65)) * _sc), _k = 0;
 		for (var _p = 0; _p < array_length(_spine); _p++) {
 			if (_p < _next) continue;
-			_next = _p + round((6 + 6 * _c.h(_base + 200 + _k)) * _sc);
+			_next = _p + round((5 + 4 * _c.h(_base + 200 + _k)) * _sc);
 			var _pt = _spine[_p], _sb = _base + 1000 + _k * 40;
-			var _shd = _pt[2] + _side * (55 + 35 * _c.h(_sb)), _slen = round((8 + 14 * _c.h(_sb + 1)) * _sc);
+			var _shd = _pt[2] + _side * (55 + 35 * _c.h(_sb)), _slen = round((10 + 16 * _c.h(_sb + 1)) * _sc);
 			var _spur = _c.walk(_pt[0], _pt[1], _shd, _slen, 20, (_c.h(_sb + 2) - .5) * 3, 2, false, _sb + 3);
 			// the sub-spurs, every four to six texels of the spur, alternating sides
 			var _ss = (_c.h(_sb + 4) < .5) ? 1 : -1, _snext = round((3 + 3 * _c.h(_sb + 5)) * _sc), _q = 0;
@@ -92,7 +92,7 @@ function planet_ranges(_pn) {
 				if (_p2 < _snext) continue;
 				_snext = _p2 + round((4 + 2 * _c.h(_sb + 10 + _q)) * _sc);
 				var _pt2 = _spur[_p2], _sb2 = _sb + 20 + _q * 4;
-				var _hd3 = _pt2[2] + _ss * (50 + 40 * _c.h(_sb2)), _len3 = round((3 + 5 * _c.h(_sb2 + 1)) * _sc);
+				var _hd3 = _pt2[2] + _ss * (50 + 40 * _c.h(_sb2)), _len3 = round((4 + 5 * _c.h(_sb2 + 1)) * _sc);
 				_c.walk(_pt2[0], _pt2[1], _hd3, _len3, 25, 0, 3, false, _sb2 + 2);
 				_ss = -_ss; _q++;
 			}
