@@ -22,6 +22,8 @@ function planet_plateaus(_pn) {
 	var _hc = hash_mix(_sd, 4500) mod 100, _np = 0;
 	if (_pn.arch == "barren") _np = (_hc < 40) ? 1 : 0;
 	else _np = (_hc < 30) ? 0 : ((_hc < 85) ? 1 : 2);
+	var _forced = (_pn[$ "dbg_plateau"] ?? false);   // (DEBUG_HOME, q210: a plateau asked for - at least one, on the biggest river there is)
+	if (_forced) _np = max(1, _np);
 	if (_np == 0) return;
 	var _el = _pn.elev, _e0 = _pn.elev0, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _sea = _pn.sea;
 	var _acc = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _has_r = is_array(_acc);
@@ -44,6 +46,19 @@ function planet_plateaus(_pn) {
 			var _river = (_has_r && _bm[_ci] == 11 && _acc[_ci] >= 2 * _rt) ? 1 : 0;
 			var _s2 = _river * 3 + clamp(1 - (_hi2 - _lo2) / .15, 0, 1);
 			if (_s2 > _best) { _best = _s2; _x = _cx; _y = _cy; }
+		}
+		// (asked for: the first plateau sits on the river texel with the greatest catchment that is inland - the canyon is the point)
+		if (_forced && _k == 0 && _has_r) {
+			var _ba = -1;
+			for (var _i = 0; _i < _n; _i++) {
+				if (_bm[_i] != 11 || _acc[_i] <= _ba) continue;
+				var _cx = _i mod _tw, _cy = _i div _tw;
+				if (_cy < _th * .12 || _cy > _th * .88) continue;
+				var _cl0 = max(.2, sin(pi * (_cy + .5) / _th)), _wet = false;
+				for (var _a = 0; _a < 8 && !_wet; _a++) { var _px = (((_cx + round(dcos(_a * 45) * 12 / _cl0)) mod _tw) + _tw) mod _tw, _py = clamp(_cy + round(dsin(_a * 45) * 12), 0, _th - 1); if (_el[_px + _py * _tw] < _sea) _wet = true; }
+				if (_wet) continue;
+				_ba = _acc[_i]; _x = _cx; _y = _cy;
+			}
 		}
 		if (_x < 0) continue;
 		var _R = (16 + 14 * ((hash_mix(_sd, 4550 + _b) mod 10000) / 10000)) * _sc, _H0 = .15 + .09 * ((hash_mix(_sd, 4551 + _b) mod 10000) / 10000);

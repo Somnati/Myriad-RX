@@ -969,6 +969,7 @@
     {"id":{"name":"ui_wordline_h","path":"scripts/ui_wordline_h/ui_wordline_h.yy",},},
     {"id":{"name":"ui_wordline","path":"scripts/ui_wordline/ui_wordline.yy",},},
     {"id":{"name":"unarb","path":"scripts/unarb/unarb.yy",},},
+    {"id":{"name":"unfold_all","path":"scripts/unfold_all/unfold_all.yy",},},
     {"id":{"name":"unfold_config","path":"scripts/unfold_config/unfold_config.yy",},},
     {"id":{"name":"unfold_fresh","path":"scripts/unfold_fresh/unfold_fresh.yy",},},
     {"id":{"name":"unfold_grant","path":"scripts/unfold_grant/unfold_grant.yy",},},

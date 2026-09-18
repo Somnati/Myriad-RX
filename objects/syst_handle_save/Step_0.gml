@@ -51,6 +51,8 @@ boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
 // restarts it (starmap_get finishes a half-built one in place if anything
 // asks first). (Before: bg_budget slices under play from boot - the 09-17
 // design, retired) ----
+// DEBUG (q210, his ask): F10 unlocks every mechanic (unfold_all) - DEBUG_KEYS false for release
+if (DEBUG_KEYS && keyboard_check_pressed(vk_f10)) { unfold_all(); assign_banner("everything unlocked (f10)", c_gold, c_black); }
 if (boot_phase >= 2 && bg_rush) {
 	var _bgb = 9;
 	if (galaxy_ready()) { if (is_struct(bg_gen)) bg_gen = undefined; }

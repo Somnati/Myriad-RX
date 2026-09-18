@@ -432,6 +432,8 @@ function main_macros() {
 #macro PV_ZOOM_MIN   .7
 #macro RING_ALL      true    // DEBUG (his ask, 2026-09-17): every world wears a ring - false for the real odds (planet_gen_begin)
 #macro VOLCANO_ALL   true    // DEBUG (his ask, 2026-09-17): every rock world has at least one volcano - false for the real odds (planet_volcanoes)
+#macro DEBUG_HOME    true    // DEBUG (his ask, 2026-09-18): the home system holds a desert world (with a plateau and its canyon), a lava world and a gas giant, the home world a plateau, and the nearest stars a red giant, a white dwarf, a pulsar and a black hole (galaxy_home / starsystem_generate / exped_planet_hint) - false for the real galaxy
+#macro DEBUG_KEYS    true    // DEBUG (his ask, 2026-09-18): F10 unlocks every mechanic (unfold_all) - false for release (syst_handle_save's Step)
 #macro EXPED_QUESTS    5     // quests a region offers at once (his ask, 2026-09-15), each slot on its own clock...
 #macro EXPED_QUEST_LIFE_LO 1800   // ...seconds a slot lives before it re-deals (the expedition clock: x the debug speed, offline too)...
 #macro EXPED_QUEST_LIFE_HI 4500   // ...to this (30-75 min; "other people take quests too")

@@ -318,6 +318,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		sea : _sea, wet : _wet, tilt : _tilt, spin : _spin, atmo : _atmo,
 		ring : _ring, ring_col : _ringc, ring_col2 : _ringc2, ring_kind : _rkind, ring_in : _rin, ring_out : _rout, ring_seed : _rseed, civ : _civ,
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
+		dbg_plateau : (!is_undefined(_hint) && (_hint[$ "plateau"] ?? false)),   // (a plateau asked for - DEBUG_HOME, q210)
 		creg : _creg, cregp : _cregp,   // THE CLOUD REGIME (2026-09-17): 0 cumulus / 1 scattered / 2 streaked / 3 fronts, and its hashed makings
 		elev : array_create(_tw * _th, 0), biome : array_create(_tw * _th, 0), carr : array_create(_tw * _th, 0), cthk : array_create(_tw * _th, 0), det : array_create(_tw * _th, 0), moi : array_create(_tw * _th, 0),
 		row : 0,            // planet_gen_step's cursor; ready when row == th

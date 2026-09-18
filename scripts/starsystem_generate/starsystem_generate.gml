@@ -50,6 +50,26 @@ function starsystem_generate(_seed, _star = undefined) {
 			else if (_skd == "pulsar") _pl[_i].clim = clamp(_pl[_i].clim + .55, 0, 1);
 		}
 	}
+	// DEBUG_HOME (q210): the home star (its props carry dbg_home = the home planet's index) holds every kind of world - the
+	// kinds it lacks are given to its other planets in place: the DESERT (the "dust" family: a rock at clim .27) to the
+	// next planet inward from home, else outward; the LAVA world (clim .10) to the innermost still free; the GAS GIANT
+	// to the outermost still free. The rolls above stand; only kind, clim and size move - deterministic, so every
+	// generation of the system agrees
+	if (DEBUG_HOME && is_struct(_star) && !is_undefined(_star[$ "dbg_home"]) && array_length(_pl) >= 4) {
+		var _hp = clamp(_star.dbg_home, 0, array_length(_pl) - 1), _npl = array_length(_pl);
+		var _used = array_create(_npl, false); _used[_hp] = true;
+		var _hd = false, _hl = false, _hg = false;
+		for (var _i = 0; _i < _npl; _i++) { if (_i == _hp) continue; var _p2 = _pl[_i];
+			if (_p2.kind == "gas") { if (!_hg) { _hg = true; _used[_i] = true; } }
+			else if (_p2.clim < .2) { if (!_hl) { _hl = true; _used[_i] = true; } }
+			else if (_p2.clim < .35) { if (!_hd) { _hd = true; _used[_i] = true; } } }
+		if (!_hd) { var _di = -1; for (var _i = _hp - 1; _i >= 0 && _di < 0; _i--) if (!_used[_i]) _di = _i; for (var _i = _hp + 1; _i < _npl && _di < 0; _i++) if (!_used[_i]) _di = _i;
+			if (_di >= 0) { _pl[_di].kind = "rock"; _pl[_di].clim = .27; _pl[_di].size = clamp(_pl[_di].size, 2.5, 4.6); _used[_di] = true; } }
+		if (!_hl) { var _li = -1; for (var _i = 0; _i < _npl && _li < 0; _i++) if (!_used[_i]) _li = _i;
+			if (_li >= 0) { _pl[_li].kind = "rock"; _pl[_li].clim = .10; _pl[_li].size = clamp(_pl[_li].size, 2.5, 4.6); _used[_li] = true; } }
+		if (!_hg) { var _gi = -1; for (var _i = _npl - 1; _i >= 0 && _gi < 0; _i--) if (!_used[_i]) _gi = _i;
+			if (_gi >= 0) { _pl[_gi].kind = "gas"; _pl[_gi].size = max(_pl[_gi].size, 5 + 3 * ((hash_mix(_pl[_gi].seed, 9) mod 1000) / 1000)); _pl[_gi].moon_n = max(_pl[_gi].moon_n, 2); _used[_gi] = true; } }
+	}
 	var _sr2 = colour_get_red(_st.col), _sb2 = colour_get_blue(_st.col);
 	_st.temp_k = round(lerp(2600, 21000, clamp((_sb2 - _sr2 + 255) / 510, 0, 1)) / 100) * 100 + irandom_range(-2, 2) * 100;
 	_st.age = round(random_range(.4, 12) * 10) / 10;
