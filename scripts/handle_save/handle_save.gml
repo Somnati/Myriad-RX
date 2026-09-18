@@ -1119,7 +1119,7 @@ function handle_save(){
 
 	// THE DIMENSIONS (the antimatter-dimensions cascade, ported from the tech demo 2026-09-18; stand-alone). counts/dark matter are
 	// LOG10 values now (the float era hit 1.8e308 and drowned in NaN -
-	// keys renamed lflux/lc* so old float saves are simply ignored, the
+	// keys renamed ldark/lc* so old float saves are simply ignored, the
 	// pre-split "gold" precedent; no migration). `last` is the wall
 	// clock stamp - saving it is what makes closed-game absence count:
 	// the next dims_tick advances the exact closed form over the gap

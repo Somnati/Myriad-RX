@@ -16,12 +16,18 @@ function planet_bake(_pn, _until = undefined) {
 	if (_pn.row < _pn.th) return false;
 	var _tw = _pn.tw, _th = _pn.th, _n3 = 3 * _th, _npx = _tw * _th;
 	var _brow = _pn[$ "brow"] ?? 0;
-	// a sheet the gpu dropped: back from its kept buffer at once; a buffer missing too, that third bakes again
+	// a sheet the gpu dropped: back from its kept buffer at once; a buffer missing, that third bakes again. ONLY A FINISHED
+	// third has a sheet (it is uploaded at the third's end, since q213's buffers) - a third in progress has none by design
+	// and is NOT lost. (Bug hunt 2026-09-18: the check asked for the sheet from the third's first row, so every sliced call
+	// - the veil's, the boot's, the stamps' - restarted the third it was in, and no world under a deadline ever stood)
 	var _srf = [_pn.tsurf, _pn.csurf, _pn.hsurf], _bufs = [_pn[$ "tbuf"] ?? -1, _pn[$ "cbuf"] ?? -1, _pn[$ "hbuf"] ?? -1];
 	for (var _p0 = 0; _p0 < 3; _p0++) {
-		if (_brow <= _p0 * _th || surface_exists(_srf[_p0])) continue;
-		if (_brow >= (_p0 + 1) * _th && buffer_exists(_bufs[_p0])) { _srf[_p0] = surface_create(_tw, _th); buffer_set_surface(_bufs[_p0], _srf[_p0], 0); if (_p0 == 0) _pn.tsurf = _srf[_p0]; else if (_p0 == 1) _pn.csurf = _srf[_p0]; else _pn.hsurf = _srf[_p0]; }
-		else { _brow = _p0 * _th; break; }
+		if (_brow <= _p0 * _th) break;                                          // (untouched from here on)
+		if (!buffer_exists(_bufs[_p0])) { _brow = _p0 * _th; break; }           // (its buffer gone: this third again, and the ones after)
+		if (_brow < (_p0 + 1) * _th) break;                                     // (in progress: its sheet comes at its end)
+		if (surface_exists(_srf[_p0])) continue;                                // (done and standing)
+		_srf[_p0] = surface_create(_tw, _th); buffer_set_surface(_bufs[_p0], _srf[_p0], 0);
+		if (_p0 == 0) _pn.tsurf = _srf[_p0]; else if (_p0 == 1) _pn.csurf = _srf[_p0]; else _pn.hsurf = _srf[_p0];
 	}
 	if (_brow >= _n3) { _pn.brow = _brow; return true; }
 	planet_ranges(_pn);   // (once a world, before the first stamp - the range skeleton, 2026-09-17; it guards itself)

@@ -65,6 +65,12 @@ function game_reset(_diff = 1) {
 	unfold_init(true);   // and nothing has arrived yet (the unfold)
 	objective_init(true); // the chain starts at its first objective
 
+	// THE DIMENSIONS (q223): dims_init deliberately carries `best` across
+	// big crunches - a NEW GAME wipes even that, so unstruct it first
+	// (the port missed this line; found on the bug hunt)
+	if (variable_global_exists("dims")) g.dims = 0;
+	dims_init(true);
+
 	// pinned statistics live on the save: fresh run, fresh pins
 	g.stats_fav = {};
 
