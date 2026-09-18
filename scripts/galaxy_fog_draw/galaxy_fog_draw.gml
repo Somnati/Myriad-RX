@@ -42,9 +42,38 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 	if (!surface_exists(_canvas)) return;
 	if (!shader_is_compiled(sh_sky_fog)) { draw_set_font(fnt); draw_set_halign(fa_left); draw_set_color(c_hred); draw_set_alpha(.95); draw_text(4, _h - 12, "sh_sky_fog failed to compile"); draw_set_alpha(1); return; }   // (2026-09-16: a failed shader draws nothing - the page says so)
 	draw_set_alpha(1);
-	// (colour: rgb added, the rest kept by the shader's alpha - the dark clouds' transmittance; the page's own ALPHA untouched: the
-	// plain (one, src_alpha) thinned it too and the room showed through the sky - his screenshot, 2026-09-16)
-	gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);
+	// THE CACHE (q215, cleanup run two): the fog is a full-page raymarch - fbm along every ray, eight nebulae, the near
+	// cloud's body - and it ran every frame. Now it renders into a SHEET (the page's format, w x h) only when something
+	// it depends on moved - the camera, the page's centre or size, the sky, the sun's presence - or every sky_fog_ms
+	// (a tenth of a second: its drift and the sun's crawl along the orbit are slower than that), and the sheet is
+	// blitted otherwise. The two passes fold into one sheet exactly: pass one writes (rgb, a) straight, pass two lays
+	// its glow over it and multiplies the alpha (dst = s2 + s1 x a2, a = a1 x a2 - the very thing the page would have
+	// got); the blit is the passes' own blend, (one, src_alpha) with the page's alpha untouched. The sheet is rendered
+	// with the page's target LET GO (a target set inside another comes out empty - the house's law)
+	static _fc = { surf : -1, cam : [0, 0, 0, 0, 0, 0, 0, 0, 0], key : "", t : -1000000 };
+	var _tg = surface_get_target(), _has_tg = (_tg >= 0 && surface_exists(_tg));
+	var _fmt = _has_tg ? surface_get_format(_tg) : surface_rgba8unorm;
+	var _key = string(_sky[$ "built"] ?? 0) + ":" + string(_sky[$ "star"] ?? -1) + ":" + (_sun ? "s" : "n") + ":" + string(_w) + "x" + string(_h) + ":" + string(_cx) + "," + string(_cy) + ":" + string(_fmt);
+	var _same = (_fc.key == _key) && surface_exists(_fc.surf);
+	if (_same) for (var _ci = 0; _ci < 9; _ci++) if (_fc.cam[_ci] != _cam[_ci]) { _same = false; break; }
+	var _ms = _cfg[$ "sky_fog_ms"] ?? 100;
+	if (_same && (_ms <= 0 || current_time - _fc.t < _ms)) {
+		gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);
+		draw_surface(_fc.surf, 0, 0);
+		gpu_set_blendmode(bm_normal);
+		return;
+	}
+	if (!surface_exists(_fc.surf) || surface_get_width(_fc.surf) != _w || surface_get_height(_fc.surf) != _h || surface_get_format(_fc.surf) != _fmt) {
+		if (surface_exists(_fc.surf)) surface_free(_fc.surf);
+		_fc.surf = surface_create(_w, _h, _fmt);
+	}
+	_fc.key = _key; _fc.t = current_time;
+	for (var _ci = 0; _ci < 9; _ci++) _fc.cam[_ci] = _cam[_ci];
+	if (_has_tg) surface_reset_target();
+	surface_set_target(_fc.surf);
+	draw_clear_alpha(c_black, 1);
+	// pass one, straight into the sheet: rgb the fog's light, alpha its transmittance
+	gpu_set_blendmode_ext(bm_one, bm_zero);
 	shader_set(sh_sky_fog);
 	shader_set_uniform_f_array(_u.cam, _cam);
 	shader_set_uniform_f(_u.core, _sky.core_dir[0], _sky.core_dir[1], _sky.core_dir[2]);
@@ -103,10 +132,16 @@ function galaxy_fog_draw(_sky, _cam, _cx, _cy, _w, _h, _canvas, _sun = true) {  
 		var _lw = _sky.light_w;
 		shader_set_uniform_f(_ui.sun, _lw[0], _lw[1], _lw[2]);
 		shader_set_uniform_f(_ui.sunon, _sun ? 1 : 0);
-		// ONE PASS (2026-09-16): rgb the glow, alpha the transmittance - dest = glow + dest x transmittance
-		gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);   // (the page's alpha untouched)
+		// ONE PASS (2026-09-16): rgb the glow, alpha the transmittance - dest = glow + dest x transmittance; into the SHEET
+		// the alpha multiplies too (a1 x a2), so the sheet stands for both passes at once
+		gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_src_alpha);
 		draw_surface(_canvas, 0, 0);
 		shader_reset();
 	}
+	surface_reset_target();
+	if (_has_tg) surface_set_target(_tg);
+	// ...and the sheet onto the page: the passes' own blend, the page's alpha untouched
+	gpu_set_blendmode_ext_sepalpha(bm_one, bm_src_alpha, bm_zero, bm_one);
+	draw_surface(_fc.surf, 0, 0);
 	gpu_set_blendmode(bm_normal);
 }

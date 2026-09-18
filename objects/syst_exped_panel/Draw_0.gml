@@ -1199,12 +1199,12 @@ if (view == "galaxy") {
 	var _fsh_ok = shader_is_compiled(sh_galaxy_fog);   // (a shader that failed to compile draws nothing: the sheet goes plain instead, and the page says so)
 	if (_fsh_ok) {
 	shader_set(sh_galaxy_fog);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_time"), (current_time mod 100000) / 1000);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_dither"), page_float() ? 0 : 1);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_seed"), (_sm.seed mod 97) * .37, (_sm.seed mod 89) * .53);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_freq"), _gcf[$ "fog_freq"] ?? 34);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_warp"), _gcf[$ "fog_warp"] ?? .03);
-	shader_set_uniform_f(shader_get_uniform(sh_galaxy_fog, "u_gal"), _sm.cx / _sm.width, _sm.cy / _sm.width, _sm.gal_r / _sm.width);
+	shader_set_uniform_f(gxf_u.time, (current_time mod 100000) / 1000);   // (the handles looked up once, in the Create - q215)
+	shader_set_uniform_f(gxf_u.dither, page_float() ? 0 : 1);
+	shader_set_uniform_f(gxf_u.seed, (_sm.seed mod 97) * .37, (_sm.seed mod 89) * .53);
+	shader_set_uniform_f(gxf_u.freq, _gcf[$ "fog_freq"] ?? 34);
+	shader_set_uniform_f(gxf_u.warp, _gcf[$ "fog_warp"] ?? .03);
+	shader_set_uniform_f(gxf_u.gal, _sm.cx / _sm.width, _sm.cy / _sm.width, _sm.gal_r / _sm.width);
 	}
 	draw_surface_ext(_gxf, _ffx * _gs, _ffy * _gs, _ffs * _gs, _ffs * _gs, 0, _fsh_ok ? c_white : rgb(255, 185, 125), _fsh_ok ? _gcf.fog_alpha : _gcf.fog_alpha * .5);
 	if (_fsh_ok) shader_reset();

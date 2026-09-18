@@ -318,6 +318,8 @@ __conf_btns = function() {
 };
 
 // ---- the shader's handles ----
+gxf_u = { time : shader_get_uniform(sh_galaxy_fog, "u_time"), dither : shader_get_uniform(sh_galaxy_fog, "u_dither"), seed : shader_get_uniform(sh_galaxy_fog, "u_seed"),
+          freq : shader_get_uniform(sh_galaxy_fog, "u_freq"), warp : shader_get_uniform(sh_galaxy_fog, "u_warp"), gal : shader_get_uniform(sh_galaxy_fog, "u_gal") };   // (the map's fog handles, once - q215)
 u_quad  = shader_get_uniform(sh_planet_lite, "u_quad");
 u_cells = shader_get_uniform(sh_planet_lite, "u_cells");
 u_col1  = shader_get_uniform(sh_planet_lite, "u_col1");

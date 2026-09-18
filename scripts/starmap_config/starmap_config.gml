@@ -89,6 +89,7 @@ function starmap_config() {
 		sun_size_max  : 2.2,
 		sky_meteor  : 28,  // seconds between meteors, about (the orbit view)
 		sky_fog_amp : .13, // milky way raycast fog brightness (sh_sky_fog)
+		sky_fog_ms  : 100, // THE FOG'S CACHE (q215): the raycast renders into a sheet only when the camera moves or this many ms have passed; 0 = every frame
 		// ---- THE RICHNESS (2026-09-16): a sky reads its neighbourhood's density (0..1) and its depth in the core (0..1) ----
 		sky_rich_max   : 1100, // extra stars kept at the densest cell (on sky_max)
 		sky_rich_cloud : 2,   // the star clouds' grain, x (1 + this x density)
