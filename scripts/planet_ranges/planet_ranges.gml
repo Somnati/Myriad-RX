@@ -34,12 +34,15 @@ function planet_ranges(_pn) {
 		stamp : function(_x, _y, _lvl, _tap, _wj) {
 			var _hh = H[_lvl] * _tap, _w = W[_lvl] * _wj, _r = ceil(_w * 1.7);   // (wj: the width's own wander along the branch - a massif, not a tube)
 			var _xi = floor(_x), _yi = floor(_y);
+			// BY GROUND DISTANCE (his report, 2026-09-17: "mountains near the poles point towards them"): a texel is a
+			// sliver east-west near a pole, so the window is wider in x by the latitude's cosine and the distance shrinks x by it
+			var _cl = max(.2, sin(pi * (_y + .5) / th)), _rx = min(tw div 2, ceil(_r / _cl));
 			for (var _dy = -_r; _dy <= _r; _dy++) {
 				var _yy = _yi + _dy;
 				if (_yy < 0 || _yy >= th) continue;
-				for (var _dx = -_r; _dx <= _r; _dx++) {
+				for (var _dx = -_rx; _dx <= _rx; _dx++) {
 					var _xx = (((_xi + _dx) mod tw) + tw) mod tw, _i = _xx + _yy * tw;
-					var _d = sqrt((_xi + _dx - _x) * (_xi + _dx - _x) + (_yy - _y) * (_yy - _y)) / _w;
+					var _d = sqrt((_xi + _dx - _x) * (_xi + _dx - _x) * _cl * _cl + (_yy - _y) * (_yy - _y)) / _w;
 					if (_d > 1.7) continue;
 					var _crest = power(max(0, 1 - _d), 1.5) * .85, _shoulder = power(max(0, 1 - _d / 1.7), 2) * .40;
 					var _l = _hh * (_crest + _shoulder) * (.7 + .6 * dt[_i]);
@@ -58,7 +61,7 @@ function planet_ranges(_pn) {
 				stamp(_x, _y, _lvl, _tap, .55 + .9 * h(_salt + _s * 3 + 1));   // (the width wanders .55-1.45: no noodle)
 				array_push(_pts, [_x, _y, _hd]);
 				_hd += (h(_salt + _s * 3) - .5) * 2 * _wob + _bias;
-				_x += dcos(_hd); _y -= dsin(_hd);
+				_x += dcos(_hd) / max(.2, sin(pi * (_y + .5) / th)); _y -= dsin(_hd);   // (a step of one texel's GROUND, east-west: more texels near a pole)
 				if (_y < th * .08 || _y >= th * .92) break;
 				var _xi = ((floor(_x) mod tw) + tw) mod tw, _yi = clamp(floor(_y), 0, th - 1);
 				if (el[_xi + _yi * tw] < sea - .01) { _wet++; if (_wet > 2) break; } else _wet = 0;
@@ -115,7 +118,9 @@ function planet_ranges(_pn) {
 		if (_mk <= 0) continue;
 		_lift[_i] = _mk;   // (rlift: the gullies' and the carve's mask)
 		var _g = planet_gully(_pn, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th, _mk);
-		_el[_i] += _lf * (1 + 4 * _g) + _g * .7;
+		var _was = _el[_i];
+		_el[_i] += _lf * (1 + 4 * _g) + _g * .7 * clamp((_was - _sea2) / .06, 0, 1);   // (the channels fade out at the shore: a channel never drowns the land)
+		if (_was >= _sea2) _el[_i] = max(_el[_i], _sea2 + .004);                          // (his screenshot: a splatter of sea and shore texels where the gullies cut below the sea)
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
 		_bm[_i] = _ps.ob;

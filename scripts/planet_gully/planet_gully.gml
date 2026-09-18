@@ -1,7 +1,7 @@
 /// @description planet_gully(pn, u, v, lift) -> the GULLIES' height term at a map coordinate (elevation units, about zero): fine ridges and channels down every range's flank
 /// THE GULLIES (his ask, 2026-09-17: "every range to have continuous tiny
-/// branches"): a RIDGED value noise on three lattices - two texels, one,
-/// and a half - whose crests are countless small connected ridges with
+/// branches"): a RIDGED value noise on the sphere, three octaves - cells of
+/// two texels, one, and a half - whose crests are countless small connected ridges with
 /// channels between, masked by the range skeleton's lift so plains stay
 /// smooth and every spur carries them. INTO THE HEIGHTS (planet_ranges
 /// adds it to pn.elev under every lift and re-runs the biome law): the
@@ -13,18 +13,22 @@ function planet_gully(_pn, _u, _v, _lift) {
 	if (_lift <= 0) return 0;
 	var _m = clamp(_lift / .06, 0, 1);
 	var _s = _pn.seed;
-	// two octaves of 2d value noise on the map's own lattice (x wraps), each folded into ridges
-	var _g = 0, _amp = .5, _fx = _pn.tw * .5, _fy = _pn.th * .5;
+	// three octaves of 3d value noise ON THE SPHERE (a lattice in the map's own u / v streaked radially at the poles,
+	// where a texel is a sliver - his screenshot, 2026-09-17), each folded into ridges; a cell is about two texels
+	// at the equator (freq 25 a radius), then one, then a half. The lattice is offset by a hundred so no index is negative
+	var _sl = sin(_v * pi), _px = _sl * cos(_u * 2 * pi), _py = cos(_v * pi), _pz = _sl * sin(_u * 2 * pi);
+	var _g = 0, _amp = .5, _f = 25 * (_pn.tw / 320);
 	repeat (3) {
-		var _x = _u * _fx, _y = _v * _fy;
-		var _ix = floor(_x), _iy = floor(_y), _tx = _x - _ix, _ty = _y - _iy;
-		_tx = _tx * _tx * (3 - 2 * _tx); _ty = _ty * _ty * (3 - 2 * _ty);
-		var _wx = _fx;   // (the lattice wraps at the map's seam)
-		var _x0 = ((_ix mod _wx) + _wx) mod _wx, _x1 = (_x0 + 1) mod _wx;
-		var _h00 = planet_gully_h(_x0, _iy, _s), _h10 = planet_gully_h(_x1, _iy, _s), _h01 = planet_gully_h(_x0, _iy + 1, _s), _h11 = planet_gully_h(_x1, _iy + 1, _s);
-		var _n = lerp(lerp(_h00, _h10, _tx), lerp(_h01, _h11, _tx), _ty);
+		var _x = _px * _f + 100, _y = _py * _f + 100, _z = _pz * _f + 100;
+		var _ix = floor(_x), _iy = floor(_y), _iz = floor(_z), _tx = _x - _ix, _ty = _y - _iy, _tz = _z - _iz;
+		_tx = _tx * _tx * (3 - 2 * _tx); _ty = _ty * _ty * (3 - 2 * _ty); _tz = _tz * _tz * (3 - 2 * _tz);
+		var _c00 = lerp(planet_gully_h(_ix, _iy, _iz * 977 + _s), planet_gully_h(_ix + 1, _iy, _iz * 977 + _s), _tx);
+		var _c10 = lerp(planet_gully_h(_ix, _iy + 1, _iz * 977 + _s), planet_gully_h(_ix + 1, _iy + 1, _iz * 977 + _s), _tx);
+		var _c01 = lerp(planet_gully_h(_ix, _iy, (_iz + 1) * 977 + _s), planet_gully_h(_ix + 1, _iy, (_iz + 1) * 977 + _s), _tx);
+		var _c11 = lerp(planet_gully_h(_ix, _iy + 1, (_iz + 1) * 977 + _s), planet_gully_h(_ix + 1, _iy + 1, (_iz + 1) * 977 + _s), _tx);
+		var _n = lerp(lerp(_c00, _c10, _ty), lerp(_c01, _c11, _ty), _tz);
 		_g += (1 - abs(2 * _n - 1)) * _amp;   // (ridged: the crests are the lattice's middle crossings - lines)
-		_amp = (_amp > .4) ? .3 : .2; _fx *= 2; _fy *= 2; _s += 7919;
+		_amp = (_amp > .4) ? .3 : .2; _f *= 2; _s += 7919;
 	}
 	return (_g - .45) * .17 * _m;
 }

@@ -58,7 +58,7 @@ function planet_props(_d) {
 		{ k : "skies",   v : _wetw, t : _wt },
 		{ k : "seas",    v : _seasw, t : 0 },
 		{ k : "moons",   v : _moonw, t : (_moons == 0) ? 1 : 0 },
-		{ k : "ring",    v : _ringw, t : 0, col : _ring ? _pn.ring_col : undefined },
+		// (the ring's line went - his ask 2026-09-17; ring / ringw stay in the struct for anyone who reads them)
 	];
 	_d.pp = { dayh : _dayh, dayw : _dayw, climw : _climw, wet : _wet, wetw : _wetw, seasw : _seasw, moons : _moons, moonw : _moonw, ring : _ring, ringw : _ringw, lines : _lines,
 	          grav : 1 };   // (gravity is normal everywhere - his call; the pace lane reads this)

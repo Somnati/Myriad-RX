@@ -745,7 +745,7 @@ void main()
                 float st = -dot(n, u_raxis) / sdn;
                 if (st > 0.0) {
                     float sr = length(n + u_light * st);
-                    if (sr > u_rin && sr < u_rout) col *= 1.0 - ring_dens((sr - u_rin) / (u_rout - u_rin), sr) * 0.22 * u_ring;   // (the bands cast, the gaps do not)
+                    if (sr > u_rin && sr < u_rout) col *= 1.0 - ring_dens((sr - u_rin) / (u_rout - u_rin), sr) * 0.22 * u_ring * sunup;   // (the bands cast, the gaps do not; only where the sun is up - it showed on the night side, his report 2026-09-17)
                 }
             }
         }
