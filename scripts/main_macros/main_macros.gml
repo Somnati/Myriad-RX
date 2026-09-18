@@ -412,8 +412,8 @@ function main_macros() {
 // THE AGENT (slice three, 2026-09-14): a trip walks the world's REGION
 #macro EXPED_BOARD_N   1     // worlds on the board (his call: one planet for now)
 #macro EXPED_REGIONS   3     // regions a world (his call, 2026-09-15: three - lv +0 / +2 / +4 over the world's)
-#macro MOON_TEX_W     40     // the moons' shared texture (moon_tex): equirect texels
-#macro MOON_TEX_H     20
+#macro MOON_TEX_W     64     // the moons' shared texture (moon_tex): equirect texels (64 x 32 since q206: the craters have depth now)
+#macro MOON_TEX_H     32
 #macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
 #macro EXPED_WALK_KMH 4.8    // a road-hour on foot, in km (3 miles) - the distance ledger's pace
 #macro EXPED_ROOM_T   10     // seconds a step at a node takes (a delve room, a shop visit)
