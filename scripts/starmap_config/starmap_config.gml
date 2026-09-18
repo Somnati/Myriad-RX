@@ -77,8 +77,9 @@ function starmap_config() {
 		// ---- THE SKY (obj_planet_sky's numbers) ----
 		sky_range   : 900, // plane px: neighbours inside this make the sky
 		sky_max     : 170, // nearest N of them
-		sky_near_ref : 60,  // THE FLUX LAW (q198): a sun-like star this far fills the biggest glyph; flux = luminosity x (this / d)^2 (the inverse square)...
-		sky_flux_gamma : .5, // ...shown through this display curve (size and alpha = flux ^ gamma: .5 = the eye's square root; lower = flatter, more stars big)
+		sky_near_ref : 45,  // THE FLUX LAW (q198): a sun-like star this far fills the biggest glyph; flux = luminosity x (this / d)^2 (the inverse square)...
+		sky_flux_gamma : .5, // ...its ALPHA = flux ^ gamma (.5 = the eye's square root: the class shows as brightness)...
+		sky_size_pow : 2,   // ...its SIZE = (ref / d) ^ this, the class barely in it (q199: size says NEAR - 2 = the inverse square straight; higher = fewer big glyphs)
 		sky_near_pow : 2.2, // (retired by q198 - the old (ref / d)^pow size law; kept for the record)
 		sky_size_max : 31,  // the biggest glyph, px (spr_star_glyph's 31)
 		dust_count  : 240, // full-sphere faint fill
