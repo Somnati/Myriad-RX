@@ -69,15 +69,17 @@ if (_bloom > 0) {
 gpu_set_blendmode(bm_normal);
 gpu_set_tex_filter(true);
 shader_set(sh_crt);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_res"), _aw, _ah);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_room"), room_width, room_height);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_time"), t);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_curve"),  clamp(g.crt_curve,  0, 100) / 100);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_scan"),   clamp(g.crt_scan,   0, 100) / 100);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_grille"), clamp(g.crt_grille, 0, 100) / 100);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_chroma"), clamp(g.crt_chroma, 0, 100) / 100);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_vig"),    clamp(g.crt_vig,    0, 100) / 100);
-shader_set_uniform_f(shader_get_uniform(sh_crt, "u_roll"),   g.crt_roll ? 1 : 0);
+// (the shader's handles looked up once - nine string searches a frame before; q222)
+if (!variable_instance_exists(id, "crt_u")) crt_u = { chroma : shader_get_uniform(sh_crt, "u_chroma"), curve : shader_get_uniform(sh_crt, "u_curve"), grille : shader_get_uniform(sh_crt, "u_grille"), res : shader_get_uniform(sh_crt, "u_res"), roll : shader_get_uniform(sh_crt, "u_roll"), room : shader_get_uniform(sh_crt, "u_room"), scan : shader_get_uniform(sh_crt, "u_scan"), time : shader_get_uniform(sh_crt, "u_time"), vig : shader_get_uniform(sh_crt, "u_vig") };
+shader_set_uniform_f(crt_u.res, _aw, _ah);
+shader_set_uniform_f(crt_u.room, room_width, room_height);
+shader_set_uniform_f(crt_u.time, t);
+shader_set_uniform_f(crt_u.curve,  clamp(g.crt_curve,  0, 100) / 100);
+shader_set_uniform_f(crt_u.scan,   clamp(g.crt_scan,   0, 100) / 100);
+shader_set_uniform_f(crt_u.grille, clamp(g.crt_grille, 0, 100) / 100);
+shader_set_uniform_f(crt_u.chroma, clamp(g.crt_chroma, 0, 100) / 100);
+shader_set_uniform_f(crt_u.vig,    clamp(g.crt_vig,    0, 100) / 100);
+shader_set_uniform_f(crt_u.roll,   g.crt_roll ? 1 : 0);
 draw_surface_ext(scratch, 0, 0, room_width / _aw, room_height / _ah, 0, c_white, 1);
 shader_reset();
 

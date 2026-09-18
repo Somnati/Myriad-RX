@@ -28,6 +28,15 @@ input_blocked = false;
 
 // ---- internal draw cursor ----
 __rows = 0;
+// ---- THE PHASE TIMER's book (q222): { avg (an ease over ~30 frames), max (the worst of the last sixty), maxw (the window's running worst), n } a phase
+prof = { frame : { avg : 0, max : 0, maxw : 0, n : 0 }, step : { avg : 0, max : 0, maxw : 0, n : 0 }, draw : { avg : 0, max : 0, maxw : 0, n : 0 }, gui : { avg : 0, max : 0, maxw : 0, n : 0 } };
+__prof_take = function(_k, _us) {
+	var _p = prof[$ _k];
+	_p.avg = lerp(_p.avg, _us, .05);
+	_p.maxw = max(_p.maxw, _us);
+	_p.n += 1;
+	if (_p.n >= 60) { _p.max = _p.maxw; _p.maxw = 0; _p.n = 0; }
+};
 
 // ------------------------------------------------------------
 // internal helpers, all methods on this object.
@@ -168,6 +177,12 @@ __page_system = function() {
     row_text("fps_real = " + string(floor(fps_real)));
     row_text("delta = " + string_format(delta_time / 1000, 1, 3) + "ms");
     row_text("instances = " + string(instance_count));
+    // THE PHASES (q222): avg / worst-of-60 in ms - where a frame goes, and where a hitch was
+    row_text("// PHASES  avg / worst (ms)");
+    row_text("frame = " + string_format(prof.frame.avg / 1000, 1, 2) + " / " + string_format(prof.frame.max / 1000, 1, 2));
+    row_text("step  = " + string_format(prof.step.avg / 1000, 1, 2) + " / " + string_format(prof.step.max / 1000, 1, 2));
+    row_text("draw  = " + string_format(prof.draw.avg / 1000, 1, 2) + " / " + string_format(prof.draw.max / 1000, 1, 2));
+    row_text("gui   = " + string_format(prof.gui.avg / 1000, 1, 2) + " / " + string_format(prof.gui.max / 1000, 1, 2));
 
     // memory, cached in the Draw GUI event twice a second.
     // DumpMemory isn't free, so it doesn't run every frame
