@@ -1,4 +1,4 @@
-/// @description galaxy_sky_holes(sky, cam, cx, cy, w, h, [sun], [occ]) - THE BLACK HOLES of a sky, drawn AFTER the fog: the neighbours' black dots and discs, and the system's own hole for a sun (hole_draw) - so the fog never lies over their black, and the lens bends the fog too
+/// @description galaxy_sky_holes(sky, cam, cx, cy, w, h, [sun], [occ]) - THE BLACK HOLES of a sky, drawn AFTER the fog: the neighbours (frozen renders, each along its own line of sight, sized by distance) and the system's own hole for a sun (hole_draw, live) - so the fog never lies over their black, and the lens bends the fog too
 /// The same projection as galaxy_sky_draw's; the same marks (the near
 /// hole a black disc with a soft halo and its disc's glow, the far one a
 /// black dot); the sun's placement and its occluder fade are
@@ -7,6 +7,9 @@
 function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = undefined) {
 	var _ct = mat3_transpose(_cam);
 	var _stars = _sky.stars;
+	if (!variable_struct_exists(_sky, "hbake")) _sky.hbake = {};   // THE FROZEN RENDERS (q196), by neighbour index: { surf, qw, up }
+	var _pg = surface_get_target(), _pg_ok = (_pg >= 0 && surface_exists(_pg));
+	var _pw = _pg_ok ? surface_get_width(_pg) : _w, _ph = _pg_ok ? surface_get_height(_pg) : _h;
 	for (var _i = 0; _i < array_length(_stars); _i++) {
 		var _sk = _stars[_i];
 		if (!(_sk[$ "near"] ?? false) || (_sk[$ "skind"] ?? "main") != "hole") continue;
@@ -14,14 +17,51 @@ function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = unde
 		if (_dv[2] > -.2) continue;
 		var _f  = 230 / -_dv[2];
 		var _sx = _cx + _dv[0] * _f, _sy = _cy + _dv[1] * _f;
-		var _m = 12 + _sk.s * 4;
+		// THE SIZE by its distance plainly (the glyph law saturated at both ends - "either large or small", his report): the
+		// shadow's radius, from a speck to four pixels
+		var _rs = clamp((_sk[$ "psz"] ?? 2) * 1.2 * 60 / max(20, _sk[$ "d"] ?? 200), .6, 4);
+		var _r = _rs * 2, _hq = max(4, ceil(_r * 2.2)), _qw = _hq * 2;
+		var _m = _hq + 2;
 		if (_sx < -_m || _sx > _w + _m || _sy < -_m || _sy > _h + _m) continue;
 		var _fade = clamp((min(_sx, _w - _sx) + _m) / _m, 0, 1) * clamp((min(_sy, _h - _sy) + _m) / _m, 0, 1) * clamp((-_dv[2] - .2) / .1, 0, 1);
 		var _a = (.3 + .7 * _sk.b) * _fade;
-		// THE REAL THING at every size (q195; his report: "a black sprite in the sky", the far ones "tiny squares"): hole_draw
-		// bends the sky and the fog round it, the disc over and under - a far one is a dark speck in a hairline of light
-		var _gx0 = floor(_sx), _gy0 = floor(_sy), _hr1 = max(1, _sk.s * .22);
-		hole_draw(_gx0 + .5, _gy0 + .5, _hr1 * 2, _sk.col, ((_sk[$ "sseed"] ?? 0) mod 1000) * .37, _a, _cam);
+		if (_a <= .01) continue;
+		// ITS OWN FRAME (his report: "rotating themselves as if they are the centre piece"): the disc as the galactic plane
+		// lies along the line of sight to THIS hole, not the view's middle
+		var _fr = hole_frame(_dv, _cam);
+		var _hc = [0, 0, 0, _fr[0], _fr[1], _fr[2], 0, 0, 0];   // (sh_hole reads row 1 alone: the disc's normal in the quad's frame)
+		var _seed = ((_sk[$ "sseed"] ?? 0) mod 1000) * .37;
+		// THE FROZEN RENDER (his ask: "make their render frozen so it doesn't cost as much"): baked once, the first time the
+		// whole quad stands on the page - the hole over the sky behind it, premultiplied, its corners clear - and blitted
+		// after that, turned by the roll the camera has put on the sky since (its screen-up at the bake, a world vector,
+		// projected again); the disc holds its phase. The line of sight to a neighbour never changes, so the render is
+		// right for good; only a lost surface bakes it again
+		var _key = string(_i), _bk = _sky.hbake[$ _key];
+		var _ok = is_struct(_bk) && surface_exists(_bk.surf) && _bk.qw == _qw;
+		var _x0 = floor(_sx - _hq), _y0 = floor(_sy - _hq);
+		if (!_ok && _pg_ok && _x0 >= 0 && _y0 >= 0 && _x0 + _qw <= _pw && _y0 + _qw <= _ph) {
+			var _bs = surface_create(_qw, _qw, surface_get_format(_pg));
+			surface_reset_target();
+			surface_set_target(_bs);
+			draw_clear_alpha(c_black, 0);
+			hole_draw(_hq, _hq, _r, _sk.col, _seed, 1, _hc, _pg, _sx, _sy, true);
+			surface_reset_target();
+			surface_set_target(_pg);
+			_bk = { surf : _bs, qw : _qw, up : [_fr[3], _fr[4], _fr[5]] };
+			_sky.hbake[$ _key] = _bk; _ok = true;
+		}
+		if (_ok) {
+			// the roll: where the baked screen-up points on the page now (its world vector through the camera, and the
+			// perspective's share of its depth at the hole's place)
+			var _uv = mat3_apply(_ct, _bk.up[0], _bk.up[1], _bk.up[2]);
+			var _sux = _uv[0] + _dv[0] * _uv[2] / -_dv[2], _suy = _uv[1] + _dv[1] * _uv[2] / -_dv[2];
+			var _rot = darctan2(-_suy, _sux) - 90;
+			var _rc = dcos(_rot), _rsn = dsin(_rot);
+			var _ac = make_colour_rgb(round(255 * _a), round(255 * _a), round(255 * _a));   // (premultiplied: the fade scales the colour AND the alpha)
+			gpu_set_blendmode_ext_sepalpha(bm_one, bm_inv_src_alpha, bm_zero, bm_one);   // (premultiplied over; the page's alpha untouched)
+			draw_surface_ext(_bk.surf, _sx - _hq * (_rc + _rsn), _sy - _hq * (_rc - _rsn), 1, 1, _rot, _ac, _a);
+			gpu_set_blendmode(bm_normal);
+		} else hole_draw(_sx, _sy, _r, _sk.col, _seed, _a, _hc);   // (live until the whole quad is on the page)
 	}
 	gpu_set_blendmode(bm_normal);
 	// the system's own hole for a sun: where the sun stands, faded as the sun is (behind the world, under a moon)
@@ -40,7 +80,7 @@ function galaxy_sky_holes(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _occ = unde
 					else if (_od < _o.r) _sfade *= clamp((_od - _o.r * .55) / (_o.r * .45), 0, 1);
 				}
 			}
-			if (_sfade > 0) hole_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam);
+			if (_sfade > 0) { var _fs = hole_frame(_sv, _cam); hole_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, [0, 0, 0, _fs[0], _fs[1], _fs[2], 0, 0, 0]); }   // (along its own line of sight - q196)
 		}
 	}
 }

@@ -13,7 +13,10 @@
 /// The blend is (one, inv_src_alpha) with the page's alpha untouched:
 /// the shader's output is premultiplied - the bent sky replaces the
 /// page, the disc lies over it, the photon ring adds
-function hole_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined) {
+/// src / srcx / srcy (q196): read the sky from THAT surface (the page) round (srcx, srcy) instead of the current
+/// target - a frozen render of a neighbour bakes into its own sheet this way; bake = true writes the premultiplied
+/// result and its alpha into a cleared sheet (one, inv_src_alpha on both), for a blit later
+function hole_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined, _src = undefined, _srcx = 0, _srcy = 0, _bake = false) {
 	static _u = undefined;
 	static _lens = -1;
 	if (is_undefined(_u)) _u = { col : shader_get_uniform(sh_hole, "u_col"), seed : shader_get_uniform(sh_hole, "u_seed"), time : shader_get_uniform(sh_hole, "u_time"),
@@ -33,18 +36,22 @@ function hole_draw(_x, _y, _r, _col, _seed, _fade = 1, _cam = undefined) {
 	if (!surface_exists(_lens) || surface_get_width(_lens) < _qw || surface_get_format(_lens) != _fmt) { if (surface_exists(_lens)) surface_free(_lens); _lens = surface_create(_lw, _lw, _fmt); }
 	_lw = surface_get_width(_lens);
 	var _x0 = floor(_x - _hq), _y0 = floor(_y - _hq);
+	var _use_src = !is_undefined(_src) && surface_exists(_src);
+	var _pg = _use_src ? _src : _tg, _pg_ok = _use_src || _has;
+	var _ox = _use_src ? floor(_srcx - _hq) : _x0, _oy = _use_src ? floor(_srcy - _hq) : _y0;
 	if (_has) surface_reset_target();
 	surface_set_target(_lens);
 	gpu_set_blendmode_ext(bm_one, bm_zero);   // (an exact overwrite: the square black first, then the page's part where it lies on the page)
 	draw_sprite_ext(spr_pixel_1x1, 0, 0, 0, _qw, _qw, 0, c_black, 1);
-	if (_has) {
-		var _pw = surface_get_width(_tg), _ph = surface_get_height(_tg);
-		var _sx0 = max(_x0, 0), _sy0 = max(_y0, 0), _sx1 = min(_x0 + _qw, _pw), _sy1 = min(_y0 + _qw, _ph);
-		if (_sx1 > _sx0 && _sy1 > _sy0) draw_surface_part_ext(_tg, _sx0, _sy0, _sx1 - _sx0, _sy1 - _sy0, _sx0 - _x0, _sy0 - _y0, 1, 1, c_white, 1);
+	if (_pg_ok) {
+		var _pw = surface_get_width(_pg), _ph = surface_get_height(_pg);
+		var _sx0 = max(_ox, 0), _sy0 = max(_oy, 0), _sx1 = min(_ox + _qw, _pw), _sy1 = min(_oy + _qw, _ph);
+		if (_sx1 > _sx0 && _sy1 > _sy0) draw_surface_part_ext(_pg, _sx0, _sy0, _sx1 - _sx0, _sy1 - _sy0, _sx0 - _ox, _sy0 - _oy, 1, 1, c_white, 1);
 	}
 	surface_reset_target();
 	if (_has) surface_set_target(_tg);
-	gpu_set_blendmode_ext_sepalpha(bm_one, bm_inv_src_alpha, bm_zero, bm_one);
+	if (_bake) gpu_set_blendmode_ext(bm_one, bm_inv_src_alpha);   // (into a cleared sheet: the alpha lands too)
+	else gpu_set_blendmode_ext_sepalpha(bm_one, bm_inv_src_alpha, bm_zero, bm_one);
 	shader_set(sh_hole);
 	shader_set_uniform_f(_u.col, colour_get_red(_col) / 255, colour_get_green(_col) / 255, colour_get_blue(_col) / 255);
 	shader_set_uniform_f(_u.seed, _seed);

@@ -573,6 +573,7 @@
     {"id":{"name":"handle","path":"scripts/handle/handle.yy",},},
     {"id":{"name":"hash_mix","path":"scripts/hash_mix/hash_mix.yy",},},
     {"id":{"name":"hole_draw","path":"scripts/hole_draw/hole_draw.yy",},},
+    {"id":{"name":"hole_frame","path":"scripts/hole_frame/hole_frame.yy",},},
     {"id":{"name":"hp_bar_col","path":"scripts/hp_bar_col/hp_bar_col.yy",},},
     {"id":{"name":"in_range","path":"scripts/in_range/in_range.yy",},},
     {"id":{"name":"in_room","path":"scripts/in_room/in_room.yy",},},

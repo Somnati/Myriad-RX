@@ -4,6 +4,8 @@ __lod_drop();   // (the zoom tiers, 2026-09-17)
 wb_surf = -1;
 if (surface_exists(sky_fog_surf)) surface_free(sky_fog_surf);
 sky_fog_surf = -1;
+var _sks = variable_struct_get_names(sky_c);   // (the skies' frozen hole renders - q196)
+for (var _si = 0; _si < array_length(_sks); _si++) __sky_bakes_free(sky_c[$ _sks[_si]]);
 if (surface_exists(gx_mm)) surface_free(gx_mm);
 gx_mm = -1;
 if (surface_exists(gx_glow_a)) surface_free(gx_glow_a);

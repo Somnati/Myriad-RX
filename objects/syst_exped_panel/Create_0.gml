@@ -494,11 +494,18 @@ pv_sky   = undefined;                // galaxy_sky_build() (the page's world's -
 sky_c    = {};                       // A SKY A WORLD (2026-09-16): galaxy_sky_build(d) by seed; the sun's bearing refreshed on every read
 sky_met  = undefined;                // THE METEOR (2026-09-16): { x, y, dx, dy, t, life } in the orbit view's page space, one every sky_meteor seconds or so
 sky_met_t = 0;                       // ...seconds since the last
+/// a sky's frozen hole renders (galaxy_sky_holes' hbake) let go - q196
+__sky_bakes_free = function(_c) {
+	if (!is_struct(_c) || !is_struct(_c[$ "hbake"])) return;
+	var _ks = variable_struct_get_names(_c.hbake);
+	for (var _j = 0; _j < array_length(_ks); _j++) { var _b = _c.hbake[$ _ks[_j]]; if (is_struct(_b) && surface_exists(_b.surf)) surface_free(_b.surf); }
+	_c.hbake = {};
+};
 __sky_for = function(_d) {
 	// (a sky is rebuilt after ten minutes: the siblings' spots are where they were WHEN IT WAS BUILT - cached for a session
 	// they stood still while the system view's planets moved on; bug hunt 2026-09-16. The dust and the clouds are seeded: the same)
 	var _k = string(_d.seed), _c = sky_c[$ _k];
-	if (!is_struct(_c) || (current_time - (_c[$ "built"] ?? 0)) > 600000) { _c = galaxy_sky_build(_d); _c.built = current_time; sky_c[$ _k] = _c; }
+	if (!is_struct(_c) || (current_time - (_c[$ "built"] ?? 0)) > 600000) { __sky_bakes_free(_c); _c = galaxy_sky_build(_d); _c.built = current_time; sky_c[$ _k] = _c; }
 	_c.light_w = galaxy_sun_dir(0, _d);
 	return _c;
 };

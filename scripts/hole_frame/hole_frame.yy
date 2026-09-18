@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"hole_frame",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"hole_frame",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
