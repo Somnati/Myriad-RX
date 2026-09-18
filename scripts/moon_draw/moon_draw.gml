@@ -52,6 +52,8 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 		crelief : shader_get_uniform(sh_planet, "u_crelief"), canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
 		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"), pk : shader_get_uniform(sh_planet, "u_pk"),
 		pwin : shader_get_uniform(sh_planet, "u_pwin"), season : shader_get_uniform(sh_planet, "u_season"),
+		// (the rest of the world's uniforms, looked up once - they were string searches every moon every frame; q214)
+		aurora : shader_get_uniform(sh_planet, "u_aurora"), bump : shader_get_uniform(sh_planet, "u_bump"), moonn : shader_get_uniform(sh_planet, "u_moonn"), pfade : shader_get_uniform(sh_planet, "u_pfade"), rgap : shader_get_uniform(sh_planet, "u_rgap"), rin : shader_get_uniform(sh_planet, "u_rin"), ringcol2 : shader_get_uniform(sh_planet, "u_ringcol2"), rkind : shader_get_uniform(sh_planet, "u_rkind"), rout : shader_get_uniform(sh_planet, "u_rout"), rseed : shader_get_uniform(sh_planet, "u_rseed"), snowb : shader_get_uniform(sh_planet, "u_snowb"), stormn : shader_get_uniform(sh_planet, "u_stormn"), ventn : shader_get_uniform(sh_planet, "u_ventn"),
 	};
 	// the quad on the pixel grid, like the world's
 	var _q = _mq * 1.02, _qx = _mx - _q, _qy = _my - _q;
@@ -68,20 +70,20 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.ring, 0);
 	shader_set_uniform_f(_u.raxis, 0, 1, 0);
 	shader_set_uniform_f(_u.rcol, 0, 0, 0);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_ringcol2"), 0, 0, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rkind"), 0);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rin"), 1.55); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rout"), 2.25);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rseed"), 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_rgap"), 0, 0);
+	shader_set_uniform_f(_u.ringcol2, 0, 0, 0); shader_set_uniform_f(_u.rkind, 0);
+	shader_set_uniform_f(_u.rin, 1.55); shader_set_uniform_f(_u.rout, 2.25);
+	shader_set_uniform_f(_u.rseed, 0); shader_set_uniform_f(_u.rgap, 0, 0);
 	shader_set_uniform_f(_u.relief, .03);   // (the craters' depth on the limb and in the light - q206; was 0: no relief at all)
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_bump"), .9);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_moonn"), 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_ventn"), 0);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_stormn"), 0);
-	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_aurora"), 0);
-	shader_set_uniform_f(_u.cfade, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_pfade"), 0);
+	shader_set_uniform_f(_u.bump, .9);
+	shader_set_uniform_f(_u.moonn, 0); shader_set_uniform_f(_u.ventn, 0);
+	shader_set_uniform_f(_u.stormn, 0);
+	shader_set_uniform_f(_u.aurora, 0);
+	shader_set_uniform_f(_u.cfade, 0); shader_set_uniform_f(_u.pfade, 0);
 	shader_set_uniform_f_array(_u.crot2, _mm); shader_set_uniform_f(_u.wt, 0, 0);
 	shader_set_uniform_f(_u.cvol, 0); shader_set_uniform_f(_u.crelief, 0); shader_set_uniform_f(_u.canopy, 0);
 	shader_set_uniform_f(_u.grass, .5, .5, .5); shader_set_uniform_f(_u.sea0, 0, 0, 0); shader_set_uniform_f(_u.sea1, 0, 0, 0);
 	shader_set_uniform_f(_u.pk, 0); shader_set_uniform_f(_u.pwin, 0, 0, 1, 1);   // (no zoom tier: its own texture, whole)
-	shader_set_uniform_f(_u.season, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_snowb"), 3);
+	shader_set_uniform_f(_u.season, 0); shader_set_uniform_f(_u.snowb, 3);
 	shader_set_uniform_f(_u.dither, (variable_global_exists("dither_off") && g.dither_off) ? 0 : 1);
 	shader_set_uniform_f_array(_u.city, array_create(24, 0));
 	shader_set_uniform_f(_u.cityn, 0);
