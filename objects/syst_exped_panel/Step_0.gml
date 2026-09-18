@@ -452,106 +452,9 @@ if (view == "galaxy") {
 }
 
 // ======================= THE STAR SYSTEM VIEW (the demo's): orbit the camera, glide, the wheel's distance, the dive =======================
-if (view == "system" && is_struct(sy_sys)) {
-	var _ocf = starmap_config();
-	__sy_lite_step();   // (the stamps, a slice a frame - q201)
-	// the dive: an eased swell about the picked world (or station - 2026-09-17), then its page (behind the veil)
-	if (sy_warp_pl >= 0 || sy_warp_st >= 0) {
-		sy_warp_t = min(sy_warp_t + delta / 30, 1);
-		var _we = sy_warp_t * sy_warp_t * (3 - 2 * sy_warp_t);
-		sy_warp_s = power(15, _we);
-		if (sy_warp_t >= 1) {
-			if (sy_warp_st >= 0) {
-				st_sel = sy_warp_st; st_yaw = 0; st_pitch = -20; st_cam = mat3_mul(mat3_rot(0, 1, 0, st_yaw), mat3_rot(1, 0, 0, st_pitch)); st_vx = 0; st_vy = 0; st_drag = false;
-				sy_warp_st = -1; sy_warp_s = 1; sy_warp_t = 0;
-				view = "station"; pg_a = 0; pg_dir = 1; view_last = view;
-			} else {
-				var _di = exped_world_open(sy_star, sy_warp_pl);
-				sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
-				if (_di >= 0) { sel_dest = _di; pl_dest = g.exped.board[_di]; rg_sel = 0; pl_focus = -1; pv_mode = "planet"; pv_zoom = 1; pv_zuser = 1; pv_cfade = 1; view = "planet"; pg_a = 0; pg_dir = 1; view_last = view; }
-			}
-		}
-		exit;
-	}
-	var _svr = __sy_view_r();
-	var _sdk = point_in_rectangle(mouse_x, mouse_y, __sy_dock_x(), list_y + 16, room_width, room_height - 8);   // (the drawer and its tab: no place to drag or wheel from)
-	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h) && !_sdk;
-	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, 150); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }
-	var _bk0 = __back_r();
-	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
-	var _ser = __sy_enter_r(), _sgl0 = __galaxy_r();
-	var _oner = (sy_dwa <= .3 && point_in_rectangle(mouse_x, mouse_y, _ser.x, _ser.y, _ser.x + _ser.w, _ser.y + _ser.h)) || point_in_rectangle(mouse_x, mouse_y, _sgl0.x, _sgl0.y, _sgl0.x + _sgl0.w, _sgl0.y + _sgl0.h);
-	if (!sy_drag && mouse_check_button_pressed(mb_left) && _sin && !_onbk0 && !_oner) { sy_drag = true; sy_drag_px = 0; sy_dx = mouse_x; sy_dy = mouse_y; }
-	if (sy_drag && mouse_check_button(mb_left)) {
-		var _dx = mouse_x - sy_dx, _dy = mouse_y - sy_dy;
-		sy_drag_px += abs(_dx) + abs(_dy);
-		if (_dx != 0) sy_cam = mat3_mul(sy_cam, mat3_rot(0, 1, 0,  _dx * _ocf.orbit_sens));
-		if (_dy != 0) sy_cam = mat3_mul(sy_cam, mat3_rot(1, 0, 0, -_dy * _ocf.orbit_sens));
-		sy_vx = lerp(sy_vx, _dx, .5); sy_vy = lerp(sy_vy, _dy, .5);
-		sy_dx = mouse_x; sy_dy = mouse_y;
-	}
-	if (!sy_drag) {
-		if (abs(sy_vx) > .02 || abs(sy_vy) > .02) {
-			sy_cam = mat3_mul(sy_cam, mat3_rot(0, 1, 0,  sy_vx * _ocf.orbit_sens * delta));
-			sy_cam = mat3_mul(sy_cam, mat3_rot(1, 0, 0, -sy_vy * _ocf.orbit_sens * delta));
-			var _dk = power(_ocf.orbit_glide, delta);
-			sy_vx *= _dk; sy_vy *= _dk;
-		} else { sy_vx = 0; sy_vy = 0; }
-	}
-	if (sy_drag && mouse_check_button_released(mb_left)) {
-		sy_drag = false;
-		if (sy_drag_px <= 4) {
-			// a tap: the nearest world under it (the demo's reach), or space - nothing
-			var _hit = -1, _pls2 = sy_sys.planets;
-			for (var _i = 0; _i < array_length(_pls2); _i++) {
-				var _pw2 = __sy_ppos(_pls2[_i]); var _pp2 = __sy_proj(_pw2[0], 0, _pw2[2]);
-				if (is_undefined(_pp2)) continue;
-				if (point_distance(mouse_x, mouse_y - list_y, _pp2[0], _pp2[1]) <= _pls2[_i].size * _pp2[2] * 1.9 + 6) { _hit = _i; break; }
-			}
-			// ...or the nearest station (2026-09-17): a station and a world are never both picked
-			var _shit = -1;
-			for (var _j = 0; _j < array_length(sy_stns); _j++) {
-				var _sq2 = __st_ppos(sy_stns[_j]); var _sp2 = __sy_proj(_sq2[0], 0, _sq2[2]);
-				if (is_undefined(_sp2)) continue;
-				if (point_distance(mouse_x, mouse_y - list_y, _sp2[0], _sp2[1]) <= sy_stns[_j].size * _sp2[2] * 1.9 + 6) { _shit = _j; break; }
-			}
-			// ...or a belt's band (the polish, 2026-09-17): the nearest point of its ring within reach names it - nothing to enter
-			var _bhit = -1;
-			if (_hit < 0 && _shit < 0) for (var _b = 0; _b < array_length(sy_belts) && _bhit < 0; _b++) {
-				var _bo = sy_belts[_b].orbit;
-				for (var _ba = 0; _ba < 360; _ba += 4) { var _bq = __sy_proj(dcos(_ba) * _bo, 0, dsin(_ba) * _bo); if (is_undefined(_bq)) continue; if (point_distance(mouse_x, mouse_y - list_y, _bq[0], _bq[1]) <= max(5, sy_belts[_b].width * .5 * _bq[2]) + 2) { _bhit = _b; break; } }
-			}
-			if (_shit >= 0 && _hit < 0) { if (_shit != sy_ssel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_ssel = _shit; sy_sel = -1; sy_bsel = -1; }
-			else if (_bhit >= 0) { if (_bhit != sy_bsel) play_sound_ext(snd_softclick, 1, 1.1, .35, 1); sy_bsel = _bhit; sy_sel = -1; sy_ssel = -1; }
-			else { if (_hit >= 0 && _hit != sy_sel) play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); sy_sel = _hit; sy_ssel = -1; sy_bsel = -1; }
-		}
-	}
-	sy_dwa = move_to(sy_dwa, sy_dw ? 1 : 0, 6);   // the drawer's ease
-}
+if (ex_system_step()) exit;   // (ex_system_step - q217)
 // ======================= THE STATION PAGE (2026-09-17): drag to look round, a glide on release =======================
-if (view == "station" && st_sel >= 0 && st_sel < array_length(sy_stns)) {
-	var _ocs = starmap_config();
-	var _stvr = __sy_view_r();
-	var _bks = __back_r();
-	var _stin = point_in_rectangle(mouse_x, mouse_y, _stvr.x, _stvr.y, _stvr.x + _stvr.w, _stvr.y + _stvr.h) && !point_in_rectangle(mouse_x, mouse_y, _bks.x, _bks.y, _bks.x + _bks.w, _bks.y + _bks.h);
-	if (!st_drag && mouse_check_button_pressed(mb_left) && _stin) { st_drag = true; st_drag_px = 0; st_dx = mouse_x; st_dy = mouse_y; }
-	if (st_drag && mouse_check_button(mb_left)) {
-		var _sdx = mouse_x - st_dx, _sdy = mouse_y - st_dy;
-		st_drag_px += abs(_sdx) + abs(_sdy);
-		st_yaw += _sdx * _ocs.orbit_sens; st_pitch = clamp(st_pitch - _sdy * _ocs.orbit_sens, -80, 80);
-		st_vx = lerp(st_vx, _sdx, .5); st_vy = lerp(st_vy, _sdy, .5);
-		st_dx = mouse_x; st_dy = mouse_y;
-	}
-	if (!st_drag) {
-		if (abs(st_vx) > .02 || abs(st_vy) > .02) {
-			st_yaw += st_vx * _ocs.orbit_sens * delta; st_pitch = clamp(st_pitch - st_vy * _ocs.orbit_sens * delta, -80, 80);
-			var _sdk = power(_ocs.orbit_glide, delta);
-			st_vx *= _sdk; st_vy *= _sdk;
-		} else { st_vx = 0; st_vy = 0; }
-	}
-	st_cam = mat3_mul(mat3_rot(0, 1, 0, st_yaw), mat3_rot(1, 0, 0, st_pitch));   // (the turntable: yaw about the world's up, pitch about the view's side - it never rolls)
-	if (st_drag && mouse_check_button_released(mb_left)) st_drag = false;
-}
+if (ex_station_step()) exit;   // (ex_station_step - q217)
 if (!mouse_check_button_pressed(mb_left)) exit;   // EVERYTHING BELOW IS A PRESS
 
 // the debug clock: x1 / x10 / x100 (not on the sprite menu)
@@ -565,31 +468,7 @@ for (var _k = 0; _k < 3; _k++) {
 	}
 }
 // THE STAR SYSTEM's dock (2026-09-16): a row picks a world, [enter] dives into it (the swell, then its page)
-if (view == "system" && is_struct(sy_sys) && sy_warp_pl < 0) {
-	var _npl = array_length(sy_sys.planets);
-	// [galaxy] bottom left: the map (its [back] returns here)
-	var _sgl = __galaxy_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _sgl.x, _sgl.y, _sgl.x + _sgl.w, _sgl.y + _sgl.h)) { gx_from = "system"; __page_go("galaxy"); play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; }
-	// the drawer's tab: open / close
-	var _stb = __sy_tab_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _stb.x, _stb.y, _stb.x + _stb.w, _stb.y + _stb.h)) { sy_dw = !sy_dw; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); exit; }
-	// [enter] bottom right while the drawer is shut: a station picked dives to its page (2026-09-17)
-	if (sy_dwa <= .3 && sy_ssel >= 0) { var _ser3 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser3.x, _ser3.y, _ser3.x + _ser3.w, _ser3.y + _ser3.h)) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
-	if (sy_dwa <= .3 && sy_sel >= 0 && sy_sel < _npl && galaxy_world_biome(sy_sys.planets[sy_sel]) >= 0) { var _ser2 = __sy_enter_r(); if (point_in_rectangle(mouse_x, mouse_y, _ser2.x, _ser2.y, _ser2.x + _ser2.w, _ser2.y + _ser2.h)) { sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; } }
-	if (sy_dwa >= .5) {   // (the drawer open: its rows and [enter])
-	for (var _j = 0; _j < array_length(sy_stns); _j++) { var _rr2 = __sy_row_r(_npl + _j); if (_rr2.y + _rr2.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr2.x, _rr2.y, _rr2.x + _rr2.w, _rr2.y + _rr2.h)) { sy_ssel = _j; sy_sel = -1; sy_bsel = -1; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }   // (a station's row - 2026-09-17)
-	for (var _b = 0; _b < array_length(sy_belts); _b++) { var _rr3 = __sy_row_r(_npl + array_length(sy_stns) + _b); if (_rr3.y + _rr3.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr3.x, _rr3.y, _rr3.x + _rr3.w, _rr3.y + _rr3.h)) { sy_bsel = _b; sy_sel = -1; sy_ssel = -1; play_sound_ext(snd_softclick, 1, 1.1, .35, 1); exit; } }   // (a belt's row: named, lit - the polish)
-	for (var _i = 0; _i < _npl; _i++) { var _rr = __sy_row_r(_i); if (_rr.y + _rr.h > room_height - 8 - 20) break; if (point_in_rectangle(mouse_x, mouse_y, _rr.x, _rr.y, _rr.x + _rr.w, _rr.y + _rr.h)) { sy_ssel = -1; sy_bsel = -1; sy_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); exit; } }
-	var _sor = __sy_open_r();
-	if (point_in_rectangle(mouse_x, mouse_y, _sor.x, _sor.y, _sor.x + _sor.w, _sor.y + _sor.h)) {
-		if (sy_ssel >= 0) { sy_warp_st = sy_ssel; sy_warp_t = 0; sy_warp_s = 1; play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1); exit; }   // (a station - 2026-09-17)
-		if (sy_sel < 0 || sy_sel >= _npl || galaxy_world_biome(sy_sys.planets[sy_sel]) < 0) { play_sound_ext(snd_matclick2, .7, .8, .35, 0); exit; }
-		sy_warp_pl = sy_sel; sy_warp_t = 0; sy_warp_s = 1;
-		play_sound_ext(snd_matclick2, 1.2, 1.4, .6, 1);
-		exit;
-	}
-	}
-}
+if (ex_system_press()) exit;   // (ex_system_press - q217)
 // [back] from any page (drawn on the right, syst_exped_panel's Draw); [crew] beside it (his ask, 2026-09-15)
 if (view != "hub") {
 	var _bk = __back_r();
