@@ -79,6 +79,7 @@ function galaxy_sky_build(_dw = undefined) {
 	}
 	_out.light_w = galaxy_sun_dir(0, _dw);   // (the one bearing the agent's daylight reads too)
 	_out.sun_col  = _sys.star.col;
+	_out.hole     = _sys.star[$ "hole"] ?? false;   // (a black hole for a sun - 2026-09-17)
 	// THE SUN'S SIZE BY THE ORBIT (his pick, 2026-09-16): the star's size over the world's orbit against a middling one -
 	// an inner world's sun is big in the sky, an outer world's a bright point (the same law sizes the shadows' sun)
 	_out.sun_size = _sys.star.size * clamp((_cfg[$ "sun_orbit_ref"] ?? 70) / max(20, _me3.orbit), _cfg[$ "sun_size_min"] ?? .45, _cfg[$ "sun_size_max"] ?? 2.2);

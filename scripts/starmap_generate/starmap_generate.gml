@@ -360,6 +360,16 @@ function starmap_gen_step(_c, _budget_ms = 8) {
 						          rarity : _tier, rarity_color : _rarity_cols[_tier], region : 0,
 						          resources : undefined, hazards : undefined, inhabitants : undefined },
 					};
+					// BLACK HOLES (his ask, 2026-09-17): one star in two hundred, hashed off its seed - and the core's own,
+					// supermassive, whatever sits nearest the galaxy's centre. The rolls after the star's own are safe: the
+					// next star seeds afresh. Its colour is its accretion disc's - a hot blue-white or an orange-white
+					var _hole = ((hash_mix(_sseed, 4040) mod 1000) < 5), _core = (_rd < .012);
+					if (_hole || _core) {
+						var _pp = _c.stars[_si].props;
+						_pp.hole = true; _pp.stellar_class = "BH";
+						_pp.size = _core ? random_range(5.2, 6.5) : random_range(1.5, 2.6);
+						_pp.color = merge_colour(_pp.color, ((hash_mix(_sseed, 4041) mod 2) == 0) ? rgb(175, 205, 255) : rgb(255, 195, 130), .65);
+					}
 					_c.i += 1;
 				}
 				if (_c.i >= _count) __smg_next(_c);

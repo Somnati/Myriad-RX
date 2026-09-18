@@ -32,7 +32,7 @@ function starsystem_generate(_seed, _star = undefined) {
 	}
 	if (_r > 112) { var _sc = 112 / _r; for (var _i = 0; _i < _pc; _i++) _pl[_i].orbit *= _sc; }
 	var _st = { col : color_set_random(), size : random_range(9, 16) };
-	if (is_struct(_star)) _st = { col : _star.color, size : 8 + _star.size * 1.4 };
+	if (is_struct(_star)) _st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false) };   // (hole: a black hole - hole_draw where star_draw would be; 2026-09-17)
 	var _sr2 = colour_get_red(_st.col), _sb2 = colour_get_blue(_st.col);
 	_st.temp_k = round(lerp(2600, 21000, clamp((_sb2 - _sr2 + 255) / 510, 0, 1)) / 100) * 100 + irandom_range(-2, 2) * 100;
 	_st.age = round(random_range(.4, 12) * 10) / 10;

@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_hole",
+  "name":"sh_hole",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}
