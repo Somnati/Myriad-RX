@@ -560,7 +560,7 @@ void main()
         float h0 = 0.0;
         float bumpl = 0.0;
         float shadow = 0.0;
-        if (u_relief > 0.0005 && u_bump > 0.001) {
+        if (u_relief > 0.0005 && u_bump > 0.001 && hsmp.g < 0.5) {   // (no bump on WATER: its surface is flat whatever the ground under it - 2026-09-17)
             // PER TEXEL (2026-09-16, his report: "very jittery when panning"):
             // the slope's taps sat a sixth of a texel apart and the shadow's
             // march inside one, so what a pixel read depended on where in its
