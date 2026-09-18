@@ -1,8 +1,9 @@
 /// @description planet_volcanoes(pn) - VOLCANOES (his ask, 2026-09-17): cones with craters on the land, some live with a lava vent and flows down a flank, a plume of smoke round every live one
 /// A terra world has none two times in five, else one or two; a lava
 /// world two to five, every one live; a barren world one or two, all
-/// dead. VERY LARGE (his call): nine to sixteen texels across, a third to
-/// a half of the relief tall, a stratovolcano's concave flank. Hashed off the seed - nothing rolled. A cone is a lift by
+/// dead. Its size procedural (his call): a stratovolcano two in three -
+/// five to nine texels across, .42-.60 tall, a steep concave flank - else
+/// a shield, ten to sixteen across, .26-.36 tall, an easy one. Hashed off the seed - nothing rolled. A cone is a lift by
 /// ground distance (a texel narrows toward the poles): the flank a curve
 /// to the rim, the crater a bowl inside it, the vent a pit; the biome law
 /// runs again on the lifted texels (rock and snow on a tall cone's
@@ -28,7 +29,7 @@ function planet_volcanoes(_pn) {
 		sc : _tw / 320, lift : array_create(_n, 0), rl : _pn.rlift, smk : _pn.csmk, vent : array_create(_n, 0),
 		h : function(_k) { return (hash_mix(seed, 30000 + _k) mod 10000) / 10000; },
 		// the cone: a lift by ground distance - the flank to the rim, the crater's bowl inside, the vent's pit
-		cone : function(_x, _y, _rad, _hgt, _live) {
+		cone : function(_x, _y, _rad, _hgt, _live, _stp) {   // (stp: the flank's exponent - the steeper, the more the height sits at the summit)
 			var _cl = max(.2, sin(pi * (_y + .5) / th)), _r = ceil(_rad), _rx = min(tw div 2, ceil(_rad / _cl));
 			var _rc = _rad * .22, _rv = _rad * .09;
 			// THE BASE (his report, 2026-09-17: "on the side of a mountain at an angle"): the mean height round the cone's
@@ -48,7 +49,7 @@ function planet_volcanoes(_pn) {
 					var _d = sqrt(_dx * _dx * _cl * _cl + _dy * _dy);
 					if (_d > _rad) continue;
 					el[_i] = lerp(el[_i], _base, power(1 - _d / _rad, .6));
-					var _l = _hgt * power(1 - _d / _rad, 1.7);   // (a stratovolcano's flank: concave - steep at the summit, easing to the plain)
+					var _l = _hgt * power(1 - _d / _rad, _stp);   // (a stratovolcano's flank: concave - steep at the summit, easing to the plain; a shield's gentler)
 					if (_d < _rc) _l -= _hgt * .38 * (1 - (_d / _rc) * (_d / _rc));   // (the crater's bowl: the rim stands, the floor sinks)
 					_l *= .9 + .2 * dt[_i];
 					if (_l > lift[_i]) lift[_i] = _l;
@@ -116,8 +117,13 @@ function planet_volcanoes(_pn) {
 		}
 		if (_x < 0) continue;
 		var _live = _all_live || (!_none_live && _c.h(_b + 90) < .6);
-		var _rad = (9 + 7 * _c.h(_b + 91)) * _sc, _hgt = .34 + .16 * _c.h(_b + 92);   // (VERY LARGE - his verdict on the first cut; a mountain in a volcano's shape)
-		_c.cone(_x, _y, _rad, _hgt, _live);
+		// THE SIZE, PROCEDURAL (his ask, 2026-09-17: "tighter and taller... or at least procedural"): a STRATOVOLCANO two
+		// times in three - tight and tall, five to nine texels across, .42-.60 of the relief, a steep concave flank -
+		// else a SHIELD, broad and low, ten to sixteen across, .26-.36 tall, an easy flank
+		var _strato = (_c.h(_b + 93) < .67);
+		var _rad = (_strato ? (5 + 4 * _c.h(_b + 91)) : (10 + 6 * _c.h(_b + 91))) * _sc;
+		var _hgt = _strato ? (.42 + .18 * _c.h(_b + 92)) : (.26 + .10 * _c.h(_b + 92));
+		_c.cone(_x, _y, _rad, _hgt, _live, _strato ? 2.0 : 1.3);
 		array_push(_vents, [_x, _y, _live, _rad, _b]);
 	}
 	// into the heights (the cone's lift joins rlift for the gullies and the carve), the biome law again under it

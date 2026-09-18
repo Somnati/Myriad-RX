@@ -11,7 +11,7 @@
 /// persist between draws, so every one is set every call.
 /// msh (2026-09-16) = the moons' view-space casters [[x, y, z, size], ...] (moon_view_pos); storms = the storm regions' spots in texture space [[x, y, z], ...]
 /// lod (2026-09-17) = the ZOOM PATCH (syst_exped_panel's lod_show): { k, u0, v0, uw, vh, tsurf, hsurf } - the window of the map under the view sampled k times finer; undefined = none
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined, _lod = undefined) {
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined, _lod = undefined, _pfade = 1) {   // (pfade: the volcanoes' plumes' own fade, 2026-09-17)
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = planet_spin_now(_pn);   // the universal clock (the agent's day / night agrees with it)
@@ -37,7 +37,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
 		relief : shader_get_uniform(sh_planet, "u_relief"),
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
-		cfade : shader_get_uniform(sh_planet, "u_cfade"),
+		cfade : shader_get_uniform(sh_planet, "u_cfade"), pfade : shader_get_uniform(sh_planet, "u_pfade"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
 		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
@@ -134,6 +134,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief * max(.4, _bump));   // (the silhouette rides the knob too, gently)
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
+	shader_set_uniform_f(_u.pfade, clamp(_pfade, 0, 1));
 	shader_set_uniform_f(_u.crelief, (_cfg[$ "crelief"] ?? .05) * ((_pn.kind == "gas") ? .5 : 1));   // (the cloud relief - 2026-09-17; a giant's deck lower)
 	shader_set_uniform_f(_u.cvol, (variable_global_exists("cloud_volume") && g.cloud_volume) ? 1 : 0);   // (the volume, or the surface - settings > visuals)
 	// THE SEASON (2026-09-17): the world's year, four to twelve hours of the wall clock (hashed off the seed, kept on

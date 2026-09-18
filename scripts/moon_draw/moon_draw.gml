@@ -76,7 +76,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_moonn"), 0);
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_stormn"), 0);
 	shader_set_uniform_f(shader_get_uniform(sh_planet, "u_aurora"), 0);
-	shader_set_uniform_f(_u.cfade, 0);
+	shader_set_uniform_f(_u.cfade, 0); shader_set_uniform_f(shader_get_uniform(sh_planet, "u_pfade"), 0);
 	shader_set_uniform_f_array(_u.crot2, _mm); shader_set_uniform_f(_u.wt, 0, 0);
 	shader_set_uniform_f(_u.cvol, 0); shader_set_uniform_f(_u.crelief, 0); shader_set_uniform_f(_u.canopy, 0);
 	shader_set_uniform_f(_u.grass, .5, .5, .5); shader_set_uniform_f(_u.sea0, 0, 0, 0); shader_set_uniform_f(_u.sea1, 0, 0, 0);

@@ -749,6 +749,7 @@ pv_mode  = "planet";                 // "planet" (the world, the drawer) or "reg
 pv_zoom  = 1;                        // region mode's pull-in (PV_ZOOM_RG) x the hand's wheel, eased
 pv_zuser = 1;                        // THE WHEEL's zoom (2026-09-17): PV_ZOOM_MIN..PV_ZOOM_MAX, on top of the mode's pull-in; a fresh world starts at 1
 pv_cfade = 1;                        // ...and the clouds thinning with it
+pv_pfade = 1;                        // ...the volcanoes' plumes thinning later (2026-09-17)
 // the trip page's world: the same render, the camera fixed on the trip's region
 tp_id = -1; tp_cam = mat3_rot(1, 0, 0, -32); tp_spin = 0;
 tp_sheet = -1;   // THE SHEET MODAL on the trip page (his ask, 2026-09-16): the sprite shown (-1 = none) - a banner opens it, in place of the crew menu
@@ -2417,7 +2418,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	var _lod = (view == "planet") ? __lod_pick(_pn) : undefined;   // (the zoom tier standing for this zoom, the page's own - 2026-09-17)
-	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod);
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod, (view == "planet") ? pv_pfade : 1);
 	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
 	if (_built) {

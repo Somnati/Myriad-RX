@@ -58,6 +58,7 @@ uniform float u_snowb;    // THE SNOW BIAS (2026-09-17): the snow line raised by
 uniform float u_season;   // THE SEASON (2026-09-17): -1..1 on the world's own year - the snow line climbs in summer, comes down in winter, each hemisphere its own
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
+uniform float u_pfade;    // THE PLUMES' fade (2026-09-17): their own, later than the clouds' - a volcano smokes until you are close
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
 
 float cw_h(vec3 p)
@@ -441,7 +442,7 @@ void main()
     // zoom only half as much as the clouds do
     if (r2 <= CR * CR) {
         vec3 ns = vec3(p, sqrt(CR * CR - r2)) / CR;
-        float smk = texture2D(u_cloud, sphere_uv(to_tex(ns), u_tsize)).g * max(u_cfade, 0.5);
+        float smk = texture2D(u_cloud, sphere_uv(to_tex(ns), u_tsize)).g * u_pfade;
         if (smk > 0.03) {
             float smq = floor(smk * 6.0 + 0.5) / 6.0;
             float sl2 = cloudband(dot(ns, u_light));
