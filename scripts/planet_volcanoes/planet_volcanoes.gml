@@ -31,6 +31,15 @@ function planet_volcanoes(_pn) {
 		cone : function(_x, _y, _rad, _hgt, _live) {
 			var _cl = max(.2, sin(pi * (_y + .5) / th)), _r = ceil(_rad), _rx = min(tw div 2, ceil(_rad / _cl));
 			var _rc = _rad * .22, _rv = _rad * .09;
+			// THE BASE (his report, 2026-09-17: "on the side of a mountain at an angle"): the mean height round the cone's
+			// perimeter; the ground inside is levelled toward it, fully at the centre, not at all at the edge, so the
+			// cone stands upright on a range's flank instead of leaning down it
+			var _bs = 0, _bn = 0;
+			for (var _a = 0; _a < 16; _a++) {
+				var _px = (((_x + round(dcos(_a * 22.5) * _rad / _cl)) mod tw) + tw) mod tw, _py = clamp(_y + round(dsin(_a * 22.5) * _rad), 0, th - 1);
+				_bs += el[_px + _py * tw]; _bn++;
+			}
+			var _base = max(sea + .01, _bs / max(1, _bn));
 			for (var _dy = -_r; _dy <= _r; _dy++) {
 				var _yy = _y + _dy;
 				if (_yy < 0 || _yy >= th) continue;
@@ -38,6 +47,7 @@ function planet_volcanoes(_pn) {
 					var _xx = (((_x + _dx) mod tw) + tw) mod tw, _i = _xx + _yy * tw;
 					var _d = sqrt(_dx * _dx * _cl * _cl + _dy * _dy);
 					if (_d > _rad) continue;
+					el[_i] = lerp(el[_i], _base, power(1 - _d / _rad, .6));
 					var _l = _hgt * power(1 - _d / _rad, 1.7);   // (a stratovolcano's flank: concave - steep at the summit, easing to the plain)
 					if (_d < _rc) _l -= _hgt * .38 * (1 - (_d / _rc) * (_d / _rc));   // (the crater's bowl: the rim stands, the floor sinks)
 					_l *= .9 + .2 * dt[_i];
@@ -73,7 +83,7 @@ function planet_volcanoes(_pn) {
 					var _d = sqrt(_dx * _dx * _cl * _cl + _dy * _dy) / _rad;
 					if (_d > 1) continue;
 					// A RING (his ask, 2026-09-17): hollow over the crater, full round it, fading at the edge
-					var _a = clamp((_d - .22) / .2, 0, 1) * (1 - clamp((_d - .72) / .28, 0, 1));
+					var _a = clamp((_d - .30) / .18, 0, 1) * (1 - clamp((_d - .70) / .30, 0, 1));
 					_a *= .85 + .3 * dt[_i];   // (ragged)
 					if (_d > .78 && dt[_i] < .35) _a *= .5;
 					if (_a > smk[_i]) smk[_i] = min(1, _a);
@@ -87,13 +97,22 @@ function planet_volcanoes(_pn) {
 	else if (_arch == "barren") { _nv = 1 + (_hv mod 2); _none_live = true; }
 	else                        { _nv = (_hv < 40) ? 0 : ((_hv < 80) ? 1 : 2); }
 	if (VOLCANO_ALL) _nv = max(1, _nv);   // (debug: at least one on every world - his ask 2026-09-17)
-	var _el = _c.el, _sea = _c.sea, _sc = _c.sc, _pole = _th * .10;
+	var _el = _c.el, _sea = _c.sea, _sc = _c.sc, _pole = _th * .10, _rl = _c.rl;
 	var _vents = [];
 	for (var _k = 0; _k < _nv; _k++) {
-		var _b = 100 * _k, _x = -1, _y = -1;
-		for (var _t = 0; _t < 40 && _x < 0; _t++) {
+		var _b = 100 * _k, _x = -1, _y = -1, _best = -1;
+		// THE SITE (his ask, 2026-09-17: "make sure a volcano spawns in mountain regions"): forty hashed tries on land off the
+		// poles; a try on a range's SHOULDER (the skeleton's lift between a hair and a crest) scores high, level ground
+		// scores high; the best wins. A world without ranges takes the levellest land
+		for (var _t = 0; _t < 40; _t++) {
 			var _cx = floor(_c.h(_b + _t * 2) * _tw), _cy = floor((_pole + (_th - 2 * _pole) * _c.h(_b + _t * 2 + 1)));
-			if (_el[_cx + _cy * _tw] >= _sea + .02) { _x = _cx; _y = _cy; }
+			var _ci = _cx + _cy * _tw;
+			if (_el[_ci] < _sea + .02) continue;
+			var _lf = _rl[_ci], _near = (_lf > .006 && _lf < .12) ? 1 : 0;
+			var _hi2 = -9, _lo2 = 9;
+			for (var _dy = -3; _dy <= 3; _dy += 3) for (var _dx = -3; _dx <= 3; _dx += 3) { var _ny = clamp(_cy + _dy, 0, _th - 1), _nx = ((_cx + _dx) mod _tw + _tw) mod _tw; var _ev = _el[_nx + _ny * _tw]; _hi2 = max(_hi2, _ev); _lo2 = min(_lo2, _ev); }
+			var _sc2 = _near * 2 + clamp(1 - (_hi2 - _lo2) / .12, 0, 1);
+			if (_sc2 > _best) { _best = _sc2; _x = _cx; _y = _cy; }
 		}
 		if (_x < 0) continue;
 		var _live = _all_live || (!_none_live && _c.h(_b + 90) < .6);
@@ -122,5 +141,6 @@ function planet_volcanoes(_pn) {
 		if (_vent[_i] == 2 || _vent[_i] == 3) _bm[_i] = 18;   // lava: the live vent, the flows
 		else _bm[_i] = 17;                                     // basalt: the crater's floor, a dead vent
 	}
-	for (var _k = 0; _k < array_length(_vents); _k++) { var _vt = _vents[_k]; if (_vt[2]) _c.plume(_vt[0], _vt[1], _vt[3] * .9); }   // (the ring sits on the cone's shoulders)
+	for (var _k = 0; _k < array_length(_vents); _k++) { var _vt = _vents[_k]; if (_vt[2]) _c.plume(_vt[0], _vt[1], _vt[3] * .55); }   // (the ring hugs the crater's rim - tighter, his ask 2026-09-17)
+	_pn.vmask = _vent;   // (kept: planet_rivers treats the craters and flows as sinks - no river climbs the cone into the crater, no lake fills it; his report 2026-09-17)
 }

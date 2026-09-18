@@ -28,6 +28,7 @@ function planet_rivers(_pn) {
 	for (var _i = 0; _i < _n; _i++) {
 		var _b0 = _bm[_i];
 		if (_b0 == 0 || _b0 == 1 || _b0 == 11 || _b0 == 25) { _wat[_i] = true; _nw++; }
+		else if (is_array(_pn[$ "vmask"]) && _pn.vmask[_i] > 0) _wat[_i] = true;   // (a volcano's crater, vent or flow: a SINK for the drainage, never a river's bed nor a lake - 2026-09-17)
 		// a grain of noise a texel (a small exact hash inline - fifty thousand of them; every product stays under 2^53)
 		var _hx = (_i * 2654435761 + _seed) mod 2147483647;
 		_hx = ((_hx ^ (_hx >> 13)) * 48271) mod 2147483647;
