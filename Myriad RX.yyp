@@ -666,6 +666,7 @@
     {"id":{"name":"planet_moons","path":"scripts/planet_moons/planet_moons.yy",},},
     {"id":{"name":"planet_pick","path":"scripts/planet_pick/planet_pick.yy",},},
     {"id":{"name":"planet_props","path":"scripts/planet_props/planet_props.yy",},},
+    {"id":{"name":"planet_ranges","path":"scripts/planet_ranges/planet_ranges.yy",},},
     {"id":{"name":"planet_rivers","path":"scripts/planet_rivers/planet_rivers.yy",},},
     {"id":{"name":"planet_sky_draw","path":"scripts/planet_sky_draw/planet_sky_draw.yy",},},
     {"id":{"name":"planet_spin_now","path":"scripts/planet_spin_now/planet_spin_now.yy",},},
