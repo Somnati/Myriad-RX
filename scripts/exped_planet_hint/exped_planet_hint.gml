@@ -22,12 +22,20 @@ function exped_planet_hint(_d) {
 		case "cloud":  _h = { kind : "gas",  clim : .5,  hue : hash_mix(_d.seed, 505) mod 256 }; break;   // (a giant: its own hue off its seed, not the family's - 2026-09-17)
 		default:       _h = { kind : "rock", clim : .5 }; break;
 	}
-	var _gws = galaxy_world_sys(_d);   // (any world of the map: its ring and moons - 2026-09-16)
-	if (is_struct(_gws) && _gws.planet_seed == _d.seed) {
-		var _gp = _gws.sys.planets[_gws.planet];
-		_h.ring = _gp[$ "has_ring"] ?? false;
-		_h.moon_n = max(1, _gp[$ "moon_n"] ?? 1);   // (at least one - his ask, 2026-09-16: "give the starter planet a moon")
-		if (_gp[$ "plateau"] ?? false) _h.plateau = true;   // (a plateau asked for by the galaxy's planet - planet_plateaus sites it on the biggest river; q212)
+	// THE GALAXY'S WORD only once the chart stands (bug hunt 5, 2026-09-18): a save's trips unpack at boot through
+	// region_get -> planet_get -> this hint, and galaxy_world_sys -> galaxy_home -> starmap_get built the WHOLE chart
+	// synchronously there (and offline_replay's exped_where the same way) - the boot hitch q202 took off the base game,
+	// back whenever a crew was out. Before the chart the hint is the biome's alone: the terrain the regions sample reads
+	// none of the ring / moons / plateau, and planet_get lays the galaxy's word on a world begun early when the full
+	// hint comes (the panel's first ask, before any rows or sheets)
+	if (galaxy_ready()) {
+		var _gws = galaxy_world_sys(_d);   // (any world of the map: its ring and moons - 2026-09-16)
+		if (is_struct(_gws) && _gws.planet_seed == _d.seed) {
+			var _gp = _gws.sys.planets[_gws.planet];
+			_h.ring = _gp[$ "has_ring"] ?? false;
+			_h.moon_n = max(1, _gp[$ "moon_n"] ?? 1);   // (at least one - his ask, 2026-09-16: "give the starter planet a moon")
+			if (_gp[$ "plateau"] ?? false) _h.plateau = true;   // (a plateau asked for by the galaxy's planet - planet_plateaus sites it on the biggest river; q212)
+		}
 	}
 	return _h;
 }

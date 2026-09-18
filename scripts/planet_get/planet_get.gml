@@ -12,6 +12,15 @@ function planet_get(_seed, _hint = undefined) {
 			var _pn = _c[_i];
 			array_delete(_c, _i, 1);
 			array_insert(_c, 0, _pn);
+			// THE GALAXY'S WORD, LATE (bug hunt 5, 2026-09-18): a world begun before the chart stood (a saved trip's
+			// region, at boot) took the biome's hint alone; the first ask that carries the galaxy's ring / plateau lays
+			// them on - always before any rows or sheets (the plateau pass reads plateau_ask at the bake; the ring is
+			// draw-time), so the world is the same world it would have been
+			if (!is_undefined(_hint) && !(_pn[$ "hint_gal"] ?? false) && !is_undefined(_hint[$ "ring"])) {
+				_pn.ring = _hint.ring;
+				_pn.plateau_ask = (_hint[$ "plateau"] ?? false);
+				_pn.hint_gal = true;
+			}
 			return _pn;
 		}
 	var _pn = planet_gen_begin(_seed, _hint);
