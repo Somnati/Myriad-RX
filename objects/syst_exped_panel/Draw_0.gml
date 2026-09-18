@@ -1159,7 +1159,8 @@ if (view == "galaxy") {
 		var _sx = ((_vcx + (_st.x - _vcx) * _st.d) - gx_x) * gx_zoom;
 		var _sy = ((_vcy + (_st.y - _vcy) * _st.d) - gx_y) * gx_zoom;
 		if (_sx < -_m || _sx > _vw + _m || _sy < -_m || _sy > _vh + _m) continue;
-		var _s = max(.8, _st.props.size * gx_zoom);
+		var _skd0 = _st.props[$ "skind"] ?? "main";
+		var _s = max(.8, _st.props.size * gx_zoom * ((_skd0 == "giant") ? 1.8 : 1));   // (a giant's glyph nearly twice its size's - "I can't tell which one is one", 2026-09-17)
 		var _gi = star_glyph_frame(_s);
 		var _gx0 = floor(_sx * _gs), _gy0 = floor(_sy * _gs);
 		// THE KIND'S OWN MARK (his ask, 2026-09-17: "the stars on the galactic map match the type of stellar body"): a
@@ -1178,18 +1179,21 @@ if (view == "galaxy") {
 			continue;
 		}
 		if (_skd == "dwarf") {
-			// a tiny spark with a subtle line bloom, horizontal (his ask)
+			// a tiny spark with a subtle line bloom, horizontal (his ask); the bloom centred ON the spark's pixel (the glyph's
+			// canvas is even: its spark sits a pixel right and down of the origin), a pixel longer each side
 			var _dc = merge_colour(_st.props.color, c_white, .6);
-			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, max(6, _s * 5) * _gs / _gw0, max(1, _gs * .8) / _gh0, 0, _dc, .30);
+			draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + _gs * .5, _gy0 + _gs * .5, (max(6, _s * 5) + 2) * _gs / _gw0, max(1, _gs * .8) / _gh0, 0, _dc, .30);
 			draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, _gs, _gs, 0, _dc, 1);
 			continue;
 		}
-		// a pulsar is a plain star here with a SUBTLE pulse on its own spin (his ask: "nearly identical to a regular star")
+		// a pulsar is a plain star here with a pulse on its own spin - PLAIN to see now (his report: "too subtle"): dim
+		// between beats, the beat a sharp flash with its white core
 		var _pk = 1;
-		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .82 + .18 * power(.5 + .5 * dsin(_pt * 360), 6); }
+		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .45 + .55 * power(.5 + .5 * dsin(_pt * 360), 4); }
 		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95 * _pk);
-		if (_gi >= 2) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8 * _pk);   // (a dot stays its colour)
-		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0, _gy0, _s * 3.2 * _gs / _gw0, _s * 3.2 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .35), .28);
+		if (_gi >= 2 && (_skd != "pulsar" || _pk > .7)) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8 * _pk);   // (a dot stays its colour)
+		if (_skd == "pulsar" && _pk > .85) draw_sprite_ext(spr_star_glyph, min(9, _gi + 1), _gx0, _gy0, _gs, _gs, 0, c_white, .5 * (_pk - .85) / .15);   // (the flash swells a frame)
+		if (_skd == "giant") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + _gs * .5, _gy0 + _gs * .5, _s * 4.5 * _gs / _gw0, _s * 4.5 * _gs / _gh0, 0, merge_colour(_st.props.color, c_red, .4), .45);
 	}
 	gpu_set_blendmode(bm_normal);
 	// the fog, additive over the stars (the demo's order), bilinear, PROCEDURAL (sh_galaxy_fog: the sheet through a warped

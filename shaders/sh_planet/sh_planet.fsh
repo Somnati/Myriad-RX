@@ -525,7 +525,7 @@ void main()
                         vec3 ta = normalize(cross(u_raxis, (abs(u_raxis.y) < 0.9) ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
                         vec3 tb = cross(u_raxis, ta);
                         float ang = atan(dot(rp, tb), dot(rp, ta));
-                        float grain = 0.82 + 0.36 * hash12(vec2(floor(ang * 90.0 + 300.0), floor(rr * 150.0)));
+                        float grain = 0.90 + 0.20 * hash12(vec2(floor(rr * 110.0), 7.0));   // (by the radius alone - fine concentric threads; the angle's cells read as line segments, his report 2026-09-17)
                         // two colours across the bands
                         vec3 rc = mix(u_ringcol, u_ringcol2, rvn(bf * 5.0 + 21.0)) * grain;
                         // (the unlit face went - both faces lit alike, for the look; his call 2026-09-17)
