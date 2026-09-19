@@ -3,7 +3,20 @@
 /// its opening, does nothing but the closing (the same guard as before the
 /// split). An undefined plan (nothing legal) is the same: the pawn passes
 function cbt_fight_act(_f, _actor, _plan) {
-	if (!is_undefined(_plan) && _actor.hp > 0 && _plan.target.hp > 0) {
+	_actor.guard = 0;   // (a guard lasts to the pawn's next action - this one; q246)
+	var _pk = is_struct(_plan) ? (_plan[$ "kind"] ?? "") : "";
+	// THE MENU'S PLANS (q246, the arena's step two): guard - half of every blow until this pawn's next action (cbt_hit
+	// spends it); item - one of the pawn's potions on a chosen target (cbt_use_item); flee - the fight ends as a
+	// withdrawal (the trip's rail has the shape). The ai never picks these; the arena's menu does
+	if (_pk == "flee") {
+		_f.over = true; _f.won = false; _f.withdrew = true; _f.actor = undefined;
+		var _tf = _actor.name + " calls the retreat - the crew withdraws";
+		cbt_log(_f, _tf); cbt_film(_f, undefined, 0, _tf);
+		return;
+	}
+	if (_pk == "guard" && _actor.hp > 0) { _actor.guard = 1; var _tg = _actor.name + " guards"; cbt_log(_f, _tg); cbt_film(_f, undefined, 0, _tg); }
+	else if (_pk == "item" && _actor.hp > 0) cbt_use_item(_f, _actor, _plan.item, _plan.target);
+	else if (!is_undefined(_plan) && _pk != "guard" && _pk != "item" && _actor.hp > 0 && _plan.target.hp > 0) {
 		if (is_undefined(_plan.skill)) cbt_hit(_f, _actor, _plan.target, 1, "", 0, _actor.magic);
 		else {
 			// a skill: its cost through cbt_skill_cost (frugal), the school on

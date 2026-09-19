@@ -32,6 +32,7 @@ function menu2_content() {
 	// roster's manager sits with the game's own features, expeditions right under it
 	if (unfold_has("sprites"))    menu2_button("sprites",      function() { exped_open("sprites"); }, c_feat_expeditions, "sprites");
 	if (unfold_has("expeditions")) menu2_button("expeditions",  function() { exped_open(); }, c_feat_expeditions, "expeditions");   // (below sprites, in the main set - his call 2026-09-18; it sat in misc since 09-13)
+	if (unfold_has("expeditions")) menu2_button("arena",        rm_arena,         c_feat_expeditions);   // THE ARENA (q246): a practice fight, turn by turn, nothing kept
 	// (the battery, the credit core, statistics and the daily gift are DOCK
 	// icons now - obj_ui_gear, beside the settings gear, 2026-09-13)
 	// an OVERLAY now, so it is a method destination: syst_menu2 folds the

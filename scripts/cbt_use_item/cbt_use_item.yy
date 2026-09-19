@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cbt_use_item",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cbt_use_item",
+  "parent":{
+    "name":"combat",
+    "path":"folders/game/combat.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -588,6 +588,9 @@ ivars	syst_menu2                 Create_0.gml                             y1 x3
 ivars	syst_menu2                 Create_0.gml                             y2 x3
 ivars	syst_rm_ability            Create_0.gml                             desc x1
 ivars	syst_rm_ability            Create_0.gml                             rword x1
+ivars	syst_rm_arena              Create_0.gml                             rows x1
+ivars	syst_rm_arena              Create_0.gml                             turns x1
+ivars	syst_rm_arena              Step_0.gml                               target x3
 ivars	syst_scene_light           Create_0.gml                             macro x1
 ivars	syst_settings              Create_0.gml                             data x3
 ivars	syst_settings              Create_0.gml                             help x3
@@ -760,6 +763,9 @@ dupvar	objects\syst_offlog\Draw_0.gml                       _e _i
 dupvar	objects\syst_rm_ability\Create_0.gml                 _i
 dupvar	objects\syst_rm_ability\Draw_0.gml                   _known c_black rgb
 dupvar	objects\syst_rm_ability\Step_0.gml                   _c _c2 _d _i mouse_y
+dupvar	objects\syst_rm_arena\Create_0.gml                   _i _j
+dupvar	objects\syst_rm_arena\Draw_0.gml                     _ff _i _isact _p
+dupvar	objects\syst_rm_arena\Step_0.gml                     _ac _i _k
 dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
 dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
@@ -809,7 +815,6 @@ dupvar	scripts\bignum_vis_mantissa_string\bignum_vis_mantissa_string.gml _n
 dupvar	scripts\bignum_visualizer_create\bignum_visualizer_create.gml _ft _oc _ot _wm i
 dupvar	scripts\blur_snap\blur_snap.gml                      _d _i
 dupvar	scripts\capsule_bevel\capsule_bevel.gml              _r
-dupvar	scripts\cbt_ai\cbt_ai.gml                            _i _sc _t
 dupvar	scripts\cbt_fight_new\cbt_fight_new.gml              _i
 dupvar	scripts\cbt_fight_next\cbt_fight_next.gml            _i _p _rts
 dupvar	scripts\cbt_fight_options\cbt_fight_options.gml      _i _t

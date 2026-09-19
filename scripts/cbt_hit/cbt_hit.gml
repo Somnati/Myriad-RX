@@ -158,6 +158,8 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	if (_tk != "" && array_contains(_nu, _tk + ":dmg")) _dmg *= 1.1;                       // (a note on a tank: where to hit it)
 	if (_uk != "" && array_contains(_nt, _uk + (_magic ? ":mdef" : ":def"))) _dmg *= (_magic ? .85 : .9);   // (a note on what it does: not being where it lands)
 	_dmg = max(.1, round(_dmg * 10) / 10);
+	// GUARD (the arena's plan, q246): a guarding pawn takes half, and the guard is spent by the blow
+	if ((_t[$ "guard"] ?? 0) > 0) { _dmg = max(.1, round(_dmg * 5) / 10); _t.guard = 0; cbt_log(_f, _t.name + " takes it on the guard"); }
 	// THICK HIDE: a hit under its share of max hp does nothing at all
 	if (is_struct(_abt) && _abt.thick > 0 && _dmg <= _t.maxhp * _abt.thick / 100) {
 		_u.streak = 0;
