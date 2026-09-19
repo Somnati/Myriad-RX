@@ -30,6 +30,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _el = _pn.elev, _dt = _pn.det, _mo = _pn.moi, _bm = _pn.biome, _pal = _pn.pal, _glow = _pn.glow, _gas = (_pn.kind == "gas"), _sea = _pn.sea;
 	var _rf = _pn[$ "rfill"], _ra = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _hasr = is_array(_rf) && is_array(_ra);   // (planet_rivers' keep)
 	var _e0 = _pn[$ "elev0"] ?? _el;   // (the heights the biomes were decided on - before the carve; the biome law reads these, the height the carved)
+	var _sigm = _pn[$ "sigmask"];   // (the signature's held kinds - q248)
 	var _base = _gas ? 1 : max(_sea, .34);
 	_ps.tier = true;   // (a giant's biome law paints from the interpolated fields here - gas_paint, not gas_colour; q238)
 	while (_l.row < _l.h && get_timer() < _until) {
@@ -67,6 +68,7 @@ function planet_lod_step(_pn, _l, _until) {
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);
+				if (_natl && is_array(_sigm) && _sigm[_bi] > 0 && _el[_bi] >= _sea) _b = _sigm[_bi];   // (a held kind - a salt flat, an ice sheet - rides over; q248)
 				// THE VOLCANOES' LAVA AND BASALT (2026-09-17) ride over from the base map: spokes from the texel's centre toward
 				// every neighbour of the same kind (a crater's floor fills, a flow runs as a line), like a river's
 				if ((_bb == 17 || _bb == 18) && _b != _bb && _natl) {

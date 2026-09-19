@@ -56,7 +56,16 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		hax    : [dcos(_the) * dcos(_tha), dsin(_the), dcos(_the) * dsin(_tha)],
 		shape  : _shape,
 		sdir   : [dcos(_tse) * dcos(_tsa), dsin(_tse), dcos(_tse) * dsin(_tsa)],
+		// THE HYDROLOGY (q248): how readily the land runs to rivers, how readily a basin keeps a lake
+		rivers : .35 + 1.15 * _th9(_seed, 12),
+		lakes  : .5 + 1.7 * _th9(_seed, 13),
+		// THE TECTONIC LINES (q248): a hotspot chain (volcanoes in a row, the last alive), fault-block ranges (one heading)
+		hotspot : (_th9(_seed, 14) < .25), faultblock : (_th9(_seed, 15) < .25),
+		// THE SIGNATURE (q248): one landmark a world - none / impact sea / caldera / rift / canyon / inland sea / salt flat / ice sheet
+		sig : 0, sigh : _th9(_seed, 16), sigu : _th9(_seed, 17), sigv : _th9(_seed, 18), siga : _th9(_seed, 19) * 360,
 	};
+	var _sg = _th9(_seed, 20);
+	_tt.sig = (_sg < .30) ? 0 : ((_sg < .42) ? 1 : ((_sg < .52) ? 2 : ((_sg < .64) ? 3 : ((_sg < .74) ? 4 : ((_sg < .84) ? 5 : ((_sg < .92) ? 6 : 7))))));
 	if (_shape == 5) { _tt.cscale = max(_tt.cscale, 3.2); _tt.relief = min(_tt.relief, .6); }   // (a ring of islands: fine and low)
 	if (_shape == 1) _tt.cscale = min(_tt.cscale, 2.2);   // (a pangaea: broad)
 

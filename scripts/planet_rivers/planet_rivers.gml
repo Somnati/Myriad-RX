@@ -112,7 +112,10 @@ function planet_rivers(_pn) {
 	}
 	// ---- into the map: a river where the catchment is a slice of the land, on a system whose mouth's is three; ----
 	// ---- a lake where the flood filled a basin under one. Never on snow, glacier or a peak, never at the poles ----
-	var _land = _no, _t = max(6, round(_land * .0015)), _tm = _t * 3, _laked = .008;
+	// THE HYDROLOGY'S TEMPER (q248): a world's rivers run readily or hardly (the catchment a channel needs), its basins
+	// keep lakes readily or hardly (the depth a fill needs) - pn.tt; the old constants without one
+	var _ttr = _pn[$ "tt"], _rivk = is_struct(_ttr) ? _ttr.rivers : 1, _lakk = is_struct(_ttr) ? _ttr.lakes : 1;
+	var _land = _no, _t = max(6, round(_land * .0015 / _rivk)), _tm = _t * 3, _laked = .008 / _lakk;
 	var _pole = max(2, round(_th * .04));
 	var _bm0 = array_create(_n, 0);
 	array_copy(_bm0, 0, _bm, 0, _n);   // (the map before the water: a pond too small to keep gives its texels back)

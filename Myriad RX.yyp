@@ -752,6 +752,7 @@
     {"id":{"name":"planet_rivers","path":"scripts/planet_rivers/planet_rivers.yy",},},
     {"id":{"name":"planet_sheet_height","path":"scripts/planet_sheet_height/planet_sheet_height.yy",},},
     {"id":{"name":"planet_sheet_terrain","path":"scripts/planet_sheet_terrain/planet_sheet_terrain.yy",},},
+    {"id":{"name":"planet_signature","path":"scripts/planet_signature/planet_signature.yy",},},
     {"id":{"name":"planet_sky_draw","path":"scripts/planet_sky_draw/planet_sky_draw.yy",},},
     {"id":{"name":"planet_spin_now","path":"scripts/planet_spin_now/planet_spin_now.yy",},},
     {"id":{"name":"planet_texel","path":"scripts/planet_texel/planet_texel.yy",},},

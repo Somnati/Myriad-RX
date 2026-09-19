@@ -81,8 +81,20 @@ function planet_volcanoes(_pn) {
 	if (VOLCANO_ALL) _nv = max(1, _nv);   // (debug: at least one on every world - his ask 2026-09-17)
 	var _el = _c.el, _sea = _c.sea, _sc = _c.sc, _pole = _th * .10, _rl = _c.rl;
 	var _vents = [];
+	// THE HOTSPOT CHAIN (q248, the temper's hotspot): the volcanoes in a ROW - the plate slid over one plume - each a step
+	// along one heading from the last, shrinking, only the LAST alive (the plume is under it now); the first sits as ever
+	var _ttv = _pn[$ "tt"], _chain = is_struct(_ttv) && _ttv.hotspot && _arch != "lava";
+	if (_chain) { _nv = max(_nv, 4 + (hash_mix(_pn.seed, 31009) mod 2)); _all_live = false; _none_live = true; }
+	var _chx = -1, _chy = -1, _chd = (hash_mix(_pn.seed, 31010) mod 360), _chstep = (9 + 3 * ((hash_mix(_pn.seed, 31011) mod 1000) / 1000)) * _sc;
 	for (var _k = 0; _k < _nv; _k++) {
 		var _b = 100 * _k, _x = -1, _y = -1, _best = -1;
+		if (_chain && _k > 0 && _chx >= 0) {
+			// the next of the chain: a step along the heading (ground metric), on land
+			var _ccl = max(.2, sin(pi * (_chy + .5) / _th));
+			var _nx = (((round(_chx + dcos(_chd) * _chstep / _ccl)) mod _tw) + _tw) mod _tw, _ny = clamp(round(_chy - dsin(_chd) * _chstep), 2, _th - 3);
+			if (_el[_nx + _ny * _tw] >= _sea + .01) { _x = _nx; _y = _ny; }
+		}
+		if (_x < 0)
 		// THE SITE (his ask, 2026-09-17: "make sure a volcano spawns in mountain regions"): forty hashed tries on land off the
 		// poles; a try on a range's SHOULDER (the skeleton's lift between a hair and a crest) scores high, level ground
 		// scores high; the best wins. A world without ranges takes the levellest land
@@ -98,12 +110,14 @@ function planet_volcanoes(_pn) {
 		}
 		if (_x < 0) continue;
 		var _live = _all_live || (!_none_live && _c.h(_b + 90) < .6);
+		if (_chain) { _live = (_k == _nv - 1); _chx = _x; _chy = _y; }   // (the chain: the last one smokes)
 		// THE SIZE, PROCEDURAL (his ask, 2026-09-17: "tighter and taller... or at least procedural"): a STRATOVOLCANO two
 		// times in three - tight and tall, five to nine texels across, .42-.60 of the relief, a steep concave flank -
 		// else a SHIELD, broad and low, ten to sixteen across, .26-.36 tall, an easy flank
 		var _strato = (_c.h(_b + 93) < .67);
 		var _rad = (_strato ? (5 + 4 * _c.h(_b + 91)) : (10 + 6 * _c.h(_b + 91))) * _sc;
 		var _hgt = _strato ? (.42 + .18 * _c.h(_b + 92)) : (.26 + .10 * _c.h(_b + 92));
+		if (_chain) { var _age = 1 - _k / max(1, _nv - 1); _rad *= .7 + .5 * (1 - _age) ; _hgt *= .55 + .45 * (1 - _age); }   // (the chain: the old ones worn down, the young one whole)
 		_c.cone(_x, _y, _rad, _hgt, _live, _strato ? 2.0 : 1.3);
 		array_push(_vents, [_x, _y, _live, _rad, _b]);
 	}

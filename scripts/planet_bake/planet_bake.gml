@@ -34,8 +34,12 @@ function planet_bake(_pn, _until = undefined) {
 	planet_coast(_pn);    // (then the shores frayed and the island arcs - q207)
 	planet_volcanoes(_pn);   // (then the volcanoes on the land the ranges left, and their plumes into the cloud map's green)
 	planet_craters(_pn);     // (then the impact craters - q206; before the rivers, so a living world's may fill as a lake)
+	planet_signature(_pn);   // (then the world's one landmark - q248; before the rivers: a caldera fills, a rift chains its lakes)
 	planet_rivers(_pn);   // (then the drainage, in the valleys the ranges leave - it guards itself)
 	planet_plateaus(_pn); // (then the tablelands rise round the rivers that cross them: the canyons - q208)
+	// THE HELD KINDS (q248): a salt flat's white, an ice sheet's glacier - laid over whatever the later passes decided,
+	// once, here (never over water)
+	if (is_array(_pn[$ "sigmask"]) && !(_pn[$ "sigmask_laid"] ?? false)) { _pn.sigmask_laid = true; var _smk = _pn.sigmask, _bmk = _pn.biome, _elk = _pn.elev, _npk = _pn.tw * _pn.th; for (var _i9 = 0; _i9 < _npk; _i9++) if (_smk[_i9] > 0 && _elk[_i9] >= _pn.sea && _bmk[_i9] != 1 && _bmk[_i9] != 11) _bmk[_i9] = _smk[_i9]; }
 	var _lim = is_undefined(_until) ? infinity : _until;
 	var _base = (_pn.kind == "gas") ? 1 : max(_pn.sea, .34);
 	var _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];

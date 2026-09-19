@@ -71,6 +71,9 @@ function planet_ranges(_pn) {
 	};
 	var _tw = _c.tw, _th = _c.th, _sc = _c.sc, _el = _c.el;
 	var _nsp = 3 + (hash_mix(_c.seed, 19001) mod 3);   // three to five spines
+	// FAULT-BLOCK RANGES (q248, the temper's faultblock): the spines share one heading (a dozen degrees of play) and run
+	// straight - parallel blocks across the land, the basin-and-range look - instead of each wandering its own way
+	var _ttr = _pn[$ "tt"], _fblk = is_struct(_ttr) && _ttr.faultblock, _fbhd = hash_mix(_c.seed, 19002) mod 360;
 	for (var _r = 0; _r < _nsp; _r++) {
 		var _base = 500 * _r;
 		// the start: high ground, off the poles - thirty tries
@@ -81,6 +84,7 @@ function planet_ranges(_pn) {
 		}
 		if (_sx < 0) continue;
 		var _hd = _c.h(_base + 61) * 360, _len = round((60 + 90 * _c.h(_base + 62)) * _sc), _bias = (_c.h(_base + 63) - .5) * 2.4;
+		if (_fblk) { _hd = _fbhd + (_c.h(_base + 61) - .5) * 24; _bias *= .15; }   // (one heading, nearly straight)
 		var _spine = _c.walk(_sx, _sy, _hd, _len, 12, _bias, 1, true, _base + 100);
 		// the spurs, every six to twelve texels, alternating sides
 		var _side = (_c.h(_base + 64) < .5) ? 1 : -1, _next = round((4 + 6 * _c.h(_base + 65)) * _sc), _k = 0;
