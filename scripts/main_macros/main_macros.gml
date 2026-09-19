@@ -842,3 +842,6 @@ function main_macros() {
 #macro eid_perk 19
 
 }
+// THE BOOT'S CHART CAP (q256): the boot screen charts the galaxy and builds the home world's sheet for at most this many
+// ms of wall time (his call: "2.5s on boot is manageable") - whatever is left finishes behind the expedition panel
+#macro BOOT_CHART_CAP 2500

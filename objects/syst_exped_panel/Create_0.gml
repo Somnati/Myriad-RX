@@ -484,6 +484,7 @@ __view_rg_r = function() { return { x : room_width - (land ? 14 : 4) - 96, y : r
 // sky and the sun come from the galaxy (pv_sky)
 pv_cam   = mat3_rot(1, 0, 0, -32);   // pitched above the plane, like the demo
 pv_spin  = 0;                        // the world's own-axis angle
+lod_fade = 0;                             // THE TIER'S FADE-IN (q256): 0..1, __lod_step eases it once a tier lands under the view
 tiers = new TierKeep();                   // THE ZOOM TIERS (2026-09-17; the keeper's own since q216): the page's world's 3x tier and four kept
 pv_spin_seed = -1;                   // ...set from the clock when a world is first shown
 pv_drag  = false; pv_px = 0; pv_dx = 0; pv_dy = 0; pv_vx = 0; pv_vy = 0;
@@ -547,10 +548,8 @@ __loading = function() {
 	if (!is_struct(_d)) return undefined;
 	var _pn = planet_get(_d.seed, exped_planet_hint(_d));
 	if (!planet_lite_ready(_pn)) return { txt : "building " + _d.name, prog : planet_build_progress(_pn) };   // (rows, then sheets - one bar, q225)
-	// THE ZOOM TIER too (q202; his ask: "have it start baking the higher LOD as soon as possible" - under the veil is as
-	// soon as it gets): the planet page waits for its world's 3x tier (__lod_step rushed by the veil's loop), so the
-	// world arrives finished and no zoom ever pops; a kept tier (TierKeep's keep) answers at once
-	if (view == "planet" && !__lod_ready(_pn)) return { txt : "surveying " + _d.name, prog : tiers.progress(_pn) };
+	// (the 3x tier no longer holds the veil - his call, q256, reversing q202's "no pop anywhere": the veil lifts on the
+	// sheet, the tier finishes behind the orbit view and fades in through the shader when it lands under the zoom)
 	return undefined;
 };
 ld_v = 0;   // the veil's bar, easing

@@ -53,6 +53,11 @@ if (mode != "sprites" && galaxy_ready()) {   // (never before the chart: a hint 
 	if (is_struct(pv_sky) && is_array(pv_sky[$ "sibpd"])) planet_lite_step_list(pv_sky.sibpd, 1500);   // (the page's sky's sibling worlds, a slice a frame - q240)
 	if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();
 }   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
+// ...and BEHIND THE SPRITE MENU (q256, his ask: "remove stutter so I can look at the crew stats while I wait"): the
+// pending world, its tier and a system's stamps keep building at a share of the frame (__bg_step) - never a dropped
+// frame, and the wait is spent somewhere useful. (The 2026-09-17 lag was the galaxy building whole in one frame -
+// the galaxy_ready gate covers that; the chart itself charts at boot now, q256)
+else if (mode == "sprites" && galaxy_ready()) __bg_step();
 // THE REPLAY: a trip page with an unseen film (and no live fight)
 // plays it in the combat window, a swing every half second; the last
 // frame holds a moment, then it is seen. A tap on the window skips it

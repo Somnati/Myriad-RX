@@ -54,6 +54,7 @@ uniform sampler2D u_ptex;     // THE ZOOM PATCH (2026-09-17): the window under t
 uniform sampler2D u_pheight;  // ...and its height / water / woods
 uniform vec4  u_pwin;         // the window in map uv: x0, y0, x1, y1 (x1 may pass 1 - the seam)
 uniform float u_pk;           // the patch's resolution over the map's (0 = no patch)
+uniform float u_pmix;         // THE PATCH'S FADE (q256): 0 the map's own texels .. 1 the patch - a tier that lands under the view eases in instead of popping
 uniform vec3  u_sea0;     // THE SEA'S DEPTH (2026-09-17): the deep, and the open ocean - the water grades between the shore's own colour and these
 uniform vec3  u_sea1;
 uniform float u_snowb;    // THE SNOW BIAS (2026-09-17): the snow line raised by the world's heat - a lava world never (his report: snow on hot worlds)
@@ -152,16 +153,18 @@ vec2 patch_st(vec2 uv)
 }
 vec4 tex_uv(vec2 uv)
 {
-    return in_patch(uv) ? texture2D(u_ptex, patch_st(uv)) : texture2D(gm_BaseTexture, (floor(uv * u_tsize) + 0.5) / u_tsize);
+    vec4 b = texture2D(gm_BaseTexture, (floor(uv * u_tsize) + 0.5) / u_tsize);
+    return in_patch(uv) ? mix(b, texture2D(u_ptex, patch_st(uv)), u_pmix) : b;
 }
 vec4 hmap_uv(vec2 uv)
 {
-    return in_patch(uv) ? texture2D(u_pheight, patch_st(uv)) : texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize);
+    vec4 b = texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize);
+    return in_patch(uv) ? mix(b, texture2D(u_pheight, patch_st(uv)), u_pmix) : b;
 }
-// the grid a map uv lives on: the patch's inside the window, the map's outside
+// the grid a map uv lives on: the patch's inside the window (once its fade is half in), the map's outside
 float grid_k(vec2 uv)
 {
-    return in_patch(uv) ? u_pk : 1.0;
+    return (in_patch(uv) && u_pmix > 0.5) ? u_pk : 1.0;
 }
 
 float height_at(vec3 n)

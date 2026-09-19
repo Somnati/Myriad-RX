@@ -41,7 +41,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
 		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
-		pwin : shader_get_uniform(sh_planet, "u_pwin"), pk : shader_get_uniform(sh_planet, "u_pk"),
+		pwin : shader_get_uniform(sh_planet, "u_pwin"), pk : shader_get_uniform(sh_planet, "u_pk"), pmix : shader_get_uniform(sh_planet, "u_pmix"),
 		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"),
 		season : shader_get_uniform(sh_planet, "u_season"), snowb : shader_get_uniform(sh_planet, "u_snowb"),
 		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
@@ -198,6 +198,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	if (is_struct(_lod) && surface_exists(_lod.tsurf) && surface_exists(_lod.hsurf)) {
 		shader_set_uniform_f(_u.pwin, _lod.u0 / _pn.tw, _lod.v0 / _pn.th, (_lod.u0 + _lod.uw) / _pn.tw, (_lod.v0 + _lod.vh) / _pn.th);
 		shader_set_uniform_f(_u.pk, _lod.k);
+		shader_set_uniform_f(_u.pmix, _lod[$ "fade"] ?? 1);   // (the tier's fade-in - q256)
 		texture_set_stage(_u.ptex, surface_get_texture(_lod.tsurf));
 		texture_set_stage(_u.pheight, surface_get_texture(_lod.hsurf));
 	} else shader_set_uniform_f(_u.pk, 0);

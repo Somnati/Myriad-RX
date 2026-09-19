@@ -61,6 +61,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _storms = [];
 	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	var _lod = (view == "planet") ? __lod_pick(_pn) : undefined;   // (the zoom tier standing for this zoom, the page's own - 2026-09-17)
+	if (is_struct(_lod)) _lod.fade = lod_fade;   // (its fade-in, __lod_step's - q256)
 	// the aurora's strength is the star's (q205): main 1, a red giant 1.6, a white dwarf .45, a pulsar 2.2, a black hole's disc 1.2
 	var _askd = _sky[$ "skind"] ?? "main";
 	_pn.astr = (_sky[$ "hole"] ?? false) ? 1.2 : ((_askd == "giant") ? 1.6 : ((_askd == "dwarf") ? .45 : ((_askd == "pulsar") ? 2.2 : ((_askd == "wolf") ? 2.6 : ((_askd == "brown") ? .3 : 1)))));
@@ -217,9 +218,38 @@ __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	return (_zt >= PV_ZOOM_RG - .02) ? 3 : 0;
 };
 __lod_pick = function(_pn) { return tiers.pick(_pn, __lod_want() >= 3); };
+/// THE BACKGROUND SHARE (q256): the slice any page other than the planet's gives the pending build - a share of the
+/// frame whatever the refresh rate (delta = the frame in sixtieths): thirty-five hundredths, 1.2 to 5 ms - a frame is
+/// never dropped for it, and the crew page is a place to wait
+__bg_lim = function() { return get_timer() + clamp(delta * 16667 * .35, 1200, 5000); };
 __lod_step = function() {
-	if (view != "planet" || !is_struct(pl_dest)) { tiers.drop(); return; }
+	if (!is_struct(pl_dest)) { tiers.drop(); lod_fade = 0; return; }
 	var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+	// THE TIER BEHIND EVERY PAGE (q256; his ask: "remove stutter so I can look at the crew stats while I wait"): the
+	// page's world's tier keeps building on any page at the background share (it used to drop off the planet page and
+	// wait); on the planet page its own slices as before
+	if (view != "planet") { tiers.step(_pn, false, __bg_lim()); lod_fade = 0; return; }
 	tiers.step(_pn, (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1));   // (a smaller slice under the camera's hand - q202a)
+	// THE FADE (q256): the veil no longer waits for the tier (his call) - a tier that lands under the view eases in
+	// over four tenths of a second through the shader's u_pfade; a tier that has faded once (its own flag, kept with
+	// it) shows whole at once, so zooming out and in never re-fades
+	var _pk = tiers.pick(_pn, __lod_want() >= 3);
+	if (!is_struct(_pk)) { lod_fade = 0; return; }
+	if (_pk[$ "faded"] ?? false) { lod_fade = 1; return; }
+	lod_fade = min(1, lod_fade + delta / 24);
+	if (lod_fade >= 1) _pk.faded = true;
+};
+/// THE BUILD BEHIND THE SPRITE MENU (q256): the pending world (the sheet first - it is the veil's gate), then its
+/// tier, then a system page's stamps, at the background share - nothing here shows a world, so the share is all it costs
+__bg_step = function() {
+	if (!galaxy_ready()) return;
+	var _lim = __bg_lim();
+	if (is_struct(pl_dest)) {
+		var _pn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+		if (!planet_lite_ready(_pn)) { planet_build_step(_pn, _lim); return; }
+		tiers.step(_pn, false, _lim);
+		if (get_timer() >= _lim) return;
+	}
+	if (is_array(sy_pd) && array_length(sy_pd) > 0) planet_lite_step_list(sy_pd, max(0, _lim - get_timer()));
 };
 }

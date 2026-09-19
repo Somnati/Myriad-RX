@@ -8,7 +8,8 @@
 // Whatever needs it first waits with the expedition panel's loading veil
 // (the boot's spinner, moved there) or, for a trip's clock, is owed (exped_tick)
 action = -1;
-boot_phase = 0;       // 0 a frame's grace, 1 the load queued, 2 done
+boot_phase = 0;       // 0 a frame's grace, 1 the load queued, 2 THE CHART (q256: the galaxy, then the home world's sheet, capped), 3 done
+boot_t0 = 0;          // the chart phase's start (current_time) - the cap counts from here
 boot_gen = undefined;
 boot_t = 0;
 // THE BUDGET (2026-09-16, his report: "it stutters pretty bad"): every boot

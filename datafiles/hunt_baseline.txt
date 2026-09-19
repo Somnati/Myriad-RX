@@ -146,6 +146,7 @@ svars	ex_map_init                  rg_box_w
 svars	ex_map_init                  rg_in
 svars	ex_map_press                 land
 svars	ex_map_press                 map_dest
+svars	ex_orbit_init                lod_fade
 svars	ex_orbit_init                pl_dest
 svars	ex_orbit_init                pv_drag
 svars	ex_orbit_init                pv_face
@@ -155,6 +156,7 @@ svars	ex_orbit_init                pv_vy
 svars	ex_orbit_init                pv_zuser
 svars	ex_orbit_init                sky_fog_surf
 svars	ex_orbit_init                sky_met
+svars	ex_orbit_init                sy_pd
 svars	ex_orbit_init                tiers
 svars	ex_orbit_init                view
 svars	ex_orbit_init                wb_surf
@@ -531,7 +533,6 @@ ivars	obj_set_slider             Draw_0.gml                               ww x5
 ivars	obj_set_toggle             Create_0.gml                             x0 x1
 ivars	obj_set_toggle             Create_0.gml                             x1 x1
 ivars	obj_set_toggle             Step_0.gml                               clicked x1
-ivars	obj_tile_tower             Create_0.gml                             fade x1
 ivars	obj_tile_tower             Create_0.gml                             p x1
 ivars	par_toggle                 Create_0.gml                             hue x4
 ivars	par_toggle                 Create_0.gml                             lum x1
@@ -568,7 +569,7 @@ ivars	syst_exped_panel           Create_0.gml                             held x
 ivars	syst_exped_panel           Create_0.gml                             hz x1
 ivars	syst_exped_panel           Create_0.gml                             ns x1
 ivars	syst_exped_panel           Create_0.gml                             para_on x1
-ivars	syst_exped_panel           Create_0.gml                             prog x6
+ivars	syst_exped_panel           Create_0.gml                             prog x5
 ivars	syst_exped_panel           Create_0.gml                             seat_y0 x1
 ivars	syst_exped_panel           Create_0.gml                             short x1
 ivars	syst_exped_panel           Create_0.gml                             slot x1
@@ -750,6 +751,7 @@ dupvar	objects\syst_faq\Draw_0.gml                          _i _t
 dupvar	objects\syst_gamepad_bench\Draw_0.gml                _i _k _ll _nm _ry
 dupvar	objects\syst_gift_panel\Draw_0.gml                   _b _pw
 dupvar	objects\syst_handle_save\Create_0.gml                _d
+dupvar	objects\syst_handle_save\Step_0.gml                  _hm0 exped_planet_hint
 dupvar	objects\syst_menu2\Create_0.gml                      _i
 dupvar	objects\syst_menu2\Draw_0.gml                        _o
 dupvar	objects\syst_menu2\Step_0.gml                        _q

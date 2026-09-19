@@ -35,14 +35,15 @@ function TierKeep() constructor {
 		return cur;
 	};
 	/// a slice of the build for the world (pn baked already, else nothing); hand = the camera is under the hand (a smaller slice)
-	static step = function(_pn, _hand) {
+	static step = function(_pn, _hand, _until = undefined) {   // (until: a caller's own deadline - the background share behind another page, q256)
 		if (!is_struct(_pn) || _pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 		if (seed != _pn.seed) { drop(); seed = _pn.seed; cur = take(_pn.seed); }
 		if (is_struct(cur) && cur.ready) { if (!surface_exists(cur.tsurf) || !surface_exists(cur.hsurf)) planet_lod_upload(cur); return; }
 		if (!is_struct(cur)) cur = planet_lod_begin(_pn, 3);
 		// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms; under the
 		// hand fifteen hundredths, .6 to 1.5 ms - never nothing
-		planet_lod_step(_pn, cur, get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000)));
+		if (is_undefined(_until)) _until = get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000));
+		planet_lod_step(_pn, cur, _until);
 	};
 	/// the build's progress for a veil, 0..1
 	static progress = function(_pn) { return (is_struct(cur) && seed == _pn.seed) ? cur.row / max(1, cur.h) : 0; };
