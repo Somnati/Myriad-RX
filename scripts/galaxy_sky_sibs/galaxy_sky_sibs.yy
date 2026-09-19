@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"galaxy_sky_sibs",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"galaxy_sky_sibs",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

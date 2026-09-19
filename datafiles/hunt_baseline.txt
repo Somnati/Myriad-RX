@@ -920,9 +920,10 @@ dupvar	scripts\foe_sprite_frame\foe_sprite_frame.gml        _i
 dupvar	scripts\galaxy_fog_draw\galaxy_fog_draw.gml          _ci _i
 dupvar	scripts\galaxy_home\galaxy_home.gml                  _p _sm _st
 dupvar	scripts\galaxy_nebulae\galaxy_nebulae.gml            _i _sm rgb
-dupvar	scripts\galaxy_sky_build\galaxy_sky_build.gml        _cfg _core_az0 _d _dc _dd _edge0 _el _el3 _ev _gam _i _me _nb _nel _p1z _p2x _p2z _rng _sm _spw _st max
-dupvar	scripts\galaxy_sky_draw\galaxy_sky_draw.gml          _bf _f _fade _i _ldx _ldy _lw _n1 _o _rr _sb _ssx _ssy _sx _sy c_white sprite_get_width
+dupvar	scripts\galaxy_sky_build\galaxy_sky_build.gml        _cfg _core_az0 _d _dc _edge0 _el _el3 _ev _gam _hint _i _me _nb _nel _rng _sm _spw _st max
+dupvar	scripts\galaxy_sky_draw\galaxy_sky_draw.gml          _bf _f _fade _i _ldx _ldy _lw _n1 _o _rr _sb _ssx _ssy _sx _sy c_black c_white sprite_get_width
 dupvar	scripts\galaxy_sky_holes\galaxy_sky_holes.gml        _bk _cam _fr _lw _lw0 _o _qw _rs _sk _ssy _sux round
+dupvar	scripts\galaxy_sky_sibs\galaxy_sky_sibs.gml          _p1z _p2x _p2z point_distance
 dupvar	scripts\galaxy_world\galaxy_world.gml                _st
 dupvar	scripts\galaxy_world_sys\galaxy_world_sys.gml        _st
 dupvar	scripts\gas_colour\gas_colour.gml                    _py _pz _shf _st _tu _tv _uu _vw

@@ -50,6 +50,7 @@ else if (pg_dir > 0) { pg_a = move_to(pg_a, 1, 4); if (pg_a >= .97) { pg_a = 1; 
 if (mode != "sprites" && galaxy_ready()) {   // (never before the chart: a hint needs the galaxy, and the galaxy would build in one frame - 2026-09-17)
 	__worlds_step();
 	__lod_step();   // (the zoom tiers, 2026-09-17 - here in the Step, never inside a page's target)
+	if (is_struct(pv_sky) && is_array(pv_sky[$ "sibpd"])) planet_lite_step_list(pv_sky.sibpd, 1500);   // (the page's sky's sibling worlds, a slice a frame - q240)
 	if (variable_global_exists("starmap") && is_struct(g.starmap)) galaxy_neb_sheet();
 }   // (the nebula sheet bakes here, in the Step, never inside a page's target - 2026-09-16)
 // THE REPLAY: a trip page with an unseen film (and no live fight)

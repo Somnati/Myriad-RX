@@ -77,23 +77,22 @@ function galaxy_sky_build(_dw = undefined) {
 	}
 	// the system: where everything is NOW (the universal clock), the
 	// siblings as dots along the ecliptic, the sun at the star's bearing
-	var _now = universal_now();
-	var _sys = _hm.sys;
-	var _me3 = _sys.planets[_hm.planet];
-	var _ang1 = (_me3.ang + _me3.spd * 60 * _now) mod 360;
-	var _p1x = dcos(_ang1) * _me3.orbit, _p1z = dsin(_ang1) * _me3.orbit;
+	// THE SIBLINGS (q240, his go): the sky keeps its system and which planet is ours; each sibling begins its own
+	// 48x24 lite world here (planet_get_lite, no rows - the panel's Step builds them a slice a frame) and galaxy_sky_sibs
+	// places it LIVE every frame - bearing, phase, size, the sun's direction from it - off the universal clock
+	var _sys = _hm.sys, _me3 = _sys.planets[_hm.planet];
+	_out.sys = _sys; _out.me = _hm.planet;
+	_out.sibpd = [];
 	for (var _i = 0; _i < array_length(_sys.planets); _i++) {
 		var _sp = _sys.planets[_i];
-		if (_sp.seed == _me3.seed) continue;
-		var _ang2 = (_sp.ang + _sp.spd * 60 * _now) mod 360;
-		var _p2x = dcos(_ang2) * _sp.orbit, _p2z = dsin(_ang2) * _sp.orbit;
-		var _dd  = point_distance(_p1x, _p1z, _p2x, _p2z);
-		var _b   = darctan2(_p2z - _p1z, _p2x - _p1x);
-		// THE PHASE (2026-09-16): how much of the sibling's lit half faces us - the sun from it against us from it (the system's own geometry)
-		var _sl = max(.001, point_distance(0, 0, _p2x, _p2z)), _sdx = -_p2x / _sl, _sdz = -_p2z / _sl;
-		var _ul = max(.001, _dd), _udx = (_p1x - _p2x) / _ul, _udz = (_p1z - _p2z) / _ul;
-		array_push(_out.sibs, { x : dcos(_b), y : 0, z : dsin(_b), col : _sp.col, s : clamp(_sp.size * 22 / max(_dd, 12), 1.5, 6), lit : clamp((1 + (_sdx * _udx + _sdz * _udz)) * .5, 0, 1), gas : (_sp.kind == "gas") });
+		if (_i == _hm.planet) continue;
+		var _gw = galaxy_world(_hm.star, _i);
+		var _hint = is_struct(_gw) ? exped_planet_hint(_gw) : { kind : _sp.kind, clim : _sp.clim, ring : (_sp[$ "has_ring"] ?? false) };
+		var _spn = planet_get_lite(_sp.seed, _hint, false);
+		array_push(_out.sibpd, _spn);
+		array_push(_out.sibs, { i : _i, x : 1, y : 0, z : 0, col : _sp.col, s : 2.5, lit : .5, gas : (_sp.kind == "gas"), pn : _spn, sunl : [1, 0, 0], bri : 1, d : 100, near : false });
 	}
+	galaxy_sky_sibs(_out);   // (placed once now; the draw places them again every frame)
 	_out.light_w = galaxy_sun_dir(0, _dw);   // (the one bearing the agent's daylight reads too)
 	_out.sun_col  = _sys.star.col;
 	_out.hole     = _sys.star[$ "hole"] ?? false;   // (a black hole for a sun - 2026-09-17)

@@ -89,6 +89,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 	}
 	}
 	gpu_set_blendmode(bm_normal);
+	if (_sibs) galaxy_sky_sibs(_sky);   // (placed NOW - bearing, phase, size, light - not at the sky's build; q240)
+	var _tr_n = 0, _tr_x = array_create(8, 0), _tr_y = array_create(8, 0), _tr_r = array_create(8, 0);   // (the transits, drawn on the sun below)
 	for (var _i = 0; _i < (_sibs ? array_length(_sky.sibs) : 0); _i++) {
 		var _sb = _sky.sibs[_i];
 		var _dv = mat3_apply(_ct, _sb.x, _sb.y, _sb.z);
@@ -97,7 +99,18 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _sx = _cx + _dv[0] * _f, _sy = _cy + _dv[1] * _f;
 		if (_sx < -20 || _sx > _w + 20 || _sy < -20 || _sy > _h + 20) continue;
 		var _fade = clamp((-_dv[2] - .2) / .1, 0, 1);
-		var _scol = merge_colour(_sb.col, c_white, .35);
+		var _bri = _sb[$ "bri"] ?? 1;
+		var _scol = merge_colour(merge_colour(_sb.col, c_white, .35), c_black, (1 - _bri) * .5);
+		// A TRANSIT (q240): a sibling between us and the sun, on the sun's disc - a black dot drawn over the sun below
+		if (_sun_on && (_sb[$ "near"] ?? false) && _tr_n < 8 && point_distance(_sx, _sy, _ssx, _ssy) < 5.5 * (_sky.sun_size / 12) + _sb.s * .5) { _tr_x[_tr_n] = _sx; _tr_y[_tr_n] = _sy; _tr_r[_tr_n] = max(1, _sb.s * .5); _tr_n++; continue; }
+		// THE WORLD ITSELF (q240): its lite world drawn by planet_draw when it stands and is big enough to read - its own
+		// bands or continents, its ring, the true crescent (the sun's direction from it), turning on its own clock
+		if (_sb.s >= 6 && _fade >= .999 && is_struct(_sb[$ "pn"]) && planet_lite_ready(_sb.pn)) {
+			var _spn = _sb.pn, _sr = _sb.s * .5;
+			planet_draw(_spn, _sx, _sy, _spn.ring ? (_sr * .62) : _sr, planet_spin_now(_spn), 1, _cam, _sb.sunl, undefined, undefined, undefined, 0);
+			if (_bri < .999) { draw_set_alpha((1 - _bri) * .6); draw_circle_colour(_sx, _sy, _sr + .5, c_black, c_black, false); draw_set_alpha(1); }
+			continue;
+		}
 		if (_sb.s < 3 || is_undefined(_sb[$ "lit"])) { draw_sprite_ext(spr_pixel_1x1, 0, _sx - _sb.s * .5, _sy - _sb.s * .5, max(1, _sb.s), max(1, _sb.s), 0, _scol, .95 * _fade); continue; }
 		// A LIT DISC: rows of a circle, the dark side in the planet's colour at night, the lit part toward the sun's side
 		var _rr = floor(_sb.s * .5), _lit = _sb.lit;
@@ -129,6 +142,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _skd1 = _sky[$ "skind"] ?? "main";
 		if (_skd1 == "pulsar") pulsar_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sky.sspin, _sky.stilt, _sfade, _cam);   // (its beams sweep the sky, held to the world - 2026-09-17)
 		else if (_skd1 == "dwarf") dwarf_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, _sfade);   // (a white dwarf's blaze - q195)
+		// THE TRANSITS (q240): the siblings that crossed the sun's disc, black on it
+		for (var _ti = 0; _ti < _tr_n; _ti++) { draw_set_alpha(_sfade); draw_circle_colour(_tr_x[_ti], _tr_y[_ti], _tr_r[_ti], c_black, c_black, false); draw_set_alpha(1); }
 		gpu_set_blendmode(bm_add);
 		// THE FLARE: an anamorphic streak (the soft glow stretched flat) and two ghosts along the line through the view's centre
 		draw_sprite_ext(spr_vis_glow_soft, 0, _ssx, _ssy, _gs * 3.2, _gs * .10, 0, merge_colour(_sky.sun_col, c_white, .4), .22 * _sfade);
