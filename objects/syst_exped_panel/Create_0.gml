@@ -523,6 +523,11 @@ __loading = function() {
 	if (mode == "sprites" || view == "crew" || view == "bestiary") return undefined;
 	if (!galaxy_ready()) return { txt : "charting the galaxy", prog : galaxy_progress() };
 	if (!is_struct(g[$ "exped"]) || array_length(g.exped.board) == 0) return { txt : "charting the galaxy", prog : 1 };
+	// THE ONE-FRAME RACE (his first live test, 2026-09-18): the chart lands and syst_production rolls the board in the
+	// same frame - AFTER this panel's Step took pl_dest from an empty board - so the Draw saw the galaxy ready, the board
+	// full, and pl_dest undefined: "Variable <unknown_object>.biome cannot be resolved". A page that needs a world and
+	// has none yet stays under the veil one more frame (the Step's line takes the board's world next)
+	if ((view == "planet" || view == "depart" || view == "region") && !is_struct(pl_dest)) return { txt : "charting the galaxy", prog : 1 };
 	var _d = undefined;
 	if (view == "planet") _d = pl_dest;
 	else if (view == "trip") { var _lt = __trip(); if (!is_undefined(_lt)) _d = _lt.dest; }

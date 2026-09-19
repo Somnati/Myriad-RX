@@ -34,8 +34,8 @@ if (is_struct(_ldd)) {
 // "expedition - Mudra IV / the landing reach" or the like
 var _t1 = "expeditions", _t2 = "", _t3 = "", _td = undefined;
 switch (view) {
-	case "planet": _td = pl_dest; _t3 = "  /  " + exped_biomes()[pl_dest.biome].name + " world" + ((pv_mode == "region") ? ("  /  " + region_get(pl_dest, rg_sel).name) : ""); break;
-	case "depart": _td = pl_dest; _t3 = "  /  preparation"; break;
+	case "planet": if (is_struct(pl_dest)) { _td = pl_dest; _t3 = "  /  " + exped_biomes()[pl_dest.biome].name + " world" + ((pv_mode == "region") ? ("  /  " + region_get(pl_dest, rg_sel).name) : ""); } break;   // (guarded: the board's world may be a frame away - the veil holds it, this is the belt)
+	case "depart": if (is_struct(pl_dest)) { _td = pl_dest; _t3 = "  /  preparation"; } break;
 	case "trip":   { var _ttr = __trip(); if (!is_undefined(_ttr)) { _td = _ttr.dest; _t3 = "  /  " + exped_region(_ttr).name; } break; }
 	case "haul":   { var _thi = __haul_i(); if (_thi >= 0) { _td = _e.hauls[_thi].dest; _t3 = "  /  home"; } break; }
 	case "map":    if (is_struct(map_dest)) { _td = map_dest; _t3 = "  /  " + region_get(map_dest, map_rgi).name + " map"; } break;

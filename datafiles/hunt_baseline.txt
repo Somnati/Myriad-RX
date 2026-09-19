@@ -568,7 +568,7 @@ ivars	syst_exped_panel           Create_0.gml                             held x
 ivars	syst_exped_panel           Create_0.gml                             hz x1
 ivars	syst_exped_panel           Create_0.gml                             ns x1
 ivars	syst_exped_panel           Create_0.gml                             para_on x1
-ivars	syst_exped_panel           Create_0.gml                             prog x5
+ivars	syst_exped_panel           Create_0.gml                             prog x6
 ivars	syst_exped_panel           Create_0.gml                             seat_y0 x1
 ivars	syst_exped_panel           Create_0.gml                             short x1
 ivars	syst_exped_panel           Create_0.gml                             slot x1
