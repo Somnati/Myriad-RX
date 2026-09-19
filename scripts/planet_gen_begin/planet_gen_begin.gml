@@ -84,6 +84,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _atmo, _pal, _bands = undefined, _storm = undefined, _cbl = [], _belts = [];
 	var _arch = (_kind == "gas") ? "gas" : "terra";
 	var _craters = [];
+	var _gstops = [], _gstorms = [];   // THE GIANT'S FACE (q236): the colour stops and the storm ovals gas_colour reads (a rock world has none)
 	var _sand = c_gray;   // the world's sand (a rock world rolls it below; a giant has none - declared here so no read is outside its scope)
 	if (_kind == "gas") {
 		var _gh = (_hue >= 0) ? _hue : irandom(255);
@@ -115,6 +116,32 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 			_storm = { x : _sr2 * cos(_sa2), y : _sz2, z : _sr2 * sin(_sa2), r : random_range(.14, .24), b : array_length(_pal) - 1 };
 		}
 		repeat (irandom_range(1, 2)) array_push(_belts, { v : random_range(.3, .7), w : random_range(.03, .05) });
+		// THE GIANT'S FACE (q236, his references): the colour STOPS up the latitude and the storm ovals gas_colour reads -
+		// all HASHED off the seed (the rolls above stand: every giant keeps its hue, ring and storm). Four families: candy
+		// (three hues a third of the wheel apart, saturated - the Universe Sandbox look), pastel marble (one hue's
+		// neighbours, pale, with a dark accent - Spiritus), jovian (cream / rust / brown / white), ice (blue-cyan, soft)
+		var _gf = hash_mix(_seed, 660) mod 100, _gfam = (_gf < 40) ? 0 : ((_gf < 70) ? 1 : ((_gf < 90) ? 2 : 3));
+		_gstops = [];
+		var _gv = 0, _gk = 0, _gh0 = _gh;
+		while (_gv < 1) {
+			var _hh = hash_mix(_seed, 700 + _gk * 3), _hs = hash_mix(_seed, 701 + _gk * 3), _hv = hash_mix(_seed, 702 + _gk * 3);
+			var _sh, _ss, _sv;
+			if (_gfam == 0)      { _sh = (_gh0 + 85 * (_hh mod 3) + ((_hh div 3) mod 25) - 12 + 512) mod 256; _ss = 165 + (_hs mod 70); _sv = ((_hv mod 100) < 22) ? 250 : 190 + (_hv mod 60); if ((_hv mod 100) < 12) { _ss = 20 + (_hs mod 30); _sv = 245; } }
+			else if (_gfam == 1) { _sh = (_gh0 + ((_hh mod 51) - 25) + 512) mod 256; _ss = 45 + (_hs mod 50); _sv = 205 + (_hv mod 50); if ((_hv mod 100) < 25) { _ss = 90 + (_hs mod 60); _sv = 120 + (_hv mod 45); } }
+			else if (_gfam == 2) { var _jk = _hh mod 4; _sh = (_jk == 0) ? 32 : ((_jk == 1) ? 14 : ((_jk == 2) ? 20 : 30)); _ss = (_jk == 0) ? 55 + (_hs mod 30) : ((_jk == 1) ? 150 + (_hs mod 60) : ((_jk == 2) ? 120 + (_hs mod 50) : 15 + (_hs mod 20))); _sv = (_jk == 0) ? 225 + (_hv mod 30) : ((_jk == 1) ? 160 + (_hv mod 40) : ((_jk == 2) ? 95 + (_hv mod 40) : 240 + (_hv mod 15))); }
+			else                 { _sh = (150 + ((_hh mod 41) - 20) + 256) mod 256; _ss = 110 + (_hs mod 90); _sv = 170 + (_hv mod 85); }
+			array_push(_gstops, { v : _gv, col : make_colour_hsv(_sh, min(255, _ss), min(255, _sv)) });
+			_gv += .05 + ((hash_mix(_seed, 703 + _gk * 3) mod 1000) / 1000) * ((_gfam == 1) ? .17 : .12);
+			_gk++;
+		}
+		_gstorms = [];
+		if (is_struct(_storm)) array_push(_gstorms, { x : _storm.x, y : _storm.y, z : _storm.z, r : _storm.r * .9, col : _pal[_storm.b], spin : (((hash_mix(_seed, 720) mod 2) == 0) ? 1 : -1) });   // (the rolled storm, as it was)
+		var _gsn = hash_mix(_seed, 721) mod 3;   // (and up to two more, hashed)
+		for (var _gi = 0; _gi < _gsn; _gi++) {
+			var _sz = ((hash_mix(_seed, 730 + _gi * 4) mod 1000) / 1000) * 1.2 - .6, _sa = ((hash_mix(_seed, 731 + _gi * 4) mod 1000) / 1000) * 2 * pi, _sr = sqrt(max(0, 1 - _sz * _sz));
+			var _sc = _gstops[hash_mix(_seed, 732 + _gi * 4) mod array_length(_gstops)].col;
+			array_push(_gstorms, { x : _sr * cos(_sa), y : _sz, z : _sr * sin(_sa), r : .07 + ((hash_mix(_seed, 733 + _gi * 4) mod 1000) / 1000) * .10, col : merge_colour(_sc, ((hash_mix(_seed, 734 + _gi * 4) mod 2) == 0) ? c_white : c_black, .35), spin : (((hash_mix(_seed, 735 + _gi * 4) mod 2) == 0) ? 1 : -1) });
+		}
 	} else {
 		if (_dry) _arch = (_clim < .22 || (_clim < .5 && random(1) < .3)) ? "lava" : "barren";
 		if (_arch_f != "") _arch = _arch_f;
@@ -294,6 +321,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		arch : _arch, craters : _craters,
 		theat : (.5 - _clim) * .5,
 		bands : _bands, storm : _storm,
+		gstops : _gstops, gstorms : _gstorms, gseed : (_seed mod 100000), oc : 0,   // (the giant's face - gas_colour; oc = the texel's colour it wrote; q236)
 		oe : 0, ob : 0,
 		cities : undefined,
 	};
@@ -327,6 +355,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		sea : _sea, wet : _wet, tilt : _tilt, spin : _spin, atmo : _atmo,
 		ring : _ring, ring_col : _ringc, ring_col2 : _ringc2, ring_kind : _rkind, ring_in : _rin, ring_out : _rout, ring_seed : _rseed, civ : _civ,
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
+		gcol : (_kind == "gas") ? array_create(_tw * _th, 0) : undefined,   // THE GIANT'S COLOUR MAP (q236): gas_colour a texel, the terrain sheet's rgb for a gas world
 		plateau_ask : (!is_undefined(_hint) && (_hint[$ "plateau"] ?? false)),   // (a plateau asked for by the hint - the galaxy's word on a world; q210/q212)
 		hint_gal : (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])),   // (the galaxy's word taken - else planet_get lays it on late; bug hunt 5)
 		creg : _creg, cregp : _cregp,   // THE CLOUD REGIME (2026-09-17): 0 cumulus / 1 scattered / 2 streaked / 3 fronts, and its hashed makings

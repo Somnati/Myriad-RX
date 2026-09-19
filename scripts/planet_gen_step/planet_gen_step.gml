@@ -22,6 +22,7 @@ function planet_gen_step(_pn, _rows = undefined) {
 			planet_texel(_ps, _uu2, _vv2);
 			_pn.elev[_i2]  = _ps.oe;
 			_pn.biome[_i2] = _ps.ob;
+			if (is_array(_pn[$ "gcol"])) _pn.gcol[_i2] = _ps.oc;   // (a giant's colour map - q236)
 			_pn.det[_i2] = _ps.od; _pn.moi[_i2] = _ps.om;   // (the fields, kept - the zoom tier interpolates them, 2026-09-17)
 			// clouds at this texel, by the world's REGIME (planet_gen_begin, 2026-09-17): the puffs, then the belts
 			var _creg = _pn[$ "creg"] ?? 0, _crp = _pn[$ "cregp"];

@@ -146,7 +146,7 @@ function planet_lod_step(_pn, _l, _until) {
 				}
 			}
 			// (the sheets' texels through the ONE ENCODER the map's bake uses - planet_sheet_terrain / planet_sheet_height; q216)
-			var _vt = planet_sheet_terrain(_pal[_b], _glow[_b]);
+			var _vt = _gas ? planet_sheet_terrain(_ps.oc, 0) : planet_sheet_terrain(_pal[_b], _glow[_b]);   // (a giant: gas_colour at the finer point - q236)
 			buffer_poke(_tb, _o + _or, buffer_u8, _vt & $ff); buffer_poke(_tb, _o + _og, buffer_u8, (_vt >> 8) & $ff); buffer_poke(_tb, _o + _ob, buffer_u8, (_vt >> 16) & $ff); buffer_poke(_tb, _o + _oa, buffer_u8, (_vt >> 24) & $ff);
 			var _eh = _oe;
 			if (_b == 1 && _oe >= _sea && _hasr) _eh = max(_oe, _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11);   // (a lake's height is its water's - the fill level, flat)

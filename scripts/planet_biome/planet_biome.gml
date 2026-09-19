@@ -21,6 +21,7 @@ function planet_biome(_ps, _u, _v) {
 			if (point_distance_3d(_px, _py, _pz, _st.x, _st.y, _st.z) < _st.r) _b = _st.b;
 		}
 		_ps.ob = _b;
+		_ps.oc = gas_colour(_ps, _u, _v);   // THE GIANT'S FACE (q236): the texel's colour, the sheet's rgb - the band index stays for anything that reads it
 		return;
 	}
 

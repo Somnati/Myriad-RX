@@ -64,6 +64,7 @@ uniform float u_pfade;    // THE PLUMES' fade (2026-09-17): their own, later tha
 uniform vec4  u_vent[6];  // THE PLUMES (2026-09-17): the live vents in texture space - xyz the direction, w the ring's reach (radians)
 uniform float u_ventn;
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
+uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darkens (no hard ground: the light thins toward the edge) and hazes in the sky's colour, the terminator softens
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
 // THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
@@ -808,6 +809,14 @@ void main()
 
         float em = 1.0 - tex.a;
         if (em > 0.001) col = mix(col, tex.rgb * (1.0 + 0.3 * (1.0 - li)), em);
+        // THE GIANT'S FACE (q236; his references): a gas ball's light falls off toward its edge - the limb darkened on the
+        // facing (n.z), the edge hazed in the sky's colour where the sun still reaches, the day a touch softer
+        if (u_gas > 0.5) {
+            float mu = clamp(n.z, 0.0, 1.0);
+            float lmb = pow(mu, 0.5);
+            col *= mix(0.40, 1.0, lmb);
+            col = mix(col, u_atmo * (0.55 + 0.45 * li), (1.0 - lmb) * 0.42 * max(li, 0.12));
+        }
 
         // MOON SHADOWS (2026-09-16, the tech demo's casters): a surface point whose
         // line to the sun passes through a moon is in eclipse - the moon's disc,

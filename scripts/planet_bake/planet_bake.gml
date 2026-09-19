@@ -54,7 +54,7 @@ function planet_bake(_pn, _until = undefined) {
 			var _r8 = 0, _g8 = 0, _b8 = 0, _a8 = 255;
 			if (_p == 0) {
 				// the terrain (planet_sheet_terrain - the one encoder, the tier's too)
-				var _b3 = _pn.biome[_i], _v3 = planet_sheet_terrain(_pn.pal[_b3], _pn.glow[_b3]);
+				var _b3 = _pn.biome[_i], _v3 = _gas ? planet_sheet_terrain(_pn.gcol[_i], 0) : planet_sheet_terrain(_pn.pal[_b3], _pn.glow[_b3]);   // (a giant: its colour map - q236)
 				_r8 = _v3 & $ff; _g8 = (_v3 >> 8) & $ff; _b8 = (_v3 >> 16) & $ff; _a8 = (_v3 >> 24) & $ff;
 			} else if (_p == 1) {
 				// the clouds: red the thickness (the cloud relief), green free, BLUE the sand under it (the dunes full, the desert
