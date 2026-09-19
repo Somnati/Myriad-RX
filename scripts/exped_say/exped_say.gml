@@ -62,6 +62,7 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 		qk : is_struct(_q) ? _q.kind : "explore", who : is_struct(_q) ? (_q[$ "who"] ?? "someone") : "someone",
 		cls : _cls, lv : _lv, ppers : _ppers, poor : ((_tr[$ "credits"] ?? 0) <= 0),
 		beat : _beat, pers : _pers, biome : _bi.name,
+		mood : mood_word(_sp).key,   // (the speaker's mood - a `mood` gate on a line; q261)
 		party : _n, bond : (_pk >= 0) ? exped_bond_tier(exped_bond(_sids[_k], _sids[_pk])) : 0,
 		hp : _hpf, routed : _tr.routed, mem : _mem,
 		name : _names[_k], planet : _tr.dest.name,
@@ -108,6 +109,7 @@ function exped_say(_tr, _beat, _ctx = undefined, _chance = 1) {
 		var _l = _all[_i];
 		if (_l.b != _beat) continue;
 		if (!is_undefined(_l[$ "pers"])   && _l.pers != _c.pers) continue;
+		if (!is_undefined(_l[$ "mood"])   && _l.mood != _c.mood) continue;
 		if (!is_undefined(_l[$ "biome"])  && _l.biome != _c.biome) continue;
 		if (!is_undefined(_l[$ "party"])  && ((_l.party == 1 && _c.party != 1) || (_l.party == 2 && _c.party < 2))) continue;
 		if (!is_undefined(_l[$ "bond"])   && _l.bond != _c.bond) continue;

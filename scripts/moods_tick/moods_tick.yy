@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"moods_tick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"moods_tick",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -49,6 +49,19 @@
 function exped_lines() {
 	static _l = [
 		{ b : "depart", t : "{name} packed for every eventuality except the trip." },
+		// THE MOODS (q261; a `mood` gate: shaken / angry / glum / grieving / cocky / eager / content / tired - mood_word)
+		{ b : "depart", t : "{name} got in the ship last and sat nearest the door.", mood : "shaken", w : 3 },
+		{ b : "depart", t : "{name} got in the ship first and did not sit down.", mood : "angry", w : 3 },
+		{ b : "depart", t : "{name} left a seat empty. nobody sat in it.", mood : "grieving", w : 4 },
+		{ b : "depart", t : "{name} has told everyone how this trip will go. in detail. before it started.", mood : "cocky", w : 3 },
+		{ b : "rest", t : "{name} lay down and did not sleep. checked the door twice.", mood : "shaken", w : 3 },
+		{ b : "rest", t : "{name} sat a while with the bag {name} does not need to carry any more.", mood : "grieving", w : 4 },
+		{ b : "rest", t : "{name} was asleep before the others sat down.", mood : "tired", w : 3 },
+		{ b : "fight_open", t : "{foe}. {name} went in first and did not check who followed.", mood : "angry", w : 3 },
+		{ b : "fight_open", t : "{foe}. {name} said this would be easy. {name} said it a little loud.", mood : "cocky", w : 3 },
+		{ b : "fight_won", t : "{foe} is down. {name} did not cheer. {name} used to.", mood : "grieving", w : 3 },
+		{ b : "home", t : "home. {name} went straight to bed and stayed there.", mood : "tired", w : 3 },
+		{ b : "home", t : "home. {name} looked for someone at the gate and stopped looking.", mood : "grieving", w : 4 },
 		{ b : "depart", t : "departure. {name} waved at the ship for a while before being told to get in it." },
 		{ b : "depart", t : "{name} has a plan for {planet}. the plan is to arrive. beyond that, improvisation." },
 		{ b : "depart", t : "{name} checked the supplies twice and the snacks nine times." },

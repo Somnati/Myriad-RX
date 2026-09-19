@@ -156,6 +156,10 @@ function ex_haul_draw(_e, _ea, _ink, _dim) {
 			draw_set_color(c_white);
 			draw_set_alpha(.95);
 			draw_text(_pr.x + 20, _pr.y + 4, _sp.name);
+			// THE WARNING (q261): who this one is closest to - the cost of letting them go, said before the choice
+			var _bb = 0, _bn = "";
+			for (var _b2 = 0; _b2 < array_length(g.sprites); _b2++) { if (_b2 == _k) continue; var _bv = exped_bond(_sp.id, g.sprites[_b2].id); if (_bv > _bb) { _bb = _bv; _bn = g.sprites[_b2].name; } }
+			if (_bb >= 25) { draw_set_color(c_lavender); draw_set_alpha(.85); draw_text(_pr.x + 20 + string_width(_sp.name) + 8, _pr.y + 4, ((_bb >= 60) ? "inseparable with " : "mates with ") + _bn); }
 			var _ri = upgrade_rarity_info(_sp[$ "rar"] ?? 0);
 			draw_set_halign(fa_right);
 			draw_set_color(_ri.col);

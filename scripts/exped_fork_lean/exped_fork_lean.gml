@@ -23,6 +23,11 @@ function exped_fork_lean(_tr) {
 	else if (_pn == "nervous" || _pn == "shy") _rk *= 1.6;
 	else if (_pn == "curious") _rk *= .85;
 	else if (_pn == "sleepy") _rk *= 1.2;
+	// THE LEADER'S MOOD (q261): shaken, grieving or glum weighs the risk half again (the road); cocky halves it (the
+	// pass on bad odds - confidence's own flaw); angry would rather fight than go round
+	var _mw = is_undefined(_lead) ? "" : mood_word(_lead).key;
+	if (_mw == "shaken" || _mw == "grieving" || _mw == "glum" || _mw == "tired") _rk *= 1.5;
+	else if (_mw == "cocky") _rk *= .5;
 	if (_fk.kind == "shortcut") {
 		if (_stn.key == "cautious" && _pok < .7) return 0;
 		var _cost = 3;
@@ -35,6 +40,7 @@ function exped_fork_lean(_tr) {
 	var _need = (_stn.key == "cautious") ? .85 : ((_stn.key == "greedy") ? .4 : .6);
 	if (_pn == "brave" || _pn == "eager") _need -= .15;
 	else if (_pn == "nervous" || _pn == "shy") _need += .15;
+	if (_mw == "angry") _need -= .2; else if (_mw == "shaken" || _mw == "grieving") _need += .15;   // (the mood - q261)
 	if (_stn.key == "cautious" && _pok >= .5) return 1;
 	return (_hpf >= _need) ? 0 : 1;
 }

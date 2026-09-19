@@ -149,6 +149,7 @@ __poke = function() {
 		save_mark_dirty();
 	} else {
 		sprite_voice(s, "poke");
+		mood_event(s, "poke");   // (a poke is a small kindness, five a day - q261)
 		if (random(100) < SPRITE_TALK_PCT) {
 			if (bub_cur == "") bub_cur = _p.lines[irandom(array_length(_p.lines) - 1)];
 			bub = bub_cur;

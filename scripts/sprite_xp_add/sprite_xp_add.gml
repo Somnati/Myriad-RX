@@ -14,6 +14,7 @@ function sprite_xp_add(_sp, _xp) {
 		_got += 1;
 	}
 	if (_sh.lv >= SPRITE_LV_MAX) _sh.xp = 0;
+	if (_got > 0) mood_event(_sp, "level", "reached level " + string(_sh.lv));   // (a level lifts - q261)
 	// A NEW RUNG (2026-09-17): the sprite picks for itself (the best by its
 	// class, the newest against the weakest worn), and "new" waits on the
 	// sheet until the player looks (sprite_sheet's abnew; the tooltip - or

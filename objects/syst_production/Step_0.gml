@@ -22,6 +22,7 @@ exped_tick(_secs);    // an expedition under way, same clock (its debug speed mu
 unfold_tick();        // what the clock and the absences unfold (once a second)
 objective_tick();     // the objective chain: steps, unlocks, rewards (every frame, cheap)
 upgrade_meter_tick(delta / 60);   // the offer meter, on real time (DE's syst_handle_upgrades)
+moods_tick(delta / 60);           // the sprites' moods drift home on PLAYTIME (q261) - the arc is watched, never skipped
 
 // AUTOMATION runs on the REAL clock, not the accelerated one: a pulse a
 // second is a pacing decision, and speeding it up would only spend the

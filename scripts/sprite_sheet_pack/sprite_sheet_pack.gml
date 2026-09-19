@@ -36,5 +36,5 @@ function sprite_sheet_pack(_sp) {
 	var _ab = "";
 	if (is_array(_sh[$ "abil"])) for (var _i = 0; _i < array_length(_sh.abil); _i++) _ab += ((_i > 0) ? "," : "") + string(_sh.abil[_i]);
 	// "new" (a fifteenth field, 2026-09-17): an ability unlocked and not yet looked at
-	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg + "/" + _ld + "/" + _ab + "/" + ((_sh[$ "abnew"] ?? false) ? "1" : "0");
+	return string(_sh.cls) + "/" + string(_sh.lv) + "/" + string(_sh.xp) + "/" + string(_sh.sks) + "/" + _w + "/" + _v + "/" + _n + "/" + _l + "/" + _x + "/" + _t + "/" + _eg + "/" + _yg + "/" + _ld + "/" + _ab + "/" + ((_sh[$ "abnew"] ?? false) ? "1" : "0") + "/" + mood_pack(_sp);   // (the mood, a sixteenth field - q261)
 }

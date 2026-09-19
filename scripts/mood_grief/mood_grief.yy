@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"mood_grief",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mood_grief",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

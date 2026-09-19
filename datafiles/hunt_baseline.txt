@@ -578,7 +578,6 @@ ivars	syst_exped_panel           Create_0.gml                             slot x
 ivars	syst_exped_panel           Create_0.gml                             sy_from x1
 ivars	syst_exped_panel           Create_0.gml                             tw x1
 ivars	syst_exped_panel           Create_0.gml                             warp x1
-ivars	syst_exped_panel           Create_0.gml                             why x4
 ivars	syst_faq                   Create_0.gml                             idx x1
 ivars	syst_faq                   Create_0.gml                             x1 x1
 ivars	syst_faq                   Create_0.gml                             x2 x1

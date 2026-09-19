@@ -34,5 +34,11 @@ function exped_fork_mods(_tr, _fk) {
 		if (_rng) array_push(_mods, { name : "ranger", v : 2 });
 	}
 	if (_luck >= 2) array_push(_mods, { name : "luck", v : min(3, floor(_luck / 2)) });
+	// THE LEADER'S MOOD on the die (q261): shaken, grieving or tired -1; cocky or eager +1
+	var _lead = undefined;
+	for (var _lk = 0; _lk < array_length(_tr.sids); _lk++) if (_tr.hp[_lk] > 0) { _lead = exped_sprite(_tr.sids[_lk]); break; }
+	var _mw = is_undefined(_lead) ? "" : mood_word(_lead).key;
+	if (_mw == "shaken" || _mw == "grieving" || _mw == "tired") array_push(_mods, { name : _mw, v : -1 });
+	else if (_mw == "cocky" || _mw == "eager") array_push(_mods, { name : _mw, v : 1 });
 	return _mods;
 }

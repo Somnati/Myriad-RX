@@ -59,6 +59,7 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 		for (var _i = 0; _i < min(4, array_length(_abs)); _i++) if (_abs[_i] != "") _sh.abil[_i] = clamp(floor(real(_abs[_i])), -1, 9);
 	}
 	_sh.abnew = (array_length(_f) > _at + 14 && _f[_at + 14] == "1");   // "new" (a fifteenth field)
+	mood_unpack(_sp, (array_length(_f) > _at + 15) ? _f[_at + 15] : "");   // the mood (a sixteenth field - q261)
 	// its own ledger (a thirteenth field, 2026-09-17)
 	_sp.led = {};
 	if (array_length(_f) > _at + 12 && _f[_at + 12] != "") {

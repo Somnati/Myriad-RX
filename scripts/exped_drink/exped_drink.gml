@@ -64,7 +64,8 @@ function exped_drink(_tr, _pw = undefined, _f = undefined, _fallen = false) {
 				break;
 			}
 		}
-		var _thv = clamp(_thr(_pn) + _stn.drink, .1, .9);
+		var _mwd = mood_word(_sp).key;   // THE TEMPER (q261): the shaken and the grieving drink sooner, the angry later
+		var _thv = clamp(_thr(_pn) + _stn.drink + ((_mwd == "shaken" || _mwd == "grieving") ? .15 : ((_mwd == "angry") ? -.1 : 0)), .1, .9);
 		var _hpn = is_struct(_pw) ? _pw.hp : _tr.hp[_k], _hpm = is_struct(_pw) ? _pw.maxhp : _tr.hpmax[_k];
 		if (_hpn > 0 && _hpn / max(1, _hpm) < _thv) {
 			// the red one: a big one when it is bad, a small one otherwise; the first that fits

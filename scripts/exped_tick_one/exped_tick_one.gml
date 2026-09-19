@@ -48,6 +48,13 @@ function exped_tick_one(_tr, _dt) {
 			if (is_undefined(_msp)) continue;
 			if (!_drawn) sprite_led(_msp, _f.won ? "won" : "lost");
 			if (_pm.hp <= 0) sprite_led(_msp, "downs");
+			// MOODS (q261): a win lifts, a rout shakes (or angers), a mate down weighs on the ones who stand
+			if (!_drawn && _f.won) { mood_event(_msp, "win"); if (is_struct(_msp[$ "mem"]) && _msp.mem.streak >= 2 && (_tr[$ "wins"] ?? 0) >= 3) mood_event(_msp, "streak", "three wins running"); }
+			if (!_drawn && !_f.won) mood_event(_msp, "rout", "routed at " + exped_region(_tr).nodes[clamp(_tr.pos, 0, array_length(exped_region(_tr).nodes) - 1)].name);
+			if (_pm.hp > 0) for (var _k2 = 0; _k2 < array_length(_f.party); _k2++) {
+				if (_k2 == _k || _f.party[_k2].hp > 0 || _f.party[_k2].mi >= array_length(_tr.sids)) continue;
+				if (exped_bond(_msp.id, _tr.sids[_f.party[_k2].mi]) >= 25) mood_event(_msp, "buddy_down", _tr.names[_f.party[_k2].mi] + " went down");
+			}
 			sprite_led(_msp, "dmg", round(_pm[$ "dd"] ?? 0));
 			sprite_led(_msp, "dtaken", round(_pm[$ "dt"] ?? 0));
 		}

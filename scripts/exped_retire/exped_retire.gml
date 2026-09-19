@@ -14,6 +14,12 @@ function exped_retire(_sid) {
 		break;
 	}
 	if (_name == "") return "";
+	// GRIEF (q261, his ask: "if we dismiss a sprite who had a buddy I want that buddy to feel sad"): BEFORE the bonds
+	// go, every mate and better of the one let go carries it (mood_grief, by the bond)
+	if (variable_global_exists("bonds")) for (var _i = 0; _i < array_length(g.sprites); _i++) {
+		var _bd = exped_bond(_sid, g.sprites[_i].id);
+		if (_bd >= 25) mood_grief(g.sprites[_i], _name, _bd);
+	}
 	array_push(g.exped.retired, _name);
 	while (array_length(g.exped.retired) > 12) array_delete(g.exped.retired, 0, 1);
 	var _k = variable_struct_get_names(g.bonds);

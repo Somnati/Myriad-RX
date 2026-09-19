@@ -861,3 +861,9 @@ function main_macros() {
 #macro SCAR_HOLD        960
 #macro SCAR_CAP         100
 #macro EXPED_NEWS_MAX   16
+// MOODS (q261): the drives' return times in seconds of PLAYTIME - valence an hour and a half, arousal forty minutes, the
+// battery two hours at home; grief's half-life at a bond of sixty (three hours; closer bonds longer)
+#macro MOOD_TAU_V   5400
+#macro MOOD_TAU_A   2400
+#macro MOOD_TAU_E   7200
+#macro MOOD_TAU_G   10800

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"mood_base",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"mood_base",
+  "parent":{
+    "name":"sprites",
+    "path":"folders/game/sprites.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

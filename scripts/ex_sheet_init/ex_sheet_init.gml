@@ -37,6 +37,14 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   /
 	// total, its point worth), the mood
 	var _clsline = _c.name + " (" + string(round(_st.total)) + ")  -  " + _pl[clamp(_sp.pers, 0, array_length(_pl) - 1)].name + (is_struct(_sp[$ "young"]) ? "  -  young" : "");
 	draw_text(_hx + 18, _hy + 12, _clsline);
+	// THE MOOD (q261): the word in its colour after the line, and its reason in the dim
+	var _mwd = mood_word(_sp);
+	if (_mwd.key != "") {
+		var _mwx = _hx + 18 + string_width(_clsline) + 8;
+		draw_set_color(_mwd.col); draw_text(_mwx, _hy + 12, _mwd.txt);
+		if (_mwd.why != "") { draw_set_alpha(.6); draw_text(_mwx + string_width(_mwd.txt) + 5, _hy + 12, "(" + _mwd.why + ")"); draw_set_alpha(1); }
+		draw_set_color(c_white);
+	}
 	var _need = sprite_xp_need(_sh.lv);
 	// THE LEVEL CORNER (his ask, 2026-09-15): "level N" above the bar at its
 	// start, "next a / b" above it at its end, the bar between; no outline

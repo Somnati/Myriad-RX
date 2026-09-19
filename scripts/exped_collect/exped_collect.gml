@@ -29,6 +29,11 @@ function exped_collect(_hi, _x, _y, _choice = "") {
 		_sp.mpf = (_hk >= 0 && _hk < array_length(_hmp)) ? clamp(_hmp[_hk], 0, 1) : 1;
 		if (_sp.hpf <= 0) _sp.hpf = .05;   // (down at the end: it comes home at a sliver)
 		if (_sp.hpf < 1 || _sp.mpf < 1) { _sp.asleep = true; _sp.resting = true; }
+		// MOODS (q261): home with something or with nothing; the battery down by the trip's days
+		var _hdays = (is_struct(_h[$ "dest"]) && (_h[$ "leave_t"] ?? 0) > 0) ? clamp((universal_now() - _h.leave_t) / 86400, 0, 10) : 1;
+		mood_event(_sp, "trip_end", "", _hdays);
+		if (_h.routed || array_length(_h.finds) == 0) mood_event(_sp, "empty", _h.routed ? "came home routed" : "came home with nothing");
+		else mood_event(_sp, "haul", "came home with a haul");
 	}
 	var _swapped = false;
 	for (var _i = 0; _i < array_length(_h.finds); _i++) {

@@ -84,6 +84,8 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	var _stn = exped_stance(_stance);
 	if (_stn.key != "steady") array_push(_tr.log, "the word is " + _stn.name + ": " + _stn.blurb);
 	array_push(_e.trips, _tr);
+	// MOODS (q261): the ones left at home while these go - the eager and the brave get restless
+	for (var _li = 0; _li < array_length(g.sprites); _li++) { var _ls = g.sprites[_li]; if (!(_ls[$ "trip"] ?? false) && !is_struct(_ls[$ "young"]) && !array_contains(_sids, _ls.id)) mood_event(_ls, "left"); }
 	exped_stat("trips");
 	for (var _tk = 0; _tk < array_length(_tr.sids); _tk++) sprite_led(exped_sprite(_tr.sids[_tk]), "trips");   // (each member's own ledger, 2026-09-17)
 	exped_say(_tr, "depart");
