@@ -28,7 +28,6 @@ function menu2_content() {
 	if (unfold_has("abilities"))  menu2_button("abilities",    function() { abilities_open(); }, c_feat_abilities, "abilities");   // DE: gold // techdemo (an overlay, 2026-09-12)
 	if (unfold_has("automation")) menu2_button("automation",   function() { automation_open(); }, c_feat_automation, "automation");
 	if (unfold_has("timebank"))   menu2_button("time bank",    function() { timebank_open(); }, c_feat_timebank, "timebank");
-	if (unfold_has("dimensions")) menu2_button("dimensions",   rm_dimensions,    c_hpurple, "dimensions");   // THE DIMENSIONS (the antimatter cascade, ported 2026-09-18: stand-alone, behind its unfold key - F10 grants it)
 	// THE SPRITE MENU, in the main set (his call, 2026-09-17: "not in misc"): the
 	// roster's manager sits with the game's own features, expeditions right under it
 	if (unfold_has("sprites"))    menu2_button("sprites",      function() { exped_open("sprites"); }, c_feat_expeditions, "sprites");
@@ -46,5 +45,6 @@ function menu2_content() {
 	menu2_button("services",     rm_services,      c_seagreen);
 	menu2_button("saves",        rm_saves,         c_pink);
 	menu2_button("faq",          function() { faq_open(); }, c_gold);
+	if (unfold_has("dimensions")) menu2_button("dimensions",   rm_dimensions,    c_hpurple, "dimensions");   // THE DIMENSIONS (the antimatter cascade, ported 2026-09-18: stand-alone, behind its unfold key - F10 grants it; in misc - his call 2026-09-18)
 	if (unfold_has("offlog"))      menu2_button("offline log",  function() { offlog_open(); }, c_feat_offlog, "offlog");   // every absence's story (2026-09-12)
 }
