@@ -29,7 +29,7 @@ function ex_planet_press(_e) {
 		return true;
 	}
 	// [view region]: the pull-in (region mode) on the picked one
-	if (pl_focus >= 0) {
+	if (pl_focus >= 0 && !__nolanding(pl_dest)) {
 		var _vr = __view_rg_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _vr.x, _vr.y, _vr.x + _vr.w, _vr.y + _vr.h)) {
 			rg_sel = pl_focus; pv_face = pl_focus; pv_mode = "region"; pv_dw = false;
@@ -49,7 +49,7 @@ function ex_planet_press(_e) {
 	if (pv_dwa > .5) {
 		// the tabs (2026-09-16)
 		for (var _ti = 0; _ti < 2; _ti++) { var _tr2 = __pv_dtab_r(_ti); if (point_in_rectangle(mouse_x, mouse_y, _tr2.x, _tr2.y, _tr2.x + _tr2.w, _tr2.y + _tr2.h)) { if (pv_dtab != _ti) { pv_dtab = _ti; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); } return true; } }
-		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		if (pv_dtab == 0 && !__nolanding(pl_dest)) for (var _i = 0; _i < EXPED_REGIONS; _i++) {   // (no rows on a gas giant - q243)
 			var _pr0 = __pv_row_r(_i);
 			if (!point_in_rectangle(mouse_x, mouse_y, _pr0.x, _pr0.y, _pr0.x + _pr0.w, _pr0.y + _pr0.h)) continue;
 			if (pl_focus == _i && pv_face < 0) { pv_face = _i; play_sound_ext(snd_softclick, .95, 1.05, .3, 1); return true; }

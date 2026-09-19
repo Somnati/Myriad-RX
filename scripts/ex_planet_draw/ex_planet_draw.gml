@@ -17,7 +17,8 @@ function ex_planet_draw(_e, _ea, _dim) {
 	}
 	var _lcx = _pvc.x - _pvr.x, _lcy = _pvc.y - _pvr.y;
 	var _pr = _ocf.pr * pv_zoom;
-	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, (pv_mode == "region") ? pl_focus : -2, pl_focus, pv_cfade);
+	var _nol = __nolanding(_d);   // (a gas giant: no spots, no region mode - q243)
+	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade);
 	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);
 	// the facts over the sky (the world's name lives in the strip now - his
@@ -31,7 +32,7 @@ function ex_planet_draw(_e, _ea, _dim) {
 	if (rg_in < .99) __draw_world_box(_d);
 	// the hint, bottom middle
 	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
-	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region") ? "drag to orbit  -  wheel to zoom" : "drag to orbit  -  wheel to zoom  -  tap a region");
+	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region" || _nol) ? "drag to orbit  -  wheel to zoom" : "drag to orbit  -  wheel to zoom  -  tap a region");
 	draw_set_halign(fa_left);
 	// the left column: [galaxy] at the foot, [star system] over it ([map] is in the strip; the geosync toggle went - his call, 2026-09-16)
 	var _gl = __galaxy_r();
@@ -72,6 +73,10 @@ function ex_planet_draw(_e, _ea, _dim) {
 			}
 			draw_set_halign(fa_left);
 		}
+	} else if (_nol) {
+		draw_set_halign(fa_right); draw_set_color(c_horange); draw_set_alpha(.7);
+		draw_text(room_width - (land ? 14 : 4), room_height - 8 - 12, "no landing  -  a gas giant has no ground");
+		draw_set_halign(fa_left);
 	} else if (pl_focus >= 0) {
 		var _vr = __view_rg_r();
 		draw_ui_button(_vr.x, _vr.y, _vr.w, _vr.h, "view region", c_gold, true, true);
@@ -101,7 +106,8 @@ function ex_planet_draw(_e, _ea, _dim) {
 			draw_set_halign(fa_left);
 		}
 		var _kk = region_kinds();
-		if (pv_dtab == 0) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		if (pv_dtab == 0 && _nol) { var _nr0 = __pv_row_r(0); draw_set_color(c_horange); draw_set_alpha(.75 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 6, "no landing"); draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 18, "a gas giant has no ground"); draw_set_alpha(1); }
+		if (pv_dtab == 0 && !_nol) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
 			var _rg = region_get(_d, _i);
 			var _rr = __pv_row_r(_i);
 			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;

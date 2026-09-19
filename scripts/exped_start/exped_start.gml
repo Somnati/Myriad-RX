@@ -10,6 +10,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	exped_init();
 	var _e = g.exped;
 	if (_di < 0 || _di >= array_length(_e.board)) return false;
+	if ((_e.board[_di][$ "biome"] ?? 0) == 8) return false;   // (no landing on a gas giant - his call (b), q243; the cloud cities later)
 	if (!is_array(_crew)) _crew = [_crew];
 	if (array_length(_crew) < 1 || array_length(_crew) > exped_party_max()) return false;
 	for (var _i = 0; _i < array_length(_crew); _i++) {

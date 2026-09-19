@@ -263,7 +263,11 @@ __pv_ui_hit = function() {
 };
 /// a region picked on the planet page (a tap on its spot, or its row): the
 /// camera turns to face it, the region window's small world too
+/// NO LANDING (his call (b), 2026-09-18): a gas giant has no ground - its regions were a rock world's forests (region_gen
+/// only reads rock terrain). Viewable in orbit; no spots, no region mode, no pick, no departure - until the cloud cities
+__nolanding = function(_d) { return is_struct(_d) && (_d[$ "biome"] ?? 0) == 8; };
 __pv_pick = function(_i) {
+	if (__nolanding(pl_dest)) return;   // (no ground to pick - q243)
 	rg_sel = _i; pl_focus = _i; pv_face = _i;
 	pv_vx = 0; pv_vy = 0;   // (the tap's own glide would fight the snap - "jitters back and forth", his report 2026-09-17)
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
