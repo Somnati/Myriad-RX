@@ -42,8 +42,8 @@ __draw_sheet = function(_sp, _x0, _y0, _x1, _y1 = undefined, _pops = true) {   /
 	if (_mwd.key != "") {
 		var _mwx = _hx + 18 + string_width(_clsline) + 8;
 		draw_set_color(_mwd.col); draw_text(_mwx, _hy + 12, _mwd.txt);
-		if (_mwd.why != "") { draw_set_alpha(.6); draw_text(_mwx + string_width(_mwd.txt) + 5, _hy + 12, "(" + _mwd.why + ")"); draw_set_alpha(1); }
-		draw_set_color(c_white);
+		if (_mwd.why != "") { draw_set_alpha(.6); draw_text(_mwx + string_width(_mwd.txt) + 5, _hy + 12, "(" + _mwd.why + ")"); }
+		draw_set_color(_c.col); draw_set_alpha(.95);   // (the state as the class line left it)
 	}
 	var _need = sprite_xp_need(_sh.lv);
 	// THE LEVEL CORNER (his ask, 2026-09-15): "level N" above the bar at its

@@ -101,7 +101,7 @@ function region_info(_d, _rg) {
 			if (string_pos(_lk0, _lks[_i]) != 1) continue;
 			var _ls = g.exped.seat[$ _lks[_i]];
 			if (_ls.left <= 0) continue;
-			_lrow += ((_lrow != "") ? ", " : "") + string_delete(_lks[_i], 1, string_length(_lk0)) + "s (" + string(max(1, ceil(_ls.left / (24 * EXPED_HOUR)))) + "d)";
+			_lrow += ((_lrow != "") ? ", " : "") + string_delete(_lks[_i], 1, string_length(_lk0)) + " (" + string(max(1, ceil(_ls.left / (24 * EXPED_HOUR)))) + "d)";
 		}
 		if (_lrow != "") array_push(_out, { k : "leaderless", v : _lrow, t : 0, col : c_seagreen });
 	}

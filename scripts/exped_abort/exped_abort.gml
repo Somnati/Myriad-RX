@@ -21,6 +21,7 @@ function exped_abort(_tr) {
 		// the quest's node no longer calls: the agent decides afresh
 		_tr.act = undefined; _tr.path = [];
 	}
+	if (is_struct(_tr[$ "fork"])) { _tr.fork_pay = (_tr[$ "fork_pay"] ?? 0) + (_tr.fork[$ "held"] ?? 0); _tr.fork = undefined; }   // (a fork waiting for your tap: the question is moot - bug hunt q263)
 	exped_say(_tr, "return", undefined, .6);
 	save_mark_dirty();
 }

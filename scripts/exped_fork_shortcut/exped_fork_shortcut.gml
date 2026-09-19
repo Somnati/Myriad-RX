@@ -22,6 +22,8 @@
 /// the tally
 function exped_fork_shortcut(_tr, _rg, _fk, _k) {
 	var _path = _tr.path, _pos = _tr.pos;
+	// (the plan went while the card waited - an abort, a recall: nothing to walk; the agent decides afresh next tick; bug hunt q263)
+	if (!is_array(_path) || array_length(_path) < 2 || _fk.k >= array_length(_path) || _pos != _fk.at) return;
 	if (_k == 0) {
 		var _h0 = region_hours(_rg, _pos, _path[0]);
 		_tr.road = { a : _pos, b : _path[0], d : _h0, t : 0 };

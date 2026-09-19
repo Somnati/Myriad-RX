@@ -93,7 +93,7 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		_xp += foe_xp(_foe);
 	}
 	var _f = cbt_fight_new(_party, _foes);
-	if (_foes[0][$ "leaderless"] ?? false) cbt_log(_f, "the " + _foes[0].kind + "s are leaderless here - weaker for it");   // (q262)
+	if (_foes[0][$ "leaderless"] ?? false) cbt_log(_f, "the " + _foes[0].kind + " here are leaderless - weaker for it");   // (q262)
 	_f.tr = _tr;   // (the trip, for the pocket: exped_drink at a turn's start, the totem when one falls - 2026-09-16; a fight is never saved)
 	_f.xp = _xp;
 	// the hazard on the fight, and the diary's word on it (once a place: the
