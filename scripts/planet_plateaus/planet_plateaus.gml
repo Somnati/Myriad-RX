@@ -25,7 +25,7 @@ function planet_plateaus(_pn) {
 	var _forced = (_pn[$ "plateau_ask"] ?? false);   // (a plateau asked for by the hint - at least one, on the biggest river there is; q210/q212)
 	if (_forced) _np = max(1, _np);
 	if (_np == 0) return;
-	var _el = _pn.elev, _e0 = _pn.elev0, _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _sea = _pn.sea;
+	var _el = _pn.elev, _e0 = _pn[$ "elev0"], _bm = _pn.biome, _dt = _pn.det, _mo = _pn.moi, _ps = _pn.smp, _sea = _pn.sea;   // (elev0 exists only when the rivers ran - a world with no sea or all sea has none; the is_array guard below reads it, so the read here must not throw - live test fix 2)
 	var _acc = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _has_r = is_array(_acc);
 	if (!is_array(_e0)) return;   // (no rivers ran: no elev0 to lift - nothing to do)
 	var _touch = array_create(_n, 0);
