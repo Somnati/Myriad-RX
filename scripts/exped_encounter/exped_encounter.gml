@@ -7,8 +7,17 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	var _rgi_e = _tr[$ "rgi"] ?? 0;
 	if (is_struct(exped_mem_get(_tr.dest, _rgi_e, -1, "peace"))) _mult *= .5;
 	var _eve = region_event(_tr.dest, _rgi_e), _lord = (is_struct(_eve) && _eve.kind == "lord");
+	// REGION LANES (q259): the villain's grip makes the road busier, its loosening quieter
+	var _lo = lane_val(_tr.dest, _rgi_e, "order"), _lw = lane_val(_tr.dest, _rgi_e, "wild"), _ld = lane_val(_tr.dest, _rgi_e, "dread"), _le = lane_val(_tr.dest, _rgi_e, "welcome");
+	_mult *= 1 + .3 * _ld;
 	if (!roll_perc(EXPED_ENC * _mult)) return;   // (x1.5 at night: the road is busier in the dark)
 	var _r = random(100);
+	// ...and the bands lean with the lanes: order up turns bandits into passers-by (down, the other way); the beasts
+	// thinned turn a wild fight into nothing; an unwelcome crew is not asked along
+	if (_r >= 70 && _r < 85 && _lo > 0 && roll_perc(60 * _lo)) _r = 55;
+	else if (_r >= 45 && _r < 70 && _lo < 0 && roll_perc(50 * -_lo)) _r = 75;
+	if (_r < 45 && _lw < 0 && roll_perc(60 * -_lw)) _r = 60;
+	if (_r >= 85 && _le < 0 && roll_perc(60 * -_le)) _r = 60;
 	// AN ESCORT (2026-09-15): with the merchant's cart along, half the passers-by are bandits after it
 	var _eq = _tr[$ "quest"];
 	var _esc = (is_struct(_eq) && _eq.kind == "escort" && (_eq[$ "at"] ?? 0) == 1 && _eq.done < _eq.n);

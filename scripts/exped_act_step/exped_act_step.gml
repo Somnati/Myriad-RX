@@ -58,6 +58,7 @@ function exped_act_step(_tr) {
 			var _ldr = region_node_leader(_tr.dest, _rg, _tr.pos);   // (a fair leader: a bed cheaper; a greedy one: dearer - 2026-09-16)
 			if (is_struct(_ldr) && _ldr.trait == "fair") _cost = max(ceil(_beds * EXPED_INN * .5), _cost - 1);
 			else if (is_struct(_ldr) && _ldr.trait == "greedy") _cost += 1;
+			if (lane_val(_tr.dest, _tr[$ "rgi"] ?? 0, "welcome") > .5) _cost = max(ceil(_beds * EXPED_INN * .5), _cost - 1);   // (a region that welcomes them: a credit off the bill - q259)
 			if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _cost = 0;   // (a grateful town: on the house - the world remembers)
 			if (_tr.credits >= _cost) {
 				_tr.credits -= _cost;
@@ -105,7 +106,7 @@ function exped_act_step(_tr) {
 					_tr.fight.foes[0].name = "a drunk"; _tr.fight.foes[0].kind = "drunk";   // (not a bandit for the quest's count - bug hunt 2026-09-15)
 					array_push(_tr.log, "a bar fight in " + _nd.name + ". nobody remembers who started it");
 				}
-				if (roll_perc(50)) { exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred", 72); array_push(_tr.log, choose("the keeper says they are barred, whatever happens next", "barred from the tavern in " + _nd.name + ", for a while", "the door of the tavern in " + _nd.name + " is shut to them now")); }   // (the world remembers, 2026-09-16)
+				if (roll_perc(50)) { exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "barred", 72); lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "welcome", -.3); array_push(_tr.log, choose("the keeper says they are barred, whatever happens next", "barred from the tavern in " + _nd.name + ", for a while", "the door of the tavern in " + _nd.name + " is shut to them now")); }   // (the world remembers, 2026-09-16)
 			} else if (_r < 85 && !is_struct(_tr[$ "bounty"]) && _stn.bounty == 0) {
 				array_push(_tr.log, "a bounty on the board in " + _nd.name + ". " + choose("not this trip - cautious", "they read it twice and left it. cautious", "cautious: the board can keep it", "somebody else's, they decided. cautious"));
 			} else if ((_r < 85 || _stn.bounty >= 2 || _ldtr == "martial") && !is_struct(_tr[$ "bounty"])) {   // (a martial leader keeps the board full)
@@ -276,9 +277,10 @@ function exped_act_step(_tr) {
 
 			for (var _k = 0; _k < _n; _k++) if (_tr.hp[_k] > 0) _tr.hp[_k] = min(_tr.hpmax[_k], _tr.hp[_k] + _tr.hpmax[_k] * .3);
 			exped_skill_beat(_tr, .3);   // (a shrine teaches, sometimes)
+			lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "faith", .12);   // (a shrine kept - q259)
 			array_push(_tr.log, "the shrine at " + _nd.name + ": " + choose("a small blessing", "the water was cold and helped", "someone left a candle. it counted"));
 			exped_say(_tr, "shrine", undefined, .6);
-			if (roll_perc(20)) { array_push(_tr.finds, { kind : "charm", rar : 0, txt : "a charm (+1 luck)", col : c_seagreen }); array_push(_tr.log, "...and a charm, left on the step"); }
+			if (roll_perc(20 * (1 + lane_val(_tr.dest, _tr[$ "rgi"] ?? 0, "faith")))) { array_push(_tr.finds, { kind : "charm", rar : 0, txt : "a charm (+1 luck)", col : c_seagreen }); array_push(_tr.log, "...and a charm, left on the step"); }   // (the dead quiet: the shrine gives more - q259)
 			break;
 		}
 		case "ruin": {
@@ -314,6 +316,7 @@ function exped_act_step(_tr) {
 		if (_a.kind == "delve") {
 			exped_stat("delves"); array_push(_tr.log, "out of " + _nd.name + ", into the light");
 			// THE WORLD REMEMBERS (2026-09-16): delved to its end, the place is quiet for three days
+			if ((_nd.kind == "dungeon" || _nd.kind == "crypt" || _nd.kind == "sewer") && !(_a[$ "quiet"] ?? false)) lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, (_nd.kind == "crypt") ? "faith" : "order", (_nd.kind == "crypt") ? .35 : .12);   // (a crypt laid to rest, a dungeon cleared - q259)
 			if ((_nd.kind == "dungeon" || _nd.kind == "crypt" || _nd.kind == "sewer") && !(_a[$ "quiet"] ?? false)) exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "quiet", 72);
 		}
 		_tr.act = undefined;

@@ -26,6 +26,11 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		// THE FAIR (region_event, 2026-09-16): the shelf twice itself and a rung up
 		var _evs = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _fair = (is_struct(_evs) && _evs.kind == "fair" && _evs.node == _tr.pos);
 		if (_fair) { _nstock *= 2; _rmax = min(3, _rmax + 1); }
+		// REGION LANES (q259): trade up fills the shelf and lifts its rung; trade down thins it
+		var _ltr = lane_val(_tr.dest, _tr[$ "rgi"] ?? 0, "trade");
+		if (_ltr > .4) _nstock += 1;
+		if (_ltr > .7) _rmax = min(3, _rmax + 1);
+		if (_ltr < -.4) _nstock = max(1, _nstock - 1);
 		// THE SIGN
 		var _sign;
 		var _sf = random(100);
@@ -79,6 +84,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		var _hag = (_pn == "greedy" || _pn == "sly") ? -1 : ((_pn == "kind") ? 1 : 0);
 		if (sprite_note_has(_sp, "shop") || sprite_ab(_sp).haggle > 0) _hag -= 1;   // (a note on shops: the haggle, 2026-09-16)
 		if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "grateful"))) _hag -= 1;   // (a grateful town: a credit off - the world remembers)
+		if (lane_val(_tr.dest, _tr[$ "rgi"] ?? 0, "welcome") > .5 && _hag >= 0) _hag -= 1;   // (welcomed in the region: the keeper rounds down - q259)
 		var _ldh = region_node_leader(_tr.dest, _rg, _tr.pos);   // (the leader's word on prices: fair a credit off, greedy one on - 2026-09-16)
 		if (is_struct(_ldh)) { if (_ldh.trait == "fair") _hag -= 1; else if (_ldh.trait == "greedy") _hag += 1; }
 		// the best thing on the shelf for this one, by its own eye
@@ -114,6 +120,7 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 			_st.sold = true;
 			_shop2.bought += 1;
 			exped_stat("bought");
+			lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "trade", .06);   // (coin spent here - q259)
 			var _tk = sprite_take(_sp, _it2);
 			if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist"); else exped_tally(_tr, "items");
 			var _hagt = (_hag < 0) ? choose(" (talked down by one)", " (a credit off, somehow)", " (haggled)") : ((_hag > 0) ? choose(" (paid a little extra, for the shopkeeper's dog)", " (rounded up, on purpose)") : "");

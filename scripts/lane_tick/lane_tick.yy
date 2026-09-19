@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"lane_tick",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"lane_tick",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

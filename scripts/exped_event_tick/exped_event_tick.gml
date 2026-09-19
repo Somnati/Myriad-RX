@@ -18,6 +18,10 @@ function exped_event_tick() {
 			}
 			var _opts = [];
 			if (array_length(_civ) > 0) { array_push(_opts, "fair"); array_push(_opts, "rats"); }
+			// REGION LANES (q259): trade up makes the fair likelier, trade down the rats
+			var _ltr = lane_val(_d, _ri, "trade");
+			if (array_length(_civ) > 0 && _ltr > .3) array_push(_opts, "fair");
+			if (array_length(_civ) > 0 && _ltr < -.3) array_push(_opts, "rats");
 			if (_camps) {
 				var _v = region_villain(_d, _rg);
 				var _vm = _e[$ "vil"], _vst = 0;

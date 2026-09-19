@@ -17,6 +17,8 @@ function exped_quest_after(_tr) {
 		if (is_struct(_kd) && _kd.civ) {
 			var _ldg = region_node_leader(_tr.dest, _rg, _tn);   // (a beloved leader's town remembers twice as long - 2026-09-16)
 			exped_mem_set(_tr.dest, _ri, _tn, "grateful", (is_struct(_ldg) && _ldg.trait == "beloved") ? 336 : 168);
+			lane_push(_tr.dest, _ri, "welcome", .35);   // (a town helped: the region's welcome - q259)
+			lane_push(_tr.dest, _ri, "trade", (_q.kind == "escort" || _q.kind == "parcel" || _q.kind == "shop") ? .35 : .12);   // (the carts got through)
 			array_push(_tr.log, _rg.nodes[_tn].name + " will remember this. " + choose("a bed there is on the house, for a while", "the shop's prices are kinder, for a while", "there will be a bed and a kind word next time", "the elder said so, in front of everyone"));
 		}
 	}
@@ -34,8 +36,9 @@ function exped_quest_after(_tr) {
 			var _crew = [];
 			for (var _k = 0; _k < array_length(_tr.sids); _k++) { if (_tr.hp[_k] <= 0) continue; var _sp = exped_sprite(_tr.sids[_k]); if (is_undefined(_sp)) continue; sprite_title(_sp, "who ended " + _v.name, 2); array_push(_crew, _sp.name); }
 			exped_mem_set(_tr.dest, _ri, -1, "peace", 168);
+			lane_push(_tr.dest, _ri, "order", .5); lane_push(_tr.dest, _ri, "dread", -.8);   // (the villain ended - q259; the seat's succession is pass two)
 			array_push(_tr.log, _v.name + " is finished. " + _v.fac + " scatter. " + _rg.name + " will be quieter for a while, and " + exped_crew_txt(_crew) + " will be talked about");
-		} else array_push(_tr.log, choose("a thread pulled. " + _v.name + " will have heard", _v.name + "'s people know this crew's names now", "one thread of " + _v.name + "'s cut. there are more"));
+		} else { lane_push(_tr.dest, _ri, "dread", -.25); array_push(_tr.log, choose("a thread pulled. " + _v.name + " will have heard", _v.name + "'s people know this crew's names now", "one thread of " + _v.name + "'s cut. there are more")); }
 	}
 	if (is_struct(_v) && _vst < 3 && _line == "" && (_vst > 0 || roll_perc(40))) {
 		var _vc = exped_villain_card(_tr.dest, _ri, _rg, _vst + 1);

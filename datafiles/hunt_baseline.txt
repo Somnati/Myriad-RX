@@ -954,6 +954,8 @@ dupvar	scripts\handle_save\handle_save.gml                  _cp _d _f _has _i _k
 dupvar	scripts\handle_settings\handle_settings.gml          _i
 dupvar	scripts\hole_draw\hole_draw.gml                      _ph _pw _qw
 dupvar	scripts\hole_frame\hole_frame.gml                    sqrt
+dupvar	scripts\lane_push\lane_push.gml                      _r
+dupvar	scripts\lane_unpack\lane_unpack.gml                  _eq _recs
 dupvar	scripts\loading_draw\loading_draw.gml                _back _k
 dupvar	scripts\merge_colour_smooth\merge_colour_smooth.gml  _a sqr
 dupvar	scripts\moon_draw\moon_draw.gml                      _ang _light_w _lw _mo _pp2

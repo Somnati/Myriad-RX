@@ -16,6 +16,9 @@ function region_info(_d, _rg) {
 	var _ss = region_season(_d, _rg);   // THE SEASON (2026-09-16): the temperature feels it, and it has a row of its own
 	// the level and the mood (region_gen's word and rating)
 	array_push(_out, { k : "level " + string(_rg.lv), v : _rg[$ "mood"] ?? "quiet", t : _rg[$ "mood_t"] ?? 0 });
+	// REGION LANES (q259): what the crews have changed here, while it lasts (lane_words: the strongest three)
+	var _lws = lane_words(_d, _rg[$ "ri"] ?? 0);
+	for (var _i = 0; _i < array_length(_lws); _i++) array_push(_out, { k : (_i == 0) ? "lately" : "", v : _lws[_i].v, t : _lws[_i].t, col : _lws[_i].col });
 	// BIOME (his ask, 2026-09-15): the wild kind most of the region is - the
 	// second named too when it is nearly as common; in the kind's colour
 	var _kk = region_kinds(), _cnt = {};

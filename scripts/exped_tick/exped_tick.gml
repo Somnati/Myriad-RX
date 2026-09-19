@@ -31,6 +31,7 @@ function exped_tick(_secs) {
 	var _dt = _secs * _spd;
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
 	exped_mem_tick(_dt);     // the world's memories fade (2026-09-16)
+	lane_tick(_dt);          // ...and every disturbed region relaxes toward its average (q259)
 	exped_event_tick();      // ...and the regions' events roll (2026-09-16)
 	// THE KEEPERS' EGGS (his design, 2026-09-16): a sprite's egg hatches on the universal clock into its CHARGE - a sprite of the
 	// egg's colour, the keeper's class (a fifth of the time an adjacent one), young: it follows its keeper about the rooms and

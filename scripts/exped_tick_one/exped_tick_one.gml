@@ -21,6 +21,13 @@ function exped_tick_one(_tr, _dt) {
 		}
 		var _drawn = (_f[$ "withdrew"] ?? false);   // (the 300-action rail: nobody won, nobody is robbed)
 		if (_f.won) { _tr.cleared += 1; _tr.wins = (_tr[$ "wins"] ?? 0) + 1; } else if (!_drawn) _tr.routed = true;
+		// REGION LANES (q259): a fight tells the region something - bandits beaten lift its order (a rout by them lowers
+		// it), beasts beaten thin the wild a little (it grows back on the clock)
+		if (!_drawn) {
+			var _lk0 = _f.b[$ "kind"] ?? "", _lri = _tr[$ "rgi"] ?? 0;
+			if (_lk0 == "bandit") lane_push(_tr.dest, _lri, "order", _f.won ? .06 : -.15);
+			else if (_f.won && _lk0 != "") lane_push(_tr.dest, _lri, "wild", -.04 * array_length(_f.foes));
+		}
 		// THE LEDGER: the fight, the slain, the down (a party pawn was up going in)
 		if (!_drawn) exped_stat(_f.won ? "fights_won" : "fights_lost");
 		for (var _j = 0; _j < array_length(_f.foes); _j++) {
@@ -65,7 +72,7 @@ function exped_tick_one(_tr, _dt) {
 			}
 			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); }
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
-			if (is_struct(_bo) && _bo.done >= _bo.n) { _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
+			if (is_struct(_bo) && _bo.done >= _bo.n) { lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .25); _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight
 			if (is_struct(_tr.act) && _tr.act.kind == "camp" && (_tr.act[$ "loot"] ?? false)) {
 				var _ldx = region_node_leader(_tr.dest, exped_region(_tr), _tr.pos);   // (a careless chief: a fatter chest - 2026-09-16)
@@ -76,6 +83,7 @@ function exped_tick_one(_tr, _dt) {
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
 				// THE WORLD REMEMBERS (2026-09-16): the camp is ashes for four days - nobody home, the road past it quieter
 				exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed", 96);
+				lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .35); lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "dread", -.3);   // (a camp burned: the region's order up, the villain's grip looser - q259)
 				array_push(_tr.log, "the camp burns. " + choose("the road past it will be quieter for a while", "nobody will be home there for a while", "the crows have it now"));
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");
 			}

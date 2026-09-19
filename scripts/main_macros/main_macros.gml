@@ -850,3 +850,7 @@ function main_macros() {
 #macro EXPED_FORK_EVERY    5
 #macro EXPED_FORK_WINDOW   10
 #macro EXPED_SHORTCUT_F    .55
+// REGION LANES (q259): the relaxation's time constant in seconds of the expedition clock at weight 1 (a half-life of two
+// world days: 2 x 24 x EXPED_HOUR / ln 2), and the deviation under which a lane counts as at rest (the record is dropped)
+#macro LANE_TAU     1385
+#macro LANE_QUIET   .02
