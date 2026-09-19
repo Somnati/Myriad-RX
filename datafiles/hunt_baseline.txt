@@ -825,7 +825,7 @@ dupvar	scripts\cbt_skills\cbt_skills.gml                    _d _s _t _u elem mag
 dupvar	scripts\cbt_status\cbt_status.gml                    round
 dupvar	scripts\ccore_tick\ccore_tick.gml                    _c
 dupvar	scripts\crunch_time_ago\crunch_time_ago.gml          _n
-dupvar	scripts\debug_scenario\debug_scenario.gml            _hy _i _k _npl _st _st2
+dupvar	scripts\debug_scenario\debug_scenario.gml            _hy _i _k _s _st _st2
 dupvar	scripts\dial_breakdown\dial_breakdown.gml            _cfg _d _ms _s
 dupvar	scripts\dial_buy\dial_buy.gml                        _d
 dupvar	scripts\dial_buy_ext\dial_buy_ext.gml                _from _to

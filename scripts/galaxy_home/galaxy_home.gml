@@ -34,7 +34,7 @@ function galaxy_home() {
 		_pick = _cands[0]; _sys = starsystem_get(_sm.stars[_pick].seed, _sm.stars[_pick].props); _pi = 0;
 		for (var _p = 0; _p < array_length(_sys.planets); _p++) if (_sys.planets[_p].kind == "rock") { _pi = _p; break; }
 	}
-	if (DEBUG_HOME) debug_scenario(_sm, _pick, _pi);   // (the debug home - every kind of world and star next door - made once on the kept objects; q212)
+	if (DEBUG_HOME) { _pi = debug_scenario(_sm, _pick, _pi); _sys = starsystem_get(_sm.stars[_pick].seed, _sm.stars[_pick].props); }   // (the debug home - his roster of worlds and every kind of star next door - made once on the kept objects; q212 / q252)
 	var _rom = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 	g.galaxy_home_c = { seed : _sm.seed, star : _pick, sys : _sys, planet : _pi, planet_seed : _sys.planets[_pi].seed,
 	                  name : star_name(_pick) + " " + _rom[clamp(_pi, 0, 7)] };

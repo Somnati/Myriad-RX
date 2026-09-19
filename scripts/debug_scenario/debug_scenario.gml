@@ -1,4 +1,4 @@
-/// @description debug_scenario(sm, pick, pi) - THE DEBUG HOME (DEBUG_HOME; his ask 2026-09-18: "all planet types near me so I don't have to go hunt"), applied ONCE, here, on the kept objects - the generators know nothing of it
+/// @description debug_scenario(sm, pick, pi) -> the home world's index after the rebuild - THE DEBUG HOME (DEBUG_HOME; his ask 2026-09-18: "all planet types near me so I don't have to go hunt"; his roster 2026-09-19: lava / desert / rocky / two living / two gas), applied ONCE, here, on the kept objects - the generators know nothing of it
 /// The home system (starsystem_get's kept struct, re-typed in place; the
 /// rolls stand, only kind / clim / size move): a DESERT (the "dust" family,
 /// a rock at clim .27) on the next planet inward from home, else outward;
@@ -15,23 +15,44 @@
 /// runs on every galaxy_home of a fresh chart. Deletable whole. q212
 function debug_scenario(_sm, _pick, _pi) {
 	var _st = _sm.stars[_pick], _sys = starsystem_get(_st.seed, _st.props), _pl = _sys.planets, _npl = array_length(_pl);
-	if (_npl >= 4) {
-		var _hp = clamp(_pi, 0, _npl - 1);
-		var _used = array_create(_npl, false); _used[_hp] = true;
-		var _hd = false, _hl = false, _hg = false, _di = -1;
-		for (var _i = 0; _i < _npl; _i++) { if (_i == _hp) continue; var _p2 = _pl[_i];
-			if (_p2.kind == "gas") { if (!_hg) { _hg = true; _used[_i] = true; } }
-			else if (_p2.clim < .2) { if (!_hl) { _hl = true; _used[_i] = true; } }
-			else if (_p2.clim < .35) { if (!_hd) { _hd = true; _used[_i] = true; _di = _i; } } }
-		if (!_hd) { for (var _i = _hp - 1; _i >= 0 && _di < 0; _i--) if (!_used[_i]) _di = _i; for (var _i = _hp + 1; _i < _npl && _di < 0; _i++) if (!_used[_i]) _di = _i;
-			if (_di >= 0) { _pl[_di].kind = "rock"; _pl[_di].clim = .27; _pl[_di].size = clamp(_pl[_di].size, 2.5, 4.6); _used[_di] = true; } }
-		if (!_hl) { var _li = -1; for (var _i = 0; _i < _npl && _li < 0; _i++) if (!_used[_i]) _li = _i;
-			if (_li >= 0) { _pl[_li].kind = "rock"; _pl[_li].clim = .10; _pl[_li].size = clamp(_pl[_li].size, 2.5, 4.6); _used[_li] = true; } }
-		if (!_hg) { var _gi = -1; for (var _i = _npl - 1; _i >= 0 && _gi < 0; _i--) if (!_used[_i]) _gi = _i;
-			if (_gi >= 0) { _pl[_gi].kind = "gas"; _pl[_gi].size = max(_pl[_gi].size, 5 + 3 * ((hash_mix(_pl[_gi].seed, 9) mod 1000) / 1000)); _pl[_gi].moon_n = max(_pl[_gi].moon_n, 2); _used[_gi] = true; } }
-		_pl[_hp].plateau = true;
-		if (_di >= 0) _pl[_di].plateau = true;
+	// THE ROSTER (his call, 2026-09-19): seven worlds, inner to outer - LAVA, DESERT, ROCKY, LIVING (the home), LIVING, GAS,
+	// GAS. The kept list is rebuilt to that shape: the home world's own struct rides into slot 3 (its seed, colour and
+	// orbit phase - so its terrain, its regions and its name stay), the other existing structs fill the slots in order
+	// and are re-typed, the rest are made by the generator's own per-child law (seed, a hashed phase and pace). Orbits
+	// by the generator's gap law, scaled to the star's reach; the star itself untouched
+	var _home = (_pi >= 0 && _pi < _npl) ? _pl[_pi] : undefined;
+	var _others = [];
+	for (var _i = 0; _i < _npl; _i++) if (_i != _pi) array_push(_others, _pl[_i]);
+	var _kinds = ["rock", "rock", "rock", "rock", "rock", "gas", "gas"], _clims = [.10, .27, .72, .50, .50, .5, .5];
+	var _new = [], _oi = 0, _k2 = _npl;
+	for (var _s = 0; _s < 7; _s++) {
+		var _p;
+		if (_s == 3 && is_struct(_home)) _p = _home;
+		else if (_oi < array_length(_others)) _p = _others[_oi++];
+		else {
+			// a made world: the per-child seed law, a hashed phase, the generator's pace law
+			var _sd = (_st.seed ^ ((_k2 + 1) * 2654435761)) & $7fffffff; _k2++;
+			_p = { seed : _sd, orbit : 0, kind : "rock", clim : .5, size : 3.5, col : make_colour_hsv(hash_mix(_sd, 3) mod 256, 120, 200),
+			       ang : hash_mix(_sd, 5) mod 360, spd : 0, has_ring : false, moon_n : 1 };
+		}
+		_p.kind = _kinds[_s];
+		if (_s != 3) _p.clim = _clims[_s];   // (the home keeps its own temperate climate)
+		if (_p.kind == "gas") { _p.size = 5 + 3 * ((hash_mix(_p.seed, 9) mod 1000) / 1000); _p.moon_n = max(_p[$ "moon_n"] ?? 2, 2); _p.has_ring = ((hash_mix(_p.seed, 11) mod 100) < 55); }
+		else { _p.size = clamp(_p[$ "size"] ?? 3.5, 2.5, 4.6); if (_s == 0) _p.moon_n = 0; }
+		// THE SECOND GRASS-AND-WATER WORLD must land as living or ocean under galaxy_world_biome's hash (the home is forced living
+		// there): walk the per-child seeds until one does
+		if (_s == 4) { var _try = 0; while ((hash_mix(_p.seed & $7fffffff, 77) mod 100) >= 60 && _try < 40) { _p.seed = (_st.seed ^ ((_k2 + 1) * 2654435761)) & $7fffffff; _k2++; _try++; } }
+		array_push(_new, _p);
 	}
+	// the orbits: the generator's gap law from its first ring, scaled to the star's reach
+	var _skd0 = _sys.star[$ "skind"] ?? "main", _great = (_skd0 == "giant" || _skd0 == "hole");
+	var _r = _great ? 96 : 34, _rmax = _great ? 210 : 112;
+	for (var _s = 0; _s < 7; _s++) { _r += 13.5 * (1 + .14 * _s); _new[_s].orbit = _r; }
+	if (_r > _rmax) { var _sc = _rmax / _r; for (var _s = 0; _s < 7; _s++) _new[_s].orbit *= _sc; }
+	for (var _s = 0; _s < 7; _s++) { var _q = _new[_s]; if (_q.spd == 0) _q.spd = (.5 + 1.1 * ((hash_mix(_q.seed, 7) mod 1000) / 1000)) / _q.orbit * (((hash_mix(_q.seed, 8) mod 2) == 0) ? 1 : -1) / 600; }
+	_new[3].plateau = true; _new[1].plateau = true;   // (the canyon on the home and on the desert)
+	_sys.planets = _new;
+	var _pi_new = 3;
 	// the neighbourhood
 	var _hx = _st.x, _hy = _st.y, _near = [];
 	for (var _i = 0; _i < _sm.count; _i++) { if (_i == _pick) continue; var _st2 = _sm.stars[_i]; var _dd = point_distance(_hx, _hy, _st2.x, _st2.y); if (_dd < 400) array_push(_near, { i : _i, d : _dd }); }
@@ -53,4 +74,5 @@ function debug_scenario(_sm, _pick, _pi) {
 		starsystem_forget(_ss);
 		_have[$ _kind] = true; _w++;
 	}
+	return _pi_new;
 }
