@@ -31,6 +31,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _rf = _pn[$ "rfill"], _ra = _pn[$ "racc"], _rt = _pn[$ "rt"] ?? 6, _hasr = is_array(_rf) && is_array(_ra);   // (planet_rivers' keep)
 	var _e0 = _pn[$ "elev0"] ?? _el;   // (the heights the biomes were decided on - before the carve; the biome law reads these, the height the carved)
 	var _base = _gas ? 1 : max(_sea, .34);
+	_ps.tier = true;   // (a giant's biome law paints from the interpolated fields here - gas_paint, not gas_colour; q238)
 	while (_l.row < _l.h && get_timer() < _until) {
 		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
 		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
@@ -159,6 +160,7 @@ function planet_lod_step(_pn, _l, _until) {
 		_l.col = 0;
 		_l.row++;
 	}
+	_ps.tier = false;
 	if (_l.row >= _l.h) { _l.ready = true; planet_lod_upload(_l); }   // (the buffers are KEPT: a lost surface - the window going full screen - is re-uploaded, not rebuilt)
 	return _l.ready;
 }

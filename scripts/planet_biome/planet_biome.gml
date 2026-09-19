@@ -21,7 +21,10 @@ function planet_biome(_ps, _u, _v) {
 			if (point_distance_3d(_px, _py, _pz, _st.x, _st.y, _st.z) < _st.r) _b = _st.b;
 		}
 		_ps.ob = _b;
-		_ps.oc = gas_colour(_ps, _u, _v);   // THE GIANT'S FACE (q236): the texel's colour, the sheet's rgb - the band index stays for anything that reads it
+		// THE GIANT'S FACE (q236 / q238): the texel's colour, the sheet's rgb - the band index above stays for anything that
+		// reads it. The base map bends the latitude and keeps it (om) with the streak filament (od); the zoom tier hands
+		// those back INTERPOLATED (ps.tier) and gas_paint adds only the fine grain - nine times fewer noise reads
+		_ps.oc = (_ps[$ "tier"] ?? false) ? gas_paint(_ps, _u, _v, _ps.om, _ps.od) : gas_colour(_ps, _u, _v);
 		return;
 	}
 

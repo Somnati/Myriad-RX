@@ -597,6 +597,7 @@
     {"id":{"name":"galaxy_world","path":"scripts/galaxy_world/galaxy_world.yy",},},
     {"id":{"name":"game_reset","path":"scripts/game_reset/game_reset.yy",},},
     {"id":{"name":"gas_colour","path":"scripts/gas_colour/gas_colour.yy",},},
+    {"id":{"name":"gas_paint","path":"scripts/gas_paint/gas_paint.yy",},},
     {"id":{"name":"gear_desc","path":"scripts/gear_desc/gear_desc.yy",},},
     {"id":{"name":"gear_families","path":"scripts/gear_families/gear_families.yy",},},
     {"id":{"name":"gear_gen","path":"scripts/gear_gen/gear_gen.yy",},},
