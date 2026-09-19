@@ -84,7 +84,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _atmo, _pal, _bands = undefined, _storm = undefined, _cbl = [], _belts = [];
 	var _arch = (_kind == "gas") ? "gas" : "terra";
 	var _craters = [];
-	var _gstops = [], _gstorms = [], _gw = undefined;   // THE GIANT'S FACE (q236): the colour stops and the storm ovals gas_colour reads (a rock world has none)
+	var _gstops = [], _gstorms = [], _gw = undefined, _ggloss = 0;   // THE GIANT'S FACE (q236): the colour stops and the storm ovals gas_colour reads (a rock world has none)
 	var _sand = c_gray;   // the world's sand (a rock world rolls it below; a giant has none - declared here so no read is outside its scope)
 	if (_kind == "gas") {
 		var _gh = (_hue >= 0) ? _hue : irandom(255);
@@ -121,6 +121,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		// (three hues a third of the wheel apart, saturated - the Universe Sandbox look), pastel marble (one hue's
 		// neighbours, pale, with a dark accent - Spiritus), jovian (cream / rust / brown / white), ice (blue-cyan, soft)
 		var _gf = hash_mix(_seed, 660) mod 100, _gfam = (_gf < 40) ? 0 : ((_gf < 70) ? 1 : ((_gf < 90) ? 2 : 3));
+		_ggloss = (_gfam == 3) ? .40 : ((_gfam == 1) ? .18 : ((_gfam == 0) ? .15 : .06));   // THE SHEEN (q242): the ice family glossy, a jovian nearly matte
 		_gstops = [];
 		var _gv = 0, _gk = 0, _gh0 = _gh;
 		while (_gv < 1) {
@@ -373,6 +374,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		ring : _ring, ring_col : _ringc, ring_col2 : _ringc2, ring_kind : _rkind, ring_in : _rin, ring_out : _rout, ring_seed : _rseed, civ : _civ,
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
 		gcol : (_kind == "gas") ? array_create(_tw * _th, 0) : undefined,   // THE GIANT'S COLOUR MAP (q236): gas_colour a texel, the terrain sheet's rgb for a gas world
+		gloss : _ggloss,   // the giant's sheen (q242; 0 on a rock)
 		plateau_ask : (!is_undefined(_hint) && (_hint[$ "plateau"] ?? false)),   // (a plateau asked for by the hint - the galaxy's word on a world; q210/q212)
 		hint_gal : (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])),   // (the galaxy's word taken - else planet_get lays it on late; bug hunt 5)
 		creg : _creg, cregp : _cregp,   // THE CLOUD REGIME (2026-09-17): 0 cumulus / 1 scattered / 2 streaked / 3 fronts, and its hashed makings

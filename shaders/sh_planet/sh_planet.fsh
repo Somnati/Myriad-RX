@@ -65,6 +65,7 @@ uniform vec4  u_vent[6];  // THE PLUMES (2026-09-17): the live vents in texture 
 uniform float u_ventn;
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
 uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darkens (no hard ground: the light thins toward the edge) and hazes in the sky's colour, the terminator softens
+uniform float u_gloss;    // ...its SHEEN (q242, his ask: "specular as if icy gas giants"): a broad soft lobe of the sun in the sky's colour - the ice family glossy, a jovian nearly matte
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
 // THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
@@ -760,7 +761,11 @@ void main()
         // after the band and never darkened): it is the ground's own colour, and takes the night like the rest
         float slat = abs(t.y);
         float sl = 0.95 - 0.55 * slat * slat - 0.12 * u_season * sign(t.y + 0.0001) + u_snowb;
-        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump));
+        // THE CAP (q242): over the high latitudes the snow is whole, whatever the ground's height - a solid sheet with a
+        // soft edge, not the height band's speckle; the world's heat pushes it poleward and thins it (u_snowb: a hot
+        // world barely, a lava world never), the hemisphere's winter brings it down
+        float pcap = smoothstep(0.80 + 0.30 * u_snowb + 0.05 * u_season * sign(t.y + 0.0001), 0.97, slat) * clamp(1.0 - u_snowb * 1.6, 0.0, 1.0);
+        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), max(smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump), pcap * 0.9));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         if (u_ventn > 0.5) { float pg0 = 0.0; col *= 1.0 - plume_at(to_tex(normalize(n - u_light * 0.15)), pg0) * u_pfade * 0.35; }   // (a plume's shadow, the same offset)
         // THE HORIZON (his screenshot, 2026-09-17: ridges lit on the night side): the band read the BUMPED normal, and a
@@ -816,6 +821,14 @@ void main()
             float lmb = pow(mu, 0.5);
             col *= mix(0.40, 1.0, lmb);
             col = mix(col, u_atmo * (0.55 + 0.45 * li), (1.0 - lmb) * 0.42 * max(li, 0.12));
+            // THE SHEEN (q242): the sun's broad reflection off the haze - wide (a low power), in the sky's colour lifted
+            // toward white, by day; an icy giant wears it plainly, a jovian barely
+            if (u_gloss > 0.001) {
+                vec3 ghv = normalize(u_light + vec3(0.0, 0.0, 1.0));
+                float gsp = pow(max(dot(n, ghv), 0.0), 7.0);
+                float gday = smoothstep(-0.05, 0.30, dot(n, u_light));
+                col += mix(u_atmo, vec3(1.0), 0.55) * gsp * u_gloss * gday;
+            }
         }
 
         // MOON SHADOWS (2026-09-16, the tech demo's casters): a surface point whose

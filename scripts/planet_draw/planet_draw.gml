@@ -35,7 +35,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		rseed : shader_get_uniform(sh_planet, "u_rseed"), rgap : shader_get_uniform(sh_planet, "u_rgap"),
 		city  : shader_get_uniform(sh_planet, "u_city"),
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
-		relief : shader_get_uniform(sh_planet, "u_relief"), gas : shader_get_uniform(sh_planet, "u_gas"),
+		relief : shader_get_uniform(sh_planet, "u_relief"), gas : shader_get_uniform(sh_planet, "u_gas"), gloss : shader_get_uniform(sh_planet, "u_gloss"),
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"), pfade : shader_get_uniform(sh_planet, "u_pfade"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
@@ -134,6 +134,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;   // settings > visuals: mountain relief
 	shader_set_uniform_f(_u.relief, (_pn.kind == "gas") ? 0 : _cfg.relief * max(.4, _bump));   // (the silhouette rides the knob too, gently)
 	shader_set_uniform_f(_u.gas, (_pn.kind == "gas") ? 1 : 0);   // (the giant's limb and haze - q236)
+	shader_set_uniform_f(_u.gloss, _pn[$ "gloss"] ?? 0);   // (its sheen - q242)
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
 	shader_set_uniform_f(_u.pfade, clamp(_pfade, 0, 1));

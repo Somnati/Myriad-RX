@@ -41,9 +41,13 @@ function planet_biome(_ps, _u, _v) {
 	var _jx = floor(_u * 960), _jy = floor(_v * 480);
 	var _hj = ((_jx * 73856093) ^ (_jy * 19349663) ^ (_ps.o1 * 83492791)) & $7fffffff;
 	_hj = ((_hj ^ (_hj >> 13)) * 48271) mod 2147483647;
-	var _moi  = _mraw + _ps.mshift + ((_hj mod 1000) / 1000 - .5) * .08;
+	// THE POLES CLEAN (q242; his report: "very noisy and lined towards the peak pole"): the grain's map-grid cells shrink
+	// to radial slivers at the pole and the detail field outweighs the latitude there - both fade out over the last
+	// third of the way to the pole, and a seamless low wobble (planet_vn3 is even at the pole) curves the cap's edge
+	var _pw = clamp(_lf * 3, 0, 1);   // 1 away from the poles, 0 at them
+	var _moi  = _mraw + _ps.mshift + ((_hj mod 1000) / 1000 - .5) * .08 * _pw;
 	// ...and ALTITUDE COOLS (his pick): high ground is colder - tundra on the flanks, snow on the crowns, whatever the latitude
-	var _tmp = clamp(_lf * .85 + _det * .15 + _ps.theat + (((_hj div 1000) mod 1000) / 1000 - .5) * .05 - max(0, _h) * .3, 0, 1);
+	var _tmp = clamp(_lf * .85 + _det * .15 * _pw + (planet_vn3(_ps.o1 + 555, _u, _v, 2.6) - .5) * .07 * (1 - _pw) + _ps.theat + (((_hj div 1000) mod 1000) / 1000 - .5) * .05 * _pw - max(0, _h) * .3, 0, 1);
 
 	var _b;
 	if (_ps.arch == "lava") {
