@@ -67,6 +67,7 @@ uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marche
 uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darkens (no hard ground: the light thins toward the edge) and hazes in the sky's colour, the terminator softens
 uniform float u_gloss;    // ...its SHEEN (q242, his ask: "specular as if icy gas giants"): a broad soft lobe of the sun in the sky's colour - the ice family glossy, a jovian nearly matte
 uniform float u_capl;     // THE CAP'S LATITUDE (q249): where the whole snow cap begins (|t.y|; .80 the old one) - the temper's, a world
+uniform float u_nlift;    // THE MOONLIT NIGHT (q250; his ask): 0 far (the night as dark as it is) .. 1 close (the night's floor risen to a moonlit look, so a region reads) - rides the cloud fade's curve (1 - cfade)
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
 // THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
@@ -527,6 +528,9 @@ void main()
             if (cat > 0.0 && cloud_at(normalize(ntd + u_light * 0.07), u_tsize) < 0.5) emb = 1.14;
         }
     }
+    // (the decks take the moonlit lift too - a moonlit cloud deck is among the most readable things there is; q250)
+    clib += 0.42 * u_nlift * (1.0 - smoothstep(0.12, 0.5, clib));
+    clit += 0.46 * u_nlift * (1.0 - smoothstep(0.12, 0.5, clit));
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
     float duskb = smoothstep(0.25, 0.55, clib) * (1.0 - smoothstep(0.55, 0.95, clib));   // the undersides catch the sunset too (2026-09-16)
@@ -773,7 +777,18 @@ void main()
         // steep sunward flank tilts it into the sun even where the sun is under the world's own horizon. The bumped
         // dot may run ahead of the ground's by .15 at most - a sunward slope brightens by day, never past the dark
         float li = lightband(min(dot(nn, u_light), dot(n, u_light) + 0.15));
+        vec3 col0 = col;   // (the unlit ground, for the moonlit night below)
         col *= li;
+        // THE MOONLIT NIGHT (q250; his ask: "darker from a distance, lessens as I zoom in so the landscape is visible"): where
+        // the band is at its floor the ground rises toward MOONLIGHT - its own colour with the saturation dropped and a
+        // blue cast, the luminance kept - by u_nlift (the cloud fade's curve: the night lifts as the deck thins, never
+        // from afar). A tint, not a brightness slider: it reads as night. The terminator keeps its edge (the band alone)
+        if (u_nlift > 0.001) {
+            float nk = 1.0 - smoothstep(0.13, 0.50, li);
+            float nlum = dot(col0, vec3(0.299, 0.587, 0.114));
+            vec3 moon = mix(vec3(nlum), col0, 0.35) * vec3(0.70, 0.80, 1.0) * 0.40;
+            col = mix(col, max(col, moon), nk * u_nlift);
+        }
         // the slope's own light, over the band - the LIFT only where the sun is up at all (a slope facing a sun below
         // the horizon lit up on the night side); the shade side keeps its full darkening
         float sunup = smoothstep(-0.02, 0.12, dot(n, u_light));

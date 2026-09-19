@@ -35,7 +35,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		rseed : shader_get_uniform(sh_planet, "u_rseed"), rgap : shader_get_uniform(sh_planet, "u_rgap"),
 		city  : shader_get_uniform(sh_planet, "u_city"),
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
-		relief : shader_get_uniform(sh_planet, "u_relief"), gas : shader_get_uniform(sh_planet, "u_gas"), gloss : shader_get_uniform(sh_planet, "u_gloss"), capl : shader_get_uniform(sh_planet, "u_capl"),
+		relief : shader_get_uniform(sh_planet, "u_relief"), gas : shader_get_uniform(sh_planet, "u_gas"), gloss : shader_get_uniform(sh_planet, "u_gloss"), capl : shader_get_uniform(sh_planet, "u_capl"), nlift : shader_get_uniform(sh_planet, "u_nlift"),
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
 		cfade : shader_get_uniform(sh_planet, "u_cfade"), pfade : shader_get_uniform(sh_planet, "u_pfade"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
@@ -139,6 +139,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.capl, is_struct(_ttc) ? _ttc.cap : .80);   // (the cap's latitude - q249)
 	shader_set_uniform_f(_u.bump, (_pn.kind == "gas") ? 0 : _bump);
 	shader_set_uniform_f(_u.cfade, clamp(_cfade, 0, 1));
+	shader_set_uniform_f(_u.nlift, (_pn.kind == "gas") ? 0 : clamp(1 - _cfade, 0, 1));   // (the moonlit night rides the cloud fade: far = dark, a region = moonlit - q250; never on a giant)
 	shader_set_uniform_f(_u.pfade, clamp(_pfade, 0, 1));
 	shader_set_uniform_f(_u.crelief, (_cfg[$ "crelief"] ?? .05) * ((_pn.kind == "gas") ? .5 : 1));   // (the cloud relief - 2026-09-17; a giant's deck lower)
 	shader_set_uniform_f(_u.cvol, (variable_global_exists("cloud_volume") && g.cloud_volume) ? 1 : 0);   // (the volume, or the surface - settings > visuals)
