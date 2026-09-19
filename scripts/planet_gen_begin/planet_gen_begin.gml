@@ -63,6 +63,14 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		hotspot : (_th9(_seed, 14) < .25), faultblock : (_th9(_seed, 15) < .25),
 		// THE SIGNATURE (q248): one landmark a world - none / impact sea / caldera / rift / canyon / inland sea / salt flat / ice sheet
 		sig : 0, sigh : _th9(_seed, 16), sigu : _th9(_seed, 17), sigv : _th9(_seed, 18), siga : _th9(_seed, 19) * 360,
+		// THE CLIMATE (q249): Hadley cells on some worlds (desert belts at +-30 degrees), the rain shadow's strength and the
+		// wind's way, a warmer / colder and a wetter / drier lean, the polar cap's latitude
+		hadley : (_th9(_seed, 21) < .55) ? 0 : (.08 + .14 * _th9(_seed, 22)),
+		shadow : (_th9(_seed, 23) < .40) ? 0 : (.15 + .30 * _th9(_seed, 24)),
+		wind   : (_th9(_seed, 25) < .5) ? -1 : 1,
+		tshift : (_th9(_seed, 26) - .5) * .14,
+		mshift : (_th9(_seed, 27) - .5) * .20,
+		cap    : .74 + .14 * _th9(_seed, 28),
 	};
 	var _sg = _th9(_seed, 20);
 	_tt.sig = (_sg < .30) ? 0 : ((_sg < .42) ? 1 : ((_sg < .52) ? 2 : ((_sg < .64) ? 3 : ((_sg < .74) ? 4 : ((_sg < .84) ? 5 : ((_sg < .92) ? 6 : 7))))));
@@ -372,11 +380,11 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _ps = {
 		ctx : _ctx, o1 : _o1, o2 : _o2, o3 : _o3, o4 : _o4,
 		kind : _kind, sea : _sea,
-		mshift : lerp(-.30, .12, _wet),
+		mshift : lerp(-.30, .12, _wet) + ((_kind == "gas") ? 0 : _tt.mshift),   // (+ the temper's lean, q249)
 		tt : (_kind == "gas") ? undefined : _tt,   // the terrain's temper (q247) - planet_fields' grammar
 		hbase  : max(_sea, .42),
 		arch : _arch, craters : _craters,
-		theat : (.5 - _clim) * .5,
+		theat : (.5 - _clim) * .5 + ((_kind == "gas") ? 0 : _tt.tshift),   // (+ the temper's lean, q249)
 		bands : _bands, storm : _storm,
 		gstops : _gstops, gstorms : _gstorms, gw : _gw, gseed : (_seed mod 100000), oc : 0,   // (the giant's face - gas_colour; oc = the texel's colour it wrote; q236)
 		oe : 0, ob : 0,

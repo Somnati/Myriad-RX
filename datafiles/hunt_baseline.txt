@@ -959,7 +959,7 @@ dupvar	scripts\planet_coast\planet_coast.gml                _dx _dy _i _th _u _v
 dupvar	scripts\planet_craters\planet_craters.gml            _bn _i _th
 dupvar	scripts\planet_draw\planet_draw.gml                  _cam _i _light_w _pn _spin _veer _wl mat3_rot
 dupvar	scripts\planet_eclipse\planet_eclipse.gml            _mo _pn _py _pz
-dupvar	scripts\planet_fields\planet_fields.gml              _ps _py _pz _qz
+dupvar	scripts\planet_fields\planet_fields.gml              _ps _py _pz _qz _uz
 dupvar	scripts\planet_gen_begin\planet_gen_begin.gml        _act _ax _bx _fr2 _fz _gi _n _q _sand _sr c_white colour_get_saturation colour_get_value max min power rgb
 dupvar	scripts\planet_gen_step\planet_gen_step.gml          _cb _db _dd2 _k _ps _py _pz
 dupvar	scripts\planet_get\planet_get.gml                    _pn

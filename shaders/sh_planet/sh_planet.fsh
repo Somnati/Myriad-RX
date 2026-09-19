@@ -66,6 +66,7 @@ uniform float u_ventn;
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
 uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darkens (no hard ground: the light thins toward the edge) and hazes in the sky's colour, the terminator softens
 uniform float u_gloss;    // ...its SHEEN (q242, his ask: "specular as if icy gas giants"): a broad soft lobe of the sun in the sky's colour - the ice family glossy, a jovian nearly matte
+uniform float u_capl;     // THE CAP'S LATITUDE (q249): where the whole snow cap begins (|t.y|; .80 the old one) - the temper's, a world
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
 // THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
@@ -764,7 +765,7 @@ void main()
         // THE CAP (q242): over the high latitudes the snow is whole, whatever the ground's height - a solid sheet with a
         // soft edge, not the height band's speckle; the world's heat pushes it poleward and thins it (u_snowb: a hot
         // world barely, a lava world never), the hemisphere's winter brings it down
-        float pcap = smoothstep(0.80 + 0.30 * u_snowb + 0.05 * u_season * sign(t.y + 0.0001), 0.97, slat) * clamp(1.0 - u_snowb * 1.6, 0.0, 1.0);
+        float pcap = smoothstep(u_capl + 0.30 * u_snowb + 0.05 * u_season * sign(t.y + 0.0001), 0.97, slat) * clamp(1.0 - u_snowb * 1.6, 0.0, 1.0);
         col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), max(smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump), pcap * 0.9));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         if (u_ventn > 0.5) { float pg0 = 0.0; col *= 1.0 - plume_at(to_tex(normalize(n - u_light * 0.15)), pg0) * u_pfade * 0.35; }   // (a plume's shadow, the same offset)

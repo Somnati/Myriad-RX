@@ -54,4 +54,17 @@ function planet_fields(_ps, _u, _v) {
 	_ps.oe = _e + _rg * _rdg * _lm;   // (a massif's irregular mass under the skeleton's branches - the temper's ridged mass; .13 was the one number)
 	_ps.od = _ps.ctx.fbm3(_qx * 6.1 * _rgh, _py * 6.1 * _rgh, _qz * 6.1 * _rgh, _ps.o2, 2);
 	_ps.om = _ps.ctx.fbm3(_qx * 3.2, _py * 3.2, _qz * 3.2, _ps.o3, 2);
+	// THE CLIMATE (q249): the Hadley cells' dry belts at +-30 degrees (the temper's hadley), and the RAIN SHADOW - the
+	// base heights read a little UPWIND (the point turned about the spin axis the wind's way): where the ground upwind
+	// stands high and this ground lower, the lee runs dry by the temper's shadow. The ranges cast weather at last
+	if (is_struct(_tt)) {
+		if (_tt.hadley > 0) { var _lat = abs(90 - _v * 180); _ps.om -= _tt.hadley * exp(-sqr((_lat - 30) / 9)); }
+		if (_tt.shadow > 0) {
+			var _dl = _tt.wind * .06, _cdl = cos(_dl), _sdl = sin(_dl);
+			var _ux = _px * _cdl - _pz * _sdl + _wx, _uz = _px * _sdl + _pz * _cdl + _wz;
+			var _eu = _ps.ctx.fbm3(_ux * _cs, _py * _cs, _uz * _cs, _ps.o1, 3);
+			var _hi = clamp((_eu - _ps.sea - .05) / .16, 0, 1), _hh = clamp((_e - _ps.sea - .05) / .16, 0, 1);
+			_ps.om -= _tt.shadow * _hi * (1 - _hh);
+		}
+	}
 }
