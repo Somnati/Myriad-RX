@@ -529,8 +529,8 @@ void main()
         }
     }
     // (the decks take the moonlit lift too - a moonlit cloud deck is among the most readable things there is; q250)
-    clib += 0.42 * u_nlift * (1.0 - smoothstep(0.12, 0.5, clib));
-    clit += 0.46 * u_nlift * (1.0 - smoothstep(0.12, 0.5, clit));
+    clib += (0.50 - clib) * u_nlift * (1.0 - smoothstep(0.12, 0.5, clib));
+    clit += (0.50 - clit) * u_nlift * (1.0 - smoothstep(0.12, 0.5, clit));
     vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
     float duskb = smoothstep(0.25, 0.55, clib) * (1.0 - smoothstep(0.55, 0.95, clib));   // the undersides catch the sunset too (2026-09-16)
@@ -783,11 +783,10 @@ void main()
         // the band is at its floor the ground rises toward MOONLIGHT - its own colour with the saturation dropped and a
         // blue cast, the luminance kept - by u_nlift (the cloud fade's curve: the night lifts as the deck thins, never
         // from afar). A tint, not a brightness slider: it reads as night. The terminator keeps its edge (the band alone)
+        // (his call, 2026-09-19: no tint - pure brightness: at the region zoom the night's ground sits at half the day's)
         if (u_nlift > 0.001) {
             float nk = 1.0 - smoothstep(0.13, 0.50, li);
-            float nlum = dot(col0, vec3(0.299, 0.587, 0.114));
-            vec3 moon = mix(vec3(nlum), col0, 0.35) * vec3(0.70, 0.80, 1.0) * 0.40;
-            col = mix(col, max(col, moon), nk * u_nlift);
+            col = mix(col, max(col, col0 * 0.50), nk * u_nlift);
         }
         // the slope's own light, over the band - the LIFT only where the sun is up at all (a slope facing a sun below
         // the horizon lit up on the night side); the shade side keeps its full darkening
