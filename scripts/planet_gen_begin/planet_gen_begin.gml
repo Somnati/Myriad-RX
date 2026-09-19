@@ -37,6 +37,28 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _dry = (_wet < .16);
 	var _sea = _dry ? 0 : lerp(.30, .92, power(_wet, 1.6));
 	var _o1 = irandom($ffff), _o2 = irandom($ffff), _o3 = irandom($ffff), _o4 = irandom($ffff);
+	// THE TERRAIN'S TEMPER (q247; his ask: "improve / increase variety in terrain generation" - every world was one seed
+	// through the same constants: the same continent scale, the same ridged law, the same warp, so two temperate worlds
+	// at one sea level were one world in two places). Hashed off the seed, never rolled (the stream holds): the grammar
+	// planet_fields reads - continent scale (a few great landmasses .. a thousand islands), relief (a flat old shield ..
+	// young and sharp), the ridged mass, the warp of the coasts, the fine grain's roughness, a hemisphere bias, and a
+	// LAND SHAPE (free / pangaea / twins / an equatorial belt / polar continents / a ring of islands). A giant has none
+	var _th9 = function(_s, _k) { return (hash_mix(_s, 5000 + _k) mod 10000) / 10000; };
+	var _shp = _th9(_seed, 8), _shape = (_shp < .35) ? 0 : ((_shp < .50) ? 1 : ((_shp < .62) ? 2 : ((_shp < .72) ? 3 : ((_shp < .80) ? 4 : 5))));
+	var _tsa = _th9(_seed, 9) * 360, _tse = (_th9(_seed, 10) - .5) * 140, _tha = _th9(_seed, 6) * 360, _the = (_th9(_seed, 7) - .5) * 160;
+	var _tt = {
+		cscale : 1.4 + 2.2 * _th9(_seed, 1),
+		relief : .45 + .65 * power(_th9(_seed, 2), 1.3),
+		ridge  : .04 + .20 * _th9(_seed, 3),
+		warp   : .10 + .45 * _th9(_seed, 4),
+		rough  : .6 + 1.0 * _th9(_seed, 11),
+		hemi   : (_th9(_seed, 5) - .5) * .16,
+		hax    : [dcos(_the) * dcos(_tha), dsin(_the), dcos(_the) * dsin(_tha)],
+		shape  : _shape,
+		sdir   : [dcos(_tse) * dcos(_tsa), dsin(_tse), dcos(_tse) * dsin(_tsa)],
+	};
+	if (_shape == 5) { _tt.cscale = max(_tt.cscale, 3.2); _tt.relief = min(_tt.relief, .6); }   // (a ring of islands: fine and low)
+	if (_shape == 1) _tt.cscale = min(_tt.cscale, 2.2);   // (a pangaea: broad)
 
 	// ---- integer-hash 3d value noise (bit-identical everywhere) ----
 	var _ctx = {
@@ -211,8 +233,15 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		else              _peak = make_colour_hsv(0, irandom_range(0, 22), irandom_range(200, 240));
 		// 0 deep ocean, 1 ocean, 2 shore, 3 desert, 4 grass, 5 forest,
 		// 6 jungle, 7 tundra, 8 snow, 9 rock peaks, 10 snow caps
+		// THE ALIEN SEAS (q247): one world in eight wears a sea that is not blue - green-teal, wine-dark, milky, black -
+		// hashed; the shallows and the coral derive from it below, so the shore agrees
+		var _sf = hash_mix(_seed, 5100) mod 100, _sea0 = rgb(38, 70, 130), _sea1 = rgb(62, 112, 175);
+		if (_sf < 4)       { _sea0 = rgb(22, 78, 66);   _sea1 = rgb(48, 128, 112); }    // green-teal
+		else if (_sf < 7)  { _sea0 = rgb(74, 26, 58);   _sea1 = rgb(118, 46, 92); }     // wine-dark
+		else if (_sf < 10) { _sea0 = rgb(128, 146, 166); _sea1 = rgb(176, 192, 210); }  // milky
+		else if (_sf < 12) { _sea0 = rgb(10, 12, 22);   _sea1 = rgb(28, 32, 48); }      // black
 		_pal = [
-			rgb( 38,  70, 130), rgb( 62, 112, 175),
+			_sea0, _sea1,
 			merge_colour(_sand, c_white, .3),
 			_sand,
 			make_colour_hsv(_vh, _vs, _vv),
@@ -225,7 +254,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		// 11 shallows, 12 swamp, 13 salt flat, 14 glacier, 15 crater
 		// floor, 16 crater rim, 17 basalt crust, 18 lava flow (emissive)
 		array_push(_pal,
-			merge_colour(rgb(62, 112, 175), rgb(110, 215, 205), .55),
+			merge_colour(_sea1, rgb(110, 215, 205), .55),   // (11 shallows: the sea's own, lifted toward the reef)
 			make_colour_hsv(_fh, min(_fs + 30, 255), round(_fv * .59)),
 			merge_colour(_sand, c_white, .55),
 			rgb(198, 224, 244),
@@ -335,6 +364,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		ctx : _ctx, o1 : _o1, o2 : _o2, o3 : _o3, o4 : _o4,
 		kind : _kind, sea : _sea,
 		mshift : lerp(-.30, .12, _wet),
+		tt : (_kind == "gas") ? undefined : _tt,   // the terrain's temper (q247) - planet_fields' grammar
 		hbase  : max(_sea, .42),
 		arch : _arch, craters : _craters,
 		theat : (.5 - _clim) * .5,
@@ -375,6 +405,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		pal : _pal, glow : _glow, smp : _ps, cbl : _cbl, belts : _belts, dry : _dry,
 		gcol : (_kind == "gas") ? array_create(_tw * _th, 0) : undefined,   // THE GIANT'S COLOUR MAP (q236): gas_colour a texel, the terrain sheet's rgb for a gas world
 		gloss : _ggloss,   // the giant's sheen (q242; 0 on a rock)
+		tt : (_kind == "gas") ? undefined : _tt,   // the terrain's temper (q247), for the passes that read it
 		plateau_ask : (!is_undefined(_hint) && (_hint[$ "plateau"] ?? false)),   // (a plateau asked for by the hint - the galaxy's word on a world; q210/q212)
 		hint_gal : (!is_undefined(_hint) && !is_undefined(_hint[$ "ring"])),   // (the galaxy's word taken - else planet_get lays it on late; bug hunt 5)
 		creg : _creg, cregp : _cregp,   // THE CLOUD REGIME (2026-09-17): 0 cumulus / 1 scattered / 2 streaked / 3 fronts, and its hashed makings
