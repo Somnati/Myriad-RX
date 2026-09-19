@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"seat_open_kind",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"seat_open_kind",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

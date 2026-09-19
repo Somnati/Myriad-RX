@@ -9,6 +9,7 @@ function seat_unpack(_s) {
 		if (_eq < 2) continue;
 		var _k = string_copy(_recs[_i], 1, _eq - 1), _f = string_split(string_delete(_recs[_i], 1, _eq), ":");
 		if (array_length(_f) < 2) continue;
-		g.exped.seat[$ _k] = { left : max(0, real(_f[0])), n : max(0, real(_f[1])) };
+		var _kk = string_split(_k, ":");
+		g.exped.seat[$ _k] = { left : max(0, real(_f[0])), n : max(0, real(_f[1])), foe : (array_length(_f) > 2) ? _f[2] : "", kind : (array_length(_kk) >= 3) ? _kk[2] : "" };
 	}
 }

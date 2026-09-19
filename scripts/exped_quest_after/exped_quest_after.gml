@@ -37,7 +37,7 @@ function exped_quest_after(_tr) {
 			for (var _k = 0; _k < array_length(_tr.sids); _k++) { if (_tr.hp[_k] <= 0) continue; var _sp = exped_sprite(_tr.sids[_k]); if (is_undefined(_sp)) continue; sprite_title(_sp, "who ended " + _v.name, 2); array_push(_crew, _sp.name); }
 			exped_mem_set(_tr.dest, _ri, -1, "peace", 168);
 			lane_push(_tr.dest, _ri, "order", .5); lane_push(_tr.dest, _ri, "dread", -.8);   // (the villain ended - q259)
-			seat_open(_tr.dest, _ri, _rg);   // THE SEAT falls vacant (q260): a successor in SEAT_DAYS / the region's weight; the thread resets then
+			seat_open(_tr.dest, _ri, _rg, _v.foe);   // THE SEAT falls vacant (q260): a successor in SEAT_DAYS / the region's weight; the thread resets then; its kind leaderless meanwhile (q262)
 			array_push(_tr.log, _v.name + " is finished. " + _v.fac + " scatter. " + _rg.name + " will be quieter for a while, and " + exped_crew_txt(_crew) + " will be talked about");
 		} else { lane_push(_tr.dest, _ri, "dread", -.25); array_push(_tr.log, choose("a thread pulled. " + _v.name + " will have heard", _v.name + "'s people know this crew's names now", "one thread of " + _v.name + "'s cut. there are more")); }
 	}

@@ -82,10 +82,18 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 		var _fk = (_kind == "") ? _lkinds[hash_mix(_seed, 313) mod array_length(_lkinds)] : _kind;
 		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _fk, (_j == 0 && is_struct(_opts)) ? (_opts[$ "boss"] ?? undefined) : undefined, (_j == 0 && is_struct(_opts)) ? (_opts[$ "variant"] ?? "") : "");
 		if (_j == 0 && is_struct(_opts) && is_string(_opts[$ "name"])) { _foe.name = _opts.name; _foe.named = true; }
+		// LEADERLESS (q262): a kind without its chief in this region comes in at FOE_LEADERLESS of itself
+		var _wk = foe_weak(_d, _tr[$ "rgi"] ?? 0, _fk);
+		if (_wk < 1) {
+			_foe.hp *= _wk; _foe.maxhp *= _wk; _foe.hpmax *= _wk; if (!is_undefined(_foe[$ "maxhp_real"])) _foe.maxhp_real *= _wk;
+			_foe.atk *= _wk; _foe.def *= _wk; _foe.mag *= _wk; _foe.mdef *= _wk; _foe.hit *= _wk;
+			_foe.leaderless = true;
+		}
 		array_push(_foes, _foe);
 		_xp += foe_xp(_foe);
 	}
 	var _f = cbt_fight_new(_party, _foes);
+	if (_foes[0][$ "leaderless"] ?? false) cbt_log(_f, "the " + _foes[0].kind + "s are leaderless here - weaker for it");   // (q262)
 	_f.tr = _tr;   // (the trip, for the pocket: exped_drink at a turn's start, the totem when one falls - 2026-09-16; a fight is never saved)
 	_f.xp = _xp;
 	// the hazard on the fight, and the diary's word on it (once a place: the

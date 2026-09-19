@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"foe_weak",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"foe_weak",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

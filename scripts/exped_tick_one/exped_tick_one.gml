@@ -34,6 +34,11 @@ function exped_tick_one(_tr, _dt) {
 			var _bf = _f.foes[_j];
 			bestiary_note(_bf[$ "kind"] ?? "", "seen", _bf[$ "variant"] ?? "", _bf[$ "boss"] ?? false);   // THE BESTIARY (2026-09-16): every foe that stood here
 			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); exped_tally(_tr, "slain"); }
+			// LEADERLESS (q262): a boss or a named one down - its kind loses its chief in this region for a while (seat_open_kind)
+			if (_bf.hp <= 0 && ((_bf[$ "boss"] ?? false) || (_bf[$ "named"] ?? false)) && (_bf[$ "kind"] ?? "") != "") {
+				seat_open_kind(_tr.dest, _tr[$ "rgi"] ?? 0, _bf.kind, exped_region(_tr));
+				array_push(_tr.log, "the " + _bf.kind + "s of " + exped_region(_tr).name + " have lost their " + choose("chief", "leader", "biggest one", "head") + ". they will be weaker on these roads for a while.");
+			}
 		}
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
 		// DAMAGE, dealt and taken (his ask, 2026-09-17): the pawns' own

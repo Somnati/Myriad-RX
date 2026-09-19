@@ -867,3 +867,7 @@ function main_macros() {
 #macro MOOD_TAU_A   2400
 #macro MOOD_TAU_E   7200
 #macro MOOD_TAU_G   10800
+// LEADERLESS (q262): a kind whose chief or alpha was slain stays leaderless LEAD_DAYS world days over the region's weight, and
+// comes in at FOE_LEADERLESS of its stats meanwhile (his "10%")
+#macro LEAD_DAYS        4
+#macro FOE_LEADERLESS   .9

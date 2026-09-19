@@ -15,6 +15,7 @@ function seat_tick(_dt) {
 		_s.left = 0;
 		var _kv = string_split(_ks[_i], ":");
 		if (array_length(_kv) < 2) continue;
+		if (array_length(_kv) >= 3) { variable_struct_remove(_ss, _ks[_i]); continue; }   // (a kind's seat: a new alpha rose, quietly - q262)
 		var _d = lane_dest(real(_kv[0])), _ri = real(_kv[1]);
 		if (!is_struct(g.exped[$ "vil"])) g.exped.vil = {};
 		g.exped.vil[$ _ks[_i]] = 0;

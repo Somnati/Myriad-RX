@@ -94,6 +94,17 @@ function region_info(_d, _rg) {
 	var _vil = region_villain(_d, _rg);
 	var _seat = seat_get(_d, _rg[$ "ri"] ?? 0);   // (an empty seat - q260)
 	if (!is_struct(_vil) && is_struct(_seat) && _seat.left > 0) array_push(_out, { k : "villain", v : "nobody, for now - " + string(max(1, ceil(_seat.left / (24 * EXPED_HOUR)))) + " days until someone", t : 0 });
+	// LEADERLESS (q262): the kinds without their chief here, and for how long
+	if (is_struct(g.exped[$ "seat"])) {
+		var _lk0 = lane_key(_d, _rg[$ "ri"] ?? 0) + ":", _lks = variable_struct_get_names(g.exped.seat), _lrow = "";
+		for (var _i = 0; _i < array_length(_lks); _i++) {
+			if (string_pos(_lk0, _lks[_i]) != 1) continue;
+			var _ls = g.exped.seat[$ _lks[_i]];
+			if (_ls.left <= 0) continue;
+			_lrow += ((_lrow != "") ? ", " : "") + string_delete(_lks[_i], 1, string_length(_lk0)) + "s (" + string(max(1, ceil(_ls.left / (24 * EXPED_HOUR)))) + "d)";
+		}
+		if (_lrow != "") array_push(_out, { k : "leaderless", v : _lrow, t : 0, col : c_seagreen });
+	}
 	var _scs = scar_get(_d, _rg[$ "ri"] ?? 0);   // (the changes that do not fade - q260)
 	for (var _i = 0; _i < array_length(_scs); _i++) if (_scs[_i].n >= 0 && _scs[_i].n < array_length(_rg.nodes)) array_push(_out, { k : (_i == 0) ? "changed" : "", v : _rg.nodes[_scs[_i].n].name + ": " + ((_scs[_i][$ "was"] ?? "") != "" ? _scs[_i].was + " -> " : "") + _scs[_i].k, t : 0, col : c_gold });
 	if (is_struct(_vil)) {
