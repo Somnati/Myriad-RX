@@ -25,6 +25,7 @@ function planet_fields(_ps, _u, _v) {
 	var _wz = (_ps.ctx.fbm3(_px * 1.7 + 3.1, _py * 1.7, _pz * 1.7 + 1.7, _ps.o1 + 911, 2) - .5) * _wpa;
 	var _qx = _px + _wx, _qz = _pz + _wz;
 	var _e = _ps.ctx.fbm3(_qx * _cs, _py * _cs, _qz * _cs, _ps.o1, 3);
+	var _e0 = _e;   // (the raw height here - the rain shadow compares it with the raw height upwind; q257)
 	// THE LAND'S SHAPE and the hemisphere's lean (q247): a smooth field laid on the noise before the sea decides -
 	// pangaea (land toward one point of the sphere), twins (land at both ends of an axis), a belt (the equator), polar
 	// continents, a ring of islands (the temper's fine scale did that); zero-mean, so the sea level keeps its meaning
@@ -63,7 +64,7 @@ function planet_fields(_ps, _u, _v) {
 			var _dl = _tt.wind * .06, _cdl = cos(_dl), _sdl = sin(_dl);
 			var _ux = _px * _cdl - _pz * _sdl + _wx, _uz = _px * _sdl + _pz * _cdl + _wz;
 			var _eu = _ps.ctx.fbm3(_ux * _cs, _py * _cs, _uz * _cs, _ps.o1, 3);
-			var _hi = clamp((_eu - _ps.sea - .05) / .16, 0, 1), _hh = clamp((_e - _ps.sea - .05) / .16, 0, 1);
+			var _hi = clamp((_eu - _ps.sea - .05) / .16, 0, 1), _hh = clamp((_e0 - _ps.sea - .05) / .16, 0, 1);   // (both RAW - _e is shaped and relief-scaled by here, so the lee read high behind everything; q257)
 			_ps.om -= _tt.shadow * _hi * (1 - _hh);
 		}
 	}

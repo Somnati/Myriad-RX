@@ -589,6 +589,12 @@ ivars	syst_menu2                 Create_0.gml                             y1 x3
 ivars	syst_menu2                 Create_0.gml                             y2 x3
 ivars	syst_rm_ability            Create_0.gml                             desc x1
 ivars	syst_rm_ability            Create_0.gml                             rword x1
+ivars	syst_rm_arena              Create_0.gml                             bare x1
+ivars	syst_rm_arena              Create_0.gml                             custom x1
+ivars	syst_rm_arena              Create_0.gml                             eyes x1
+ivars	syst_rm_arena              Create_0.gml                             held x1
+ivars	syst_rm_arena              Create_0.gml                             hold x1
+ivars	syst_rm_arena              Create_0.gml                             mat x1
 ivars	syst_rm_arena              Create_0.gml                             rows x1
 ivars	syst_rm_arena              Create_0.gml                             turns x1
 ivars	syst_rm_arena              Step_0.gml                               target x3
@@ -765,8 +771,8 @@ dupvar	objects\syst_offlog\Draw_0.gml                       _e _i
 dupvar	objects\syst_rm_ability\Create_0.gml                 _i
 dupvar	objects\syst_rm_ability\Draw_0.gml                   _known c_black rgb
 dupvar	objects\syst_rm_ability\Step_0.gml                   _c _c2 _d _i mouse_y
-dupvar	objects\syst_rm_arena\Create_0.gml                   _i _j
-dupvar	objects\syst_rm_arena\Draw_0.gml                     _ff _i _isact _p
+dupvar	objects\syst_rm_arena\Create_0.gml                   _hz _i _it _j _o _p _sp _t
+dupvar	objects\syst_rm_arena\Draw_0.gml                     _ff _i _isact _k _lbl _ln _lr _nat _p _r _ros _st p_season
 dupvar	objects\syst_rm_arena\Step_0.gml                     _ac _i _k
 dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i

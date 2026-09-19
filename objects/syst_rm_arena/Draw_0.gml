@@ -9,47 +9,99 @@ draw_text(6, bby + 4, "the arena" + ((page == "fight") ? "  -  a practice fight 
 var _bk = __back_r(); draw_ui_button(_bk.x, _bk.y, _bk.w, _bk.h, "back", rgb(170, 190, 230), true, false);
 
 if (page == "setup") {
-	// THE CREW: every sprite, the picked ones lit
+	// THE CREW: the customs first, then every sprite; the picked ones lit
 	draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(6, bby + 22, "crew  " + string(array_length(picked)) + " / " + string(exped_party_max()));
-	for (var _i = 0; _i < array_length(g.sprites); _i++) {
+	var _cl = __crew_list();
+	for (var _i = 0; _i < array_length(_cl); _i++) {
 		var _cr = __crew_r(_i);
 		if (_cr.y < bby + 34 || _cr.y > room_height - 40) continue;
-		var _sp = g.sprites[_i], _on = false;
+		var _sp = _cl[_i], _on = false;
 		for (var _k = 0; _k < array_length(picked); _k++) if (picked[_k] == _sp.id) _on = true;
 		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, _cr.w, _cr.h, 0, _on ? merge_colour(_sp.col, c_black, .55) : c_hsv(168, 140, 15), 1);
 		draw_sprite_ext(spr_pixel_1x1, 0, _cr.x, _cr.y, 2, _cr.h, 0, _sp.col, .9);
 		draw_set_color(_on ? c_white : sett_ink); draw_set_alpha(_on ? .95 : .7);
 		var _sh = sprite_sheet(_sp);
-		draw_text(_cr.x + 6, _cr.y + 2, _sp.name + "  lv " + string(_sh.lv) + "  " + sprite_classes()[_sh.cls].name + ((_sp[$ "trip"] ?? false) ? "  (out)" : ""));
+		draw_text(_cr.x + 6, _cr.y + 2, _sp.name + "  lv " + string(_sh.lv) + "  " + sprite_classes()[_sh.cls].name + ((_sp[$ "trip"] ?? false) ? "  (out)" : ((_sp[$ "custom"] ?? false) ? "  (custom)" : "")));
 	}
-	// THE OPPONENT
-	draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(170, bby + 22, "opponent");
-	var _p0 = __opp_pill_r(0), _p1 = __opp_pill_r(1);
-	draw_ui_button(_p0.x, _p0.y, _p0.w, _p0.h, "dummy", c_gold, true, opp == "dummy");
-	draw_ui_button(_p1.x, _p1.y, _p1.w, _p1.h, "creature", c_hred, true, opp == "creature");
-	if (opp == "dummy") {
-		var _lbls = ["hit points  x" + string(d_hp), "armour  " + ["none", "leather", "mail", "plate"][d_arm], "behaviour  " + (d_hits ? "hits back" : "stands still")];
-		for (var _r = 0; _r < 3; _r++) {
-			var _l0 = __dum_r(_r, 0); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_l0.x, _l0.y + 2, _lbls[_r]);
-			if (_r < 2) { var _l1 = __dum_r(_r, 1), _l2 = __dum_r(_r, 2); draw_ui_button(_l1.x, _l1.y, _l1.w, _l1.h, "-", c_gold, true, false); draw_ui_button(_l2.x, _l2.y, _l2.w, _l2.h, "+", c_gold, true, false); }
-			else { var _l3 = __dum_r(_r, 1); draw_ui_button(_l3.x, _l3.y, 34, _l3.h, "flip", c_gold, true, false); }
+	// THE TABS (q257): opponent / place / custom
+	var _tabs = ["opponent", "place", "custom"], _tcol = [c_hred, c_sgreen, c_hpurple];
+	for (var _t = 0; _t < 3; _t++) { var _tr = __tab_r(_t); draw_ui_button(_tr.x, _tr.y, _tr.w, _tr.h, _tabs[_t], _tcol[_t], true, tab == _tabs[_t]); }
+	if (tab == "opponent") {
+		var _p0 = __opp_pill_r(0), _p1 = __opp_pill_r(1);
+		draw_ui_button(_p0.x, _p0.y, _p0.w, _p0.h, "dummy", c_gold, true, opp == "dummy");
+		draw_ui_button(_p1.x, _p1.y, _p1.w, _p1.h, "creature", c_hred, true, opp == "creature");
+		if (opp == "dummy") {
+			var _lbls = ["hit points  x" + string(d_hp), "armour  " + ["none", "leather", "mail", "plate"][d_arm], "behaviour  " + (d_hits ? "hits back" : "stands still")];
+			for (var _r = 0; _r < 3; _r++) {
+				var _l0 = __dum_r(_r, 0); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_l0.x, _l0.y + 2, _lbls[_r]);
+				if (_r < 2) { var _l1 = __dum_r(_r, 1), _l2 = __dum_r(_r, 2); draw_ui_button(_l1.x, _l1.y, _l1.w, _l1.h, "-", c_gold, true, false); draw_ui_button(_l2.x, _l2.y, _l2.w, _l2.h, "+", c_gold, true, false); }
+				else { var _l3 = __dum_r(_r, 1); draw_ui_button(_l3.x, _l3.y, 34, _l3.h, "flip", c_gold, true, false); }
+			}
+			draw_set_color(sett_ink); draw_set_alpha(.5); draw_text(170, bby + 112, "the dummy takes the first pick's level");
+		} else {
+			var _ros = foe_roster(), _nat = foe_kinds_at(p_land, p_season);
+			var _c0 = __clv_r(0), _c1 = __clv_r(1), _c2 = __clv_r(2); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_c0.x, _c0.y + 2, "level  " + string(c_lv));
+			draw_ui_button(_c1.x, _c1.y, _c1.w, _c1.h, "-", c_gold, true, false); draw_ui_button(_c2.x, _c2.y, _c2.w, _c2.h, "+", c_gold, true, false);
+			var _n0 = __cn_r(0), _n1 = __cn_r(1), _n2 = __cn_r(2); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_n0.x, _n0.y + 2, "pack  " + string(c_n));
+			draw_ui_button(_n1.x, _n1.y, _n1.w, _n1.h, "-", c_gold, true, false); draw_ui_button(_n2.x, _n2.y, _n2.w, _n2.h, "+", c_gold, true, false);
+			for (var _i = 0; _i < array_length(_ros); _i++) {
+				var _kr = __kind_r(_i); _kr.y -= kind_scroll * 13;   // (the grid scrolls on the wheel - q257)
+				if (_kr.y < bby + 74 || _kr.y + _kr.h > room_height - 30) continue;
+				var _kon = (_i == c_kind);
+				draw_sprite_ext(spr_pixel_1x1, 0, _kr.x, _kr.y, _kr.w, _kr.h, 0, _kon ? merge_colour(_ros[_i].col, c_black, .5) : c_hsv(168, 140, 15), 1);
+				var _ff = foe_sprite_frame(_ros[_i].name);
+				if (_ff >= 0) draw_sprite_ext(spr_foe, _ff, _kr.x + 7, _kr.y + 6, .5, .5, 0, _ros[_i].col, .95);
+				draw_set_color(_kon ? c_white : sett_ink); draw_set_alpha(_kon ? .95 : .7); draw_text(_kr.x + 16, _kr.y + 2, _ros[_i].name);
+				if (array_contains(_nat, _ros[_i].name)) draw_sprite_ext(spr_pixel_1x1, 0, _kr.x + _kr.w - 4, _kr.y + 5, 2, 2, 0, c_sgreen, .9);   // (a native of the place - q257)
+			}
+			draw_set_color(sett_ink); draw_set_alpha(.45); draw_text(170, room_height - 28, "wheel: more kinds   .  green dot: native to the place");
 		}
-		draw_set_color(sett_ink); draw_set_alpha(.5); draw_text(170, bby + 112, "the dummy takes the first pick's level");
+	} else if (tab == "place") {
+		// THE LAND and THE SEASON, then what they mean: the hazard (the trip's own law) and the natives
+		for (var _i = 0; _i < array_length(p_lands); _i++) { var _lr = __land_r(_i); draw_ui_button(_lr.x, _lr.y, _lr.w, _lr.h, p_lands[_i], c_sgreen, true, p_land == p_lands[_i]); }
+		for (var _k = 0; _k < 5; _k++) { var _sr = __seas_r(_k); draw_ui_button(_sr.x, _sr.y, _sr.w, _sr.h, p_seasons[_k], c_gold, true, p_season == _k - 1); }
+		var _hz = __place_hz();
+		if (is_struct(_hz)) {
+			draw_set_color(_hz.col); draw_set_alpha(.95); draw_text(170, bby + 110, _hz.name + "  -  a bare member's " + _hz.lane + " x" + string(_hz.f));
+			draw_set_color(sett_ink); draw_set_alpha(.7); draw_text(170, bby + 122, "held off by " + _hz.hold);
+		} else { draw_set_color(sett_ink); draw_set_alpha(.7); draw_text(170, bby + 110, "no hazard here"); }
+		var _nat = foe_kinds_at(p_land, p_season), _ros = foe_roster();
+		draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(170, bby + 138, "natives (tap one to fight it)");
+		for (var _i = 0; _i < array_length(_nat); _i++) {
+			var _nr = __nat_r(_i); if (_nr.y + _nr.h > room_height - 50) break;
+			var _rc = c_white; for (var _r = 0; _r < array_length(_ros); _r++) if (_ros[_r].name == _nat[_i]) _rc = _ros[_r].col;
+			var _non = (opp == "creature" && _ros[c_kind].name == _nat[_i]);
+			draw_sprite_ext(spr_pixel_1x1, 0, _nr.x, _nr.y, _nr.w, _nr.h, 0, _non ? merge_colour(_rc, c_black, .5) : c_hsv(168, 140, 15), 1);
+			draw_set_color(_non ? c_white : sett_ink); draw_set_alpha(_non ? .95 : .7); draw_text(_nr.x + 4, _nr.y + 2, _nat[_i]);
+		}
+		draw_set_color(sett_ink); draw_set_alpha(.45); draw_text(170, room_height - 28, "weather and night have no hand in a fight (the diary's) - a place is its land and season");
 	} else {
-		var _ros = foe_roster();
-		var _c0 = __clv_r(0), _c1 = __clv_r(1), _c2 = __clv_r(2); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_c0.x, _c0.y + 2, "level  " + string(c_lv));
-		draw_ui_button(_c1.x, _c1.y, _c1.w, _c1.h, "-", c_gold, true, false); draw_ui_button(_c2.x, _c2.y, _c2.w, _c2.h, "+", c_gold, true, false);
-		var _n0 = __cn_r(0), _n1 = __cn_r(1), _n2 = __cn_r(2); draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_n0.x, _n0.y + 2, "pack  " + string(c_n));
-		draw_ui_button(_n1.x, _n1.y, _n1.w, _n1.h, "-", c_gold, true, false); draw_ui_button(_n2.x, _n2.y, _n2.w, _n2.h, "+", c_gold, true, false);
-		for (var _i = 0; _i < array_length(_ros); _i++) {
-			var _kr = __kind_r(_i);
-			if (_kr.y + _kr.h > room_height - 30) break;
-			var _kon = (_i == c_kind);
-			draw_sprite_ext(spr_pixel_1x1, 0, _kr.x, _kr.y, _kr.w, _kr.h, 0, _kon ? merge_colour(_ros[_i].col, c_black, .5) : c_hsv(168, 140, 15), 1);
-			var _ff = foe_sprite_frame(_ros[_i].name);
-			if (_ff >= 0) draw_sprite_ext(spr_foe, _ff, _kr.x + 7, _kr.y + 6, .5, .5, 0, _ros[_i].col, .95);
-			draw_set_color(_kon ? c_white : sett_ink); draw_set_alpha(_kon ? .95 : .7); draw_text(_kr.x + 16, _kr.y + 2, _ros[_i].name);
+		// THE CUSTOM SPRITE: the knobs, the preview, [reroll] [add to crew] [remove last]
+		var _cls = sprite_classes();
+		for (var _k = 0; _k < array_length(_cls); _k++) { var _kr2 = __ccls_r(_k); draw_ui_button(_kr2.x, _kr2.y, _kr2.w, _kr2.h, _cls[_k].name, _cls[_k].col, true, cu_cls == _k); }
+		var _lbl = ["level  " + string(cu_lv), "gear  " + cu_rars[cu_rar + 1], "skills learned  " + string(cu_skills), "potions  " + string(cu_pots)];
+		for (var _r = 0; _r < 4; _r++) {
+			var _r0 = __cu_r(_r, 0), _r1 = __cu_r(_r, 1), _r2 = __cu_r(_r, 2);
+			draw_set_color(sett_ink); draw_set_alpha(.85); draw_text(_r0.x, _r0.y + 2, _lbl[_r]);
+			draw_ui_button(_r1.x, _r1.y, _r1.w, _r1.h, "-", c_gold, true, false); draw_ui_button(_r2.x, _r2.y, _r2.w, _r2.h, "+", c_gold, true, false);
 		}
+		if (is_struct(cu_preview)) {
+			var _st = sprite_stats(cu_preview), _p = _st.pts, _b = cbt_balance();
+			var _y = bby + 116;
+			draw_set_color(cu_preview.col); draw_set_alpha(.95);
+			draw_text(170, _y, cu_preview.name + "  -  " + _cls[cu_cls].name + " lv " + string(cu_lv) + "  hp " + string(floor(_p.hp * _b.hp_per_point + _b.hp_flat_add)));
+			draw_set_color(sett_ink); draw_set_alpha(.8);
+			draw_text(170, _y + 11, "atk " + string(round(_p.atk)) + "  def " + string(round(_p.def)) + "  int " + string(round(_p.mag)) + "  res " + string(round(_p.mdef)) + "  spd " + string(round(_p.spd)) + "  hit " + string(round(_p.hit)));
+			var _ln = 0;
+			for (var _w = 0; _w < array_length(_st.worn) && _ln < 4; _w++) { draw_set_color(_st.worn[_w].col); draw_set_alpha(.9); draw_text(170, _y + 24 + _ln * 10, _st.worn[_w].name); _ln++; }
+			var _sks = sprite_skills(cu_preview), _skt = "";
+			for (var _s = 0; _s < array_length(_sks); _s++) _skt += ((_s > 0) ? ", " : "") + _sks[_s].name;
+			draw_set_color(c_lavender); draw_set_alpha(.85); draw_text(170, _y + 24 + _ln * 10, "skills: " + _skt);
+		}
+		var _b0 = __cubtn_r(0), _b1 = __cubtn_r(1), _b2 = __cubtn_r(2);
+		draw_ui_button(_b0.x, _b0.y, _b0.w, _b0.h, "reroll", c_gold, true, false);
+		draw_ui_button(_b1.x, _b1.y, _b1.w, _b1.h, "add to crew", c_sgreen, true, true);
+		draw_ui_button(_b2.x, _b2.y, _b2.w, _b2.h, "remove last", c_hred, array_length(customs) > 0, false);
 	}
 	var _fr = __fight_r(); draw_ui_button(_fr.x, _fr.y, _fr.w, _fr.h, "fight", c_sgreen, array_length(picked) > 0, true);
 	draw_set_color(sett_ink); draw_set_alpha(.45); draw_text(6, room_height - 12, "a practice fight: the crew as it is, copies of its potions - no hp, xp or items are kept");
