@@ -11,8 +11,12 @@ var _ah = surface_get_height(application_surface);
 if (_aw < 2 || _ah < 2) exit;
 if (!surface_exists(scratch) || surface_get_width(scratch) != _aw
 || surface_get_height(scratch) != _ah) {
+	// (the flicker hunt, 2026-09-13; his log 2026-09-18 showed this line every frame - the WHY is in the line now: the
+	// application surface's size, and whether the scratch was LOST (something freed it, or the gpu did) or the app surface
+	// RESIZED under it; window w x h and the room beside them)
+	var _why = surface_exists(scratch) ? ("resized from " + string(surface_get_width(scratch)) + "x" + string(surface_get_height(scratch))) : "lost";
 	if (surface_exists(scratch)) surface_free(scratch);
-	show("[surface] crt scratch rebuilt at " + string(current_time));   // (the flicker hunt, 2026-09-13)
+	show("[surface] crt scratch rebuilt " + string(_aw) + "x" + string(_ah) + " (" + _why + "; window " + string(window_get_width()) + "x" + string(window_get_height()) + ", " + room_get_name(room) + ") at " + string(current_time));
 	scratch = surface_create(_aw, _ah);
 }
 if (!surface_exists(scratch)) exit;

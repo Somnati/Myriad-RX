@@ -125,7 +125,16 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		var _ahue = (lerp(22, 152, _act) + (_ahr / 255 - .5) * 36 + 256) mod 256;
 		var _asat = _asr * lerp(1, .6, clamp((_clim - .55) / .45, 0, 1));
 		_atmo = make_colour_hsv(_ahue, _asat, 255);
-		if (_arch == "lava")        _atmo = make_colour_hsv(irandom_range(3, 12), irandom_range(190, 230), 255);
+		// THE LAVA'S FAMILY (his ask, live test 2026-09-18: "crazy colours of lava instead of lava red"): hashed off the
+		// seed, never rolled (the roll order is the save format) - classic orange half the time, else plasma blue,
+		// acid green, violet or white-hot; the sky over it leans the same way (the same three rolls as before, hue shifted)
+		var _lvf = hash_mix(_seed, 4444) mod 100;
+		var _lava_col = rgb(255, 112, 20), _lava_hue = 0;
+		if (_lvf >= 50 && _lvf < 68)      { _lava_col = rgb(110, 200, 255); _lava_hue = 145; }   // plasma blue
+		else if (_lvf >= 68 && _lvf < 84) { _lava_col = rgb(150, 255, 60);  _lava_hue = 70; }    // acid green
+		else if (_lvf >= 84 && _lvf < 94) { _lava_col = rgb(205, 90, 255);  _lava_hue = 200; }   // violet
+		else if (_lvf >= 94)              { _lava_col = rgb(255, 246, 215); _lava_hue = 30; }    // white-hot (a gold sky)
+		if (_arch == "lava")        _atmo = make_colour_hsv((irandom_range(3, 12) + _lava_hue) mod 256, irandom_range(190, 230), 255);
 		else if (_arch == "barren") _atmo = merge_colour(_atmo, c_black, .78);
 		var _vh = irandom(255);
 		var _vs = irandom_range(120, 200);
@@ -178,7 +187,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 			merge_colour(_sand, c_black, .38),
 			merge_colour(_sand, c_white, .28),
 			merge_colour(rgb(48, 40, 42), _sand, .18),
-			rgb(255, 112, 20));
+			_lava_col);   // (18: the lava's family colour - emissive through the glow slot)
 		if (_arch == "barren") repeat (irandom_range(12, 24)) {
 			var _kz = random_range(-1, 1);
 			var _ka = random(2 * pi);

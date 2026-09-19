@@ -20,6 +20,12 @@ draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + 15, room_width, 1, 0, _ink, .25);
 // and the boot's spinner bottom right; nothing that would touch the galaxy
 var _ldd = __loading();
 if (is_struct(_ldd)) {
+	// BLACK (his call, live test 2026-09-18: "loading screens need to look black"): the ground above is .94 over the money
+	// room - under the veil it is opaque, the strip laid again over it
+	ui_fade_set(1);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, hh, room_width, room_height - hh, 0, c_black, 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y, room_width, 16, 0, c_hsv(169, 186, 5), 1);
+	draw_sprite_ext(spr_pixel_1x1, 0, 0, strip_y + 15, room_width, 1, 0, _ink, .25);
 	draw_set_color(c_steelblue); draw_set_alpha(.95);
 	var _lt1 = (land && is_struct(pl_dest)) ? "expedition  -  " : "expeditions";
 	draw_text(6, strip_y + 5, _lt1);

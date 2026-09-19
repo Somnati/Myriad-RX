@@ -135,8 +135,11 @@ function planet_volcanoes(_pn) {
 	for (var _k = 0; _k < array_length(_vents); _k++) {
 		var _vt = _vents[_k];
 		if (!_vt[2]) continue;
-		var _vu = (_vt[0] + .5) / _tw, _vv = (_vt[1] + .5) / _th, _vsl = sin(_vv * pi);
-		array_push(_pl, [_vsl * cos(_vu * 2 * pi), cos(_vv * pi), _vsl * sin(_vu * 2 * pi), _vt[3] * .62 * 2 * pi / _tw]);   // (the ring's reach: .62 of the cone, in radians)
+		// THE SHADER'S FRAME (his report, live test 2026-09-18: "the plume is in random places"): a texel's longitude is
+		// (u - .5) x 2 pi in sh_planet (to_tex: u = atan(z, x) / 2 pi + .5) - the same law the regions' spots use
+		// (__spot_dir, u = lon / 360 + .5). The vents went out at u x 2 pi: every plume half a turn from its cone
+		var _vu = (_vt[0] + .5) / _tw, _vv = (_vt[1] + .5) / _th, _vsl = sin(_vv * pi), _vlon = (_vu - .5) * 2 * pi;
+		array_push(_pl, [_vsl * cos(_vlon), cos(_vv * pi), _vsl * sin(_vlon), _vt[3] * .62 * 2 * pi / _tw]);   // (the ring's reach: .62 of the cone, in radians)
 	}
 	_pn.vents = _pl;
 	_pn.vmask = _vent;   // (kept: planet_rivers treats the craters and flows as sinks - no river climbs the cone into the crater, no lake fills it; his report 2026-09-17)
