@@ -285,6 +285,9 @@ svars	ex_trip_press                rp
 svars	ex_trip_press                tp_sheet
 svars	ex_trip_replay               rp
 svars	ex_trip_world                tp_id
+svars	exped_fork_watched           closing
+svars	exped_fork_watched           mode
+svars	exped_fork_watched           view
 svars	exped_unpack_v1              _pocket
 svars	faq_entry                    cur_sec
 svars	faq_entry                    entries
@@ -565,7 +568,6 @@ ivars	syst_exped_panel           Create_0.gml                             dest x
 ivars	syst_exped_panel           Create_0.gml                             di x1
 ivars	syst_exped_panel           Create_0.gml                             dither x1
 ivars	syst_exped_panel           Create_0.gml                             gal x1
-ivars	syst_exped_panel           Create_0.gml                             held x1
 ivars	syst_exped_panel           Create_0.gml                             hz x1
 ivars	syst_exped_panel           Create_0.gml                             ns x1
 ivars	syst_exped_panel           Create_0.gml                             para_on x1
@@ -592,7 +594,6 @@ ivars	syst_rm_ability            Create_0.gml                             rword 
 ivars	syst_rm_arena              Create_0.gml                             bare x1
 ivars	syst_rm_arena              Create_0.gml                             custom x1
 ivars	syst_rm_arena              Create_0.gml                             eyes x1
-ivars	syst_rm_arena              Create_0.gml                             held x1
 ivars	syst_rm_arena              Create_0.gml                             hold x1
 ivars	syst_rm_arena              Create_0.gml                             mat x1
 ivars	syst_rm_arena              Create_0.gml                             rows x1
@@ -864,12 +865,13 @@ dupvar	scripts\ex_planet_clock\ex_planet_clock.gml          _pn4 _tgt _yp pv_spi
 dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _h _i _lcx _lcy _nol _pr _pvr _rg _w
 dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _ocf _pc _pvr _rgp mouse_y
 dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _g _i _mid _n _rg _sl _ty _w _x _x0 rg_sel
-dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
+dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _bw _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
 dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y
 dupvar	scripts\ex_system_draw\ex_system_draw.gml            _bj
 dupvar	scripts\ex_system_init\ex_system_init.gml            _a _bg _bl _cfgp _dd _fa _fpp0 _fsp0 _gph _h _i _j _k _mo _or _p _pp _pp0 _pw _pxs _ri _rk _rp _sky _sor _sq0 _sq1 _stj _vr _w _x c_gold dsin
 dupvar	scripts\ex_system_step\ex_system_step.gml            _bk0 _pw2 _ser _sgl0 _sq2 _svr mouse_y
 dupvar	scripts\ex_trip_draw\ex_trip_draw.gml                _f _fo _j _k _ltw _m _pi _tr
+dupvar	scripts\ex_trip_press\ex_trip_press.gml              _k
 dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn
 dupvar	scripts\exped_abort\exped_abort.gml                  _travel
 dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _r _rg _rgi_a _tr _who
@@ -883,11 +885,15 @@ dupvar	scripts\exped_compose\exped_compose.gml              _nm _nm2 _pred _rg _
 dupvar	scripts\exped_dice\exped_dice.gml                    _stake array_length
 dupvar	scripts\exped_drink\exped_drink.gml                  _hpm _hpn _j _k
 dupvar	scripts\exped_drink_open\exped_drink_open.gml        _bk _it _j _wk
-dupvar	scripts\exped_encounter\exped_encounter.gml          _nm _rgi_e
+dupvar	scripts\exped_encounter\exped_encounter.gml          _frg _fss _nm _rgi_e
 dupvar	scripts\exped_event_tick\exped_event_tick.gml        _rg _ri
 dupvar	scripts\exped_explore_pick\exped_explore_pick.gml    _i
 dupvar	scripts\exped_fight_loot\exped_fight_loot.gml        _d _it _j _own _rar _tagf
 dupvar	scripts\exped_fight_new\exped_fight_new.gml          _fk _foes _hz _lrg _lseas _seed _tr array_length
+dupvar	scripts\exped_fork_encounter\exped_fork_encounter.gml _fk
+dupvar	scripts\exped_fork_gen\exped_fork_gen.gml            _path _pos _x
+dupvar	scripts\exped_fork_lean\exped_fork_lean.gml          _k
+dupvar	scripts\exped_fork_shortcut\exped_fork_shortcut.gml  _bad _fk _i _path _pos
 dupvar	scripts\exped_haul_moment\exped_haul_moment.gml      _a _l _rest _sp
 dupvar	scripts\exped_hazard\exped_hazard.gml                _n _rg
 dupvar	scripts\exped_loot_roll\exped_loot_roll.gml          _d _eseed _rar _rgl_lv _tagl irandom_range

@@ -221,6 +221,20 @@ function ex_trip_draw(_e, _ea, _br, _ink, _dim) {
 	var _ly = _sy + 42;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
 	__draw_log_band(__log_lines(), { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);   // (the gist when toggled, 2026-09-16)
+	// THE FORK'S CARD (q258): while the crew stands at a fork and the window is open, the choice is yours - the prompt,
+	// the two ways (the crew's own lean lit), the window running out along the bottom; a tap = exped_fork_choose by you
+	var _fkc = _tr[$ "fork"];
+	if (is_struct(_fkc) && current_time - _fkc.born < EXPED_FORK_WINDOW * 1000) {
+		var _fh = 64;
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx, _ly, _sw, _fh, 0, c_black, .94);
+		draw_px_rect(_sx, _ly, _sw, _fh, c_gold, .55);
+		draw_set_color(c_gold); draw_set_alpha(.95); draw_text_ext(_sx + 4, _ly + 3, _fkc.prompt, 9, _sw - 8);
+		var _lean = exped_fork_lean(_tr);
+		for (var _k = 0; _k < 2; _k++) { var _br2 = __fork_r(_k); draw_ui_button(_br2.x, _br2.y, _br2.w, _br2.h, _fkc.choices[_k].txt, (_k == 1) ? c_horange : c_sgreen, true, _lean == _k); }
+		draw_set_color(sett_ink); draw_set_alpha(.6); draw_text(_sx + 4, _ly + _fh - 12, "the crew leans " + _fkc.choices[_lean].txt + "  -  dc " + string(_fkc.dc));
+		var _left = clamp(1 - (current_time - _fkc.born) / (EXPED_FORK_WINDOW * 1000), 0, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx + 1, _ly + _fh - 2, (_sw - 2) * _left, 1, 0, c_gold, .85);
+	}
 	// THE SHEET AS A MODAL (a tap on a banner - his ask, 2026-09-16): the crew page's painter over the log column
 	var _tsp = __sp_by_id(tp_sheet);
 	if (!is_undefined(_tsp)) {

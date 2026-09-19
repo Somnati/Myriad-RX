@@ -19,6 +19,13 @@ function ex_trip_press() {
 			return true;
 		}
 	}
+	// THE FORK'S CARD (q258): a tap on a way chooses it - yours, over the crew's lean
+	if (!is_undefined(_tr) && is_struct(_tr[$ "fork"]) && current_time - _tr.fork.born < EXPED_FORK_WINDOW * 1000) {
+		for (var _k = 0; _k < 2; _k++) {
+			var _fr2 = __fork_r(_k);
+			if (point_in_rectangle(mouse_x, mouse_y, _fr2.x, _fr2.y, _fr2.x + _fr2.w, _fr2.y + _fr2.h)) { exped_fork_choose(_tr, _k, true); play_sound_ext(snd_apply, 1, 1.2, .5, 1); return true; }
+		}
+	}
 	// [recall]: an exploring crew comes home
 	if (!is_undefined(_tr) && (_tr[$ "mode"] ?? "quest") == "explore" && !(_tr[$ "recall"] ?? false)) {
 		var _rr2 = __recall_r();

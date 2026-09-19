@@ -841,6 +841,7 @@ __crew_y0 = function() {
 __tab_r = function(_k) { return { x : land ? 14 : 4, y : __crew_y0() + _k * (tab_h + 2), w : tab_w, h : tab_h }; };
 __sheet_x0 = function() { return (land ? 14 : 4) + tab_w + 10; };
 __recall_r = function() { return { x : log_x + log_w - 62, y : log_y + 4, w : 56, h : 12 }; };   // (in the quest island's corner)
+__fork_r = function(_k) { var _bw = floor((log_w - 12) / 2); return { x : log_x + 4 + _k * (_bw + 4), y : log_y + 42 + 46, w : _bw, h : 13 }; };   // THE FORK'S CARD's two ways (q258), on the diary's top
 __fight_r  = function() { return { x : log_x + log_w - fight_s, y : room_height - 8 - (land ? 18 : 0) - fight_s, w : fight_s, h : fight_s }; };   // the combat window: the right column's bottom-right corner (over the buttons' row on a wide page)
 crew_row_h = land ? 36 : 44;
 // the map view: the region drawn into this rect; [map] chips on a world card and the trip page

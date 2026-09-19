@@ -14,12 +14,24 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	var _esc = (is_struct(_eq) && _eq.kind == "escort" && (_eq[$ "at"] ?? 0) == 1 && _eq.done < _eq.n);
 	if (_esc && _r >= 45 && _r < 70 && roll_perc(50)) _r = 75;
 	if (_lord && _r >= 45 && _r < 70 && roll_perc(50)) _r = 75;
-	// the noise of rain (his ask): a fight heard in time is a fight walked round
-	if ((_wx == "rain" || _wx == "storm") && _r < 45 && roll_perc(35)) { array_push(_tr.log, choose("heard something ahead over the rain, and went round it", "shapes in the rain. they took the long way and were not seen", "the rain covered their steps past a camp of something")); return; }
+	// (the noise of rain - a fight heard in time walked round - lives in the fork's check now: rain lowers the DC of going round; q258)
 	// THE WORLD REMEMBERS (2026-09-16): a camp routed lately - the road past it has half its bandits
 	if (_r >= 70 && _r < 85 && is_struct(_tr[$ "road"]) && roll_perc(50)) {
 		var _rgi0 = _tr[$ "rgi"] ?? 0;
 		if (is_struct(exped_mem_get(_tr.dest, _rgi0, _tr.road.a, "routed")) || is_struct(exped_mem_get(_tr.dest, _rgi0, _tr.road.b, "routed"))) { array_push(_tr.log, choose("the road is quiet since the camp burned", "nobody on the road. the camp's ashes are still warm", "a bandit's boot in the ditch, and no bandit")); return; }
+	}
+	if (_r < 45 && exped_fork_allowed(_tr)) {
+		// THE ENCOUNTER FORK (q258): fight, or go round - the crew decides (the stance: whole enough to fight, or the
+		// way round on a check the weather and the dark help); the kind and the count named ahead so the prompt is honest
+		var _frg = exped_region(_tr), _fss = region_season(_tr.dest, _frg), _fkinds = foe_kinds_at("road", _fss.on ? _fss.idx : -1);
+		var _fkk = _fkinds[irandom(array_length(_fkinds) - 1)], _fn = irandom_range(1, 2);
+		var _efk = { kind : "encounter", foe : _fkk, n : _fn, lv : exped_trip_lv(_tr), wx : _wx, night : (_tr[$ "night"] ?? false), born : current_time, held : 0, by : "", chosen : -1 };
+		_efk.dc = exped_fork_dc(_efk);
+		_efk.mods = exped_fork_mods(_tr, _efk);
+		_efk.prompt = ((_fn > 1) ? "two " + _fkk + "s" : "a " + _fkk) + " on the road ahead" + (_efk.night ? ", in the dark" : ((_wx != "clear") ? ", in the " + _wx : "")) + ".";
+		_efk.choices = [ { key : "fight", txt : "fight" }, { key : "round", txt : "go round" } ];
+		exped_fork_raise(_tr, _efk);
+		return;
 	}
 	if (_r < 45) {
 		_tr.fight = exped_fight_new(_tr, "", irandom_range(1, 2), 0);

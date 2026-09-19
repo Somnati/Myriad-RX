@@ -110,6 +110,8 @@ function exped_unpack(_s) {
 				ex : { kind : "wander", n : 0 }, tl : _tl, stance : exped_stance(_kv[$ "stn"] ?? "steady").key,
 			};
 			if (_trn.mode == "quest" && _trn.recall) _trn.aborted = true;   // (a quest crew recalled is an aborted one - the flag itself is not saved)
+			var _fks = string_split(_kv[$ "fk"] ?? "", ":");   // (the forks' cadence - q258)
+			if (array_length(_fks) >= 2 && _fks[0] != "") { _trn.fork_n = real(_fks[0]); _trn.fork_t = real(_fks[1]); }
 			var _exs = string_split(_kv[$ "ex"] ?? "", ":");
 			if (array_length(_exs) >= 2 && _exs[0] != "") _trn.ex = { kind : _exs[0], n : real(_exs[1]) };
 			var _vsv = _kv[$ "vis"] ?? "";

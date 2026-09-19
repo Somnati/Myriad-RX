@@ -7,6 +7,14 @@
 /// holds the clock (exped_tick_one). Same call online and offline.
 function exped_agent(_tr, _dt) {
 	var _rg = exped_region(_tr);
+	// THE FORK (q258): the crew stands at a choice - held only while you are looking at the page and the card's window is
+	// open (the seconds accrue on the fork and are paid back below); otherwise the crew decides at once by the stance
+	if (is_struct(_tr[$ "fork"])) {
+		if (exped_fork_watched(_tr) && current_time - _tr.fork.born < EXPED_FORK_WINDOW * 1000) { _tr.fork.held += _dt; return false; }
+		exped_fork_choose(_tr, exped_fork_lean(_tr), false);
+		if (!is_undefined(_tr.fight)) return false;
+	}
+	if ((_tr[$ "fork_pay"] ?? 0) > 0) { _dt += _tr.fork_pay; _tr.fork_pay = 0; }
 	_tr.planet_t = (_tr[$ "planet_t"] ?? 0) + _dt;
 	exped_stat("world_h", _dt / EXPED_HOUR);
 	if ((_tr[$ "mode"] ?? "quest") == "explore") exped_stat("explore_h", _dt / EXPED_HOUR);
@@ -121,6 +129,7 @@ function exped_agent(_tr, _dt) {
 			var _emult = (_night ? 1.5 : 1) * ((_wx == "storm") ? .5 : ((_wx == "rain" || _wx == "snow") ? .85 : 1));
 			exped_encounter(_tr, _emult, _wx);
 			if (!is_undefined(_tr.fight)) return false;
+			if (is_struct(_tr[$ "fork"])) return false;   // (an encounter's fork waiting for your tap - q258)
 			// nothing met: a little thing, maybe (exped_road_beat); with a parcel in tow, the parcel does things (2026-09-16)
 			var _pq = _tr[$ "quest"];
 			if (is_struct(_pq) && _pq.kind == "parcel" && (_pq[$ "at"] ?? 0) == 1 && _pq.done < _pq.n && roll_perc(22)) array_push(_tr.log, exped_compose("parcel", _tr));
@@ -155,6 +164,10 @@ function exped_agent(_tr, _dt) {
 	if (_want == _tr.pos) { exped_node_event(_tr, true); if (!is_struct(_tr.act)) { _tr.path = []; return array_contains(_rg[$ "landings"] ?? [ _rg.landing ], _tr.pos); } return false; }
 	if (array_length(_tr.path) == 0 || _tr.path[array_length(_tr.path) - 1] != _want) _tr.path = region_path(_rg, _tr.pos, _want);
 	if (array_length(_tr.path) == 0) { array_push(_tr.log, "no road to " + _rg.nodes[_want].name + ". heading back"); return array_contains(_rg[$ "landings"] ?? [ _rg.landing ], _tr.pos); }
+	// THE SHORTCUT FORK (q258): a way through the wild beside the road, when there is one worth the name - the crew
+	// decides (exped_fork_raise: the stance and the leader, or you at the card); the road it took is the choice's
+	var _fk = exped_fork_gen(_tr, _rg);
+	if (is_struct(_fk)) { exped_fork_raise(_tr, _fk); return false; }
 	var _nb = _tr.path[0];
 	var _h = region_hours(_rg, _tr.pos, _nb);
 	_tr.road = { a : _tr.pos, b : _nb, d : _h, t : 0 };

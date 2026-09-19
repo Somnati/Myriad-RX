@@ -115,6 +115,7 @@ function exped_pack() {
 		array_push(_f, "tl=" + string(_tl.slain) + ":" + string(_tl.mist) + ":" + string(_tl.items) + ":" + string_format(_tl.xp, 1, 2) + ":" + string(_tl.earned));
 		array_push(_f, "pk=" + string(_is ? (_r[$ "credits"] ?? 0) : (_r[$ "pocket"] ?? 0)));
 		array_push(_f, "stn=" + string(_r[$ "stance"] ?? "steady"));   // (the stance, 2026-09-16)
+		array_push(_f, "fk=" + string(_r[$ "fork_n"] ?? 0) + ":" + string_format(_r[$ "fork_t"] ?? -1000000, 1, 1));   // (the forks' cadence - count and the world time of the last; q258)
 		if (!_is && is_array(_r[$ "log"])) {   // THE DIARY of a haul (2026-09-16: [read the diary] on the home page): its last hundred and twenty lines, ^-joined
 			var _lg = "", _l0 = max(0, array_length(_r.log) - 120);
 			for (var _li = _l0; _li < array_length(_r.log); _li++) _lg += ((_li > _l0) ? "^" : "") + string_replace_all(string_replace_all(string_replace_all(string_replace_all(_r.log[_li], "|", " "), "#", " "), "^", " "), "\"", "'");

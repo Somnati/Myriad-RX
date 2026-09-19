@@ -845,3 +845,8 @@ function main_macros() {
 // THE BOOT'S CHART CAP (q256): the boot screen charts the galaxy and builds the home world's sheet for at most this many
 // ms of wall time (his call: "2.5s on boot is manageable") - whatever is left finishes behind the expedition panel
 #macro BOOT_CHART_CAP 2500
+// THE FORKS (q258): world hours between forks on one trip; the wall seconds the card waits for your tap when you are looking at the
+// trip's page (else the crew decides at once); a shortcut's hours over the roads it replaces
+#macro EXPED_FORK_EVERY    5
+#macro EXPED_FORK_WINDOW   10
+#macro EXPED_SHORTCUT_F    .55
