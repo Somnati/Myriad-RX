@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"star_light",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"star_light",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

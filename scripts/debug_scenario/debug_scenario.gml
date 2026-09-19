@@ -57,9 +57,9 @@ function debug_scenario(_sm, _pick, _pi) {
 	var _hx = _st.x, _hy = _st.y, _near = [];
 	for (var _i = 0; _i < _sm.count; _i++) { if (_i == _pick) continue; var _st2 = _sm.stars[_i]; var _dd = point_distance(_hx, _hy, _st2.x, _st2.y); if (_dd < 400) array_push(_near, { i : _i, d : _dd }); }
 	array_sort(_near, function(_a, _b) { return _a.d - _b.d; });
-	var _have = { giant : false, dwarf : false, pulsar : false, hole : false };
+	var _have = { giant : false, dwarf : false, pulsar : false, hole : false, brown : false, wolf : false, cepheid : false, proto : false };
 	for (var _k = 0; _k < min(8, array_length(_near)); _k++) { var _sk = _sm.stars[_near[_k].i].props[$ "skind"] ?? "main"; if (_sk != "main") _have[$ _sk] = true; }
-	var _want = ["giant", "dwarf", "pulsar", "hole"], _w = 0, _k = 1;
+	var _want = ["giant", "dwarf", "pulsar", "hole", "brown", "wolf", "cepheid", "proto"], _w = 0, _k = 1;   // (+ the new kinds - q253)
 	while (_w < array_length(_want) && _k < array_length(_near)) {
 		var _kind = _want[_w];
 		if (_have[$ _kind]) { _w++; continue; }
@@ -70,7 +70,11 @@ function debug_scenario(_sm, _pick, _pi) {
 		if (_kind == "giant")       { _pp.skind = "giant";  _pp.size = 3.0 + 1.6 * _h1; _pp.color = merge_colour(_pp.color, rgb(255, 128, 66), .72); _pp.stellar_class = "M III"; }
 		else if (_kind == "dwarf")  { _pp.skind = "dwarf";  _pp.size = .35 + .2 * _h1;  _pp.color = merge_colour(_pp.color, rgb(205, 218, 255), .8); _pp.stellar_class = "DA"; }
 		else if (_kind == "pulsar") { _pp.skind = "pulsar"; _pp.size = .30 + .12 * _h1; _pp.color = merge_colour(_pp.color, rgb(235, 240, 255), .85); _pp.stellar_class = "PSR"; _pp.spin = .7 + 1.7 * _h2; _pp.tilt = 20 + 50 * _h1; }
-		else                        { _pp.skind = "hole"; _pp.hole = true; _pp.size = 1.5 + 1.1 * _h1; _pp.color = merge_colour(_pp.color, (_h2 < .5) ? rgb(175, 205, 255) : rgb(255, 195, 130), .65); _pp.stellar_class = "BH"; }
+		else if (_kind == "hole")   { _pp.skind = "hole"; _pp.hole = true; _pp.size = 1.5 + 1.1 * _h1; _pp.color = merge_colour(_pp.color, (_h2 < .5) ? rgb(175, 205, 255) : rgb(255, 195, 130), .65); _pp.stellar_class = "BH"; }
+		else if (_kind == "brown")  { _pp.skind = "brown"; _pp.size = .45 + .25 * _h1; _pp.color = merge_colour(_pp.color, rgb(160, 68, 80), .86); _pp.stellar_class = "L"; }
+		else if (_kind == "wolf")   { _pp.skind = "wolf"; _pp.size = 2.2 + 1.2 * _h1; _pp.color = merge_colour(_pp.color, rgb(190, 215, 255), .80); _pp.stellar_class = "WN"; }
+		else if (_kind == "cepheid") { _pp.skind = "cepheid"; _pp.size = 1.6 + 1.0 * _h1; _pp.color = merge_colour(_pp.color, rgb(255, 236, 200), .62); _pp.stellar_class = "F Ib"; _pp.period = 1200 + 4200 * _h2; }
+		else                        { _pp.skind = "proto"; _pp.size = .9 + .6 * _h1; _pp.color = merge_colour(_pp.color, rgb(255, 150, 90), .72); _pp.stellar_class = "T Tau"; }
 		starsystem_forget(_ss);
 		_have[$ _kind] = true; _w++;
 	}

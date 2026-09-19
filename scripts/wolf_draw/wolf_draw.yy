@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"wolf_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"wolf_draw",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

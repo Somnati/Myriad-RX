@@ -25,6 +25,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 	var _lw = _sky.light_w;
 	var _sv = mat3_apply(_ct, _lw[0], _lw[1], _lw[2]);
 	var _ss = _sky.sun_size / 12;
+	var _skd0 = _sky[$ "skind"] ?? "main", _slt = star_light(_skd0, _sky[$ "sseed"] ?? 0, _sky[$ "speriod"] ?? 2400);
+	if (_skd0 == "cepheid") _ss *= .85 + .3 * _slt.pulse;   // (the sun breathes - q253)
 	var _sun_on = (_sv[2] < -.1), _ssx = 0, _ssy = 0, _sfade = 0;
 	if (_sun_on) { _sfade = clamp((-_sv[2] - .1) / .12, 0, 1); var _sf = 230 / -_sv[2]; _ssx = _cx + _sv[0] * _sf; _ssy = _cy + _sv[1] * _sf; }
 	// behind the disc: the sun's light fades over the first third of the way in, gone at the centre; a MOON's disc over it
@@ -60,7 +62,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _m = 12 + _sk.s * 4;
 		if (_sx < -_m || _sx > _w + _m || _sy < -_m || _sy > _h + _m) continue;
 		var _fade = clamp((min(_sx, _w - _sx) + _m) / _m, 0, 1) * clamp((min(_sy, _h - _sy) + _m) / _m, 0, 1) * clamp((-_dz - .2) / .1, 0, 1);
-		var _a = ((_sk[$ "cl"] ?? false) ? (_sk.b * 1.3) : (.3 + .7 * _sk.b)) * _fade;   // (a cloud point is grain: its raw brightness, not the stars' floor - the band stayed as he liked it)
+		var _a = ((_sk[$ "cl"] ?? false) ? (_sk.b * 1.3) : (.3 + .7 * _sk.b)) * _fade;
+		if ((_sk[$ "skind"] ?? "main") == "cepheid") _a *= .8 + .35 * star_pulse(_sk[$ "sseed"] ?? 0, 2400);   // (a cepheid neighbour breathes - q253)   // (a cloud point is grain: its raw brightness, not the stars' floor - the band stayed as he liked it)
 		// the twinkle: the small ones only, two sines that never line up, the star's own phase
 		if (_sk.s <= 2) { var _ph = _sk[$ "ph"] ?? 0; _a *= 1 - .22 * (.5 + .5 * dsin(_tt * (.11 + .0004 * _ph) + _ph) * dsin(_tt * .073 + _ph * 2.618)); }
 		// the glare: inside the sun's reach a star fades toward it
@@ -142,6 +145,8 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		var _skd1 = _sky[$ "skind"] ?? "main";
 		if (_skd1 == "pulsar") pulsar_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sky.sspin, _sky.stilt, _sfade, _cam);   // (its beams sweep the sky, held to the world - 2026-09-17)
 		else if (_skd1 == "dwarf") dwarf_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, _sfade);   // (a white dwarf's blaze - q195)
+		else if (_skd1 == "wolf") wolf_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0) * .37, _sfade, _cam);   // (a Wolf-Rayet's shell - q253)
+		else if (_skd1 == "proto") proto_draw(_ssx, _ssy, 5.5 * _ss, _sky.sun_col, (_sky[$ "star"] ?? 0), _sfade, _cam, false);   // (a protostar's haze - q253)
 		// THE TRANSITS (q240): the siblings that crossed the sun's disc, black on it
 		for (var _ti = 0; _ti < _tr_n; _ti++) { draw_set_alpha(_sfade); draw_circle_colour(_tr_x[_ti], _tr_y[_ti], _tr_r[_ti], c_black, c_black, false); draw_set_alpha(1); }
 		gpu_set_blendmode(bm_add);

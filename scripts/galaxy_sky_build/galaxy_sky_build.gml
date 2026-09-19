@@ -66,7 +66,7 @@ function galaxy_sky_build(_dw = undefined) {
 		// mid glyph. Size says near; brightness says what it is
 		var _nrf = _cfg[$ "sky_near_ref"] ?? 45, _gam = _cfg[$ "sky_flux_gamma"] ?? .5, _spw = _cfg[$ "sky_size_pow"] ?? 2;
 		var _skd = _st.props[$ "skind"] ?? "main";
-		var _lum = sqr(_st.props.size / 2) * ((_skd == "giant") ? 3 : ((_skd == "dwarf" || _skd == "pulsar") ? .15 : 1));
+		var _lum = sqr(_st.props.size / 2) * star_light(_skd, _st.seed, _st.props[$ "period"] ?? 2400).lum;   // (the kind's luminosity - star_light, one lawyer; q253)
 		var _fx = power(clamp(_lum * sqr(_nrf / max(_d, 20)), 0, 1), _gam);
 		var _sz = clamp(power(_lum, .3) * power(_nrf / max(_d, 20), _spw), 0, 1) * (_cfg[$ "sky_size_max"] ?? 31);
 		var _dir = frame_bearing(_az, _el);   // (the map's bearing into the sky's frame - the laws are frame_bearing's; q216)
@@ -97,6 +97,7 @@ function galaxy_sky_build(_dw = undefined) {
 	_out.sun_col  = _sys.star.col;
 	_out.hole     = _sys.star[$ "hole"] ?? false;   // (a black hole for a sun - 2026-09-17)
 	_out.skind    = _sys.star[$ "skind"] ?? "main"; _out.sspin = _sys.star[$ "spin"] ?? 1; _out.stilt = _sys.star[$ "tilt"] ?? 40;   // (a pulsar's beam sweeps the sky too)
+	_out.speriod  = _sys.star[$ "period"] ?? 2400; _out.sseed = _sys.star[$ "sseed"] ?? _hm.star;   // (a cepheid's period, the star's seed - q253)
 	// THE SUN'S SIZE BY THE ORBIT (his pick, 2026-09-16): the star's size over the world's orbit against a middling one -
 	// an inner world's sun is big in the sky, an outer world's a bright point (the same law sizes the shadows' sun)
 	_out.sun_size = _sys.star.size * clamp((_cfg[$ "sun_orbit_ref"] ?? 70) / max(20, _me3.orbit), _cfg[$ "sun_size_min"] ?? .45, _cfg[$ "sun_size_max"] ?? 2.2);

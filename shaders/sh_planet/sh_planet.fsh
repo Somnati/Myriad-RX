@@ -68,6 +68,7 @@ uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darke
 uniform float u_gloss;    // ...its SHEEN (q242, his ask: "specular as if icy gas giants"): a broad soft lobe of the sun in the sky's colour - the ice family glossy, a jovian nearly matte
 uniform float u_capl;     // THE CAP'S LATITUDE (q249): where the whole snow cap begins (|t.y|; .80 the old one) - the temper's, a world
 uniform float u_nlift;    // THE MOONLIT NIGHT (q250; his ask): 0 far (the night as dark as it is) .. 1 close (the night's floor risen to a moonlit look, so a region reads) - rides the cloud fade's curve (1 - cfade)
+uniform vec3  u_sunl;     // THE STAR'S LIGHT (q253): the colour and strength of the day on this world - a sun's white, a red giant's orange, a brown dwarf's dim red dusk, a cepheid's breathing (star_light)
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
 // THE PLUMES' smoke at a texture-space direction t (0..1) and the lava-glow weight under it (out): a RING of smoke
@@ -531,12 +532,12 @@ void main()
     // (the decks take the moonlit lift too - a moonlit cloud deck is among the most readable things there is; q250)
     clib += (0.50 - clib) * u_nlift * (1.0 - smoothstep(0.12, 0.5, clib));
     clit += (0.50 - clit) * u_nlift * (1.0 - smoothstep(0.12, 0.5, clit));
-    vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib;
+    vec3 cbcol = vec3(0.60, 0.64, 0.76) * clib * mix(vec3(1.0), u_sunl, smoothstep(0.12, 0.6, clib));   // (the decks in the star's light too - q253)
     if (clib < 0.9) cbcol = mix(cbcol, vec3(0.04, 0.05, 0.10), 0.55 * (1.0 - clib));
     float duskb = smoothstep(0.25, 0.55, clib) * (1.0 - smoothstep(0.55, 0.95, clib));   // the undersides catch the sunset too (2026-09-16)
     cbcol += mix(vec3(0.85, 0.35, 0.45), u_atmo, 0.30) * (duskb * 0.30);
     cbcol *= cshb;   // (the shape's shading last: the underside dark by day and by night alike - 2026-09-17)
-    vec3 ctcol = vec3(0.97, 0.98, 1.0) * clit * emb;
+    vec3 ctcol = vec3(0.97, 0.98, 1.0) * clit * emb * mix(vec3(1.0), u_sunl, smoothstep(0.12, 0.6, clit));
     // THE PLUMES (his ask, 2026-09-17): the volcanoes' smoke lives in the cloud map's GREEN and is read in the
     // GROUND's frame (u_rot, not the decks' u_crot), so the wind never carries a plume off its vent. A dark disc
     // of cloud at the top deck's height, in the deck's steps, lit by its own terminator; it thins with the region
@@ -779,6 +780,7 @@ void main()
         float li = lightband(min(dot(nn, u_light), dot(n, u_light) + 0.15));
         vec3 col0 = col;   // (the unlit ground, for the moonlit night below)
         col *= li;
+        col *= mix(vec3(1.0), u_sunl, smoothstep(0.13, 0.55, li));   // THE STAR'S LIGHT (q253): the day in the sun's colour and strength; the night untouched
         // THE MOONLIT NIGHT (q250; his ask: "darker from a distance, lessens as I zoom in so the landscape is visible"): where
         // the band is at its floor the ground rises toward MOONLIGHT - its own colour with the saturation dropped and a
         // blue cast, the luminance kept - by u_nlift (the cloud fade's curve: the night lifts as the deck thins, never

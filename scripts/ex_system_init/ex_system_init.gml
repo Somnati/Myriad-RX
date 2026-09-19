@@ -221,12 +221,16 @@ __draw_system = function() {
 		if (_it[1] < 0) {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
+			var _skd9 = sy_sys.star[$ "skind"] ?? "main";
+			if (_skd9 == "cepheid") _ss *= .85 + .3 * star_pulse(sy_sys.star[$ "sseed"] ?? 0, sy_sys.star[$ "period"] ?? 2400);   // (the star breathes - q253)
 			if (sy_sys.star[$ "hole"] ?? false) hole_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (a black hole: hole_draw bends the sky already on the page - 2026-09-17)
 			else {
 				star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
 				var _skd2 = sy_sys.star[$ "skind"] ?? "main";
 				if (_skd2 == "pulsar") pulsar_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, sy_sys.star.spin, sy_sys.star.tilt, 1, sy_cam);   // (the beams over it, held to the world - 2026-09-17)
 				else if (_skd2 == "dwarf") dwarf_draw(_sx, _sy, 6 * _ss, _stc, 1);   // (a white dwarf's blaze - his ask, q195)
+				else if (_skd2 == "wolf") wolf_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (the shell - q253)
+				else if (_skd2 == "proto") proto_draw(_sx, _sy, 6 * _ss, _stc, sy_star, 1, sy_cam, true, __sy_proj);   // (the haze and the dust disc - q253)
 			}
 			// the rings' near halves, over the star (their far halves went under everything)
 			for (var _rc = 0; _rc < array_length(_rc_near); _rc++) { var _rcc = _rc_near[_rc]; draw_sprite_ext(spr_pixel_1x1, 0, _rcc[0], _rcc[1], _pxs, _pxs, 0, _rcc[2], _rcc[3]); }

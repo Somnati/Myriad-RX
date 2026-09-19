@@ -93,6 +93,11 @@ function ex_galaxy_draw(_ea, _dim) {
 		// between beats, the beat a sharp flash with its white core
 		var _pk = 1;
 		if (_skd == "pulsar") { var _pt = (current_time / 1000) * (_st.props[$ "spin"] ?? 1) + (_st.seed mod 1000) / 1000; _pk = .55 + .45 * power(.5 + .5 * dsin(_pt * 360), 4); }   // (a touch gentler - his ask)
+		// THE NEW KINDS' MARKS (q253): a cepheid breathes; a brown dwarf is a dull red mote; a Wolf-Rayet wears a thin blue ring (its shell); a protostar sits in an orange puff
+		if (_skd == "cepheid") _pk = .7 + .3 * star_pulse(_st.seed, _st.props[$ "period"] ?? 2400);
+		if (_skd == "brown") { draw_sprite_ext(spr_star_glyph, min(_gi, 1), _gx0, _gy0, _gs, _gs, 0, merge_colour(_st.props.color, c_black, .3), .8); continue; }
+		if (_skd == "wolf") { draw_set_alpha(.55); draw_set_circle_precision(24); draw_circle_colour(_gx0 + _gs * .5, _gy0 + _gs * .5, max(3, _s * 2.4) * _gs, merge_colour(_st.props.color, rgb(150, 200, 255), .5), merge_colour(_st.props.color, rgb(150, 200, 255), .5), true); draw_set_alpha(1); }
+		if (_skd == "proto") draw_sprite_ext(spr_vis_glow_soft, 0, _gx0 + _gs * .5, _gy0 + _gs * .5, _s * 4 * _gs / _gw0, _s * 4 * _gs / _gh0, 0, merge_colour(_st.props.color, rgb(255, 160, 100), .5), .45);
 		draw_sprite_ext(spr_star_glyph, _gi, _gx0, _gy0, _gs, _gs, 0, _st.props.color, .95 * _pk);
 		if (_gi >= 2 && (_skd != "pulsar" || _pk > .7)) draw_sprite_ext(spr_star_glyph, STAR_GLYPH_CORE + _gi, _gx0, _gy0, _gs, _gs, 0, c_white, .8 * _pk);   // (a dot stays its colour)
 		if (_skd == "pulsar" && _pk > .85) draw_sprite_ext(spr_star_glyph, min(9, _gi + 1), _gx0, _gy0, _gs, _gs, 0, c_white, .5 * (_pk - .85) / .15);   // (the flash swells a frame)

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"star_pulse",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"star_pulse",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -365,8 +365,21 @@ function starmap_gen_step(_c, _budget_ms = 8) {
 					// half in a hundred - a white point with a lighthouse beam, its worlds dead and frozen. Hashed off the
 					// seed like the holes; the rolls after the star's own are safe
 					var _sk = hash_mix(_sseed, 4050) mod 1000, _pk = _c.stars[_si].props;
-					if (_sk < 60)       { _pk.skind = "giant";  _pk.size = random_range(3.0, 4.6); _pk.color = merge_colour(_pk.color, rgb(255, 128, 66), .72); _pk.stellar_class = choose("K III", "M III", "M II"); }
+					if (_sk < 60) {
+						// THE GIANT'S PALETTE (his ask, 2026-09-19): yellow (a G giant), orange (K), red (M), and the carbon star's ruby - hashed
+						var _gp = hash_mix(_sseed, 4051) mod 100;
+						_pk.skind = "giant"; _pk.size = random_range(3.0, 4.6);
+						if (_gp < 28)      { _pk.color = merge_colour(_pk.color, rgb(255, 218, 130), .78); _pk.stellar_class = choose("G III", "G II"); }
+						else if (_gp < 58) { _pk.color = merge_colour(_pk.color, rgb(255, 150, 70),  .76); _pk.stellar_class = choose("K III", "K II"); }
+						else if (_gp < 86) { _pk.color = merge_colour(_pk.color, rgb(255, 100, 58),  .78); _pk.stellar_class = choose("M III", "M II"); }
+						else               { _pk.color = merge_colour(_pk.color, rgb(215, 42, 46),   .86); _pk.stellar_class = "C"; }
+					}
 					else if (_sk < 110) { _pk.skind = "dwarf";  _pk.size = random_range(.35, .55); _pk.color = merge_colour(_pk.color, rgb(205, 218, 255), .8); _pk.stellar_class = choose("DA", "DB", "DQ"); }
+					// THE NEW KINDS (q253, his picks): a BROWN DWARF four in a hundred, a WOLF-RAYET one, a CEPHEID two and a half, a PROTOSTAR one and a half
+					else if (_sk >= 125 && _sk < 165) { _pk.skind = "brown"; _pk.size = random_range(.45, .70); _pk.color = merge_colour(_pk.color, rgb(160, 68, 80), .86); _pk.stellar_class = choose("L", "T"); }
+					else if (_sk >= 165 && _sk < 175) { _pk.skind = "wolf"; _pk.size = random_range(2.2, 3.4); _pk.color = merge_colour(_pk.color, rgb(190, 215, 255), .80); _pk.stellar_class = choose("WN", "WC"); }
+					else if (_sk >= 175 && _sk < 200) { _pk.skind = "cepheid"; _pk.size = random_range(1.6, 2.6); _pk.color = merge_colour(_pk.color, rgb(255, 236, 200), .62); _pk.stellar_class = choose("F Ib", "G Ib"); _pk.period = random_range(1200, 5400); }
+					else if (_sk >= 200 && _sk < 215) { _pk.skind = "proto"; _pk.size = random_range(.9, 1.5); _pk.color = merge_colour(_pk.color, rgb(255, 150, 90), .72); _pk.stellar_class = "T Tau"; }
 					else if (_sk < 125) { _pk.skind = "pulsar"; _pk.size = random_range(.30, .42); _pk.color = merge_colour(_pk.color, rgb(235, 240, 255), .85); _pk.stellar_class = "PSR"; _pk.spin = random_range(.7, 2.4); _pk.tilt = random_range(20, 70); }
 					// BLACK HOLES (his ask, 2026-09-17): one star in two hundred, hashed off its seed - and the core's own,
 					// supermassive, whatever sits nearest the galaxy's centre. The rolls after the star's own are safe: the
