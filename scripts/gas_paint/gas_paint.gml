@@ -35,12 +35,12 @@ function gas_paint(_ps, _u, _v, _vv, _f1) {
 		}
 		var _pw = ((_st.y >= 0) ? _na : -_na);   // (+ toward the pole the storm sits nearer)
 		if (_q < 1) {
+			// (q239: the bands themselves wind into the spot now - gas_colour's vortex - so the paint is a light tint of the
+			// storm's colour and the eye; the layered rings the first cut drew are the wound bands)
 			var _in = power(1 - _q, .55);
-			_col = merge_colour(_col, _st.col, _in * .92);
-			var _rings = .5 + .5 * cos(_q * _q * 22 + _st.spin * 1.3);                                  // the layered inside, winding in
-			_col = merge_colour(_col, ((_st[$ "eyel"] ?? 0) > 0) ? c_white : c_black, _rings * .10 * _in);
-			var _eye = 1 - sstep(_q, .10, .34);                                                        // the deeper eye
-			_col = merge_colour(_col, ((_st[$ "eyel"] ?? 0) > 0) ? c_white : c_black, _eye * .28);
+			_col = merge_colour(_col, _st.col, _in * .40);
+			var _eye = 1 - sstep(_q, .08, .26);                                                        // the deeper eye
+			_col = merge_colour(_col, ((_st[$ "eyel"] ?? 0) > 0) ? c_white : c_black, _eye * .30);
 		}
 		_collar = max(_collar, exp(-sqr((_q - 1.14) / .17)) * (.30 + .70 * clamp(_pw, 0, 1)) * .30);   // the pale collar, poleward
 		_rim    = max(_rim, clamp(1 - abs(_q - .97) / .11, 0, 1) * (.35 + .65 * clamp(-_pw, 0, 1)) * .24);   // the pressed rim, equatorward

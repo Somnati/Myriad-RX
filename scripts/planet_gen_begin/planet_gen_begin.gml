@@ -141,7 +141,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		_gw = { wan : .05 + .12 * _gwh(_seed, 740), shr : .02 + .09 * _gwh(_seed, 741), shf : 5 + 9 * _gwh(_seed, 742), mar : .15 + .40 * _gwh(_seed, 743),
 		        turb : .0 + .12 * power(_gwh(_seed, 744), 1.5), cap : (_gwh(_seed, 745) < .45) ? (.25 + .35 * _gwh(_seed, 746)) : 0, capd : (_gwh(_seed, 747) < .5) ? -1 : 1 };
 		_gstorms = [];
-		if (is_struct(_storm)) array_push(_gstorms, { x : _storm.x, y : _storm.y, z : _storm.z, r : _storm.r * .7, col : _pal[_storm.b], spin : (((hash_mix(_seed, 720) mod 2) == 0) ? 1 : -1), asp : 1.5 + .9 * ((hash_mix(_seed, 722) mod 1000) / 1000), eyel : hash_mix(_seed, 723) mod 2 });   // (the rolled storm, as it was)
+		if (is_struct(_storm)) array_push(_gstorms, { x : _storm.x, y : _storm.y, z : _storm.z, r : _storm.r * .7, col : _pal[_storm.b], spin : (((hash_mix(_seed, 720) mod 2) == 0) ? 1 : -1), asp : 1.5 + .9 * ((hash_mix(_seed, 722) mod 1000) / 1000), eyel : hash_mix(_seed, 723) mod 2, turns : 1.0 + 1.5 * ((hash_mix(_seed, 724) mod 1000) / 1000) });   // (the rolled storm, as it was)
 		// THE PEARLS (his Jupiter reference): up to five small pale ovals strung along one band, hashed
 		var _gpn = hash_mix(_seed, 750) mod 6;
 		if (_gpn > 0) {
@@ -157,7 +157,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		for (var _gi = 0; _gi < _gsn; _gi++) {
 			var _sz = ((hash_mix(_seed, 730 + _gi * 4) mod 1000) / 1000) * 1.2 - .6, _sa = ((hash_mix(_seed, 731 + _gi * 4) mod 1000) / 1000) * 2 * pi, _sr = sqrt(max(0, 1 - _sz * _sz));
 			var _sc = _gstops[hash_mix(_seed, 732 + _gi * 4) mod array_length(_gstops)].col;
-			array_push(_gstorms, { x : _sr * cos(_sa), y : _sz, z : _sr * sin(_sa), r : .07 + ((hash_mix(_seed, 733 + _gi * 4) mod 1000) / 1000) * .10, col : merge_colour(_sc, ((hash_mix(_seed, 734 + _gi * 4) mod 2) == 0) ? c_white : c_black, .35), spin : (((hash_mix(_seed, 735 + _gi * 4) mod 2) == 0) ? 1 : -1), asp : 1.5 + .9 * ((hash_mix(_seed, 736 + _gi * 4) mod 1000) / 1000), eyel : hash_mix(_seed, 737 + _gi * 4) mod 2 });
+			array_push(_gstorms, { x : _sr * cos(_sa), y : _sz, z : _sr * sin(_sa), r : .07 + ((hash_mix(_seed, 733 + _gi * 4) mod 1000) / 1000) * .10, col : merge_colour(_sc, ((hash_mix(_seed, 734 + _gi * 4) mod 2) == 0) ? c_white : c_black, .35), spin : (((hash_mix(_seed, 735 + _gi * 4) mod 2) == 0) ? 1 : -1), asp : 1.5 + .9 * ((hash_mix(_seed, 736 + _gi * 4) mod 1000) / 1000), eyel : hash_mix(_seed, 737 + _gi * 4) mod 2, turns : 1.0 + 1.5 * ((hash_mix(_seed, 738 + _gi * 4) mod 1000) / 1000) });
 		}
 	} else {
 		if (_dry) _arch = (_clim < .22 || (_clim < .5 && random(1) < .3)) ? "lava" : "barren";
