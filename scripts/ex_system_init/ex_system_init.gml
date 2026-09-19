@@ -89,7 +89,10 @@ __sy_enter = function(_star) {
 	// system page draws no sun and no siblings, so nothing of it is the wrong planet's (q200; his question: "are you rebaking
 	// the skybox?" - the stand-in below was planets[0], a different cache key from any other world's, so yes, it was);
 	// else a stand-in world of this star (the sky builder wants one)
-	sy_dest = (sy_sel >= 0 && is_struct(pl_dest) && pl_dest.seed == sy_sys.planets[sy_sel].seed) ? pl_dest : { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };
+	// (an EMPTY system - a protostar's, q253 - hands the sky builder a pl -1 stand-in: galaxy_world_sys reads it as one
+	// virtual world, so the sky stands with a sun and no siblings; q255)
+	if (array_length(sy_sys.planets) == 0) sy_dest = { seed : (_sm.stars[_star].seed ^ 2654435761) & $7fffffff, star : _star, pl : -1 };
+	else sy_dest = (sy_sel >= 0 && is_struct(pl_dest) && pl_dest.seed == sy_sys.planets[sy_sel].seed) ? pl_dest : { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };
 	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
 	sy_rmax = 0; for (var _ri = 0; _ri < array_length(sy_sys.planets); _ri++) sy_rmax = max(sy_rmax, sy_sys.planets[_ri].orbit);   // (the spread's anchor: this system's own reach, so a great star's wide system keeps its shape)

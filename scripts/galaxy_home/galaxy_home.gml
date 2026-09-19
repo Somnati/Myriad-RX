@@ -30,9 +30,15 @@ function galaxy_home() {
 		}
 	}
 	if (_pick < 0) {
-		// (four hundred systems without a temperate world: the first star's first rock)
-		_pick = _cands[0]; _sys = starsystem_get(_sm.stars[_pick].seed, _sm.stars[_pick].props); _pi = 0;
-		for (var _p = 0; _p < array_length(_sys.planets); _p++) if (_sys.planets[_p].kind == "rock") { _pi = _p; break; }
+		// (four hundred systems without a temperate world: the first candidate WITH worlds, its first rock - a protostar
+		// has none, q253 / q255)
+		for (var _c2 = 0; _c2 < array_length(_cands); _c2++) {
+			var _sy2 = starsystem_get(_sm.stars[_cands[_c2]].seed, _sm.stars[_cands[_c2]].props);
+			if (array_length(_sy2.planets) == 0) continue;
+			_pick = _cands[_c2]; _sys = _sy2; _pi = 0;
+			for (var _p = 0; _p < array_length(_sys.planets); _p++) if (_sys.planets[_p].kind == "rock") { _pi = _p; break; }
+			break;
+		}
 	}
 	if (DEBUG_HOME) { _pi = debug_scenario(_sm, _pick, _pi); _sys = starsystem_get(_sm.stars[_pick].seed, _sm.stars[_pick].props); }   // (the debug home - his roster of worlds and every kind of star next door - made once on the kept objects; q212 / q252)
 	var _rom = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
