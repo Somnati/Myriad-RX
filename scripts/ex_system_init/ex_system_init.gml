@@ -12,7 +12,7 @@ function ex_system_init() {
 // picks (a pulsing box, the card), [enter] dives (the swell, then the world's page); a dock on the right: the star's
 // numbers, the worlds listed
 sy_star = -1; sy_sys = undefined; sy_sel = -1; sy_dest = undefined; sy_from = "galaxy";   // (sy_from: where [back] returns - the map, or the planet page)
-sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230;
+sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230; sy_rmax = 0;   // (sy_rmax: the system's outermost orbit - the spread's anchor, q241)
 sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite - begun on entry, built a slice a frame: __sy_lite_step)
@@ -51,6 +51,12 @@ __rock_draw = function(_r, _s) {
 };
 /// world -> page: [sx, sy, scale, depth], or undefined when behind the camera
 __sy_proj = function(_wx, _wy, _wz) {
+	// THE SPREAD (q241; his report: "these planets on the star map are really close together"): the rings' radii remapped
+	// in the VIEW alone - r' = rmax x (r / rmax)^.85 x 1.3 - the inner gaps opened a little more than the outer, the whole
+	// system using the room it had spare. Every ring, world, moon, station, belt and pick projects through here, so they
+	// agree; the geometry itself (the sky's siblings, the sun's size, the year) is untouched
+	var _rr = sqrt(_wx * _wx + _wz * _wz);
+	if (_rr > .001 && sy_rmax > 0) { var _rn = sy_rmax * power(_rr / sy_rmax, .85) * 1.3; _wx *= _rn / _rr; _wz *= _rn / _rr; }
 	var _v = mat3_apply(mat3_transpose(sy_cam), _wx, _wy, _wz);
 	var _dz = sy_D - _v[2];
 	if (_dz < 24) return undefined;
@@ -86,6 +92,8 @@ __sy_enter = function(_star) {
 	sy_dest = (sy_sel >= 0 && is_struct(pl_dest) && pl_dest.seed == sy_sys.planets[sy_sel].seed) ? pl_dest : { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };
 	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
+	sy_rmax = 0; for (var _ri = 0; _ri < array_length(sy_sys.planets); _ri++) sy_rmax = max(sy_rmax, sy_sys.planets[_ri].orbit);   // (the spread's anchor: this system's own reach, so a great star's wide system keeps its shape)
+	for (var _ri = 0; _ri < array_length(sy_stns); _ri++) sy_rmax = max(sy_rmax, sy_stns[_ri].orbit);
 };
 /// THE STATION PAGE (2026-09-17, his ask: "click on one like I do a planet to
 /// zoom in on it"): the system's sky behind, the station large in the
@@ -225,18 +233,18 @@ __draw_system = function() {
 		} else if (_it[1] >= 3000) {
 			// A BIG ROCK of a belt (the polish, 2026-09-17): a small tumbling solid, lit from the star
 			var _bb = sy_belts[(_it[1] - 3000) div 8].bigs[(_it[1] - 3000) mod 8], _bba = (_bb.a0 + _bb.spd * 60 * _bnow) mod 360;
-			station_render(_bb.st, _sx, _sy, max(1.5, _bb.size * _k * 1.2), sy_cam, [-dcos(_bba), 0, -dsin(_bba)], (_bnow * 60 * _bb.st.spin) mod 360);
+			station_render(_bb.st, _sx, _sy, max(1.5, _bb.size * _k * 1.0), sy_cam, [-dcos(_bba), 0, -dsin(_bba)], (_bnow * 60 * _bb.st.spin) mod 360);
 		} else if (_it[1] >= 1000) {
 			// A STATION on its ring (2026-09-17): its solid, lit from the star; picked = the pulsing box, like a world's
 			var _j = _it[1] - 1000, _stj = sy_stns[_j], _sq1 = __st_ppos(_stj);
-			var _srad = max(2, _stj.size * _k * 1.2);
+			var _srad = max(2, _stj.size * _k * 1.0);   // (the stamps a fifth smaller with the spread - q241)
 			var _svv = mat3_apply(mat3_transpose(sy_cam), _sq1[0], _sq1[1], _sq1[2]);   // (the eye sits at view z = sy_D: the ray toward it - no shear off the centre)
 			station_render(_stj, _sx, _sy, _srad, sy_cam, [-dcos(_sq1[3]), 0, -dsin(_sq1[3])], undefined, [_svv[0], _svv[1], _svv[2] - sy_D]);
-			if (sy_ssel == _j && sy_warp_pl < 0 && sy_warp_st < 0) { var _mr3 = _srad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr3, _sy - _mr3, _mr3 * 2, _mr3 * 2, c_white, .8); }
+			if (sy_ssel == _j && sy_warp_pl < 0 && sy_warp_st < 0) { var _mr3 = _srad * 1.5 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr3, _sy - _mr3, _mr3 * 2, _mr3 * 2, c_white, .8); }
 		} else {
 			var _i = _it[1], _p = _pls[_i], _pd = sy_pd[_i];
 			var _pw = __sy_ppos(_p);
-			var _rad = max(1.5, _p.size * _k * 1.2);
+			var _rad = max(1.5, _p.size * _k * 1.0);   // (a fifth smaller with the spread - q241: a giant 16 px across, a rock 8)
 			// lit from the star: toward the origin from the world, in the plane (world space - planet_draw turns it through the camera);
 			// a world still building (q201) is a plain ball in its colour, its edge dark, until its textures stand
 			if (planet_lite_ready(_pd)) planet_draw(_pd, _sx, _sy, _rad, undefined, 1, sy_cam, [-dcos(_pw[3]), 0, -dsin(_pw[3])]);
@@ -252,7 +260,7 @@ __draw_system = function() {
 				draw_sprite_ext(spr_pixel_1x1, 0, _mx - _ms * .5, _my - _ms * .5, _ms, _ms, 0, _mo.col, .9);
 			}
 			// picked: the pulsing box (no mark for the opened ones - his call, 2026-09-16: the worlds need not know they have been)
-			if (sy_sel == _i && sy_warp_pl < 0) { var _mr2 = _rad * 1.7 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr2, _sy - _mr2, _mr2 * 2, _mr2 * 2, c_white, .8); }
+			if (sy_sel == _i && sy_warp_pl < 0) { var _mr2 = _rad * 1.5 + 3 + dsin(current_time * .25) * 1.2; draw_px_rect(_sx - _mr2, _sy - _mr2, _mr2 * 2, _mr2 * 2, c_white, .8); }
 			// "you": the world the panel stands on (the home world when nothing does)
 			var _here = is_struct(pl_dest) ? (pl_dest.seed == _p.seed) : (galaxy_home().planet_seed == _p.seed);
 			if (_here && sy_warp_pl < 0) {

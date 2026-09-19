@@ -854,7 +854,7 @@ dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _g _i _mid 
 dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
 dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y
 dupvar	scripts\ex_system_draw\ex_system_draw.gml            _bj
-dupvar	scripts\ex_system_init\ex_system_init.gml            _a _bg _bl _cfgp _dd _fa _fpp0 _fsp0 _gph _h _i _j _k _mo _or _p _pp _pp0 _pw _pxs _rk _rp _sky _sor _sq0 _sq1 _stj _vr _w _x c_gold dsin
+dupvar	scripts\ex_system_init\ex_system_init.gml            _a _bg _bl _cfgp _dd _fa _fpp0 _fsp0 _gph _h _i _j _k _mo _or _p _pp _pp0 _pw _pxs _ri _rk _rp _sky _sor _sq0 _sq1 _stj _vr _w _x c_gold dsin
 dupvar	scripts\ex_system_step\ex_system_step.gml            _bk0 _pw2 _ser _sgl0 _sq2 _svr mouse_y
 dupvar	scripts\ex_trip_draw\ex_trip_draw.gml                _f _fo _j _k _ltw _m _pi _tr
 dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn

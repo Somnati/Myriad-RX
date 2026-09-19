@@ -54,14 +54,14 @@ function ex_system_step() {
 			for (var _i = 0; _i < array_length(_pls2); _i++) {
 				var _pw2 = __sy_ppos(_pls2[_i]); var _pp2 = __sy_proj(_pw2[0], 0, _pw2[2]);
 				if (is_undefined(_pp2)) continue;
-				if (point_distance(mouse_x, mouse_y - list_y, _pp2[0], _pp2[1]) <= _pls2[_i].size * _pp2[2] * 1.9 + 6) { _hit = _i; break; }
+				if (point_distance(mouse_x, mouse_y - list_y, _pp2[0], _pp2[1]) <= _pls2[_i].size * _pp2[2] * 1.6 + 5) { _hit = _i; break; }
 			}
 			// ...or the nearest station (2026-09-17): a station and a world are never both picked
 			var _shit = -1;
 			for (var _j = 0; _j < array_length(sy_stns); _j++) {
 				var _sq2 = __st_ppos(sy_stns[_j]); var _sp2 = __sy_proj(_sq2[0], 0, _sq2[2]);
 				if (is_undefined(_sp2)) continue;
-				if (point_distance(mouse_x, mouse_y - list_y, _sp2[0], _sp2[1]) <= sy_stns[_j].size * _sp2[2] * 1.9 + 6) { _shit = _j; break; }
+				if (point_distance(mouse_x, mouse_y - list_y, _sp2[0], _sp2[1]) <= sy_stns[_j].size * _sp2[2] * 1.6 + 5) { _shit = _j; break; }
 			}
 			// ...or a belt's band (the polish, 2026-09-17): the nearest point of its ring within reach names it - nothing to enter
 			var _bhit = -1;
