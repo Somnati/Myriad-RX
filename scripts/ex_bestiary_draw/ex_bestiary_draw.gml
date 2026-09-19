@@ -104,5 +104,4 @@ function ex_bestiary_draw(_ink, _dim) {
 	draw_set_alpha(1);
 	ui_fade_set(1);
 	return true;
-	return false;
 }

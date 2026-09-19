@@ -17,5 +17,4 @@ function ex_map_press() {
 		if (map_pop >= 0) { map_pop = -1; return true; }
 	}
 	return true;
-	return false;
 }

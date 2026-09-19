@@ -236,5 +236,4 @@ function ex_trip_draw(_e, _ea, _br, _ink, _dim) {
 	}
 	ui_fade_set(1);
 	return true;
-	return false;
 }

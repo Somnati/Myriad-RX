@@ -190,5 +190,4 @@ function ex_depart_draw(_e, _ink, _dim) {
 	}
 	ui_fade_set(1);
 	return true;
-	return false;
 }

@@ -6,5 +6,4 @@ function ex_bestiary_press() {
 		if (point_in_rectangle(mouse_x, mouse_y, _cr.x, _cr.y, _cr.x + _cr.w, _cr.y + _cr.h)) { bs_sel = _i; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); return true; }
 	}
 	return true;
-	return false;
 }

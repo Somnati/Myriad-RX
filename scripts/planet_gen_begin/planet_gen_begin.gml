@@ -84,6 +84,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _atmo, _pal, _bands = undefined, _storm = undefined, _cbl = [], _belts = [];
 	var _arch = (_kind == "gas") ? "gas" : "terra";
 	var _craters = [];
+	var _sand = c_gray;   // the world's sand (a rock world rolls it below; a giant has none - declared here so no read is outside its scope)
 	if (_kind == "gas") {
 		var _gh = (_hue >= 0) ? _hue : irandom(255);
 		_atmo = make_colour_hsv(_gh, irandom_range(80, 135), 255);
@@ -143,7 +144,6 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		else if (_tf < 80) { }   // (contrast: as rolled)
 		else if (_tf < 90) { _fh = hash_mix(_seed, 737) mod 256; _fs = 60 + (hash_mix(_seed, 738) mod 60); _fv = 85; }
 		else               { _fh = hash_mix(_seed, 739) mod 256; _fs = 20 + (hash_mix(_seed, 740) mod 40); _fv = 205; }
-		var _sand;
 		var _sr = irandom(9);
 		if (_sr < 4)      _sand = make_colour_hsv(irandom_range(10, 32),  irandom_range(80, 160), irandom_range(140, 205));
 		else if (_sr < 6) _sand = make_colour_hsv(irandom(255),           irandom_range(0, 35),   irandom_range(45, 90));

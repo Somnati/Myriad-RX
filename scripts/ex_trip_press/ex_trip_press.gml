@@ -66,5 +66,4 @@ function ex_trip_press() {
 		}
 	}
 	return true;
-	return false;
 }

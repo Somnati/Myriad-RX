@@ -64,5 +64,4 @@ function ex_crew_draw(_ink, _dim) {
 	if (conf_a > .01 && (conf_kind == "dismiss" || conf_kind == "dismiss2")) __draw_confirm(__dismiss_q(_sp), (conf_kind == "dismiss2") ? "yes, dismiss" : "dismiss", c_hred);   // (conf_kind: it fades out with its face on)
 	ui_fade_set(1);
 	return true;
-	return false;
 }

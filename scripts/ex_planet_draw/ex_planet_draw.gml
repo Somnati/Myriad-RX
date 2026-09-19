@@ -149,5 +149,4 @@ function ex_planet_draw(_e, _ea, _dim) {
 	__draw_back();
 	ui_fade_set(1);
 	return true;
-	return true;
 }

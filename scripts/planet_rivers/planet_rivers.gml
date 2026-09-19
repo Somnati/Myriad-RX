@@ -194,8 +194,8 @@ function planet_rivers(_pn) {
 			if (_ny < 0 || _ny >= _th) continue;
 			for (var _dx = -1; _dx <= 1; _dx++) {
 				if (_dx == 0 && _dy == 0) continue;
-				var _ni = ((_cx + _dx + _tw) mod _tw) + _ny * _tw, _nb = _bm[_ni];
-				if (_wat[_ni] || _nb == 11 || _nb == 1 || _nb == 8 || _nb == 9 || _nb == 10 || _nb == 14) continue;
+				var _ni = ((_cx + _dx + _tw) mod _tw) + _ny * _tw, _nbm = _bm[_ni];   // (_nbm: the bucket count above is _nb)
+				if (_wat[_ni] || _nbm == 11 || _nbm == 1 || _nbm == 8 || _nbm == 9 || _nbm == 10 || _nbm == 14) continue;
 				if (_atm && _acc[_i] >= _delta && _el[_ni] < _sea + .012) { _bm[_ni] = 11; continue; }   // the delta's fan
 				if (_fill[_ni] < _lv) { _lv = _fill[_ni]; _lo = _ni; }
 			}

@@ -168,5 +168,4 @@ function ex_haul_draw(_e, _ea, _ink, _dim) {
 	}
 	ui_fade_set(1);
 	return true;
-	return false;
 }

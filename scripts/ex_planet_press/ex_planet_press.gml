@@ -78,5 +78,4 @@ function ex_planet_press(_e) {
 		}
 	}
 	return true;
-	return false;
 }

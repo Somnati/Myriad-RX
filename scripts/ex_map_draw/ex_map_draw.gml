@@ -131,5 +131,4 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 	}
 	ui_fade_set(1);
 	return true;
-	return false;
 }

@@ -16,5 +16,4 @@ function ex_crew_press() {
 	// an item row: its popup (the rects the Draw laid down - __sheet_tap, the one handler)
 	__sheet_tap();
 	return true;
-	return false;
 }

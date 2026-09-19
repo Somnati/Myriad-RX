@@ -63,5 +63,4 @@ function ex_depart_press(_e) {
 		}
 	}
 	return true;
-	return false;
 }

@@ -57,5 +57,4 @@ function ex_haul_press(_e) {
 		}
 	}
 	return true;
-	return false;
 }

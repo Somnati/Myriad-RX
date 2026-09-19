@@ -95,5 +95,4 @@ function ex_system_draw(_e, _ea, _ink, _dim) {
 	__draw_back();
 	ui_fade_set(1);
 	return true;
-	return true;
 }
