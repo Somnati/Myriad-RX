@@ -9,9 +9,13 @@
 /// face three times finer, not a blur of it. Called thousands of times a
 /// world - no allocation
 function gas_colour(_ps, _u, _v) {
-	var _sd = _ps.gseed;
-	var _w1 = (planet_vn3(_sd + 11, _u, _v, 2.4) - .5) * .11 + (planet_vn3(_sd + 12, _u, _v, 4.8) - .5) * .05;   // the wander
-	var _w2 = (planet_vn3a(_sd + 23, _u, _v, 2.2, 7.5) - .5) * .06 + (planet_vn3a(_sd + 24, _u, _v, 4.4, 15) - .5) * .03;   // the jets' streaks
+	var _sd = _ps.gseed, _gw = _ps.gw;
+	var _wan = _gw.wan, _shr = _gw.shr, _shf = _gw.shf, _mar = _gw.mar, _turb = _gw.turb;
+	// THE TURBULENCE (the temper's turb): the point the streaks are read at is itself bent by the wander - domain warping,
+	// the curl of a marble - a calm giant has none, a churned one folds its bands into eddies
+	var _tu = _u + (planet_vn3(_sd + 13, _u, _v, 3.1) - .5) * _turb, _tv = _v + (planet_vn3(_sd + 14, _u, _v, 3.1) - .5) * _turb;
+	var _w1 = (planet_vn3(_sd + 11, _u, _v, 2.4) - .5) * _wan + (planet_vn3(_sd + 12, _u, _v, 4.8) - .5) * _wan * .45;   // the wander
+	var _w2 = (planet_vn3a(_sd + 23, _tu, _tv, 2.2, _shf) - .5) * _shr + (planet_vn3a(_sd + 24, _tu, _tv, 4.4, _shf * 2) - .5) * _shr * .5;   // the jets' streaks
 	var _w3 = (planet_vn3(_sd + 37, _u, _v, 19) - .5) * .014;   // the marbling
 	var _vv = _v + _w1 + _w2 + _w3;
 	// the storms: the bands bend round each, its own colour inside with a spiral, a bright rim
@@ -49,8 +53,10 @@ function gas_colour(_ps, _u, _v) {
 	var _col = merge_colour(_c0, _c1, _t);
 	if (_smix > 0) _col = merge_colour(_col, _scol, min(1, _smix));
 	// the filaments: a light and a dark marbling along the streaks, and a fine grain
-	var _f = (planet_vn3a(_sd + 41, _u, _v, 3.0, 26) - .5) * .9 + (planet_vn3(_sd + 42, _u, _v, 33) - .5) * .3;
-	_col = merge_colour(_col, (_f > 0) ? c_white : c_black, clamp(abs(_f), 0, 1) * .38);
+	var _f = (planet_vn3a(_sd + 41, _tu, _tv, 3.0, 26) - .5) * .9 + (planet_vn3(_sd + 42, _u, _v, 33) - .5) * .3;
+	_col = merge_colour(_col, (_f > 0) ? c_white : c_black, clamp(abs(_f), 0, 1) * _mar);
+	// the pole caps (the temper's cap): the high latitudes darken or pale, as some giants' do
+	if (_gw.cap > 0) { var _pc = power(clamp(abs(_v - .5) * 2, 0, 1), 3); _col = merge_colour(_col, (_gw.capd < 0) ? c_black : c_white, _pc * _gw.cap); }
 	if (_srim > 0) _col = merge_colour(_col, c_white, clamp(_srim, 0, 1));
 	return _col;
 }

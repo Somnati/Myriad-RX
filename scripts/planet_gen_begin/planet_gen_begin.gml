@@ -84,7 +84,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 	var _atmo, _pal, _bands = undefined, _storm = undefined, _cbl = [], _belts = [];
 	var _arch = (_kind == "gas") ? "gas" : "terra";
 	var _craters = [];
-	var _gstops = [], _gstorms = [];   // THE GIANT'S FACE (q236): the colour stops and the storm ovals gas_colour reads (a rock world has none)
+	var _gstops = [], _gstorms = [], _gw = undefined;   // THE GIANT'S FACE (q236): the colour stops and the storm ovals gas_colour reads (a rock world has none)
 	var _sand = c_gray;   // the world's sand (a rock world rolls it below; a giant has none - declared here so no read is outside its scope)
 	if (_kind == "gas") {
 		var _gh = (_hue >= 0) ? _hue : irandom(255);
@@ -134,6 +134,12 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 			_gv += .05 + ((hash_mix(_seed, 703 + _gk * 3) mod 1000) / 1000) * ((_gfam == 1) ? .17 : .12);
 			_gk++;
 		}
+		// THE WEATHER'S TEMPER (his question, 2026-09-18: "how much variety in their patterns"): the wander, the shear and its
+		// streak frequency, the marbling, the pole caps - hashed a world, so one giant is calm and banded, the next a
+		// churned marble, another streaked thin like a jet stream photograph
+		var _gwh = function(_s, _k) { return (hash_mix(_s, _k) mod 1000) / 1000; };
+		_gw = { wan : .05 + .12 * _gwh(_seed, 740), shr : .02 + .09 * _gwh(_seed, 741), shf : 5 + 9 * _gwh(_seed, 742), mar : .15 + .40 * _gwh(_seed, 743),
+		        turb : .0 + .12 * power(_gwh(_seed, 744), 1.5), cap : (_gwh(_seed, 745) < .45) ? (.25 + .35 * _gwh(_seed, 746)) : 0, capd : (_gwh(_seed, 747) < .5) ? -1 : 1 };
 		_gstorms = [];
 		if (is_struct(_storm)) array_push(_gstorms, { x : _storm.x, y : _storm.y, z : _storm.z, r : _storm.r * .9, col : _pal[_storm.b], spin : (((hash_mix(_seed, 720) mod 2) == 0) ? 1 : -1) });   // (the rolled storm, as it was)
 		var _gsn = hash_mix(_seed, 721) mod 3;   // (and up to two more, hashed)
@@ -321,7 +327,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		arch : _arch, craters : _craters,
 		theat : (.5 - _clim) * .5,
 		bands : _bands, storm : _storm,
-		gstops : _gstops, gstorms : _gstorms, gseed : (_seed mod 100000), oc : 0,   // (the giant's face - gas_colour; oc = the texel's colour it wrote; q236)
+		gstops : _gstops, gstorms : _gstorms, gw : _gw, gseed : (_seed mod 100000), oc : 0,   // (the giant's face - gas_colour; oc = the texel's colour it wrote; q236)
 		oe : 0, ob : 0,
 		cities : undefined,
 	};

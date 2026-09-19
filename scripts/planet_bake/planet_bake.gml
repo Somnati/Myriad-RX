@@ -60,7 +60,7 @@ function planet_bake(_pn, _until = undefined) {
 				// the clouds: red the thickness (the cloud relief), green free, BLUE the sand under it (the dunes full, the desert
 				// half - the shader's dune grain, q209), alpha the coverage - never exactly 0 (a sheet read is gated on the thickness)
 				var _bs2 = _pn.biome[_i];
-				_r8 = floor(clamp(_pn.cthk[_i], 0, 1) * 255); _g8 = 255; _b8 = (_bs2 == 24) ? 255 : ((_bs2 == 3) ? 110 : 0);
+				_r8 = floor(clamp(_pn.cthk[_i], 0, 1) * 255); _g8 = 255; _b8 = _gas ? 0 : ((_bs2 == 24) ? 255 : ((_bs2 == 3) ? 110 : 0));   // (never on a giant: its band index is not a biome - band 3 wore the desert's wind grain; his report 2026-09-18)
 				_a8 = max(1, floor(clamp(_pn.carr[_i], 0, 1) * 255));
 			} else {
 				// the height (planet_sheet_height - the one encoder, the tier's too): a lake's is its water's (the fill level, flat), a

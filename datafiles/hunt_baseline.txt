@@ -925,7 +925,7 @@ dupvar	scripts\galaxy_sky_draw\galaxy_sky_draw.gml          _bf _f _fade _i _ldx
 dupvar	scripts\galaxy_sky_holes\galaxy_sky_holes.gml        _bk _cam _fr _lw _lw0 _o _qw _rs _sk _ssy _sux round
 dupvar	scripts\galaxy_world\galaxy_world.gml                _st
 dupvar	scripts\galaxy_world_sys\galaxy_world_sys.gml        _st
-dupvar	scripts\gas_colour\gas_colour.gml                    _c1 _gs _k _k0 _py _pz _st _t _tx _u _v
+dupvar	scripts\gas_colour\gas_colour.gml                    _c1 _gs _k _k0 _py _pz _shf _st _t _tu _tv _tx _u _v
 dupvar	scripts\gear_gen\gear_gen.gml                        _i
 dupvar	scripts\gear_score\gear_score.gml                    _i
 dupvar	scripts\gift_board\gift_board.gml                    _r
