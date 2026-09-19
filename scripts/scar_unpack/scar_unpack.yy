@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scar_unpack",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scar_unpack",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -643,7 +643,6 @@ ivars	syst_tiles                 Create_0.gml                             hi_to 
 ivars	syst_tiles                 Create_0.gml                             pre x1
 ivars	syst_tiles                 Create_0.gml                             suf x1
 ivars	syst_tiles                 Step_0.gml                               cost x2
-ivars	syst_tiletimer             Step_0.gml                               th x1
 ivars	syst_tiletimer             Step_0.gml                               tw x1
 ivars	syst_timebank_panel        Create_0.gml                             cost x2
 ivars	syst_timebank_panel        Create_0.gml                             maxed x2
@@ -954,6 +953,7 @@ dupvar	scripts\handle_save\handle_save.gml                  _cp _d _f _has _i _k
 dupvar	scripts\handle_settings\handle_settings.gml          _i
 dupvar	scripts\hole_draw\hole_draw.gml                      _ph _pw _qw
 dupvar	scripts\hole_frame\hole_frame.gml                    sqrt
+dupvar	scripts\lane_dest\lane_dest.gml                      _i
 dupvar	scripts\lane_push\lane_push.gml                      _r
 dupvar	scripts\lane_unpack\lane_unpack.gml                  _eq _recs
 dupvar	scripts\loading_draw\loading_draw.gml                _back _k
@@ -1013,9 +1013,13 @@ dupvar	scripts\region_path\region_path.gml                  _u
 dupvar	scripts\region_road_name\region_road_name.gml        _base
 dupvar	scripts\region_road_point\region_road_point.gml      _k _pts array_length
 dupvar	scripts\region_season\region_season.gml              _d _tilt
-dupvar	scripts\region_villain\region_villain.gml            _h
+dupvar	scripts\region_villain\region_villain.gml            _h _rg
 dupvar	scripts\region_weather\region_weather.gml            _rg _slot _wet
 dupvar	scripts\save_export\save_export.gml                  _b
+dupvar	scripts\scar_land\scar_land.gml                      _c _i _ri
+dupvar	scripts\scar_unpack\scar_unpack.gml                  _eq _recs
+dupvar	scripts\seat_tick\seat_tick.gml                      _rg _ri
+dupvar	scripts\seat_unpack\seat_unpack.gml                  _eq _recs
 dupvar	scripts\settings_content\settings_content.gml        _cur _j _l _on _sel
 dupvar	scripts\sprite_ability_autofill\sprite_ability_autofill.gml _all _s
 dupvar	scripts\sprite_ability_worn\sprite_ability_worn.gml  _i

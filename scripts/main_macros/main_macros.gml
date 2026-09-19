@@ -854,3 +854,10 @@ function main_macros() {
 // world days: 2 x 24 x EXPED_HOUR / ln 2), and the deviation under which a lane counts as at rest (the record is dropped)
 #macro LANE_TAU     1385
 #macro LANE_QUIET   .02
+// SEATS and SCARS (q260): a villain's seat stays empty SEAT_DAYS world days over the region's weight (clamped 1..14); a lane held
+// past .7 for SCAR_HOLD seconds of the expedition clock (two world days) lands a permanent scar; SCAR_CAP regions may carry
+// scars at once (the oldest heal); EXPED_NEWS_MAX lines of world news kept
+#macro SEAT_DAYS        6
+#macro SCAR_HOLD        960
+#macro SCAR_CAP         100
+#macro EXPED_NEWS_MAX   16

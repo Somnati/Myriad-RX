@@ -7,12 +7,13 @@
 /// in the party (half of it, three at most)
 function exped_fork_mods(_tr, _fk) {
 	var _mods = [];
-	var _rng = false, _rog = false, _luck = 0, _light = false, _warm = false;
+	var _rng = false, _rog = false, _luck = 0, _light = false, _warm = false, _known = false;
 	for (var _k = 0; _k < array_length(_tr.sids); _k++) {
 		if (_tr.hp[_k] <= 0) continue;
 		var _sp = exped_sprite(_tr.sids[_k]);
 		if (is_undefined(_sp)) continue;
 		var _st = sprite_stats(_sp);
+		if (_fk.kind == "shortcut" && sprite_note_has(_sp, "road:" + _fk.land)) _known = true;   // (a note on this land: the party knows a way - q260)
 		if (_st.cls.key == "ranger") _rng = true;
 		if (_st.cls.key == "rogue") _rog = true;
 		_luck = max(_luck, sprite_luck(_sp));
@@ -24,6 +25,7 @@ function exped_fork_mods(_tr, _fk) {
 	}
 	if (_fk.kind == "shortcut") {
 		if (_rng) array_push(_mods, { name : "ranger", v : 3 });
+		if (_known) array_push(_mods, { name : "a note", v : 2 });
 		if (_rog && (_fk.land == "mountains" || _fk.land == "hills" || _fk.land == "forest")) array_push(_mods, { name : "rogue", v : 2 });
 		if (_light && (_fk.night || _fk.wx == "fog")) array_push(_mods, { name : "light", v : 2 });
 		if (_warm && (_fk.wx == "snow" || _fk.land == "tundra")) array_push(_mods, { name : "warm", v : 2 });

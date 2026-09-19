@@ -619,6 +619,8 @@ function handle_save(){
 	var _xof = handle("ex_offer", exped_offer_pack());   // THE QUEST BOARDS (2026-09-15)
 	var _xmm = handle("ex_mem", exped_mem_pack());       // THE WORLD REMEMBERS (2026-09-16)
 	var _xln = handle("ex_lanes", lane_pack());          // REGION LANES - the sum, not the list (q259)
+	var _xst = handle("ex_seat", seat_pack());           // THE SEATS (q260)
+	var _xsc = handle("ex_scars", scar_pack());          // THE SCARS (q260)
 	var _xvl = "";   // THE VILLAINS' THREADS (2026-09-16): key=stage|...
 	if (is_struct(g.exped[$ "vil"])) { var _vkn = variable_struct_get_names(g.exped.vil); for (var _i = 0; _i < array_length(_vkn); _i++) _xvl += ((_i > 0) ? "|" : "") + _vkn[_i] + "=" + string(g.exped.vil[$ _vkn[_i]]); }
 	_xvl = handle("ex_vil", _xvl);
@@ -626,6 +628,8 @@ function handle_save(){
 		exped_offer_unpack(_xof);
 		exped_mem_unpack(_xmm);
 		lane_unpack(_xln);
+		seat_unpack(_xst);
+		scar_unpack(_xsc);
 		g.exped.vil = {};
 		if (_xvl != "") { var _vl2 = string_split(_xvl, "|"); for (var _i = 0; _i < array_length(_vl2); _i++) { var _kv = string_split(_vl2[_i], "="); if (array_length(_kv) == 2) g.exped.vil[$ _kv[0]] = clamp(real(_kv[1]), 0, 3); } }
 		g.exped.st = {};

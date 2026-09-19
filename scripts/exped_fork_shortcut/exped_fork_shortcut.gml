@@ -38,6 +38,8 @@ function exped_fork_shortcut(_tr, _rg, _fk, _k) {
 		_tr.road = { a : _pos, b : _fk.y, d : _h, t : 0 }; _tr.path = _rest;
 		array_push(_tr.log, (_ck.crit == 1) ? "clean through " + _xnm + ", faster than the map said. " + _ynm + " ahead." : "through " + _xnm + " toward " + _ynm + " (" + string(_h) + "h)");
 		exped_stat("forks_made");
+		// THE WAY WRITTEN DOWN (q260): a note on the land, one of the crew - exped_fork_mods reads it as +2 next time
+		if (array_length(_tr.sids) > 0) { var _nsp = exped_sprite(_tr.sids[irandom(array_length(_tr.sids) - 1)]); if (!is_undefined(_nsp) && sprite_note(_nsp, "the " + _land + " by " + _xnm + ": there is a way through", "road:" + _land)) array_push(_tr.log, _nsp.name + " writes the way down."); }
 		return;
 	}
 	var _bad = (_ck.crit == -1);

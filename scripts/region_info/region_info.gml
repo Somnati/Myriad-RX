@@ -92,6 +92,10 @@ function region_info(_d, _rg) {
 	var _ev = region_event(_d, _rg[$ "ri"] ?? 0);
 	if (is_struct(_ev)) array_push(_out, { k : "event", v : _ev.txt, t : (_ev.kind == "fair") ? 0 : ((_ev.kind == "rats") ? 1 : 2) });
 	var _vil = region_villain(_d, _rg);
+	var _seat = seat_get(_d, _rg[$ "ri"] ?? 0);   // (an empty seat - q260)
+	if (!is_struct(_vil) && is_struct(_seat) && _seat.left > 0) array_push(_out, { k : "villain", v : "nobody, for now - " + string(max(1, ceil(_seat.left / (24 * EXPED_HOUR)))) + " days until someone", t : 0 });
+	var _scs = scar_get(_d, _rg[$ "ri"] ?? 0);   // (the changes that do not fade - q260)
+	for (var _i = 0; _i < array_length(_scs); _i++) if (_scs[_i].n >= 0 && _scs[_i].n < array_length(_rg.nodes)) array_push(_out, { k : (_i == 0) ? "changed" : "", v : _rg.nodes[_scs[_i].n].name + ": " + ((_scs[_i][$ "was"] ?? "") != "" ? _scs[_i].was + " -> " : "") + _scs[_i].k, t : 0, col : c_gold });
 	if (is_struct(_vil)) {
 		var _vm = g.exped[$ "vil"], _vst = 0;
 		if (is_struct(_vm)) _vst = _vm[$ string(_d.seed) + ":" + string(_rg[$ "ri"] ?? 0)] ?? 0;

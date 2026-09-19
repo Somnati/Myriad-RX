@@ -9,7 +9,12 @@
 /// region. Never call it inside a seeded section (the name roll leaves
 /// through rng_release).
 function region_villain(_d, _rg) {
-	if (_rg[$ "villain_c"] ?? false) return _rg[$ "villain"];
+	// THE SEAT (q260): while it is empty there is no villain - no cards, no lord abroad, the roads quiet; after, the
+	// SUCCESSOR: the n-th holder rolls its own name, epithet and rank off the seed and the count (the cache follows n)
+	var _seat = seat_get(_d, _rg[$ "ri"] ?? 0), _sn = is_struct(_seat) ? _seat.n : 0;
+	if (is_struct(_seat) && _seat.left > 0) { _rg.villain_c = false; _rg.villain = undefined; return undefined; }
+	if ((_rg[$ "villain_c"] ?? false) && (_rg[$ "villain_n"] ?? 0) == _sn) return _rg[$ "villain"];
+	_rg.villain_n = _sn;
 	static _ep = ["the Hollow", "the Quiet", "Two-Knives", "the Unwashed", "of the Long Coat", "the Second", "Halfhand", "the Kind, once", "the Tall", "who Bites", "the Patient", "of the Nine Hats", "the Smiling", "the Late"];
 	static _rank = ["chief", "king", "queen", "mother", "uncle", "captain", "master", "first", "eldest"];
 	var _hide = [], _camps = [];
@@ -27,10 +32,10 @@ function region_villain(_d, _rg) {
 	var _pp = region_node_info(_d, _rg, _h);
 	var _fac = ((_pp[$ "fac"] ?? "") != "") ? _pp.fac : "the bandits", _foe = ((_pp[$ "foe"] ?? "") != "") ? _pp.foe : "bandit";
 	var _rs = random_get_seed();
-	random_set_seed(hash_mix(_rg.seed, 9001));
+	random_set_seed(hash_mix(_rg.seed, 9001 + 17 * _sn));
 	var _nm = str_cap(sprite_name_gen());
 	rng_release(_rs);
-	var _e = _ep[hash_mix(_rg.seed, 9002) mod array_length(_ep)], _rk = _rank[hash_mix(_rg.seed, 9003) mod array_length(_rank)];
-	_rg.villain = { name : _nm + " " + _e, full : _nm + " " + _e + ", " + _rk + " of " + _fac, fac : _fac, foe : _foe, hide : _h, camp : _c, col : c_hred };
+	var _e = _ep[hash_mix(_rg.seed, 9002 + _sn) mod array_length(_ep)], _rk = _rank[hash_mix(_rg.seed, 9003 + _sn) mod array_length(_rank)];
+	_rg.villain = { name : _nm + " " + _e, full : _nm + " " + _e + ", " + _rk + " of " + _fac + ((_sn > 0) ? " (the " + ((_sn == 1) ? "second" : ((_sn == 2) ? "third" : string(_sn + 1) + "th")) + " to hold it)" : ""), fac : _fac, foe : _foe, hide : _h, camp : _c, col : c_hred, n : _sn, rank : _rk };
 	return _rg.villain;
 }
