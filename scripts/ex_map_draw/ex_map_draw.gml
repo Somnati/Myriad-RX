@@ -33,20 +33,39 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 		draw_surface_ext(_gsh, _gx0, _gy0, _txs, _tys, 0, c_white, .92);
 		draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .18);   // (a shade over it so the roads and the names lead)
 	} else for (var _a = 0; _a < 360; _a += 6) draw_sprite_ext(spr_pixel_1x1, 0, floor(_ccx + lengthdir_x(_crad + 6, _a)), floor(_ccy + lengthdir_y(_crad + 6, _a)), 1, 1, 0, _bb.col2, .35);
-	// the roads: the bent lines, the hours at the middle point
+	// THE PLOP (q289, his ask): the places fall into their spots from above when the map opens - a wave out from the centre
+	// (the delay by the distance from it), each a fall (PLOP_DUR) from PLOP_LIFT above that lands with a little hop; a
+	// road is drawn once both its ends are down, a name once its place has settled; a soft tick a landing
+	var _pkey = string(_d.seed) + ":" + string(map_rgi);
+	if (map_plop_key != _pkey) { map_plop_key = _pkey; map_plop_t0 = current_time; map_plop_n = 0; }
+	var _pt = (current_time - map_plop_t0) / 1000, _pn = array_length(_rg.nodes);
+	var _pu = array_create(_pn, 2), _poff = array_create(_pn, 0), _pal = array_create(_pn, 1), _landed = 0;
+	for (var _i = 0; _i < _pn; _i++) {
+		var _pdl = clamp(point_distance(_rg.nodes[_i].x, _rg.nodes[_i].y, _rg[$ "cx"] ?? .5, _rg[$ "cy"] ?? .5) / max(.01, _rg[$ "radius"] ?? .46), 0, 1.2) * PLOP_WAVE;
+		var _u = (_pt - _pdl) / PLOP_DUR;
+		if (_u < 0) { _pu[_i] = 0; _poff[_i] = -PLOP_LIFT; _pal[_i] = 0; continue; }
+		if (_u < 1) { _pu[_i] = _u; _poff[_i] = -PLOP_LIFT * sqr(1 - _u); _pal[_i] = min(1, _u * 3); continue; }
+		_landed++;
+		if (_u < 1.4) { _pu[_i] = _u; _poff[_i] = -PLOP_HOP * sin(pi * (_u - 1) / .4); _pal[_i] = 1; continue; }
+		_pu[_i] = 2; _poff[_i] = 0; _pal[_i] = 1;
+	}
+	if (_landed > map_plop_n) { play_sound_ext(snd_matclick2, .9 + .35 * (_landed / max(1, _pn)), 1.0 + .35 * (_landed / max(1, _pn)), .22, 0); map_plop_n = _landed; }
+	// the roads: the bent lines, the hours at the middle point - each once both its ends are down
 	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
 		var _ed = _rg.edges[_ei];
+		var _ra = clamp((min(_pu[_ed.a], _pu[_ed.b]) - 1) * 4 + 1, 0, 1);
+		if (_ra <= 0) continue;
 		var _pts = _ed[$ "pts"];
 		if (!is_array(_pts) || array_length(_pts) < 2) _pts = [ _rg.nodes[_ed.a], _rg.nodes[_ed.b] ];
 		var _boat = (_ed[$ "boat"] ?? false);
 		for (var _k = 1; _k < array_length(_pts); _k++) {
 			var _p1 = __map_xy(_pts[_k - 1], _rg, _mr), _p2 = __map_xy(_pts[_k], _rg, _mr);
-			if (_boat) { if (_k mod 2 == 1) draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, rgb(120, 190, 210), .35); }
-			else draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _ink, .28);
+			if (_boat) { if (_k mod 2 == 1) draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, rgb(120, 190, 210), .35 * _ra); }
+			else draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _ink, .28 * _ra);
 		}
 		var _mid = region_road_point(_rg, _ed.a, _ed.b, .5);
 		var _mp = __map_xy(_mid, _rg, _mr);
-		draw_set_alpha(.4); draw_set_color(_dim);
+		draw_set_alpha(.4 * _ra); draw_set_color(_dim);
 		draw_set_halign(fa_center);
 		draw_text(_mp.x, _mp.y - 4, string(_ed.d) + "h");
 	}
@@ -56,14 +75,17 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 		var _nd = _rg.nodes[_i];
 		var _kd = _kk[$ _nd.kind] ?? _kk.field;
 		var _np = __map_xy(_nd, _rg, _mr);
-		var _nx = floor(_np.x), _ny = floor(_np.y);
+		if (_pal[_i] <= 0) continue;   // (not fallen yet - q289)
+		var _nx = floor(_np.x), _ny = floor(_np.y + _poff[_i]);   // (the fall's offset - q289)
 		var _lz = (_nd[$ "landing"] ?? false);
 		if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _nx, _ny, _kd.col);   // (a settled place with the landing zone inside: the house, the flag ON it - the pole up the roof, his call 2026-09-16)
 		__map_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 6 : 0), _ny - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col);
 		if (!_named[_i]) continue;   // (a minor biome no crew is bound for: the dot alone)
+		var _la = clamp((_pu[_i] - 1) * 3, 0, 1);   // (the name once the place has settled - q289)
+		if (_la <= 0) continue;
 		var _lp = is_undefined(_lab[_i]) ? { x : _nx + 7, y : _ny - 4 } : _lab[_i];
-		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6); }
-		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.9); }
+		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6 * _la); }
+		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.9 * _la); }
 		draw_text(floor(_lp.x), floor(_lp.y), _nd.name);
 	}
 	// who is out to this world: at their node, or along their road (the

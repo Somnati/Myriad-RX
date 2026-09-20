@@ -47,6 +47,7 @@ rp      = undefined; // the combat window's REPLAY of a fight that ended off scr
 seen_live = "";      // "tripid:room" of a fight watched live here - it is not replayed after
 sheet_id = -1;       // the sheet view's sprite (his pitch, 2026-09-14: class / level / gear)
 map_dest = undefined;    // the map view's world (its region: region_get)
+map_plop_key = ""; map_plop_t0 = 0; map_plop_n = 0;   // THE PLOP (q289): which region's map is falling into place, since when, how many have landed (the ticks)
 map_from = "planet";     // where the map returns to
 pl_dest  = undefined;    // the planet window's world
 rg_sel   = 0;            // the region picked in the planet window (EXPED_REGIONS a world)

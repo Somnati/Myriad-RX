@@ -901,3 +901,9 @@ function main_macros() {
 #macro REGION_AREA   300
 #macro REGION_MAX    64
 #macro TERR_CMAX     4000
+// THE PLOP (q289, his ask: "a cute plop into place... a wave outwards from the center"): the wave's spread across the map
+// (seconds from the centre to the rim), one place's fall (seconds), the height it falls from (px) and the hop after
+#macro PLOP_WAVE   .55
+#macro PLOP_DUR    .36
+#macro PLOP_LIFT   26
+#macro PLOP_HOP    3
