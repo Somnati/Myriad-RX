@@ -424,7 +424,8 @@ float hash12(vec2 p)
 }
 // THE CANOPY AT A CELL (q273): open (a clearing) or closed, as the pixel's own test reads it - the clump noise at the
 // cell's centre on the base map's grid, the cell's hash roughening it, a thin canopy (fo) opening wider. The floor's
-// shadow and the neighbour's shade read the cell TOWARD the sun through this
+// shadow and the neighbour's shade read the cell TOWARD the sun through this. (gk: the cell grid's factor over the
+// map's - 1 since q277, the crowns live on the base map's grid at every tier)
 float canopy_open(vec2 cell, float gk, float fo)
 {
     vec2 cl = (cell + 0.5) / (gk * 4.0);
@@ -741,7 +742,10 @@ void main()
             float rc = 1.0 + u_relief * h0 + u_canopy;
             vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
             vec2 cuvm = map_uv(to_tex(nc));
-            vec2 cuv = cuvm * u_tsize * grid_k(cuvm);   // (the trees' grain on the grid under it: finer in a zoom tier)
+            // THE CROWNS' GRID IS THE BASE MAP'S at every tier (q277; his screenshot at the region zoom: "trees lookin a lil
+            // noisy" - the crowns stood on the TIER's grid, a crown a tier texel, a cell and a half wide: rims and domes at the
+            // sampling frequency). The tier resolves the SAME crowns finer, three tier texels each, and deals no more of them
+            vec2 cuv = cuvm * u_tsize;
             vec2 ct = floor(cuv);
             float g = hash12(ct + 0.5);
             vec2 cl = cuvm * u_tsize / 4.0;              // (the CLEARINGS on the base map's grid - the same clearings at every tier; his report 2026-09-17)
@@ -758,23 +762,24 @@ void main()
             // where no crown reaches, the floor shows. The crown is a dome lit by the sun (its sunward side up to +40%,
             // its lee down to 80%), darker toward its rim; the floor lies in shade where the crown toward the sun stands
             float elc = dot(n, u_light);
-            float gk = grid_k(cuvm);
             vec3 tcn = to_tex(nc);
             vec2 ld = map_uv(normalize(tcn + to_tex(u_light) * 0.02)) - cuvm;
             ld.x -= floor(ld.x + 0.5);
-            ld *= u_tsize * gk;
+            ld *= u_tsize;
             float ll = length(ld);
             vec2 ld2 = (ll > 1.0e-5) ? ld / ll : vec2(1.0, 0.0);
             float cs = sqrt(max(0.0, 1.0 - elc * elc));
             vec3 L3 = normalize(vec3(ld2 * cs, max(elc, 0.0)));
-            // THE ZOOM'S SHARE (q276; his screenshot: "trees lookin a lil noisy" at the whole-planet zoom, where a crown is a
-            // texel): at the base map the crowns are big and calm - a soft grain, no rims to speak of - and the full
-            // crowns, rims and domes come in with the tier (grid_k 3)
-            float tk = clamp((gk - 1.0) / 2.0, 0.0, 1.0);
+            // THE ZOOM'S SHARE (q276 / q277): the effect's amplitude rides the crown's size ON SCREEN - the cells one base
+            // texel spans at the disc's centre (the disc's radius in cells is u_cells / 2 u_pad; a texel is 2 pi of that over
+            // the map's width) - calm under a cell (the whole-planet zoom: a soft grain, no rims to speak of), whole at two
+            // and a half (the region zoom's crowns four cells across), continuous with the wheel: nothing pops when the tier lands
+            float cpc = 3.14159 * u_cells / (max(u_pad, 0.01) * u_tsize.x);
+            float tk = clamp((cpc - 1.0) / 1.5, 0.0, 1.0);
             float best = 9.0; vec2 bestd = vec2(0.0); float bestg = 0.0; float bestr = 1.0;
             for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
                 vec2 cc = ct + vec2(float(ox), float(oy));
-                float co = (ox == 0 && oy == 0) ? open : canopy_open(cc, gk, fo);
+                float co = (ox == 0 && oy == 0) ? open : canopy_open(cc, 1.0, fo);
                 if (co <= 0.36) continue;
                 vec2 cen = cc + 0.5 + (vec2(hash12(cc + 3.3), hash12(cc + 9.9)) - 0.5) * 0.5;
                 float rad = mix(0.66, 0.45, tk) + 0.35 * hash12(cc + 5.5);
@@ -785,13 +790,14 @@ void main()
             if (best <= 1.0) {
                 float zz = sqrt(max(0.0, 1.0 - best * best));
                 vec3 nd = normalize(vec3(bestd * 1.8, max(zz, 0.12)));
-                float dome = (elc > 0.0) ? (mix(0.93, 0.80, tk) + mix(0.14, 0.40, tk) * max(0.0, dot(nd, L3))) : 1.0;
-                float rimd = mix(mix(0.88, 0.62, tk), 1.0, smoothstep(1.0, 0.7, best));
-                col = col * (mix(0.95, 0.90, tk) + mix(0.10, 0.20, tk) * bestg) * dome * rimd;
+                // (the full amplitudes a fifth softer than q276's - his ask: "soften their noise a bit"; q277)
+                float dome = (elc > 0.0) ? (mix(0.93, 0.84, tk) + mix(0.14, 0.32, tk) * max(0.0, dot(nd, L3))) : 1.0;
+                float rimd = mix(mix(0.88, 0.70, tk), 1.0, smoothstep(1.0, 0.7, best));
+                col = col * (mix(0.95, 0.92, tk) + mix(0.10, 0.16, tk) * bestg) * dome * rimd;
             } else {
                 // the floor: in the shade of the crown toward the sun, if one stands there
                 vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
-                float nopen = (nbc == ct) ? open : canopy_open(nbc, gk, fo);
+                float nopen = (nbc == ct) ? open : canopy_open(nbc, 1.0, fo);
                 if (elc > 0.0 && nopen > 0.36) floorc *= mix(0.5, 0.92, elc);
                 col = floorc;
             }

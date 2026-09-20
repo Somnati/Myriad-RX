@@ -7,7 +7,7 @@
 /// ground distance (a texel narrows toward the poles): the flank a curve
 /// to the rim, the crater a bowl inside it, the vent a pit; the biome law
 /// runs again on the lifted texels (rock and snow on a tall cone's
-/// shoulders), then the crater takes basalt (17), a live vent lava (18 -
+/// shoulders), then the crater's floor takes basalt (17), a live vent lava (18 -
 /// the palette's emissive slot, so it glows by night) and one to three
 /// FLOWS of lava walk downhill from it. The cone's lift joins rlift, so
 /// the gullies and the fluvial carve work its flanks. THE PLUMES are the
@@ -30,7 +30,9 @@ function planet_volcanoes(_pn) {
 		// the cone: a lift by ground distance - the flank to the rim, the crater's bowl inside, the vent's pit
 		cone : function(_x, _y, _rad, _hgt, _live, _stp) {   // (stp: the flank's exponent - the steeper, the more the height sits at the summit)
 			var _cl = max(.2, sin(pi * (_y + .5) / th)), _r = ceil(_rad), _rx = min(tw div 2, ceil(_rad / _cl));
-			var _rc = max(2.2, _rad * .28), _rv = max(1.2, _rad * .12);   // (the crater and the pool a few texels across - a one-texel pool drew as a square at the tier; q271)
+			var _rc = max(1.8, _rad * .26), _rv = max(1.2, _rad * .12);   // (the crater and the pool a few texels across - a one-texel pool drew as a square at the tier; q271)
+			var _rf = max(_rv, _rc * .5);   // THE FLOOR (q277): the basalt's reach (the pool's at least); the walls between it and the rim keep the summit's rock
+			var _lrim = _hgt * power(1 - _rc / _rad, _stp);   // the rim's lift: the flank's at the crater's edge
 			// THE BASE (his report, 2026-09-17: "on the side of a mountain at an angle"): the mean height round the cone's
 			// perimeter; the ground inside is levelled toward it, fully at the centre, not at all at the edge, so the
 			// cone stands upright on a range's flank instead of leaning down it
@@ -49,10 +51,15 @@ function planet_volcanoes(_pn) {
 					if (_d > _rad) continue;
 					el[_i] = lerp(el[_i], _base, power(1 - _d / _rad, 1.8) * .7);   // (the levelling tight to the summit and never whole - the old .6 laid a flat disc round every cone: "a circle of sand"; q271)
 					var _l = _hgt * power(1 - _d / _rad, _stp);   // (a stratovolcano's flank: concave - steep at the summit, easing to the plain; a shield's gentler)
-					if (_d < _rc) _l -= _hgt * .38 * (1 - (_d / _rc) * (_d / _rc));   // (the crater's bowl: the rim stands, the floor sinks)
+					// THE CRATER, A TRUE BOWL (q277; his screenshot: a light spot in the middle of every crater): the old profile kept the
+					// flank's rise inside the crater and sank a bowl from it - the centre stood ABOVE the rim. The rim is the flank's
+					// height at the crater's edge and the floor sits below it, lowest at the centre (.22 of the cone's height down)
+					if (_d < _rc) _l = _lrim - _hgt * .22 * (1 - (_d / _rc) * (_d / _rc));
 					_l *= .9 + .2 * dt[_i];
-					if (_l > lift[_i]) { lift[_i] = _l; fr[_i] = max(fr[_i], _l / max(.001, _hgt)); }
-					if (_d < _rc) vent[_i] = max(vent[_i], (_d < _rv) ? (_live ? 2 : 1) : 1);   // (2 the vent, 1 the crater's floor)
+					if (_l > lift[_i]) { lift[_i] = _l; fr[_i] = max(fr[_i], (_d < _rc) ? 1 : (_l / max(.001, _hgt))); }   // (the crater IS the summit: cmask 1 there - q277)
+					// the crater's codes (q277): 2 the live vent's pool, 1 the floor (basalt), 4 the WALLS (the summit's rock, lit; a sink
+					// for the drainage like the rest - every reader asks vmask > 0)
+					if (_d < _rc) vent[_i] = max(vent[_i], (_d < _rv) ? (_live ? 2 : 1) : ((_d < _rf) ? 1 : 4));
 				}
 			}
 		},
@@ -65,11 +72,11 @@ function planet_volcanoes(_pn) {
 					for (var _dx = -1; _dx <= 1; _dx++) { if (_dx == 0 && _dy == 0) continue;
 						var _ni = (((_cx + _dx) mod tw) + tw) mod tw + _ny * tw;
 						var _v = el[_ni] + (h(_salt + _s * 9 + _dx * 3 + _dy) - .5) * .02;   // (a grain of chance in the way it turns; the cone is in the heights by now)
-						if (_v < _bv && vent[_ni] < 2) { _bv = _v; _bi = _ni; } } }
+						if (_v < _bv && vent[_ni] != 2 && vent[_ni] != 3) { _bv = _v; _bi = _ni; } } }   // (never the pool nor a flow laid; the floor and the walls it may cross - q277)
 				if (_bi < 0) break;
 				if (el[_bi] < sea) break;   // (it stops at the water)
 				_cx = _bi mod tw; _cy = _bi div tw;
-				if (vent[_bi] < 2) vent[_bi] = 3;   // (3 a flow)
+				if (vent[_bi] != 2) vent[_bi] = 3;   // (3 a flow - over the floor, the wall, the flank)
 			}
 		},
 	};
@@ -86,6 +93,14 @@ function planet_volcanoes(_pn) {
 	var _ttv = _pn[$ "tt"], _chain = is_struct(_ttv) && _ttv.hotspot && _arch != "lava";
 	if (_chain) { _nv = max(_nv, 4 + (hash_mix(_pn.seed, 31009) mod 2)); _all_live = false; _none_live = true; }
 	var _chx = -1, _chy = -1, _chd = (hash_mix(_pn.seed, 31010) mod 360), _chstep = (9 + 3 * ((hash_mix(_pn.seed, 31011) mod 1000) / 1000)) * _sc;
+	// THE PRE-CONE HEIGHTS (q272 / q277): the tier runs the biome law on the heights, and a cone's lower flank keeps the
+	// map's pre-volcano paint (the repaint below takes the summit only) - so the tier reads THESE there, the heights that
+	// paint was decided on. Copied BEFORE the levelling (q277; his screenshot: a brown disc the footprint's size on a
+	// snowy range, on the tier alone - the levelling had lowered the footprint toward the perimeter's mean, the tier's
+	// law read it warmer, and the caps (10) went to rock (9); the map kept its white)
+	var _elp = array_create(_n, 0);
+	for (var _i = 0; _i < _n; _i++) _elp[_i] = _el[_i];
+	_pn.elevp = _elp;
 	for (var _k = 0; _k < _nv; _k++) {
 		var _b = 100 * _k, _x = -1, _y = -1, _best = -1;
 		if (_chain && _k > 0 && _chx >= 0) {
@@ -123,24 +138,21 @@ function planet_volcanoes(_pn) {
 	}
 	// into the heights (the cone's lift joins rlift for the gullies and the carve), the biome law again under it
 	var _lift = _c.lift, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps, _fr = _c.fr;   // (_rl is the site loop's, above)
-	// THE PRE-LIFT HEIGHTS (q272; his report: "zooming in makes the sand circle appear"): the tier runs the biome law on
-	// the heights, and the lifted flank read as mid-ground - sand. On the lower flank the tier reads THESE (elevp,
-	// blended into the lifted ones toward the summit by cmask), the heights the map's own biomes were decided on
-	var _elp = array_create(_n, 0);
-	for (var _i = 0; _i < _n; _i++) _elp[_i] = _el[_i];
-	_pn.elevp = _elp; _pn.cmask = _fr;
+	_pn.cmask = _fr;   // (the lift as a share of the cone's height, 1 in the crater - the tier's hand-over reads it; q272 / q277)
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
 		_el[_i] = max(_el[_i] + _lift[_i], _sea + ((_c.vent[_i] > 0) ? .03 : .004));   // (a crater's floor well above the tide - at sea + .004 the tier's law read it as shallows, the cyan "lava"; q271)
 		_rl[_i] = max(_rl[_i], _lift[_i]);
-		// THE FLANK KEEPS ITS GROUND (q271): the biome law repaints only where the cone stands tall - the upper half of it -
-		// so the lower flank runs on in the grass or the forest it rose from, and a cone on a range is a peak of the range
-		if (_fr[_i] < .45) continue;
+		// THE FLANK KEEPS ITS GROUND (q271): the biome law repaints only where the cone stands tall - the upper .35 of its
+		// lift (a stratovolcano's upper 40% of its radius; VOLCANO_BARE) - so the lower flank runs on in the grass or the
+		// forest it rose from, and a cone on a range is a peak of the range. planet_lod_step hands over at the same mark
+		if (_fr[_i] < VOLCANO_BARE) continue;
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
-		// A CONE IS ROCK (q276; his screenshots: the law read the lifted flank as sand and beach - "a circle of dirt"):
-		// the upper half takes the rock (7), and the law's snow and peak (8 / 9 / 10) where it says so
-		_bm[_i] = (_ps.ob == 8 || _ps.ob == 9 || _ps.ob == 10) ? _ps.ob : 7;
+		// A CONE IS ROCK (q276 / q277; his screenshots: the law read the lifted flank as sand and beach - "a circle of dirt"):
+		// the summit takes the world's ROCK PEAK colour (9 - not the tundra's grey-green 7), and the law's snow and cap
+		// (8 / 10) where it says so
+		_bm[_i] = (_ps.ob == 8 || _ps.ob == 9 || _ps.ob == 10) ? _ps.ob : 9;
 	}
 	// the flows, then the crater's basalt, the vent's lava (or a dead vent's rock), the plumes
 	for (var _k = 0; _k < array_length(_vents); _k++) {
@@ -151,7 +163,7 @@ function planet_volcanoes(_pn) {
 	for (var _i = 0; _i < _n; _i++) {
 		if (_vent[_i] == 0 || _el[_i] < _sea) continue;
 		if (_vent[_i] == 2 || _vent[_i] == 3) _bm[_i] = 18;   // lava: the live vent, the flows
-		else _bm[_i] = 17;                                     // basalt: the crater's floor, a dead vent
+		else if (_vent[_i] == 1) _bm[_i] = 17;                 // basalt: the crater's floor, a dead vent (the walls, 4, keep the summit's rock - q277)
 	}
 	// THE PLUMES are the shader's now (2026-09-17, "higher quality plumes"): the live vents go to planet_draw as
 	// directions on the sphere with the plume's angular radius - sh_planet draws each as a ring of turning, billowing

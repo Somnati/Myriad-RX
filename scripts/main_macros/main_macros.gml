@@ -876,3 +876,7 @@ function main_macros() {
 #macro TP_ZOOM_RG   .95
 // THE TIER SHOWS AS IT BUILDS (q270): its textures re-uploaded every this many rows built (partial), the built rows mixed in
 #macro LOD_UPLOAD_ROWS   40
+// A CONE'S BARE SUMMIT (q277): the share of a volcano's lift (pn.cmask) above which the biome law repaints it rock - the map's
+// repaint (planet_volcanoes) and the zoom tier's hand-over (planet_lod_step) read the ONE mark; .35 = a stratovolcano's upper
+// 40% of its radius, a shield's upper 55%
+#macro VOLCANO_BARE   .35
