@@ -872,7 +872,7 @@ dupvar	scripts\ex_trip_draw\ex_trip_draw.gml                _f _fo _j _k _ltw _m
 dupvar	scripts\ex_trip_press\ex_trip_press.gml              _k
 dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn
 dupvar	scripts\exped_abort\exped_abort.gml                  _travel
-dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _r _rg _rgi_a _tr _who
+dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _q _r _rg _rgi_a _tr _who
 dupvar	scripts\exped_agent\exped_agent.gml                  _epn _et _nb _pab _rd _rg _tr
 dupvar	scripts\exped_away_after\exped_away_after.gml        _from _li _lines
 dupvar	scripts\exped_board_roll\exped_board_roll.gml        _e _i
@@ -883,11 +883,11 @@ dupvar	scripts\exped_compose\exped_compose.gml              _nm _nm2 _pred _rg _
 dupvar	scripts\exped_dice\exped_dice.gml                    _stake array_length
 dupvar	scripts\exped_drink\exped_drink.gml                  _hpm _hpn _j _k
 dupvar	scripts\exped_drink_open\exped_drink_open.gml        _bk _it _j _wk
-dupvar	scripts\exped_encounter\exped_encounter.gml          _frg _fss _nm _rgi_e
+dupvar	scripts\exped_encounter\exped_encounter.gml          _frg _fss _fss0 _nm _rgi_e _rgs
 dupvar	scripts\exped_event_tick\exped_event_tick.gml        _rg _ri
 dupvar	scripts\exped_explore_pick\exped_explore_pick.gml    _i
 dupvar	scripts\exped_fight_loot\exped_fight_loot.gml        _d _it _j _own _rar _tagf
-dupvar	scripts\exped_fight_new\exped_fight_new.gml          _fk _foes _hz _lrg _lseas _seed _tr array_length
+dupvar	scripts\exped_fight_new\exped_fight_new.gml          _fbs _fk _foes _hz _lrg _lrgi _lseas _seed _tr array_length
 dupvar	scripts\exped_fork_encounter\exped_fork_encounter.gml _fk
 dupvar	scripts\exped_fork_gen\exped_fork_gen.gml            _path _pos _x
 dupvar	scripts\exped_fork_lean\exped_fork_lean.gml          _k
@@ -921,12 +921,17 @@ dupvar	scripts\exped_say\exped_say.gml                      _i _nn _t _tr array_
 dupvar	scripts\exped_shop\exped_shop.gml                    _it _it2 _it3 _j _k0 _rg _s _slot _st _tr
 dupvar	scripts\exped_start\exped_start.gml                  _i _sp
 dupvar	scripts\exped_tick\exped_tick.gml                    _e _si
-dupvar	scripts\exped_tick_one\exped_tick_one.gml            _j _k _q _rg _tr
+dupvar	scripts\exped_tick_one\exped_tick_one.gml            _bf _j _k _q _rg _tr exped_region
 dupvar	scripts\exped_unpack\exped_unpack.gml                _fl _i _k _rgi _t
 dupvar	scripts\exped_unpack_v1\exped_unpack_v1.gml          _i _k _t _trn
 dupvar	scripts\exped_villain_card\exped_villain_card.gml    _rg _v
 dupvar	scripts\exped_world_open\exped_world_open.gml        _i
 dupvar	scripts\exped_xp_grant\exped_xp_grant.gml            _k _share
+dupvar	scripts\faction_get\faction_get.gml                  _base
+dupvar	scripts\faction_hit\faction_hit.gml                  _f
+dupvar	scripts\faction_mult\faction_mult.gml                _ri
+dupvar	scripts\faction_tick\faction_tick.gml                _kind _ri
+dupvar	scripts\faction_unpack\faction_unpack.gml            _recs
 dupvar	scripts\faq_content\faq_content.gml                  _cs _cx _cy _k
 dupvar	scripts\flaw_gen\flaw_gen.gml                        _pick
 dupvar	scripts\fleet_total\fleet_total.gml                  _tb
@@ -1003,8 +1008,8 @@ dupvar	scripts\region_event\region_event.gml                _rg _ri
 dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _sd _sy _t
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
-dupvar	scripts\region_info\region_info.gml                  _epn _et _i _rg exped_planet_hint
-dupvar	scripts\region_ledger\region_ledger.gml              _i _rg _ri
+dupvar	scripts\region_info\region_info.gml                  _epn _et _fkd _i _rg exped_planet_hint
+dupvar	scripts\region_ledger\region_ledger.gml              _fkd _i _rg _ri
 dupvar	scripts\region_nearest_civ\region_nearest_civ.gml    _i
 dupvar	scripts\region_nearest_landing\region_nearest_landing.gml _l
 dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went

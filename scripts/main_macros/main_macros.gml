@@ -880,3 +880,11 @@ function main_macros() {
 // repaint (planet_volcanoes) and the zoom tier's hand-over (planet_lod_step) read the ONE mark; .35 = a stratovolcano's upper
 // 40% of its radius, a shield's upper 55%
 #macro VOLCANO_BARE   .35
+// FACTION STRENGTH (q283, his design: "each bandit you slay reduces the region's bandit faction hp"): a foe kind in a
+// region is a pool of heads (faction_base off the region's weight), hit by kills, grown back by recruitment
+#macro FAC_FLOOR      .10    // never under this share of the base: stragglers - a faction never dies, the seat brings it back
+#macro FAC_REGEN      .18    // the share of the base recruited a world day (halved leaderless, doubled with the lord abroad)
+#macro FAC_KILL_BOSS  3      // a boss or a named one slain = this many heads
+#macro FAC_ROUT       .40    // a camp routed = this share of the base
+#macro FAC_VILLAIN    .25    // the villain ended = this share besides (his people scatter)
+#macro FAC_BOSS_CUT   .30    // a boss's stats: (1 - cut) + cut x strength - a gutted faction's king stands nearly alone

@@ -34,6 +34,11 @@ function exped_tick_one(_tr, _dt) {
 			var _bf = _f.foes[_j];
 			bestiary_note(_bf[$ "kind"] ?? "", "seen", _bf[$ "variant"] ?? "", _bf[$ "boss"] ?? false);   // THE BESTIARY (2026-09-16): every foe that stood here
 			if (_bf.hp <= 0) { exped_stat("slain"); bestiary_note(_bf[$ "kind"] ?? "", "slain"); exped_tally(_tr, "slain"); }
+			// FACTION STRENGTH (q283): every head off its kind's pool in this region; a boss or a named one FAC_KILL_BOSS of them
+			if (_bf.hp <= 0 && (_bf[$ "kind"] ?? "") != "") {
+				var _fh = faction_hit(_tr.dest, _tr[$ "rgi"] ?? 0, _bf.kind, ((_bf[$ "boss"] ?? false) || (_bf[$ "named"] ?? false)) ? FAC_KILL_BOSS : 1, exped_region(_tr));
+				if (is_struct(_fh) && _fh.before >= .4 && _fh.after < .4) array_push(_tr.log, "the " + foe_plural(_bf.kind) + " of " + exped_region(_tr).name + " are thin on the ground now.");
+			}
 			// LEADERLESS (q262): a boss or a named one down - its kind loses its chief in this region for a while (seat_open_kind)
 			if (_bf.hp <= 0 && ((_bf[$ "boss"] ?? false) || (_bf[$ "named"] ?? false)) && (_bf[$ "kind"] ?? "") != "") {
 				seat_open_kind(_tr.dest, _tr[$ "rgi"] ?? 0, _bf.kind, exped_region(_tr));
@@ -95,6 +100,8 @@ function exped_tick_one(_tr, _dt) {
 				array_push(_tr.log, "+ the camp's chest: " + string(_cr) + " credits");
 				// THE WORLD REMEMBERS (2026-09-16): the camp is ashes for four days - nobody home, the road past it quieter
 				exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed", 96);
+				var _fhc = faction_hit(_tr.dest, _tr[$ "rgi"] ?? 0, "bandit", ceil(faction_base(exped_region(_tr), "bandit") * FAC_ROUT), exped_region(_tr));   // (a camp routed: FAC_ROUT of the region's bandits - q283)
+				if (is_struct(_fhc) && _fhc.before >= .4 && _fhc.after < .4) array_push(_tr.log, "the bandits of " + exped_region(_tr).name + " are thin on the ground now.");
 				lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .35); lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "dread", -.3);   // (a camp burned: the region's order up, the villain's grip looser - q259)
 				array_push(_tr.log, "the camp burns. " + choose("the road past it will be quieter for a while", "nobody will be home there for a while", "the crows have it now"));
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");

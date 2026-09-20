@@ -32,6 +32,17 @@ function region_ledger(_d, _ri) {
 		}
 		array_push(_out, { k : "leaderless", v : (_lrow != "") ? _lrow : "nobody", col : (_lrow != "") ? c_seagreen : sett_ink });
 	}
+	// FACTION STRENGTH (q283): every kind hit here - heads over the base, and the word
+	if (is_struct(g.exped[$ "fac"])) {
+		var _fk0 = lane_key(_d, _ri) + ":", _fks = variable_struct_get_names(g.exped.fac), _fany = false;
+		for (var _i = 0; _i < array_length(_fks); _i++) {
+			if (string_pos(_fk0, _fks[_i]) != 1) continue;
+			var _fkd = string_delete(_fks[_i], 1, string_length(_fk0)), _ff = faction_get(_d, _ri, _fkd, _rg), _fw = faction_word(_ff.str);
+			array_push(_out, { k : foe_plural(_fkd), v : string(round(_ff.hp)) + " of " + string(_ff.base) + " - " + _fw.txt, col : _fw.col, bar : _ff.str * 2 - 1 });
+			_fany = true;
+		}
+		if (!_fany) array_push(_out, { k : "factions", v : "none hunted here - all at strength", col : sett_ink });
+	}
 	var _scs = scar_get(_d, _ri), _srow = "";
 	for (var _i = 0; _i < array_length(_scs); _i++) if (_scs[_i].n >= 0 && _scs[_i].n < array_length(_rg.nodes)) _srow += ((_srow != "") ? "; " : "") + _rg.nodes[_scs[_i].n].name + ": " + (_scs[_i][$ "was"] ?? "") + " -> " + _scs[_i].k;
 	array_push(_out, { k : "scars", v : (_srow != "") ? _srow : "none (a lane held past .7 for two world days lands one; three a region)", col : (_srow != "") ? c_gold : sett_ink });

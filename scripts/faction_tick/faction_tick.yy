@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"foe_weak",
+  "%Name":"faction_tick",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"foe_weak",
+  "name":"faction_tick",
   "parent":{
     "name":"expeditions",
     "path":"folders/game/expeditions.yy",

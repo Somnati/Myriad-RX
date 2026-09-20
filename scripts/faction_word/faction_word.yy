@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"faction_word",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"faction_word",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

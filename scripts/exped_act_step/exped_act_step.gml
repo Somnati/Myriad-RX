@@ -154,7 +154,8 @@ function exped_act_step(_tr) {
 		case "camp": {
 			var _evc = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _lordc = (is_struct(_evc) && _evc.kind == "lord");
 			var _ldc = region_node_leader(_tr.dest, _rg, _tr.pos), _ldct = is_struct(_ldc) ? _ldc.trait : "";   // (the chief's word: cruel a bandit more, cowardly one fewer - 2026-09-16)
-			_tr.fight = exped_fight_new(_tr, "bandit", max(2, irandom_range(2, 3) + (_lordc ? 1 : 0) + ((_ldct == "cruel") ? 1 : ((_ldct == "cowardly") ? -1 : 0))), 0);   // a camp is never one bandit (one more with the lord abroad - 2026-09-16)
+			var _fcs = faction_get(_tr.dest, _tr[$ "rgi"] ?? 0, "bandit", _rg).str;   // (the camp's count rides the faction's strength - q283: a gutted faction's camp is nearly empty)
+			_tr.fight = exped_fight_new(_tr, "bandit", max(1, round(max(2, irandom_range(2, 3) + (_lordc ? 1 : 0) + ((_ldct == "cruel") ? 1 : ((_ldct == "cowardly") ? -1 : 0))) * (.55 + .45 * _fcs))), 0);   // a camp is never one bandit at strength (one more with the lord abroad - 2026-09-16)
 			array_push(_tr.log, "bandits at " + _nd.name + ": " + string(array_length(_tr.fight.foes)) + " of them");
 			exped_say(_tr, "fight_open", { foe : _tr.fight.b.name }, .6);
 			if (_a.steps <= 1) _a.loot = true;   // the last fight's win pays the camp's chest (exped_tick_one)
@@ -252,7 +253,8 @@ function exped_act_step(_tr) {
 		case "bossfight": {
 			// one big fight: the bounty's named boss and whatever it keeps
 			if (_a.steps >= 2 && is_struct(_q)) {
-				_tr.fight = exped_fight_new(_tr, _q.foe, (_q.kind == "well") ? 1 : irandom_range(1, 2), 1, { boss : true, name : _q.who, variant : (_q.kind == "well") ? "giant" : (((_q[$ "vil"] ?? 0) > 0) ? "greater" : "") });   // (the villain: a greater one - 2026-09-16)   // (the well: one giant thing - 2026-09-16)
+				var _fbg = (_q.kind == "well") ? 1 : ((faction_get(_tr.dest, _tr[$ "rgi"] ?? 0, _q.foe, _rg).str < .5) ? 1 : irandom_range(1, 2));   // (the guards: none once the faction is under half - q283)
+				_tr.fight = exped_fight_new(_tr, _q.foe, _fbg, 1, { boss : true, name : _q.who, variant : (_q.kind == "well") ? "giant" : (((_q[$ "vil"] ?? 0) > 0) ? "greater" : "") });   // (the villain: a greater one - 2026-09-16)   // (the well: one giant thing - 2026-09-16)
 				array_push(_tr.log, _q.who + " " + choose("is here, and knows it", "was waiting", "stands up. it is big", "does not run") + " - " + _nd.name);
 				exped_say(_tr, "boss", { foe : _q.who }, .9);
 			} else array_push(_tr.log, choose("nothing else moves at " + _nd.name, "the rest of them left in a hurry"));

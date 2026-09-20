@@ -77,23 +77,36 @@ function exped_fight_new(_tr, _kind = "", _count = -1, _lvadd = 0, _opts = undef
 	var _lev = region_event(_tr.dest, _tr[$ "rgi"] ?? 0);
 	if (is_struct(_lev) && _lev.kind == "rats") repeat (3) array_push(_lkinds, "rat");
 	if (is_struct(_tr[$ "road"])) { var _rk = foe_kinds_at(_lrg.nodes[clamp(_lni, 0, array_length(_lrg.nodes) - 1)].kind, _lseas); for (var _q2 = 0; _q2 < array_length(_rk); _q2++) if (!array_contains(_lkinds, _rk[_q2])) array_push(_lkinds, _rk[_q2]); }   // (a road: the road's own and the land it crosses)
+	// FACTION STRENGTH (q283): the kind pick leans on each kind's strength here - a hunted kind comes up less, the others fill
+	// the fight (the seed still decides: the pack replays)
+	var _lrgi = _tr[$ "rgi"] ?? 0, _lwts = array_create(array_length(_lkinds), 1), _lsum = 0;
+	for (var _q3 = 0; _q3 < array_length(_lkinds); _q3++) { _lwts[_q3] = max(.05, faction_get(_d, _lrgi, _lkinds[_q3], _lrg).str); _lsum += _lwts[_q3]; }
 	for (var _j = 0; _j < _nf; _j++) {
 		var _seed = (_d.seed ^ (_tr.id * 7919) ^ (_tr.fights * 104729) ^ (_j * 15485863)) & $7fffffff;
-		var _fk = (_kind == "") ? _lkinds[hash_mix(_seed, 313) mod array_length(_lkinds)] : _kind;
+		var _fk = _kind;
+		if (_kind == "") {
+			var _lpk = ((hash_mix(_seed, 313) mod 10000) / 10000) * _lsum, _lacc = 0;
+			_fk = _lkinds[array_length(_lkinds) - 1];
+			for (var _q4 = 0; _q4 < array_length(_lkinds); _q4++) { _lacc += _lwts[_q4]; if (_lpk < _lacc) { _fk = _lkinds[_q4]; break; } }
+		}
 		var _foe = foe_gen(exped_trip_lv(_tr) + _lvadd + ((_seed mod 3 == 0) ? 1 : 0), _seed, _fk, (_j == 0 && is_struct(_opts)) ? (_opts[$ "boss"] ?? undefined) : undefined, (_j == 0 && is_struct(_opts)) ? (_opts[$ "variant"] ?? "") : "");
 		if (_j == 0 && is_struct(_opts) && is_string(_opts[$ "name"])) { _foe.name = _opts.name; _foe.named = true; }
-		// LEADERLESS (q262): a kind without its chief in this region comes in at FOE_LEADERLESS of itself
-		var _wk = foe_weak(_d, _tr[$ "rgi"] ?? 0, _fk);
+		// LEADERLESS (q262) and THE FACTION'S STRENGTH (q283): a kind without its chief here comes in at FOE_LEADERLESS of
+		// itself; a boss or a named one besides at (1 - FAC_BOSS_CUT) + FAC_BOSS_CUT x its faction's strength (faction_mult)
+		var _fbs = (_foe[$ "boss"] ?? false) || (_foe[$ "named"] ?? false);
+		var _fmu = faction_mult(_d, _lrgi, _fk, _lrg, _fbs), _wk = _fmu.m;
 		if (_wk < 1) {
 			_foe.hp *= _wk; _foe.maxhp *= _wk; _foe.hpmax *= _wk; if (!is_undefined(_foe[$ "maxhp_real"])) _foe.maxhp_real *= _wk;
 			_foe.atk *= _wk; _foe.def *= _wk; _foe.mag *= _wk; _foe.mdef *= _wk; _foe.hit *= _wk;
-			_foe.leaderless = true;
+			if (_fmu.leaderless) _foe.leaderless = true;
+			if (_fbs && _fmu.str < .5) _foe.thin = true;
 		}
 		array_push(_foes, _foe);
 		_xp += foe_xp(_foe);
 	}
 	var _f = cbt_fight_new(_party, _foes);
 	if (_foes[0][$ "leaderless"] ?? false) cbt_log(_f, "the " + _foes[0].kind + " here are leaderless - weaker for it");   // (q262)
+	if (_foes[0][$ "thin"] ?? false) cbt_log(_f, "with half its people gone, " + _foes[0].name + " stands nearly alone");   // (q283)
 	_f.tr = _tr;   // (the trip, for the pocket: exped_drink at a turn's start, the totem when one falls - 2026-09-16; a fight is never saved)
 	_f.xp = _xp;
 	// the hazard on the fight, and the diary's word on it (once a place: the

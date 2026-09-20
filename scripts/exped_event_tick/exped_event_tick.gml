@@ -26,7 +26,7 @@ function exped_event_tick() {
 				var _v = region_villain(_d, _rg);
 				var _vm = _e[$ "vil"], _vst = 0;
 				if (is_struct(_vm)) _vst = _vm[$ string(_d.seed) + ":" + string(_ri)] ?? 0;
-				if (is_struct(_v) && _vst < 3) array_push(_opts, "lord");
+				if (is_struct(_v) && _vst < 3 && faction_get(_d, _ri, _v.foe, _rg).str >= .5) array_push(_opts, "lord");   // (a faction under half strength cannot ride out - q283)
 			}
 			if (_open) array_push(_opts, "frost");
 			if (array_length(_opts) == 0) { exped_mem_set(_d, _ri, -1, "event", random_range(24, 72), "lull:-1"); continue; }

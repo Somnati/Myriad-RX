@@ -17,6 +17,11 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	if (_r >= 70 && _r < 85 && _lo > 0 && roll_perc(60 * _lo)) _r = 55;
 	else if (_r >= 45 && _r < 70 && _lo < 0 && roll_perc(50 * -_lo)) _r = 75;
 	if (_r < 45 && _lw < 0 && roll_perc(60 * -_lw)) _r = 60;
+	// FACTION STRENGTH (q283): the bandits thinned turn their band into a passer-by; the road's wild kinds thinned turn a
+	// wild fight into a sprite met - a safe road reads as safe, not empty
+	var _rgs = exped_region(_tr), _fsb = faction_get(_tr.dest, _rgi_e, "bandit", _rgs).str;
+	if (_r >= 70 && _r < 85 && roll_perc(90 * (1 - _fsb))) _r = 55;
+	if (_r < 45) { var _fss0 = region_season(_tr.dest, _rgs), _fsw = faction_mean(_tr.dest, _rgi_e, foe_kinds_at("road", _fss0.on ? _fss0.idx : -1), _rgs); if (roll_perc(60 * (1 - _fsw))) _r = 60; }
 	if (_r >= 85 && _le < 0 && roll_perc(60 * -_le)) _r = 60;
 	// AN ESCORT (2026-09-15): with the merchant's cart along, half the passers-by are bandits after it
 	var _eq = _tr[$ "quest"];

@@ -105,6 +105,16 @@ function region_info(_d, _rg) {
 		}
 		if (_lrow != "") array_push(_out, { k : "leaderless", v : _lrow, t : 0, col : c_seagreen });
 	}
+	// FACTION STRENGTH (q283): the kinds hunted here, and how they stand
+	if (is_struct(g.exped[$ "fac"])) {
+		var _fk0 = lane_key(_d, _rg[$ "ri"] ?? 0) + ":", _fks = variable_struct_get_names(g.exped.fac), _frow = "";
+		for (var _i = 0; _i < array_length(_fks); _i++) {
+			if (string_pos(_fk0, _fks[_i]) != 1) continue;
+			var _fkd = string_delete(_fks[_i], 1, string_length(_fk0)), _ff = faction_get(_d, _rg[$ "ri"] ?? 0, _fkd, _rg);
+			_frow += ((_frow != "") ? ", " : "") + foe_plural(_fkd) + " " + faction_word(_ff.str).txt;
+		}
+		if (_frow != "") array_push(_out, { k : "hunted", v : _frow, t : 0, col : c_seagreen });
+	}
 	var _scs = scar_get(_d, _rg[$ "ri"] ?? 0);   // (the changes that do not fade - q260)
 	for (var _i = 0; _i < array_length(_scs); _i++) if (_scs[_i].n >= 0 && _scs[_i].n < array_length(_rg.nodes)) array_push(_out, { k : (_i == 0) ? "changed" : "", v : _rg.nodes[_scs[_i].n].name + ": " + ((_scs[_i][$ "was"] ?? "") != "" ? _scs[_i].was + " -> " : "") + _scs[_i].k, t : 0, col : c_gold });
 	if (is_struct(_vil)) {
