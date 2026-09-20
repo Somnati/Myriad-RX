@@ -215,7 +215,7 @@ __lod_want = function() {   // the tier the zoom asks for: 0 or 3
 	// region mode's pull-in is the tier's threshold - the map's texels are already cell-sized there and the tier's
 	// three-to-one resolves the coasts at the cell; the wheel past it keeps it
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	return (_zt >= PV_ZOOM_RG - .02) ? 3 : 0;
+	return (_zt >= 1.83) ? 3 : 0;   // (the tier's own threshold - the old region pull-in's; the region zoom went to x5 (q269) and the tier is wanted well before that)
 };
 __lod_pick = function(_pn) { return tiers.pick(_pn, __lod_want() >= 3); };
 /// THE BACKGROUND SHARE (q256): the slice any page other than the planet's gives the pending build - a share of the

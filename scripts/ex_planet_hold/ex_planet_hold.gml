@@ -7,8 +7,11 @@ function ex_planet_hold() {
 	// THE WHEEL (his ask, 2026-09-17): closer or further, in either mode - on top of region mode's pull-in.
 	// The drag turns fewer degrees a pixel the closer you are, so the ground under the hand keeps pace with it
 	if (_pin && !__pv_ui_hit()) {
-		if (mouse_wheel_up())   pv_zuser = min(pv_zuser * 1.18, PV_ZOOM_MAX);
-		if (mouse_wheel_down()) pv_zuser = max(pv_zuser / 1.18, PV_ZOOM_MIN);
+		// (the wheel's reach is the TOTAL zoom's: in region mode - x PV_ZOOM_RG, five now - it may come out to the whole planet
+		// (x1.3 total) and in to the same ceiling as the planet view's - q269)
+		var _zlo = (pv_mode == "region") ? (1.3 / PV_ZOOM_RG) : PV_ZOOM_MIN, _zhi = (pv_mode == "region") ? max(1, PV_ZOOM_MAX * 1.85 / PV_ZOOM_RG) : PV_ZOOM_MAX;
+		if (mouse_wheel_up())   pv_zuser = min(pv_zuser * 1.18, _zhi);
+		if (mouse_wheel_down()) pv_zuser = max(pv_zuser / 1.18, _zlo);
 	}
 	var _osens = _ocf.orbit_sens / max(.5, pv_zoom);
 	if (!pv_drag && mouse_check_button_pressed(mb_left) && _pin && !__pv_ui_hit()) { pv_drag = true; pv_px = 0; pv_dx = mouse_x; pv_dy = mouse_y; pv_vx = 0; pv_vy = 0; }
