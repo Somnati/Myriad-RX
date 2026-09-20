@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"wolf_draw",
+  "%Name":"chroma_draw",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"wolf_draw",
+  "name":"chroma_draw",
   "parent":{
     "name":"galaxy",
     "path":"folders/game/galaxy.yy",

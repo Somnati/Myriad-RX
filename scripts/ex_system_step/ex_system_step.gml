@@ -24,7 +24,10 @@ function ex_system_step() {
 	var _svr = __sy_view_r();
 	var _sdk = point_in_rectangle(mouse_x, mouse_y, __sy_dock_x(), list_y + 16, room_width, room_height - 8);   // (the drawer and its tab: no place to drag or wheel from)
 	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h) && !_sdk;
-	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, sy_Dmin); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }   // (in to the star's own scale - q265)
+	// THE ZOOM (q267): one eased target - the wheel moves it, a tap on the star sends it in (and back); the star tap is below
+	if (_sin) { if (mouse_wheel_up()) sy_Dt = max(sy_Dt / 1.08, sy_Dmin); if (mouse_wheel_down()) sy_Dt = min(sy_Dt * 1.08, 430); }   // (in to the star's own scale - q265)
+	sy_D += (sy_Dt - sy_D) * (1 - power(.86, delta));
+	if (abs(sy_Dt - sy_D) < .05) sy_D = sy_Dt;
 	var _bk0 = __back_r();
 	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
 	var _ser = __sy_enter_r(), _sgl0 = __galaxy_r();
@@ -49,6 +52,18 @@ function ex_system_step() {
 	if (sy_drag && mouse_check_button_released(mb_left)) {
 		sy_drag = false;
 		if (sy_drag_px <= 4) {
+			// A TAP ON THE STAR (q267, his ask: "click on stars to zoom in on them like i do planets"): in to its own scale,
+			// or back out from there; nothing else picked
+			var _stp0 = __sy_proj(0, 0, 0);
+			if (!is_undefined(_stp0)) {
+				var _str = max(6, 6 * sy_sys.star.size * _stp0[2] / 12);
+				if (point_distance(mouse_x, mouse_y - list_y, _stp0[0], _stp0[1]) <= _str) {
+					sy_Dt = (sy_Dt > sy_Dmin * 1.15) ? sy_Dmin : 250;
+					sy_sel = -1; sy_ssel = -1; sy_bsel = -1;
+					play_sound_ext(snd_softclick, 1.1, 1.2, .4, 1);
+					return false;
+				}
+			}
 			// a tap: the nearest world under it (the demo's reach), or space - nothing
 			var _hit = -1, _pls2 = sy_sys.planets;
 			for (var _i = 0; _i < array_length(_pls2); _i++) {

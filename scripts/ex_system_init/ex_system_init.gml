@@ -12,7 +12,7 @@ function ex_system_init() {
 // picks (a pulsing box, the card), [enter] dives (the swell, then the world's page); a dock on the right: the star's
 // numbers, the worlds listed
 sy_star = -1; sy_sys = undefined; sy_sel = -1; sy_dest = undefined; sy_from = "galaxy";   // (sy_from: where [back] returns - the map, or the planet page)
-sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230; sy_rmax = 0; sy_Dmin = 150;   // (sy_Dmin: how close the wheel may come - the star's own size sets it, q265)   // (sy_rmax: the system's outermost orbit - the spread's anchor, q241)
+sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_Dt = 250; sy_F = 230; sy_rmax = 0; sy_Dmin = 150;   // (sy_Dmin: how close the wheel may come - the star's own size sets it, q265)   // (sy_rmax: the system's outermost orbit - the spread's anchor, q241)
 sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite - begun on entry, built a slice a frame: __sy_lite_step)
@@ -93,7 +93,7 @@ __sy_enter = function(_star) {
 	// virtual world, so the sky stands with a sun and no siblings; q255)
 	if (array_length(sy_sys.planets) == 0) sy_dest = { seed : (_sm.stars[_star].seed ^ 2654435761) & $7fffffff, star : _star, pl : -1 };
 	else sy_dest = (sy_sel >= 0 && is_struct(pl_dest) && pl_dest.seed == sy_sys.planets[sy_sel].seed) ? pl_dest : { seed : sy_sys.planets[0].seed, star : _star, pl : 0 };
-	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
+	sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_Dt = 250; sy_vx = 0; sy_vy = 0; sy_drag = false; sy_dw = false; sy_dwa = 0;
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
 	sy_rmax = 0; for (var _ri = 0; _ri < array_length(sy_sys.planets); _ri++) sy_rmax = max(sy_rmax, sy_sys.planets[_ri].orbit);   // (the spread's anchor: this system's own reach, so a great star's wide system keeps its shape)
 	for (var _ri = 0; _ri < array_length(sy_stns); _ri++) sy_rmax = max(sy_rmax, sy_stns[_ri].orbit);
@@ -231,14 +231,14 @@ __draw_system = function() {
 			// the star: sh_star (star_draw, 2026-09-16) - the disc, its corona and prominences; the same star its worlds' skies show
 			var _stc = sy_sys.star.col, _ss = sy_sys.star.size * _k / 12;
 			var _skd9 = sy_sys.star[$ "skind"] ?? "main";
-			if (_skd9 == "cepheid") _ss *= .85 + .3 * star_pulse(sy_sys.star[$ "sseed"] ?? 0, sy_sys.star[$ "period"] ?? 2400);   // (the star breathes - q253)
 			if (sy_sys.star[$ "hole"] ?? false) hole_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (a black hole: hole_draw bends the sky already on the page - 2026-09-17)
 			else {
-				star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
 				var _skd2 = sy_sys.star[$ "skind"] ?? "main";
+				if (_skd2 == "chroma") chroma_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (its light will not hold together - q267)
+				else if (_skd2 == "swell") swell_draw(_sx, _sy, 6 * _ss, _stc, sy_sys.star[$ "sseed"] ?? 0, 1, sy_cam);   // (swells and snaps - q267)
+				else star_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);
 				if (_skd2 == "pulsar") pulsar_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, sy_sys.star.spin, sy_sys.star.tilt, 1, sy_cam);   // (the beams over it, held to the world - 2026-09-17)
 				else if (_skd2 == "dwarf") dwarf_draw(_sx, _sy, 6 * _ss, _stc, 1);   // (a white dwarf's blaze - his ask, q195)
-				else if (_skd2 == "wolf") wolf_draw(_sx, _sy, 6 * _ss, _stc, sy_star * .37, 1, sy_cam);   // (the shell - q253)
 				else if (_skd2 == "proto") proto_draw(_sx, _sy, 6 * _ss, _stc, sy_star, 1, sy_cam, true, __sy_proj);   // (the haze and the dust disc - q253)
 			}
 			// the rings' near halves, over the star (their far halves went under everything)

@@ -12,7 +12,7 @@ function starsystem_generate(_seed, _star = undefined) {
 	var _pl = [];
 	// THE GREAT ONES (his ask, 2026-09-17: a giant or a hole "much larger than all the surrounding planets ... the distance
 	// from the first ring onward much higher"): their first ring starts far out and the system may reach further
-	var _skd0 = is_struct(_star) ? (_star[$ "skind"] ?? "main") : "main", _great = (_skd0 == "giant" || _skd0 == "hole" || _skd0 == "wolf");
+	var _skd0 = is_struct(_star) ? (_star[$ "skind"] ?? "main") : "main", _great = (_skd0 == "giant" || _skd0 == "hole");
 	var _r  = _great ? 96 : 34, _rmax = _great ? 210 : 112;
 	if (_skd0 == "brown") { _r = 18; _rmax = 62; }   // (a brown dwarf's few worlds huddle close - q253)
 	if (_skd0 == "proto") _pc = 0;                    // (a protostar has no worlds yet: its disc is the system - q253)
@@ -41,7 +41,7 @@ function starsystem_generate(_seed, _star = undefined) {
 		_st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false), skind : _skd0, spin : (_star[$ "spin"] ?? 1), tilt : (_star[$ "tilt"] ?? 40), period : (_star[$ "period"] ?? 2400), sseed : _seed };   // (hole: a black hole; skind: giant / dwarf / pulsar / main - 2026-09-17)
 		if (_skd0 == "giant") _st.size = 50 + _star.size * 4;        // (62-68: three times the biggest world across)
 		else if (_skd0 == "hole") _st.size = 44 + _star.size * 6;    // (53-60; the core 75-83)
-		else if (_skd0 == "wolf") _st.size = 12 + _star.size * 2;    // (a Wolf-Rayet: big and blazing; its shell is the ornament - q253; smaller since q265, its worlds were under the glare)
+		else if (_skd0 == "swell") _st.size = 14 + _star.size * 3;   // (a swelling star: bloated - and star_swell moves it from there; q267)
 		else if (_skd0 == "brown") _st.size = 5 + _star.size * 2;    // (a brown dwarf: small)
 	}
 	// THE KIND'S WORLDS (2026-09-17): a red giant scorches its inner three rings (hot: ash and dust), a white dwarf
@@ -53,8 +53,7 @@ function starsystem_generate(_seed, _star = undefined) {
 			else if (_skd == "dwarf")  _pl[_i].clim = clamp(_pl[_i].clim + .30, 0, 1);
 			else if (_skd == "pulsar") _pl[_i].clim = clamp(_pl[_i].clim + .55, 0, 1);
 			else if (_skd == "brown")  _pl[_i].clim = clamp(_pl[_i].clim + .40, 0, 1);   // (a dusk world: cold, the inner ones just warm - q253)
-			else if (_skd == "wolf")   { if (_i < 3) _pl[_i].clim = clamp(_pl[_i].clim - .55 + .12 * _i, 0, 1); }   // (its inner worlds burnt bare)
-			else if (_skd == "cepheid") { if (_i < 1) _pl[_i].clim = clamp(_pl[_i].clim - .20, 0, 1); }
+			else if (_skd == "swell")  { if (_i < 2) _pl[_i].clim = clamp(_pl[_i].clim - .30 + .12 * _i, 0, 1); }   // (the swelling star scorches its inner two - q267)
 		}
 	}
 	var _sr2 = colour_get_red(_st.col), _sb2 = colour_get_blue(_st.col);

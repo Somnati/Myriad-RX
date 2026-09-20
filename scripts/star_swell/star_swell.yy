@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"star_swell",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"star_swell",
+  "parent":{
+    "name":"galaxy",
+    "path":"folders/game/galaxy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

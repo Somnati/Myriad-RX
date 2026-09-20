@@ -97,7 +97,7 @@ function galaxy_sky_build(_dw = undefined) {
 	_out.sun_col  = _sys.star.col;
 	_out.hole     = _sys.star[$ "hole"] ?? false;   // (a black hole for a sun - 2026-09-17)
 	_out.skind    = _sys.star[$ "skind"] ?? "main"; _out.sspin = _sys.star[$ "spin"] ?? 1; _out.stilt = _sys.star[$ "tilt"] ?? 40;   // (a pulsar's beam sweeps the sky too)
-	_out.speriod  = _sys.star[$ "period"] ?? 2400; _out.sseed = _sys.star[$ "sseed"] ?? _hm.star;   // (a cepheid's period, the star's seed - q253)
+	_out.speriod  = _sys.star[$ "period"] ?? 2400; _out.sseed = _sys.star[$ "sseed"] ?? _hm.star;   // (the star's period and seed - a swelling star reads them; q253 / q267)
 	// THE SUN'S SIZE BY THE ORBIT (his pick, 2026-09-16): the star's size over the world's orbit against a middling one -
 	// an inner world's sun is big in the sky, an outer world's a bright point (the same law sizes the shadows' sun)
 	_out.sun_size = _sys.star.size * clamp((_cfg[$ "sun_orbit_ref"] ?? 70) / max(20, _me3.orbit), _cfg[$ "sun_size_min"] ?? .45, _cfg[$ "sun_size_max"] ?? 2.2);

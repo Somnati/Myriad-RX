@@ -254,12 +254,10 @@ svars	ex_system_press              sy_stns
 svars	ex_system_press              sy_sys
 svars	ex_system_press              sy_warp_pl
 svars	ex_system_press              view
-svars	ex_system_step               sy_Dmin
 svars	ex_system_step               sy_belts
 svars	ex_system_step               sy_drag
 svars	ex_system_step               sy_dw
 svars	ex_system_step               sy_dwa
-svars	ex_system_step               sy_ssel
 svars	ex_system_step               sy_star
 svars	ex_system_step               sy_stns
 svars	ex_system_step               sy_sys
@@ -1033,6 +1031,7 @@ dupvar	scripts\sprite_skill_learn\sprite_skill_learn.gml    _new _old _sh _tmpl
 dupvar	scripts\sprite_stats\sprite_stats.gml                _i
 dupvar	scripts\sprite_take\sprite_take.gml                  _arr _it _m _ms
 dupvar	scripts\star_name\star_name.gml                      _nm _sp
+dupvar	scripts\star_swell\star_swell.gml                    _cyc _u
 dupvar	scripts\star_visible\star_visible.gml                _hh _sm
 dupvar	scripts\starmap_generate\starmap_generate.gml        _a _c _d _gx _gy _iy _py _salt _u
 dupvar	scripts\starmap_generate\starmap_generate.gml        _aa2 _bx2 _by _by2 _c _cfg _cx _cy _dgh _dgw _dir _ed _fa _fy _iaa _is _isl _la _ngw _nisl _pcount _pts _sy2 _t _vregs _vstars round
@@ -1067,4 +1066,3 @@ dupvar	scripts\upgrade_burst_start\upgrade_burst_start.gml  _i
 dupvar	scripts\upgrade_buy\upgrade_buy.gml                  _s
 dupvar	scripts\upgrade_cost\upgrade_cost.gml                _s
 dupvar	scripts\upgrade_roll\upgrade_roll.gml                _pick
-dupvar	scripts\wolf_draw\wolf_draw.gml                      _k

@@ -7,8 +7,8 @@ function star_kind_word(_skind, _short = false) {
 		case "pulsar":  _w = "pulsar"; break;
 		case "hole":    _w = "black hole"; break;
 		case "brown":   _w = "brown dwarf"; break;
-		case "wolf":    _w = "wolf-rayet star"; break;
-		case "cepheid": _w = "cepheid"; break;
+		case "chroma":  _w = "chromatic star"; break;
+		case "swell":   _w = "swelling star"; break;
 		case "proto":   _w = "protostar"; break;
 		default:        _w = "main-sequence star"; break;
 	}

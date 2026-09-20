@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"star_pulse",
+  "%Name":"swell_draw",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"star_pulse",
+  "name":"swell_draw",
   "parent":{
     "name":"galaxy",
     "path":"folders/game/galaxy.yy",
