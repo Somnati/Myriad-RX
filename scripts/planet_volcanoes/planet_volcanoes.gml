@@ -25,12 +25,12 @@ function planet_volcanoes(_pn) {
 	if (is_undefined(_pn[$ "rlift"])) _pn.rlift = array_create(_n, 0);
 	var _c = {
 		tw : _tw, th : _th, el : _pn.elev, bm : _pn.biome, dt : _pn.det, mo : _pn.moi, ps : _pn.smp, seed : _pn.seed, sea : _pn.sea,
-		sc : _tw / 320, lift : array_create(_n, 0), rl : _pn.rlift, vent : array_create(_n, 0),
+		sc : _tw / 320, lift : array_create(_n, 0), rl : _pn.rlift, vent : array_create(_n, 0), fr : array_create(_n, 0),   // (fr: the lift as a share of its cone's height - the repaint reads it; q271)
 		h : function(_k) { return (hash_mix(seed, 30000 + _k) mod 10000) / 10000; },
 		// the cone: a lift by ground distance - the flank to the rim, the crater's bowl inside, the vent's pit
 		cone : function(_x, _y, _rad, _hgt, _live, _stp) {   // (stp: the flank's exponent - the steeper, the more the height sits at the summit)
 			var _cl = max(.2, sin(pi * (_y + .5) / th)), _r = ceil(_rad), _rx = min(tw div 2, ceil(_rad / _cl));
-			var _rc = _rad * .22, _rv = _rad * .09;
+			var _rc = max(2.2, _rad * .28), _rv = max(1.2, _rad * .12);   // (the crater and the pool a few texels across - a one-texel pool drew as a square at the tier; q271)
 			// THE BASE (his report, 2026-09-17: "on the side of a mountain at an angle"): the mean height round the cone's
 			// perimeter; the ground inside is levelled toward it, fully at the centre, not at all at the edge, so the
 			// cone stands upright on a range's flank instead of leaning down it
@@ -47,11 +47,11 @@ function planet_volcanoes(_pn) {
 					var _xx = (((_x + _dx) mod tw) + tw) mod tw, _i = _xx + _yy * tw;
 					var _d = sqrt(_dx * _dx * _cl * _cl + _dy * _dy);
 					if (_d > _rad) continue;
-					el[_i] = lerp(el[_i], _base, power(1 - _d / _rad, .6));
+					el[_i] = lerp(el[_i], _base, power(1 - _d / _rad, 1.8) * .7);   // (the levelling tight to the summit and never whole - the old .6 laid a flat disc round every cone: "a circle of sand"; q271)
 					var _l = _hgt * power(1 - _d / _rad, _stp);   // (a stratovolcano's flank: concave - steep at the summit, easing to the plain; a shield's gentler)
 					if (_d < _rc) _l -= _hgt * .38 * (1 - (_d / _rc) * (_d / _rc));   // (the crater's bowl: the rim stands, the floor sinks)
 					_l *= .9 + .2 * dt[_i];
-					if (_l > lift[_i]) lift[_i] = _l;
+					if (_l > lift[_i]) { lift[_i] = _l; fr[_i] = max(fr[_i], _l / max(.001, _hgt)); }
 					if (_d < _rc) vent[_i] = max(vent[_i], (_d < _rv) ? (_live ? 2 : 1) : 1);   // (2 the vent, 1 the crater's floor)
 				}
 			}
@@ -102,10 +102,10 @@ function planet_volcanoes(_pn) {
 			var _cx = floor(_c.h(_b + _t * 2) * _tw), _cy = floor((_pole + (_th - 2 * _pole) * _c.h(_b + _t * 2 + 1)));
 			var _ci = _cx + _cy * _tw;
 			if (_el[_ci] < _sea + .02) continue;
-			var _lf = _rl[_ci], _near = (_lf > .006 && _lf < .12) ? 1 : 0;
+			var _lf = _rl[_ci], _near = (_lf > .02 && _lf < .32) ? 1 : 0;   // (ON the range, not just its shoulder - his ask, q271: "more naturally integrated with mountainous regions")
 			var _hi2 = -9, _lo2 = 9;
 			for (var _dy = -3; _dy <= 3; _dy += 3) for (var _dx = -3; _dx <= 3; _dx += 3) { var _ny = clamp(_cy + _dy, 0, _th - 1), _nx = ((_cx + _dx) mod _tw + _tw) mod _tw; var _ev = _el[_nx + _ny * _tw]; _hi2 = max(_hi2, _ev); _lo2 = min(_lo2, _ev); }
-			var _sc2 = _near * 2 + clamp(1 - (_hi2 - _lo2) / .12, 0, 1);
+			var _sc2 = _near * 3 + (_near ? 0 : clamp(1 - (_hi2 - _lo2) / .12, 0, 1));   // (a range site outranks every level plain; level ground only breaks ties among the plains)
 			if (_sc2 > _best) { _best = _sc2; _x = _cx; _y = _cy; }
 		}
 		if (_x < 0) continue;
@@ -122,11 +122,14 @@ function planet_volcanoes(_pn) {
 		array_push(_vents, [_x, _y, _live, _rad, _b]);
 	}
 	// into the heights (the cone's lift joins rlift for the gullies and the carve), the biome law again under it
-	var _lift = _c.lift, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps;   // (_rl is the site loop's, above)
+	var _lift = _c.lift, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps, _fr = _c.fr;   // (_rl is the site loop's, above)
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
-		_el[_i] = max(_el[_i] + _lift[_i], _sea + .004);
+		_el[_i] = max(_el[_i] + _lift[_i], _sea + ((_c.vent[_i] > 0) ? .03 : .004));   // (a crater's floor well above the tide - at sea + .004 the tier's law read it as shallows, the cyan "lava"; q271)
 		_rl[_i] = max(_rl[_i], _lift[_i]);
+		// THE FLANK KEEPS ITS GROUND (q271): the biome law repaints only where the cone stands tall - the upper half of it -
+		// so the lower flank runs on in the grass or the forest it rose from, and a cone on a range is a peak of the range
+		if (_fr[_i] < .45) continue;
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
 		_bm[_i] = _ps.ob;

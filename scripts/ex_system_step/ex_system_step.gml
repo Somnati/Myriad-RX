@@ -56,7 +56,7 @@ function ex_system_step() {
 			// or back out from there; nothing else picked
 			var _stp0 = __sy_proj(0, 0, 0);
 			if (!is_undefined(_stp0)) {
-				var _str = max(6, 6 * sy_sys.star.size * _stp0[2] / 12);
+				var _str = max(6, 6 * sy_sys.star.size * _stp0[2] / 12) * ((sy_Dt < 140) ? 2.4 : 1);   // (zoomed in, the corona counts as the star - a tap anywhere on it zooms out; q271)
 				if (point_distance(mouse_x, mouse_y - list_y, _stp0[0], _stp0[1]) <= _str) {
 					sy_Dt = (sy_Dt > sy_Dmin * 1.15) ? sy_Dmin : 250;
 					sy_sel = -1; sy_ssel = -1; sy_bsel = -1;
