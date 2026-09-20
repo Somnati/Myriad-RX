@@ -193,6 +193,7 @@ function offline_replay(_secs, _src = "boot return") {
 	credit_tick(_secs);   // the dropper's pool refills over the absence too (wall clock, not the battery's)
 	ccore_tick(_secs);    // ...and the credit core's well fills (to its cap) on the same clock
 	exped_tick(_secs);    // ...and an expedition walks its rooms (the fights resolve as they come)
+	moods_tick(_secs);    // ...and the crew rests over the absence (q282; it ticked on active play alone - a sprite came home tired and stayed so until two hours of play had passed)
 	_L.credits = { pool0 : _cp0, pool1 : g.credit_pool, cap : g.credit_cap,
 	               lv : g.ccore.lv, st0 : _cc0.st, st1 : g.ccore.st, xp0 : _cc0.xp, xp1 : g.ccore.xp,
 	               ccap : (g.ccore.lv > 0) ? ccore_values().cap : 0 };
