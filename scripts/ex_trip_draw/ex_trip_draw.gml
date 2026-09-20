@@ -14,7 +14,9 @@ function ex_trip_draw(_e, _ea, _br, _ink, _dim) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, _isl.w, _isl.h, 0, c_black, .85);
 	draw_px_rect(_isl.x, _isl.y, _isl.w, _isl.h, _wc, .35);
 	draw_sprite_ext(spr_pixel_1x1, 0, _isl.x, _isl.y, 2, _isl.h, 0, _wc, .9);
-	__draw_orbit(_d, big_x + 2, big_y + 1, big_w - 3, big_h - 2, (big_w - 3) * .5, (big_h - 2) * .5 + 2, land ? 22 : 26, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, 1);
+	// THE REGION, CLOSE (q268): the face camera already sits on the crew's region - the world pulled in to the box's width
+	// shows that patch of ground, clouds thinned, the 3x tier under it (__lod_step builds the trip's world's tier here)
+	__draw_orbit(_d, big_x + 2, big_y + 1, big_w - 3, big_h - 2, (big_w - 3) * .5, (big_h - 2) * .5 + 2, (big_w - 3) * TP_ZOOM_RG, tp_cam, tp_spin, _tr[$ "rgi"] ?? 0, _tr[$ "rgi"] ?? 0, .15);
 	ui_fade_set(_ea);
 	draw_set_halign(fa_center);
 	draw_set_font(fnt_large);

@@ -505,6 +505,7 @@
     {"id":{"name":"exped_fork_watched","path":"scripts/exped_fork_watched/exped_fork_watched.yy",},},
     {"id":{"name":"exped_haul_moment","path":"scripts/exped_haul_moment/exped_haul_moment.yy",},},
     {"id":{"name":"exped_hazard","path":"scripts/exped_hazard/exped_hazard.yy",},},
+    {"id":{"name":"exped_hp_refresh","path":"scripts/exped_hp_refresh/exped_hp_refresh.yy",},},
     {"id":{"name":"exped_init","path":"scripts/exped_init/exped_init.yy",},},
     {"id":{"name":"exped_lines","path":"scripts/exped_lines/exped_lines.yy",},},
     {"id":{"name":"exped_log_gist","path":"scripts/exped_log_gist/exped_log_gist.yy",},},

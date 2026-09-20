@@ -34,6 +34,13 @@ function ex_planet_draw(_e, _ea, _dim) {
 	draw_set_halign(fa_center); draw_set_color(_dim); draw_set_alpha(.6);
 	draw_text(room_width * .5, room_height - 8 - 12, (pv_mode == "region" || _nol) ? "drag to orbit  -  wheel to zoom" : "drag to orbit  -  wheel to zoom  -  tap a region");
 	draw_set_halign(fa_left);
+	// THE DEBUG ZOOM READOUT (q268, his ask: "a debug camera value i can read you... i'd rather give you the exact distance"):
+	// the zoom as it stands = the wheel x the mode's pull-in, and the world's radius in room pixels. Wheel to the distance
+	// you want and hand me the number - PV_ZOOM_RG is the mode's factor
+	if (DEBUG_KEYS) {
+		draw_set_color(c_gold); draw_set_alpha(.8);
+		draw_text(_pvr.x + 4, _pvr.y + 4, "zoom x" + string_format(pv_zoom, 1, 2) + " = wheel x" + string_format(pv_zuser, 1, 2) + " x " + ((pv_mode == "region") ? ("region x" + string(PV_ZOOM_RG)) : "planet x1") + "  -  pr " + string(round(_pr)));
+	}
 	// the left column: [galaxy] at the foot, [star system] over it ([map] is in the strip; the geosync toggle went - his call, 2026-09-16)
 	var _gl = __galaxy_r();
 	draw_ui_button(_gl.x, _gl.y, _gl.w, _gl.h, "galaxy", c_steelblue, true, false);

@@ -15,7 +15,7 @@ function exped_room_find(_tr, _pre, _again = true) {   // (again = the prospecto
 			sprite_led(_sp, "finds");
 			_l.txt = _tk.txt;
 			array_push(_tr.log, _pre + _tk.txt);
-			if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }
+			if (_tk.worn) exped_hp_refresh(_tr, _tk[$ "given"] ?? _sp.id);   // (the wearer's, handed round or not - q268)
 		} else array_push(_tr.log, _pre + "found " + _l.txt);
 	} else array_push(_tr.log, _pre + "found " + _l.txt);
 	// AN EGG IS ITS FINDER'S (2026-09-16): one of the party who is up keeps it close - it rides the sprite home (exped_collect)

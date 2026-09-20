@@ -41,7 +41,9 @@ function exped_fight_loot(_tr, _f) {
 	if (_tk[$ "dumb"] ?? false) exped_tally(_tr, "mist", 1, _sp); else exped_tally(_tr, "items");   // (the tally, 2026-09-16)
 	exped_stat("finds"); if (!_ist) exped_stat("gear_found"); sprite_led(_sp, "finds");
 	array_push(_tr.finds, { kind : "gear", rar : _rar, txt : _tk.txt, col : _it.col, item : _it });
-	array_push(_tr.log, "+ " + _sp.name + " acquired \"" + _it.name + "\"" + (_tk.worn ? " - and put it on" : (_tk.kept ? " - into the pocket" : " - and threw it away")));
-	if (_tk.worn) { _tr.hpmax[_who] = sprite_pawn(_sp).maxhp; _tr.hp[_who] = min(_tr.hp[_who], _tr.hpmax[_who]); }
+	// THE LINE IS sprite_take's TRUTH (q268; his report: "Nene acquired a slingshot and put it on... turns out noobroo was
+	// given it"): a find handed round says who took it; the hp ceiling follows the one who WEARS it
+	array_push(_tr.log, "+ " + ((_tk[$ "given"] ?? -1) >= 0 ? _tk.txt : (_sp.name + " acquired \"" + _it.name + "\"" + (_tk.worn ? " - and put it on" : (_tk.kept ? " - into the pocket" : " - and threw it away")))));
+	if (_tk.worn) exped_hp_refresh(_tr, _tk[$ "given"] ?? _sp.id);
 	exped_note_beat(_tr, "find", .15, _it.name);
 }

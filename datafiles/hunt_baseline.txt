@@ -179,6 +179,7 @@ svars	ex_planet_draw               pv_dwa
 svars	ex_planet_draw               pv_mode
 svars	ex_planet_draw               pv_sky
 svars	ex_planet_draw               pv_zoom
+svars	ex_planet_draw               pv_zuser
 svars	ex_planet_draw               rg_in
 svars	ex_planet_draw               sky_fog_surf
 svars	ex_planet_draw               wb_surf

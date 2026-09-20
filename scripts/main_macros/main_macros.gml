@@ -871,3 +871,6 @@ function main_macros() {
 // comes in at FOE_LEADERLESS of its stats meanwhile (his "10%")
 #macro LEAD_DAYS        4
 #macro FOE_LEADERLESS   .9
+// THE TRIP PAGE'S WORLD BOX (q268, his ask: "a detailed zoom in of the planet region"): the world's radius as a share of the box's
+// width - the face camera sits on the crew's region, so the box shows that patch of ground, the 3x tier under it
+#macro TP_ZOOM_RG   .95

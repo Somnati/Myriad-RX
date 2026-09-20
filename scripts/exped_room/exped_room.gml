@@ -25,7 +25,7 @@ function exped_room(_tr) {
 					sprite_led(_spf, "finds");
 					_l.txt = _tk.txt;
 					array_push(_tr.log, _rm + _tk.txt);
-					if (_tk.worn) { _tr.hpmax[_whof] = sprite_pawn(_spf).maxhp; _tr.hp[_whof] = min(_tr.hp[_whof], _tr.hpmax[_whof]); }
+					if (_tk.worn) exped_hp_refresh(_tr, _tk[$ "given"] ?? _spf.id);   // (the wearer's, handed round or not - q268)
 				} else array_push(_tr.log, _rm + "found " + _l.txt);
 			} else array_push(_tr.log, _rm + "found " + _l.txt);
 			array_push(_tr.finds, _l);
