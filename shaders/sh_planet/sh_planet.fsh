@@ -422,13 +422,12 @@ float hash12(vec2 p)
     p3 += dot(p3, p3.yzx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
 }
-// THE CANOPY AT A CELL (q273 / q278): open (a clearing) or closed - the clump noise at the cell's centre on the base
-// map's grid over four (the same clearings at every tier and zoom), the cell's hash roughening it, a thin canopy (fo)
-// opening wider. The cell is a LATTICE cell (q278): half a texel, odd rows staggered half a step - un-staggered here.
-// The pixel's own test, the floor's shadow and the neighbour's shade all read through this
-float canopy_open(vec2 cell, float fo)
+// THE CANOPY AT A POINT (q273 / q280): open (a clearing) or closed - the clump noise at the point (pt, in base
+// texels) on the base map's grid over four (the same clearings at every tier and zoom), the micro-cell's hash
+// roughening its edge, a thin canopy (fo) opening wider. The pixel's own test and the floor's shadow read through this
+float canopy_open(vec2 pt, vec2 cell, float fo)
 {
-    vec2 cl = (cell + 0.5 - vec2(0.5 * mod(cell.y, 2.0), 0.0)) / 8.0;
+    vec2 cl = pt / 4.0;
     vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
     float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
     return vn + (hash12(cell + 0.5) - 0.5) * 0.3 + (1.0 - fo) * 0.4;
@@ -735,19 +734,19 @@ void main()
         // with a darker shade of grass below it"): the height map's blue marks the woods. A swamp's canopy is thinner
         // (its blue lower). The look is q278's pixel forest, below
         float fo = (hsmp.g > 0.5) ? 0.0 : hsmp.b;   // (under water the blue is the depth, not the woods)
-        // THE PIXEL FOREST (q278; his screenshot at the region zoom: q277's crowns "look like they would be the size of
-        // mountains" - a crown was a base texel and a range four of them). The trees are DOTS: a lattice at HALF a texel
-        // (two trees to a texel across, odd rows staggered half a step, every centre jittered, one cell in eight empty
-        // so no lattice shows), a dot a cell or so wide at the region zoom, the canopy's own shade between the dots
-        // (darker in a dot's lee) - a stipple, the way a wood reads from above. The clearing cells (the slow clump
-        // noise on the base map's grid, unchanged) show the floor, in the shadow of the canopy toward the sun; and the
-        // wood throws a shadow rim on the bare ground past its lee edge. Under a cell a dot cannot be drawn: the
-        // stipple's amplitude rides the lattice's size on screen (the cells one base texel spans at the disc's centre -
-        // the disc is u_cells / 2 u_pad cells across its radius, a texel 2 pi of that over the map's width), calm at a
-        // cell's spacing, whole at two, continuous with the wheel - nothing pops when the tier lands. The whole is lifted
-        // a tenth at full strength so a wood's mean tone holds through the zoom (the shade between the dots takes most of it)
+        // THE GRAIN FOREST (q280; his ask: "single pixel with smooth noise so as to differ from other terrain textures" -
+        // q278's dots were two cells wide and their lattice showed). A wood is a GRAIN: every screen cell reads ONE
+        // micro-cell of the map (a hash grid at 2^n texels, the octave picked so a micro-cell is .7-1.4 screen cells
+        // wide - a dot is a pixel, and the grain ROLLS with the ground instead of crawling over it), lit or shaded by
+        // the cell's hash against a DENSITY that a smooth noise sets (a swell three texels long: thick with lit crowns
+        // on a rise, sparse and dark in a hollow), and the swell's slope toward the sun lights or shades the whole -
+        // soft hills of foliage under a fine grain; no lattice, no texel edge. The clearings (the slow clump noise,
+        // unchanged) show the floor in the sunward canopy's shadow; bare ground half a texel lee of a wood takes its
+        // shadow rim. The grain's amplitude rides the zoom (the cells one base texel spans at the disc's centre - the
+        // disc is u_cells / 2 u_pad cells across its radius, a texel 2 pi of that over the map's width): flat from
+        // orbit (a texel under a cell, a grain would be speckle - his q276 report), whole at three cells a texel
         float cpc = 3.14159 * u_cells / (max(u_pad, 0.01) * u_tsize.x);
-        float tk = clamp(cpc * 0.5 - 1.0, 0.0, 1.0);
+        float tk = clamp((cpc - 1.2) / 1.8, 0.0, 1.0);
         float elc = dot(n, u_light);
         if (fo > 0.05) {
             // the canopy deck a hair above the ground (u_canopy radii): the ray meets it a little off where it meets the
@@ -756,35 +755,30 @@ void main()
             vec3 nc = normalize(vec3(p, sqrt(max(0.0, rc * rc - r2))));
             vec3 tcn = to_tex(nc);
             vec2 cuvm = map_uv(tcn);
-            // the lattice cell, and the sun's way across it (in lattice steps)
-            vec2 luv = cuvm * u_tsize * 2.0;
-            luv.x += 0.5 * mod(floor(luv.y), 2.0);
-            vec2 lt = floor(luv);
+            vec2 ptx = cuvm * u_tsize;   // (the point in base texels)
+            // the sun's way across the map, in texels
             vec2 ld = map_uv(normalize(tcn + to_tex(u_light) * 0.02)) - cuvm;
             ld.x -= floor(ld.x + 0.5);
-            ld *= u_tsize * 2.0;
+            ld *= u_tsize;
             float ll = length(ld);
             vec2 ld2 = (ll > 1.0e-5) ? ld / ll : vec2(1.0, 0.0);
-            if (canopy_open(lt, fo) > 0.36) {
-                float g = hash12(lt + 0.5);
-                vec2 cen = lt + 0.5 + (vec2(hash12(lt + 3.3), hash12(lt + 9.9)) - 0.5) * 0.4;
-                float rad = 0.30 + 0.10 * hash12(lt + 5.5);
-                bool has = hash12(lt + 12.7) > 0.12;
-                vec2 dd = luv - cen;
-                if (has && length(dd) < rad) {
-                    // the dot: the crown, lit, a grain of its own, its sunward side a hair brighter
-                    float sun = (elc > 0.0) ? dot(dd / rad, ld2) : 0.0;
-                    col *= mix(1.0, 1.23 + 0.08 * (g - 0.5) + 0.06 * sun, tk);
-                } else {
-                    // the shade between the crowns: the wood's own colour down, darker in a dot's lee
-                    float lee = (elc > 0.0 && has && dot(dd, ld2) < 0.0) ? 0.82 : 1.0;
-                    col *= mix(1.0, 0.77 * lee, tk);
-                }
+            // the micro-cell: the octave of the texel grid nearest one screen cell
+            float K = exp2(floor(log2(max(cpc, 1.0)) + 0.5));
+            vec2 mg = floor(ptx * K);
+            if (canopy_open(ptx, mg, fo) > 0.36) {
+                // the swell, and its slope toward the sun
+                float sw = vn2a(ptx / 3.0 + 41.7);
+                float sws = vn2a((ptx + ld2 * 0.75) / 3.0 + 41.7);
+                float sunk = (elc > 0.0) ? (1.0 + clamp((sws - sw) * 2.0, -0.28, 0.28) * min(1.0, elc * 3.0)) : 1.0;
+                float den = 0.28 + 0.40 * sw;
+                float lit = step(hash12(mg + 0.5), den);
+                float tone = mix(0.80 + 0.10 * (sw - 0.5), 1.22 + 0.10 * (sw - 0.5), lit) * sunk;
+                col *= mix(1.0, tone, tk);
             } else {
                 // a clearing: the floor, in the shade of the canopy toward the sun if one stands there
                 vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
-                vec2 nbc = lt - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
-                if (elc > 0.0 && canopy_open(nbc, fo) > 0.36) floorc *= mix(0.5, 0.92, elc);
+                vec2 npt = ptx + ld2 * 0.6;
+                if (elc > 0.0 && canopy_open(npt, floor(npt * K), fo) > 0.36) floorc *= mix(0.5, 0.92, elc);
                 col = floorc;
             }
         } else if (hsmp.g < 0.5 && tk > 0.0 && elc > 0.0) {
