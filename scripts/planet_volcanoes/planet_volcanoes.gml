@@ -138,7 +138,9 @@ function planet_volcanoes(_pn) {
 		if (_fr[_i] < .45) continue;
 		_ps.oe = _el[_i]; _ps.od = _dt[_i]; _ps.om = _mo[_i];
 		planet_biome(_ps, ((_i mod _tw) + .5) / _tw, ((_i div _tw) + .5) / _th);
-		_bm[_i] = _ps.ob;
+		// A CONE IS ROCK (q276; his screenshots: the law read the lifted flank as sand and beach - "a circle of dirt"):
+		// the upper half takes the rock (7), and the law's snow and peak (8 / 9 / 10) where it says so
+		_bm[_i] = (_ps.ob == 8 || _ps.ob == 9 || _ps.ob == 10) ? _ps.ob : 7;
 	}
 	// the flows, then the crater's basalt, the vent's lava (or a dead vent's rock), the plumes
 	for (var _k = 0; _k < array_length(_vents); _k++) {

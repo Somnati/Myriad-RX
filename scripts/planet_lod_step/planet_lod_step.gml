@@ -67,12 +67,16 @@ function planet_lod_step(_pn, _l, _until) {
 				// A CONE'S LOWER FLANK (q272): the map kept its own ground there (planet_volcanoes repaints the upper half only),
 				// so the law reads the pre-lift heights, blending into the lifted ones toward the summit - no ring of sand
 				var _cf = _cmk[_i00] * _w00 + _cmk[_i10] * _w10 + _cmk[_i01] * _w01 + _cmk[_i11] * _w11;
-				if (_cf > 0 && _cf < .45) _ps.oe = lerp(_ep[_i00] * _w00 + _ep[_i10] * _w10 + _ep[_i01] * _w01 + _ep[_i11] * _w11, _ps.oe, _cf / .45);
+				if (_cf > 0 && _cf < .45) _ps.oe = lerp(_ep[_i00] * _w00 + _ep[_i10] * _w10 + _ep[_i01] * _w01 + _ep[_i11] * _w11, _ps.oe, clamp((_cf - .38) / .07, 0, 1));   // (the map's own hand-over at .45 - a soft edge of it; the old lerp lifted the whole flank halfway, q276)
 			}
 			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
 			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
 			planet_biome(_ps, _u, _v);
 			var _b = _ps.ob;
+			if (_hascone && !_gas) {   // (a cone's upper half is rock, the law's snow kept - the map's rule, q276)
+				var _cf2 = _cmk[_i00] * _w00 + _cmk[_i10] * _w10 + _cmk[_i01] * _w01 + _cmk[_i11] * _w11;
+				if (_cf2 >= .45 && !(_b == 8 || _b == 9 || _b == 10 || _b == 17 || _b == 18)) _b = 7;
+			}
 			if (!_gas) {
 				var _bx = _i div _k, _bi = _bx + _by * _tw, _fx = ((_i mod _k) + .5) / _k;
 				var _bb = _bm[_bi], _natl = !(_b == 0 || _b == 1 || _b == 11 || _b == 25);

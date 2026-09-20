@@ -767,13 +767,17 @@ void main()
             vec2 ld2 = (ll > 1.0e-5) ? ld / ll : vec2(1.0, 0.0);
             float cs = sqrt(max(0.0, 1.0 - elc * elc));
             vec3 L3 = normalize(vec3(ld2 * cs, max(elc, 0.0)));
+            // THE ZOOM'S SHARE (q276; his screenshot: "trees lookin a lil noisy" at the whole-planet zoom, where a crown is a
+            // texel): at the base map the crowns are big and calm - a soft grain, no rims to speak of - and the full
+            // crowns, rims and domes come in with the tier (grid_k 3)
+            float tk = clamp((gk - 1.0) / 2.0, 0.0, 1.0);
             float best = 9.0; vec2 bestd = vec2(0.0); float bestg = 0.0; float bestr = 1.0;
             for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
                 vec2 cc = ct + vec2(float(ox), float(oy));
                 float co = (ox == 0 && oy == 0) ? open : canopy_open(cc, gk, fo);
                 if (co <= 0.36) continue;
                 vec2 cen = cc + 0.5 + (vec2(hash12(cc + 3.3), hash12(cc + 9.9)) - 0.5) * 0.5;
-                float rad = 0.45 + 0.35 * hash12(cc + 5.5);
+                float rad = mix(0.66, 0.45, tk) + 0.35 * hash12(cc + 5.5);
                 vec2 dd = cuv - cen;
                 float nd0 = length(dd) / rad;
                 if (nd0 < best) { best = nd0; bestd = dd / rad; bestg = hash12(cc + 17.3); bestr = rad; }
@@ -781,9 +785,9 @@ void main()
             if (best <= 1.0) {
                 float zz = sqrt(max(0.0, 1.0 - best * best));
                 vec3 nd = normalize(vec3(bestd * 1.8, max(zz, 0.12)));
-                float dome = (elc > 0.0) ? (0.80 + 0.40 * max(0.0, dot(nd, L3))) : 1.0;
-                float rimd = mix(0.62, 1.0, smoothstep(1.0, 0.7, best));
-                col = col * (0.90 + 0.20 * bestg) * dome * rimd;
+                float dome = (elc > 0.0) ? (mix(0.93, 0.80, tk) + mix(0.14, 0.40, tk) * max(0.0, dot(nd, L3))) : 1.0;
+                float rimd = mix(mix(0.88, 0.62, tk), 1.0, smoothstep(1.0, 0.7, best));
+                col = col * (mix(0.95, 0.90, tk) + mix(0.10, 0.20, tk) * bestg) * dome * rimd;
             } else {
                 // the floor: in the shade of the crown toward the sun, if one stands there
                 vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));

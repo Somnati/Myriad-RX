@@ -126,6 +126,7 @@ function planet_rivers(_pn) {
 		if (_yy < _pole || _yy >= _th - _pole) continue;
 		var _b = _bm[_i];
 		if (_b == 8 || _b == 9 || _b == 10 || _b == 14) continue;
+		if (is_array(_pn[$ "vmask"]) && _pn.vmask[_i] > 0) continue;   // (a crater's floor, a vent, a flow: the drainage pools there as a sink and was painted a river - the cyan crater; q276)
 		if (_fill[_i] - _ej[_i] > _laked) _bm[_i] = 1;          // a lake
 		else if (_acc[_i] >= _t) _bm[_i] = 11;                  // a river
 	}
