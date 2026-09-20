@@ -329,7 +329,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _pti = (_ri < _pnb) ? _pcr.a : _pcr.b;
 			var _px = _pti mod _pn.tw, _py = _pti div _pn.tw;
 			var _pgx = (((_px - _tmap.sx + _pn.tw + (_pn.tw div 2)) mod _pn.tw) - (_pn.tw div 2)) * _tmap.cl, _pgy = _py - _tmap.sy;
-			var _pux = .5 + (_pgx - _tmap.cxm) / _tmap.span * _tmap.k, _puy = .5 + (_pgy - _tmap.cym) / _tmap.span * _tmap.k;
+			var _pux = clamp(.5 + (_pgx - _tmap.cxm) / _tmap.span * _tmap.k, .06, .94), _puy = clamp(.5 + (_pgy - _tmap.cym) / _tmap.span * _tmap.k, .06, .94);   // (a water crossing sits past the land's box - held inside the map; bug pass q292)
 			var _pnr = 0, _pnd = 1000000;
 			for (var _pj = 0; _pj < array_length(_nodes); _pj++) {
 				if (_nodes[_pj].kind == "pass" || _nodes[_pj].kind == "isle" || _nodes[_pj].kind == "sewer") continue;

@@ -107,11 +107,17 @@ function region_info(_d, _rg) {
 	}
 	// THE NEIGHBOURS (q291): the territories this one borders, with their levels
 	{
-		var _bpn = planet_get(_d.seed, exped_planet_hint(_d)), _btr = is_struct(_bpn) ? _bpn[$ "terr"] : undefined, _bri = _rg[$ "ri"] ?? 0, _brow = "";
-		if (is_struct(_btr) && _bri < _btr.n) for (var _bi = 0; _bi < _btr.n; _bi++) {
-			if (_bi == _bri || !_btr.adj[_bri * _btr.n + _bi]) continue;
-			var _bnr = region_get(_d, _bi);
-			_brow += ((_brow != "") ? ", " : "") + _bnr.name + " (lv " + string(_bnr.lv) + ")";
+		// (cached on the region: region_info runs every frame for every listed region, and the names want the neighbours built - bug pass q292)
+		var _brow = _rg[$ "brow"];
+		if (!is_string(_brow)) {
+			_brow = "";
+			var _bpn = planet_get(_d.seed, exped_planet_hint(_d)), _btr = is_struct(_bpn) ? _bpn[$ "terr"] : undefined, _bri = _rg[$ "ri"] ?? 0;
+			if (is_struct(_btr) && _bri < _btr.n) for (var _bi = 0; _bi < _btr.n; _bi++) {
+				if (_bi == _bri || !_btr.adj[_bri * _btr.n + _bi]) continue;
+				var _bnr = region_get(_d, _bi);
+				_brow += ((_brow != "") ? ", " : "") + _bnr.name + " (lv " + string(_bnr.lv) + ")";
+			}
+			_rg.brow = _brow;
 		}
 		if (_brow != "") array_push(_out, { k : "borders", v : _brow, t : 0, col : c_gold });
 	}
