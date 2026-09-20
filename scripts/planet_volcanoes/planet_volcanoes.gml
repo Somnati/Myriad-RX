@@ -123,6 +123,12 @@ function planet_volcanoes(_pn) {
 	}
 	// into the heights (the cone's lift joins rlift for the gullies and the carve), the biome law again under it
 	var _lift = _c.lift, _bm = _c.bm, _dt = _c.dt, _mo = _c.mo, _ps = _c.ps, _fr = _c.fr;   // (_rl is the site loop's, above)
+	// THE PRE-LIFT HEIGHTS (q272; his report: "zooming in makes the sand circle appear"): the tier runs the biome law on
+	// the heights, and the lifted flank read as mid-ground - sand. On the lower flank the tier reads THESE (elevp,
+	// blended into the lifted ones toward the summit by cmask), the heights the map's own biomes were decided on
+	var _elp = array_create(_n, 0);
+	for (var _i = 0; _i < _n; _i++) _elp[_i] = _el[_i];
+	_pn.elevp = _elp; _pn.cmask = _fr;
 	for (var _i = 0; _i < _n; _i++) {
 		if (_lift[_i] <= 0) continue;
 		_el[_i] = max(_el[_i] + _lift[_i], _sea + ((_c.vent[_i] > 0) ? .03 : .004));   // (a crater's floor well above the tide - at sea + .004 the tier's law read it as shallows, the cyan "lava"; q271)

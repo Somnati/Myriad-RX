@@ -10,6 +10,9 @@ function planet_sheet_height(_eh, _ge, _sea, _base, _gas, _b) {
 	var _h = power(clamp((_eh - _base) / max(.001, 1 - _base), 0, 1), 1.6);
 	var _wat = (_b == 0 || _b == 1 || _b == 11 || _b == 25) ? 255 : 0;
 	var _for = (_b == 5 || _b == 6 || _b == 22) ? 255 : ((_b == 12) ? 140 : ((_b == 21) ? 90 : 0));
-	if (_wat > 0) _for = (_ge >= _sea) ? 0 : max(6, floor(clamp((_sea - _ge) / .08, 0, 1) * 255));
+	// THE INLAND WATERS' DEPTH (q272; his ask: "visual consistency between the rivers / ponds / oceans" - they carried 0, so no
+	// foam and no depth): a lake's is its fill over the ground (shallow edges foam, the middle goes to open water, never
+	// the abyss - .45 at most); a river's a set .10, a faint lap along its banks
+	if (_wat > 0) _for = (_ge >= _sea) ? max(6, floor(clamp(max((_eh - _ge) / .06, .10), 0, .45) * 255)) : max(6, floor(clamp((_sea - _ge) / .08, 0, 1) * 255));
 	return floor(_h * 255) | (_wat << 8) | (_for << 16);
 }

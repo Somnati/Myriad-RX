@@ -32,6 +32,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _e0 = _pn[$ "elev0"] ?? _el;   // (the heights the biomes were decided on - before the carve; the biome law reads these, the height the carved)
 	var _sigm = _pn[$ "sigmask"];   // (the signature's held kinds - q248)
 	var _vmk = _pn[$ "vmask"];      // (the volcanoes' craters and flows - no lake there; q271)
+	var _cmk = _pn[$ "cmask"], _ep = _pn[$ "elevp"], _hascone = is_array(_cmk) && is_array(_ep);   // (the cones' flanks: the law on the pre-lift heights - q272)
 	var _base = _gas ? 1 : max(_sea, .34);
 	_ps.tier = true;   // (a giant's biome law paints from the interpolated fields here - gas_paint, not gas_colour; q238)
 	while (_l.row < _l.h && get_timer() < _until) {
@@ -62,6 +63,12 @@ function planet_lod_step(_pn, _l, _until) {
 			_tx = _tx * _tx * (3 - 2 * _tx);
 			var _w00 = (1 - _tx) * (1 - _ty), _w10 = _tx * (1 - _ty), _w01 = (1 - _tx) * _ty, _w11 = _tx * _ty;
 			_ps.oe = _e0[_i00] * _w00 + _e0[_i10] * _w10 + _e0[_i01] * _w01 + _e0[_i11] * _w11;   // (the biome law on the uncarved heights, as the map's was)
+			if (_hascone) {
+				// A CONE'S LOWER FLANK (q272): the map kept its own ground there (planet_volcanoes repaints the upper half only),
+				// so the law reads the pre-lift heights, blending into the lifted ones toward the summit - no ring of sand
+				var _cf = _cmk[_i00] * _w00 + _cmk[_i10] * _w10 + _cmk[_i01] * _w01 + _cmk[_i11] * _w11;
+				if (_cf > 0 && _cf < .45) _ps.oe = lerp(_ep[_i00] * _w00 + _ep[_i10] * _w10 + _ep[_i01] * _w01 + _ep[_i11] * _w11, _ps.oe, _cf / .45);
+			}
 			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
 			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
 			planet_biome(_ps, _u, _v);
