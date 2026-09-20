@@ -31,6 +31,8 @@ if (is_struct(_ldd)) {
 	draw_text(6, strip_y + 5, _lt1);
 	if (_lt1 == "expedition  -  ") { draw_set_color(exped_world_col(pl_dest)); draw_text(6 + string_width(_lt1), strip_y + 5, pl_dest.name); }
 	__draw_back();
+	// [crew] shows under the veil too (q270, his ask - it answers there: the panel's Step)
+	if (view != "crew" && array_length(g.sprites) > 0) { var _lcs = __crewstrip_r(); draw_ui_button(_lcs.x, _lcs.y, _lcs.w, _lcs.h, "crew", c_steelblue, true, false); }
 	loading_draw(room_width - (land ? 14 : 4) - 16, room_height - 22, 1, _ldd.txt, ld_v, c_steelblue);
 	ui_fade_set(1);
 	exit;

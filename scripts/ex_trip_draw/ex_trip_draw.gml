@@ -222,14 +222,16 @@ function ex_trip_draw(_e, _ea, _br, _ink, _dim) {
 	// bottom, on the scrollbar (it follows the newest line while you sit there) ----
 	var _ly = _sy + 42;
 	var _ly_end = _fighting ? (_fy - 6) : (room_height - 10);
-	__draw_log_band(__log_lines(), { x : _sx, y : _ly, w : _sw, h : _ly_end - _ly }, _b.col2);   // (the gist when toggled, 2026-09-16)
 	// THE FORK'S CARD (q258): while the crew stands at a fork and the window is open, the choice is yours - the prompt,
-	// the two ways (the crew's own lean lit), the window running out along the bottom; a tap = exped_fork_choose by you
+	// the two ways (the crew's own lean lit), the window running out along the bottom; a tap = exped_fork_choose by you.
+	// It sits ABOVE the diary - the log band starts under it (q270; its lines drew through the card)
 	var _fkc = _tr[$ "fork"];
-	if (is_struct(_fkc) && current_time - _fkc.born < EXPED_FORK_WINDOW * 1000) {
-		var _fh = 64;
-		draw_sprite_ext(spr_pixel_1x1, 0, _sx, _ly, _sw, _fh, 0, c_black, .94);
-		draw_px_rect(_sx, _ly, _sw, _fh, c_gold, .55);
+	var _fk_on = is_struct(_fkc) && current_time - _fkc.born < EXPED_FORK_WINDOW * 1000, _fh = 64;
+	__draw_log_band(__log_lines(), { x : _sx, y : _fk_on ? (_ly + _fh + 4) : _ly, w : _sw, h : _ly_end - _ly - (_fk_on ? (_fh + 4) : 0) }, _b.col2);   // (the gist when toggled, 2026-09-16)
+	if (_fk_on) {
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx, _ly, _sw, _fh, 0, c_black, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _sx + 1, _ly + 1, _sw - 2, _fh - 2, 0, c_hsv(169, 186, 10), 1);
+		draw_px_rect(_sx, _ly, _sw, _fh, c_gold, .8);
 		draw_set_color(c_gold); draw_set_alpha(.95); draw_text_ext(_sx + 4, _ly + 3, _fkc.prompt, 9, _sw - 8);
 		var _lean = exped_fork_lean(_tr);
 		for (var _k = 0; _k < 2; _k++) { var _br2 = __fork_r(_k); draw_ui_button(_br2.x, _br2.y, _br2.w, _br2.h, _fkc.choices[_k].txt, (_k == 1) ? c_horange : c_sgreen, true, _lean == _k); }

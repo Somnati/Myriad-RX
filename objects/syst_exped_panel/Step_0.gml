@@ -81,6 +81,12 @@ if (is_struct(_ldg)) {
 	if (galaxy_ready() && mode != "sprites") { var _llim = get_timer() + 9000; while (get_timer() < _llim && is_struct(__loading())) { if (view == "system") __sy_lite_step(); else { __worlds_step(); __lod_step(); } } }
 	ld_v = trickle(ld_v, _ldg.prog, 4);
 	if (!_under && input_free(ui_layer_overlay) && mouse_check_button_pressed(mb_left) && __back_on()) { var _lbk = __back_r(); if (point_in_rectangle(mouse_x, mouse_y, _lbk.x, _lbk.y, _lbk.x + _lbk.w, _lbk.y + _lbk.h)) __back(); }
+	// [crew] answers under the veil too (q270, his ask: "keep the crew button up and clickable while it loads so i can click
+	// it and view stats while i wait") - the crew page shows no world, so nothing waits there; the build goes on behind it
+	if (!_under && input_free(ui_layer_overlay) && mouse_check_button_pressed(mb_left) && view != "crew" && array_length(g.sprites) > 0) {
+		var _lcs = __crewstrip_r();
+		if (point_in_rectangle(mouse_x, mouse_y, _lcs.x, _lcs.y, _lcs.x + _lcs.w, _lcs.y + _lcs.h)) { crew_from = view; __page_go("crew"); crew_trip = -1; it_pop = undefined; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+	}
 	exit;
 } else ld_v = 0;
 if ((view == "planet" || view == "region" || view == "depart") && !is_struct(pl_dest)) { exped_close(); exit; }   // (no world at all: nothing to show)

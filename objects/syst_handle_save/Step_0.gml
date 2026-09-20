@@ -1,6 +1,6 @@
 // ---- THE BOOT: a frame's grace, then the load at once (the galaxy no longer waits here - his call, 2026-09-17) ----
+if (boot_phase < 3) boot_t += 1;   // (the spinner's clock runs the whole boot - it stopped at phase 0 and the chart phase drew black; q270)
 if (boot_phase == 0) {
-	boot_t += 1;
 	if (boot_t >= 2) { boot_phase = 1; action = sv_load; boot_prog = .5; }
 	boot_prog_v = trickle(boot_prog_v, boot_prog, 4);
 	exit;
@@ -44,7 +44,7 @@ action = -1;}
 if (boot_phase == 1 && action == -1) { boot_phase = 2; boot_t0 = current_time; boot_prog = .5; }
 if (boot_phase == 2) {
 	var _cap = (current_time - boot_t0) >= BOOT_CHART_CAP;
-	if (!galaxy_ready() && !_cap) {
+	if (!galaxy_ready()) {   // (the chart charts to the END whatever the cap - q270: a chart cut short was finished in one frame by the first asker (starmap_get), the stutter on [sprites]; only the home sheet is best-effort)
 		if (!is_struct(bg_gen) || bg_gen.seed != g.galaxy_seed) { bg_gen = starmap_gen_begin(g.galaxy_seed); bg_world_done = false; }
 		if (starmap_gen_step(bg_gen, 14)) bg_gen = undefined;
 		boot_world = "charting the galaxy"; boot_prog = .5 + .3 * galaxy_progress();

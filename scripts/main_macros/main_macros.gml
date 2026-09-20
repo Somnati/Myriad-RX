@@ -874,3 +874,5 @@ function main_macros() {
 // THE TRIP PAGE'S WORLD BOX (q268, his ask: "a detailed zoom in of the planet region"): the world's radius as a share of the box's
 // width - the face camera sits on the crew's region, so the box shows that patch of ground, the 3x tier under it
 #macro TP_ZOOM_RG   .95
+// THE TIER SHOWS AS IT BUILDS (q270): its textures re-uploaded every this many rows built (partial), the built rows mixed in
+#macro LOD_UPLOAD_ROWS   40

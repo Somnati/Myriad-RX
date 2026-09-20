@@ -34,7 +34,7 @@ function planet_lod_step(_pn, _l, _until) {
 	var _base = _gas ? 1 : max(_sea, .34);
 	_ps.tier = true;   // (a giant's biome law paints from the interpolated fields here - gas_paint, not gas_colour; q238)
 	while (_l.row < _l.h && get_timer() < _until) {
-		var _j = _l.row, _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;
+		var _j = _l.order[_l.row], _v = (_j + .5) / _l.h, _by = _j div _k, _fy = ((_j mod _k) + .5) / _k;   // (the row in FOCUS ORDER - q270)
 		var _yy = _v * _th - .5, _y0 = floor(_yy), _ty = _yy - _y0, _y1 = clamp(_y0 + 1, 0, _th - 1);
 		var _ym = clamp(_y0 - 1, 0, _th - 1), _y2 = clamp(_y0 + 2, 0, _th - 1);
 		_y0 = clamp(_y0, 0, _th - 1);
@@ -161,6 +161,9 @@ function planet_lod_step(_pn, _l, _until) {
 		}
 		_l.col = 0;
 		_l.row++;
+		// THE TIER SHOWS AS IT BUILDS (q270): every LOD_UPLOAD_ROWS rows the textures go up again - the height's alpha marks
+		// the built texels and sh_planet mixes the tier in only there
+		if (_l.row < _l.h && _l.row - _l.upl >= LOD_UPLOAD_ROWS) { planet_lod_upload(_l); _l.upl = _l.row; _l.partial = true; }
 	}
 	_ps.tier = false;
 	if (_l.row >= _l.h) { _l.ready = true; planet_lod_upload(_l); }   // (the buffers are KEPT: a lost surface - the window going full screen - is re-uploaded, not rebuilt)

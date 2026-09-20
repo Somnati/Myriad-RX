@@ -30,6 +30,8 @@ __system_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 2
 __galaxy_r = function() { return { x : land ? 14 : 4, y : room_height - 8 - 16, w : land ? 90 : 70, h : 16 }; };
 __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (land ? 14 : 4) - _w + (1 - rg_in) * 140, y : room_height - 8 - 16, w : _w, h : 16 }; };   // (region mode's swing: in from the right)
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
+__infl_r    = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 40, w : _x.w, h : 16 }; };   // [influence] over [quests] (q270)
+rg_infl = false;   // THE INFLUENCE VIEW (q270, his ask): the region's ledger over the view - a tap closes it
 // region mode: the info box on the left (region_info's lines)
 rg_box_w = 150; rg_box_h = 110;      // the info box's size, as its lines want (__info_box_size; the Draw keeps it fresh)
 rg_box_open = false; rg_box_a = 0;   // THE FOLD (his ask, 2026-09-16): shut = the first lines at their own width; open = every line at the longest's; eased

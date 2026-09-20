@@ -30,16 +30,17 @@ function TierKeep() constructor {
 	static ready = function(_pn) { return is_struct(_pn) && seed == _pn.seed && is_struct(cur) && cur.ready; };
 	/// the tier for the draw when it stands and is wanted (undefined otherwise; a tier the gpu dropped waits for the step's re-upload - never inside a page's target)
 	static pick = function(_pn, _wanted) {
-		if (!_wanted || seed != _pn.seed || !is_struct(cur) || !cur.ready) return undefined;
+		if (!_wanted || seed != _pn.seed || !is_struct(cur) || !(cur.ready || (cur[$ "partial"] ?? false))) return undefined;   // (a partial tier shows what it has - q270)
 		if (!surface_exists(cur.tsurf) || !surface_exists(cur.hsurf)) return undefined;
 		return cur;
 	};
 	/// a slice of the build for the world (pn baked already, else nothing); hand = the camera is under the hand (a smaller slice)
-	static step = function(_pn, _hand, _until = undefined) {   // (until: a caller's own deadline - the background share behind another page, q256)
+	static step = function(_pn, _hand, _until = undefined, _focus = undefined) {   // (until: a caller's own deadline - the background share behind another page, q256; focus: the map v the camera looks at - the rows build nearest it first, q270)
 		if (!is_struct(_pn) || _pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 		if (seed != _pn.seed) { drop(); seed = _pn.seed; cur = take(_pn.seed); }
 		if (is_struct(cur) && cur.ready) { if (!surface_exists(cur.tsurf) || !surface_exists(cur.hsurf)) planet_lod_upload(cur); return; }
 		if (!is_struct(cur)) cur = planet_lod_begin(_pn, 3);
+		if (!is_undefined(_focus) && abs((cur[$ "focus_v"] ?? .5) - _focus) > .05) planet_lod_focus(cur, _focus);   // (the focus moved a twentieth of the map: the rows to come re-sorted - q270)
 		// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms; under the
 		// hand fifteen hundredths, .6 to 1.5 ms - never nothing
 		if (is_undefined(_until)) _until = get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000));

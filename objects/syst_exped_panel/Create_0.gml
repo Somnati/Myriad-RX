@@ -364,7 +364,7 @@ __row_r  = function(_i) { return { x : list_x, y : __list_y0() + 12 + _i * (row_
 __spd_r  = function(_k) { return { x : room_width - 8 - 3 * 28 + _k * 28, y : strip_y + 2, w : 26, h : 12 }; };
 __back_r = function() { return { x : room_width - (land ? 14 : 4) - 44, y : list_y + 3, w : 44, h : 13 }; };   // on the RIGHT (his ask, 2026-09-15: the titles sit left)
 /// [back] shows on every page but the planet's own (there it was [close] - redundant beside the panel's X, his ask 2026-09-16); the other strip buttons slide into its seat
-__back_on = function() { if (mode == "sprites") return false; return !(view == "planet" && pv_mode != "region"); };   // (the sprite menu: one page, the X closes it)
+__back_on = function() { return mode != "sprites"; };   // (the sprite menu: one page, the X closes it; the planet page's [back] goes to the star system - q270, his ask)
 __crewstrip_r = function() { var _b = __back_r(); return { x : __back_on() ? (_b.x - 4 - 44) : _b.x, y : _b.y, w : 44, h : 13 }; };   // [crew] beside [back], on every page but the hub's and the crew's own
 // [map] beside [crew] (his call, 2026-09-16: "move the region map button to
 // the top next to the crew button"): on every page that has a region -
@@ -447,7 +447,7 @@ __back = function() {
 		case "system": __page_go(sy_from); break;   // (back to the map, or the planet page it came from - 2026-09-16)
 		case "station": __page_go("system"); break;   // (the station page: back to its system - 2026-09-17)
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
-		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { exped_close(); return; } break;   // region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
+		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { __sy_enter(galaxy_world_sys(pl_dest).star); sy_from = "galaxy"; __page_go("system"); } break;   // (the planet -> its star system, q270 - his ask; no back button closes the panel: the X does) region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
 		case "bestiary": __page_go(bs_from); break;
 		default:       __page_go("planet"); break;

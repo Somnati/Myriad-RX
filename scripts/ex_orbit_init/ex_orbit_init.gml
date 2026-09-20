@@ -228,12 +228,16 @@ __lod_step = function() {
 	if (view == "trip") { var _ltr = __trip(); if (!is_undefined(_ltr) && is_struct(_ltr[$ "dest"])) _lw = _ltr.dest; }
 	if (!is_struct(_lw)) { tiers.drop(); lod_fade = 0; return; }
 	var _pn = planet_get(_lw.seed, exped_planet_hint(_lw));
-	if (view == "trip") { tiers.step(_pn, false); lod_fade = 1; return; }
+	// THE FOCUS (q270): the map v the camera looks at - the region's spot in region mode and on the trip page, the equator else
+	var _lfv = .5;
+	if (view == "trip") { var _ltr2 = __trip(); if (!is_undefined(_ltr2)) { var _lrg2 = exped_region(_ltr2); if (is_struct(_lrg2[$ "spot"])) _lfv = (90 - _lrg2.spot.lat) / 180; } }
+	else if (pl_focus >= 0) { var _lrg3 = region_get(_lw, pl_focus); if (is_struct(_lrg3[$ "spot"])) _lfv = (90 - _lrg3.spot.lat) / 180; }
+	if (view == "trip") { tiers.step(_pn, false, undefined, _lfv); lod_fade = 1; return; }
 	// THE TIER BEHIND EVERY PAGE (q256; his ask: "remove stutter so I can look at the crew stats while I wait"): the
 	// page's world's tier keeps building on any page at the background share (it used to drop off the planet page and
 	// wait); on the planet page its own slices as before
-	if (view != "planet") { tiers.step(_pn, false, __bg_lim()); lod_fade = 0; return; }
-	tiers.step(_pn, (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1));   // (a smaller slice under the camera's hand - q202a)
+	if (view != "planet") { tiers.step(_pn, false, __bg_lim(), _lfv); lod_fade = 0; return; }
+	tiers.step(_pn, (pv_drag || pv_face >= 0 || abs(pv_vx) > .1 || abs(pv_vy) > .1), undefined, _lfv);   // (a smaller slice under the camera's hand - q202a; the focus - q270)
 	// THE FADE (q256): the veil no longer waits for the tier (his call) - a tier that lands under the view eases in
 	// over four tenths of a second through the shader's u_pfade; a tier that has faded once (its own flag, kept with
 	// it) shows whole at once, so zooming out and in never re-fades

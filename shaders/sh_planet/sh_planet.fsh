@@ -151,20 +151,28 @@ vec2 patch_st(vec2 uv)
     vec2 pts = (u_pwin.zw - u_pwin.xy) * u_tsize * u_pk;
     return (floor(st * pts) + 0.5) / pts;
 }
+// THE BUILT MASK (q270): the tier's height texture carries alpha 1 where a texel is built, 0 where the builder has not
+// been yet (it builds nearest the camera's focus first and uploads as it goes) - the tier is mixed in only where it is
+float patch_built(vec2 uv)
+{
+    return in_patch(uv) ? u_pmix * texture2D(u_pheight, patch_st(uv)).a : 0.0;
+}
 vec4 tex_uv(vec2 uv)
 {
     vec4 b = texture2D(gm_BaseTexture, (floor(uv * u_tsize) + 0.5) / u_tsize);
-    return in_patch(uv) ? mix(b, texture2D(u_ptex, patch_st(uv)), u_pmix) : b;
+    float m = patch_built(uv);
+    return (m > 0.0) ? mix(b, texture2D(u_ptex, patch_st(uv)), m) : b;
 }
 vec4 hmap_uv(vec2 uv)
 {
     vec4 b = texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize);
-    return in_patch(uv) ? mix(b, texture2D(u_pheight, patch_st(uv)), u_pmix) : b;
+    float m = patch_built(uv);
+    return (m > 0.0) ? mix(b, texture2D(u_pheight, patch_st(uv)), m) : b;
 }
-// the grid a map uv lives on: the patch's inside the window (once its fade is half in), the map's outside
+// the grid a map uv lives on: the patch's where it is built and half faded in, the map's elsewhere
 float grid_k(vec2 uv)
 {
-    return (in_patch(uv) && u_pmix > 0.5) ? u_pk : 1.0;
+    return (patch_built(uv) > 0.5) ? u_pk : 1.0;
 }
 
 float height_at(vec3 n)
