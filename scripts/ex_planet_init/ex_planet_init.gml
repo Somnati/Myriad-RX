@@ -32,6 +32,7 @@ __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (l
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 __infl_r    = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 40, w : _x.w, h : 16 }; };   // [influence] over [quests] (q270)
 rg_infl = false;   // THE INFLUENCE VIEW (q270, his ask): the region's ledger over the view - a tap closes it
+rg_infl_tab = "lanes"; rg_infl_tabs = []; rg_infl_scroll = 0; rg_infl_hmax = 0;   // ...IN TABS (q286): the tab up, the pills' rects (the Draw lays them, the press reads them), the wheel's scroll and its reach
 // THE EVENTS HEADER (q285, his ask): under the region's info box - [event] the procedural event and its days, its
 // consequence under it, then [crews] the region's news (the crews' deeds) beside it. Skipped when the fold leaves no room
 __draw_event_strip = function(_d, _rg, _x, _y, _w) {

@@ -55,29 +55,65 @@ function ex_planet_draw(_e, _ea, _dim) {
 		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
 		var _ifb = __infl_r();
 		draw_ui_button(_ifb.x, _ifb.y, _ifb.w, _ifb.h, "influence", c_seagreen, true, rg_infl);   // (the region's ledger - q270)
-		// THE INFLUENCE VIEW (q270): the ledger over the view, the lanes with bars; a tap anywhere closes it
+		// THE INFLUENCE VIEW (q270 / q286): the region's ledger over the view, IN TABS - a strip of pills up top, the tab's
+		// explainer, its rows with a bar where a number wants one and a dim sub-line under each saying what moves it and
+		// what reads it; the wheel scrolls; a tab's tap switches, any other tap closes
 		if (rg_infl) {
-			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .82);
-			var _lgr = region_ledger(_d, rg_sel), _lx = (land ? 14 : 4) + 6, _lyy = list_y + 20, _lw = room_width - _lx * 2;
-			draw_set_halign(fa_left); draw_set_color(c_gold); draw_set_alpha(.95);
-			draw_text(_lx, _lyy, "your influence on " + _rg.name + "  -  the sum of what the crews did here, fading back to its rest");
-			_lyy += 14;
-			for (var _li = 0; _li < array_length(_lgr); _li++) {
-				var _lr = _lgr[_li];
-				draw_set_color(sett_ink); draw_set_alpha(.7); draw_text(_lx, _lyy, _lr.k);
-				if (!is_undefined(_lr[$ "bar"])) {
-					var _bx = _lx + 58, _bw = 60, _bv = clamp(_lr.bar, -1, 1);
-					draw_sprite_ext(spr_pixel_1x1, 0, _bx, _lyy + 2, _bw, 6, 0, c_black, .8);
-					draw_sprite_ext(spr_pixel_1x1, 0, _bx + _bw * .5, _lyy + 1, 1, 8, 0, sett_ink, .5);
-					if (_bv != 0) draw_sprite_ext(spr_pixel_1x1, 0, (_bv > 0) ? (_bx + _bw * .5) : (_bx + _bw * .5 + _bv * _bw * .5), _lyy + 2, abs(_bv) * _bw * .5, 6, 0, _lr.col, .9);
-					draw_set_color(_lr.col); draw_set_alpha(.95); draw_text(_bx + _bw + 6, _lyy, _lr.v);
-				} else {
-					draw_set_color(_lr.col); draw_set_alpha(.95); draw_text_ext(_lx + 58, _lyy, _lr.v, 9, _lw - 58);
-					_lyy += max(0, string_height_ext(_lr.v, 9, _lw - 58) - 10);
-				}
-				_lyy += 11;
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, room_height - list_y, 0, c_black, .86);
+			var _lx = (land ? 14 : 4) + 6, _lyy = list_y + 6, _lw = room_width - _lx * 2;
+			draw_set_font(fnt); draw_set_halign(fa_left);
+			draw_set_color(c_gold); draw_set_alpha(.95);
+			draw_text(_lx, _lyy, _rg.name + "  -  what the crews did here, and what the region is doing about it");
+			_lyy += 13;
+			var _tabs = region_ledger_tabs(), _tx = _lx;
+			rg_infl_tabs = [];
+			for (var _tbi = 0; _tbi < array_length(_tabs); _tbi++) {
+				var _tw = string_width(_tabs[_tbi]) + 12, _ton = (_tabs[_tbi] == rg_infl_tab);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tx, _lyy, _tw, 13, 0, _ton ? c_gold : c_black, _ton ? .9 : .7);
+				draw_px_rect(_tx, _lyy, _tw, 13, c_gold, _ton ? .9 : .45);
+				draw_set_color(_ton ? c_black : c_gold); draw_set_alpha(.95);
+				draw_text(_tx + 6, _lyy + 2, _tabs[_tbi]);
+				array_push(rg_infl_tabs, { x : _tx, y : _lyy, w : _tw, h : 13, name : _tabs[_tbi] });
+				_tx += _tw + 4;
 			}
-			draw_set_color(_dim); draw_set_alpha(.6); draw_text(_lx, room_height - 8 - 12, "tap to close");
+			_lyy += 17;
+			var _top = _lyy, _bot = room_height - 8 - 14, _ly2 = _top - rg_infl_scroll, _tot = 0;
+			var _lgr = region_ledger(_d, rg_sel, rg_infl_tab);
+			for (var _li = 0; _li < array_length(_lgr); _li++) {
+				var _lr = _lgr[_li], _kw = (_lr.k == "") ? 0 : 58, _rh = 0;
+				var _vw = _lw - _kw - ((!is_undefined(_lr[$ "bar"])) ? 68 : 0);
+				var _vh = string_height_ext(_lr.v, 9, _vw), _sh = (is_string(_lr[$ "sub"]) && _lr.sub != "") ? string_height_ext(_lr.sub, 9, _lw - _kw) : 0;
+				_rh = max(11, _vh) + ((_sh > 0) ? _sh + 1 : 0) + 3;
+				if (_ly2 + _rh > _top && _ly2 < _bot) {
+					var _vis = (_ly2 >= _top - 1);   // (a row cut by the top edge is skipped whole - no text over the tabs)
+					if (_vis) {
+						if (_lr.k != "") { draw_set_color(sett_ink); draw_set_alpha(.8); draw_text(_lx, _ly2, _lr.k); }
+						var _vx = _lx + _kw;
+						if (!is_undefined(_lr[$ "bar"])) {
+							var _bx = _vx, _bw = 60, _bv = clamp(_lr.bar, -1, 1);
+							draw_sprite_ext(spr_pixel_1x1, 0, _bx, _ly2 + 2, _bw, 6, 0, c_black, .8);
+							draw_sprite_ext(spr_pixel_1x1, 0, _bx + _bw * .5, _ly2 + 1, 1, 8, 0, sett_ink, .5);
+							if (_bv != 0) draw_sprite_ext(spr_pixel_1x1, 0, (_bv > 0) ? (_bx + _bw * .5) : (_bx + _bw * .5 + _bv * _bw * .5), _ly2 + 2, abs(_bv) * _bw * .5, 6, 0, _lr.col, .9);
+							_vx += _bw + 8;
+						}
+						draw_set_color(_lr.col); draw_set_alpha(.95); draw_text_ext(_vx, _ly2, _lr.v, 9, _vw);
+						if (_sh > 0) { draw_set_color(_dim); draw_set_alpha(.75); draw_text_ext(_lx + _kw, _ly2 + max(11, _vh) + 1, _lr.sub, 9, _lw - _kw); }
+					}
+				}
+				_ly2 += _rh; _tot += _rh;
+			}
+			rg_infl_hmax = max(0, _tot - (_bot - _top));
+			// (the strip's cover, so a scrolled row never rides over the tabs)
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, list_y, room_width, _top - list_y, 0, c_black, .86);
+			draw_set_color(c_gold); draw_set_alpha(.95); draw_text(_lx, list_y + 6, _rg.name + "  -  what the crews did here, and what the region is doing about it");
+			for (var _tbi = 0; _tbi < array_length(rg_infl_tabs); _tbi++) {
+				var _tbr = rg_infl_tabs[_tbi], _ton = (_tbr.name == rg_infl_tab);
+				draw_sprite_ext(spr_pixel_1x1, 0, _tbr.x, _tbr.y, _tbr.w, _tbr.h, 0, _ton ? c_gold : c_black, _ton ? .9 : .7);
+				draw_px_rect(_tbr.x, _tbr.y, _tbr.w, _tbr.h, c_gold, _ton ? .9 : .45);
+				draw_set_color(_ton ? c_black : c_gold); draw_set_alpha(.95); draw_text(_tbr.x + 6, _tbr.y + 2, _tbr.name);
+			}
+			draw_sprite_ext(spr_pixel_1x1, 0, 0, _bot, room_width, room_height - _bot, 0, c_black, .86);
+			draw_set_color(_dim); draw_set_alpha(.6); draw_text(_lx, room_height - 8 - 12, (rg_infl_hmax > 0) ? "wheel to scroll  -  tap a tab  -  tap elsewhere to close" : "tap a tab  -  tap elsewhere to close");
 		}
 		// THE HAND'S VEIL (the cards themselves are obj_card instances over the panel)
 		if (hand_a > .001) {

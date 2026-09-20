@@ -21,9 +21,16 @@ function ex_planet_press(_e) {
 	// cards pick the departure); [map] is in the strip (2026-09-16)
 	if (pv_mode == "region") {
 		// THE INFLUENCE VIEW (q270): open, a tap anywhere closes it; the button toggles it
-		if (rg_infl) { rg_infl = false; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }
+		if (rg_infl) {
+			// A TAB'S TAP switches (q286); any other closes
+			for (var _tbi = 0; _tbi < array_length(rg_infl_tabs); _tbi++) {
+				var _tbr = rg_infl_tabs[_tbi];
+				if (point_in_rectangle(mouse_x, mouse_y, _tbr.x, _tbr.y, _tbr.x + _tbr.w, _tbr.y + _tbr.h)) { rg_infl_tab = _tbr.name; rg_infl_scroll = 0; play_sound_ext(snd_softclick, 1.0, 1.1, .4, 1); return true; }
+			}
+			rg_infl = false; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true;
+		}
 		var _ifb = __infl_r();
-		if (point_in_rectangle(mouse_x, mouse_y, _ifb.x, _ifb.y, _ifb.x + _ifb.w, _ifb.y + _ifb.h)) { rg_infl = true; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); return true; }
+		if (point_in_rectangle(mouse_x, mouse_y, _ifb.x, _ifb.y, _ifb.x + _ifb.w, _ifb.y + _ifb.h)) { rg_infl = true; rg_infl_scroll = 0; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); return true; }
 		var _ibr = __rg_banner_r();
 		if (point_in_rectangle(mouse_x, mouse_y, _ibr.x, _ibr.y, _ibr.x + _ibr.w, _ibr.y + _ibr.h)) { rg_box_open = !rg_box_open; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return true; }   // (the fold, 2026-09-16)
 		var _qb = __quests_r();
