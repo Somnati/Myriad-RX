@@ -19,8 +19,9 @@ function region_place(_nodes, _pn, _terr, _ri) {
 	}
 	if (array_length(_T) == 0) return undefined;
 	var _w = _maxx - _minx + 1, _h = _maxy - _miny + 1;
-	var _span = max(_w * _cl, _h, 4), _cxm = (_minx + _maxx + 1) * .5 * _cl, _cym = (_miny + _maxy + 1) * .5;
-	var _unit = function(_gx, _gy, _cxm2, _cym2, _span2) { return { x : .5 + (_gx - _cxm2) / _span2 * .84, y : .5 + (_gy - _cym2) / _span2 * .84 }; };
+	// the frame: the box's DIAGONAL to .88 of the map, so its farthest corner sits inside the circle (.46) the map and the isles assume (bug pass q290)
+	var _span = max(sqrt(sqr(_w * _cl) + sqr(_h)), 4), _cxm = (_minx + _maxx + 1) * .5 * _cl, _cym = (_miny + _maxy + 1) * .5;
+	var _unit = function(_gx, _gy, _cxm2, _cym2, _span2) { return { x : .5 + (_gx - _cxm2) / _span2 * .88, y : .5 + (_gy - _cym2) / _span2 * .88 }; };
 	// how a kind likes a texel
 	var _pref = function(_k, _t) {
 		var _b = _t.b;
@@ -65,5 +66,5 @@ function region_place(_nodes, _pn, _terr, _ri) {
 		_nd.x = _uxy.x; _nd.y = _uxy.y; _nd.tx = _best.i mod _tw; _nd.ty = _best.i div _tw; _nd.gx = _best.gx; _nd.gy = _best.gy;
 		array_push(_placed, _best); array_push(_pciv, is_struct(_kk[$ _nd.kind]) && _kk[$ _nd.kind].civ);
 	}
-	return { sx : _sx, sy : _sy, cl : _cl, span : _span, cxm : _cxm, cym : _cym, x0 : _minx, y0 : _miny, w : _w, h : _h };
+	return { sx : _sx, sy : _sy, cl : _cl, span : _span, cxm : _cxm, cym : _cym, x0 : _minx, y0 : _miny, w : _w, h : _h, k : .88 };   // (k: the frame's share of the map, the draw's too)
 }

@@ -381,7 +381,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		_ed.pts = _pts;
 		var _pl = 0;
 		for (var _k = 1; _k < array_length(_pts); _k++) _pl += point_distance(_pts[_k - 1].x, _pts[_k - 1].y, _pts[_k].x, _pts[_k].y);
-		_ed.d = max(1, round(_pl * 14 * ((_ed[$ "boat"] ?? false) ? 1.5 : 1) * (is_struct(_tmap) ? clamp(_tmap.span / 16, .6, 3) : 1)));   // (the hours grow with the territory - a sixteen-texel span is the old scale; q288)
+		_ed.d = max(1, round(_pl * 14 * ((_ed[$ "boat"] ?? false) ? 1.5 : 1) * (is_struct(_tmap) ? clamp(_tmap.span / 22.6, .6, 3) : 1)));   // (the hours grow with the territory - a sixteen-texel span is the old scale; q288)
 	}
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)

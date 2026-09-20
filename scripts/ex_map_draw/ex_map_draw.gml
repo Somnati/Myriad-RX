@@ -27,8 +27,9 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 	var _gsh = region_map_sheet(_d, _rg), _tmp = _rg[$ "tmap"];
 	if (!is_undefined(_gsh) && surface_exists(_gsh) && is_struct(_tmp)) {
 		var _msc = (min(_mr.w, _mr.h) * .5 - 10) / (_rg[$ "radius"] ?? .46), _mcx = _rg[$ "cx"] ?? .5, _mcy = _rg[$ "cy"] ?? .5;
-		var _txs = _tmp.cl / _tmp.span * .84 * _msc, _tys = 1 / _tmp.span * .84 * _msc;
-		var _ulx = .5 + (_tmp.x0 * _tmp.cl - _tmp.cxm) / _tmp.span * .84, _uly = .5 + (_tmp.y0 - _tmp.cym) / _tmp.span * .84;
+		var _tk = _tmp[$ "k"] ?? .84;
+		var _txs = _tmp.cl / _tmp.span * _tk * _msc, _tys = 1 / _tmp.span * _tk * _msc;
+		var _ulx = .5 + (_tmp.x0 * _tmp.cl - _tmp.cxm) / _tmp.span * _tk, _uly = .5 + (_tmp.y0 - _tmp.cym) / _tmp.span * _tk;
 		var _gx0 = _mr.x + _mr.w * .5 + (_ulx - _mcx) * _msc, _gy0 = _mr.y + _mr.h * .5 + (_uly - _mcy) * _msc;
 		draw_surface_ext(_gsh, _gx0, _gy0, _txs, _tys, 0, c_white, .92);
 		draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .18);   // (a shade over it so the roads and the names lead)

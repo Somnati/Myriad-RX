@@ -1029,7 +1029,7 @@ dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went
 dupvar	scripts\region_node_info\region_node_info.gml        _base _i _o _seed
 dupvar	scripts\region_node_leader\region_node_leader.gml    _base _hi _k _tl _trs _wts max
 dupvar	scripts\region_path\region_path.gml                  _u
-dupvar	scripts\region_place\region_place.gml                _b _best _cxm _cym _h _n _par _span _t
+dupvar	scripts\region_place\region_place.gml                _b _best _cxm _cym _n _par _span _t
 dupvar	scripts\region_pop\region_pop.gml                    _b _bs _t round
 dupvar	scripts\region_road_name\region_road_name.gml        _base
 dupvar	scripts\region_road_point\region_road_point.gml      _k _pts array_length
