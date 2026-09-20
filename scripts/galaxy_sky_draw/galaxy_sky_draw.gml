@@ -110,7 +110,9 @@ function galaxy_sky_draw(_sky, _cam, _cx, _cy, _w, _h, _sun = true, _sibs = true
 		// bands or continents, its ring, the true crescent (the sun's direction from it), turning on its own clock
 		if (_sb.s >= 6 && _fade >= .999 && is_struct(_sb[$ "pn"]) && planet_lite_ready(_sb.pn)) {
 			var _spn = _sb.pn, _sr = _sb.s * .5;
+			var _px0 = g[$ "planet_px"]; g.planet_px = 1;   // (a sibling is a stamp: one-pixel cells - q266)
 			planet_draw(_spn, _sx, _sy, _spn.ring ? (_sr * .62) : _sr, planet_spin_now(_spn), 1, _cam, _sb.sunl, undefined, undefined, undefined, 0);
+			g.planet_px = _px0;
 			if (_bri < .999) { draw_set_alpha((1 - _bri) * .6); draw_circle_colour(_sx, _sy, _sr + .5, c_black, c_black, false); draw_set_alpha(1); }
 			continue;
 		}

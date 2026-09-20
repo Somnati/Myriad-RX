@@ -1,7 +1,7 @@
-/// @description planet_get_lite(seed, [hint]) -> the world at postage-stamp size (48x24), built and baked on the spot, cached by seed
+/// @description planet_get_lite(seed, [hint]) -> the world at postage-stamp size (96x48), built and baked on the spot, cached by seed
 /// THE STAR SYSTEM'S MINI WORLDS (the tech demo's, ported 2026-09-16):
 /// the SAME generation the orbit view runs - every roll identical, the
-/// maps 48x24 - so what you see on approach is the world you will
+/// maps 96x48 - so what you see on approach is the world you will
 /// orbit. A stamp is a thousand samples and three thousand texels: one
 /// call builds it whole (planet_gen_step, planet_bake), no slicing.
 /// Its own cache (g.planet_lite_c, twenty kept) beside planet_get's.
@@ -19,7 +19,7 @@ function planet_get_lite(_seed, _hint = undefined, _whole = true) {
 		if (_whole && !planet_lite_ready(_h)) planet_build_step(_h);   // (finished whole - the one builder's step, q225)
 		return _h;
 	}
-	var _pn = planet_gen_begin(_seed, _hint, 48, 24);
+	var _pn = planet_gen_begin(_seed, _hint, 96, 48);   // (96x48 since q266 - the star zoom brings a stamp to fifty pixels across; 48x24 blurred there)
 	if (_whole) planet_build_step(_pn);   // (whole, in one call)
 	array_insert(_c, 0, _pn);
 	while (array_length(_c) > 20) {

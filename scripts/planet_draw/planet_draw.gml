@@ -97,8 +97,12 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	// slid the cells over the screen pixels every frame of the zoom, and the
 	// eye read the shimmer as detail. Whole cells, a corner on the grid
 	var _qx = _cx - _q, _qy = _cy - _q;
-	if (_cfg.px_size > 0) {
-		var _pxs = _cfg.px_size;
+	// THE CELL (q266, his report: the system map's worlds and rings wanted "their resolution bumped up a tad"): the house
+	// cells (px_size, 2 room px) on the planet page's portrait; a MAP page - the system view, the sky's siblings - sets
+	// g.planet_px to 1 round its draws, so a stamp eight pixels across is eight pixels, not four cells
+	var _pxc = max(0, g[$ "planet_px"] ?? _cfg.px_size);
+	if (_pxc > 0) {
+		var _pxs = _pxc;
 		_q = max(_pxs, round(_q / _pxs) * _pxs);
 		_qx = round((_cx - _q) / _pxs) * _pxs; _qy = round((_cy - _q) / _pxs) * _pxs;
 	}
@@ -114,7 +118,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.tsize, _pn.tw, _pn.th);
 	shader_set_uniform_f(_u.pad, _pad);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
-	shader_set_uniform_f(_u.cells, (_cfg.px_size > 0) ? (2 * _q) / _cfg.px_size : 0);
+	shader_set_uniform_f(_u.cells, (_pxc > 0) ? (2 * _q) / _pxc : 0);
 	shader_set_uniform_f(_u.ring, _pn.ring ? .85 : 0);
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);

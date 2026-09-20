@@ -148,7 +148,8 @@ __draw_system = function() {
 	galaxy_fog_draw(_sky, sy_cam, sy_cx, sy_cy, _w, _h, sky_fog_surf, false);   // (no sun on this sky: the star is drawn as itself)
 	galaxy_sky_holes(_sky, sy_cam, sy_cx, sy_cy, _w, _h, false);   // (the neighbours' holes over the fog - 2026-09-17)
 	var _pls = sy_sys.planets, _np = array_length(_pls), _s = sy_warp_s;
-	var _cfgp = planet_config(), _pxs = max(1, _cfgp.px_size);
+	var _cfgp = planet_config(), _pxs = 1;   // (the rings' cells: one room pixel on the map - q266; the worlds' stamps the same through g.planet_px below)
+	g.planet_px = 1;
 	// the dive's focus: the picked world's spot anchors the swell
 	sy_wfx = sy_cx; sy_wfy = sy_cy;
 	if (sy_warp_pl >= 0) { var _fpp0 = __sy_ppos(_pls[sy_warp_pl]); var _fpp = __sy_proj(_fpp0[0], 0, _fpp0[2]); if (!is_undefined(_fpp)) { sy_wfx = _fpp[0]; sy_wfy = _fpp[1]; } }
@@ -288,5 +289,6 @@ __draw_system = function() {
 	surface_reset_target();
 	ui_fade_set(_fa);
 	page_blit(wb_surf, 0, list_y);
+	g.planet_px = undefined;   // (the portrait's cells back - q266)
 };
 }
