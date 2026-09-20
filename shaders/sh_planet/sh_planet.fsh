@@ -752,44 +752,45 @@ void main()
             // the trees keep a finer grain of brightness. A swamp's canopy (fo lower) opens wider
             float open = vn + (g - 0.5) * 0.3 + (1.0 - fo) * 0.4;
             vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
-            vec3 canopy = col * (0.90 + 0.20 * hash12(ct + 17.3));
-            // THE CANOPY'S LIGHT (q273, his pick): every cell a DOME - its sunward side lit, its lee dark - and a cell
-            // shaded by a taller neighbour toward the sun; and THE FLOOR'S SHADOW - a clearing whose sunward neighbour
-            // is canopy lies in its shade, deeper the lower the sun. The sun's direction on the map: a step along the
-            // light from the canopy point, in map uv, then in cells (the seam wrapped). Albedo-side, like the snow:
-            // by day only (the night takes the ground as it is)
+            // THE CROWNS (q275 - "the trees might need a lil work"): every tree cell holds one crown, its centre off the
+            // cell's by a hash and its radius its own (.45 .. .8 of a cell), and the pixel belongs to the NEAREST crown of
+            // the nine cells round it (a clearing cell holds none) - crowns overlap, a small one tucks under a big one, and
+            // where no crown reaches, the floor shows. The crown is a dome lit by the sun (its sunward side up to +40%,
+            // its lee down to 80%), darker toward its rim; the floor lies in shade where the crown toward the sun stands
             float elc = dot(n, u_light);
-            if (elc > 0.0) {
-                float gk = grid_k(cuvm);
-                vec3 tcn = to_tex(nc);
-                vec2 ld = map_uv(normalize(tcn + to_tex(u_light) * 0.02)) - cuvm;
-                ld.x -= floor(ld.x + 0.5);
-                ld *= u_tsize * gk;
-                float ll = length(ld);
-                if (ll > 1.0e-5) {
-                    vec2 ld2 = ld / ll;
-                    float cs = sqrt(max(0.0, 1.0 - elc * elc));
-                    vec3 L3 = normalize(vec3(ld2 * cs, elc));
-                    // THE CROWN (q274; his screenshot: "what are those trees!!!" - every cell's dome shaded the same way on the
-                    // grid's phase, a barcode): each cell's crown sits OFF the cell's centre by a hash (up to a quarter), a
-                    // ROUND dome .62 of a cell across, a dark rim between crowns - no two neighbours share a phase, and the
-                    // shade is gentle (80% to 120%)
-                    vec2 jit = (vec2(hash12(ct + 3.3), hash12(ct + 9.9)) - 0.5) * 0.5;
-                    vec2 cf2 = fract(cuv) - 0.5 - jit;
-                    float rr = length(cf2) / 0.62;
-                    float zz = sqrt(max(0.0, 1.0 - rr * rr));
-                    vec3 nd = normalize(vec3(cf2 * 2.2, max(zz, 0.15)));
-                    float dome = 0.80 + 0.40 * max(0.0, dot(nd, L3));
-                    float rim = smoothstep(1.2, 0.85, rr);
-                    vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
-                    float gn = hash12(nbc + 0.5);
-                    float occ = clamp((gn - g) * 1.0, 0.0, 0.30) * (1.0 - elc);
-                    canopy *= dome * mix(0.6, 1.0, rim) * (1.0 - occ);
-                    float nopen = canopy_open(nbc, gk, fo);
-                    if (nopen > 0.36) floorc *= mix(0.5, 0.92, elc);
-                }
+            float gk = grid_k(cuvm);
+            vec3 tcn = to_tex(nc);
+            vec2 ld = map_uv(normalize(tcn + to_tex(u_light) * 0.02)) - cuvm;
+            ld.x -= floor(ld.x + 0.5);
+            ld *= u_tsize * gk;
+            float ll = length(ld);
+            vec2 ld2 = (ll > 1.0e-5) ? ld / ll : vec2(1.0, 0.0);
+            float cs = sqrt(max(0.0, 1.0 - elc * elc));
+            vec3 L3 = normalize(vec3(ld2 * cs, max(elc, 0.0)));
+            float best = 9.0; vec2 bestd = vec2(0.0); float bestg = 0.0; float bestr = 1.0;
+            for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
+                vec2 cc = ct + vec2(float(ox), float(oy));
+                float co = (ox == 0 && oy == 0) ? open : canopy_open(cc, gk, fo);
+                if (co <= 0.36) continue;
+                vec2 cen = cc + 0.5 + (vec2(hash12(cc + 3.3), hash12(cc + 9.9)) - 0.5) * 0.5;
+                float rad = 0.45 + 0.35 * hash12(cc + 5.5);
+                vec2 dd = cuv - cen;
+                float nd0 = length(dd) / rad;
+                if (nd0 < best) { best = nd0; bestd = dd / rad; bestg = hash12(cc + 17.3); bestr = rad; }
             }
-            col = (open > 0.36) ? canopy : floorc;
+            if (best <= 1.0) {
+                float zz = sqrt(max(0.0, 1.0 - best * best));
+                vec3 nd = normalize(vec3(bestd * 1.8, max(zz, 0.12)));
+                float dome = (elc > 0.0) ? (0.80 + 0.40 * max(0.0, dot(nd, L3))) : 1.0;
+                float rimd = mix(0.62, 1.0, smoothstep(1.0, 0.7, best));
+                col = col * (0.90 + 0.20 * bestg) * dome * rimd;
+            } else {
+                // the floor: in the shade of the crown toward the sun, if one stands there
+                vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
+                float nopen = (nbc == ct) ? open : canopy_open(nbc, gk, fo);
+                if (elc > 0.0 && nopen > 0.36) floorc *= mix(0.5, 0.92, elc);
+                col = floorc;
+            }
         }
         // THE SEA'S DEPTH (his ask, 2026-09-17: "smooth blending between its depth layers"): under water the height
         // map's blue is the depth. The texel's own colour at the shore (the shallows where the map put them), the
