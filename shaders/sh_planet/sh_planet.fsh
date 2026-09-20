@@ -770,13 +770,21 @@ void main()
                     vec2 ld2 = ld / ll;
                     float cs = sqrt(max(0.0, 1.0 - elc * elc));
                     vec3 L3 = normalize(vec3(ld2 * cs, elc));
-                    vec2 cf2 = fract(cuv) - 0.5;
-                    vec3 nd = normalize(vec3(cf2 * 1.6, 0.5));
-                    float dome = 0.72 + 0.55 * max(0.0, dot(nd, L3));
+                    // THE CROWN (q274; his screenshot: "what are those trees!!!" - every cell's dome shaded the same way on the
+                    // grid's phase, a barcode): each cell's crown sits OFF the cell's centre by a hash (up to a quarter), a
+                    // ROUND dome .62 of a cell across, a dark rim between crowns - no two neighbours share a phase, and the
+                    // shade is gentle (80% to 120%)
+                    vec2 jit = (vec2(hash12(ct + 3.3), hash12(ct + 9.9)) - 0.5) * 0.5;
+                    vec2 cf2 = fract(cuv) - 0.5 - jit;
+                    float rr = length(cf2) / 0.62;
+                    float zz = sqrt(max(0.0, 1.0 - rr * rr));
+                    vec3 nd = normalize(vec3(cf2 * 2.2, max(zz, 0.15)));
+                    float dome = 0.80 + 0.40 * max(0.0, dot(nd, L3));
+                    float rim = smoothstep(1.2, 0.85, rr);
                     vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
                     float gn = hash12(nbc + 0.5);
-                    float occ = clamp((gn - g) * 1.2, 0.0, 0.45) * (1.0 - elc);
-                    canopy *= dome * (1.0 - occ);
+                    float occ = clamp((gn - g) * 1.0, 0.0, 0.30) * (1.0 - elc);
+                    canopy *= dome * mix(0.6, 1.0, rim) * (1.0 - occ);
                     float nopen = canopy_open(nbc, gk, fo);
                     if (nopen > 0.36) floorc *= mix(0.5, 0.92, elc);
                 }
