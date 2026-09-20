@@ -59,24 +59,36 @@ function planet_volcanoes(_pn) {
 					if (_l > lift[_i]) { lift[_i] = _l; fr[_i] = max(fr[_i], (_d < _rc) ? 1 : (_l / max(.001, _hgt))); }   // (the crater IS the summit: cmask 1 there - q277)
 					// the crater's codes (q277): 2 the live vent's pool, 1 the floor (basalt), 4 the WALLS (the summit's rock, lit; a sink
 					// for the drainage like the rest - every reader asks vmask > 0)
-					if (_d < _rc) vent[_i] = max(vent[_i], (_d < _rv) ? (_live ? 2 : 1) : ((_d < _rf) ? 1 : 4));
+					if (_d < _rc) {
+						var _vc = (_d < _rv) ? (_live ? 2 : 1) : ((_d < _rf) ? 1 : 4);
+						if (vent[_i] == 0 || vent[_i] == 4 || (vent[_i] == 1 && _vc == 2)) vent[_i] = _vc;   // (pool over floor over wall where two cones meet - not max(); q281)
+					}
 				}
 			}
 		},
-		// a flow of lava: from the vent downhill, the lowest neighbour each step, a few texels
-		flow : function(_x, _y, _len, _salt) {
-			var _cx = _x, _cy = _y;
+		// a flow of lava: from the pool straight to the crater's rim in a hashed direction (lava across the floor and over
+		// the wall), then downhill from just outside it, the lowest neighbour each step, a few texels - never back into
+		// the floor or the pool. (q281: since the crater is a true bowl the floor is the lowest ground, and a walker that
+		// began at the pool wandered the floor and never left)
+		flow : function(_x, _y, _len, _salt, _rc) {
+			var _cl = max(.2, sin(pi * (_y + .5) / th)), _a = h(_salt) * 360;
+			var _cx = _x, _cy = _y, _rs = ceil(_rc) + 1;
+			for (var _q = 1; _q <= _rs; _q++) {
+				var _qx = (((_x + round(dcos(_a) * _q / _cl)) mod tw) + tw) mod tw, _qy = clamp(_y - round(dsin(_a) * _q), 0, th - 1), _qi = _qx + _qy * tw;
+				if (vent[_qi] == 1 || vent[_qi] == 4 || (vent[_qi] == 0 && _q == _rs)) vent[_qi] = 3;
+				_cx = _qx; _cy = _qy;
+			}
 			for (var _s = 0; _s < _len; _s++) {
 				var _bi = -1, _bv = 9;
 				for (var _dy = -1; _dy <= 1; _dy++) { var _ny = _cy + _dy; if (_ny < 0 || _ny >= th) continue;
 					for (var _dx = -1; _dx <= 1; _dx++) { if (_dx == 0 && _dy == 0) continue;
 						var _ni = (((_cx + _dx) mod tw) + tw) mod tw + _ny * tw;
 						var _v = el[_ni] + (h(_salt + _s * 9 + _dx * 3 + _dy) - .5) * .02;   // (a grain of chance in the way it turns; the cone is in the heights by now)
-						if (_v < _bv && vent[_ni] != 2 && vent[_ni] != 3) { _bv = _v; _bi = _ni; } } }   // (never the pool nor a flow laid; the floor and the walls it may cross - q277)
+						if (_v < _bv && vent[_ni] != 1 && vent[_ni] != 2 && vent[_ni] != 3) { _bv = _v; _bi = _ni; } } }   // (never the pool, the floor nor a flow laid; a wall it may cross - q281)
 				if (_bi < 0) break;
 				if (el[_bi] < sea) break;   // (it stops at the water)
 				_cx = _bi mod tw; _cy = _bi div tw;
-				if (vent[_bi] != 2) vent[_bi] = 3;   // (3 a flow - over the floor, the wall, the flank)
+				vent[_bi] = 3;   // (3 a flow - over the wall, down the flank)
 			}
 		},
 	};
@@ -157,7 +169,7 @@ function planet_volcanoes(_pn) {
 	// the flows, then the crater's basalt, the vent's lava (or a dead vent's rock), the plumes
 	for (var _k = 0; _k < array_length(_vents); _k++) {
 		var _vt = _vents[_k];
-		if (_vt[2]) { var _nf = 1 + (hash_mix(_pn.seed, 31500 + _k) mod 3); for (var _f = 0; _f < _nf; _f++) _c.flow(_vt[0], _vt[1], round(_vt[3] * (.8 + .9 * _c.h(_vt[4] + 50 + _f))), _vt[4] + 60 + _f * 200); }
+		if (_vt[2]) { var _nf = 1 + (hash_mix(_pn.seed, 31500 + _k) mod 3); for (var _f = 0; _f < _nf; _f++) _c.flow(_vt[0], _vt[1], round(_vt[3] * (.8 + .9 * _c.h(_vt[4] + 50 + _f))), _vt[4] + 60 + _f * 200, max(1.8, _vt[3] * .26)); }   // (the crater's reach, as cone() had it - q281)
 	}
 	var _vent = _c.vent;
 	for (var _i = 0; _i < _n; _i++) {
