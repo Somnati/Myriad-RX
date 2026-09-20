@@ -119,8 +119,11 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 	var _np = __map_xy(_nd, _rg, _mr);
 	var _cw = 168, _iw = _cw - 12;
 	var _pp = region_node_info(_d, _rg, _ni);
-	var _rows = [];
-	for (var _ri = 0; _ri < array_length(_pp.rows); _ri++) array_push(_rows, _pp.rows[_ri]);
+	var _rows = [], _lpp = region_pop(_d, _rg, _ni);   // (the population LIVE - the card's row is the baseline; q284)
+	for (var _ri = 0; _ri < array_length(_pp.rows); _ri++) {
+		if (_pp.rows[_ri].k == "population" && is_struct(_lpp)) { var _pw = pop_word(_lpp); array_push(_rows, { k : "population", v : _pw.txt, col : _pw.col }); continue; }
+		array_push(_rows, _pp.rows[_ri]);
+	}
 	// THE LEADER of the day, the two before, the best remembered (region_node_leader - the wall clock, nothing saved; 2026-09-16)
 	var _ld = region_node_leader(_d, _rg, _ni);
 	if (is_struct(_ld)) {

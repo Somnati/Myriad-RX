@@ -87,7 +87,7 @@ function exped_tick_one(_tr, _dt) {
 				// the well's giant keeps an elixir, one time in three (2026-09-16)
 				if (_q.kind == "well" && roll_perc(33)) { var _esp = exped_sprite(_tr.sids[irandom(array_length(_tr.sids) - 1)]); if (!is_undefined(_esp)) { var _etk = sprite_take(_esp, use_gen("elixir", 1, exped_trip_lv(_tr), choose("hp", "atk", "def", "spd", "luck"))); exped_tally(_tr, "items"); array_push(_tr.log, "in the well's mud, a bottle. " + _etk.txt); } }
 			}
-			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); }
+			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) { array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); pop_push(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, .05); } }   // (a wave held: the people stay - q284)
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
 			if (is_struct(_bo) && _bo.done >= _bo.n) { lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .25); _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight

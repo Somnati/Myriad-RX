@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"pop_push",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"pop_push",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

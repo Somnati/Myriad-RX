@@ -33,6 +33,7 @@ function exped_event_tick() {
 			var _kind = _opts[irandom(array_length(_opts) - 1)];
 			var _node = (_kind == "fair" || _kind == "rats") ? _civ[irandom(array_length(_civ) - 1)] : -1;
 			exped_mem_set(_d, _ri, -1, "event", random_range(48, 96), _kind + ":" + string(_node));
+			if (_kind == "rats") pop_push(_d, _ri, _node, -.08); else if (_kind == "fair") pop_push(_d, _ri, _node, .05);   // (the people go, or come - q284)
 		}
 	}
 }

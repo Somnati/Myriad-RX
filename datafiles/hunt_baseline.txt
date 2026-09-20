@@ -996,6 +996,8 @@ dupvar	scripts\planet_sky_draw\planet_sky_draw.gml          rgb
 dupvar	scripts\planet_vn3\planet_vn3.gml                    _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_vn3a\planet_vn3a.gml                  _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_volcanoes\planet_volcanoes.gml        _a _bn _bs _cl _cx _cy _dx _dy _i _k _nv _nx _ny _rad _rc _stp _th _vt sin th
+dupvar	scripts\pop_tick\pop_tick.gml                        _rg real
+dupvar	scripts\pop_unpack\pop_unpack.gml                    _recs
 dupvar	scripts\potion_pick\potion_pick.gml                  _i _sum
 dupvar	scripts\prod_dials\prod_dials.gml                    _n
 dupvar	scripts\profit_spendable\profit_spendable.gml        _p
@@ -1009,13 +1011,14 @@ dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _e
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
 dupvar	scripts\region_info\region_info.gml                  _epn _et _fkd _i _rg exped_planet_hint
-dupvar	scripts\region_ledger\region_ledger.gml              _fkd _i _rg _ri
+dupvar	scripts\region_ledger\region_ledger.gml              _fkd _i _pi _rg _ri
 dupvar	scripts\region_nearest_civ\region_nearest_civ.gml    _i
 dupvar	scripts\region_nearest_landing\region_nearest_landing.gml _l
 dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went
 dupvar	scripts\region_node_info\region_node_info.gml        _base _i _o _seed
 dupvar	scripts\region_node_leader\region_node_leader.gml    _base _hi _k _tl _trs _wts max
 dupvar	scripts\region_path\region_path.gml                  _u
+dupvar	scripts\region_pop\region_pop.gml                    _b _bs _t round
 dupvar	scripts\region_road_name\region_road_name.gml        _base
 dupvar	scripts\region_road_point\region_road_point.gml      _k _pts array_length
 dupvar	scripts\region_season\region_season.gml              _d _tilt

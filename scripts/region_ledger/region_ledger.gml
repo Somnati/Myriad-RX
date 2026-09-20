@@ -43,6 +43,13 @@ function region_ledger(_d, _ri) {
 		}
 		if (!_fany) array_push(_out, { k : "factions", v : "none hunted here - all at strength", col : sett_ink });
 	}
+	// POPULATION (q284): every settled place, its number live, the pushed ones marked
+	for (var _pi = 1; _pi < array_length(_rg.nodes); _pi++) {
+		var _lpp = region_pop(_d, _rg, _pi);
+		if (is_undefined(_lpp)) continue;
+		var _pw = pop_word(_lpp);
+		array_push(_out, { k : _rg.nodes[_pi].name, v : _pw.txt + ((abs(_lpp.dev) >= .01) ? " [" + ((_lpp.dev > 0) ? "+" : "") + string(round(_lpp.dev * 100)) + "%]" : ""), col : _pw.col, bar : clamp(_lpp.dev / POP_DEV_MAX, -1, 1) });
+	}
 	var _scs = scar_get(_d, _ri), _srow = "";
 	for (var _i = 0; _i < array_length(_scs); _i++) if (_scs[_i].n >= 0 && _scs[_i].n < array_length(_rg.nodes)) _srow += ((_srow != "") ? "; " : "") + _rg.nodes[_scs[_i].n].name + ": " + (_scs[_i][$ "was"] ?? "") + " -> " + _scs[_i].k;
 	array_push(_out, { k : "scars", v : (_srow != "") ? _srow : "none (a lane held past .7 for two world days lands one; three a region)", col : (_srow != "") ? c_gold : sett_ink });

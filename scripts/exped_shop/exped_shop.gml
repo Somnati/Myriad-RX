@@ -31,6 +31,10 @@ function exped_shop(_tr, _phase = "all", _k = -1) {
 		if (_ltr > .4) _nstock += 1;
 		if (_ltr > .7) _rmax = min(3, _rmax + 1);
 		if (_ltr < -.4) _nstock = max(1, _nstock - 1);
+		// POPULATION (q284): a place emptied lately keeps a thinner shelf; one swelled, a fuller
+		var _ppd = region_pop(_tr.dest, _rg, _tr.pos), _ppv = is_struct(_ppd) ? _ppd.dev : 0;
+		if (_ppv < -.12) _nstock = max(1, _nstock - 1);
+		if (_ppv > .10) _nstock += 1;
 		// THE SIGN
 		var _sign;
 		var _sf = random(100);

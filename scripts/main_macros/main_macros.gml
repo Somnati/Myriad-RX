@@ -888,3 +888,7 @@ function main_macros() {
 #macro FAC_ROUT       .40    // a camp routed = this share of the base
 #macro FAC_VILLAIN    .25    // the villain ended = this share besides (his people scatter)
 #macro FAC_BOSS_CUT   .30    // a boss's stats: (1 - cut) + cut x strength - a gutted faction's king stands nearly alone
+// POPULATION (q284, his design: "fluctuate over time... not straying too far from a baseline"): the wobble's reach and the
+// event deviation's clamp, as shares of the baseline
+#macro POP_WOBBLE    .10
+#macro POP_DEV_MAX   .50
