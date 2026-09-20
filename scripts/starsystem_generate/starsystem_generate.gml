@@ -41,7 +41,7 @@ function starsystem_generate(_seed, _star = undefined) {
 		_st = { col : _star.color, size : 8 + _star.size * 1.4, hole : (_star[$ "hole"] ?? false), skind : _skd0, spin : (_star[$ "spin"] ?? 1), tilt : (_star[$ "tilt"] ?? 40), period : (_star[$ "period"] ?? 2400), sseed : _seed };   // (hole: a black hole; skind: giant / dwarf / pulsar / main - 2026-09-17)
 		if (_skd0 == "giant") _st.size = 50 + _star.size * 4;        // (62-68: three times the biggest world across)
 		else if (_skd0 == "hole") _st.size = 44 + _star.size * 6;    // (53-60; the core 75-83)
-		else if (_skd0 == "wolf") _st.size = 22 + _star.size * 3;    // (a Wolf-Rayet: big and blazing; its shell is the ornament - q253)
+		else if (_skd0 == "wolf") _st.size = 12 + _star.size * 2;    // (a Wolf-Rayet: big and blazing; its shell is the ornament - q253; smaller since q265, its worlds were under the glare)
 		else if (_skd0 == "brown") _st.size = 5 + _star.size * 2;    // (a brown dwarf: small)
 	}
 	// THE KIND'S WORLDS (2026-09-17): a red giant scorches its inner three rings (hot: ash and dust), a white dwarf

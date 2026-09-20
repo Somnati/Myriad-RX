@@ -12,7 +12,7 @@ function ex_system_init() {
 // picks (a pulsing box, the card), [enter] dives (the swell, then the world's page); a dock on the right: the star's
 // numbers, the worlds listed
 sy_star = -1; sy_sys = undefined; sy_sel = -1; sy_dest = undefined; sy_from = "galaxy";   // (sy_from: where [back] returns - the map, or the planet page)
-sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230; sy_rmax = 0;   // (sy_rmax: the system's outermost orbit - the spread's anchor, q241)
+sy_cam = mat3_rot(1, 0, 0, -55); sy_D = 250; sy_F = 230; sy_rmax = 0; sy_Dmin = 150;   // (sy_Dmin: how close the wheel may come - the star's own size sets it, q265)   // (sy_rmax: the system's outermost orbit - the spread's anchor, q241)
 sy_drag = false; sy_drag_px = 0; sy_dx = 0; sy_dy = 0; sy_vx = 0; sy_vy = 0;
 sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0; sy_wfx = 0; sy_wfy = 0;
 sy_pd = [];                          // the lite worlds, one a planet (planet_get_lite - begun on entry, built a slice a frame: __sy_lite_step)
@@ -97,6 +97,11 @@ __sy_enter = function(_star) {
 	sy_warp_pl = -1; sy_warp_s = 1; sy_warp_t = 0;
 	sy_rmax = 0; for (var _ri = 0; _ri < array_length(sy_sys.planets); _ri++) sy_rmax = max(sy_rmax, sy_sys.planets[_ri].orbit);   // (the spread's anchor: this system's own reach, so a great star's wide system keeps its shape)
 	for (var _ri = 0; _ri < array_length(sy_stns); _ri++) sy_rmax = max(sy_rmax, sy_stns[_ri].orbit);
+	// THE STAR ZOOM (q265, his ask: "zoom in on a star like i do planets... take into consideration the scale of it"): the
+	// wheel may come in until the star fills a good third of the view - its drawn radius is size x F / (2 D), so the near
+	// limit scales with the star: a dwarf lets you close right in, a giant fills the view from far out. Never under the
+	// projection's own near plane (24) - the eye stays outside the star
+	sy_Dmin = clamp(sy_sys.star.size * 1.7, 28, 150);
 };
 /// THE STATION PAGE (2026-09-17, his ask: "click on one like I do a planet to
 /// zoom in on it"): the system's sky behind, the station large in the

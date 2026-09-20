@@ -156,7 +156,29 @@ function ex_galaxy_draw(_ea, _dim) {
 	// (no mark for the opened worlds' stars: the worlds need not know they have been - his call, 2026-09-16)
 	draw_set_font(fnt); draw_set_halign(fa_left); draw_set_valign(fa_top);
 	var _marks = [ { i : _hm.star, col : c_gold, txt : star_name(_hm.star) + "  -  you are here" } ];
-	if (gx_sel >= 0 && gx_sel != _hm.star) array_push(_marks, { i : gx_sel, col : c_white, txt : star_name(gx_sel) + "  -  class " + _sm.stars[gx_sel].props.stellar_class + (is_struct(gx_sys) ? ("  -  " + string(array_length(gx_sys.planets)) + " worlds") : "") });
+	if (gx_sel >= 0 && gx_sel != _hm.star) array_push(_marks, { i : gx_sel, col : c_white, txt : star_name(gx_sel) + "  -  " + star_kind_word(_sm.stars[gx_sel].props[$ "skind"] ?? "main") + ", class " + _sm.stars[gx_sel].props.stellar_class + (is_struct(gx_sys) ? ("  -  " + string(array_length(gx_sys.planets)) + " worlds") : "") });
+	// THE NEIGHBOURHOOD'S ODDITIES (q265; his report: "i dont know how to find them"): every star of a kind within the
+	// home's sky range, the twelve nearest, labelled with its kind in the dim - the debug neighbourhood reads, and in a
+	// real game these are the ones you would fly to
+	var _lcfg = starmap_config(), _lrng = _lcfg.sky_range, _hst = _sm.stars[_hm.star];
+	var _lcand = star_visible(_hst.x - _lrng, _hst.y - _lrng, 1, _lrng * 2, _lrng * 2), _lodd = [];
+	for (var _li = 0; _li < array_length(_lcand); _li++) {
+		var _lst = _sm.stars[_lcand[_li]];
+		if ((_lst.props[$ "skind"] ?? "main") == "main" || _lcand[_li] == _hm.star) continue;
+		var _ld = point_distance(_hst.x, _hst.y, _lst.x, _lst.y);
+		if (_ld > _lrng) continue;
+		array_push(_lodd, { i : _lcand[_li], d : _ld });
+	}
+	array_sort(_lodd, function(_a, _b) { return _a.d - _b.d; });
+	for (var _li = 0; _li < min(12, array_length(_lodd)); _li++) {
+		var _lst = _sm.stars[_lodd[_li].i];
+		if (_lodd[_li].i == gx_sel) continue;   // (the card says it)
+		var _lsx = ((_vcx + (_lst.x - _vcx) * _lst.d) - gx_x) * gx_zoom, _lsy = ((_vcy + (_lst.y - _vcy) * _lst.d) - gx_y) * gx_zoom;
+		if (_lsx < -40 || _lsy < -10 || _lsx > _vw + 40 || _lsy > _vh + 10) continue;
+		draw_set_halign(fa_center); draw_set_color(merge_colour(_lst.props.color, c_white, .4)); draw_set_alpha(.6);
+		draw_text_transformed(floor(_lsx * _gs), floor((_lsy + 5) * _gs), star_kind_word(_lst.props[$ "skind"] ?? "main", true), _gs, _gs, 0);
+		draw_set_halign(fa_left);
+	}
 	for (var _k = 0; _k < array_length(_marks); _k++) {
 		var _mk = _marks[_k];
 		var _st = _sm.stars[_mk.i];

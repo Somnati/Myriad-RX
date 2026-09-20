@@ -254,6 +254,7 @@ svars	ex_system_press              sy_stns
 svars	ex_system_press              sy_sys
 svars	ex_system_press              sy_warp_pl
 svars	ex_system_press              view
+svars	ex_system_step               sy_Dmin
 svars	ex_system_step               sy_belts
 svars	ex_system_step               sy_drag
 svars	ex_system_step               sy_dw
@@ -849,7 +850,7 @@ dupvar	scripts\ex_crew_draw\ex_crew_draw.gml                _sp array_length
 dupvar	scripts\ex_depart_draw\ex_depart_draw.gml            _can _crew _j _k _np _q _rg rg_sel
 dupvar	scripts\ex_depart_list\ex_depart_list.gml            _dl
 dupvar	scripts\ex_depart_press\ex_depart_press.gml          _sp
-dupvar	scripts\ex_galaxy_draw\ex_galaxy_draw.gml            _gx0 _gy0 _i _l _nb _ni _nr _nx _ny _pl _s _st _sx _sy _vh _vw gx_zoom sprite_get_height sprite_get_width
+dupvar	scripts\ex_galaxy_draw\ex_galaxy_draw.gml            _gx0 _gy0 _hst _i _l _li _lrng _lst _nb _ni _nr _nx _ny _pl _s _st _sx _sy _vh _vw gx_zoom sprite_get_height sprite_get_width
 dupvar	scripts\ex_galaxy_init\ex_galaxy_init.gml            floor
 dupvar	scripts\ex_galaxy_step\ex_galaxy_step.gml            _gbk _ger _gr _mmr _sy mouse_y
 dupvar	scripts\ex_haul_draw\ex_haul_draw.gml                _cw _flw _i _k string

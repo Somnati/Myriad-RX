@@ -24,7 +24,7 @@ function ex_system_step() {
 	var _svr = __sy_view_r();
 	var _sdk = point_in_rectangle(mouse_x, mouse_y, __sy_dock_x(), list_y + 16, room_width, room_height - 8);   // (the drawer and its tab: no place to drag or wheel from)
 	var _sin = point_in_rectangle(mouse_x, mouse_y, _svr.x, _svr.y, _svr.x + _svr.w, _svr.y + _svr.h) && !_sdk;
-	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, 150); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }
+	if (_sin) { if (mouse_wheel_up()) sy_D = max(sy_D / 1.08, sy_Dmin); if (mouse_wheel_down()) sy_D = min(sy_D * 1.08, 430); }   // (in to the star's own scale - q265)
 	var _bk0 = __back_r();
 	var _onbk0 = point_in_rectangle(mouse_x, mouse_y, _bk0.x, _bk0.y, _bk0.x + _bk0.w, _bk0.y + _bk0.h);
 	var _ser = __sy_enter_r(), _sgl0 = __galaxy_r();

@@ -23,7 +23,12 @@ function ex_system_draw(_e, _ea, _ink, _dim) {
 		var _gbc = galaxy_world_biome(_pls[sy_sel]);
 		draw_set_color(c_gold); draw_set_alpha(.95);
 		draw_text(sy_cx, _capy, star_name(sy_star) + " " + _romd[clamp(sy_sel, 0, 7)] + "  -  " + ((_gbc < 0) ? "gas giant  -  no landing" : (exped_biomes()[_gbc].name + " world  -  tier " + string(sy_info[sy_sel]))));
-	} else { draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, (array_length(sy_stns) > 0) ? "pick a planet or a station" : "pick a planet"); }
+	} else {
+		// (what the star is, and whether there is anything to pick - a protostar's disc, a bare Wolf-Rayet; q265)
+		var _skw = star_kind_word(sy_sys.star[$ "skind"] ?? "main");
+		var _cap = (_np == 0 && array_length(sy_stns) == 0) ? (_skw + "  -  nothing to land on here") : (((array_length(sy_stns) > 0) ? "pick a planet or a station" : "pick a planet") + (((sy_sys.star[$ "skind"] ?? "main") != "main") ? ("  -  " + _skw) : ""));
+		draw_set_color(_dim); draw_set_alpha(.7); draw_text(sy_cx, _capy, _cap);
+	}
 	draw_set_halign(fa_left);
 	// [galaxy] bottom left (his ask, 2026-09-16): the map, from here
 	var _sgl = __galaxy_r();

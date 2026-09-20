@@ -968,6 +968,7 @@
     {"id":{"name":"sstep","path":"scripts/sstep/sstep.yy",},},
     {"id":{"name":"star_draw","path":"scripts/star_draw/star_draw.yy",},},
     {"id":{"name":"star_glyph_frame","path":"scripts/star_glyph_frame/star_glyph_frame.yy",},},
+    {"id":{"name":"star_kind_word","path":"scripts/star_kind_word/star_kind_word.yy",},},
     {"id":{"name":"star_light","path":"scripts/star_light/star_light.yy",},},
     {"id":{"name":"star_name","path":"scripts/star_name/star_name.yy",},},
     {"id":{"name":"star_pulse","path":"scripts/star_pulse/star_pulse.yy",},},
