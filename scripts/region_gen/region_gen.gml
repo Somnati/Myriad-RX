@@ -249,6 +249,9 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// fixed number of rooms"): 3-6, off the seed by hash (no roll - the
 	// worlds stay the worlds they were); the delve and the clear quest read it
 	for (var _i = 0; _i < _n; _i++) if (_nodes[_i].kind == "dungeon" || _nodes[_i].kind == "crypt") _nodes[_i].rooms = 3 + (hash_mix(_seed, _i * 31 + 7) mod 4);
+	// ON THE GROUND (q288): with a territory every place moves onto a texel of it chosen for its kind (region_place) - the
+	// tree's shape, the bridges, the isles, the sewers and the bent roads below all run on the new frame
+	var _tmap = is_struct(_terr) ? region_place(_nodes, _pn, _terr, _ri) : undefined;
 	// THE ROADS: the tree's (every place to the one it grew from), then
 	// BRIDGES - a few near pairs joined where the new road crosses none,
 	// so the tree closes into loops with dead-end spurs left over (his
@@ -378,7 +381,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		_ed.pts = _pts;
 		var _pl = 0;
 		for (var _k = 1; _k < array_length(_pts); _k++) _pl += point_distance(_pts[_k - 1].x, _pts[_k - 1].y, _pts[_k].x, _pts[_k].y);
-		_ed.d = max(1, round(_pl * 14 * ((_ed[$ "boat"] ?? false) ? 1.5 : 1)));
+		_ed.d = max(1, round(_pl * 14 * ((_ed[$ "boat"] ?? false) ? 1.5 : 1) * (is_struct(_tmap) ? clamp(_tmap.span / 16, .6, 3) : 1)));   // (the hours grow with the territory - a sixteen-texel span is the old scale; q288)
 	}
 	// the region's name and its SPOT on the world (his ask: a region is a
 	// spot on the planet - lon / lat, a third of the globe apart)
@@ -423,5 +426,5 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	for (var _i = 0; _i < array_length(_wild); _i++) if (!array_contains(_wk2, _wild[_i])) array_push(_wk2, _wild[_i]);
 	rng_release(_old);
 	return { seed : _seed, lv : _lv, ri : _ri, name : _rname, spot : _spot, nodes : _nodes, edges : _edges, landing : 0, landings : _landings, biome : _bi,
-	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood, mood_t : _mood_t, radius : _R, cx : _cx0, cy : _cy0 };
+	         nciv : _nciv, ndun : _ndun, ncmp : _ncmp, wild : _wk2, mood : _mood, mood_t : _mood_t, radius : _R, cx : _cx0, cy : _cy0, tmap : _tmap };   // (tmap: the territory's frame for the map's ground - q288)
 }
