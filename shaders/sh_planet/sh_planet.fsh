@@ -422,6 +422,16 @@ float hash12(vec2 p)
     p3 += dot(p3, p3.yzx + 33.33);
     return fract((p3.x + p3.y) * p3.z);
 }
+// THE CANOPY AT A CELL (q273): open (a clearing) or closed, as the pixel's own test reads it - the clump noise at the
+// cell's centre on the base map's grid, the cell's hash roughening it, a thin canopy (fo) opening wider. The floor's
+// shadow and the neighbour's shade read the cell TOWARD the sun through this
+float canopy_open(vec2 cell, float gk, float fo)
+{
+    vec2 cl = (cell + 0.5) / (gk * 4.0);
+    vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
+    float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
+    return vn + (hash12(cell + 0.5) - 0.5) * 0.3 + (1.0 - fo) * 0.4;
+}
 
 // THE AURORA (q205, 2026-09-18; his ask: "we do need to improve the auroras" - the old one was a latitude band painted
 // on the ground). What it is: an OVAL round the MAGNETIC pole (u_amag - a few degrees off the spin axis, so the
@@ -743,6 +753,34 @@ void main()
             float open = vn + (g - 0.5) * 0.3 + (1.0 - fo) * 0.4;
             vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
             vec3 canopy = col * (0.90 + 0.20 * hash12(ct + 17.3));
+            // THE CANOPY'S LIGHT (q273, his pick): every cell a DOME - its sunward side lit, its lee dark - and a cell
+            // shaded by a taller neighbour toward the sun; and THE FLOOR'S SHADOW - a clearing whose sunward neighbour
+            // is canopy lies in its shade, deeper the lower the sun. The sun's direction on the map: a step along the
+            // light from the canopy point, in map uv, then in cells (the seam wrapped). Albedo-side, like the snow:
+            // by day only (the night takes the ground as it is)
+            float elc = dot(n, u_light);
+            if (elc > 0.0) {
+                float gk = grid_k(cuvm);
+                vec3 tcn = to_tex(nc);
+                vec2 ld = map_uv(normalize(tcn + to_tex(u_light) * 0.02)) - cuvm;
+                ld.x -= floor(ld.x + 0.5);
+                ld *= u_tsize * gk;
+                float ll = length(ld);
+                if (ll > 1.0e-5) {
+                    vec2 ld2 = ld / ll;
+                    float cs = sqrt(max(0.0, 1.0 - elc * elc));
+                    vec3 L3 = normalize(vec3(ld2 * cs, elc));
+                    vec2 cf2 = fract(cuv) - 0.5;
+                    vec3 nd = normalize(vec3(cf2 * 1.6, 0.5));
+                    float dome = 0.72 + 0.55 * max(0.0, dot(nd, L3));
+                    vec2 nbc = ct - vec2(sign(ld2.x) * step(0.38, abs(ld2.x)), sign(ld2.y) * step(0.38, abs(ld2.y)));
+                    float gn = hash12(nbc + 0.5);
+                    float occ = clamp((gn - g) * 1.2, 0.0, 0.45) * (1.0 - elc);
+                    canopy *= dome * (1.0 - occ);
+                    float nopen = canopy_open(nbc, gk, fo);
+                    if (nopen > 0.36) floorc *= mix(0.5, 0.92, elc);
+                }
+            }
             col = (open > 0.36) ? canopy : floorc;
         }
         // THE SEA'S DEPTH (his ask, 2026-09-17: "smooth blending between its depth layers"): under water the height
