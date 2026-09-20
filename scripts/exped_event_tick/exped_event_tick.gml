@@ -27,13 +27,17 @@ function exped_event_tick() {
 				var _vm = _e[$ "vil"], _vst = 0;
 				if (is_struct(_vm)) _vst = _vm[$ string(_d.seed) + ":" + string(_ri)] ?? 0;
 				if (is_struct(_v) && _vst < 3 && faction_get(_d, _ri, _v.foe, _rg).str >= .5) array_push(_opts, "lord");   // (a faction under half strength cannot ride out - q283)
+				// THE RAID (q285): a villain whose faction stands at FAC_RAID_STR or better falls on a settled place - twice on the
+				// list, so a strong faction raids more often than it fairs; hunting its people is how you stop it
+				if (is_struct(_v) && _vst < 3 && array_length(_civ) > 0 && faction_get(_d, _ri, _v.foe, _rg).str >= FAC_RAID_STR) { array_push(_opts, "raid"); array_push(_opts, "raid"); }
 			}
 			if (_open) array_push(_opts, "frost");
 			if (array_length(_opts) == 0) { exped_mem_set(_d, _ri, -1, "event", random_range(24, 72), "lull:-1"); continue; }
 			var _kind = _opts[irandom(array_length(_opts) - 1)];
-			var _node = (_kind == "fair" || _kind == "rats") ? _civ[irandom(array_length(_civ) - 1)] : -1;
+			var _node = (_kind == "fair" || _kind == "rats" || _kind == "raid") ? _civ[irandom(array_length(_civ) - 1)] : -1;
 			exped_mem_set(_d, _ri, -1, "event", random_range(48, 96), _kind + ":" + string(_node));
 			if (_kind == "rats") pop_push(_d, _ri, _node, -.08); else if (_kind == "fair") pop_push(_d, _ri, _node, .05);   // (the people go, or come - q284)
+			if (_kind == "raid") { pop_push(_d, _ri, _node, -RAID_POP); lane_push(_d, _ri, "dread", .3); lane_push(_d, _ri, "order", -.2); lane_push(_d, _ri, "welcome", -.1); }   // (the raid's toll - q285; the shelf thins by q284's reader)
 		}
 	}
 }

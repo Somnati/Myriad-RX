@@ -13,13 +13,18 @@ function region_event(_d, _ri) {
 	if (array_length(_f) < 2 || _f[0] == "lull") return undefined;
 	var _rg = region_get(_d, _ri);
 	var _nd = clamp(real(_f[1]), -1, array_length(_rg.nodes) - 1);
-	var _txt = "";
+	var _txt = "", _why = "";   // (why: the consequence, for the header - q285)
 	switch (_f[0]) {
-		case "fair":  _txt = "a fair at " + ((_nd >= 0) ? _rg.nodes[_nd].name : "the green"); break;
-		case "rats":  _txt = "a plague of rats" + ((_nd >= 0) ? (" in " + _rg.nodes[_nd].name) : ""); break;
-		case "lord":  { var _v = region_villain(_d, _rg); _txt = (is_struct(_v) ? _v.name : "a bandit lord") + " abroad"; break; }
-		case "frost": _txt = "a hard frost"; break;
+		case "fair":  _txt = "a fair at " + ((_nd >= 0) ? _rg.nodes[_nd].name : "the green"); _why = "stalls on the green - the shelf twice itself, a rung up"; break;
+		case "rats":  _txt = "a plague of rats" + ((_nd >= 0) ? (" in " + _rg.nodes[_nd].name) : ""); _why = "rats in every fight, the folk indoors, the shelf thin"; break;
+		case "lord":  { var _v = region_villain(_d, _rg); _txt = (is_struct(_v) ? _v.name : "a bandit lord") + " abroad"; _why = "his people on every road, one more at every camp"; break; }
+		case "frost": _txt = "a hard frost"; _why = "the roads slow, the wild kinds hungry"; break;
+		case "raid":  {   // THE RAID (q285): the villain fell on a settled place - its people fewer, its shelf thin, the roads his
+			var _vr = region_villain(_d, _rg), _vs = g.exped[$ "seat"], _vsk = is_struct(_vs) ? _vs[$ lane_key(_d, _ri)] : undefined;
+			var _vn = is_struct(_vr) ? _vr.name : ((is_struct(_vsk) && _vsk.left > 0) ? "the late lord's people" : "a bandit lord");
+			_txt = _vn + " attacked " + ((_nd >= 0) ? _rg.nodes[_nd].name : "the roads"); _why = "fewer people there, the shelf thin, his people on the roads"; break;
+		}
 		default: return undefined;
 	}
-	return { kind : _f[0], node : _nd, left : _m.left, txt : _txt };
+	return { kind : _f[0], node : _nd, left : _m.left, txt : _txt, why : _why };
 }

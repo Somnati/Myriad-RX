@@ -179,6 +179,8 @@ svars	ex_planet_draw               pv_dwa
 svars	ex_planet_draw               pv_mode
 svars	ex_planet_draw               pv_sky
 svars	ex_planet_draw               pv_zoom
+svars	ex_planet_draw               rg_box_h
+svars	ex_planet_draw               rg_box_w
 svars	ex_planet_draw               rg_in
 svars	ex_planet_draw               rg_infl
 svars	ex_planet_draw               sky_fog_surf
@@ -862,7 +864,7 @@ dupvar	scripts\ex_orbit_init\ex_orbit_init.gml              _ay _az _cam _i _mi 
 dupvar	scripts\ex_planet_clock\ex_planet_clock.gml          _pn4 _tgt _yp pv_spin
 dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _h _i _lcx _lcy _nol _pr _pvr _rg _w rg_sel
 dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _ocf _pc _pvr _rgp mouse_y
-dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _g _i _mid _n _rg _sl _ty _w _x _x0 rg_sel
+dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _eri _g _h _i _mid _n _rg _sl _ty _w _x _x0 rg_sel
 dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _bw _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
 dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y
 dupvar	scripts\ex_system_draw\ex_system_draw.gml            _bj
@@ -965,6 +967,7 @@ dupvar	scripts\merge_colour_smooth\merge_colour_smooth.gml  _a sqr
 dupvar	scripts\moon_draw\moon_draw.gml                      _ang _light_w _lw _mo _pp2
 dupvar	scripts\moon_tex\moon_tex.gml                        _c1 _cl _d _ddx _h _i _x _y sin
 dupvar	scripts\moon_view_pos\moon_view_pos.gml              _lw
+dupvar	scripts\news_unpack\news_unpack.gml                  _eq _recs
 dupvar	scripts\objective_catchup\objective_catchup.gml      _j _k _s
 dupvar	scripts\objective_tick\objective_tick.gml            _k
 dupvar	scripts\offline_replay\offline_replay.gml            _i _pool0

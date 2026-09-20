@@ -152,7 +152,7 @@ function exped_act_step(_tr) {
 			break;
 		}
 		case "camp": {
-			var _evc = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _lordc = (is_struct(_evc) && _evc.kind == "lord");
+			var _evc = region_event(_tr.dest, _tr[$ "rgi"] ?? 0), _lordc = (is_struct(_evc) && (_evc.kind == "lord" || _evc.kind == "raid"));   // (a raid: the camp fuller too - q285)
 			var _ldc = region_node_leader(_tr.dest, _rg, _tr.pos), _ldct = is_struct(_ldc) ? _ldc.trait : "";   // (the chief's word: cruel a bandit more, cowardly one fewer - 2026-09-16)
 			var _fcs = faction_get(_tr.dest, _tr[$ "rgi"] ?? 0, "bandit", _rg).str;   // (the camp's count rides the faction's strength - q283: a gutted faction's camp is nearly empty)
 			_tr.fight = exped_fight_new(_tr, "bandit", max(1, round(max(2, irandom_range(2, 3) + (_lordc ? 1 : 0) + ((_ldct == "cruel") ? 1 : ((_ldct == "cowardly") ? -1 : 0))) * (.55 + .45 * _fcs))), 0);   // a camp is never one bandit at strength (one more with the lord abroad - 2026-09-16)

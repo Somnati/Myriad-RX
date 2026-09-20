@@ -43,6 +43,9 @@ function region_ledger(_d, _ri) {
 		}
 		if (!_fany) array_push(_out, { k : "factions", v : "none hunted here - all at strength", col : sett_ink });
 	}
+	// THE NEWS (q285): the region's, newest first
+	var _nws = region_news(_d, _ri);
+	for (var _ni = 0; _ni < array_length(_nws); _ni++) array_push(_out, { k : (_ni == 0) ? "news" : "", v : _nws[_ni].txt + " (" + string(max(1, ceil(_nws[_ni].left / (24 * EXPED_HOUR)))) + "d)", col : c_seagreen });
 	// POPULATION (q284): every settled place, its number live, the pushed ones marked
 	for (var _pi = 1; _pi < array_length(_rg.nodes); _pi++) {
 		var _lpp = region_pop(_d, _rg, _pi);

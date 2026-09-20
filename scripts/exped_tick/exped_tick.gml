@@ -35,6 +35,7 @@ function exped_tick(_secs) {
 	seat_tick(_dt);          // ...and an empty seat is filled in its time (q260)
 	faction_tick(_dt);       // ...and the hunted kinds recruit toward their numbers (q283)
 	pop_tick(_dt);           // ...and the pushed places drift back to their baselines (q284)
+	news_tick(_dt);          // ...and the news gets old (q285)
 	exped_event_tick();      // ...and the regions' events roll (2026-09-16)
 	// THE KEEPERS' EGGS (his design, 2026-09-16): a sprite's egg hatches on the universal clock into its CHARGE - a sprite of the
 	// egg's colour, the keeper's class (a fifth of the time an adjacent one), young: it follows its keeper about the rooms and

@@ -32,6 +32,29 @@ __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (l
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 __infl_r    = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 40, w : _x.w, h : 16 }; };   // [influence] over [quests] (q270)
 rg_infl = false;   // THE INFLUENCE VIEW (q270, his ask): the region's ledger over the view - a tap closes it
+// THE EVENTS HEADER (q285, his ask): under the region's info box - [event] the procedural event and its days, its
+// consequence under it, then [crews] the region's news (the crews' deeds) beside it. Skipped when the fold leaves no room
+__draw_event_strip = function(_d, _rg, _x, _y, _w) {
+	var _eri = _rg[$ "ri"] ?? 0, _ev = region_event(_d, _eri), _nw = region_news(_d, _eri), _ls = [];
+	if (is_struct(_ev)) {
+		array_push(_ls, { tag : "event", txt : _ev.txt + " - " + string(max(1, ceil(_ev.left / (24 * EXPED_HOUR)))) + "d", col : c_gold });
+		if ((_ev[$ "why"] ?? "") != "") array_push(_ls, { tag : "", txt : _ev.why, col : sett_ink });
+	} else array_push(_ls, { tag : "event", txt : "nothing on - a lull", col : sett_ink });
+	for (var _i = 0; _i < min(2, array_length(_nw)); _i++) array_push(_ls, { tag : (_i == 0) ? "crews" : "", txt : _nw[_i].txt + " - " + string(max(1, ceil(_nw[_i].left / (24 * EXPED_HOUR)))) + "d", col : c_seagreen });
+	var _h = 4 + array_length(_ls) * 11 + 2;
+	if (_y + _h > __system_r().y - 4) return;
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, _w, _h, 0, c_black, .8);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x, _y, 2, _h, 0, c_seagreen, .9);
+	draw_set_font(fnt); draw_set_halign(fa_left);
+	var _ly = _y + 3;
+	for (var _i = 0; _i < array_length(_ls); _i++) {
+		var _l = _ls[_i];
+		if (_l.tag != "") { draw_set_color(sett_ink); draw_set_alpha(.8); draw_text(_x + 8, _ly, _l.tag); }
+		draw_set_color(_l.col); draw_set_alpha(.95);
+		draw_text(_x + 8 + 36, _ly, __sheet_cut(_l.txt, max(20, _w - 8 - 36 - 6)));
+		_ly += 11;
+	}
+};
 // region mode: the info box on the left (region_info's lines)
 rg_box_w = 150; rg_box_h = 110;      // the info box's size, as its lines want (__info_box_size; the Draw keeps it fresh)
 rg_box_open = false; rg_box_a = 0;   // THE FOLD (his ask, 2026-09-16): shut = the first lines at their own width; open = every line at the longest's; eased

@@ -48,6 +48,7 @@ function ex_planet_draw(_e, _ea, _dim) {
 		// map] in the left column, [quests] over [explore] bottom right
 		var _rg = region_get(_d, rg_sel);
 		__draw_info_box(_d, _rg, __rg_banner_r());
+		var _esr = __rg_banner_r(); __draw_event_strip(_d, _rg, _esr.x, _esr.y + rg_box_h + 4, max(rg_box_w, land ? 210 : 150));   // (the events header - q285)
 		var _qb = __quests_r();
 		draw_ui_button(_qb.x, _qb.y, _qb.w, _qb.h, "quests", c_gold, true, true);
 		var _xb = __explore_r();

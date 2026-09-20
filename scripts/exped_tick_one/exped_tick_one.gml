@@ -37,12 +37,13 @@ function exped_tick_one(_tr, _dt) {
 			// FACTION STRENGTH (q283): every head off its kind's pool in this region; a boss or a named one FAC_KILL_BOSS of them
 			if (_bf.hp <= 0 && (_bf[$ "kind"] ?? "") != "") {
 				var _fh = faction_hit(_tr.dest, _tr[$ "rgi"] ?? 0, _bf.kind, ((_bf[$ "boss"] ?? false) || (_bf[$ "named"] ?? false)) ? FAC_KILL_BOSS : 1, exped_region(_tr));
-				if (is_struct(_fh) && _fh.before >= .4 && _fh.after < .4) array_push(_tr.log, "the " + foe_plural(_bf.kind) + " of " + exped_region(_tr).name + " are thin on the ground now.");
+				if (is_struct(_fh) && _fh.before >= .4 && _fh.after < .4) { array_push(_tr.log, "the " + foe_plural(_bf.kind) + " of " + exped_region(_tr).name + " are thin on the ground now."); exped_news("the " + foe_plural(_bf.kind) + " of " + exped_region(_tr).name + " are thin on the ground - " + exped_crew_txt(_tr.names), _tr.dest, _tr[$ "rgi"] ?? 0, 72, _tr); }
 			}
 			// LEADERLESS (q262): a boss or a named one down - its kind loses its chief in this region for a while (seat_open_kind)
 			if (_bf.hp <= 0 && ((_bf[$ "boss"] ?? false) || (_bf[$ "named"] ?? false)) && (_bf[$ "kind"] ?? "") != "") {
 				seat_open_kind(_tr.dest, _tr[$ "rgi"] ?? 0, _bf.kind, exped_region(_tr));
 				array_push(_tr.log, "the " + _bf.kind + " of " + exped_region(_tr).name + " have lost their " + choose("chief", "leader", "biggest one", "head") + ". they will be weaker on these roads for a while.");
+				exped_news("the " + foe_plural(_bf.kind) + " of " + exped_region(_tr).name + " lost their chief to " + exped_crew_txt(_tr.names), _tr.dest, _tr[$ "rgi"] ?? 0, 72, _tr);   // (q285)
 			}
 		}
 		for (var _k = 0; _k < array_length(_f.party); _k++) if (_f.party[_k].hp <= 0) exped_stat("downs");
@@ -87,7 +88,7 @@ function exped_tick_one(_tr, _dt) {
 				// the well's giant keeps an elixir, one time in three (2026-09-16)
 				if (_q.kind == "well" && roll_perc(33)) { var _esp = exped_sprite(_tr.sids[irandom(array_length(_tr.sids) - 1)]); if (!is_undefined(_esp)) { var _etk = sprite_take(_esp, use_gen("elixir", 1, exped_trip_lv(_tr), choose("hp", "atk", "def", "spd", "luck"))); exped_tally(_tr, "items"); array_push(_tr.log, "in the well's mud, a bottle. " + _etk.txt); } }
 			}
-			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) { array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); pop_push(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, .05); } }   // (a wave held: the people stay - q284)
+			if (is_struct(_q) && _q.kind == "defend" && is_struct(_tr.act) && _tr.act.kind == "defend" && _q.node == _tr.pos && _q.done < _q.n) { _q.done += 1; if (_q.done >= _q.n) { array_push(_tr.log, exped_region(_tr).nodes[_tr.pos].name + " holds. the villagers come out again"); pop_push(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, .05); exped_news(exped_region(_tr).nodes[_tr.pos].name + " held against the " + foe_plural(_q.foe) + " - " + exped_crew_txt(_tr.names), _tr.dest, _tr[$ "rgi"] ?? 0, 72, _tr); } }   // (a wave held: the people stay - q284; the news - q285)
 			if (is_struct(_q) && _q.done >= _q.n && !(_tr[$ "quest_said"] ?? false)) { _tr.quest_said = true; array_push(_tr.log, "the quest is done: " + _q.txt); }
 			if (is_struct(_bo) && _bo.done >= _bo.n) { lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .25); _tr.credits += _bo.pay; exped_tally(_tr, "earned", _bo.pay); exped_stat("bounties"); array_push(_tr.log, "+ the bounty is done - " + string(_bo.pay) + " credits, paid by a passing clerk"); _tr.bounty = undefined; }
 			// a camp's chest, on its last fight
@@ -102,6 +103,7 @@ function exped_tick_one(_tr, _dt) {
 				exped_mem_set(_tr.dest, _tr[$ "rgi"] ?? 0, _tr.pos, "routed", 96);
 				var _fhc = faction_hit(_tr.dest, _tr[$ "rgi"] ?? 0, "bandit", ceil(faction_base(exped_region(_tr), "bandit") * FAC_ROUT), exped_region(_tr));   // (a camp routed: FAC_ROUT of the region's bandits - q283)
 				if (is_struct(_fhc) && _fhc.before >= .4 && _fhc.after < .4) array_push(_tr.log, "the bandits of " + exped_region(_tr).name + " are thin on the ground now.");
+				exped_news("the camp at " + exped_region(_tr).nodes[clamp(_tr.pos, 0, array_length(exped_region(_tr).nodes) - 1)].name + " burned - " + exped_crew_txt(_tr.names), _tr.dest, _tr[$ "rgi"] ?? 0, 96, _tr);   // (q285)
 				lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "order", .35); lane_push(_tr.dest, _tr[$ "rgi"] ?? 0, "dread", -.3);   // (a camp burned: the region's order up, the villain's grip looser - q259)
 				array_push(_tr.log, "the camp burns. " + choose("the road past it will be quieter for a while", "nobody will be home there for a while", "the crows have it now"));
 				if (roll_perc(50)) exped_room_find(_tr, "and in the chest, ");

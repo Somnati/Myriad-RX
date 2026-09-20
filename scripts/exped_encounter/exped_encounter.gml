@@ -6,7 +6,7 @@ function exped_encounter(_tr, _mult = 1, _wx = "clear") {
 	// THE REGION'S EVENT (2026-09-16): a villain ended = peace, half the encounters for a week; the lord abroad = passers-by turn out bandits
 	var _rgi_e = _tr[$ "rgi"] ?? 0;
 	if (is_struct(exped_mem_get(_tr.dest, _rgi_e, -1, "peace"))) _mult *= .5;
-	var _eve = region_event(_tr.dest, _rgi_e), _lord = (is_struct(_eve) && _eve.kind == "lord");
+	var _eve = region_event(_tr.dest, _rgi_e), _lord = (is_struct(_eve) && (_eve.kind == "lord" || _eve.kind == "raid"));   // (a raid: his people on the roads too - q285)
 	// REGION LANES (q259): the villain's grip makes the road busier, its loosening quieter
 	var _lo = lane_val(_tr.dest, _rgi_e, "order"), _lw = lane_val(_tr.dest, _rgi_e, "wild"), _ld = lane_val(_tr.dest, _rgi_e, "dread"), _le = lane_val(_tr.dest, _rgi_e, "welcome");
 	_mult *= 1 + .3 * _ld;

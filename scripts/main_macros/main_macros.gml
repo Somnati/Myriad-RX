@@ -892,3 +892,7 @@ function main_macros() {
 // event deviation's clamp, as shares of the baseline
 #macro POP_WOBBLE    .10
 #macro POP_DEV_MAX   .50
+// THE RAID (q285, his example: "King Baukder attacked Lillia town - lower population and reduced items in its stores"): the
+// villain's faction must stand at this strength or better to fall on a settled place; the place loses this share of its people
+#macro FAC_RAID_STR   .60
+#macro RAID_POP       .20

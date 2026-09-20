@@ -40,6 +40,7 @@ function exped_quest_after(_tr) {
 			seat_open(_tr.dest, _ri, _rg, _v.foe);   // THE SEAT falls vacant (q260): a successor in SEAT_DAYS / the region's weight; the thread resets then; its kind leaderless meanwhile (q262)
 			faction_hit(_tr.dest, _ri, _v.foe, ceil(faction_base(_rg, _v.foe) * FAC_VILLAIN), _rg);   // (his people scatter: FAC_VILLAIN of the base off - q283)
 			for (var _pk = 1; _pk < array_length(_rg.nodes); _pk++) if (!is_undefined(region_pop(_tr.dest, _rg, _pk))) pop_push(_tr.dest, _ri, _pk, .04);   // (the villain ended: people come back to every settled place - q284)
+			exped_news(_v.name + " is finished - " + exped_crew_txt(_tr.names), _tr.dest, _ri, 168, _tr);   // (q285)
 			array_push(_tr.log, _v.name + " is finished. " + _v.fac + " scatter. " + _rg.name + " will be quieter for a while, and " + exped_crew_txt(_crew) + " will be talked about");
 		} else { lane_push(_tr.dest, _ri, "dread", -.25); array_push(_tr.log, choose("a thread pulled. " + _v.name + " will have heard", _v.name + "'s people know this crew's names now", "one thread of " + _v.name + "'s cut. there are more")); }
 	}
