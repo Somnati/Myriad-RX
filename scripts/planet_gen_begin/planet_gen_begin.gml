@@ -70,7 +70,7 @@ function planet_gen_begin(_seed, _hint = undefined, _tw_ask = undefined, _th_ask
 		wind   : (_th9(_seed, 25) < .5) ? -1 : 1,
 		tshift : (_th9(_seed, 26) - .5) * .14,
 		mshift : (_th9(_seed, 27) - .5) * .20,
-		cap    : .74 + .14 * _th9(_seed, 28),
+		cap    : .88 + .08 * _th9(_seed, 28),   // (|sin lat| where the shader's polar sheet begins: 62-74 deg - the old .74-.88 was a haze over half a hemisphere; q279)
 	};
 	var _sg = _th9(_seed, 20);
 	_tt.sig = (_sg < .30) ? 0 : ((_sg < .42) ? 1 : ((_sg < .52) ? 2 : ((_sg < .64) ? 3 : ((_sg < .74) ? 4 : ((_sg < .84) ? 5 : ((_sg < .92) ? 6 : 7))))));

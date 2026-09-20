@@ -81,9 +81,15 @@ function planet_signature(_pn) {
 		var _wid = ((_sig == 3) ? 2.6 : 1.6) * _sc, _reach2 = (_sig == 3) ? 2.4 : 1.6;
 		var _px = _x + .5, _py = _y + .5;
 		var _floors = [];
+		// THE SHOULDERS' MASK (q279; his screenshot: the rift's two shoulders ran as ruled ribbons): the lift joins the
+		// fluvial carve's mask at half weight, so the small streams feather the scarps like a range's flanks
+		var _rl = _pn[$ "rlift"];
+		if (!is_array(_rl)) { _rl = array_create(_n, 0); _pn.rlift = _rl; }
 		for (var _s = 0; _s < _len; _s++) {
 			var _clw = max(.2, sin(pi * clamp(_py, .5, _th - .5) / _th));
 			_px += dcos(_hd) / _clw; _py -= dsin(_hd); _hd += _cv + (planet_vn3(_pn.seed + 5500, frac(_px / _tw + 1), clamp(_py / _th, 0, 1), 7) - .5) * 6;
+			// the shoulder's height comes and goes along the walk (q279): a slow noise, .55 .. 1.45 of it - no crest is a rail
+			var _shm = .55 + .9 * planet_vn3(_pn.seed + 5501, frac(_px / _tw + 1), clamp(_py / _th, 0, 1), 9);
 			if (_py < _th * .08 || _py > _th * .92) break;
 			var _ix0 = (((floor(_px)) mod _tw) + _tw) mod _tw, _iy0 = clamp(floor(_py), 0, _th - 1), _i0 = _ix0 + _iy0 * _tw;
 			if (_el[_i0] < _sea - .005) break;   // (it ran into the sea)
@@ -98,7 +104,7 @@ function planet_signature(_pn) {
 					if (_sig == 3) {
 						// THE RIFT: the trough dropped, the shoulders lifted either side - a graben
 						if (_d <= 1) _e = min(_e, _el[_i] - .085 * (1 - _d * _d));
-						else _e += .028 * sqr(1 - (_d - 1) / 1.4) * (.7 + .6 * _dt[_i]);
+						else { var _shl = .028 * _shm * sqr(1 - (_d - 1) / 1.4) * (.7 + .6 * _dt[_i]); _e += _shl; _rl[_i] = max(_rl[_i], _shl * .5); }
 						_e = max(_e, _sea + .004);
 					} else {
 						// THE MEGA-CANYON: the terraced convex wall from the floor to the rim (planet_plateaus' law), deep

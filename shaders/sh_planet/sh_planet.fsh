@@ -836,8 +836,12 @@ void main()
         // THE CAP (q242): over the high latitudes the snow is whole, whatever the ground's height - a solid sheet with a
         // soft edge, not the height band's speckle; the world's heat pushes it poleward and thins it (u_snowb: a hot
         // world barely, a lava world never), the hemisphere's winter brings it down
-        float pcap = smoothstep(u_capl + 0.30 * u_snowb + 0.05 * u_season * sign(t.y + 0.0001), 0.97, slat) * clamp(1.0 - u_snowb * 1.6, 0.0, 1.0);
-        col = mix(col, mix(col, vec3(0.90, 0.92, 0.96), 0.6), max(smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump), pcap * 0.9));
+        // (q279; his screenshot: "half the hemisphere has a light grey/whiteish fog overlay" - the cap began at 48-62 deg,
+        // ramped over 28 deg and mixed only 54% white: a haze, water included. A SHEET now: 85% white from the cap's
+        // latitude (62-74 deg, the temper's) over a four-degree edge, on the land alone - the seas keep their colour)
+        float cap0 = u_capl + 0.30 * u_snowb + 0.05 * u_season * sign(t.y + 0.0001);
+        float pcap = smoothstep(cap0, cap0 + 0.06, slat) * clamp(1.0 - u_snowb * 1.6, 0.0, 1.0);
+        if (hsmp.g < 0.5) col = mix(col, vec3(0.90, 0.92, 0.96), max(smoothstep(sl - 0.33, sl, h0) * min(1.0, u_bump) * 0.6, pcap * 0.85));
         col *= 1.0 - cloud_at(normalize(n - u_light * 0.15), u_tsize) * 0.28;   // (the shadow further off its cloud: the deck sits higher - 2026-09-17)
         if (u_ventn > 0.5) { float pg0 = 0.0; col *= 1.0 - plume_at(to_tex(normalize(n - u_light * 0.15)), pg0) * u_pfade * 0.35; }   // (a plume's shadow, the same offset)
         // THE HORIZON (his screenshot, 2026-09-17: ridges lit on the night side): the band read the BUMPED normal, and a
