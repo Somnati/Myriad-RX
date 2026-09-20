@@ -97,14 +97,39 @@ function planet_territories(_pn, _until = infinity) {
 	var _ids = array_create(_n, 0);
 	for (var _i = 0; _i < _n; _i++) _ids[_i] = (_sd[_i] <= 3) ? _ow[_i] : 0;
 	var _adj = array_create(_nr * _nr, false), _area = array_create(_nr, 0), _bord = array_create(_n, 0);
+	// THE CROSSINGS (q291): for every pair of neighbours the best texel pair on their border - both on land if it can be
+	// (a boat where the border runs through water), off the peaks, near the line between the two seeds - the passes
+	// stand on it (region_gen). Keyed "a:b" with a < b (region indices); ta in a, tb in b
+	var _cross = {};
+	var _xsc = function(_i0, _j0, _a0, _b0, _el0, _bm0, _rl0, _sea0, _sds0, _tw0, _th0) {
+		var _s = 0;
+		var _la = (_el0[_i0] >= _sea0), _lb = (_el0[_j0] >= _sea0);
+		if (!_la) _s += 12; if (!_lb) _s += 12;
+		if (_bm0[_i0] == 9 || _bm0[_i0] == 10) _s += 6; if (_bm0[_j0] == 9 || _bm0[_j0] == 10) _s += 6;
+		if (is_array(_rl0)) { if (_rl0[_i0] > .06) _s += 2; if (_rl0[_j0] > .06) _s += 2; }
+		// the ground distance from the midpoint of the two seeds
+		var _sa = _sds0[_a0 - 1], _sb = _sds0[_b0 - 1], _mx = _sa[0], _my = (_sa[1] + _sb[1]) * .5;
+		var _ddx = ((_sb[0] - _sa[0] + _tw0 + (_tw0 div 2)) mod _tw0) - (_tw0 div 2); _mx = (((_sa[0] + _ddx * .5) mod _tw0) + _tw0) mod _tw0;
+		var _x0 = _i0 mod _tw0, _y0 = _i0 div _tw0, _cl0 = max(.2, sin(pi * (_y0 + .5) / _th0));
+		var _dx = ((_x0 - _mx + _tw0 + (_tw0 div 2)) mod _tw0) - (_tw0 div 2);
+		return _s + sqrt(sqr(_dx * _cl0) + sqr(_y0 - _my)) * .5;
+	};
 	for (var _i = 0; _i < _n; _i++) {
 		var _a = _ids[_i]; if (_a == 0) continue;
 		if (_el[_i] >= _sea) _area[_a - 1]++;
 		var _x = _i mod _tw, _y = _i div _tw;
 		var _j1 = ((_x + 1) mod _tw) + _y * _tw, _j2 = (_y < _th - 1) ? _i + _tw : -1;
 		var _b1 = _ids[_j1];
-		if (_b1 != 0 && _b1 != _a) { _adj[(_a - 1) * _nr + (_b1 - 1)] = true; _adj[(_b1 - 1) * _nr + (_a - 1)] = true; _bord[_i] = 1; _bord[_j1] = 1; }
-		if (_j2 >= 0) { var _b2 = _ids[_j2]; if (_b2 != 0 && _b2 != _a) { _adj[(_a - 1) * _nr + (_b2 - 1)] = true; _adj[(_b2 - 1) * _nr + (_a - 1)] = true; _bord[_i] = 1; _bord[_j2] = 1; } }
+		if (_b1 != 0 && _b1 != _a) {
+			_adj[(_a - 1) * _nr + (_b1 - 1)] = true; _adj[(_b1 - 1) * _nr + (_a - 1)] = true; _bord[_i] = 1; _bord[_j1] = 1;
+			var _ck = string(min(_a, _b1) - 1) + ":" + string(max(_a, _b1) - 1), _cs = _xsc(_i, _j1, _a, _b1, _el, _bm, _rl, _sea, _sds, _tw, _th), _cc = _cross[$ _ck];
+			if (!is_struct(_cc) || _cs < _cc.s) _cross[$ _ck] = { a : (_a < _b1) ? _i : _j1, b : (_a < _b1) ? _j1 : _i, boat : !(_el[_i] >= _sea && _el[_j1] >= _sea), s : _cs };
+		}
+		if (_j2 >= 0) { var _b2 = _ids[_j2]; if (_b2 != 0 && _b2 != _a) {
+			_adj[(_a - 1) * _nr + (_b2 - 1)] = true; _adj[(_b2 - 1) * _nr + (_a - 1)] = true; _bord[_i] = 1; _bord[_j2] = 1;
+			var _ck2 = string(min(_a, _b2) - 1) + ":" + string(max(_a, _b2) - 1), _cs2 = _xsc(_i, _j2, _a, _b2, _el, _bm, _rl, _sea, _sds, _tw, _th), _cc2 = _cross[$ _ck2];
+			if (!is_struct(_cc2) || _cs2 < _cc2.s) _cross[$ _ck2] = { a : (_a < _b2) ? _i : _j2, b : (_a < _b2) ? _j2 : _i, boat : !(_el[_i] >= _sea && _el[_j2] >= _sea), s : _cs2 };
+		} }
 	}
 	var _ring = array_create(_nr, -1); _ring[0] = 0;
 	var _qq = [0], _qh = 0;
@@ -115,7 +140,7 @@ function planet_territories(_pn, _until = infinity) {
 	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, _bord[_i] * 255); buffer_poke(_rb, _o + _ob, buffer_u8, 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
 	if (buffer_exists(_pn[$ "rbuf"] ?? -1)) buffer_delete(_pn.rbuf);
 	_pn.rbuf = _rb; _pn.rsurf = -1;
-	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv };
+	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross };
 	_pn.terr_st = undefined;
 	return true;
 }

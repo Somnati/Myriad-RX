@@ -27,6 +27,7 @@ function region_kinds() {
 		tundra     : { name : "tundra",       col : rgb(200, 225, 240),   r : 2, civ : false, wild : true },
 		coast      : { name : "coast",        col : rgb(150, 200, 220),   r : 2, civ : false, wild : true },
 		isle       : { name : "island",       col : rgb(120, 210, 200),   r : 2, civ : false, wild : true },   // off a coast, by boat (region_gen)
+		pass       : { name : "border pass",  col : rgb(225, 205, 130),   r : 2, civ : false, wild : false },  // the way into the next territory (q291)
 	};
 	return _k;
 }

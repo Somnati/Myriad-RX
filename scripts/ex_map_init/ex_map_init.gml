@@ -258,6 +258,14 @@ __map_icon = function(_kind, _lz, _x, _y, _col) {
 		return;
 	}
 	switch (_kind) {
+		case "pass": {
+			// the gate (q291): two posts and a bar
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 3, 1, 6, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x + 2, _y - 3, 1, 6, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 4, 6, 1, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 1, 2, 1, 0, _col, .6);
+			break;
+		}
 		case "settlement": case "village": case "town": case "city": {
 			// the house: a roof stepping in, a body, a door
 			var _big = (_kind == "town" || _kind == "city") ? 1 : 0;

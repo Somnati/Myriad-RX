@@ -126,6 +126,29 @@ function exped_node_event(_tr, _again = false) {
 		case "shrine":  _tr.act = { kind : "shrine", left : EXPED_ROOM_T * .5, steps : 1 }; break;
 		case "ruin":    _tr.act = { kind : "ruin",  left : EXPED_ROOM_T, steps : 1 }; break;
 		case "landing": break;
+		case "pass": {
+			// THE BORDER (q291): an exploring crew crosses into the next territory - not recalled, not hurt, by the stance's odds
+			// (cautious 40, steady 65, greedy 85) - a road of the crossing's hours with `cross` on it (exped_agent switches the
+			// region at its end); else a look over it and back. A quest keeps to its own country
+			var _xto = _nd[$ "to"] ?? -1, _xrg = (_xto >= 0) ? region_get(_tr.dest, _xto) : undefined;
+			var _xhurt = (_mean < exped_stance(_tr).hurt);
+			var _xgo = is_struct(_xrg) && ((_tr[$ "mode"] ?? "quest") == "explore") && !(_tr[$ "recall"] ?? false) && !_xhurt && !_again;
+			if (_xgo) { var _xst = exped_stance(_tr).key; _xgo = roll_perc((_xst == "cautious") ? 40 : ((_xst == "greedy") ? 85 : 65)); }
+			if (_xgo) {
+				var _xp = -1;
+				for (var _j = 0; _j < array_length(_xrg.nodes); _j++) if (_xrg.nodes[_j].kind == "pass" && (_xrg.nodes[_j][$ "to"] ?? -1) == (_tr[$ "rgi"] ?? 0)) { _xp = _j; break; }
+				if (_xp >= 0) {
+					var _xh = _nd[$ "cross_h"] ?? 1;
+					_tr.road = { a : _tr.pos, b : _tr.pos, d : _xh, t : 0, cross : _xto, cross_pos : _xp };
+					array_push(_tr.log, ((_nd[$ "sea"] ?? false) ? "a boat across into " : "over the border into ") + _xrg.name + " (" + string(_xh) + "h)" + ((_xrg.lv > _rg.lv) ? ". harder country, by the look of it" : ""));
+					exped_stat("crossings");
+					return;
+				}
+			}
+			_tr.act = { kind : "look", left : EXPED_ROOM_T * .5, steps : 1 };
+			if (!_again) array_push(_tr.log, is_struct(_xrg) ? ("the border of " + _xrg.name + ". " + choose("they looked over it and turned back", "not today", "a look, and back the way they came")) : "the border. nothing past it worth the walk");
+			break;
+		}
 		default:        _tr.act = { kind : "wild",  left : EXPED_ROOM_T * .5, steps : 1 }; break;
 	}
 }

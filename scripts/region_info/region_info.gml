@@ -105,6 +105,16 @@ function region_info(_d, _rg) {
 		}
 		if (_lrow != "") array_push(_out, { k : "leaderless", v : _lrow, t : 0, col : c_seagreen });
 	}
+	// THE NEIGHBOURS (q291): the territories this one borders, with their levels
+	{
+		var _bpn = planet_get(_d.seed, exped_planet_hint(_d)), _btr = is_struct(_bpn) ? _bpn[$ "terr"] : undefined, _bri = _rg[$ "ri"] ?? 0, _brow = "";
+		if (is_struct(_btr) && _bri < _btr.n) for (var _bi = 0; _bi < _btr.n; _bi++) {
+			if (_bi == _bri || !_btr.adj[_bri * _btr.n + _bi]) continue;
+			var _bnr = region_get(_d, _bi);
+			_brow += ((_brow != "") ? ", " : "") + _bnr.name + " (lv " + string(_bnr.lv) + ")";
+		}
+		if (_brow != "") array_push(_out, { k : "borders", v : _brow, t : 0, col : c_gold });
+	}
 	// FACTION STRENGTH (q283): the kinds hunted here, and how they stand
 	if (is_struct(g.exped[$ "fac"])) {
 		var _fk0 = lane_key(_d, _rg[$ "ri"] ?? 0) + ":", _fks = variable_struct_get_names(g.exped.fac), _frow = "";

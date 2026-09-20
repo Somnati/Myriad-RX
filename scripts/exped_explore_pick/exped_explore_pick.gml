@@ -22,6 +22,7 @@ function exped_explore_pick(_tr, _rg) {
 		if (_nd.kind == "dungeon" || _nd.kind == "crypt" || _nd.kind == "camp") _wt *= 1.3;
 		if (is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _j, "quiet")) || is_struct(exped_mem_get(_tr.dest, _tr[$ "rgi"] ?? 0, _j, "routed"))) _wt *= .3;   // (cleared lately: little there - the world remembers, 2026-09-16)
 		if (_nd.kind == "landing") _wt *= .2;
+		if (_nd.kind == "pass") _wt *= ((_tr[$ "recall"] ?? false) || _tr.credits <= 0) ? .05 : 1.2;   // (the border draws a little - nothing when recalled or broke; q291)
 		array_push(_w, _wt); _sum += _wt;
 	}
 	var _r = random(_sum);

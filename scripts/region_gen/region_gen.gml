@@ -318,6 +318,30 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		array_push(_nodes, { i : array_length(_nodes), kind : "sewer", name : region_name("sewer"), x : _sx, y : _sy, par : _i, kids : 0, landing : false });
 		array_push(_edges, { a : _i, b : array_length(_nodes) - 1, d : 0, pts : [] });
 	}
+	// THE PASSES (q291): one place on the border toward each neighbour territory - this region's own texel of the crossing
+	// the walk found (terr.cross), roaded to the nearest place (a boat road where the crossing is water); the crew
+	// crosses from it (exped_node_event "pass"). Named by its ground; the card names the far side
+	if (is_struct(_terr) && is_struct(_tmap) && is_struct(_terr[$ "cross"])) {
+		for (var _pnb = 0; _pnb < _terr.n; _pnb++) {
+			if (_pnb == _ri || !_terr.adj[_ri * _terr.n + _pnb]) continue;
+			var _pcr = _terr.cross[$ string(min(_ri, _pnb)) + ":" + string(max(_ri, _pnb))];
+			if (!is_struct(_pcr)) continue;
+			var _pti = (_ri < _pnb) ? _pcr.a : _pcr.b;
+			var _px = _pti mod _pn.tw, _py = _pti div _pn.tw;
+			var _pgx = (((_px - _tmap.sx + _pn.tw + (_pn.tw div 2)) mod _pn.tw) - (_pn.tw div 2)) * _tmap.cl, _pgy = _py - _tmap.sy;
+			var _pux = .5 + (_pgx - _tmap.cxm) / _tmap.span * _tmap.k, _puy = .5 + (_pgy - _tmap.cym) / _tmap.span * _tmap.k;
+			var _pnr = 0, _pnd = 1000000;
+			for (var _pj = 0; _pj < array_length(_nodes); _pj++) {
+				if (_nodes[_pj].kind == "pass" || _nodes[_pj].kind == "isle" || _nodes[_pj].kind == "sewer") continue;
+				var _gdd = point_distance(_pgx, _pgy, _nodes[_pj][$ "gx"] ?? 0, _nodes[_pj][$ "gy"] ?? 0);
+				if (_gdd < _pnd) { _pnd = _gdd; _pnr = _pj; }
+			}
+			var _pbm = _pn.biome[_pti], _phi = (_pbm == 9 || _pbm == 10 || (is_array(_pn[$ "rlift"]) && _pn.rlift[_pti] > .06));
+			array_push(_nodes, { i : array_length(_nodes), kind : "pass", name : _pcr.boat ? "the crossing" : (_phi ? "the pass" : "the border"), x : _pux, y : _puy, par : _pnr, kids : 0, landing : false,
+			                     to : _pnb, tx : _px, ty : _py, gx : _pgx, gy : _pgy, sea : _pcr.boat, cross_h : _pcr.boat ? 3 : (_phi ? 2 : 1) });
+			array_push(_edges, { a : _pnr, b : array_length(_nodes) - 1, d : 0, pts : [], boat : _pcr.boat });
+		}
+	}
 	_n = array_length(_nodes);
 	// THE BENT ROADS (his ask: "procedural curves and corners based off the
 	// type of biome"; round two 2026-09-15: "not zig zaggy literally... more

@@ -880,7 +880,7 @@ dupvar	scripts\ex_trip_press\ex_trip_press.gml              _k
 dupvar	scripts\ex_trip_world\ex_trip_world.gml              _tpn
 dupvar	scripts\exped_abort\exped_abort.gml                  _travel
 dupvar	scripts\exped_act_step\exped_act_step.gml            _fk _k _q _r _rg _rgi_a _tr _who
-dupvar	scripts\exped_agent\exped_agent.gml                  _epn _et _nb _pab _rd _rg _tr
+dupvar	scripts\exped_agent\exped_agent.gml                  _epn _et _nb _pab _rd _rg _tr _xc
 dupvar	scripts\exped_away_after\exped_away_after.gml        _from _li _lines
 dupvar	scripts\exped_board_roll\exped_board_roll.gml        _e _i
 dupvar	scripts\exped_bond\exped_bond.gml                    _b
@@ -904,7 +904,7 @@ dupvar	scripts\exped_hazard\exped_hazard.gml                _n _rg
 dupvar	scripts\exped_loot_roll\exped_loot_roll.gml          _d _eseed _rar _rgl_lv _tagl irandom_range
 dupvar	scripts\exped_mem_unpack\exped_mem_unpack.gml        _eq _recs _tl _v
 dupvar	scripts\exped_next_node\exped_next_node.gml          _tr
-dupvar	scripts\exped_node_event\exped_node_event.gml        _qm _rg _rm _rvc _rvq _tr
+dupvar	scripts\exped_node_event\exped_node_event.gml        _qm _rg _rm _rvc _rvq _tr _xto
 dupvar	scripts\exped_note_beat\exped_note_beat.gml          _k _nd _rg
 dupvar	scripts\exped_note_fight\exped_note_fight.gml        _ctxf _txt
 dupvar	scripts\exped_odds\exped_odds.gml                    _ri _theirs
@@ -1001,7 +1001,7 @@ dupvar	scripts\planet_ranges\planet_ranges.gml              _base _bias _hd _hi 
 dupvar	scripts\planet_rivers\planet_rivers.gml              _bk _cx _cy _dx _dy _i _k _nb _ni _ny _p false round
 dupvar	scripts\planet_signature\planet_signature.gml        _bn _d _dx _dy _e _el _i _th _xx _yy ceil sin
 dupvar	scripts\planet_sky_draw\planet_sky_draw.gml          rgb
-dupvar	scripts\planet_territories\planet_territories.gml    _a _b _cl _i _k _t _x _y sin
+dupvar	scripts\planet_territories\planet_territories.gml    _a _b _b1 _b2 _bm _cl _dx _el _i _j1 _j2 _k _rl _sds _sea _t _th _tw _x _y sin
 dupvar	scripts\planet_vn3\planet_vn3.gml                    _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_vn3a\planet_vn3a.gml                  _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_volcanoes\planet_volcanoes.gml        _a _bn _bs _cl _cx _cy _dx _dy _i _k _nv _nx _ny _rad _rc _stp _th _vt sin th
@@ -1016,17 +1016,17 @@ dupvar	scripts\rarity_odds\rarity_odds.gml                  _r
 dupvar	scripts\rebirth_do\rebirth_do.gml                    _i
 dupvar	scripts\region_daylight\region_daylight.gml          _pn _spin _t
 dupvar	scripts\region_event\region_event.gml                _rg _ri
-dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _sd _sx _sy _t _terr _tmap _tn
+dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _pgy _pnb _sd _sx _sy _t _terr _tmap _tn
 dupvar	scripts\region_get\region_get.gml                    _lv _pn
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
-dupvar	scripts\region_info\region_info.gml                  _epn _et _fkd _i _rg exped_planet_hint
+dupvar	scripts\region_info\region_info.gml                  _bi _epn _et _fkd _i _rg exped_planet_hint
 dupvar	scripts\region_ledger\region_ledger.gml              _i _kd _pi _rg _ri _vile
 dupvar	scripts\region_map_sheet\region_map_sheet.gml        _si _th buffer_u8
 dupvar	scripts\region_nearest_civ\region_nearest_civ.gml    _i
 dupvar	scripts\region_nearest_landing\region_nearest_landing.gml _l
 dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went
-dupvar	scripts\region_node_info\region_node_info.gml        _base _i _o _seed
+dupvar	scripts\region_node_info\region_node_info.gml        _base _fto _i _o _seed
 dupvar	scripts\region_node_leader\region_node_leader.gml    _base _hi _k _tl _trs _wts max
 dupvar	scripts\region_path\region_path.gml                  _u
 dupvar	scripts\region_place\region_place.gml                _b _best _cxm _cym _n _par _span _t

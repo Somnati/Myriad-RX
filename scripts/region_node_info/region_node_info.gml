@@ -177,6 +177,19 @@ function region_node_info(_d, _rg, _ni) {
 			_lore = "the first crew to land here left a cairn; every crew since has added a stone";
 			break;
 		}
+		case "pass": {
+			// THE BORDER (q291): the far side, its level against this one, the way across
+			var _fto = _nd[$ "to"] ?? -1, _frg = (_fto >= 0) ? region_get(_d, _fto) : undefined;
+			if (is_struct(_frg)) {
+				array_push(_rows, { k : "into", v : _frg.name, col : c_gold });
+				array_push(_rows, { k : "level", v : string(_frg.lv) + ((_frg.lv > _rg.lv) ? " - harder than here" : ((_frg.lv < _rg.lv) ? " - easier than here" : " - the same as here")), col : (_frg.lv > _rg.lv) ? c_horange : c_sgreen });
+				array_push(_rows, { k : "mood", v : _frg[$ "mood"] ?? "quiet", col : undefined });
+			}
+			array_push(_rows, { k : "the way", v : (_nd[$ "sea"] ?? false) ? "by boat, " + string(_nd[$ "cross_h"] ?? 3) + "h" : (string(_nd[$ "cross_h"] ?? 1) + "h on foot"), col : undefined });
+			_desc = (_nd[$ "sea"] ?? false) ? _pick(["a ferryman who does not talk", "a raft and a rope", "boats drawn up on the shingle"], 6, _seed, _base) : _pick(["a cairn and a track", "an old stone that marks the line", "a gate nobody keeps", "the road narrows and goes on"], 6, _seed, _base);
+			_desc += ". an exploring crew may cross here; a quest keeps to its own country";
+			break;
+		}
 		default: {
 			// the wild: the going, what is found, the foes (the card adds them)
 			var _gp = { field : ["easy", "open", "muddy after rain"], forest : ["slow", "tangled", "a good path"], hills : ["steep in places", "a long climb", "sheep tracks"],

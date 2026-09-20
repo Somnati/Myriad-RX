@@ -148,10 +148,23 @@ function exped_agent(_tr, _dt) {
 			if (sprite_xp_add(_wsp, (_dt / EXPED_HOUR) * EXPED_WALK_KMH * _wab / 10) > 0) { _tr.hpmax[_wk2] = sprite_pawn(_wsp).maxhp; exped_stat("levels"); array_push(_tr.log, "+ " + _wsp.name + " reached level " + string(sprite_sheet(_wsp).lv) + " - the road taught it"); }
 		}
 		if (_rd.t >= _rd.d * EXPED_HOUR) {
+			// THE CROSSING'S END (q291): the crew stands in the next territory - its region is the far one from here on, its
+			// place the paired pass; everything keyed by the region (the weather, the lanes, the factions, the level) reads it
+			var _xc = _rd[$ "cross"];
+			if (is_real(_xc)) {
+				var _xrg2 = region_get(_tr.dest, _xc);
+				_tr.rgi = _xc; _tr.pos = clamp(_rd[$ "cross_pos"] ?? 0, 0, array_length(_xrg2.nodes) - 1); _tr.road = undefined; _tr.path = []; _tr.visited = [ _tr.pos ];
+				_tr.regions = (_tr[$ "regions"] ?? 1) + 1;
+				array_push(_tr.log, "# " + _xrg2.name + " - " + (_xrg2[$ "mood"] ?? "quiet") + ", lv " + string(_xrg2.lv));
+				exped_say(_tr, "land", undefined, .5);
+				save_mark_dirty();
+				exped_node_event(_tr, true);
+				return false;
+			}
 			_tr.pos = _rd.b;
 			_tr.road = undefined;
 			if (array_length(_tr.path) > 0 && _tr.path[0] == _tr.pos) array_delete(_tr.path, 0, 1);
-			if (!array_contains(_tr.visited, _tr.pos)) array_push(_tr.visited, _tr.pos);
+			if (!array_contains(_tr.visited, _tr.pos)) { array_push(_tr.visited, _tr.pos); _tr.seen = (_tr[$ "seen"] ?? 0) + 1; }   // (seen: the places across every region - the survey's count; q291)
 			array_push(_tr.log, "# reached " + _rg.nodes[_tr.pos].name);   // ("# ": a place header in the diary - 2026-09-16)
 			exped_note_beat(_tr, "land", .12);
 			exped_node_event(_tr);

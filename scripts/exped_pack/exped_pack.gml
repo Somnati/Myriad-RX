@@ -83,6 +83,7 @@ function exped_pack() {
 			var _vv = _r[$ "visited"] ?? [], _vis = "";
 			for (var _vi = 0; _vi < array_length(_vv); _vi++) _vis += ((_vi > 0) ? ";" : "") + string(_vv[_vi]);
 			array_push(_f, "vis=" + _vis);
+			array_push(_f, "sn=" + string(_r[$ "seen"] ?? (array_length(_vv) - 1)) + ":" + string(_r[$ "regions"] ?? 1));   // (the places seen across regions, the regions walked - q291)
 			var _q = _r[$ "quest"];
 			if (is_struct(_q)) {
 				array_push(_f, "qk=" + _q.kind);
