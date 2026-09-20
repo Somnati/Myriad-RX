@@ -35,6 +35,7 @@ HUNTERS = [
     ("svars",   ["bughunt_svars.py"]),
     ("ivars",   ["bughunt_ivars.py"]),
     ("dupvar",  ["bughunt_dupvar.py"]),
+    ("macros",  ["bughunt_macros.py"]),
     ("undef",   ["undef_scan.py", ROOT, "objects/syst_exped_panel/*.gml", "scripts/ex_*/*.gml"]),
 ]
 # the summary lines every hunter ends with - counts, not findings

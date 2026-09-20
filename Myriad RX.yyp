@@ -98,6 +98,7 @@
     {"$GMIncludedFile":"","%Name":"bughunt_fields.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_fields.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"bughunt_globals.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_globals.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"bughunt_ivars.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_ivars.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"bughunt_macros.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_macros.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"bughunt_nest.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_nest.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"bughunt_svars.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt_svars.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"bughunt.py","CopyToMask":-1,"filePath":"datafiles/hunters","name":"bughunt.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},

@@ -14,9 +14,9 @@ function moods_tick(_dt) {
 		_m.a += (_b.a - _m.a) * min(1, _dt / MOOD_TAU_A);
 		if (!(_sp[$ "trip"] ?? false)) _m.e += (1 - _m.e) * min(1, _dt / MOOD_TAU_E);
 		if (is_struct(_m.lost)) {
-			_m.lost.g *= exp(-_dt * 0.693 / (MOOD_TAU_G * max(.3, _m.lost.bond / 60)));
-			if (_m.lost.g < .08) _m.lost = undefined;
-			else _m.v = min(_m.v, _b.v - .6 * _m.lost.g);
+			_m.lost.gr *= exp(-_dt * 0.693 / (MOOD_TAU_G * max(.3, _m.lost.bond / 60)));
+			if (_m.lost.gr < .08) _m.lost = undefined;
+			else _m.v = min(_m.v, _b.v - .6 * _m.lost.gr);
 		}
 		if (_m.why != "" && _now - _m.why_t > 10800) _m.why = "";
 	}

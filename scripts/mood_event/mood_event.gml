@@ -24,7 +24,7 @@ function mood_event(_sp, _kind, _why = "", _mag = 1) {
 		case "level":      _dv = .3;  _da = .2;  if (_pn == "proud") _dv *= 1.3; break;
 		case "trip_end":   _de = -.25 - .05 * max(0, _mag); _mag = 1; break;
 		case "left":       if (_pn == "eager" || _pn == "brave" || _pn == "curious") { _da = .25; _dv = -.1; } else _dv = -.03; break;
-		case "bond":       _dv = .3; if (is_struct(_m.lost)) _m.lost.g *= .5; break;
+		case "bond":       _dv = .3; if (is_struct(_m.lost)) _m.lost.gr *= .5; break;
 		case "poke": {
 			var _day = floor((g[$ "time_played_active"] ?? 0) / 86400);
 			if (_m.pday != _day) { _m.pday = _day; _m.pokes = 0; }
