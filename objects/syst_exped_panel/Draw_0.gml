@@ -168,7 +168,7 @@ for (var _i = 0; _i < array_length(_e.board); _i++) {
 	draw_text(_c.x + 8, _ry, "regions");
 	_ry += 11;
 	var _lvc = [c_sgreen, c_gold, c_hred];
-	for (var _ri = 0; _ri < EXPED_REGIONS; _ri++) {
+	for (var _ri = 0; _ri < region_count(_d); _ri++) {
 		if (_ry + 10 > _c.y + _c.h - 24) break;
 		var _rg = region_get(_d, _ri);
 		var _rout = 0;

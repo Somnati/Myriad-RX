@@ -20,6 +20,16 @@ __pv_tab_r = function() { return { x : __pv_dw_x(), y : list_y + 22, w : 9, h : 
 __pv_box_r = function() { var _x = __pv_dw_x() + 9; return { x : _x, y : list_y + 16, w : room_width - _x, h : room_height - 30 - (list_y + 16) }; };   // the drawer's box (the outline, his ask 2026-09-16)
 __pv_dtab_r = function(_i) { var _w = floor((__pv_dw_w() - 8 - 3) / 2); return { x : __pv_dw_x() + 13 + _i * (_w + 3), y : list_y + 20, w : _w, h : 22 }; };   // the two tabs at the top
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
+// THE DRAWER'S REGION ROWS (q287): with a world cut into dozens the rows are the picked region, the ones with crews out,
+// the gate, then the rest by index - as many as fit (the draw and the press walk the same list; a row's slot is its place in it)
+__pv_row_list = function(_d) {
+	var _l = [], _nr = region_count(_d);
+	if (pl_focus >= 0 && pl_focus < _nr) array_push(_l, pl_focus);
+	for (var _t = 0; _t < array_length(g.exped.trips); _t++) { var _tt = g.exped.trips[_t]; if (_tt.dest.seed == _d.seed) { var _tri = _tt[$ "rgi"] ?? 0; if (_tri < _nr && !array_contains(_l, _tri)) array_push(_l, _tri); } }
+	if (_nr > 0 && !array_contains(_l, 0)) array_push(_l, 0);
+	for (var _i = 1; _i < _nr; _i++) if (!array_contains(_l, _i)) array_push(_l, _i);
+	return _l;
+};
 __pv_trip_r = function(_k) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _k * 14, w : __pv_dw_w() - 8, h : 12 }; };   // THE EXPEDITIONS on their own tab (2026-09-16): hauls first, then trips   // THE EXPEDITIONS in the drawer (the hub's list moved here, 2026-09-16): hauls first, then trips
 __best_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 40, w : _g.w, h : 16 }; };   // [bestiary] over [star system] (planet mode; the geosync toggle went - his call 2026-09-16)
 __system_r = function() { var _g = __galaxy_r(); return { x : _g.x, y : _g.y - 20, w : _g.w, h : 16 }; };   // [star system] over [galaxy] (his ask, 2026-09-16)

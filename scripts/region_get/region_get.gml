@@ -4,12 +4,18 @@
 /// regenerate identically from the seed, so nothing is saved.
 function region_get(_d, _ri = 0) {
 	if (!variable_global_exists("regions")) g.regions = {};
-	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
+	// THE TERRITORIES (q287): a world's regions are its territories - as many as the land cut into (region_count), each on
+	// its seed texel, its level by its ring from the gate. Until the world stands (no territories yet) a STAND-IN is handed
+	// out and not kept, so the real one is built when it can be
+	var _pn = planet_get(_d.seed, exped_planet_hint(_d)), _tr = is_struct(_pn) ? _pn[$ "terr"] : undefined;
+	var _nr = is_struct(_tr) ? _tr.n : 0;
+	_ri = (_nr > 0) ? clamp(_ri, 0, _nr - 1) : max(0, _ri);
 	var _k = string(_d.seed) + ":" + string(_ri);
-	// (the world itself goes in: the region's spot lands on its terrain and
-	// the wild is what grows there - planet_get begins it, no rows sampled)
 	if (!is_struct(g.regions[$ _k])) {
-		g.regions[$ _k] = region_gen((_d.seed ^ (_ri * 2654435761)) & $7fffffff, _d.biome, exped_world_lv(_d) + 2 * _ri, _ri, planet_get(_d.seed, exped_planet_hint(_d)));
+		var _lv = exped_world_lv(_d) + ((is_struct(_tr) && _ri < array_length(_tr.lv)) ? _tr.lv[_ri] : 2 * min(_ri, 4));
+		var _rg = region_gen((_d.seed ^ (_ri * 2654435761)) & $7fffffff, _d.biome, _lv, _ri, _pn);
+		if (_nr == 0) return _rg;   // (the stand-in)
+		g.regions[$ _k] = _rg;
 		scar_apply(_d, _ri, g.regions[$ _k]);   // THE SCARS over the generator (q260): the camp that is a settlement now, the village grown, the dead spread
 	}
 	return g.regions[$ _k];

@@ -411,7 +411,7 @@ function main_macros() {
 #macro EXPED_NAP     600     // seconds a routed sprite naps on return
 // THE AGENT (slice three, 2026-09-14): a trip walks the world's REGION
 #macro EXPED_BOARD_N   1     // worlds on the board (his call: one planet for now)
-#macro EXPED_REGIONS   3     // regions a world (his call, 2026-09-15: three - lv +0 / +2 / +4 over the world's)
+#macro EXPED_REGIONS   3     // (RETIRED q287 - the territories set a world's count: region_count(d); kept for the v1 unpack's clamp alone)
 #macro MOON_TEX_W     64     // the moons' shared texture (moon_tex): equirect texels (64 x 32 since q206: the craters have depth now)
 #macro MOON_TEX_H     32
 #macro EXPED_HOUR     20     // seconds a road-hour takes on the clock (a 4h road = 80s)
@@ -896,3 +896,8 @@ function main_macros() {
 // villain's faction must stand at this strength or better to fall on a settled place; the place loses this share of its people
 #macro FAC_RAID_STR   .60
 #macro RAID_POP       .20
+// TERRITORIES (q287, his design: the world cut into regions, "much higher than 5... i don't want Russia sized regions"): a
+// region wants this many land texels (Mongolia-ish on the 320-wide map); the count a world at most; the walk's cost ceiling
+#macro REGION_AREA   300
+#macro REGION_MAX    64
+#macro TERR_CMAX     4000

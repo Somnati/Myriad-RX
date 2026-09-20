@@ -59,7 +59,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
 	var _storms = [];
-	for (var _si = 0; _si < EXPED_REGIONS; _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
+	for (var _si = 0; _si < region_count(_d); _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
 	var _lod = (view == "planet") ? __lod_pick(_pn) : ((view == "trip") ? tiers.pick(_pn, true) : undefined);   // (the zoom tier standing for this zoom, the page's own - 2026-09-17; the trip page's region box wants it too - q268)
 	if (is_struct(_lod)) _lod.fade = lod_fade;   // (its fade-in, __lod_step's - q256)
 	// the aurora's strength is the star's (q205): main 1, a red giant 1.6, a white dwarf .45, a pulsar 2.2, a black hole's disc 1.2
@@ -91,8 +91,11 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	if (_built && _spots != -1) {
 		draw_set_font(fnt_outline); draw_set_halign(fa_left); draw_set_valign(fa_top);
 		var _pulse = floor(1.5 + 1.5 * dsin(current_time * .25));
-		for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		var _nrg0 = region_count(_d);
+		for (var _i = 0; _i < _nrg0; _i++) {
 			if (_spots >= 0 && _i != _spots) continue;
+			// (planet mode, q287: with the world cut into dozens the markers show only the picked region, the gate and the ones with crews out - the tint and the borders carry the rest)
+			if (_spots == -2 && _i != pl_focus && _i != 0) { var _hasx = false; for (var _tx0 = 0; _tx0 < array_length(g.exped.trips); _tx0++) if (g.exped.trips[_tx0].dest.seed == _d.seed && (g.exped.trips[_tx0][$ "rgi"] ?? 0) == _i) _hasx = true; if (!_hasx) continue; }
 			var _rg = region_get(_d, _i);
 			var _t = __spot_dir(_rg.spot.lon, _rg.spot.lat);
 			var _v = mat3_apply(_mr, _t[0], _t[1], _t[2]);

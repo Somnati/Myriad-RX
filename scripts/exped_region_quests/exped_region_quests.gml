@@ -12,7 +12,7 @@ function exped_region_quests(_d, _ri = 0) {
 	exped_init();
 	var _e = g.exped;
 	if (!is_struct(_e[$ "offers"])) _e.offers = {};
-	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
+	_ri = max(0, _ri);   // (region_get clamps to the world's own count - q287)
 	var _k = string(_d.seed) + ":" + string(_ri);
 	var _of = _e.offers[$ _k];
 	if (!is_struct(_of)) {

@@ -25,7 +25,7 @@ function exped_start(_di, _crew, _mode = "quest", _pick = undefined, _ri = 0, _s
 	if (!(g.credits >= arb(_cost.total))) return false;
 	g.credits = do_subtract(g.credits, arb(_cost.total));
 	if (!(g.credits >= arb(1))) g.credits = 0;
-	_ri = clamp(_ri, 0, EXPED_REGIONS - 1);
+	_ri = max(0, min(_ri, max(0, region_count(_d) - 1)));   // (the world's own count - q287)
 	var _rg = region_get(_d, _ri);
 	_e.seq += 1;
 	var _sids = [], _names = [], _cols = [], _hp = [], _hpmax = [], _mp = [];

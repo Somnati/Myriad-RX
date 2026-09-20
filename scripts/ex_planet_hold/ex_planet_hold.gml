@@ -37,8 +37,16 @@ function ex_planet_hold() {
 			var _ppn = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
 			var _pk = planet_pick(_ppn, mouse_x, mouse_y, _pc.x, _pc.y, _ocf.pr * pv_zoom, pv_mat_m);
 			if (_pk.hit) {
-				var _best = -1, _bd = dcos(12);
-				for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+				// THE TERRITORY UNDER THE TAP (q287): the picked texel's id from the sheet; off every territory (the deep sea, an
+				// unowned strand) the nearest seed within twelve degrees as before
+				var _best = -1, _bd = dcos(12), _nrg = region_count(pl_dest);
+				if (is_struct(_ppn[$ "terr"]) && _ppn.terr.n > 0) {
+					var _tu = frac(arctan2(_pk.tz, _pk.tx) / (2 * pi) + .5 + 1), _tv = clamp(arccos(clamp(_pk.ty, -1, 1)) / pi, 0, .9999);
+					var _tix = clamp(floor(_tu * _ppn.tw), 0, _ppn.tw - 1), _tiy = clamp(floor(_tv * _ppn.th), 0, _ppn.th - 1);
+					var _tid = _ppn.terr.ids[_tix + _tiy * _ppn.tw];
+					if (_tid > 0 && _tid <= _nrg) _best = _tid - 1;
+				}
+				if (_best < 0) for (var _i = 0; _i < _nrg; _i++) {
 					var _rgp = region_get(pl_dest, _i);
 					var _tp = __spot_dir(_rgp.spot.lon, _rgp.spot.lat);
 					var _dot = _tp[0] * _pk.tx + _tp[1] * _pk.ty + _tp[2] * _pk.tz;

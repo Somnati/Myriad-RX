@@ -40,9 +40,43 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	random_set_seed((_seed ^ 7331) & $7fffffff);
 	var _spot = { lon : _ri * 120 + random_range(-40, 40), lat : random_range(-35, 35) };
 	var _tw = [];
+	// THE TERRITORY (q287): the region's spot is its seed texel, and the wild is what grows on ITS OWN texels - the whole
+	// territory tallied, not sixteen samples round a point; the green / marsh / desert ladder of the three retires with them
+	var _terr = (is_struct(_pn) && is_struct(_pn[$ "terr"]) && _ri < _pn.terr.n) ? _pn.terr : undefined;
+	if (is_struct(_terr)) {
+		var _sx = _terr.seeds[_ri][0], _sy = _terr.seeds[_ri][1];
+		_spot = { lon : (_sx + .5) / _pn.tw * 360 - 180, lat : 90 - (_sy + .5) / _pn.th * 180 };
+		var _tmap = function(_b) {
+			switch (_b) {
+				case 2: return "coast";
+				case 3: case 13: case 24: return "desert";
+				case 4: case 21: return "field";
+				case 5: case 6: case 22: return "forest";
+				case 23: return "hills";
+				case 7: case 8: case 14: return "tundra";
+				case 9: case 10: case 18: return "mountains";
+				case 12: return "marsh";
+				case 15: case 16: case 17: return "hills";
+			}
+			return "";
+		};
+		var _tally = { coast : 0, desert : 0, field : 0, forest : 0, hills : 0, tundra : 0, mountains : 0, marsh : 0 };
+		var _tn = 0, _tid = _ri + 1, _tids = _terr.ids, _tbm = _pn.biome, _tel = _pn.elev, _tsea = _pn.sea;
+		for (var _ti = 0; _ti < array_length(_tids); _ti++) {
+			if (_tids[_ti] != _tid || _tel[_ti] < _tsea) continue;
+			var _tk = _tmap(_tbm[_ti]);
+			if (_tk == "") continue;
+			_tally[$ _tk] += 1; _tn++;
+		}
+		// the list the wild nodes draw from: each land in proportion, sixteen seats
+		var _tks = variable_struct_get_names(_tally);
+		for (var _tj = 0; _tj < array_length(_tks); _tj++) { var _tc = round(16 * _tally[$ _tks[_tj]] / max(1, _tn)); repeat (_tc) array_push(_tw, _tks[_tj]); }
+		if (array_length(_tw) == 0) _tw = ["field", "forest"];
+	}
 	if (is_struct(_pn) && is_struct(_pn[$ "smp"]) && _pn.kind == "rock") {
 		var _ps = _pn.smp;
 		var _try = 0, _found = false;
+		if (!is_struct(_terr)) {   // (the old spot search and its sixteen samples - a world without territories; q287)
 		// THE STARTER IS GREEN (his ask, 2026-09-15: "a grassy field / forest
 		// region"): the first region's spot must land on grass or forest -
 		// sixty tries for that, then any land will do (a world with no green)
@@ -84,10 +118,11 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _wk = _map(_ps.ob);
 			if (_wk != "") array_push(_tw, _wk);
 		}
+		}   // (the old search's end - q287)
 		// ...and each keeps only its own kinds: the first reach green (fields,
 		// forests, hills, a coast), the second marsh-heavy (marshes, forests,
 		// fields, a coast), the third desert (deserts, hills, mountains)
-		if (_ri <= 2) {
+		if (_ri <= 2 && !is_struct(_terr)) {   // (the ladder of the three - not with territories; q287)
 			var _keep = (_ri == 0) ? ["field", "forest", "hills", "coast"] : ((_ri == 1) ? ["marsh", "forest", "field", "coast", "hills"] : ["desert", "hills", "mountains", "coast"]);
 			var _tg = [];
 			for (var _gi = 0; _gi < array_length(_tw); _gi++) if (array_contains(_keep, _tw[_gi])) array_push(_tg, _tw[_gi]);

@@ -9,7 +9,7 @@ function exped_offer_unpack(_s) {
 		if (array_length(_p) < 2) continue;
 		var _hd = string_split(_p[0], ":");
 		if (array_length(_hd) < 3) continue;
-		var _of = { seed : real(_hd[0]), ri : clamp(real(_hd[1]), 0, EXPED_REGIONS - 1), next : max(0, real(_hd[2])), slots : [], d : undefined };
+		var _of = { seed : real(_hd[0]), ri : max(0, real(_hd[1])), next : max(0, real(_hd[2])), slots : [], d : undefined };
 		for (var _i = 1; _i < array_length(_p); _i++) {
 			var _f = string_split(_p[_i], "~");
 			if (array_length(_f) < 4) continue;

@@ -37,6 +37,7 @@ function planet_bake(_pn, _until = undefined) {
 	planet_signature(_pn);   // (then the world's one landmark - q248; before the rivers: a caldera fills, a rift chains its lakes)
 	planet_rivers(_pn);   // (then the drainage, in the valleys the ranges leave - it guards itself)
 	planet_plateaus(_pn); // (then the tablelands rise round the rivers that cross them: the canyons - q208)
+	if (!planet_territories(_pn, is_undefined(_until) ? infinity : _until)) { _pn.brow = _brow; return false; }   // THE TERRITORIES (q287): the land cut into regions, sliced - the rows wait on it, so a world that stands has them
 	// THE HELD KINDS (q248): a salt flat's white, an ice sheet's glacier - laid over whatever the later passes decided,
 	// once, here (never over water)
 	if (is_array(_pn[$ "sigmask"]) && !(_pn[$ "sigmask_laid"] ?? false)) { _pn.sigmask_laid = true; var _smk = _pn.sigmask, _bmk = _pn.biome, _elk = _pn.elev, _npk = _pn.tw * _pn.th; for (var _i9 = 0; _i9 < _npk; _i9++) if (_smk[_i9] > 0 && _elk[_i9] >= _pn.sea && _bmk[_i9] != 1 && _bmk[_i9] != 11) _bmk[_i9] = _smk[_i9]; }

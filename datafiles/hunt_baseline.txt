@@ -867,8 +867,8 @@ dupvar	scripts\ex_map_press\ex_map_press.gml                _hp _mr0 _rg0
 dupvar	scripts\ex_orbit_init\ex_orbit_init.gml              _ay _az _cam _i _mi _mns0 _pn _rg _rr _rsy _si _sky _spin _stp _t exped_planet_hint mat3_transpose planet_props
 dupvar	scripts\ex_planet_clock\ex_planet_clock.gml          _pn4 _tgt _yp pv_spin
 dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _h _i _lcx _lcy _lw _nol _pr _pvr _rg _tbi _ton _vw _w rg_sel
-dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _ocf _pc _pvr _rgp mouse_y
-dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _eri _g _h _i _mid _n _rg _sl _ty _w _x _x0 rg_sel
+dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _ocf _pc _pk _ppn _pvr _rgp mouse_y
+dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _eri _g _h _i _l _mid _n _rg _sl _t _ty _w _x _x0 rg_sel
 dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _bw _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
 dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y
 dupvar	scripts\ex_system_draw\ex_system_draw.gml            _bj
@@ -1000,6 +1000,7 @@ dupvar	scripts\planet_ranges\planet_ranges.gml              _base _bias _hd _hi 
 dupvar	scripts\planet_rivers\planet_rivers.gml              _bk _cx _cy _dx _dy _i _k _nb _ni _ny _p false round
 dupvar	scripts\planet_signature\planet_signature.gml        _bn _d _dx _dy _e _el _i _th _xx _yy ceil sin
 dupvar	scripts\planet_sky_draw\planet_sky_draw.gml          rgb
+dupvar	scripts\planet_territories\planet_territories.gml    _a _b _cl _i _k _t _x _y sin
 dupvar	scripts\planet_vn3\planet_vn3.gml                    _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_vn3a\planet_vn3a.gml                  _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_volcanoes\planet_volcanoes.gml        _a _bn _bs _cl _cx _cy _dx _dy _i _k _nv _nx _ny _rad _rc _stp _th _vt sin th
@@ -1014,7 +1015,8 @@ dupvar	scripts\rarity_odds\rarity_odds.gml                  _r
 dupvar	scripts\rebirth_do\rebirth_do.gml                    _i
 dupvar	scripts\region_daylight\region_daylight.gml          _pn _spin _t
 dupvar	scripts\region_event\region_event.gml                _rg _ri
-dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _sd _sy _t
+dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _sd _sx _sy _t _tn
+dupvar	scripts\region_get\region_get.gml                    _lv _pn
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
 dupvar	scripts\region_info\region_info.gml                  _epn _et _fkd _i _rg exped_planet_hint

@@ -18,7 +18,9 @@ function ex_planet_draw(_e, _ea, _dim) {
 	var _lcx = _pvc.x - _pvr.x, _lcy = _pvc.y - _pvr.y;
 	var _pr = _ocf.pr * pv_zoom;
 	var _nol = __nolanding(_d);   // (a gas giant: no spots, no region mode - q243)
+	g.planet_rshow = 1; g.planet_rsel = (pl_focus >= 0) ? pl_focus + 1 : 0;   // THE TERRITORIES on the world (q287): the tint and the borders, the picked one brighter
 	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade);
+	g.planet_rshow = 0;
 	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);
 	// the facts over the sky (the world's name lives in the strip now - his
@@ -170,9 +172,13 @@ function ex_planet_draw(_e, _ea, _dim) {
 		}
 		var _kk = region_kinds();
 		if (pv_dtab == 0 && _nol) { var _nr0 = __pv_row_r(0); draw_set_color(c_horange); draw_set_alpha(.75 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 6, "no landing"); draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 18, "a gas giant has no ground"); draw_set_alpha(1); }
-		if (pv_dtab == 0 && !_nol) for (var _i = 0; _i < EXPED_REGIONS; _i++) {
+		var _rlist = __pv_row_list(_d), _rshown = 0;   // (the rows: the picked, the crews', the gate, the rest - as many as fit; q287)
+		if (pv_dtab == 0 && !_nol) for (var _ik = 0; _ik < array_length(_rlist); _ik++) {
+			var _i = _rlist[_ik];
 			var _rg = region_get(_d, _i);
-			var _rr = __pv_row_r(_i);
+			var _rr = __pv_row_r(_ik);
+			if (_rr.y + _rr.h > room_height - 32) break;
+			_rshown++;
 			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
 			for (var _j = 0; _j < array_length(_rg.nodes); _j++) {
 				var _kd = _kk[$ _rg.nodes[_j].kind];
@@ -188,7 +194,8 @@ function ex_planet_draw(_e, _ea, _dim) {
 			draw_set_color(c_white); draw_set_alpha(.95);
 			draw_text(_rr.x + 5, _rr.y + 3, string_copy(_rg.name, 1, land ? 18 : 14));
 			draw_set_halign(fa_right);
-			draw_set_color((_i == 0) ? c_sgreen : ((_i == 1) ? c_gold : c_hred)); draw_set_alpha(.9);
+			var _lvd = _rg.lv - exped_world_lv(_d);   // (the rung from the gate: green near, gold, red far - q287)
+			draw_set_color((_lvd <= 1) ? c_sgreen : ((_lvd <= 4) ? c_gold : c_hred)); draw_set_alpha(.9);
 			draw_text(_rr.x + _rr.w - 5, _rr.y + 3, "lv " + string(_rg.lv));
 			draw_set_halign(fa_left);
 			draw_set_color(_dim); draw_set_alpha(.7);
@@ -199,7 +206,7 @@ function ex_planet_draw(_e, _ea, _dim) {
 			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
 			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 		}
-		if (pv_dtab == 0) { draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa); draw_text(_dwx + 13, list_y + 48 + EXPED_REGIONS * 26 + 2, "tap a row: the world turns to it"); }
+		if (pv_dtab == 0 && !_nol) { draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa); draw_text(_dwx + 13, list_y + 48 + _rshown * 26 + 2, (array_length(_rlist) > _rshown) ? (string(array_length(_rlist)) + " regions - tap the world to pick one") : "tap a row: the world turns to it"); }
 		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16; its own tab since): hauls home first, then the trips out; a row each, tap for its page
 		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
 		for (var _k = 0; _k < _nl; _k++) {

@@ -624,6 +624,7 @@ function handle_save(){
 	var _xfc = handle("ex_fac", faction_pack());         // FACTION STRENGTH (q283)
 	var _xpp = handle("ex_pop", pop_pack());             // POPULATION (q284)
 	var _xnw = handle("ex_news", news_pack());           // THE NEWS (q285)
+	var _xrv = handle("ex_regv", (action == sv_save) ? 2 : 1);   // THE REGION LAW'S VERSION (q287): 2 = territories; a save without it (1) drops what the old three regions held
 	var _xvl = "";   // THE VILLAINS' THREADS (2026-09-16): key=stage|...
 	if (is_struct(g.exped[$ "vil"])) { var _vkn = variable_struct_get_names(g.exped.vil); for (var _i = 0; _i < array_length(_vkn); _i++) _xvl += ((_i > 0) ? "|" : "") + _vkn[_i] + "=" + string(g.exped.vil[$ _vkn[_i]]); }
 	_xvl = handle("ex_vil", _xvl);
@@ -679,6 +680,7 @@ function handle_save(){
 			}
 		}
 		exped_unpack(_xt);
+		if (_xrv < 2) exped_regions_reset();   // THE REGION BREAK (q287, his call): a pre-territory save's trips come home, its region records go
 		exped_board_roll();
 	}
 

@@ -69,6 +69,9 @@ uniform float u_gas;      // THE GIANT (q236): 1 on a gas world - the limb darke
 uniform float u_gloss;    // ...its SHEEN (q242, his ask: "specular as if icy gas giants"): a broad soft lobe of the sun in the sky's colour - the ice family glossy, a jovian nearly matte
 uniform float u_capl;     // THE CAP'S LATITUDE (q249): where the whole snow cap begins (|t.y|; .80 the old one) - the temper's, a world
 uniform float u_nlift;    // THE MOONLIT NIGHT (q250; his ask): 0 far (the night as dark as it is) .. 1 close (the night's floor risen to a moonlit look, so a region reads) - rides the cloud fade's curve (1 - cfade)
+uniform sampler2D u_region;  // THE TERRITORIES (q287): red the region's id (1..n, 0 nobody's), green the border flag
+uniform float u_rsel;        // ...the picked region's id (0 none)
+uniform float u_rshow;       // ...1 on the pages that show them
 uniform vec3  u_sunl;     // THE STAR'S LIGHT (q253): the colour and strength of the day on this world - a sun's white, a red giant's orange, a brown dwarf's dim red dusk, a cepheid's breathing (star_light)
 
 float cw_h(vec3 p);   // (below - a prototype, so the plume may hash by it)
@@ -168,6 +171,18 @@ vec4 hmap_uv(vec2 uv)
     vec4 b = texture2D(u_height, (floor(uv * u_tsize) + 0.5) / u_tsize);
     float m = patch_built(uv);
     return (m > 0.0) ? mix(b, texture2D(u_pheight, patch_st(uv)), m) : b;
+}
+// the territory under a map texel (q287): its id, 0 for nobody's; u wraps, v clamps
+float region_id(vec2 t)
+{
+    t.x = fract(t.x / u_tsize.x) * u_tsize.x;
+    t.y = clamp(t.y, 0.0, u_tsize.y - 1.0);
+    return floor(texture2D(u_region, (t + 0.5) / u_tsize).r * 255.0 + 0.5);
+}
+vec3 hsv2rgb(vec3 c)
+{
+    vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+    return c.z * mix(vec3(1.0), clamp(p - 1.0, 0.0, 1.0), c.y);
 }
 // the grid a map uv lives on: the patch's where it is built and half faded in, the map's elsewhere
 float grid_k(vec2 uv)
@@ -670,6 +685,9 @@ void main()
         vec4 tex = tex_uv(muv);
         vec3 col = tex.rgb;
         vec4 hsmp = hmap_uv(muv);   // (red the height, green water, blue the woods)
+        // the cells one base texel spans at the disc's centre (the disc is u_cells / 2 u_pad cells across its radius, a texel
+        // 2 pi of that over the map's width): the grain forest's and the borders' measure of the zoom (q280 / q287)
+        float cpc = 3.14159 * u_cells / (max(u_pad, 0.01) * u_tsize.x);
 
         // THE MOUNTAINS' SHADING (2026-09-16, his ask: "more noticeably
         // mountains... exaggerated"): the height gradient bends the normal
@@ -745,7 +763,6 @@ void main()
         // shadow rim. The grain's amplitude rides the zoom (the cells one base texel spans at the disc's centre - the
         // disc is u_cells / 2 u_pad cells across its radius, a texel 2 pi of that over the map's width): flat from
         // orbit (a texel under a cell, a grain would be speckle - his q276 report), whole at three cells a texel
-        float cpc = 3.14159 * u_cells / (max(u_pad, 0.01) * u_tsize.x);
         float tk = clamp((cpc - 1.2) / 1.8, 0.0, 1.0);
         float elc = dot(n, u_light);
         if (fo > 0.05) {
@@ -811,6 +828,26 @@ void main()
                     float lap = 0.5 + 0.5 * sin(dp * 42.0 - u_time * 2.1 + fph * 6.2832);
                     col = mix(col, vec3(0.88, 0.95, 0.97), shore * (0.35 + 0.5 * lap) * 0.8);
                 }
+            }
+        }
+        // THE TERRITORIES (q287): the region under the pixel - a faint tint of its own hue on its land and its waters (the
+        // picked one brighter), and a LINE along the texel edges where two regions meet, a cell wide at any zoom (the
+        // edge's distance in texels against the cells a texel spans)
+        if (u_rshow > 0.5) {
+            vec2 rt = floor(muv * u_tsize);
+            float rid = region_id(rt);
+            if (rid > 0.5) {
+                float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
+                vec3 rc = hsv2rgb(vec3(fract(rid * 0.618034), 0.55, 0.95));
+                col = mix(col, rc, 0.10 + 0.12 * rsel);
+                vec2 rf = fract(muv * u_tsize);
+                float dmin = 9.0, ie;
+                ie = region_id(rt + vec2(1.0, 0.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.x);
+                ie = region_id(rt + vec2(-1.0, 0.0)); if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, rf.x);
+                ie = region_id(rt + vec2(0.0, 1.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.y);
+                ie = region_id(rt + vec2(0.0, -1.0)); if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, rf.y);
+                float lw = 0.9 / max(cpc, 0.9);
+                if (dmin < lw) col = mix(col, (rsel > 0.5) ? vec3(1.0, 0.85, 0.35) : vec3(0.95, 0.95, 0.90), (rsel > 0.5) ? 0.85 : 0.6);
             }
         }
         // THE ALTITUDE TINT (his pick, 2026-09-17): the ground's colour by its height - the valley floors a touch warmer

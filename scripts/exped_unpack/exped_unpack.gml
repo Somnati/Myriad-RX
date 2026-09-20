@@ -77,7 +77,7 @@ function exped_unpack(_s) {
 			var _tf = string_split(_kv[$ "tl"] ?? "", ":");
 			if (array_length(_tf) >= 5) _tl = { slain : real(_tf[0]), mist : real(_tf[1]), items : real(_tf[2]), xp : real(_tf[3]), earned : real(_tf[4]) };
 			var _id = real(_kv[$ "id"] ?? "0");
-			var _rgi = clamp(real(_kv[$ "rgi"] ?? "0"), 0, EXPED_REGIONS - 1);
+			var _rgi = max(0, real(_kv[$ "rgi"] ?? "0"));   // (the world's own count clamps at use - q287)
 			var _routed = ((_kv[$ "rt"] ?? "0") == "1");
 			if (_kind == "H") {
 				array_push(_e.hauls, { id : _id, dest : _d, sids : _sids, names : _names, cols : _cols, sid : _sids[0], sname : _names[0], young : _yng,

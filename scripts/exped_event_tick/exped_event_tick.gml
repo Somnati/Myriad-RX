@@ -6,7 +6,8 @@ function exped_event_tick() {
 	var _e = g.exped;
 	for (var _b = 0; _b < array_length(_e.board); _b++) {
 		var _d = _e.board[_b];
-		for (var _ri = 0; _ri < EXPED_REGIONS; _ri++) {
+		var _nrg = region_count(_d);   // (the territories' count; 0 until the world stands - q287)
+		for (var _ri = 0; _ri < _nrg; _ri++) {
 			if (is_struct(exped_mem_get(_d, _ri, -1, "event"))) continue;
 			if (roll_perc(55)) { exped_mem_set(_d, _ri, -1, "event", random_range(24, 72), "lull:-1"); continue; }
 			var _rg = region_get(_d, _ri), _kk = region_kinds(), _civ = [], _open = false, _camps = false;

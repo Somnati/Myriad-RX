@@ -45,6 +45,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		sea0 : shader_get_uniform(sh_planet, "u_sea0"), sea1 : shader_get_uniform(sh_planet, "u_sea1"),
 		season : shader_get_uniform(sh_planet, "u_season"), snowb : shader_get_uniform(sh_planet, "u_snowb"),
 		ptex : shader_get_sampler_index(sh_planet, "u_ptex"), pheight : shader_get_sampler_index(sh_planet, "u_pheight"),
+		region : shader_get_sampler_index(sh_planet, "u_region"), rsel : shader_get_uniform(sh_planet, "u_rsel"), rshow : shader_get_uniform(sh_planet, "u_rshow"),   // (the territories - q287)
 		moonsh : shader_get_uniform(sh_planet, "u_moonsh"), moonn : shader_get_uniform(sh_planet, "u_moonn"),
 		vent : shader_get_uniform(sh_planet, "u_vent"), ventn : shader_get_uniform(sh_planet, "u_ventn"),
 		storm : shader_get_uniform(sh_planet, "u_storm"), stormn : shader_get_uniform(sh_planet, "u_stormn"),
@@ -206,6 +207,13 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		texture_set_stage(_u.ptex, surface_get_texture(_lod.tsurf));
 		texture_set_stage(_u.pheight, surface_get_texture(_lod.hsurf));
 	} else shader_set_uniform_f(_u.pk, 0);
+	// THE TERRITORIES (q287): the id sheet, on the pages that ask (g.planet_rshow; the picked region g.planet_rsel = its index + 1)
+	var _rsh = g[$ "planet_rshow"] ?? 0;
+	if (_rsh > 0 && buffer_exists(_pn[$ "rbuf"] ?? -1)) {
+		if (!surface_exists(_pn[$ "rsurf"] ?? -1)) { _pn.rsurf = surface_create(_pn.tw, _pn.th); buffer_set_surface(_pn.rbuf, _pn.rsurf, 0); }
+		texture_set_stage(_u.region, surface_get_texture(_pn.rsurf));
+		shader_set_uniform_f(_u.rshow, 1); shader_set_uniform_f(_u.rsel, g[$ "planet_rsel"] ?? 0);
+	} else shader_set_uniform_f(_u.rshow, 0);
 	draw_surface_ext(_pn.tsurf, _qx, _qy, (2 * _q) / _pn.tw, (2 * _q) / _pn.th, 0, c_white, 1);
 	shader_reset();
 	return true;

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"exped_regions_reset",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"exped_regions_reset",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
