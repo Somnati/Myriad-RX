@@ -59,5 +59,5 @@ function exped_board_roll() {
 	for (var _i = 0; _i < array_length(_e.board); _i++) if (_e.board[_i].name == "") _e.board[_i].name = exped_name(_e.board[_i].seed);
 	// THE QUEST each world offers (slice three): rolled off the world and
 	// the deal, after the seeded block - a fresh one every re-deal
-	for (var _i = 0; _i < array_length(_e.board); _i++) if (!is_struct(_e.board[_i][$ "quest"])) _e.board[_i].quest = exped_quest_gen(_e.board[_i]);
+	for (var _i = 0; _i < array_length(_e.board); _i++) if (!is_struct(_e.board[_i][$ "quest"]) && region_ready(_e.board[_i])) _e.board[_i].quest = exped_quest_gen(_e.board[_i]);   // (once the world's territories stand - its regions are real then; exped_tick fills the rest as they do; q293)
 }

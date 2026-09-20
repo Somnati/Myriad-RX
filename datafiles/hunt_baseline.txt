@@ -1017,7 +1017,7 @@ dupvar	scripts\rebirth_do\rebirth_do.gml                    _i
 dupvar	scripts\region_daylight\region_daylight.gml          _pn _spin _t
 dupvar	scripts\region_event\region_event.gml                _rg _ri
 dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _e _ea _eb _ed _i _j _k _len _nodes _od _pgy _pnb _sd _sx _sy _t _terr _tmap _tn
-dupvar	scripts\region_get\region_get.gml                    _lv _pn
+dupvar	scripts\region_get\region_get.gml                    _lv _pn _ri
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
 dupvar	scripts\region_info\region_info.gml                  _bi _epn _et _fkd _i _rg exped_planet_hint

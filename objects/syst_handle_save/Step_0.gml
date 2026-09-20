@@ -97,6 +97,19 @@ else if (boot_phase >= 3 && !galaxy_ready() && variable_global_exists("exped") &
 	if (!is_struct(bg_gen) || bg_gen.seed != g.galaxy_seed) { bg_gen = starmap_gen_begin(g.galaxy_seed); bg_world_done = false; }
 	if (starmap_gen_step(bg_gen, 1)) bg_gen = undefined;
 }
+// THE BOARD'S WORLDS UNDER PLAY (q293): a region is its world's territory now (q287), and the territories come with the
+// world's build - so the board's three build here after boot at a millisecond a frame, one at a time, until each stands;
+// their regions, quests and clocks are real from then on without the panel ever opening
+else if (boot_phase >= 3 && galaxy_ready() && variable_global_exists("exped") && is_struct(g.exped)) {
+	for (var _bw = 0; _bw < array_length(g.exped.board); _bw++) {
+		var _bwd = g.exped.board[_bw];
+		if (region_ready(_bwd)) continue;
+		var _bwp = planet_get(_bwd.seed, exped_planet_hint(_bwd));
+		if (!is_struct(_bwp) || _bwp.kind == "gas" || _bwp.tw < 200) continue;   // (a giant has no territories to wait for)
+		planet_build_step(_bwp, get_timer() + 1000);
+		break;
+	}
+}
 
 // ---- playtime clock ----
 // real seconds, saved per savefile, shown by the save menu slots

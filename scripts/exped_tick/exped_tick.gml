@@ -27,6 +27,7 @@ function exped_tick(_secs) {
 	exped_init();
 	var _e = g.exped;
 	if (array_length(_e.board) == 0) exped_board_roll();   // (a board the roll skipped while the chart was pending)
+	for (var _bq = 0; _bq < array_length(_e.board); _bq++) if (!is_struct(_e.board[_bq][$ "quest"]) && region_ready(_e.board[_bq])) _e.board[_bq].quest = exped_quest_gen(_e.board[_bq]);   // (a world's featured quest, once its territories stand - q293)
 	var _spd = max(1, _e.spd);
 	var _dt = _secs * _spd;
 	exped_offer_tick(_dt);   // the quest boards turn over (2026-09-15)
