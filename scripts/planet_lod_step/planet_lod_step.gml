@@ -72,7 +72,7 @@ function planet_lod_step(_pn, _l, _until) {
 			_ps.od = _dt[_i00] * _w00 + _dt[_i10] * _w10 + _dt[_i01] * _w01 + _dt[_i11] * _w11;
 			_ps.om = _mo[_i00] * _w00 + _mo[_i10] * _w10 + _mo[_i01] * _w01 + _mo[_i11] * _w11;
 			planet_biome(_ps, _u, _v);
-			var _b = _ps.ob;
+			var _b = _ps.ob, _rdep = -1;   // (rdep: a river texel's depth by its place across the channel - q278)
 			if (_hascone && !_gas) {   // (a cone's summit is rock peak (9), the law's snow and cap kept - the map's rule, q276 / q277)
 				var _cf2 = _cmk[_i00] * _w00 + _cmk[_i10] * _w10 + _cmk[_i01] * _w01 + _cmk[_i11] * _w11;
 				if (_cf2 >= VOLCANO_BARE && !(_b == 8 || _b == 9 || _b == 10 || _b == 17 || _b == 18)) _b = 9;
@@ -118,7 +118,7 @@ function planet_lod_step(_pn, _l, _until) {
 						// the channel is a bend - a quadratic from the in-edge's middle through the texel's (nudged) centre to the
 						// out-edge's - not two straight spokes; at a fork or a source the spokes stay. Its WIDTH grows with the
 						// catchment (a log law): a thread at the source, a broad reach at the mouth
-						var _hit = false, _nn = 0, _d1x = 0, _d1y = 0, _d2x = 0, _d2y = 0;
+						var _hit = false, _nn = 0, _d1x = 0, _d1y = 0, _d2x = 0, _d2y = 0, _rdist = 9;   // (rdist: the texel's distance to the channel's centreline, in texels - q278)
 						var _rw = (.45 + (_hasr ? .55 * clamp(ln(max(1, _ra[_bi]) / _rt) / ln(40), 0, 1) : .15)) / _k;
 						for (var _dy = -1; _dy <= 1; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
 							if (_dx == 0 && _dy == 0) continue;
@@ -143,9 +143,9 @@ function planet_lod_step(_pn, _l, _until) {
 								_best = min(_best, _ddx * _ddx + _ddy * _ddy);
 								_lx = _qx; _ly = _qy;
 							}
-							_hit = (_best < _rw * _rw);
+							_rdist = sqrt(_best); _hit = (_rdist < _rw);
 						} else if (_nn > 0) {
-							for (var _dy = -1; _dy <= 1 && !_hit; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {
+							for (var _dy = -1; _dy <= 1; _dy++) for (var _dx = -1; _dx <= 1; _dx++) {   // (the nearest spoke, not the first within reach - the channel's depth wants the distance; q278)
 								if (_dx == 0 && _dy == 0) continue;
 								var _ny = _by + _dy; if (_ny < 0 || _ny >= _th) continue;
 								var _nb = _bm[((_bx + _dx + _tw) mod _tw) + _ny * _tw];
@@ -153,10 +153,14 @@ function planet_lod_step(_pn, _l, _until) {
 								var _px2 = _fx - _ccx, _py2 = _fy - _ccy, _sx = .5 + _dx * .5 - _ccx, _sy = .5 + _dy * .5 - _ccy;
 								var _tt = clamp((_px2 * _sx + _py2 * _sy) / max(.0001, _sx * _sx + _sy * _sy), 0, 1);
 								var _ddx = _px2 - _sx * _tt, _ddy = _py2 - _sy * _tt;
-								if (sqrt(_ddx * _ddx + _ddy * _ddy) < _rw) { _hit = true; break; }
+								_rdist = min(_rdist, sqrt(_ddx * _ddx + _ddy * _ddy));
 							}
-						} else _hit = (point_distance(_fx, _fy, _ccx, _ccy) < _rw);
-						if (_hit) _b = 11;
+							_hit = (_rdist < _rw);
+						} else { _rdist = point_distance(_fx, _fy, _ccx, _ccy); _hit = (_rdist < _rw); }
+						// THE CHANNEL'S CROSS-SECTION (q278; his screenshot: the river "lacks the shoreline look" of the lake and the
+						// sea): a parabola across the reach - .04 at the banks (the shallows' own colour, the foam's fringe), .24 in
+						// the middle (open water) - so a river wears the same shore as any other water
+						if (_hit) { _b = 11; _rdep = .04 + .20 * sqr(1 - clamp(_rdist / _rw, 0, 1)); }
 					}
 				}
 			}
@@ -165,7 +169,7 @@ function planet_lod_step(_pn, _l, _until) {
 			buffer_poke(_tb, _o + _or, buffer_u8, _vt & $ff); buffer_poke(_tb, _o + _og, buffer_u8, (_vt >> 8) & $ff); buffer_poke(_tb, _o + _ob, buffer_u8, (_vt >> 16) & $ff); buffer_poke(_tb, _o + _oa, buffer_u8, (_vt >> 24) & $ff);
 			var _eh = _oe;
 			if (_b == 1 && _oe >= _sea && _hasr) _eh = max(_oe, _rf[_i00] * _w00 + _rf[_i10] * _w10 + _rf[_i01] * _w01 + _rf[_i11] * _w11);   // (a lake's height is its water's - the fill level, flat)
-			var _vh = planet_sheet_height(_eh, _oe, _sea, _base, _gas, _b);
+			var _vh = planet_sheet_height(_eh, _oe, _sea, _base, _gas, _b, (_b == 11) ? _rdep : -1);   // (a river's depth by its place across the channel - q278)
 			buffer_poke(_hb, _o + _or, buffer_u8, _vh & $ff); buffer_poke(_hb, _o + _og, buffer_u8, (_vh >> 8) & $ff); buffer_poke(_hb, _o + _ob, buffer_u8, (_vh >> 16) & $ff); buffer_poke(_hb, _o + _oa, buffer_u8, 255);
 			_o += 4;
 			// (the deadline inside the row too: a row of a tier is a thousand texels and more, and a frame's share is a few ms)
