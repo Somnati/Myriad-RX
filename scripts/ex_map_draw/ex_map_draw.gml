@@ -24,15 +24,17 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 	var _ccx = _mr.x + _mr.w * .5, _ccy = _mr.y + _mr.h * .5, _crad = min(_mr.w, _mr.h) * .5 - 10;
 	// THE REGION'S OWN GROUND (q288): the territory's cut of the world's terrain under the roads, in the frame the places
 	// stand in (region_place's); a world without territories keeps the circle
-	var _gsh = region_map_sheet(_d, _rg), _tmp = _rg[$ "tmap"];
+	// (from the zoom tier when it stands - the page's world's, the keeper's; the map's own texels until then - q311)
+	var _gpn = planet_get(_d.seed, exped_planet_hint(_d));
+	var _gsh = region_map_sheet(_d, _rg, is_struct(_gpn) ? tiers.pick(_gpn, true) : undefined), _tmp = _rg[$ "tmap"];
 	if (!is_undefined(_gsh) && surface_exists(_gsh) && is_struct(_tmp)) {
 		var _msc = (min(_mr.w, _mr.h) * .5 - 10) / (_rg[$ "radius"] ?? .46), _mcx = _rg[$ "cx"] ?? .5, _mcy = _rg[$ "cy"] ?? .5;
-		var _tk = _tmp[$ "k"] ?? .84;
-		var _txs = _tmp.cl / _tmp.span * _tk * _msc, _tys = 1 / _tmp.span * _tk * _msc;
+		var _tk = _tmp[$ "k"] ?? .84, _mks = _rg[$ "mks"] ?? 1;
+		var _txs = _tmp.cl / _tmp.span * _tk * _msc / _mks, _tys = 1 / _tmp.span * _tk * _msc / _mks;
 		var _ulx = .5 + (_tmp.x0 * _tmp.cl - _tmp.cxm) / _tmp.span * _tk, _uly = .5 + (_tmp.y0 - _tmp.cym) / _tmp.span * _tk;
 		var _gx0 = _mr.x + _mr.w * .5 + (_ulx - _mcx) * _msc, _gy0 = _mr.y + _mr.h * .5 + (_uly - _mcy) * _msc;
-		draw_surface_ext(_gsh, _gx0, _gy0, _txs, _tys, 0, c_white, .92);
-		draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .18);   // (a shade over it so the roads and the names lead)
+		draw_surface_ext(_gsh, _gx0, _gy0, _txs, _tys, 0, c_white, 1);
+		draw_sprite_ext(spr_pixel_1x1, 0, _mr.x, _mr.y, _mr.w, _mr.h, 0, c_black, .06);   // (the faintest shade - the ground carries its own light now; q311)
 	} else for (var _a = 0; _a < 360; _a += 6) draw_sprite_ext(spr_pixel_1x1, 0, floor(_ccx + lengthdir_x(_crad + 6, _a)), floor(_ccy + lengthdir_y(_crad + 6, _a)), 1, 1, 0, _bb.col2, .35);
 	// THE PLOP (q289, his ask): the places fall into their spots from above when the map opens - a wave out from the centre
 	// (the delay by the distance from it), each a fall (PLOP_DUR) from PLOP_LIFT above that lands with a little hop; a
@@ -58,17 +60,18 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 		if (_ra <= 0) continue;
 		var _pts = _ed[$ "pts"];
 		if (!is_array(_pts) || array_length(_pts) < 2) _pts = [ _rg.nodes[_ed.a], _rg.nodes[_ed.b] ];
-		var _boat = (_ed[$ "boat"] ?? false);
-		for (var _k = 1; _k < array_length(_pts); _k++) {
-			var _p1 = __map_xy(_pts[_k - 1], _rg, _mr), _p2 = __map_xy(_pts[_k], _rg, _mr);
-			if (_boat) { if (_k mod 2 == 1) draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, rgb(120, 190, 210), .35 * _ra); }
-			else draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _ink, .28 * _ra);
-		}
+		var _boat = (_ed[$ "boat"] ?? false), _rsp = [];
+		for (var _k = 0; _k < array_length(_pts); _k++) array_push(_rsp, __map_xy(_pts[_k], _rg, _mr));
+		// (the world's ink - q311: a dark band under, the parchment line over; a boat dashed and blue)
+		for (var _k = 1; _k < array_length(_rsp); _k++) { if (_boat && (_k mod 2 == 0)) continue; __px_band(_rsp[_k - 1].x, _rsp[_k - 1].y, _rsp[_k].x, _rsp[_k].y, c_black, .45 * _ra); }
+		for (var _k = 1; _k < array_length(_rsp); _k++) { if (_boat && (_k mod 2 == 0)) continue; draw_px_line(_rsp[_k - 1].x, _rsp[_k - 1].y, _rsp[_k].x, _rsp[_k].y, _boat ? rgb(120, 190, 210) : rgb(236, 226, 200), (_boat ? .8 : .8) * _ra); }
 		var _mid = region_road_point(_rg, _ed.a, _ed.b, .5);
 		var _mp = __map_xy(_mid, _rg, _mr);
-		draw_set_alpha(.4 * _ra); draw_set_color(_dim);
+		draw_set_font(fnt_outline);
+		draw_set_alpha(.7 * _ra); draw_set_color(_dim);
 		draw_set_halign(fa_center);
 		draw_text(_mp.x, _mp.y - 4, string(_ed.d) + "h");
+		draw_set_font(fnt);
 	}
 	// the places: an icon by kind, the label where it fits
 	draw_set_halign(fa_left);
@@ -79,15 +82,17 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 		if (_pal[_i] <= 0) continue;   // (not fallen yet - q289)
 		var _nx = floor(_np.x), _ny = floor(_np.y + _poff[_i]);   // (the fall's offset - q289)
 		var _lz = (_nd[$ "landing"] ?? false);
-		if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _nx, _ny, _kd.col);   // (a settled place with the landing zone inside: the house, the flag ON it - the pole up the roof, his call 2026-09-16)
-		__map_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 6 : 0), _ny - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col);
+		if (_lz && _nd.kind != "landing") __wm_icon(_nd.kind, false, _nx, _ny, _kd.col, _pal[_i]);   // (a settled place with the landing zone inside: the house, the flag ON it - the pole up the roof, his call 2026-09-16; outlined - q311)
+		__wm_icon(_nd.kind, _lz, _nx + ((_lz && _nd.kind != "landing") ? 6 : 0), _ny - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col, _pal[_i]);
 		if (!_named[_i]) continue;   // (a minor biome no crew is bound for: the dot alone)
 		var _la = clamp((_pu[_i] - 1) * 3, 0, 1);   // (the name once the place has settled - q289)
 		if (_la <= 0) continue;
 		var _lp = is_undefined(_lab[_i]) ? { x : _nx + 7, y : _ny - 4 } : _lab[_i];
-		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .4)); draw_set_alpha(.6 * _la); }
-		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.9 * _la); }
+		draw_set_font(fnt_outline);   // (every name outlined over the ground - q311)
+		if (_kd.wild) { draw_set_color(merge_colour(_kd.col, _dim, .3)); draw_set_alpha(.8 * _la); }
+		else { draw_set_color(_lz ? c_white : _kd.col); draw_set_alpha(.95 * _la); }
 		draw_text(floor(_lp.x), floor(_lp.y), _nd.name);
+		draw_set_font(fnt);
 	}
 	// who is out to this world: at their node, or along their road (the
 	// bent one); the path they mean to walk drawn in their colour
@@ -130,8 +135,10 @@ function ex_map_draw(_e, _br, _ink, _dim) {
 		}
 		if (_tr2.stage != 1) { var _lzp = __map_xy(_rg.nodes[_rg.landing], _rg, _mr); _cx = _lzp.x - 12; _cy = _lzp.y; }
 		for (var _k = 0; _k < array_length(_tr2.sids); _k++) __dot(_cx - 6 + _k * 6, _cy + 8, 3, _tr2.cols[_k], (_tr2.hp[_k] > 0) ? .95 : .3);
-		draw_set_color(_tc); draw_set_alpha(.85);
+		draw_set_font(fnt_outline);
+		draw_set_color(_tc); draw_set_alpha(.9);
 		draw_text(_cx - 6, _cy + 12, exped_crew_txt(_tr2.names) + ": " + ((_tr2.stage == 1) ? exped_where(_tr2) : ((_tr2.stage == 0) ? "on the way" : "gone home")));
+		draw_set_font(fnt);
 	}
 	// the place's card (tap a node), over the crews, under the legend
 	if (!map_legend && map_pop >= 0 && map_pop < array_length(_rg.nodes)) __map_node_card(_d, _rg, _mr, map_pop);

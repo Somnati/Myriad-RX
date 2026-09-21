@@ -134,6 +134,7 @@ svars	ex_map_draw                  map_dest
 svars	ex_map_draw                  map_legend
 svars	ex_map_draw                  map_plop_key
 svars	ex_map_draw                  map_pop
+svars	ex_map_draw                  tiers
 svars	ex_map_init                  big_w
 svars	ex_map_init                  big_x
 svars	ex_map_init                  big_y
@@ -1043,7 +1044,7 @@ dupvar	scripts\region_hazards\region_hazards.gml            _j
 dupvar	scripts\region_info\region_info.gml                  _bi _epn _et _fkd _i _rg exped_planet_hint
 dupvar	scripts\region_islets\region_islets.gml              _c _el _i _id _ids _sea _seen _th _tw false
 dupvar	scripts\region_ledger\region_ledger.gml              _i _kd _pi _rg _ri _vile
-dupvar	scripts\region_map_sheet\region_map_sheet.gml        _si _th buffer_u8
+dupvar	scripts\region_map_sheet\region_map_sheet.gml        _el _i _id _ids _j _m10 _m11 _or _pfx _pfy _piy _sea _sh _si _sw _sx _sy _th _tw _yb buffer_u8
 dupvar	scripts\region_nearest_civ\region_nearest_civ.gml    _i
 dupvar	scripts\region_nearest_landing\region_nearest_landing.gml _l
 dupvar	scripts\region_node_folk\region_node_folk.gml        _base _went
