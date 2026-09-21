@@ -18,9 +18,13 @@
 function cbt_status(_f, _u, _t, _key) {
 	var _b = cbt_balance();
 	if (_t.hp <= 0) return false;
-	if (!is_struct(_t[$ "ail"])) _t.ail = { poison : 0, slow : 0, leech : 0 };
-	if (!is_struct(_t[$ "bf"]))  _t.bf  = { atk : 0, def : 0, hit : 0, spd : 0 };
-	if (!is_struct(_t[$ "nf"]))  _t.nf  = { atk : 0, def : 0, hit : 0 };
+	if (!is_struct(_t[$ "ail"])) _t.ail = { poison : 0, slow : 0, leech : 0, silence : 0 };
+	if (!is_struct(_t[$ "bf"]))  _t.bf  = { atk : 0, def : 0, hit : 0, spd : 0, pres : 0, mres : 0 };
+	if (!is_struct(_t[$ "nf"]))  _t.nf  = { atk : 0, def : 0, hit : 0, pres : 0, mres : 0 };
+	// (the lanes q312 added, on a pawn made before them)
+	if (is_undefined(_t.ail[$ "silence"])) _t.ail.silence = 0;
+	if (is_undefined(_t.bf[$ "pres"])) { _t.bf.pres = 0; _t.bf.mres = 0; }
+	if (is_undefined(_t.nf[$ "pres"])) { _t.nf.pres = 0; _t.nf.mres = 0; }
 	var _tags = is_array(_t[$ "tags"]) ? _t.tags : [];
 	var _undead = array_contains(_tags, "undead"), _slime = array_contains(_tags, "slime");
 	// the abilities' immunities (antidote / sure-footed / unmarkable, 2026-09-17)
@@ -66,6 +70,35 @@ function cbt_status(_f, _u, _t, _key) {
 			if (_t.bf[$ _k2] > 0) { _t.bf[$ _k2] = 0; cbt_log(_f, "the " + _k2 + " buff on " + _who + " is undone"); return true; }
 			_t.nf[$ _k2] = _bturns;
 			cbt_log(_f, _who + "'s " + _k2 + " is lowered"); cbt_film(_f, _t, 0, _who + "'s " + _k2 + " is lowered");
+			return true;
+		}
+		// THE BARRIER AND THE WARD (q312, his ask - ff7 remake's pair): light; blows through a barrier, spells through a ward,
+		// land at barrier_pct less. Their dark mirrors below tear them, and they lift those - the counter, as ever
+		case "barrier": case "manaward": {
+			var _kb = (_key == "barrier") ? "pres" : "mres";
+			if (_t.nf[$ _kb] > 0) { _t.nf[$ _kb] = 0; cbt_log(_f, _who + ((_kb == "pres") ? "'s guard is made whole" : " is warded again")); return true; }
+			_t.bf[$ _kb] = _bturns;
+			var _tb = _who + ((_kb == "pres") ? " is shielded against blows" : " is warded against magic");
+			cbt_log(_f, _tb); cbt_film(_f, _t, 0, _tb);
+			return true;
+		}
+		case "breach": case "unward": {
+			var _kn = (_key == "breach") ? "pres" : "mres";
+			if (_t.bf[$ _kn] > 0) { _t.bf[$ _kn] = 0; cbt_log(_f, "the " + ((_kn == "pres") ? "barrier" : "ward") + " on " + _who + " is torn away"); return true; }
+			_t.nf[$ _kn] = _bturns;
+			var _tn = _who + ((_kn == "pres") ? "'s guard is breached" : " is laid open to magic");
+			cbt_log(_f, _tn); cbt_film(_f, _t, 0, _tn);
+			return true;
+		}
+		// THE SILENCE (dark, q312): no magic skill while it runs (cbt_fight_options); the SMOKE: half the chance to be hit
+		case "silence": {
+			_t.ail.silence = _turns;
+			cbt_log(_f, _who + " is silenced"); cbt_film(_f, _t, 0, _who + " is silenced");
+			return true;
+		}
+		case "evade": {
+			_t.evade = _bturns;
+			cbt_log(_f, _who + " slips into the smoke"); cbt_film(_f, _t, 0, _who + " is hard to see");
 			return true;
 		}
 	}

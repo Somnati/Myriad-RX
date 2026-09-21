@@ -52,6 +52,7 @@ function cbt_balance() {
 		buff_pct     : .25,   // atk / def / hit up (light) or down (dark)
 		buff_turns   : 3,
 		regen_pct    : .05,   // of max hp an action, light's regen
+		barrier_pct  : .40,   // THE BARRIER / THE WARD (q312, the ff7 pair): blows through a barrier, spells through a ward, land this much lower; a breached guard / an unwarded mind takes as much more
 		// counters: chance = cnt stat, halving per chain link
 		cnt_mult    : .7,
 		cnt_falloff : .5,

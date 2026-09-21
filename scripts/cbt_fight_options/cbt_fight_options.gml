@@ -12,6 +12,7 @@ function cbt_fight_options(_f, _u) {
 		var _s = _u.skills[_k];
 		if (_u.mp < cbt_skill_cost(_u, _s)) continue;
 		if (!_s.can_use(_f, _u)) continue;
+		if (_s.magic && is_struct(_u[$ "ail"]) && (_u.ail[$ "silence"] ?? 0) > 0) continue;   // (silenced: no magic skill - q312)
 		var _ts = [];
 		for (var _i = 0; _i < array_length(_pawns); _i++) {
 			var _t = _pawns[_i];

@@ -48,6 +48,6 @@ function sprite_pawn(_sp, _hp = undefined, _mpf = undefined) {
 		// the elements pass (2026-09-17): the table, the weapon's element, the
 		// abilities' bite (venomous / chilling), and the fight-long clocks
 		res : sprite_res(_sp), elem : _welem, school : "", ail_k : _ab.ail, ail_c : _ab.ailc, tags : _abtags, ab : _ab, undying_used : false,
-		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
+		ail : { poison : 0, slow : 0, leech : 0, silence : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0, pres : 0, mres : 0 }, nf : { atk : 0, def : 0, hit : 0, pres : 0, mres : 0 }, evade : 0, regen : 0, leecher : undefined,
 	};
 }

@@ -9,7 +9,7 @@
 function sprite_skill_learn(_sp) {
 	var _sh = sprite_sheet(_sp);
 	var _c  = sprite_classes()[_sh.cls];
-	var _tmpl = (random(1) < .75) ? _c.tmpls[irandom(array_length(_c.tmpls) - 1)] : irandom(8);   // (nine templates since the elements pass, 2026-09-17)
+	var _tmpl = (random(1) < .75) ? _c.tmpls[irandom(array_length(_c.tmpls) - 1)] : irandom(23);   // (twenty-four templates since q312)
 	var _seed = irandom($7fffffff);
 	var _new = cbt_skill_gen(_seed, _tmpl);
 	var _cap = max(0, SPRITE_SKILLS - 1);

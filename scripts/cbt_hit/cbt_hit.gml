@@ -64,6 +64,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	var _apow = (_magic ? _u.mag : _u.atk) * _m_atk;
 	var _dpow = (_magic ? _t.mdef : _t.def) * _m_def;
 	if (is_struct(_abu) && _abu.pierce > 0) _dpow *= 1 - _abu.pierce / 100;   // (the piercer)
+	if ((_u[$ "sk_pierce"] ?? 0) > 0) _dpow *= 1 - _u.sk_pierce;   // (a piercing skill's own - the lunge; q312)
 	var _uhit = _u.hit * _m_hit;
 
 	// hit chance: the attacker's hit vs the defender's EVASION (nimble's flat points, cornered's under a quarter)
@@ -77,6 +78,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		_hc = clamp(_b.hitcurve_a * _r * _r + _b.hitcurve_b * _r, 1, 99);
 	}
 	_hc = clamp(_hc * _lm, 1, 99);
+	if ((_t[$ "evade"] ?? 0) > 0) _hc = clamp(_hc * .5, 1, 99);   // (the smoke: half the chance - q312)
 	// THE NOTEPAD'S BITE: a foe kind the attacker has a note on is a little
 	// easier to hit ("goblins are quick. swing early." - sprite_note)
 	// THE NOTES' FACETS (2026-09-16): what was noticed is what helps - hit / crit / damage on the attacker's side, evasion / defence on the target's
@@ -102,7 +104,7 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 	var _q = (_hc - _roll) / _hc;   // 0 graze .. 1 perfect
 	if (is_struct(_abu) && _abu.graze > 0 && random(100) < _abu.graze) _q = 0;   // (the gambler's cost, wild swings: a graze)
 	if (is_struct(_abu) && _abu.nograze > 0) _q = max(_q, .15);                     // (sure hands: never a graze)
-	var _cr = _u.crit_rate + ((_tk != "" && array_contains(_nu, _tk + ":crit")) ? 5 : 0);
+	var _cr = _u.crit_rate + ((_tk != "" && array_contains(_nu, _tk + ":crit")) ? 5 : 0) + (_u[$ "sk_crit"] ?? 0);   // (a skill's own crit - the iai; q312)
 	var _cm = _u.crit_multi - 1;   // (the extra a crit deals)
 	if (is_struct(_abu)) {
 		if (_cdepth > 0) _cr += _abu.cnt_crit;                                   // vendetta
@@ -155,6 +157,10 @@ function cbt_hit(_f, _u, _t, _mult = 1, _label = "", _cdepth = 0, _magic = false
 		_dmg *= (1 + _abt.taken / 100) * (1 - _abt.guard / 100);                                   // to the death's cost, stoneskin
 		if (_abt.low_guard > 0 && _t.hp < _t.maxhp * .25) _dmg *= 1 - _abt.low_guard / 100;   // damage control
 	}
+	// THE BARRIER AND THE WARD (q312, the ff7 pair): blows through a barrier, spells through a ward, at barrier_pct less; a
+	// breached guard or an unwarded mind takes as much more
+	if (is_struct(_bft)) { if (!_magic && (_bft[$ "pres"] ?? 0) > 0) _dmg *= 1 - _b.barrier_pct; if (_magic && (_bft[$ "mres"] ?? 0) > 0) _dmg *= 1 - _b.barrier_pct; }
+	if (is_struct(_nft)) { if (!_magic && (_nft[$ "pres"] ?? 0) > 0) _dmg *= 1 + _b.barrier_pct; if (_magic && (_nft[$ "mres"] ?? 0) > 0) _dmg *= 1 + _b.barrier_pct; }
 	if (_tk != "" && array_contains(_nu, _tk + ":dmg")) _dmg *= 1.1;                       // (a note on a tank: where to hit it)
 	if (_uk != "" && array_contains(_nt, _uk + (_magic ? ":mdef" : ":def"))) _dmg *= (_magic ? .85 : .9);   // (a note on what it does: not being where it lands)
 	_dmg = max(.1, round(_dmg * 10) / 10);

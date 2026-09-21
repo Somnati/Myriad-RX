@@ -93,6 +93,13 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 	var _sk = [];
 	if (_r.skill != "") array_push(_sk, g.cskills[$ _r.skill]);
 	if (_vskill != "" && _vskill != _r.skill) array_push(_sk, g.cskills[$ _vskill]);   // (the variant's, on top of its own)
+	// A SKILL OF ITS NATURE (q312, his ask: "more variety with the enemies"): from level three a kind carries one generated
+	// skill off its seed - a caster's spells, curses and silences, the undead's dark, a brute's blows and rages
+	if (_lv >= 3) {
+		var _fmag = is_undefined(_vmagic) ? _r.magic : _vmagic, _fund = is_array(_r[$ "tags"]) && array_contains(_r.tags, "undead");
+		var _pool = _fund ? [1, 7, 21, 12, 11] : (_fmag ? [4, 4, 7, 12, 21, 18] : [0, 3, 5, 16, 17, 15, 11]);
+		array_push(_sk, cbt_skill_gen(hash_mix(_seed, 4343), _pool[hash_mix(_seed, 4242) mod array_length(_pool)]));
+	}
 	return {
 		name : _name, col : is_undefined(_vcol) ? _r.col : merge_colour(_r.col, _vcol, .45), kind : _r.name, lv : _lv, boss : _boss, worn : _worn,
 		variant : is_struct(_vv) ? _vv.key : "",
@@ -111,6 +118,6 @@ function foe_gen(_lv, _seed, _kind = "", _bossf = undefined, _varf = "") {
 		// its school, its own ailment, its tags (undead / slime immunities)
 		res : _fres, elem : _r[$ "elem"] ?? "", school : _r[$ "school"] ?? "",
 		ail_k : ((_r[$ "ail"] ?? "") != "") ? _r.ail : _ab.ail, ail_c : ((_r[$ "ail"] ?? "") != "") ? 0 : _ab.ailc, tags : _abtags, ab : _ab, abil : _abl, undying_used : false,
-		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
+		ail : { poison : 0, slow : 0, leech : 0, silence : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0, pres : 0, mres : 0 }, nf : { atk : 0, def : 0, hit : 0, pres : 0, mres : 0 }, evade : 0, regen : 0, leecher : undefined,
 	};
 }

@@ -16,9 +16,23 @@ function cbt_skill_desc(_s) {
 			case "mend":    _kind = 2; break;
 			case "concuss": _kind = 3; break;
 			case "bolt":    _kind = 4; break;
-			case "reform":  _kind = 9; break;
+			case "reform":  _kind = 25; break;
+			case "bulwark": _kind = 9; break;
+			case "barrier": _kind = 9; break;
+			case "manaward": _kind = 10; break;
+			case "regrowth": _kind = 13; break;
+			case "smoke":   _kind = 14; break;
+			case "rage":    _kind = 15; break;
+			case "lunge":   _kind = 16; break;
+			case "flurry":  _kind = 17; break;
+			case "pilfer":  _kind = 18; break;
+			case "song":    _kind = 22; break;
+			case "smite":   _kind = 23; break;
+			case "iai":     _kind = 24; break;
+			case "hex":     _kind = 7; break;
 		}
 	}
+	var _pct = string(round(cbt_balance().barrier_pct * 100)) + "%";
 	switch (_kind) {
 		case 0:
 			array_push(_out, "a heavy blow: x" + string_format(_mult, 1, 1) + " damage through the hit spectrum");
@@ -57,6 +71,70 @@ function cbt_skill_desc(_s) {
 			array_push(_out, "reached for only when there is something to strip");
 			break;
 		case 9:
+			array_push(_out, "a barrier on " + _tg + ": blows land " + _pct + " lighter for three of their turns; it lifts a breach");
+			array_push(_out, "reached for when the enemies swing rather than cast");
+			break;
+		case 10:
+			array_push(_out, "a ward on " + _tg + ": spells land " + _pct + " lighter for three of their turns; it lifts an unwarding");
+			array_push(_out, "reached for when the enemies cast rather than swing");
+			break;
+		case 11:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " damage, and their guard is breached: blows land " + _pct + " heavier for three turns; it tears a barrier");
+			array_push(_out, "reached for against an armoured foe, or a shielded one");
+			break;
+		case 12:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " magic damage, and they are laid open: spells land " + _pct + " heavier for three turns; it tears a ward");
+			array_push(_out, "reached for against a foe with resistance to spare, or a warded one");
+			break;
+		case 13:
+			array_push(_out, "heals " + _tg + " " + string(round(_healp * 100)) + "%, then " + string(round(cbt_balance().regen_pct * 100)) + "% more each of their turns for three");
+			array_push(_out, "reached for on someone hurt who has no mending running");
+			break;
+		case 14:
+			array_push(_out, "the user slips into the smoke: half the chance to be hit, three of its turns");
+			array_push(_out, "reached for when hurt, the more foes are up");
+			break;
+		case 15:
+			array_push(_out, "the user's atk up a quarter and its def down a quarter, three turns - a trade");
+			array_push(_out, "reached for while there is health to spend");
+			break;
+		case 16:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " damage through " + string(round((_s[$ "pierce"] ?? .5) * 100)) + "% less of their armour");
+			array_push(_out, "reached for against the armoured");
+			break;
+		case 17:
+			array_push(_out, "two blows of x" + string_format(_mult, 1, 1) + " each, the second only if the first left them standing");
+			array_push(_out, "reached for against the lightly armoured, or one nearly down");
+			break;
+		case 18:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " damage, and " + string(_s[$ "drainmp"] ?? 3) + " of their mp drawn into the user's");
+			array_push(_out, "reached for when the user runs low and the target has mp to lose");
+			break;
+		case 19:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " magic damage on EVERY enemy standing");
+			array_push(_out, "reached for against two or more, less the more they resist it");
+			break;
+		case 20:
+			array_push(_out, "heals EVERY ally " + string(round(_healp * 100)) + "% of their max hp");
+			array_push(_out, "reached for by how much health the whole crew is missing");
+			break;
+		case 21:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " magic damage, and no magic skill from them for three of their turns");
+			array_push(_out, "reached for against a caster - a brute barely notices");
+			break;
+		case 22:
+			array_push(_out, "a blessing on EVERY ally: " + (((_s[$ "buf"] ?? "") == "haste") ? "haste - they act at 125% pace" : ("their " + string_delete(_s[$ "buf"] ?? "buf_atk", 1, 4) + " up a quarter")) + ", three turns");
+			array_push(_out, "reached for when two or more allies lack it");
+			break;
+		case 23:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " magic damage that reads no element - light's own; half again on the undead");
+			array_push(_out, "reached for against the dead, and where armour outweighs resistance");
+			break;
+		case 24:
+			array_push(_out, "x" + string_format(_mult, 1, 1) + " damage with " + string(_s[$ "crit"] ?? 30) + " points more chance to crit - one draw, one cut");
+			array_push(_out, "reached for the deadlier the user's crits are, and on the wounded");
+			break;
+		case 25:
 			array_push(_out, "heals the user 40% of its max hp");
 			array_push(_out, "the emergency button: only below 35% health");
 			break;

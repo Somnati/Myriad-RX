@@ -21,7 +21,7 @@ function cbt_dummy(_lv, _hpmul = 1, _armour = 1, _mode = "still") {
 		dd : 0, dt : 0, cc : 0,
 		res : { fire : 0, water : 0, nature : 0 }, elem : "", school : "",
 		ail_k : "", ail_c : 0, tags : [], ab : _ab, abil : [], undying_used : false,
-		ail : { poison : 0, slow : 0, leech : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0 }, nf : { atk : 0, def : 0, hit : 0 }, regen : 0, leecher : undefined,
+		ail : { poison : 0, slow : 0, leech : 0, silence : 0 }, bf : { atk : 0, def : 0, hit : 0, spd : 0, pres : 0, mres : 0 }, nf : { atk : 0, def : 0, hit : 0, pres : 0, mres : 0 }, evade : 0, regen : 0, leecher : undefined,
 		still : (_mode != "hits"),
 	};
 }

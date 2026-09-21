@@ -39,8 +39,10 @@ function cbt_fight_act(_f, _actor, _plan) {
 		_actor.ail.slow   = max(0, _actor.ail.slow - 1);
 		if (_actor.ail.leech > 0) { _actor.ail.leech -= 1; if (_actor.ail.leech <= 0) { _actor.leecher = undefined; cbt_log(_f, "the mark on " + _actor.name + " fades"); } }
 	}
-	if (is_struct(_actor[$ "bf"])) { _actor.bf.atk = max(0, _actor.bf.atk - 1); _actor.bf.def = max(0, _actor.bf.def - 1); _actor.bf.hit = max(0, _actor.bf.hit - 1); _actor.bf.spd = max(0, _actor.bf.spd - 1); }
-	if (is_struct(_actor[$ "nf"])) { _actor.nf.atk = max(0, _actor.nf.atk - 1); _actor.nf.def = max(0, _actor.nf.def - 1); _actor.nf.hit = max(0, _actor.nf.hit - 1); }
+	if (is_struct(_actor[$ "bf"])) { _actor.bf.atk = max(0, _actor.bf.atk - 1); _actor.bf.def = max(0, _actor.bf.def - 1); _actor.bf.hit = max(0, _actor.bf.hit - 1); _actor.bf.spd = max(0, _actor.bf.spd - 1); _actor.bf.pres = max(0, (_actor.bf[$ "pres"] ?? 0) - 1); _actor.bf.mres = max(0, (_actor.bf[$ "mres"] ?? 0) - 1); }
+	if (is_struct(_actor[$ "nf"])) { _actor.nf.atk = max(0, _actor.nf.atk - 1); _actor.nf.def = max(0, _actor.nf.def - 1); _actor.nf.hit = max(0, _actor.nf.hit - 1); _actor.nf.pres = max(0, (_actor.nf[$ "pres"] ?? 0) - 1); _actor.nf.mres = max(0, (_actor.nf[$ "mres"] ?? 0) - 1); }
+	if (is_struct(_actor[$ "ail"])) { _actor.ail.silence = max(0, (_actor.ail[$ "silence"] ?? 0) - 1); }   // (q312's lanes: the silence, the smoke)
+	_actor.evade = max(0, (_actor[$ "evade"] ?? 0) - 1);
 	if ((_actor[$ "regen"] ?? 0) > 0) _actor.regen -= 1;
 	// the end (or the rail: a fight two healers could drag on for ever
 	// ends as a withdrawal at 300 actions - attrition should get there first)

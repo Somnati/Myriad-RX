@@ -855,8 +855,8 @@ dupvar	scripts\cbt_fight_next\cbt_fight_next.gml            _i _p _rts
 dupvar	scripts\cbt_fight_options\cbt_fight_options.gml      _i _t
 dupvar	scripts\cbt_film\cbt_film.gml                        _q
 dupvar	scripts\cbt_hit\cbt_hit.gml                          _q _tk _vb
-dupvar	scripts\cbt_skill_gen\cbt_skill_gen.gml              _d _sc _t _u elem magic mult name
-dupvar	scripts\cbt_skills\cbt_skills.gml                    _d _s _t _u elem magic mult name
+dupvar	scripts\cbt_skill_gen\cbt_skill_gen.gml              _d _i _k _n _p _sc _t _u _und _up elem magic mult name
+dupvar	scripts\cbt_skills\cbt_skills.gml                    _all _d _i _p _ph _s _t _u _und elem magic mult name
 dupvar	scripts\cbt_status\cbt_status.gml                    round
 dupvar	scripts\ccore_tick\ccore_tick.gml                    _c
 dupvar	scripts\crunch_time_ago\crunch_time_ago.gml          _n
