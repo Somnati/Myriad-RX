@@ -84,6 +84,7 @@ function handle_settings(_method) {
 	if (_method == sv_load && g.hp_bar_hue != "green") g.hp_bar_hue = "red";
 	g.planet_relief_pct = handle("planet_relief_pct",g.planet_relief_pct); // the mountains' exaggeration (2026-09-16)
 	g.cloud_volume = handle("cloud_volume",g.cloud_volume); // the decks as a volume (2026-09-17)
+	g.planet_fine = handle("planet_fine",g.planet_fine); // the world at one room pixel a cell (q301)
 	if (_method == sv_load) g.planet_relief_pct = clamp(g.planet_relief_pct, 50, 250);
 	if (_method == sv_load) { if (g.page_dither != "grain") g.page_dither = "ordered"; g.page_dither_amt = clamp(g.page_dither_amt, 0, 100); }   // (retro / chunky went the same day)
 	g.puck_mat = handle("puck_mat",g.puck_mat); // the puck's, same roster

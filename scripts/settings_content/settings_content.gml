@@ -443,6 +443,13 @@ function settings_content() {
 		+ "through, so puffs have depth, the edges go soft, and the limb is hazy where the ray "
 		+ "grazes along the deck. off: the decks are a surface with height - crisper, and a good deal "
 		+ "cheaper on the gpu (the mobile setting).");
+	// THE CELL (his ask, q301: "increase the pixel density"): the world drawn at one room pixel a cell, or the house two
+	settings_toggle("fine planet cells",
+		function() { return g.planet_fine; },
+		function(_v) { g.planet_fine = _v; },
+		"on: the world and its moons are drawn at ONE room pixel a cell - twice the density, the coasts, the "
+		+ "clouds and the borders finer. off: the house cell of two, the chunkier pixel look. costs nothing "
+		+ "either way: the cell only snaps the ray, the gpu draws every pixel regardless.");
 	// THE MOUNTAINS (his ask, 2026-09-16): the bump shading, the self-shadow, the
 	// snow line and the silhouette's relief, on one knob - live, like the dither
 	settings_slider("mountain relief", 50, 250,

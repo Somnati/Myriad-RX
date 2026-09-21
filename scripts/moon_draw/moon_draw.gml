@@ -45,7 +45,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w, _alpha = 
 		time : shader_get_uniform(sh_planet, "u_time"), dither : shader_get_uniform(sh_planet, "u_dither"), cells : shader_get_uniform(sh_planet, "u_cells"),
 		ring : shader_get_uniform(sh_planet, "u_ring"), raxis : shader_get_uniform(sh_planet, "u_raxis"), rcol : shader_get_uniform(sh_planet, "u_ringcol"),
 		city : shader_get_uniform(sh_planet, "u_city"), cityn : shader_get_uniform(sh_planet, "u_cityn"), relief : shader_get_uniform(sh_planet, "u_relief"),
-		cfade : shader_get_uniform(sh_planet, "u_cfade"), cloud : shader_get_sampler_index(sh_planet, "u_cloud"), height : shader_get_sampler_index(sh_planet, "u_height"),
+		cfade : shader_get_uniform(sh_planet, "u_cfade"), pxs : shader_get_uniform(sh_planet, "u_pxs"), cloud : shader_get_sampler_index(sh_planet, "u_cloud"), height : shader_get_sampler_index(sh_planet, "u_height"),
 		// (the world's newer uniforms, 2026-09-17: uniforms PERSIST between draws, and a moon drawn after the world inherited its
 		// zoom tier - u_pk 3 and the tier's textures - and drew the world's continents on itself; his report: "the moon
 		// decided not to moon")
@@ -58,7 +58,8 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w, _alpha = 
 	};
 	// the quad on the pixel grid, like the world's
 	var _q = _mq * 1.02, _qx = _mx - _q, _qy = _my - _q;
-	if (_cfg.px_size > 0) { var _pxs = _cfg.px_size; _q = max(_pxs, round(_q / _pxs) * _pxs); _qx = round((_mx - _q) / _pxs) * _pxs; _qy = round((_my - _q) / _pxs) * _pxs; }
+	var _pxc = planet_cell();   // (the world's cell, whatever it is - q301)
+	if (_pxc > 0) { var _pxs = _pxc; _q = max(_pxs, round(_q / _pxs) * _pxs); _qx = round((_mx - _q) / _pxs) * _pxs; _qy = round((_my - _q) / _pxs) * _pxs; }
 	shader_set(sh_planet);
 	shader_set_uniform_f_array(_u.rot, _mm);
 	shader_set_uniform_f_array(_u.crot, _mm);
@@ -67,7 +68,8 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w, _alpha = 
 	shader_set_uniform_f(_u.tsize, MOON_TEX_W, MOON_TEX_H);
 	shader_set_uniform_f(_u.pad, 1.02);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
-	shader_set_uniform_f(_u.cells, (_cfg.px_size > 0) ? (2 * _q) / _cfg.px_size : 0);
+	shader_set_uniform_f(_u.cells, (_pxc > 0) ? (2 * _q) / _pxc : 0);
+	shader_set_uniform_f(_u.pxs, max(1, _pxc));
 	shader_set_uniform_f(_u.ring, 0);
 	shader_set_uniform_f(_u.raxis, 0, 1, 0);
 	shader_set_uniform_f(_u.rcol, 0, 0, 0);

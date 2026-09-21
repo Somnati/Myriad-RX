@@ -61,7 +61,8 @@ uniform float u_snowb;    // THE SNOW BIAS (2026-09-17): the snow line raised by
 uniform float u_season;   // THE SEASON (2026-09-17): -1..1 on the world's own year - the snow line climbs in summer, comes down in winter, each hemisphere its own
 uniform float u_canopy;   // THE CANOPY (2026-09-17): the woods' deck height over the ground, in radii
 uniform vec3  u_grass;    // the world's grass - the floor under the trees, darkened
-uniform float u_pfade;    // THE PLUMES' fade (2026-09-17): their own, later than the clouds' - a volcano smokes until you are close
+uniform float u_pfade;
+uniform float u_pxs;      // THE CELL in room px (q301): 1 on the planet page, 2 the old house cell - the zoom thresholds read cpc as at 2, the lines' widths are in px    // THE PLUMES' fade (2026-09-17): their own, later than the clouds' - a volcano smokes until you are close
 uniform vec4  u_vent[6];  // THE PLUMES (2026-09-17): the live vents in texture space - xyz the direction, w the ring's reach (radians)
 uniform float u_ventn;
 uniform float u_cvol;     // THE CLOUD VOLUME (2026-09-17): 1 = the decks marched as a volume, 0 = as a surface (settings > visuals)
@@ -699,6 +700,7 @@ void main()
         // the cells one base texel spans at the disc's centre (the disc is u_cells / 2 u_pad cells across its radius, a texel
         // 2 pi of that over the map's width): the grain forest's and the borders' measure of the zoom (q280 / q287)
         float cpc = 3.14159 * u_cells / (max(u_pad, 0.01) * u_tsize.x);
+        float cpz = cpc * max(u_pxs, 1.0) * 0.5;   // (the ZOOM: cells a texel as at the two-pixel cell - so a finer cell moves no threshold; q301)
 
         // THE MOUNTAINS' SHADING (2026-09-16, his ask: "more noticeably
         // mountains... exaggerated"): the height gradient bends the normal
@@ -774,7 +776,7 @@ void main()
         // shadow rim. The grain's amplitude rides the zoom (the cells one base texel spans at the disc's centre - the
         // disc is u_cells / 2 u_pad cells across its radius, a texel 2 pi of that over the map's width): flat from
         // orbit (a texel under a cell, a grain would be speckle - his q276 report), whole at three cells a texel
-        float tk = clamp((cpc - 1.2) / 1.8, 0.0, 1.0);
+        float tk = clamp((cpz - 1.2) / 1.8, 0.0, 1.0);
         float elc = dot(n, u_light);
         if (fo > 0.05) {
             // the canopy deck a hair above the ground (u_canopy radii): the ray meets it a little off where it meets the
@@ -998,10 +1000,10 @@ void main()
                 float ddc = (Fc - 0.5) / max(length(gc), 0.08);
                 if (Fc >= 0.5) {
                     col = mix(col, rc, 0.12 * rsel);
-                    // THE WIDTH (q299): in screen cells, growing with the zoom - the picked region's 1.3 from orbit to 2.6 up close
-                    // (cpc 1.5 .. 6), the rest 0.9 to 1.8; the nearer contour of the two sets the pixel's distance
-                    float zw = smoothstep(1.5, 6.0, cpc);
-                    float lw = (rsel > 0.5) ? (1.3 + 1.3 * zw) : (0.9 + 0.9 * zw);
+                    // THE WIDTH (q299 / q301): in room px, growing with the zoom - the picked region's 2.6 from orbit to 5.2 up close
+                    // (cpz 1.5 .. 6), the rest 1.8 to 3.6; the nearer contour of the two sets the pixel's distance
+                    float zw = smoothstep(1.5, 6.0, cpz);
+                    float lw = ((rsel > 0.5) ? (2.6 + 2.6 * zw) : (1.8 + 1.8 * zw)) / max(u_pxs, 1.0);   // (room px, in cells - q301)
                     float dd = min(ddr * max(cpc, 0.9), ddc * max(cpc / gk, 0.9));
                     if (dd < lw) col = rc;
                 }

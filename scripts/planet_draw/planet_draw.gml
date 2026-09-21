@@ -37,7 +37,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 		cityn : shader_get_uniform(sh_planet, "u_cityn"),
 		relief : shader_get_uniform(sh_planet, "u_relief"), gas : shader_get_uniform(sh_planet, "u_gas"), gloss : shader_get_uniform(sh_planet, "u_gloss"), capl : shader_get_uniform(sh_planet, "u_capl"), nlift : shader_get_uniform(sh_planet, "u_nlift"), sunl : shader_get_uniform(sh_planet, "u_sunl"),
 		bump  : shader_get_uniform(sh_planet, "u_bump"),
-		cfade : shader_get_uniform(sh_planet, "u_cfade"), pfade : shader_get_uniform(sh_planet, "u_pfade"),
+		cfade : shader_get_uniform(sh_planet, "u_cfade"), pfade : shader_get_uniform(sh_planet, "u_pfade"), pxs : shader_get_uniform(sh_planet, "u_pxs"),
 		crelief : shader_get_uniform(sh_planet, "u_crelief"),
 		cvol : shader_get_uniform(sh_planet, "u_cvol"),
 		canopy : shader_get_uniform(sh_planet, "u_canopy"), grass : shader_get_uniform(sh_planet, "u_grass"),
@@ -101,7 +101,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	// THE CELL (q266, his report: the system map's worlds and rings wanted "their resolution bumped up a tad"): the house
 	// cells (px_size, 2 room px) on the planet page's portrait; a MAP page - the system view, the sky's siblings - sets
 	// g.planet_px to 1 round its draws, so a stamp eight pixels across is eight pixels, not four cells
-	var _pxc = max(0, g[$ "planet_px"] ?? _cfg.px_size);
+	var _pxc = planet_cell();   // (one room px on the planet page since q301 - "increase the pixel density"; the moons read the same)
 	if (_pxc > 0) {
 		var _pxs = _pxc;
 		_q = max(_pxs, round(_q / _pxs) * _pxs);
@@ -120,6 +120,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.pad, _pad);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
 	shader_set_uniform_f(_u.cells, (_pxc > 0) ? (2 * _q) / _pxc : 0);
+	shader_set_uniform_f(_u.pxs, max(1, _pxc));   // (room px a cell: the zoom thresholds and the lines' widths hold whatever the cell - q301)
 	shader_set_uniform_f(_u.ring, _pn.ring ? .85 * clamp(_rfade, 0, 1) : 0);   // (rfade: the ring thinning with the zoom like the clouds, its shadow with it - q299, his ask)
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
