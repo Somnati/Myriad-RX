@@ -73,7 +73,7 @@ function sprite_sheet_unpack(_sp, _f, _at) {
 	if (array_length(_f) > _at + 7) {
 		if (_f[_at + 7] != "") {
 			var _ls = string_split(_f[_at + 7], ";");
-			for (var _i = 0; _i < array_length(_ls); _i++) { var _tv = string_split(_ls[_i], ":"); if (array_length(_tv) == 2) array_push(_sh.learned, { tmpl : clamp(real(_tv[0]), 0, 8), seed : real(_tv[1]) }); }
+			for (var _i = 0; _i < array_length(_ls); _i++) { var _tv = string_split(_ls[_i], ":"); if (array_length(_tv) == 2) array_push(_sh.learned, { tmpl : clamp(real(_tv[0]), 0, 23), seed : real(_tv[1]) }); }
 		}
 	} else {
 		var _cl2 = sprite_classes()[_sh.cls];

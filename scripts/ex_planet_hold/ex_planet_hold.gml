@@ -18,8 +18,14 @@ function ex_planet_hold() {
 		// THE LADDER (q302, his "position snap"): the wheel steps between the zooms where a drawn texel is whole cells
 		// (__zoom_ladder - the mode's range: region mode out to the whole planet, in to the same ceiling - q269)
 		var _zmode = (pv_mode == "region") ? PV_ZOOM_RG : 1, _zt = pv_zuser * _zmode, _lad = __zoom_ladder(_zmode);
-		if (mouse_wheel_up())   { for (var _li = 0; _li < array_length(_lad); _li++) if (_lad[_li] > _zt * 1.01) { pv_zuser = _lad[_li] / _zmode; break; } }
-		if (mouse_wheel_down()) { for (var _li = array_length(_lad) - 1; _li >= 0; _li--) if (_lad[_li] < _zt * .99) { pv_zuser = _lad[_li] / _zmode; break; } }
+		if (array_length(_lad) == 0) {   // (a world with no rungs in range - a stamp: the old continuous wheel; bug pass q313)
+			var _zlo = (pv_mode == "region") ? (1.3 / PV_ZOOM_RG) : PV_ZOOM_MIN, _zhi = (pv_mode == "region") ? max(1, PV_ZOOM_MAX * 1.85 / PV_ZOOM_RG) : PV_ZOOM_MAX;
+			if (mouse_wheel_up())   pv_zuser = min(pv_zuser * 1.18, _zhi);
+			if (mouse_wheel_down()) pv_zuser = max(pv_zuser / 1.18, _zlo);
+		} else {
+			if (mouse_wheel_up())   { for (var _li = 0; _li < array_length(_lad); _li++) if (_lad[_li] > _zt * 1.01) { pv_zuser = _lad[_li] / _zmode; break; } }
+			if (mouse_wheel_down()) { for (var _li = array_length(_lad) - 1; _li >= 0; _li--) if (_lad[_li] < _zt * .99) { pv_zuser = _lad[_li] / _zmode; break; } }
+		}
 	}
 	var _osens = _ocf.orbit_sens / max(.5, pv_zoom);
 	if (!pv_drag && mouse_check_button_pressed(mb_left) && _pin && !__pv_ui_hit()) { pv_drag = true; pv_px = 0; pv_dx = mouse_x; pv_dy = mouse_y; pv_vx = 0; pv_vy = 0; }

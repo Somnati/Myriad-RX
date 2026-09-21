@@ -6,6 +6,7 @@ function cbt_skill_desc(_s) {
 	var _out = [];
 	var _lane = _s.magic ? "magical (int vs res)" : "physical (atk vs def)";
 	var _tg = (_s.targ == "enemy") ? "an enemy" : ((_s.targ == "ally") ? "an ally (or itself)" : "itself");
+	if (_s[$ "aoe"] ?? false) _tg = (_s.targ == "enemy") ? "every enemy" : "every ally";   // (the bursts, the choruses, the anthems - q312)
 	array_push(_out, string(_s.cost) + " mp  -  " + _lane + "  -  on " + _tg);
 	var _mult = _s[$ "mult"] ?? 0, _healp = _s[$ "healp"] ?? 0, _leech = _s[$ "leech"] ?? 0, _stag = _s[$ "stag"] ?? 0;
 	var _kind = _s[$ "tmpl"] ?? -1;
