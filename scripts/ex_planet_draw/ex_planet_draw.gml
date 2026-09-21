@@ -20,7 +20,9 @@ function ex_planet_draw(_e, _ea, _dim) {
 	var _nol = __nolanding(_d);   // (a gas giant: no spots, no region mode - q243)
 	g.planet_rshow = 1; g.planet_rsel = (pl_focus >= 0) ? pl_focus + 1 : 0;   // THE TERRITORIES on the world (q287): the tint and the borders, the picked one brighter
 	var _camd = __cam_snap(_pn, pv_cam, pv_spin, _pr, planet_cell());   // THE POSITION SNAP (q302): the texel grid on the cell grid about the centre - the draw's camera, the state untouched
-	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, _camd, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade);
+	var _za = _nol ? 0 : clamp((pv_zoom - 2.6) / 1.2, 0, 1);   // THE REGION MAPS ON THE WORLD (q303): in from the zoom where a place has room (whole by the region rung)
+	wn_pts = [];
+	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, _camd, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade, _za);
 	g.planet_rshow = 0;
 	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);
@@ -58,6 +60,13 @@ function ex_planet_draw(_e, _ea, _dim) {
 		draw_ui_button(_xb.x, _xb.y, _xb.w, _xb.h, "explore", c_horange, true, false);
 		var _ifb = __infl_r();
 		draw_ui_button(_ifb.x, _ifb.y, _ifb.w, _ifb.h, "influence", c_seagreen, true, rg_infl);   // (the region's ledger - q270)
+		// A PLACE'S CARD on the world (q303): the map's card, at the place; it folds when the place turns out of view
+		if (is_struct(pv_pop) && !rg_infl) {
+			var _cpr = region_get(_d, pv_pop.ri), _cpp = undefined;
+			for (var _wi = 0; _wi < array_length(wn_pts); _wi++) if (wn_pts[_wi].ri == pv_pop.ri && wn_pts[_wi].ni == pv_pop.ni) _cpp = wn_pts[_wi];
+			if (is_struct(_cpp) && pv_pop.ni < array_length(_cpr.nodes)) __map_node_card(_d, _cpr, _pvr, pv_pop.ni, { x : _pvr.x + _cpp.x, y : _pvr.y + _cpp.y });
+			else pv_pop = undefined;
+		}
 		// THE INFLUENCE VIEW (q270 / q286): the region's ledger over the view, IN TABS - a strip of pills up top, the tab's
 		// explainer, its rows with a bar where a number wants one and a dim sub-line under each saying what moves it and
 		// what reads it; the wheel scrolls; a tab's tap switches, any other tap closes

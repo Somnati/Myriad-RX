@@ -141,6 +141,7 @@ svars	ex_map_init                  dim
 svars	ex_map_init                  isle_h
 svars	ex_map_init                  land
 svars	ex_map_init                  list_y
+svars	ex_map_init                  map_rgi
 svars	ex_map_init                  rg_box_h
 svars	ex_map_init                  rg_box_open
 svars	ex_map_init                  rg_box_w
@@ -196,6 +197,7 @@ svars	ex_planet_hold               pv_zuser
 svars	ex_planet_hold               rg_infl
 svars	ex_planet_hold               rg_infl_hmax
 svars	ex_planet_hold               view
+svars	ex_planet_hold               wn_pts
 svars	ex_planet_init               card_h
 svars	ex_planet_init               card_w
 svars	ex_planet_init               face
@@ -869,10 +871,10 @@ dupvar	scripts\ex_log_init\ex_log_init.gml                  _cw _h _i _ish _isk 
 dupvar	scripts\ex_map_draw\ex_map_draw.gml                  _d _ed _i _k _lkey _mr _named _pu _q _rg _tr2 array_length
 dupvar	scripts\ex_map_init\ex_map_init.gml                  _b _bn _bny _bs _e _ed _h _i _inf _iw _k _kk _lc _li _ln _m1 _m2 _mi _mks _mr _n1 _nd _ni _o _p1 _pp _pts _rg _ri _sc _seq _t _tc _tr _w _w1 _wmax _wmin array_length c_gold c_horange c_hred rg_box_a
 dupvar	scripts\ex_map_press\ex_map_press.gml                _hp _mr0 _rg0
-dupvar	scripts\ex_orbit_init\ex_orbit_init.gml              _ay _az _cam _i _m _mi _mns0 _pn _rg _rr _rsy _si _sky _spin _stp _sx _sy _t _tw _tx exped_planet_hint mat3_rot mat3_transpose planet_props
+dupvar	scripts\ex_orbit_init\ex_orbit_init.gml              _ay _az _cam _e _fa _hp _i _k _lat _lon _m _mi _mns0 _mr _nd _pcx _pcy _pn _pr _pts _pxc _rg _rgi _ri _rr _rsy _si _sky _sp _spin _stp _sx _sy _t _tp _tw _tx _up _v exped_planet_hint mat3_rot mat3_transpose planet_cell planet_props
 dupvar	scripts\ex_planet_clock\ex_planet_clock.gml          _pn4 _tgt _yp _zmode pv_spin
-dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _camd _h _i _lcx _lcy _lw _nol _pr _pvr _rg _sbh _tbi _ton _vw _w pv_spin rg_sel
-dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _li _ocf _pc _pk _ppn _pvr _rgp mouse_y
+dupvar	scripts\ex_planet_draw\ex_planet_draw.gml            _camd _h _i _lcx _lcy _lw _nol _pr _pvr _rg _sbh _tbi _ton _vw _w _za pv_spin rg_sel
+dupvar	scripts\ex_planet_hold\ex_planet_hold.gml            _i _li _ocf _pc _pk _ppn _pvr _rgp _wp mouse_y
 dupvar	scripts\ex_planet_init\ex_planet_init.gml            _bump _c _eri _g _h _i _l _mid _n _rg _sl _t _ty _w _x _x0 rg_sel
 dupvar	scripts\ex_sheet_init\ex_sheet_init.gml              _arr _bal _bw _c _cw _dim _fvh _i _ink _it _j _k _li _ly _npw _ntot _nvh _o _pw _px0 _qi _room _rows _rw _sel _sh _t _th _tw _ty array_length list_y room_height room_width
 dupvar	scripts\ex_station_step\ex_station_step.gml          _bks _stvr mouse_y

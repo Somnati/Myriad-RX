@@ -986,6 +986,10 @@ void main()
             if (rid > 0.5) {
                 float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
                 vec3 rc = hsv2rgb(vec3(rhue, 0.60, 0.95));
+                // ANOTHER REGION at the corners (q303): at a front both regions paint a width each side; against the coast, the cap
+                // or nobody's land this one paints alone - so it paints twice the width there, and the shore reads as thick as a front
+                vec4 mo = (1.0 - csea) * (1.0 - cpol) * step(0.5, cid) * step(0.5, abs(cid - rid));
+                float two = (dot(wb, mo) > 0.001) ? 1.0 : 2.0;
                 // the front: base texels to its contour, inward positive
                 vec2 gr = vec2(mix(mr.y - mr.x, mr.w - mr.z, pfb.y), mix(mr.z - mr.x, mr.w - mr.y, pfb.x));
                 float ddr = (Fr - 0.5) / max(length(gr), 0.08);
@@ -1004,7 +1008,7 @@ void main()
                     // (cpz 1.5 .. 6), the rest 1.8 to 3.6; the nearer contour of the two sets the pixel's distance
                     float zw = smoothstep(1.5, 6.0, cpz);
                     float lw = ((rsel > 0.5) ? (2.6 + 2.6 * zw) : (1.8 + 1.8 * zw)) / max(u_pxs, 1.0);   // (room px, in cells - q301)
-                    float dd = min(ddr * max(cpc, 0.9), ddc * max(cpc / gk, 0.9));
+                    float dd = min(ddr * max(cpc, 0.9) / two, ddc * max(cpc / gk, 0.9) * 0.5);   // (the coast alone: twice the width - q303)
                     if (dd < lw) col = (u_rsel > 0.5 && rsel < 0.5) ? mix(col, rc, 0.35) : rc;   // (a region picked: the others' lines at a third - q302, his ask)
                 }
             }

@@ -60,6 +60,19 @@ function ex_planet_hold() {
 				else play_sound_ext(snd_matclick2, .7, .8, .3, 0);
 			}
 		}
+		// A PLACE ON THE WORLD (q303): in region mode a still tap on a place opens its card (the map's); the same place
+		// again, or a tap elsewhere, folds it
+		if (pv_px <= 4 && pv_mode == "region") {
+			var _pvr2 = __pv_r(), _hit2 = undefined, _hd2 = 9;
+			for (var _wi = 0; _wi < array_length(wn_pts); _wi++) {
+				var _wp = wn_pts[_wi];
+				if (_wp.a < .2) continue;
+				var _dd2 = point_distance(mouse_x - _pvr2.x, mouse_y - _pvr2.y, _wp.x, _wp.y);
+				if (_dd2 < _hd2) { _hd2 = _dd2; _hit2 = _wp; }
+			}
+			if (is_struct(_hit2)) { pv_pop = (is_struct(pv_pop) && pv_pop.ri == _hit2.ri && pv_pop.ni == _hit2.ni) ? undefined : { ri : _hit2.ri, ni : _hit2.ni }; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
+			else pv_pop = undefined;
+		}
 	}
 	if (!pv_drag) {
 		if (abs(pv_vx) > .02 || abs(pv_vy) > .02) {

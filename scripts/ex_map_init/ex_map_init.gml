@@ -115,9 +115,9 @@ __map_named = function(_rg, _d) {
 /// the place's papers (region_node_info: population / economy / rooms / who holds it / the
 /// going... and a line of description), the roads out by name with their hours
 /// (region_road_name), every crew with business there, and its LORE at the foot
-__map_node_card = function(_d, _rg, _mr, _ni) {
+__map_node_card = function(_d, _rg, _mr, _ni, _at = undefined) {   // (at: the place's screen point when the card is the WORLD's - q303; else the map's frame places it)
 	var _nd = _rg.nodes[_ni], _kk = region_kinds(), _kd = _kk[$ _nd.kind] ?? _kk.field, _e = g.exped;
-	var _np = __map_xy(_nd, _rg, _mr);
+	var _np = is_struct(_at) ? _at : __map_xy(_nd, _rg, _mr);
 	var _cw = 168, _iw = _cw - 12;
 	var _pp = region_node_info(_d, _rg, _ni);
 	var _rows = [], _lpp = region_pop(_d, _rg, _ni);   // (the population LIVE - the card's row is the baseline; q284)
@@ -146,7 +146,7 @@ __map_node_card = function(_d, _rg, _mr, _ni) {
 	if (!is_undefined(_hz)) array_push(_rows, { k : "hazard", v : _hz.name, col : _hz.col });
 	// THE WORLD REMEMBERS (2026-09-16): what the crews left here, and for how long
 	var _mks = [["quiet", "cleared - quiet for "], ["routed", "routed - ashes for "], ["grateful", "grateful - a bed on the house for "], ["barred", "barred from the tavern for "], ["shelf", "the shelf restocks in "]];
-	for (var _mi = 0; _mi < array_length(_mks); _mi++) { var _mm = exped_mem_get(_d, map_rgi, _ni, _mks[_mi][0]); if (is_struct(_mm)) array_push(_rows, { k : "memory", v : _mks[_mi][1] + string(ceil(_mm.left / EXPED_HOUR)) + "h", col : c_gold }); }
+	for (var _mi = 0; _mi < array_length(_mks); _mi++) { var _mm = exped_mem_get(_d, _rg[$ "ri"] ?? map_rgi, _ni, _mks[_mi][0]); if (is_struct(_mm)) array_push(_rows, { k : "memory", v : _mks[_mi][1] + string(ceil(_mm.left / EXPED_HOUR)) + "h", col : c_gold }); }
 	// the roads out, by name
 	var _rt = "";
 	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
@@ -250,58 +250,58 @@ __map_xy = function(_nd, _rg, _mr) {
 };
 /// the pixel icons (his ask): a flag for the landing zone, a house for a
 /// settled place, a tent for a camp, a doorway for a dungeon or crypt
-__map_icon = function(_kind, _lz, _x, _y, _col) {
+__map_icon = function(_kind, _lz, _x, _y, _col, _am = 1) {   // (am: an alpha over the icon's own - the world's dim regions, q303)
 	if (_lz) {
 		// the flag: a pole and a pennant, white
-		draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 7, 1, 10, 0, c_white, .95);
-		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 7, 5, 2, 0, c_white, .95);
-		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 5, 3, 1, 0, c_white, .95);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 7, 1, 10, 0, c_white, .95 * _am);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 7, 5, 2, 0, c_white, .95 * _am);
+		draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 5, 3, 1, 0, c_white, .95 * _am);
 		return;
 	}
 	switch (_kind) {
 		case "pass": {
 			// the gate (q291): two posts and a bar
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 3, 1, 6, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x + 2, _y - 3, 1, 6, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 4, 6, 1, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 1, 2, 1, 0, _col, .6);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 3, 1, 6, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x + 2, _y - 3, 1, 6, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 4, 6, 1, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 1, 2, 1, 0, _col, .6 * _am);
 			break;
 		}
 		case "settlement": case "village": case "town": case "city": {
 			// the house: a roof stepping in, a body, a door
 			var _big = (_kind == "town" || _kind == "city") ? 1 : 0;
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4 - _big, _y - 1, 8 + _big * 2, 5 + _big, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3 - _big, _y - 3, 6 + _big * 2, 2, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5 - _big, 2, 2 + _big, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y + 2, 2, 2 + _big, 0, c_black, .8);
-			if (_kind == "city") draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y - 6, 2, 4, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4 - _big, _y - 1, 8 + _big * 2, 5 + _big, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3 - _big, _y - 3, 6 + _big * 2, 2, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5 - _big, 2, 2 + _big, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y + 2, 2, 2 + _big, 0, c_black, .8 * _am);
+			if (_kind == "city") draw_sprite_ext(spr_pixel_1x1, 0, _x + 3, _y - 6, 2, 4, 0, _col, .95 * _am);
 			return;
 		}
 		case "camp": {
 			// the tent: rows widening down, a dark flap
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5, 2, 2, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 3, 4, 2, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 1, 6, 2, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 1, 8, 2, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y, 2, 3, 0, c_black, .8);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y - 5, 2, 2, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 3, 4, 2, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 3, _y - 1, 6, 2, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 1, 8, 2, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 1, _y, 2, 3, 0, c_black, .8 * _am);
 			return;
 		}
 		case "dungeon": case "crypt": {
 			// the doorway: a dark arch in a block
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 4, 8, 8, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 4, 6, 0, c_black, .85);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 4, 8, 8, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 2, _y - 2, 4, 6, 0, c_black, .85 * _am);
 			return;
 		}
 		case "sewer": {
 			// the grate: a dark square with three bars (2026-09-16)
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 7, 0, c_black, .9);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 1, 0, _col, .95);
-			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 3, 8, 1, 0, _col, .95);
-			for (var _gb = -3; _gb <= 3; _gb += 3) draw_sprite_ext(spr_pixel_1x1, 0, _x + _gb - 1, _y - 2, 1, 5, 0, _col, .95);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 7, 0, c_black, .9 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y - 3, 8, 1, 0, _col, .95 * _am);
+			draw_sprite_ext(spr_pixel_1x1, 0, _x - 4, _y + 3, 8, 1, 0, _col, .95 * _am);
+			for (var _gb = -3; _gb <= 3; _gb += 3) draw_sprite_ext(spr_pixel_1x1, 0, _x + _gb - 1, _y - 2, 1, 5, 0, _col, .95 * _am);
 			return;
 		}
 	}
-	__dot(_x, _y, 2, _col, .95);
+	__dot(_x, _y, 2, _col, .95 * _am);
 };
 /// does a segment touch a rectangle? (an end inside, or a crossing of one of its sides)
 __seg_rect = function(_x1, _y1, _x2, _y2, _rx1, _ry1, _rx2, _ry2) {
