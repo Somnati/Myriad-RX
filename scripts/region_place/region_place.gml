@@ -1,5 +1,5 @@
 /// @description region_place(nodes, pn, terr, ri) -> the region's frame { sx, sy, cl, span, cxm, cym, x0, y0, w, h } - EVERY PLACE ON A TEXEL OF ITS TERRITORY (q288): each node's texel chosen for its kind among the territory's own land, two to six texels of ground from its parent (the tree the layout grew), clear of the others; its unit x / y (the map's frame) from the territory's bounding box. Rolls on the region's stream (region_gen's seed is set)
-function region_place(_nodes, _pn, _terr, _ri) {
+function region_place(_nodes, _pn, _terr, _ri, _off = undefined) {   // (off: a flag a texel - the territory's islets (region_islets); a place never lands on one, the isles do - q306)
 	var _tw = _pn.tw, _th = _pn.th, _ids = _terr.ids, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"], _id = _ri + 1, _vm = _pn[$ "vmask"], _cm = _pn[$ "cmask"];
 	var _sx = _terr.seeds[_ri][0], _sy = _terr.seeds[_ri][1], _cl = max(.2, sin(pi * (_sy + .5) / _th));
 	// the territory's land, with what each texel is: coastal (a sea texel beside it), by water (a river or a lake or the coast), on a range
@@ -13,6 +13,7 @@ function region_place(_nodes, _pn, _terr, _ri) {
 		_minx = min(_minx, _dx); _maxx = max(_maxx, _dx); _miny = min(_miny, _dy); _maxy = max(_maxy, _dy);   // (the frame takes every texel; the places below skip some)
 		// NO PLACE IN A VOLCANO (q299; his report: "a damn node in the middle of the volcano's lava"): never the crater, a flow, the
 		// walls, nor the bare cone - the lower flank keeps its grass and may hold a village at the foot
+		if (is_array(_off) && _off[_i]) continue;   // (an islet: the isle's alone - q306)
 		if (is_array(_vm) && _vm[_i] > 0) continue;
 		if (is_array(_cm) && _cm[_i] >= VOLCANO_BARE) continue;
 		var _l = ((_x + _tw - 1) mod _tw) + _y * _tw, _r = ((_x + 1) mod _tw) + _y * _tw, _u = (_y > 0) ? _i - _tw : _i, _dn = (_y < _th - 1) ? _i + _tw : _i;

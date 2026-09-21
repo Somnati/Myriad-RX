@@ -862,6 +862,7 @@
     {"id":{"name":"region_hazards","path":"scripts/region_hazards/region_hazards.yy",},},
     {"id":{"name":"region_hours","path":"scripts/region_hours/region_hours.yy",},},
     {"id":{"name":"region_info","path":"scripts/region_info/region_info.yy",},},
+    {"id":{"name":"region_islets","path":"scripts/region_islets/region_islets.yy",},},
     {"id":{"name":"region_kinds","path":"scripts/region_kinds/region_kinds.yy",},},
     {"id":{"name":"region_ledger_tabs","path":"scripts/region_ledger_tabs/region_ledger_tabs.yy",},},
     {"id":{"name":"region_ledger","path":"scripts/region_ledger/region_ledger.yy",},},

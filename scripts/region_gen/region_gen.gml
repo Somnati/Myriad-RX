@@ -150,6 +150,10 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	}
 	random_set_seed((_seed ^ 48271) & $7fffffff);
 	var _n = irandom_range(12, 17);
+	// THE COUNT BY THE GROUND (q306, his ask: "the number of nodes should be based off the area of the region"; his shot: a
+	// small island packed with places): a place a twenty-four texels of the territory's land, four at the least (the landing
+	// and three), the roll above the ceiling - the roll still rolled, the stream holds
+	if (is_struct(_terr) && is_array(_terr[$ "area"]) && _ri < array_length(_terr.area)) _n = clamp(round(3 + _terr.area[_ri] / 24), 4, _n);
 	var _nodes = [];
 	// THE PLACEMENT (his ask, 2026-09-15: "bounded by a circular radius...
 	// start generating from the landing zone and branch out"): the landing
@@ -208,6 +212,15 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	// one up so the count holds
 	var _lz_in = (random(1) < .3);
 	if (_lz_in) { _nodes[0].kind = (random(1) < .3 && !_city) ? "city" : "town"; if (_nodes[0].kind == "city") _city = true; if (array_length(_must) > 0) array_delete(_must, 0, 1); }
+	// THE MUST-LIST INTERLEAVED AND CUT (q306): a settled place, a dungeon, a camp, then the seconds and thirds - and no more
+	// than the slots less one (three held whatever the count), so a small region keeps one of each rather than its settled
+	// places alone; a big one is as it was (its rolls never reach the cut)
+	var _civs = [], _duns = [], _cmps = [];
+	for (var _mi = 0; _mi < array_length(_must); _mi++) { var _mk = _must[_mi]; if (_mk == "camp") array_push(_cmps, _mk); else if (_mk == "dungeon" || _mk == "crypt") array_push(_duns, _mk); else array_push(_civs, _mk); }
+	_must = [];
+	for (var _mi = 0; _mi < 3; _mi++) { if (_mi < array_length(_civs)) array_push(_must, _civs[_mi]); if (_mi < array_length(_duns)) array_push(_must, _duns[_mi]); if (_mi < array_length(_cmps)) array_push(_must, _cmps[_mi]); }
+	var _mmax = max(3, _n - 2);
+	if (array_length(_must) > _mmax) array_resize(_must, _mmax);
 	// CIVILIZATION BY LEVEL (his call, 2026-09-16: "early regions will have
 	// settlements, then lv 3s can spawn towns, lv 10s cities... a pool bound
 	// by region level"): the rolls above stand (the stream is the same), the
@@ -251,7 +264,8 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 	for (var _i = 0; _i < _n; _i++) if (_nodes[_i].kind == "dungeon" || _nodes[_i].kind == "crypt") _nodes[_i].rooms = 3 + (hash_mix(_seed, _i * 31 + 7) mod 4);
 	// ON THE GROUND (q288): with a territory every place moves onto a texel of it chosen for its kind (region_place) - the
 	// tree's shape, the bridges, the isles, the sewers and the bent roads below all run on the new frame
-	var _tmap = is_struct(_terr) ? region_place(_nodes, _pn, _terr, _ri) : undefined;
+	var _isl = is_struct(_terr) ? region_islets(_pn, _terr, _ri) : undefined;   // (the territory's islets - the isles' ground, nobody else's; q306)
+	var _tmap = is_struct(_terr) ? region_place(_nodes, _pn, _terr, _ri, _isl.off) : undefined;
 	// THE ROADS: the tree's (every place to the one it grew from), then
 	// BRIDGES - a few near pairs joined where the new road crosses none,
 	// so the tree closes into loops with dead-end spurs left over (his
@@ -290,8 +304,22 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		array_push(_edges, { a : _cd.a, b : _cd.b, d : 0, pts : [] });
 		_nbr -= 1;
 	}
-	// THE ISLES (his ask): off a coast, one place out to sea - a boat road
-	for (var _i = _n - 1; _i >= 1; _i--) {
+	// THE ISLES (his ask): off a coast, one place out to sea - a boat road. ON REAL ISLETS since q306 (his shot: "roads that
+	// go off into the ocean into nowhere" - the isle sat in the map's unit square with no texel under it, and the world drew
+	// its boat road to open water): the territory's land the walk joined whole but no road reaches (region_islets) - one
+	// isle an islet at its middle, two at most, a boat road from the nearest place on the main land; no islet, no isle
+	if (is_struct(_terr) && is_struct(_tmap)) {
+		for (var _ii = 0; _ii < min(2, array_length(_isl.isles)); _ii++) {
+			var _it = _isl.isles[_ii].at, _itx = _it mod _pn.tw, _ity = _it div _pn.tw;
+			var _igx = (((_itx - _tmap.sx + _pn.tw + (_pn.tw div 2)) mod _pn.tw) - (_pn.tw div 2)) * _tmap.cl, _igy = _ity - _tmap.sy;
+			var _iux = .5 + (_igx - _tmap.cxm) / _tmap.span * _tmap.k, _iuy = .5 + (_igy - _tmap.cym) / _tmap.span * _tmap.k;
+			var _inr = -1, _ind = 1000000;
+			for (var _j = 0; _j < array_length(_nodes); _j++) { if (is_undefined(_nodes[_j][$ "gx"]) || _nodes[_j].kind == "isle") continue; var _idd = point_distance(_igx, _igy, _nodes[_j].gx, _nodes[_j].gy); if (_idd < _ind) { _ind = _idd; _inr = _j; } }
+			if (_inr < 0) continue;
+			array_push(_nodes, { i : array_length(_nodes), kind : "isle", name : region_name("isle"), x : _iux, y : _iuy, par : _inr, kids : 0, landing : false, boat : true, tx : _itx, ty : _ity, gx : _igx, gy : _igy });
+			array_push(_edges, { a : _inr, b : array_length(_nodes) - 1, d : 0, pts : [], boat : true });
+		}
+	} else for (var _i = _n - 1; _i >= 1; _i--) {
 		if (_nodes[_i].kind != "coast" || random(1) > .45) continue;
 		var _od = point_direction(_cx0, _cy0, _nodes[_i].x, _nodes[_i].y) + random_range(-40, 40);
 		var _ol = random_range(.13, .19);
@@ -312,6 +340,30 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		if (_sk != "city" && !(_sk == "town" && random(1) < .45)) continue;
 		var _sd = random(360), _sl = random_range(.06, .09);
 		var _sx = _nodes[_i].x + lengthdir_x(_sl, _sd), _sy = _nodes[_i].y + lengthdir_y(_sl, _sd);
+		// ON A TEXEL BESIDE THE TOWN (q306): with a territory the sewer takes the nearest free land texel of the region within
+		// two of the town's (a seeded tie-break, no roll), its unit point from the frame - so the world draws it and its road
+		// routes; the unit-square offset above stands for the old frame alone
+		if (is_struct(_tmap) && is_struct(_terr) && !is_undefined(_nodes[_i][$ "tx"])) {
+			var _stx = -1, _sty = -1, _sbd = 1000000;
+			for (var _dy = -2; _dy <= 2; _dy++) for (var _dx = -2; _dx <= 2; _dx++) {
+				if (_dx == 0 && _dy == 0) continue;
+				var _qx = (((_nodes[_i].tx + _dx) mod _pn.tw) + _pn.tw) mod _pn.tw, _qy = _nodes[_i].ty + _dy;
+				if (_qy < 0 || _qy >= _pn.th) continue;
+				var _qi = _qx + _qy * _pn.tw;
+				if (_terr.ids[_qi] != _ri + 1 || _pn.elev[_qi] < _pn.sea || _isl.off[_qi]) continue;
+				var _qb = _pn.biome[_qi]; if (_qb == 0 || _qb == 1 || _qb == 11 || _qb == 25) continue;
+				var _taken = false;
+				for (var _j = 0; _j < array_length(_nodes) && !_taken; _j++) if ((_nodes[_j][$ "tx"] ?? -1) == _qx && (_nodes[_j][$ "ty"] ?? -1) == _qy) _taken = true;
+				if (_taken) continue;
+				var _qd = abs(_dx) + abs(_dy) + (hash_mix(_seed, _qi) mod 100) / 200;
+				if (_qd < _sbd) { _sbd = _qd; _stx = _qx; _sty = _qy; }
+			}
+			if (_stx < 0) continue;
+			var _sgx = (((_stx - _tmap.sx + _pn.tw + (_pn.tw div 2)) mod _pn.tw) - (_pn.tw div 2)) * _tmap.cl, _sgy = _sty - _tmap.sy;
+			array_push(_nodes, { i : array_length(_nodes), kind : "sewer", name : region_name("sewer"), x : .5 + (_sgx - _tmap.cxm) / _tmap.span * _tmap.k, y : .5 + (_sgy - _tmap.cym) / _tmap.span * _tmap.k, par : _i, kids : 0, landing : false, tx : _stx, ty : _sty, gx : _sgx, gy : _sgy });
+			array_push(_edges, { a : _i, b : array_length(_nodes) - 1, d : 0, pts : [] });
+			continue;
+		}
 		var _sok = (point_distance(_sx, _sy, _cx0, _cy0) <= _R + .02);
 		for (var _j = 0; _j < array_length(_nodes) && _sok; _j++) if (point_distance(_sx, _sy, _nodes[_j].x, _nodes[_j].y) < .05) _sok = false;
 		if (!_sok) continue;
@@ -328,6 +380,22 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			if (!is_struct(_pcr)) continue;
 			var _pti = (_ri < _pnb) ? _pcr.a : _pcr.b;
 			var _px = _pti mod _pn.tw, _py = _pti div _pn.tw;
+			// THE HARBOUR (q306; his shot: a gate in the sea at the end of a road): a water crossing's texel is the strait's - the
+			// pass stands on the region's nearest land instead (within five texels, never a river's or a crater's), the road to it
+			// a land road; the crossing itself is the boat (cross_h, the sea flag)
+			if (_pn.elev[_pti] < _pn.sea) {
+				var _hb = -1, _hbd = 1000000, _hvm = _pn[$ "vmask"];
+				for (var _dy = -5; _dy <= 5; _dy++) for (var _dx = -5; _dx <= 5; _dx++) {
+					var _hx = (((_px + _dx) mod _pn.tw) + _pn.tw) mod _pn.tw, _hy = _py + _dy;
+					if (_hy < 0 || _hy >= _pn.th) continue;
+					var _hi = _hx + _hy * _pn.tw;
+					if (_terr.ids[_hi] != _ri + 1 || _pn.elev[_hi] < _pn.sea || _isl.off[_hi]) continue;
+					var _hb2 = _pn.biome[_hi]; if (_hb2 == 1 || _hb2 == 11 || (is_array(_hvm) && _hvm[_hi] > 0)) continue;
+					var _hd = sqr(_dx * _tmap.cl) + sqr(_dy);
+					if (_hd < _hbd) { _hbd = _hd; _hb = _hi; }
+				}
+				if (_hb >= 0) { _pti = _hb; _px = _pti mod _pn.tw; _py = _pti div _pn.tw; }
+			}
 			var _pgx = (((_px - _tmap.sx + _pn.tw + (_pn.tw div 2)) mod _pn.tw) - (_pn.tw div 2)) * _tmap.cl, _pgy = _py - _tmap.sy;
 			var _pux = clamp(.5 + (_pgx - _tmap.cxm) / _tmap.span * _tmap.k, .06, .94), _puy = clamp(.5 + (_pgy - _tmap.cym) / _tmap.span * _tmap.k, .06, .94);   // (a water crossing sits past the land's box - held inside the map; bug pass q292)
 			var _pnr = 0, _pnd = 1000000;
@@ -339,7 +407,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			var _pbm = _pn.biome[_pti], _phi = (_pbm == 9 || _pbm == 10 || (is_array(_pn[$ "rlift"]) && _pn.rlift[_pti] > .06));
 			array_push(_nodes, { i : array_length(_nodes), kind : "pass", name : _pcr.boat ? "the crossing" : (_phi ? "the pass" : "the border"), x : _pux, y : _puy, par : _pnr, kids : 0, landing : false,
 			                     to : _pnb, tx : _px, ty : _py, gx : _pgx, gy : _pgy, sea : _pcr.boat, cross_h : _pcr.boat ? 3 : (_phi ? 2 : 1) });
-			array_push(_edges, { a : _pnr, b : array_length(_nodes) - 1, d : 0, pts : [], boat : _pcr.boat });
+			array_push(_edges, { a : _pnr, b : array_length(_nodes) - 1, d : 0, pts : [], boat : _pcr.boat && (_pn.elev[_pti] < _pn.sea) });   // (a land road to the harbour - q306)
 		}
 	}
 	_n = array_length(_nodes);

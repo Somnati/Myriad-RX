@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"region_islets",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"region_islets",
+  "parent":{
+    "name":"expeditions",
+    "path":"folders/game/expeditions.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

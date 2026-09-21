@@ -458,7 +458,7 @@ __lod_step = function() {
 	var _pk = tiers.pick(_pn, __lod_want() >= 3);
 	if (!is_struct(_pk)) { lod_fade = 0; return; }
 	if (_pk[$ "faded"] ?? false) { lod_fade = 1; return; }
-	lod_fade = min(1, lod_fade + delta / 24);
+	lod_fade = min(1, lod_fade + delta / 6);   // (near-instant since q306: at the ladder's rung a texel is eight pixels, and a slow crossfade between the map's coast and the tier's read as a morph)
 	if (lod_fade >= 1) _pk.faded = true;
 };
 /// THE BUILD BEHIND THE SPRITE MENU (q256): the pending world (the sheet first - it is the veil's gate), then its

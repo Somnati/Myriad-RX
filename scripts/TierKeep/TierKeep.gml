@@ -43,7 +43,7 @@ function TierKeep() constructor {
 		if (!is_undefined(_focus) && abs((cur[$ "focus_v"] ?? .5) - _focus) > .05) planet_lod_focus(cur, _focus);   // (the focus moved a twentieth of the map: the rows to come re-sorted - q270)
 		// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms; under the
 		// hand fifteen hundredths, .6 to 1.5 ms - never nothing
-		if (is_undefined(_until)) _until = get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .4, 1500, 6000));
+		if (is_undefined(_until)) _until = get_timer() + (_hand ? clamp(delta * 16667 * .15, 600, 1500) : clamp(delta * 16667 * .55, 2000, 8000));
 		planet_lod_step(_pn, cur, _until);
 	};
 	/// the build's progress for a veil, 0..1

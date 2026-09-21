@@ -19,7 +19,7 @@ function ex_planet_draw(_e, _ea, _dim) {
 	var _pr = _ocf.pr * pv_zoom;
 	var _nol = __nolanding(_d);   // (a gas giant: no spots, no region mode - q243)
 	g.planet_rshow = 1; g.planet_rsel = (pl_focus >= 0) ? pl_focus + 1 : 0;   // THE TERRITORIES on the world (q287): the tint and the borders, the picked one brighter
-	var _camd = __cam_snap(_pn, pv_cam, pv_spin, _pr, planet_cell(), pv_snap_a);   // THE POSITION SNAP (q302 / q305): the texel grid on the cell grid about the centre once the camera is still - the draw's camera, the state untouched
+	var _camd = pv_cam;   // (the phase snap - __cam_snap, q302 / q305 - retired, his call q306: "remove the camera ease"; the zoom ladder stands)
 	var _za = _nol ? 0 : clamp((pv_zoom - 2.6) / 1.2, 0, 1);   // THE REGION MAPS ON THE WORLD (q303): in from the zoom where a place has room (whole by the region rung)
 	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, _camd, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade, _za);
 	g.planet_rshow = 0;
