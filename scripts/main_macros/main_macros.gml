@@ -907,3 +907,8 @@ function main_macros() {
 #macro PLOP_DUR    .36
 #macro PLOP_LIFT   26
 #macro PLOP_HOP    3
+// THE TERRITORIES' EDGES (q297): the polar rows nobody owns (a share of the map's height each end), the land component that
+// earns a seed of its own, the reach a smaller island looks across for an owner
+#macro TERR_POLE      .07
+#macro TERR_ISLE_MIN  40
+#macro TERR_ISLE_REACH 10

@@ -834,36 +834,6 @@ void main()
                 }
             }
         }
-        // THE TERRITORIES (q287): the region under the pixel - a faint tint of its own hue on its land and its waters (the
-        // picked one brighter), and a LINE along the texel edges where two regions meet, a cell wide at any zoom (the
-        // edge's distance in texels against the cells a texel spans)
-        if (u_rshow > 0.5 && hsmp.g < 0.5) {   // (on LAND alone - never a line on a water pixel; q296)
-            vec2 rt = floor(muv * u_tsize);
-            vec4 rtx = region_tex(rt);
-            float rid = floor(rtx.r * 255.0 + 0.5);
-            if (rid > 0.5) {
-                float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
-                // THE OUTLINE (q296, his asks: enclosing, no strays, nothing in the water, the region's own colour): an edge is
-                // wherever the texel's neighbour is not this region's land or inland water - the next region's land, or the
-                // sea (region_oid: the sea is nobody's) - so every region's line closes along its coasts and its borders and
-                // never crosses a lake or a river. The colour is the region's (the sheet's green); the picked one wider and
-                // whole, the rest thin and from orbit (they fade out as the region zoom comes in, cpc 1.6 .. 3.2)
-                float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
-                vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
-                col = mix(col, rc, 0.14 * rsel);
-                vec2 rf = fract(muv * u_tsize);
-                float dmin = 9.0, ie;
-                ie = region_oid(rt + vec2(1.0, 0.0));  if (abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.x);
-                ie = region_oid(rt + vec2(-1.0, 0.0)); if (abs(ie - rid) > 0.5) dmin = min(dmin, rf.x);
-                ie = region_oid(rt + vec2(0.0, 1.0));  if (abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.y);
-                ie = region_oid(rt + vec2(0.0, -1.0)); if (abs(ie - rid) > 0.5) dmin = min(dmin, rf.y);
-                float lw = ((rsel > 0.5) ? 1.4 : 0.9) / max(cpc, 0.9);
-                if (dmin < lw) {
-                    if (rsel > 0.5) col = mix(col, rc, 0.92);
-                    else if (bfade > 0.0) col = mix(col, rc * 0.85, 0.80 * bfade);
-                }
-            }
-        }
         // THE ALTITUDE TINT (his pick, 2026-09-17): the ground's colour by its height - the valley floors a touch warmer
         // and darker, the high ground greyer and lighter (the rock's colour thins toward the sky) - so a range's
         // relief reads in colour as well as in shade. Land only; laid on before the light, an albedo like the snow
@@ -977,6 +947,38 @@ void main()
             }
         }
         col *= 1.0 - 0.9 * ecl * li;
+
+        // THE TERRITORIES (q287 / q296 / q297): the region under the pixel - the picked one's faint tint, and its OUTLINE:
+        // an edge is wherever a drawn texel's neighbour is water (the height sheet's green at the DRAWN grid - the tier's
+        // where it stands, so the line hugs the coast that is on screen, his diagnosis) or another region's land or the
+        // cap (the map's ids; the sea and the polar rows are nobody's) - so every region's line closes and never crosses
+        // a lake or a river. PAINT, not ground: after every light, the colour whole - the picked region's at full width
+        // and a half, the others thin from orbit (they fade out as the region zoom comes in, cpc 1.6 .. 3.2)
+        if (u_rshow > 0.5 && hsmp.g < 0.5) {
+            vec2 rt = floor(muv * u_tsize);
+            vec4 rtx = region_tex(rt);
+            float rid = floor(rtx.r * 255.0 + 0.5);
+            if (rid > 0.5 && rtx.b < 0.5) {
+                float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
+                float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
+                vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
+                col = mix(col, rc, 0.12 * rsel);
+                float gk = grid_k(muv);
+                vec2 ts = u_tsize * gk;
+                vec2 tt = floor(muv * ts), tf = fract(muv * ts);
+                float dmin = 9.0;
+                vec2 nt; float wn, ie;
+                nt = tt + vec2(1.0, 0.0);  wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - tf.x);
+                nt = tt + vec2(-1.0, 0.0); wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, tf.x);
+                nt = tt + vec2(0.0, 1.0);  wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - tf.y);
+                nt = tt + vec2(0.0, -1.0); wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, tf.y);
+                float lw = ((rsel > 0.5) ? 1.4 : 0.9) / max(cpc / gk, 0.9);   // (a cell and a half, or a cell, in DRAWN texels)
+                if (dmin < lw) {
+                    if (rsel > 0.5) col = rc;
+                    else if (bfade > 0.0) col = mix(col, rc, bfade);
+                }
+            }
+        }
 
         // (the AURORA moved above the decks - aurora_seg, after the cloud composite below; q205)
 

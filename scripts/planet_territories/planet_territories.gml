@@ -34,8 +34,9 @@ function planet_territories(_pn, _until = infinity) {
 		}
 		if (array_length(_seeds) == 0) for (var _i = 0; _i < _n && array_length(_seeds) == 0; _i++) if (_el[_i] >= _sea) array_push(_seeds, [_i mod _tw, _i div _tw]);
 		if (array_length(_seeds) == 0) { _pn.terr = { n : 0, ids : [], seeds : [], area : [], adj : [], ring : [], lv : [] }; return true; }   // (a world with no land at all)
+		var _prow = round(_th * TERR_POLE);   // (the polar rows: nobody's - q297)
 		for (var _t = 0; _t < _want * 40 && array_length(_seeds) < _want; _t++) {
-			var _x = floor(_h(_pn.seed, 1000 + _t * 2) * _tw), _y = floor((.06 + .88 * _h(_pn.seed, 1001 + _t * 2)) * _th), _i = _x + _y * _tw;
+			var _x = floor(_h(_pn.seed, 1000 + _t * 2) * _tw), _y = floor((TERR_POLE + .02 + (1 - 2 * (TERR_POLE + .02)) * _h(_pn.seed, 1001 + _t * 2)) * _th), _i = _x + _y * _tw;
 			if (!_okl(_bm[_i], _el[_i], _sea)) continue;
 			var _cl = max(.2, sin(pi * (_y + .5) / _th)), _ok = true;
 			for (var _k = 0; _k < array_length(_seeds) && _ok; _k++) {
@@ -44,15 +45,50 @@ function planet_territories(_pn, _until = infinity) {
 			}
 			if (_ok) array_push(_seeds, [_x, _y]);
 		}
+		// THE LANDMASSES (q297): every land component (four-connected, off the poles) - one with TERR_ISLE_MIN texels or more
+		// and no seed on it gets one at its centroid, so no island of size hangs on a stranger across the water; the walk
+		// below never crosses the sea, and the small ones join a neighbour whole (after the walk)
+		var _comp = array_create(_n, -1), _csz = [], _cx = [], _cy = [], _cfirst = [];
+		for (var _i0 = 0; _i0 < _n; _i0++) {
+			if (_comp[_i0] >= 0 || _el[_i0] < _sea) continue;
+			var _y0 = _i0 div _tw; if (_y0 < _prow || _y0 >= _th - _prow) continue;
+			var _cid = array_length(_csz), _stk = [_i0], _sz = 0, _sx = 0, _sy = 0, _x00 = _i0 mod _tw;
+			_comp[_i0] = _cid;
+			while (array_length(_stk) > 0) {
+				var _ci = array_pop(_stk), _cxx = _ci mod _tw, _cyy = _ci div _tw;
+				_sz++; _sx += ((_cxx - _x00 + _tw + (_tw div 2)) mod _tw) - (_tw div 2); _sy += _cyy;
+				var _cnb4 = [((_cxx + _tw - 1) mod _tw) + _cyy * _tw, ((_cxx + 1) mod _tw) + _cyy * _tw, (_cyy > 0) ? _ci - _tw : -1, (_cyy < _th - 1) ? _ci + _tw : -1];
+				for (var _cq = 0; _cq < 4; _cq++) {
+					var _cj = _cnb4[_cq]; if (_cj < 0 || _comp[_cj] >= 0 || _el[_cj] < _sea) continue;
+					var _cjy = _cj div _tw; if (_cjy < _prow || _cjy >= _th - _prow) continue;
+					_comp[_cj] = _cid; array_push(_stk, _cj);
+				}
+			}
+			array_push(_csz, _sz); array_push(_cx, (((_x00 + round(_sx / _sz)) mod _tw) + _tw) mod _tw); array_push(_cy, clamp(round(_sy / _sz), 0, _th - 1)); array_push(_cfirst, _i0);
+		}
+		var _cseed = array_create(array_length(_csz), false);
+		for (var _ck = 0; _ck < array_length(_seeds); _ck++) { var _sc0 = _comp[_seeds[_ck][0] + _seeds[_ck][1] * _tw]; if (_sc0 >= 0) _cseed[_sc0] = true; }
+		for (var _c0 = 0; _c0 < array_length(_csz); _c0++) {
+			if (_cseed[_c0] || _csz[_c0] < TERR_ISLE_MIN || array_length(_seeds) >= REGION_MAX) continue;
+			// the texel of the component nearest its centroid (the centroid itself may be a lake or a bay)
+			var _cbi = -1, _cbd = 1000000;
+			for (var _i1 = 0; _i1 < _n; _i1++) {
+				if (_comp[_i1] != _c0) continue;
+				var _dx1 = abs((_i1 mod _tw) - _cx[_c0]); _dx1 = min(_dx1, _tw - _dx1);
+				var _dd1 = sqr(_dx1) + sqr((_i1 div _tw) - _cy[_c0]);
+				if (_dd1 < _cbd) { _cbd = _dd1; _cbi = _i1; }
+			}
+			if (_cbi >= 0) { array_push(_seeds, [_cbi mod _tw, _cbi div _tw]); _cseed[_c0] = true; }
+		}
 		// ---- the walk's state: dial's buckets on integer costs ----
 		var _dist = array_create(_n, 1000000), _own = array_create(_n, 0), _bk = array_create(TERR_CMAX + 1, -1);
 		_bk[0] = [];
 		for (var _k = 0; _k < array_length(_seeds); _k++) { var _i = _seeds[_k][0] + _seeds[_k][1] * _tw; _dist[_i] = 0; _own[_i] = _k + 1; array_push(_bk[0], _i); }
-		_st = { seeds : _seeds, dist : _dist, own : _own, bk : _bk, c : 0, land : _land };
+		_st = { seeds : _seeds, dist : _dist, own : _own, bk : _bk, c : 0, land : _land, comp : _comp, csz : _csz, cseed : _cseed, prow : _prow };
 		_pn.terr_st = _st;
 	}
 	// ---- the walk, sliced ----
-	var _ds = _st.dist, _ow = _st.own, _bq = _st.bk, _c = _st.c;
+	var _ds = _st.dist, _ow = _st.own, _bq = _st.bk, _c = _st.c, _prw = _st.prow;
 	static _ox = [1, -1, 0, 0, 1, 1, -1, -1];
 	static _oy = [0, 0, 1, -1, 1, -1, 1, -1];
 	while (_c <= TERR_CMAX) {
@@ -63,12 +99,12 @@ function planet_territories(_pn, _until = infinity) {
 				if (_ds[_i] != _c) continue;   // (a stale entry: the texel was reached cheaper since)
 				var _x = _i mod _tw, _y = _i div _tw, _cl = max(.2, sin(pi * (_y + .5) / _th));
 				for (var _k = 0; _k < 8; _k++) {
-					var _ny = _y + _oy[_k]; if (_ny < 0 || _ny >= _th) continue;
+					var _ny = _y + _oy[_k]; if (_ny < _prw || _ny >= _th - _prw) continue;   // (never the polar rows - q297)
 					var _nx = (_x + _ox[_k] + _tw) mod _tw, _j = _nx + _ny * _tw;
+					if (_el[_j] < _sea) continue;   // (never the sea: a region ends at its coast; an island of size has a seed, a small one joins a neighbour after - q297)
 					var _base = (_k < 4) ? ((_ox[_k] != 0) ? 4 * _cl : 4) : sqrt(sqr(4 * _cl) + 16);
 					var _m = 1, _b = _bm[_j];
-					if (_el[_j] < _sea) _m = 8;
-					else if (_b == 1 || _b == 11 || _b == 9 || _b == 10) _m = 3;
+					if (_b == 1 || _b == 11 || _b == 9 || _b == 10) _m = 3;
 					else if (_b == 12 || _b == 14) _m = 2;
 					if (_m == 1 && is_array(_rl) && _rl[_j] > .06) _m = 3;
 					var _nc = _c + max(1, round(_base * _m));
@@ -84,8 +120,28 @@ function planet_territories(_pn, _until = infinity) {
 		_c++;
 		if ((_c & 15) == 0 && get_timer() >= _until) { _st.c = _c; return false; }
 	}
-	// ---- done: the waters, the borders, the neighbours, the rings, the sheet ----
-	var _sds = _st.seeds, _nr = array_length(_sds);
+	// ---- done: the islands, the waters, the borders, the neighbours, the rings, the sheet ----
+	var _sds = _st.seeds, _nr = array_length(_sds), _cmp = _st.comp, _csz2 = _st.csz, _cseed2 = _st.cseed, _prw2 = _st.prow;
+	// THE SMALL ISLANDS (q297): a landmass with no seed joins the region owning the nearest owned land within TERR_ISLE_REACH
+	// texels of ground - the whole of it to one owner; past that reach it is nobody's (a rock in the deep)
+	for (var _c1 = 0; _c1 < array_length(_csz2); _c1++) {
+		if (_cseed2[_c1]) continue;
+		var _bown = 0, _bdd = 1000000;
+		for (var _i2 = 0; _i2 < _n; _i2++) {
+			if (_cmp[_i2] != _c1) continue;
+			var _x2 = _i2 mod _tw, _y2 = _i2 div _tw, _cl2 = max(.2, sin(pi * (_y2 + .5) / _th));
+			for (var _dy2 = -TERR_ISLE_REACH; _dy2 <= TERR_ISLE_REACH; _dy2++) {
+				var _yy2 = _y2 + _dy2; if (_yy2 < 0 || _yy2 >= _th) continue;
+				for (var _dx2 = -TERR_ISLE_REACH; _dx2 <= TERR_ISLE_REACH; _dx2++) {
+					var _j2 = ((_x2 + _dx2 + _tw) mod _tw) + _yy2 * _tw;
+					if (_ow[_j2] == 0 || _cmp[_j2] == _c1) continue;
+					var _dd2 = sqr(_dx2 * _cl2) + sqr(_dy2);
+					if (_dd2 < _bdd) { _bdd = _dd2; _bown = _ow[_j2]; }
+				}
+			}
+		}
+		if (_bown > 0) for (var _i3 = 0; _i3 < _n; _i3++) if (_cmp[_i3] == _c1) _ow[_i3] = _bown;
+	}
 	var _sd = array_create(_n, 99);
 	for (var _i = 0; _i < _n; _i++) if (_el[_i] >= _sea) _sd[_i] = 0;
 	for (var _p = 1; _p <= 3; _p++) for (var _i = 0; _i < _n; _i++) {
@@ -167,7 +223,7 @@ function planet_territories(_pn, _until = infinity) {
 	for (var _k = 0; _k < _nr; _k++) _lv[_k] = (_ring[_k] < 0) ? 8 : min(8, round(_ring[_k] * 1.5));
 	var _rb = buffer_create(_n * 4, buffer_fixed, 1), _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
 	// (the sheet: red the id, green the region's hue, blue the SEA flag - the outline reads the sea as nobody's; q296)
-	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
+	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea || (_i div _tw) < _prw2 || (_i div _tw) >= _th - _prw2) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
 	if (buffer_exists(_pn[$ "rbuf"] ?? -1)) buffer_delete(_pn.rbuf);
 	_pn.rbuf = _rb; _pn.rsurf = -1;
 	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross, hue : _hue };
