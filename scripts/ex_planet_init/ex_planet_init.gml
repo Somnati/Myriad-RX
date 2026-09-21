@@ -45,6 +45,9 @@ __infl_r    = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y -
 rg_infl = false;   // THE INFLUENCE VIEW (q270, his ask): the region's ledger over the view - a tap closes it
 wn_pts = [];       // THE REGION MAPS ON THE WORLD (q303): this frame's visible places on the page [{ ri, ni, x, y, a }] - the hover, the tap and the card read them
 pv_pop = undefined;   // ...the place whose card is up { ri, ni } (region mode's tap on a place), else undefined
+wm_surf = -1;         // ...the overlay the roads and the places are baked to (q305), and the view it was baked for
+wm_stamp = "";
+pv_snap_a = 0;        // THE PHASE SNAP's ease (q305): 0 while the camera moves, to 1 once it is still - the pan is smooth, the rest is on the grid
 pv_rsc = 0;   // THE DRAWER'S ROWS SCROLLED (q295, his report: "49 regions but i can only select the first 5"): rows skipped from the top; the wheel over the drawer moves it
 rg_infl_tab = "lanes"; rg_infl_tabs = []; rg_infl_scroll = 0; rg_infl_hmax = 0;   // ...IN TABS (q286): the tab up, the pills' rects (the Draw lays them, the press reads them), the wheel's scroll and its reach
 // THE EVENTS HEADER (q285, his ask): under the region's info box - [event] the procedural event and its days, its

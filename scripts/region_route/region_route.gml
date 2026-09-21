@@ -6,7 +6,7 @@
 /// a peak three times, marsh and ice a half more, a crater or a flow never.
 /// The texel path comes back through the frame (region_place's unit) and is
 /// smoothed once (Chaikin, the ends held). Nothing rolled
-function region_route(_pn, _terr, _ri, _tm, _a, _b) {
+function region_route(_pn, _terr, _ri, _tm, _a, _b, _used = undefined) {   // (used: the texels earlier roads took - a third the cost, so a road joins one rather than cutting across; marked on the way out; q305)
 	if (!is_struct(_pn) || !is_struct(_terr) || !is_struct(_tm)) return undefined;
 	if (is_undefined(_a[$ "tx"]) || is_undefined(_b[$ "tx"])) return undefined;
 	var _tw = _pn.tw, _th = _pn.th, _n = _tw * _th, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"], _vm = _pn[$ "vmask"], _ids = _terr.ids, _id = _ri + 1;
@@ -21,7 +21,7 @@ function region_route(_pn, _terr, _ri, _tm, _a, _b) {
 	ds_map_set(_dist, _s, 0); ds_priority_add(_q, _s, 0);
 	static _ox = [1, -1, 0, 0, 1, 1, -1, -1];
 	static _oy = [0, 0, 1, -1, 1, -1, 1, -1];
-	var _found = false, _steps = 0, _hasv = is_array(_vm), _hasr = is_array(_rl);
+	var _found = false, _steps = 0, _hasv = is_array(_vm), _hasr = is_array(_rl), _hasu = is_array(_used);
 	while (!ds_priority_empty(_q) && _steps < 4000) {
 		_steps++;
 		var _i = ds_priority_delete_min(_q);
@@ -42,6 +42,7 @@ function region_route(_pn, _terr, _ri, _tm, _a, _b) {
 			var _m = 1, _bb = _bm[_j];
 			if (_bb == 1 || _bb == 11) _m = 8; else if (_bb == 9 || _bb == 10) _m = 3; else if (_bb == 12 || _bb == 14) _m = 1.5;
 			if (_m == 1 && _hasr && _rl[_j] > .06) _m = 2.2;
+			if (_hasu && _used[_j] > 0) _m *= .34;   // (an earlier road's texel: the road follows it - q305, his "roads crossing over each other")
 			var _nd = _di + _base * _m;
 			var _od = ds_map_find_value(_dist, _j);
 			if (!is_undefined(_od) && _od <= _nd) continue;
@@ -56,6 +57,7 @@ function region_route(_pn, _terr, _ri, _tm, _a, _b) {
 		var _path = [], _c = _g;
 		while (_c != _s && array_length(_path) < 4000) { array_push(_path, _c); _c = ds_map_find_value(_prev, _c); if (is_undefined(_c)) break; }
 		array_push(_path, _s);
+		if (_hasu) for (var _p = 0; _p < array_length(_path); _p++) _used[_path[_p]] = 1;
 		var _u = [];
 		for (var _p = array_length(_path) - 1; _p >= 0; _p--) {
 			var _t = _path[_p], _tx = _t mod _tw, _ty = _t div _tw;

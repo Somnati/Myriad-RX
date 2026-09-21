@@ -28,6 +28,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _mr = mat3_transpose(_mm);
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);
+	if (_built && _wmap > 0) __wm_bake(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _wmap); else { wn_pts = []; wm_stamp = ""; }   // THE REGION MAPS ON THE WORLD, baked on a view change (q305) - before the world's target
 	surface_set_target(wb_surf);
 	draw_clear_alpha(c_black, 1);
 	// the sun's occluders: the world's disc, and the moons' (the moon maths of moon_draw - an eclipse from the camera's seat, 2026-09-16)
@@ -120,7 +121,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 		draw_set_font(fnt);
 		draw_set_alpha(1);
 	}
-	if (_built && _wmap > 0) __draw_world_map(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _wmap, mouse_x - _x, mouse_y - _y);   // THE REGION MAPS ON THE WORLD (q303 / q304)
+	if (_built && _wmap > 0) __wm_draw(_d, _pn, _mr, _pcx, _pcy, _pr, _focus, _wmap, mouse_x - _x, mouse_y - _y);   // THE REGION MAPS ON THE WORLD (q303 - q305): the overlay, the crews, the hover
 	surface_reset_target();
 	ui_fade_set(_fa);
 	page_blit(wb_surf, _x, _y);   // (the one dither)
@@ -138,83 +139,119 @@ __unit_tex = function(_rg, _p) {   // a map-frame point (the map's unit square) 
 	var _gx = (_p.x - .5) * _tm.span / _tm.k + _tm.cxm, _gy = (_p.y - .5) * _tm.span / _tm.k + _tm.cym;
 	return { tx : _tm.sx + _gx / _tm.cl, ty : _tm.sy + _gy };
 };
-__wm_scr = function(_c, _tx, _ty) {   // a texel's place on the page (on its own ground - the mountains' parallax, __spot_r's law inlined), or undefined past the horizon; c = the frame's context (__draw_world_map)
-	var _lon = ((_tx + .5) / _c.tw - .5) * 360, _lat = 90 - (_ty + .5) / _c.th * 180;
-	var _cl = dcos(_lat), _t0 = _cl * dcos(_lon), _t1 = dsin(_lat), _t2 = _cl * dsin(_lon), _m = _c.mr;
-	var _vz = _m[6] * _t0 + _m[7] * _t1 + _m[8] * _t2;
-	if (_vz <= .12) return undefined;
-	var _vx = _m[0] * _t0 + _m[1] * _t1 + _m[2] * _t2, _vy = _m[3] * _t0 + _m[4] * _t1 + _m[5] * _t2;
-	var _ix = ((floor(_tx) mod _c.tw) + _c.tw) mod _c.tw, _iy = clamp(floor(_ty), 0, _c.th - 1);
-	var _rr = 1 + _c.relf * power(clamp((_c.el[_ix + _iy * _c.tw] - _c.base) / max(.001, 1 - _c.base), 0, 1), 1.6);
-	return { x : _c.pcx + floor(_vx * _rr * _c.pr / _c.pxc) * _c.pxc, y : _c.pcy + floor(_vy * _rr * _c.pr / _c.pxc) * _c.pxc, z : _vz };
-};
 __wm_icon = function(_kind, _lz, _x, _y, _col, _am) {   // the map's icon with an OUTLINE (q304, his ask): black at the four offsets under it
 	__map_icon(_kind, _lz, _x - 1, _y, c_black, _am * .9); __map_icon(_kind, _lz, _x + 1, _y, c_black, _am * .9);
 	__map_icon(_kind, _lz, _x, _y - 1, c_black, _am * .9); __map_icon(_kind, _lz, _x, _y + 1, c_black, _am * .9);
 	__map_icon(_kind, _lz, _x, _y, _col, _am);
 };
-__draw_world_map = function(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _za, _mx, _my) {
-	wn_pts = [];
-	if (_za <= .01 || !is_struct(_pn) || _pn.row < _pn.th || !is_struct(_pn[$ "terr"])) return;
-	var _pxc = max(1, planet_cell()), _kk = region_kinds(), _nrg = region_count(_d), _e = g.exped;
+__px_band = function(_x1, _y1, _x2, _y2, _col, _a) {   // a three-pixel band along a segment, centred on it (the road's under-line: one draw, q305)
+	var _len = point_distance(_x1, _y1, _x2, _y2);
+	if (_len <= 0) return;
+	var _dir = point_direction(_x1, _y1, _x2, _y2);
+	draw_sprite_ext(spr_pixel_1x1, 0, _x1 - dsin(_dir), _y1 - dcos(_dir), _len, 3, _dir, _col, _a);
+};
+/// THE REGION'S GEOMETRY FOR THE WORLD (q305): every place's and road point's direction in texture space and its ground
+/// radius (the mountains' parallax), once a region (kept on the region struct, remade if the relief knob moves) - a
+/// bake is then one matrix-vector a point
+__wm_geo = function(_pn, _rg, _bump) {
+	var _g = _rg[$ "wmc"];
+	if (is_struct(_g) && _g.bump == _bump) return _g;
+	var _tw = _pn.tw, _th = _pn.th, _el = _pn.elev, _base = max(_pn.sea, .34), _relf = planet_config().relief * max(.4, _bump);
+	var _dir = function(_tx, _ty, _tw0, _th0, _el0, _base0, _relf0) {
+		var _lon = ((_tx + .5) / _tw0 - .5) * 360, _lat = 90 - (_ty + .5) / _th0 * 180, _cl = dcos(_lat);
+		var _ix = ((floor(_tx) mod _tw0) + _tw0) mod _tw0, _iy = clamp(floor(_ty), 0, _th0 - 1);
+		var _rr = 1 + _relf0 * power(clamp((_el0[_ix + _iy * _tw0] - _base0) / max(.001, 1 - _base0), 0, 1), 1.6);
+		return [_cl * dcos(_lon) * _rr, dsin(_lat) * _rr, _cl * dsin(_lon) * _rr];
+	};
+	var _nn = [], _rr = [];
+	for (var _ni = 0; _ni < array_length(_rg.nodes); _ni++) {
+		var _nd = _rg.nodes[_ni];
+		array_push(_nn, is_undefined(_nd[$ "tx"]) ? undefined : _dir(_nd.tx, _nd.ty, _tw, _th, _el, _base, _relf));
+	}
+	for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
+		var _ed = _rg.edges[_ei], _pts = _ed[$ "pts"];
+		if (!is_array(_pts) || array_length(_pts) < 2) _pts = [_rg.nodes[_ed.a], _rg.nodes[_ed.b]];
+		var _pp = [];
+		for (var _k = 0; _k < array_length(_pts); _k++) { var _tp = __unit_tex(_rg, _pts[_k]); array_push(_pp, is_struct(_tp) ? _dir(_tp.tx, _tp.ty, _tw, _th, _el, _base, _relf) : undefined); }
+		array_push(_rr, { boat : (_ed[$ "boat"] ?? false), p : _pp });
+	}
+	var _sd = _pn.terr.seeds[_rg.ri];
+	_g = { bump : _bump, n : _nn, r : _rr, seed : _dir(_sd[0], _sd[1], _tw, _th, _el, _base, _relf) };
+	_rg.wmc = _g;
+	return _g;
+};
+__wm_pt = function(_mr, _v, _pcx, _pcy, _pr, _pxc) {   // a texture-space point (its radius in it) to the page, or undefined past the horizon
+	var _vz = _mr[6] * _v[0] + _mr[7] * _v[1] + _mr[8] * _v[2];
+	if (_vz <= .12) return undefined;
+	return { x : _pcx + floor((_mr[0] * _v[0] + _mr[1] * _v[1] + _mr[2] * _v[2]) * _pr / _pxc) * _pxc, y : _pcy + floor((_mr[3] * _v[0] + _mr[4] * _v[1] + _mr[5] * _v[2]) * _pr / _pxc) * _pxc, z : _vz };
+};
+/// THE BAKE (q305, his "still lag when i zoom in"): the roads and the places into wm_surf, only when the view changed -
+/// the matrix, the radius, the pick, the fade, the cell (wm_stamp) - and the visible places into wn_pts for the hover,
+/// the tap and the card. A region whose seed is behind the world or whose span lies off the page is skipped whole.
+/// OUTSIDE the world's surface target (a bake inside another target comes out empty - the house lesson)
+__wm_bake = function(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _za) {
+	if (!surface_exists(wm_surf) || surface_get_width(wm_surf) != _w || surface_get_height(wm_surf) != _h) { if (surface_exists(wm_surf)) surface_free(wm_surf); wm_surf = surface_create(_w, _h); wm_stamp = ""; }
+	var _pxc = max(1, planet_cell());
 	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;
-	var _c = { tw : _pn.tw, th : _pn.th, el : _pn.elev, base : max(_pn.sea, .34), relf : planet_config().relief * max(.4, _bump), mr : _mr, pcx : floor(_pcx), pcy : floor(_pcy), pr : _pr, pxc : _pxc };
-	var _ppt = 2 * pi * _pr / _pn.tw;   // (room px a map texel)
-	// THE REGIONS IN VIEW (q304, his "laggy"): a region whose seed is behind the world, or whose span lies off the page,
-	// is skipped whole - one projection a region, not one a road point
-	var _vis = [], _sds = _pn.terr.seeds;
+	var _st = string(_d.seed) + ":" + string(_focus) + ":" + string(round(_za * 100)) + ":" + string(round(_pr * 10)) + ":" + string(_pxc) + ":" + string(floor(_pcx)) + ":" + string(floor(_pcy)) + ":" + string(round(_bump * 100));
+	for (var _mi = 0; _mi < 9; _mi++) _st += ":" + string(round(_mr[_mi] * 20000));
+	if (_st == wm_stamp) return;
+	wm_stamp = _st;
+	wn_pts = [];
+	var _kk = region_kinds(), _nrg = region_count(_d), _pcxf = floor(_pcx), _pcyf = floor(_pcy);
+	var _ppt = 2 * pi * _pr / _pn.tw;
+	surface_set_target(wm_surf);
+	draw_clear_alpha(c_black, 0);
+	var _vis = [];
 	for (var _ri = 0; _ri < _nrg; _ri++) {
 		var _rg = region_get(_d, _ri);
-		if (!is_struct(_rg[$ "tmap"]) || _ri >= array_length(_sds)) continue;
-		var _s0 = __wm_scr(_c, _sds[_ri][0], _sds[_ri][1]);
+		if (!is_struct(_rg[$ "tmap"]) || _ri >= array_length(_pn.terr.seeds)) continue;
+		var _geo = __wm_geo(_pn, _rg, _bump);
+		var _s0 = __wm_pt(_mr, _geo.seed, _pcxf, _pcyf, _pr, _pxc);
 		if (is_undefined(_s0)) continue;
 		var _ext = (_rg.tmap.span * .6 + 4) * _ppt;
 		if (_s0.x < -_ext || _s0.x > _w + _ext || _s0.y < -_ext || _s0.y > _h + _ext) continue;
-		array_push(_vis, { ri : _ri, rg : _rg, fa : ((_focus < 0) ? .7 : ((_ri == _focus) ? 1 : .3)) * _za });
+		array_push(_vis, { ri : _ri, rg : _rg, geo : _geo, fa : ((_focus < 0) ? .7 : ((_ri == _focus) ? 1 : .3)) * _za });
 	}
-	var _hov = -1, _hd = 9;
-	// the roads: a dark under-line (the four offsets), the ink over it - the picked region's whole, the rest dim
+	// the roads: a dark band under, the ink over - the picked region's whole, the rest dim
 	for (var _vi = 0; _vi < array_length(_vis); _vi++) {
-		var _rg = _vis[_vi].rg, _fa = _vis[_vi].fa;
-		for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
-			var _ed = _rg.edges[_ei], _pts = _ed[$ "pts"];
-			if (!is_array(_pts) || array_length(_pts) < 2) _pts = [_rg.nodes[_ed.a], _rg.nodes[_ed.b]];
-			var _boat = (_ed[$ "boat"] ?? false), _seg = [];
-			for (var _k = 0; _k < array_length(_pts); _k++) {
-				var _tp = __unit_tex(_rg, _pts[_k]);
-				array_push(_seg, is_struct(_tp) ? __wm_scr(_c, _tp.tx, _tp.ty) : undefined);
+		var _geo = _vis[_vi].geo, _fa = _vis[_vi].fa;
+		for (var _ei = 0; _ei < array_length(_geo.r); _ei++) {
+			var _rd = _geo.r[_ei], _seg = [];
+			for (var _k = 0; _k < array_length(_rd.p); _k++) array_push(_seg, is_array(_rd.p[_k]) ? __wm_pt(_mr, _rd.p[_k], _pcxf, _pcyf, _pr, _pxc) : undefined);
+			for (var _k = 1; _k < array_length(_seg); _k++) {
+				var _p1 = _seg[_k - 1], _p2 = _seg[_k];
+				if (is_undefined(_p1) || is_undefined(_p2) || (_rd.boat && (_k mod 2 == 0))) continue;
+				__px_band(_p1.x, _p1.y, _p2.x, _p2.y, c_black, .5 * _fa);
 			}
 			for (var _k = 1; _k < array_length(_seg); _k++) {
 				var _p1 = _seg[_k - 1], _p2 = _seg[_k];
-				if (is_undefined(_p1) || is_undefined(_p2) || (_boat && (_k mod 2 == 0))) continue;
-				draw_px_line(_p1.x - 1, _p1.y, _p2.x - 1, _p2.y, c_black, .5 * _fa); draw_px_line(_p1.x + 1, _p1.y, _p2.x + 1, _p2.y, c_black, .5 * _fa);
-				draw_px_line(_p1.x, _p1.y - 1, _p2.x, _p2.y - 1, c_black, .5 * _fa); draw_px_line(_p1.x, _p1.y + 1, _p2.x, _p2.y + 1, c_black, .5 * _fa);
-			}
-			for (var _k = 1; _k < array_length(_seg); _k++) {
-				var _p1 = _seg[_k - 1], _p2 = _seg[_k];
-				if (is_undefined(_p1) || is_undefined(_p2) || (_boat && (_k mod 2 == 0))) continue;
-				draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _boat ? rgb(120, 190, 210) : rgb(236, 226, 200), (_boat ? .8 : .85) * _fa);
+				if (is_undefined(_p1) || is_undefined(_p2) || (_rd.boat && (_k mod 2 == 0))) continue;
+				draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _rd.boat ? rgb(120, 190, 210) : rgb(236, 226, 200), (_rd.boat ? .8 : .85) * _fa);
 			}
 		}
 	}
 	// the places: the map's icons outlined, the landing's flag
 	for (var _vi = 0; _vi < array_length(_vis); _vi++) {
-		var _rg = _vis[_vi].rg, _fa = _vis[_vi].fa, _ri = _vis[_vi].ri;
+		var _rg = _vis[_vi].rg, _geo = _vis[_vi].geo, _fa = _vis[_vi].fa, _ri = _vis[_vi].ri;
 		for (var _ni = 0; _ni < array_length(_rg.nodes); _ni++) {
-			var _nd = _rg.nodes[_ni];
-			if (is_undefined(_nd[$ "tx"])) continue;
-			var _sp = __wm_scr(_c, _nd.tx, _nd.ty);
+			if (is_undefined(_geo.n[_ni])) continue;
+			var _sp = __wm_pt(_mr, _geo.n[_ni], _pcxf, _pcyf, _pr, _pxc);
 			if (is_undefined(_sp)) continue;
-			var _kd = _kk[$ _nd.kind] ?? _kk.field, _lz = (_nd[$ "landing"] ?? false);
+			var _nd = _rg.nodes[_ni], _kd = _kk[$ _nd.kind] ?? _kk.field, _lz = (_nd[$ "landing"] ?? false);
 			var _la = _fa * clamp((_sp.z - .12) / .25, 0, 1);
 			if (_lz && _nd.kind != "landing") __wm_icon(_nd.kind, false, _sp.x, _sp.y, _kd.col, _la);
 			__wm_icon(_nd.kind, _lz, _sp.x + ((_lz && _nd.kind != "landing") ? 6 : 0), _sp.y - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col, _la);
 			array_push(wn_pts, { ri : _ri, ni : _ni, x : _sp.x, y : _sp.y, a : _la });
-			var _dm = point_distance(_mx, _my, _sp.x, _sp.y);
-			if (_dm < _hd && _la > .2) { _hd = _dm; _hov = array_length(wn_pts) - 1; }
 		}
 	}
-	// the crews out to this world: at their place, or along their road
+	surface_reset_target();
+};
+/// THE LIVE PART, every frame inside the world's surface (q305): the overlay blitted, the crews (they move), the hover
+__wm_draw = function(_d, _pn, _mr, _pcx, _pcy, _pr, _focus, _za, _mx, _my) {
+	if (surface_exists(wm_surf)) draw_surface(wm_surf, 0, 0);
+	var _pxc = max(1, planet_cell()), _kk = region_kinds(), _nrg = region_count(_d), _e = g.exped, _pcxf = floor(_pcx), _pcyf = floor(_pcy);
+	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;
 	for (var _t = 0; _t < array_length(_e.trips); _t++) {
 		var _tr = _e.trips[_t];
 		if (_tr.dest.seed != _d.seed) continue;
@@ -222,15 +259,21 @@ __draw_world_map = function(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _za, 
 		if (_rgi < 0 || _rgi >= _nrg) continue;
 		var _rg = region_get(_d, _rgi);
 		if (!is_struct(_rg[$ "tmap"])) continue;
-		var _cpos = clamp(_tr[$ "pos"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1), _up = _rg.nodes[_cpos];
-		if (is_struct(_tr[$ "road"])) _up = region_road_point(_rg, _tr.road.a, _tr.road.b, clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1));
-		var _tp = __unit_tex(_rg, _up);
-		var _sp = is_struct(_tp) ? __wm_scr(_c, _tp.tx, _tp.ty) : undefined;
+		var _geo = __wm_geo(_pn, _rg, _bump), _v = undefined;
+		var _cpos = clamp(_tr[$ "pos"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1);
+		if (is_struct(_tr[$ "road"])) {
+			var _up = region_road_point(_rg, _tr.road.a, _tr.road.b, clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1)), _tp = __unit_tex(_rg, _up);
+			if (is_struct(_tp)) { var _lon = ((_tp.tx + .5) / _pn.tw - .5) * 360, _lat = 90 - (_tp.ty + .5) / _pn.th * 180, _cl = dcos(_lat); _v = [_cl * dcos(_lon), dsin(_lat), _cl * dsin(_lon)]; }
+		} else _v = _geo.n[_cpos];
+		if (!is_array(_v)) continue;
+		var _sp = __wm_pt(_mr, _v, _pcxf, _pcyf, _pr, _pxc);
 		if (is_undefined(_sp)) continue;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sp.x - 3, _sp.y - 3, 6, 6, 0, c_black, .85 * _za);
 		draw_sprite_ext(spr_pixel_1x1, 0, _sp.x - 2, _sp.y - 2, 4, 4, 0, _tr.cols[0], _za);
 	}
 	// the hover: the name, the kind (and the region when it is not the picked one)
+	var _hov = -1, _hd = 9;
+	for (var _wi = 0; _wi < array_length(wn_pts); _wi++) { var _wp = wn_pts[_wi]; if (_wp.a < .2) continue; var _dm = point_distance(_mx, _my, _wp.x, _wp.y); if (_dm < _hd) { _hd = _dm; _hov = _wi; } }
 	if (_hov >= 0) {
 		var _hp = wn_pts[_hov], _hrg = region_get(_d, _hp.ri), _hnd = _hrg.nodes[_hp.ni], _hkd = _kk[$ _hnd.kind] ?? _kk.field;
 		draw_set_font(fnt_outline); draw_set_halign(fa_left); draw_set_valign(fa_top);
@@ -365,7 +408,7 @@ __zoom_snap = function(_z, _mode) {   // the nearest rung (in ratio), or the zoo
 /// texels is not all whole cells - the map's projection, not the render's. m = texture from view (planet_draw's chain);
 /// the centre ray is m . (0, 0, 1); the jacobian screen px -> texels at the centre from m's first two columns; the nudge
 /// is two small turns about the view's axes, the drag's own sign (a drag pulls the ground with the hand)
-__cam_snap = function(_pn, _cam, _spin, _pr, _pxc) {
+__cam_snap = function(_pn, _cam, _spin, _pr, _pxc, _amt = 1) {   // (amt: how much of the nudge - it eases in at rest, out at the first motion; q305: "smooth as it pans")
 	if (_pxc <= 0 || _pr < 4 || !is_struct(_pn)) return _cam;
 	var _w = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
 	var _m = mat3_mul(mat3_transpose(_w), _cam);
@@ -384,7 +427,8 @@ __cam_snap = function(_pn, _cam, _spin, _pr, _pxc) {
 	var _px = -(_j11 * _fU - _j01 * _fV) / _det, _py = -(-_j10 * _fU + _j00 * _fV) / _det;   // (the corner on the screen, px from the centre)
 	var _sx = round(_px / _pxc) * _pxc - _px, _sy = round(_py / _pxc) * _pxc - _py;         // (to the cell corner nearest it)
 	if (abs(_sx) > _pxc || abs(_sy) > _pxc) return _cam;
-	var _k = 180 / (pi * _pr);
+	if (_amt <= .001) return _cam;
+	var _k = _amt * 180 / (pi * _pr);
 	return mat3_mul(mat3_mul(_cam, mat3_rot(0, 1, 0, _sx * _k)), mat3_rot(1, 0, 0, -_sy * _k));
 };
 __lod_pick = function(_pn) { return tiers.pick(_pn, __lod_want() >= 3); };

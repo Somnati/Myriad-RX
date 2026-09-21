@@ -364,6 +364,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		}
 		return { amp : .018, n : 5, gram : "straight", rank : 1 };
 	};
+	var _rused = (is_struct(_tmap) && is_struct(_terr)) ? array_create(_pn.tw * _pn.th, 0) : undefined;   // (the texels the roads so far took - the next joins them, q305)
 	for (var _e = 0; _e < array_length(_edges); _e++) {
 		var _ed = _edges[_e];
 		var _ea = _nodes[_ed.a], _eb = _nodes[_ed.b];
@@ -407,7 +408,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		// never the sea; a land road with no land path (a joined islet) goes by boat. The bends above are still rolled and
 		// dropped, so the region's stream holds (the moods, the spot)
 		if (!(_ed[$ "boat"] ?? false) && is_struct(_tmap) && is_struct(_terr)) {
-			var _rp = region_route(_pn, _terr, _ri, _tmap, _ea, _eb);
+			var _rp = region_route(_pn, _terr, _ri, _tmap, _ea, _eb, _rused);
 			if (is_array(_rp)) _pts = _rp; else { _ed.boat = true; _pts = [ { x : _ea.x, y : _ea.y }, { x : _eb.x, y : _eb.y } ]; }
 		}
 		_ed.pts = _pts;

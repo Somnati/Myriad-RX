@@ -25,6 +25,10 @@ function ex_planet_clock() {
 	pv_zoom  = lerp(pv_zoom, _zt0, 1 - power(.88, delta));   // (the mode's pull-in x the wheel's - 2026-09-17)
 	if (abs(pv_zoom - _zt0) < .002) pv_zoom = _zt0;        // (and lands, rather than creeping under a pixel for a second - the cells would flicker)
 	pv_cfade = lerp(pv_cfade, 1 - .88 * clamp((pv_zoom - 1.2) / (PV_ZOOM_RG - 1.2), 0, 1), 1 - power(.88, delta));   // (by the ZOOM, his ask 2026-09-17: the wheel past 1.2 thins them, region mode's 1.55 is the same .12 as before)
-	pv_pfade = 1 - .75 * clamp((pv_zoom - 3.5) / 2.5, 0, 1);   // (the volcanoes' plumes hold until much closer: full to x3.5, a quarter by x6 - his ask 2026-09-17)
+	pv_pfade = 1 - .75 * clamp((pv_zoom - 3.5) / 2.5, 0, 1);
+	// THE PHASE SNAP'S EASE (q305, his ask: "smooth as it pans"): in over a third of a second once the camera is still (no
+	// hand, no glide, no face-turn, the zoom landed), out in a few frames at the first motion
+	var _still = !pv_drag && abs(pv_vx) <= .02 && abs(pv_vy) <= .02 && pv_face < 0 && abs(pv_zoom - _zt0) < .002 && !rg_leave;
+	pv_snap_a = _still ? min(1, pv_snap_a + delta / 20) : max(0, pv_snap_a - delta / 4);   // (the volcanoes' plumes hold until much closer: full to x3.5, a quarter by x6 - his ask 2026-09-17)
 	return false;
 }
