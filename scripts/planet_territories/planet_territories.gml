@@ -15,7 +15,7 @@
 function planet_territories(_pn, _until = infinity) {
 	if (is_struct(_pn[$ "terr"])) return true;
 	if (_pn.kind == "gas" || _pn.tw < 200) return true;   // (a giant has no land; a stamp hosts no regions)
-	var _tw = _pn.tw, _th = _pn.th, _n = _tw * _th, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"];
+	var _tw = _pn.tw, _th = _pn.th, _n = _tw * _th, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"], _dt = _pn[$ "det"];
 	var _st = _pn[$ "terr_st"];
 	if (!is_struct(_st)) {
 		// ---- the seeds ----
@@ -124,6 +124,9 @@ function planet_territories(_pn, _until = infinity) {
 					if (_b == 1 || _b == 11) _m = 5; else if (_b == 9 || _b == 10) _m = 3;   // (a river or a lake five times: the fronts meet at the water - q298)
 					else if (_b == 12 || _b == 14) _m = 2;
 					if (_m == 1 && is_array(_rl) && _rl[_j] > .06) _m = 3;
+					// THE SWELL (q300): the detail field under the step, x .7 .. 1.3 - a slow noise, so two fronts on a plain meander
+					// where they meet instead of running the octile bisector dead straight
+					if (is_array(_dt)) _m *= .7 + .6 * clamp(_dt[_j], 0, 1);
 					var _nc = _c + max(1, round(_base * _m));
 					if (_nc > TERR_CMAX || _nc >= _ds[_j]) continue;
 					_ds[_j] = _nc; _ow[_j] = _ow[_i];
@@ -216,6 +219,34 @@ function planet_territories(_pn, _until = infinity) {
 			if (_bo > 0) for (var _g6 = 0; _g6 < array_length(_grp); _g6++) _ids[_grp[_g6]] = _bo;
 		}
 	}
+	// ONE PIECE A REGION (q300): what the smoothing and the cones cut off a region - a texel or three past a front with no
+	// road to the seed over its own land - joins the neighbour it touches most. An islet joined whole (a landmass with no
+	// seed of its own) is a piece by design and stays
+	var _reach = array_create(_n, false), _stk7 = [];
+	for (var _k7 = 0; _k7 < _nr; _k7++) { var _s7 = _sds[_k7][0] + _sds[_k7][1] * _tw; if (_ids[_s7] == _k7 + 1) { _reach[_s7] = true; array_push(_stk7, _s7); } }
+	while (array_length(_stk7) > 0) {
+		var _g7 = array_pop(_stk7), _x7 = _g7 mod _tw, _y7 = _g7 div _tw, _v7 = _ids[_g7];
+		var _nb7 = [((_x7 + _tw - 1) mod _tw) + _y7 * _tw, ((_x7 + 1) mod _tw) + _y7 * _tw, (_y7 > 0) ? _g7 - _tw : -1, (_y7 < _th - 1) ? _g7 + _tw : -1];
+		for (var _q7 = 0; _q7 < 4; _q7++) { var _j7 = _nb7[_q7]; if (_j7 < 0 || _reach[_j7] || _el[_j7] < _sea || _ids[_j7] != _v7) continue; _reach[_j7] = true; array_push(_stk7, _j7); }
+	}
+	for (var _i7 = 0; _i7 < _n; _i7++) {
+		if (_reach[_i7] || _el[_i7] < _sea || _ids[_i7] == 0) continue;
+		var _c7 = _cmp[_i7]; if (_c7 < 0 || !_cseed2[_c7]) continue;
+		var _frag = [_i7], _fh = 0, _cnt7 = array_create(_nr + 1, 0), _v8 = _ids[_i7];
+		_reach[_i7] = true;
+		while (_fh < array_length(_frag)) {
+			var _g8 = _frag[_fh++], _x8 = _g8 mod _tw, _y8 = _g8 div _tw;
+			var _nb8 = [((_x8 + _tw - 1) mod _tw) + _y8 * _tw, ((_x8 + 1) mod _tw) + _y8 * _tw, (_y8 > 0) ? _g8 - _tw : -1, (_y8 < _th - 1) ? _g8 + _tw : -1];
+			for (var _q8 = 0; _q8 < 4; _q8++) {
+				var _j8 = _nb8[_q8]; if (_j8 < 0 || _el[_j8] < _sea) continue;
+				if (_ids[_j8] == _v8) { if (!_reach[_j8]) { _reach[_j8] = true; array_push(_frag, _j8); } }
+				else if (_ids[_j8] > 0) _cnt7[_ids[_j8]]++;
+			}
+		}
+		var _bo8 = 0, _bc8 = 0;
+		for (var _o8 = 1; _o8 <= _nr; _o8++) if (_cnt7[_o8] > _bc8) { _bc8 = _cnt7[_o8]; _bo8 = _o8; }
+		if (_bo8 > 0) for (var _f8 = 0; _f8 < array_length(_frag); _f8++) _ids[_frag[_f8]] = _bo8;
+	}
 	// THE COLOURS (q296, his ask: "a seeded region colour"): a hue a region, hashed off the world and its index - the sheet's
 	// green carries it to the shader, region_col hands the same colour to the pages
 	var _hue = array_create(_nr, 0);
@@ -292,8 +323,17 @@ function planet_territories(_pn, _until = infinity) {
 	var _lv = array_create(_nr, 0);
 	for (var _k = 0; _k < _nr; _k++) _lv[_k] = (_ring[_k] < 0) ? 8 : min(8, round(_ring[_k] * 1.5));
 	var _rb = buffer_create(_n * 4, buffer_fixed, 1), _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
-	// (the sheet: red the id, green the region's hue, blue the SEA flag - the outline reads the sea as nobody's; q296)
-	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea || (_i div _tw) < _prw2 || (_i div _tw) >= _th - _prw2) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, (_bm[_i] == 2) ? 255 : 128); }   // (alpha: the beach - never 0; q298)
+	// (the sheet: red the id, green the region's hue, blue the SEA (255) or the CAP (160) - the fronts count the sea as
+	// everyone's and the cap as nobody's (q300), alpha the COASTAL flag: a beach, or any land texel on the sea that is not a
+	// river's or a lake's - its drawn water is the sea's, so the line hugs a rock coast as it does a beach; never 0 - q298 / q300)
+	for (var _i = 0; _i < _n; _i++) {
+		var _o = _i * 4, _xs = _i mod _tw, _ys = _i div _tw, _lnd = (_el[_i] >= _sea);
+		var _cst = _lnd && (_el[((_xs + _tw - 1) mod _tw) + _ys * _tw] < _sea || _el[((_xs + 1) mod _tw) + _ys * _tw] < _sea || (_ys > 0 && _el[_i - _tw] < _sea) || (_ys < _th - 1 && _el[_i + _tw] < _sea));
+		buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]);
+		buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0);
+		buffer_poke(_rb, _o + _ob, buffer_u8, (!_lnd) ? 255 : ((_ys < _prw2 || _ys >= _th - _prw2) ? 160 : 0));
+		buffer_poke(_rb, _o + _oa, buffer_u8, (_bm[_i] == 2 || (_cst && _bm[_i] != 1 && _bm[_i] != 11)) ? 255 : 128);
+	}
 	if (buffer_exists(_pn[$ "rbuf"] ?? -1)) buffer_delete(_pn.rbuf);
 	_pn.rbuf = _rb; _pn.rsurf = -1;
 	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross, hue : _hue, names : _names };

@@ -6,7 +6,7 @@ function ex_planet_hold() {
 	var _pin = point_in_rectangle(mouse_x, mouse_y, _pvr.x, _pvr.y, _pvr.x + _pvr.w, _pvr.y + _pvr.h);
 	// THE WHEEL (his ask, 2026-09-17): closer or further, in either mode - on top of region mode's pull-in.
 	// The drag turns fewer degrees a pixel the closer you are, so the ground under the hand keeps pace with it
-	if (rg_infl) {   // (the ledger up: the wheel scrolls it, not the world - q286)
+	if (rg_infl && pv_mode == "region") {   // (the ledger up: the wheel scrolls it, not the world - q286; in region mode alone - q300)
 		if (mouse_wheel_up())   rg_infl_scroll = max(0, rg_infl_scroll - 22);
 		if (mouse_wheel_down()) rg_infl_scroll = min(rg_infl_hmax, rg_infl_scroll + 22);
 	}

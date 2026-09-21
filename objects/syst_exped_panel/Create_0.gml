@@ -448,7 +448,7 @@ __back = function() {
 		case "system": if (sy_Dt < 140) { sy_Dt = 250; play_sound_ext(snd_softclick, .95, 1.05, .4, 1); return; } __page_go(sy_from); break;   // (zoomed in on the star: [back] zooms out first - his report, q271)   // (back to the map, or the planet page it came from - 2026-09-16)
 		case "station": __page_go("system"); break;   // (the station page: back to its system - 2026-09-17)
 		case "depart": if (dp_dir == 0) __dp_leave("planet"); return;   // (the page swings out first, then the region - __dp_leave)
-		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; } else { __sy_enter(galaxy_world_sys(pl_dest).star); sy_from = "galaxy"; __page_go("system"); } break;   // (the planet -> its star system, q270 - his ask; no back button closes the panel: the X does) region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
+		case "planet": if (pv_mode == "region") { if (rg_leave) return; if (hand != "") __hand_fold(); rg_leave = true; rg_infl = false; } else { __sy_enter(galaxy_world_sys(pl_dest).star); sy_from = "galaxy"; __page_go("system"); } break;   // (the planet -> its star system, q270 - his ask; no back button closes the panel: the X does) region mode swings out -> the planet; the planet's [close] folds the panel (the hub went, 2026-09-16)
 		case "crew":   __page_go((crew_trip >= 0) ? "trip" : crew_from); crew_trip = -1; it_pop = undefined; break;
 		case "bestiary": __page_go(bs_from); break;
 		default:       __page_go("planet"); break;

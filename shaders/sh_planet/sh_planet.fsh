@@ -172,27 +172,23 @@ vec4 hmap_uv(vec2 uv)
     float m = patch_built(uv);
     return (m > 0.0) ? mix(b, texture2D(u_pheight, patch_st(uv)), m) : b;
 }
-// the territory under a map texel (q287 / q296): the sheet's texel - red the id (0 nobody's), green the region's hue,
-// blue the sea flag; u wraps, v clamps
+// the territory under a map texel (q287 / q296 / q300): the sheet's texel - red the id (0 nobody's), green the region's
+// hue, blue the SEA (255) or the CAP (160), alpha the COASTAL flag (a land texel on the sea that is not a river's or a
+// lake's - its drawn water is the sea's); u wraps, v clamps
 vec4 region_tex(vec2 t)
 {
     t.x = fract(t.x / u_tsize.x) * u_tsize.x;
     t.y = clamp(t.y, 0.0, u_tsize.y - 1.0);
     return texture2D(u_region, (t + 0.5) / u_tsize);
 }
-float region_id(vec2 t) { return floor(region_tex(t).r * 255.0 + 0.5); }
-// ...the id the OUTLINE reads (q296): the sea is nobody's, so a coast is an edge; an inland lake or river keeps its owner's, so it is not
-float region_oid(vec2 t) { vec4 r = region_tex(t); return (r.b > 0.5) ? 0.0 : floor(r.r * 255.0 + 0.5); }
-// MEMBERSHIP of a DRAWN texel in region rid (q298): its base texel's owner is rid, and it is not the sea's water - drawn
-// water on a beach texel (the sheet's alpha) is the tier's coast; on any other land texel it is the region's own
-float region_mem(vec2 dc, float rid, float gk, vec2 ts)
+float pick4(vec4 v, int k) { return (k == 0) ? v.x : ((k == 1) ? v.y : ((k == 2) ? v.z : v.w)); }
+// THE COAST FIELD at a DRAWN texel (q298 / q300): drawn land is 1; drawn water is 0 where the base texel is the sea's or
+// coastal (the tier's coast where it stands, his diagnosis), 1 inland (a pond, a river - the region's own, the pockets kept)
+float region_coast(vec2 dc, float gk, vec2 ts)
 {
-    vec2 bt = floor((dc + 0.5) / gk);
-    vec4 r = region_tex(bt);
-    if (r.b > 0.5) return 0.0;
-    if (abs(floor(r.r * 255.0 + 0.5) - rid) > 0.5) return 0.0;
-    if (r.a > 0.75 && hmap_uv((dc + 0.5) / ts).g > 0.5) return 0.0;
-    return 1.0;
+    if (hmap_uv((dc + 0.5) / ts).g < 0.5) return 1.0;
+    vec4 r = region_tex(floor((dc + 0.5) / gk));
+    return (r.b > 0.9 || r.a > 0.75) ? 0.0 : 1.0;
 }
 vec3 hsv2rgb(vec3 c)
 {
@@ -959,38 +955,56 @@ void main()
         }
         col *= 1.0 - 0.9 * ecl * li;
 
-        // THE TERRITORIES (q287 / q296 / q297): the region under the pixel - the picked one's faint tint, and its OUTLINE:
-        // an edge is wherever a drawn texel's neighbour is water (the height sheet's green at the DRAWN grid - the tier's
-        // where it stands, so the line hugs the coast that is on screen, his diagnosis) or another region's land or the
-        // cap (the map's ids; the sea and the polar rows are nobody's) - so every region's line closes and never crosses
-        // a lake or a river. PAINT, not ground: after every light, the colour whole - the picked region's wider, the rest
-        // thinner, both growing with the zoom, none fading (q299, his ask: "thicker and not fade when i zoom in close")
+        // THE TERRITORIES (q287 / q296 - q300): the region under the pixel, its faint tint when picked, and the political line.
+        // Two fields, each the .5 contour of a bilinear membership (q298's isoline): the FRONTS on the base grid - the owners
+        // at the four texel centres round the pixel, the sea counted as everyone's (the coast is the other field's), the cap
+        // nobody's - so a stair of base texels is a chamfered line at every zoom (q300; the tier's grid only chamfered the
+        // tier's texels and the base stairs stood - his "pixel warping"); and the COAST on the drawn grid (region_coast: the
+        // tier's water where it stands). The pixel's region is the corner owner whose field covers it - the chamfer's side,
+        // not the texel's - so two regions' lines meet at every corner. PAINT, not ground: after every light, the colour
+        // whole; the picked region's line wider, the rest thinner, both growing with the zoom, none fading (q299)
         if (u_rshow > 0.5 && hsmp.g < 0.5) {
-            vec2 rt = floor(muv * u_tsize);
-            vec4 rtx = region_tex(rt);
-            float rid = floor(rtx.r * 255.0 + 0.5);
-            if (rid > 0.5 && rtx.b < 0.5) {
+            vec2 pb = muv * u_tsize - 0.5;
+            vec2 pib = floor(pb), pfb = fract(pb);
+            vec4 r00 = region_tex(pib), r10 = region_tex(pib + vec2(1.0, 0.0)), r01 = region_tex(pib + vec2(0.0, 1.0)), r11 = region_tex(pib + vec2(1.0, 1.0));
+            vec4 cid = floor(vec4(r00.r, r10.r, r01.r, r11.r) * 255.0 + 0.5);
+            vec4 cbl = vec4(r00.b, r10.b, r01.b, r11.b);
+            vec4 csea = step(0.9, cbl), cpol = step(0.5, cbl) - csea;
+            vec4 chue = vec4(r00.g, r10.g, r01.g, r11.g);
+            vec4 wb = vec4((1.0 - pfb.x) * (1.0 - pfb.y), pfb.x * (1.0 - pfb.y), (1.0 - pfb.x) * pfb.y, pfb.x * pfb.y);
+            float rid = 0.0, rhue = 0.0, Fr = 0.0;
+            vec4 mr = vec4(0.0);
+            for (int k = 0; k < 4; k++) {
+                float ck = pick4(cid, k);
+                if (ck < 0.5 || pick4(csea, k) > 0.5 || pick4(cpol, k) > 0.5) continue;
+                vec4 mk = max(csea, (1.0 - cpol) * (1.0 - step(0.5, abs(cid - ck))));
+                float fk = dot(wb, mk);
+                if (fk >= 0.5) { rid = ck; mr = mk; Fr = fk; rhue = pick4(chue, k); break; }
+            }
+            if (rid > 0.5) {
                 float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
-                vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
-                col = mix(col, rc, 0.12 * rsel);
-                // THE ISOLINE (q298, his "pixel warping"): a bilinear MEMBERSHIP field over the drawn grid - is this texel the
-                // pixel's region: its base texel's owner, and not the sea's water (drawn water on a BEACH texel is the tier's
-                // coast; on any other land texel it is a river's mouth or a pond, the region's own - the tiny pockets kept) -
-                // and the line is the field's .5 contour, a width inside it: stairs become chamfers, the coast is the drawn one
+                vec3 rc = hsv2rgb(vec3(rhue, 0.60, 0.95));
+                // the front: base texels to its contour, inward positive
+                vec2 gr = vec2(mix(mr.y - mr.x, mr.w - mr.z, pfb.y), mix(mr.z - mr.x, mr.w - mr.y, pfb.x));
+                float ddr = (Fr - 0.5) / max(length(gr), 0.08);
+                // the coast: drawn texels to its contour, inward positive
                 float gk = grid_k(muv);
                 vec2 ts = u_tsize * gk;
                 vec2 pp = muv * ts - 0.5;
                 vec2 pi = floor(pp), pf = fract(pp);
-                float m00 = region_mem(pi, rid, gk, ts), m10 = region_mem(pi + vec2(1.0, 0.0), rid, gk, ts);
-                float m01 = region_mem(pi + vec2(0.0, 1.0), rid, gk, ts), m11 = region_mem(pi + vec2(1.0, 1.0), rid, gk, ts);
-                float F = mix(mix(m00, m10, pf.x), mix(m01, m11, pf.x), pf.y);
-                vec2 gF = vec2(mix(m10 - m00, m11 - m01, pf.y), mix(m01 - m00, m11 - m10, pf.x));
-                float dd = (F - 0.5) / max(length(gF), 0.08);   // (drawn texels to the contour, inward positive)
-                // THE WIDTH (q299): in screen cells, growing with the zoom - the picked region's 1.3 from orbit to 2.6 up close
-                // (cpc 1.5 .. 6), the rest 0.9 to 1.8 - and never fading: the political map holds at every zoom
-                float zw = smoothstep(1.5, 6.0, cpc);
-                float lw = ((rsel > 0.5) ? (1.3 + 1.3 * zw) : (0.9 + 0.9 * zw)) / max(cpc / gk, 0.9);
-                if (F >= 0.5 && dd < lw) col = rc;
+                vec4 mc = vec4(region_coast(pi, gk, ts), region_coast(pi + vec2(1.0, 0.0), gk, ts), region_coast(pi + vec2(0.0, 1.0), gk, ts), region_coast(pi + vec2(1.0, 1.0), gk, ts));
+                float Fc = dot(vec4((1.0 - pf.x) * (1.0 - pf.y), pf.x * (1.0 - pf.y), (1.0 - pf.x) * pf.y, pf.x * pf.y), mc);
+                vec2 gc = vec2(mix(mc.y - mc.x, mc.w - mc.z, pf.y), mix(mc.z - mc.x, mc.w - mc.y, pf.x));
+                float ddc = (Fc - 0.5) / max(length(gc), 0.08);
+                if (Fc >= 0.5) {
+                    col = mix(col, rc, 0.12 * rsel);
+                    // THE WIDTH (q299): in screen cells, growing with the zoom - the picked region's 1.3 from orbit to 2.6 up close
+                    // (cpc 1.5 .. 6), the rest 0.9 to 1.8; the nearer contour of the two sets the pixel's distance
+                    float zw = smoothstep(1.5, 6.0, cpc);
+                    float lw = (rsel > 0.5) ? (1.3 + 1.3 * zw) : (0.9 + 0.9 * zw);
+                    float dd = min(ddr * max(cpc, 0.9), ddc * max(cpc / gk, 0.9));
+                    if (dd < lw) col = rc;
+                }
             }
         }
 
