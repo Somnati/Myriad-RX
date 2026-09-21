@@ -1004,7 +1004,7 @@ dupvar	scripts\planet_ranges\planet_ranges.gml              _base _bias _hd _hi 
 dupvar	scripts\planet_rivers\planet_rivers.gml              _bk _cx _cy _dx _dy _i _k _nb _ni _ny _p false round
 dupvar	scripts\planet_signature\planet_signature.gml        _bn _d _dx _dy _e _el _i _th _xx _yy ceil sin
 dupvar	scripts\planet_sky_draw\planet_sky_draw.gml          rgb
-dupvar	scripts\planet_territories\planet_territories.gml    _a _b _b1 _b2 _bm _ck _cl _cntb _cntc _dx _el _i _j1 _j2 _k _rl _sds _sea _t _th _tw _x _y _y0 false sin
+dupvar	scripts\planet_territories\planet_territories.gml    _a _b _b1 _b2 _bm _ck _cl _cntb _cntc _dx _el _i _j1 _j2 _k _q _rl _sds _sea _t _th _tw _x _y _y0 false sin
 dupvar	scripts\planet_vn3\planet_vn3.gml                    _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_vn3a\planet_vn3a.gml                  _iy _iz _tx planet_gully_h
 dupvar	scripts\planet_volcanoes\planet_volcanoes.gml        _a _bn _bs _cl _cx _cy _dx _dy _i _k _nv _nx _ny _rad _rc _stp _th _vt sin th

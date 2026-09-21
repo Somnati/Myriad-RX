@@ -910,5 +910,5 @@ function main_macros() {
 // THE TERRITORIES' EDGES (q297): the polar rows nobody owns (a share of the map's height each end), the land component that
 // earns a seed of its own, the reach a smaller island looks across for an owner
 #macro TERR_POLE      .07
-#macro TERR_ISLE_MIN  40
-#macro TERR_ISLE_REACH 10
+#macro TERR_ISLE_MIN  12     // (an island of this many texels is its own region - q298: the caldera islet hung on the island next door at 40)
+#macro TERR_ISLE_REACH 4     // (a smaller one joins a neighbour this close alone)

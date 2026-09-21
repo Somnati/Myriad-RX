@@ -418,7 +418,7 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 		_kct[$ _nk] = (_kct[$ _nk] ?? 0) + 1;
 		if (_kct[$ _nk] > _kn) { _kn = _kct[$ _nk]; _kbest = _nk; }
 	}
-	var _rname = region_title(_kbest);
+	var _rname = (is_struct(_terr) && is_array(_terr[$ "names"]) && _ri < array_length(_terr.names) && _terr.names[_ri] != "") ? _terr.names[_ri] : region_title(_kbest);   // (the territory's own name, unique in its world - q298)
 	// THE MOOD (his ask, 2026-09-15: "a single word... war torn, peaceful,
 	// prosperous"): read off what is here
 	var _mciv = 0, _mcmp = 0, _mdun = 0, _mruin = 0, _mcity = false;

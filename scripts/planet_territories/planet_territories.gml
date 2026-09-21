@@ -71,9 +71,14 @@ function planet_territories(_pn, _until = infinity) {
 		for (var _c0 = 0; _c0 < array_length(_csz); _c0++) {
 			if (_cseed[_c0] || _csz[_c0] < TERR_ISLE_MIN || array_length(_seeds) >= REGION_MAX) continue;
 			// the texel of the component nearest its centroid (the centroid itself may be a lake or a bay)
-			var _cbi = -1, _cbd = 1000000;
+			var _cbi = -1, _cbd = 1000000, _vmk = _pn[$ "vmask"], _smk = _pn[$ "sigmask"];
 			for (var _i1 = 0; _i1 < _n; _i1++) {
 				if (_comp[_i1] != _c0) continue;
+				// (nobody starts a country in a volcano, a lake or on a peak - q298: the seed wants plain ground)
+				if (!_okl(_bm[_i1], _el[_i1], _sea)) continue;
+				if (is_array(_rl) && _rl[_i1] > .10) continue;
+				if (is_array(_vmk) && _vmk[_i1] > 0) continue;
+				if (is_array(_smk) && _smk[_i1] > 0) continue;
 				var _dx1 = abs((_i1 mod _tw) - _cx[_c0]); _dx1 = min(_dx1, _tw - _dx1);
 				var _dd1 = sqr(_dx1) + sqr((_i1 div _tw) - _cy[_c0]);
 				if (_dd1 < _cbd) { _cbd = _dd1; _cbi = _i1; }
@@ -104,7 +109,7 @@ function planet_territories(_pn, _until = infinity) {
 					if (_el[_j] < _sea) continue;   // (never the sea: a region ends at its coast; an island of size has a seed, a small one joins a neighbour after - q297)
 					var _base = (_k < 4) ? ((_ox[_k] != 0) ? 4 * _cl : 4) : sqrt(sqr(4 * _cl) + 16);
 					var _m = 1, _b = _bm[_j];
-					if (_b == 1 || _b == 11 || _b == 9 || _b == 10) _m = 3;
+					if (_b == 1 || _b == 11) _m = 5; else if (_b == 9 || _b == 10) _m = 3;   // (a river or a lake five times: the fronts meet at the water - q298)
 					else if (_b == 12 || _b == 14) _m = 2;
 					if (_m == 1 && is_array(_rl) && _rl[_j] > .06) _m = 3;
 					var _nc = _c + max(1, round(_base * _m));
@@ -182,6 +187,22 @@ function planet_territories(_pn, _until = infinity) {
 	var _hue = array_create(_nr, 0);
 	for (var _k = 0; _k < _nr; _k++) _hue[_k] = hash_mix(_pn.seed, 7000 + _k) mod 256;
 	var _adj = array_create(_nr * _nr, false), _area = array_create(_nr, 0), _bord = array_create(_n, 0);
+	// THE NAMES (q298, his report: two "green country"s): dealt here from the ground a territory mostly is, unique in the world
+	static _lwords = ["field", "forest", "hills", "marsh", "desert", "mountains", "coast", "tundra", "isle"];
+	var _landword = function(_b) {
+		switch (_b) {
+			case 4: case 21: return 0;
+			case 5: case 6: case 22: return 1;
+			case 23: case 15: case 16: case 17: return 2;
+			case 12: return 3;
+			case 3: case 13: case 24: return 4;
+			case 9: case 10: case 18: return 5;
+			case 2: return 6;
+			case 7: case 8: case 14: return 7;
+		}
+		return -1;
+	};
+	var _tally = array_create(_nr * 9, 0);
 	// THE CROSSINGS (q291): for every pair of neighbours the best texel pair on their border - both on land if it can be
 	// (a boat where the border runs through water), off the peaks, near the line between the two seeds - the passes
 	// stand on it (region_gen). Keyed "a:b" with a < b (region indices); ta in a, tb in b
@@ -201,7 +222,7 @@ function planet_territories(_pn, _until = infinity) {
 	};
 	for (var _i = 0; _i < _n; _i++) {
 		var _a = _ids[_i]; if (_a == 0) continue;
-		if (_el[_i] >= _sea) _area[_a - 1]++;
+		if (_el[_i] >= _sea) { _area[_a - 1]++; var _lw0 = _landword(_bm[_i]); if (_lw0 >= 0) _tally[(_a - 1) * 9 + _lw0]++; }   // (the ground it mostly is, for its name - q298)
 		var _x = _i mod _tw, _y = _i div _tw;
 		var _j1 = ((_x + 1) mod _tw) + _y * _tw, _j2 = (_y < _th - 1) ? _i + _tw : -1;
 		var _b1 = _ids[_j1];
@@ -216,6 +237,21 @@ function planet_territories(_pn, _until = infinity) {
 			if (!is_struct(_cc2) || _cs2 < _cc2.s) _cross[$ _ck2] = { a : (_a < _b2) ? _i : _j2, b : (_a < _b2) ? _j2 : _i, boat : !(_el[_i] >= _sea && _el[_j2] >= _sea), s : _cs2 };
 		} }
 	}
+	var _names = array_create(_nr, ""), _rs0 = random_get_seed();
+	for (var _k = 0; _k < _nr; _k++) {
+		var _bw = 0, _bc = -1;
+		for (var _w = 0; _w < 9; _w++) if (_tally[_k * 9 + _w] > _bc) { _bc = _tally[_k * 9 + _w]; _bw = _w; }
+		random_set_seed((_pn.seed ^ (8100 + _k * 7919)) & $7fffffff);
+		var _nm = "";
+		for (var _try = 0; _try < 8; _try++) {
+			_nm = region_title(_lwords[_bw]);
+			var _dup = false;
+			for (var _q = 0; _q < _k; _q++) if (_names[_q] == _nm) _dup = true;
+			if (!_dup) break;
+		}
+		_names[_k] = _nm;
+	}
+	rng_release(_rs0);
 	var _ring = array_create(_nr, -1); _ring[0] = 0;
 	var _qq = [0], _qh = 0;
 	while (_qh < array_length(_qq)) { var _a = _qq[_qh++]; for (var _b3 = 0; _b3 < _nr; _b3++) if (_adj[_a * _nr + _b3] && _ring[_b3] < 0) { _ring[_b3] = _ring[_a] + 1; array_push(_qq, _b3); } }
@@ -223,10 +259,10 @@ function planet_territories(_pn, _until = infinity) {
 	for (var _k = 0; _k < _nr; _k++) _lv[_k] = (_ring[_k] < 0) ? 8 : min(8, round(_ring[_k] * 1.5));
 	var _rb = buffer_create(_n * 4, buffer_fixed, 1), _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
 	// (the sheet: red the id, green the region's hue, blue the SEA flag - the outline reads the sea as nobody's; q296)
-	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea || (_i div _tw) < _prw2 || (_i div _tw) >= _th - _prw2) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
+	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea || (_i div _tw) < _prw2 || (_i div _tw) >= _th - _prw2) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, (_bm[_i] == 2) ? 255 : 128); }   // (alpha: the beach - never 0; q298)
 	if (buffer_exists(_pn[$ "rbuf"] ?? -1)) buffer_delete(_pn.rbuf);
 	_pn.rbuf = _rb; _pn.rsurf = -1;
-	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross, hue : _hue };
+	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross, hue : _hue, names : _names };
 	_pn.terr_st = undefined;
 	return true;
 }

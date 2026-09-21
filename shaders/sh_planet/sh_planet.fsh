@@ -183,6 +183,17 @@ vec4 region_tex(vec2 t)
 float region_id(vec2 t) { return floor(region_tex(t).r * 255.0 + 0.5); }
 // ...the id the OUTLINE reads (q296): the sea is nobody's, so a coast is an edge; an inland lake or river keeps its owner's, so it is not
 float region_oid(vec2 t) { vec4 r = region_tex(t); return (r.b > 0.5) ? 0.0 : floor(r.r * 255.0 + 0.5); }
+// MEMBERSHIP of a DRAWN texel in region rid (q298): its base texel's owner is rid, and it is not the sea's water - drawn
+// water on a beach texel (the sheet's alpha) is the tier's coast; on any other land texel it is the region's own
+float region_mem(vec2 dc, float rid, float gk, vec2 ts)
+{
+    vec2 bt = floor((dc + 0.5) / gk);
+    vec4 r = region_tex(bt);
+    if (r.b > 0.5) return 0.0;
+    if (abs(floor(r.r * 255.0 + 0.5) - rid) > 0.5) return 0.0;
+    if (r.a > 0.75 && hmap_uv((dc + 0.5) / ts).g > 0.5) return 0.0;
+    return 1.0;
+}
 vec3 hsv2rgb(vec3 c)
 {
     vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
@@ -963,17 +974,21 @@ void main()
                 float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
                 vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
                 col = mix(col, rc, 0.12 * rsel);
+                // THE ISOLINE (q298, his "pixel warping"): a bilinear MEMBERSHIP field over the drawn grid - is this texel the
+                // pixel's region: its base texel's owner, and not the sea's water (drawn water on a BEACH texel is the tier's
+                // coast; on any other land texel it is a river's mouth or a pond, the region's own - the tiny pockets kept) -
+                // and the line is the field's .5 contour, a width inside it: stairs become chamfers, the coast is the drawn one
                 float gk = grid_k(muv);
                 vec2 ts = u_tsize * gk;
-                vec2 tt = floor(muv * ts), tf = fract(muv * ts);
-                float dmin = 9.0;
-                vec2 nt; float wn, ie;
-                nt = tt + vec2(1.0, 0.0);  wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - tf.x);
-                nt = tt + vec2(-1.0, 0.0); wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, tf.x);
-                nt = tt + vec2(0.0, 1.0);  wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - tf.y);
-                nt = tt + vec2(0.0, -1.0); wn = hmap_uv((nt + 0.5) / ts).g; ie = region_oid(floor((nt + 0.5) / gk)); if (wn > 0.5 || abs(ie - rid) > 0.5) dmin = min(dmin, tf.y);
-                float lw = ((rsel > 0.5) ? 1.4 : 0.9) / max(cpc / gk, 0.9);   // (a cell and a half, or a cell, in DRAWN texels)
-                if (dmin < lw) {
+                vec2 pp = muv * ts - 0.5;
+                vec2 pi = floor(pp), pf = fract(pp);
+                float m00 = region_mem(pi, rid, gk, ts), m10 = region_mem(pi + vec2(1.0, 0.0), rid, gk, ts);
+                float m01 = region_mem(pi + vec2(0.0, 1.0), rid, gk, ts), m11 = region_mem(pi + vec2(1.0, 1.0), rid, gk, ts);
+                float F = mix(mix(m00, m10, pf.x), mix(m01, m11, pf.x), pf.y);
+                vec2 gF = vec2(mix(m10 - m00, m11 - m01, pf.y), mix(m01 - m00, m11 - m10, pf.x));
+                float dd = (F - 0.5) / max(length(gF), 0.08);   // (drawn texels to the contour, inward positive)
+                float lw = ((rsel > 0.5) ? 1.3 : 0.8) / max(cpc / gk, 0.9);
+                if (F >= 0.5 && dd < lw) {
                     if (rsel > 0.5) col = rc;
                     else if (bfade > 0.0) col = mix(col, rc, bfade);
                 }

@@ -37,7 +37,8 @@ function region_title(_kind) {
 	if (_form < 60) return _up + "'s " + _lw;
 	if (_form < 72) return _up + choose("shire", "land", "mark", "wold", "moor", "fold", "reach", "dale", "combe", "holm");
 	if (_form < 80) return "the " + choose("three", "five", "seven", "nine", "twelve", "hundred") + " " + _lw;
-	if (_form < 88) return "the " + choose("grey", "green", "red", "white", "black", "gold", "brown", "blue", "silver", "amber") + " country";
+	if (_form < 82) return "the " + choose("grey", "green", "red", "white", "black", "gold", "brown", "blue", "silver", "amber", "pale", "dun", "russet", "ashen") + " country";   // (one form in fifty - two "green country"s on one world, his report; q298)
+	if (_form < 88) return _up + " " + choose("under", "over", "beyond", "by", "before", "across", "behind") + " the " + _lw;
 	if (_form < 94) return "the " + _adj + " " + _lw + " of " + _up;
 	return _up + " " + choose("under", "over", "beyond", "by", "before") + " the " + _lw;
 }
