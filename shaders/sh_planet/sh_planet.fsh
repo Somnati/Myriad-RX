@@ -201,6 +201,23 @@ float grid_k(vec2 uv)
 {
     return (patch_built(uv) > 0.5) ? u_pk : 1.0;
 }
+// THE WOODS AS A FIELD (q310, his "weird blocky textures"): the height sheet's blue read at the four drawn texels round
+// the point and blended - a wood's edge is a slope a texel wide, not a step; under water the blue is the depth, so a
+// water texel reads as no wood
+float wood_field(vec2 uv)
+{
+    float gk = grid_k(uv);
+    vec2 ts = u_tsize * gk;
+    vec2 pp = uv * ts - 0.5;
+    vec2 pi = floor(pp), pf = fract(pp);
+    vec4 h00 = hmap_uv(vec2(fract((pi.x + 0.5) / ts.x), clamp((pi.y + 0.5) / ts.y, 0.0, 1.0)));
+    vec4 h10 = hmap_uv(vec2(fract((pi.x + 1.5) / ts.x), clamp((pi.y + 0.5) / ts.y, 0.0, 1.0)));
+    vec4 h01 = hmap_uv(vec2(fract((pi.x + 0.5) / ts.x), clamp((pi.y + 1.5) / ts.y, 0.0, 1.0)));
+    vec4 h11 = hmap_uv(vec2(fract((pi.x + 1.5) / ts.x), clamp((pi.y + 1.5) / ts.y, 0.0, 1.0)));
+    float w00 = (h00.g > 0.5) ? 0.0 : h00.b, w10 = (h10.g > 0.5) ? 0.0 : h10.b;
+    float w01 = (h01.g > 0.5) ? 0.0 : h01.b, w11 = (h11.g > 0.5) ? 0.0 : h11.b;
+    return mix(mix(w00, w10, pf.x), mix(w01, w11, pf.x), pf.y);
+}
 
 float height_at(vec3 n)
 {
@@ -452,11 +469,19 @@ float hash12(vec2 p)
 // THE CANOPY AT A POINT (q273 / q280): open (a clearing) or closed - the clump noise at the point (pt, in base
 // texels) on the base map's grid over four (the same clearings at every tier and zoom), the micro-cell's hash
 // roughening its edge, a thin canopy (fo) opening wider. The pixel's own test and the floor's shadow read through this
+float vnoise2(vec2 cl, float salt)
+{
+    vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
+    return mix(mix(hash12(ci + salt), hash12(ci + vec2(1.0, 0.0) + salt), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + salt), hash12(ci + vec2(1.0, 1.0) + salt), cf.x), cf.y);
+}
 float canopy_open(vec2 pt, vec2 cell, float fo)
 {
+    // THE CLUMPS (q310; his shot: "weird blocky textures" - one octave of value noise on a four-texel lattice, thresholded,
+    // and separable value noise's contours run the lattice's lines: every clearing a box): two octaves, the second on a
+    // lattice turned 37 degrees at half the size - the clearings' edges share no axis with the map
     vec2 cl = pt / 4.0;
-    vec2 ci = floor(cl); vec2 cf = fract(cl); cf = cf * cf * (3.0 - 2.0 * cf);
-    float vn = mix(mix(hash12(ci + 7.1), hash12(ci + vec2(1.0, 0.0) + 7.1), cf.x), mix(hash12(ci + vec2(0.0, 1.0) + 7.1), hash12(ci + vec2(1.0, 1.0) + 7.1), cf.x), cf.y);
+    vec2 cr = vec2(cl.x * 0.7986 - cl.y * 0.6018, cl.x * 0.6018 + cl.y * 0.7986) * 1.9 + 3.3;
+    float vn = 0.62 * vnoise2(cl, 7.1) + 0.38 * vnoise2(cr, 2.7);
     return vn + (hash12(cell + 0.5) - 0.5) * 0.3 + (1.0 - fo) * 0.4;
 }
 
@@ -764,7 +789,7 @@ void main()
         // THE CANOPY (2026-09-17, his ask: "give forest biomes a grainy texture ... a parallax forest noise above it
         // with a darker shade of grass below it"): the height map's blue marks the woods. A swamp's canopy is thinner
         // (its blue lower). The look is q278's pixel forest, below
-        float fo = (hsmp.g > 0.5) ? 0.0 : hsmp.b;   // (under water the blue is the depth, not the woods)
+        float fo = (hsmp.g > 0.5) ? 0.0 : wood_field(muv);   // (under water the blue is the depth, not the woods; a FIELD across the drawn texels since q310 - a wood's edge is a slope)
         // THE GRAIN FOREST (q280; his ask: "single pixel with smooth noise so as to differ from other terrain textures" -
         // q278's dots were two cells wide and their lattice showed). A wood is a GRAIN: every screen cell reads ONE
         // micro-cell of the map (a hash grid at 2^n texels, the octave picked so a micro-cell is .7-1.4 screen cells
@@ -795,7 +820,8 @@ void main()
             // the micro-cell: the octave of the texel grid nearest one screen cell
             float K = exp2(floor(log2(max(cpc, 1.0)) + 0.5));
             vec2 mg = floor(ptx * K);
-            if (canopy_open(ptx, mg, fo) > 0.36) {
+            float fw = smoothstep(0.08, 0.55, fo);   // (the wood's weight at the point: the grain and the floor fade in over its edge - q310)
+            if (canopy_open(ptx, mg, fo) > 0.40) {
                 // the swell, and its slope toward the sun
                 float sw = vn2a(ptx / 3.0 + 41.7);
                 float sws = vn2a((ptx + ld2 * 0.75) / 3.0 + 41.7);
@@ -803,13 +829,13 @@ void main()
                 float den = 0.28 + 0.40 * sw;
                 float lit = step(hash12(mg + 0.5), den);
                 float tone = mix(0.80 + 0.10 * (sw - 0.5), 1.22 + 0.10 * (sw - 0.5), lit) * sunk;
-                col *= mix(1.0, tone, tk);
+                col *= mix(1.0, tone, tk * fw);
             } else {
                 // a clearing: the floor, in the shade of the canopy toward the sun if one stands there
                 vec3 floorc = mix(col * 0.5, u_grass * 0.5, 0.7);
                 vec2 npt = ptx + ld2 * 0.6;
-                if (elc > 0.0 && canopy_open(npt, floor(npt * K), fo) > 0.36) floorc *= mix(0.5, 0.92, elc);
-                col = floorc;
+                if (elc > 0.0 && canopy_open(npt, floor(npt * K), fo) > 0.40) floorc *= mix(0.5, 0.92, elc);
+                col = mix(col, floorc, fw);
             }
         } else if (hsmp.g < 0.5 && tk > 0.0 && elc > 0.0) {
             // THE WOOD'S SHADOW RIM (q278): bare ground with a wood half a texel toward the sun lies in its shadow - the
@@ -820,8 +846,9 @@ void main()
             if (lg > 1.0e-6) {
                 vec2 ruv = muv + ldg / lg * (0.5 / u_tsize);
                 ruv.x = fract(ruv.x); ruv.y = clamp(ruv.y, 0.0, 1.0);
-                vec4 hs2 = hmap_uv(ruv);
-                if (hs2.g < 0.5 && hs2.b > 0.05) col *= mix(1.0, 0.76, tk);
+                // (graded by the woods FIELD there, not a texel's flag - the rim was a band of whole texels along every edge; q310)
+                float wr = wood_field(ruv);
+                if (wr > 0.05) col *= mix(1.0, 1.0 - 0.24 * smoothstep(0.05, 0.7, wr), tk);
             }
         }
         // THE SEA'S DEPTH (his ask, 2026-09-17: "smooth blending between its depth layers"): under water the height
