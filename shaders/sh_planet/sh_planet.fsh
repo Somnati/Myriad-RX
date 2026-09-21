@@ -838,8 +838,12 @@ void main()
             float rid = region_id(rt);
             if (rid > 0.5) {
                 float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
+                // (q295, his screenshot: "weird lines... random... kinda everywhere" - a border a cell wide at the region zoom reads
+                // as a scratch, and a tenth of a hue reads as nothing. The political map is for ORBIT: thin dark lines that fade out
+                // as the region zoom comes in (cpc 1.6 .. 3.2); up close only the PICKED region keeps its gold outline and tint)
+                float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
                 vec3 rc = hsv2rgb(vec3(fract(rid * 0.618034), 0.55, 0.95));
-                col = mix(col, rc, 0.10 + 0.12 * rsel);
+                col = mix(col, rc, 0.16 * rsel);
                 vec2 rf = fract(muv * u_tsize);
                 float dmin = 9.0, ie;
                 ie = region_id(rt + vec2(1.0, 0.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.x);
@@ -847,7 +851,10 @@ void main()
                 ie = region_id(rt + vec2(0.0, 1.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.y);
                 ie = region_id(rt + vec2(0.0, -1.0)); if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, rf.y);
                 float lw = 0.9 / max(cpc, 0.9);
-                if (dmin < lw) col = mix(col, (rsel > 0.5) ? vec3(1.0, 0.85, 0.35) : vec3(0.95, 0.95, 0.90), (rsel > 0.5) ? 0.85 : 0.6);
+                if (dmin < lw) {
+                    if (rsel > 0.5) col = mix(col, vec3(1.0, 0.85, 0.35), 0.85);
+                    else if (bfade > 0.0) col = mix(col, col * 0.40, 0.75 * bfade);
+                }
             }
         }
         // THE ALTITUDE TINT (his pick, 2026-09-17): the ground's colour by its height - the valley floors a touch warmer

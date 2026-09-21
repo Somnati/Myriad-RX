@@ -10,6 +10,10 @@ function ex_planet_hold() {
 		if (mouse_wheel_up())   rg_infl_scroll = max(0, rg_infl_scroll - 22);
 		if (mouse_wheel_down()) rg_infl_scroll = min(rg_infl_hmax, rg_infl_scroll + 22);
 	}
+	else if (pv_dwa > .5 && pv_dtab == 0 && mouse_x >= __pv_dw_x() && mouse_y < room_height - 30) {   // (the drawer's rows: the wheel scrolls them - q295)
+		if (mouse_wheel_up())   pv_rsc = max(0, pv_rsc - 1);
+		if (mouse_wheel_down()) pv_rsc = pv_rsc + 1;   // (the draw clamps it to the list)
+	}
 	else if (_pin && !__pv_ui_hit()) {
 		// (the wheel's reach is the TOTAL zoom's: in region mode - x PV_ZOOM_RG, five now - it may come out to the whole planet
 		// (x1.3 total) and in to the same ceiling as the planet view's - q269)

@@ -172,11 +172,12 @@ function ex_planet_draw(_e, _ea, _dim) {
 		}
 		var _kk = region_kinds();
 		if (pv_dtab == 0 && _nol) { var _nr0 = __pv_row_r(0); draw_set_color(c_horange); draw_set_alpha(.75 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 6, "no landing"); draw_set_color(_dim); draw_set_alpha(.6 * pv_dwa); draw_text(_nr0.x + 4, _nr0.y + 18, "a gas giant has no ground"); draw_set_alpha(1); }
-		var _rlist = __pv_row_list(_d), _rshown = 0;   // (the rows: the picked, the crews', the gate, the rest - as many as fit; q287)
-		if (pv_dtab == 0 && !_nol) for (var _ik = 0; _ik < array_length(_rlist); _ik++) {
+		var _rlist = __pv_row_list(_d), _rshown = 0, _rfit = __pv_rows_fit();   // (the rows: the picked, the crews', the gate, the rest - scrolled by the wheel; q287 / q295)
+		pv_rsc = clamp(pv_rsc, 0, max(0, array_length(_rlist) - _rfit));
+		if (pv_dtab == 0 && !_nol) for (var _ik = pv_rsc; _ik < array_length(_rlist); _ik++) {
 			var _i = _rlist[_ik];
 			var _rg = region_get(_d, _i);
-			var _rr = __pv_row_r(_ik);
+			var _rr = __pv_row_r(_ik - pv_rsc);
 			if (_rr.y + _rr.h > room_height - 32) break;
 			_rshown++;
 			var _nciv = 0, _ndun = 0, _ncmp = 0, _nlnd = 0;
@@ -206,7 +207,17 @@ function ex_planet_draw(_e, _ea, _dim) {
 			for (var _t = 0; _t < array_length(_e.trips); _t++) if (_e.trips[_t].dest.seed == _d.seed && (_e.trips[_t][$ "rgi"] ?? 0) == _i) _out++;
 			if (_out > 0) { draw_set_halign(fa_right); draw_set_color(c_steelblue); draw_set_alpha(.9); draw_text(_rr.x + _rr.w - 5, _rr.y + 13, string(_out) + " out"); draw_set_halign(fa_left); }
 		}
-		if (pv_dtab == 0 && !_nol) { draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa); draw_text(_dwx + 13, list_y + 48 + _rshown * 26 + 2, (array_length(_rlist) > _rshown) ? (string(array_length(_rlist)) + " regions - tap the world to pick one") : "tap a row: the world turns to it"); }
+		if (pv_dtab == 0 && !_nol) {
+			draw_set_color(_dim); draw_set_alpha(.5 * pv_dwa);
+			draw_text(_dwx + 13, list_y + 48 + _rshown * 26 + 2, (array_length(_rlist) > _rfit) ? (string(array_length(_rlist)) + " regions - wheel to scroll, or tap the world") : "tap a row: the world turns to it");
+			// THE SCROLL'S BAR (q295): a thin track down the drawer's right edge, the thumb where the rows stand in the list
+			if (array_length(_rlist) > _rfit) {
+				var _sbx = room_width - 4, _sby = list_y + 48, _sbh = _rfit * 26 - 2;
+				draw_sprite_ext(spr_pixel_1x1, 0, _sbx, _sby, 2, _sbh, 0, c_black, .6 * pv_dwa);
+				var _thh = max(6, _sbh * _rfit / array_length(_rlist)), _thy = _sby + (_sbh - _thh) * (pv_rsc / max(1, array_length(_rlist) - _rfit));
+				draw_sprite_ext(spr_pixel_1x1, 0, _sbx, _thy, 2, _thh, 0, c_gold, .8 * pv_dwa);
+			}
+		}
 		// THE EXPEDITIONS (the hub's list, moved into the drawer - his call, 2026-09-16; its own tab since): hauls home first, then the trips out; a row each, tap for its page
 		var _nl = (pv_dtab == 1) ? (array_length(_e.hauls) + array_length(_e.trips)) : 0;
 		for (var _k = 0; _k < _nl; _k++) {

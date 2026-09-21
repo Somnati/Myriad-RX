@@ -22,6 +22,7 @@ __pv_dtab_r = function(_i) { var _w = floor((__pv_dw_w() - 8 - 3) / 2); return {
 __pv_row_r = function(_i) { return { x : __pv_dw_x() + 13, y : list_y + 48 + _i * 26, w : __pv_dw_w() - 8, h : 24 }; };
 // THE DRAWER'S REGION ROWS (q287): with a world cut into dozens the rows are the picked region, the ones with crews out,
 // the gate, then the rest by index - as many as fit (the draw and the press walk the same list; a row's slot is its place in it)
+__pv_rows_fit = function() { return max(1, floor((room_height - 32 - (list_y + 48)) / 26)); };   // (how many rows the drawer shows - q295)
 __pv_row_list = function(_d) {
 	var _l = [], _nr = region_count(_d);
 	if (pl_focus >= 0 && pl_focus < _nr) array_push(_l, pl_focus);
@@ -42,6 +43,7 @@ __explore_r = function() { var _w = land ? 96 : 60; return { x : room_width - (l
 __quests_r  = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 20, w : _x.w, h : 16 }; };
 __infl_r    = function() { var _x = __explore_r(); return { x : _x.x, y : _x.y - 40, w : _x.w, h : 16 }; };   // [influence] over [quests] (q270)
 rg_infl = false;   // THE INFLUENCE VIEW (q270, his ask): the region's ledger over the view - a tap closes it
+pv_rsc = 0;   // THE DRAWER'S ROWS SCROLLED (q295, his report: "49 regions but i can only select the first 5"): rows skipped from the top; the wheel over the drawer moves it
 rg_infl_tab = "lanes"; rg_infl_tabs = []; rg_infl_scroll = 0; rg_infl_hmax = 0;   // ...IN TABS (q286): the tab up, the pills' rects (the Draw lays them, the press reads them), the wheel's scroll and its reach
 // THE EVENTS HEADER (q285, his ask): under the region's info box - [event] the procedural event and its days, its
 // consequence under it, then [crews] the region's news (the crews' deeds) beside it. Skipped when the fold leaves no room
