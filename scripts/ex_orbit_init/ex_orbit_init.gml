@@ -120,7 +120,7 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 		draw_set_font(fnt);
 		draw_set_alpha(1);
 	}
-	if (_built && _wmap > 0) __draw_world_map(_d, _pn, _mr, _pcx, _pcy, _pr, _focus, _wmap, mouse_x - _x, mouse_y - _y);   // THE REGION MAPS ON THE WORLD (q303)
+	if (_built && _wmap > 0) __draw_world_map(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _wmap, mouse_x - _x, mouse_y - _y);   // THE REGION MAPS ON THE WORLD (q303 / q304)
 	surface_reset_target();
 	ui_fade_set(_fa);
 	page_blit(wb_surf, _x, _y);   // (the one dither)
@@ -138,50 +138,77 @@ __unit_tex = function(_rg, _p) {   // a map-frame point (the map's unit square) 
 	var _gx = (_p.x - .5) * _tm.span / _tm.k + _tm.cxm, _gy = (_p.y - .5) * _tm.span / _tm.k + _tm.cym;
 	return { tx : _tm.sx + _gx / _tm.cl, ty : _tm.sy + _gy };
 };
-__node_scr = function(_pn, _mr, _pcx, _pcy, _pr, _tx, _ty, _pxc) {   // a texel's place on the page (on its own ground - the mountains' parallax), or undefined past the horizon
-	var _lon = ((_tx + .5) / _pn.tw - .5) * 360, _lat = 90 - (_ty + .5) / _pn.th * 180;
-	var _t = __spot_dir(_lon, _lat);
-	var _v = mat3_apply(_mr, _t[0], _t[1], _t[2]);
-	if (_v[2] <= .12) return undefined;
-	var _rr = __spot_r(_pn, _lon, _lat);
-	return { x : floor(_pcx) + floor(_v[0] * _rr * _pr / _pxc) * _pxc, y : floor(_pcy) + floor(_v[1] * _rr * _pr / _pxc) * _pxc, z : _v[2] };
+__wm_scr = function(_c, _tx, _ty) {   // a texel's place on the page (on its own ground - the mountains' parallax, __spot_r's law inlined), or undefined past the horizon; c = the frame's context (__draw_world_map)
+	var _lon = ((_tx + .5) / _c.tw - .5) * 360, _lat = 90 - (_ty + .5) / _c.th * 180;
+	var _cl = dcos(_lat), _t0 = _cl * dcos(_lon), _t1 = dsin(_lat), _t2 = _cl * dsin(_lon), _m = _c.mr;
+	var _vz = _m[6] * _t0 + _m[7] * _t1 + _m[8] * _t2;
+	if (_vz <= .12) return undefined;
+	var _vx = _m[0] * _t0 + _m[1] * _t1 + _m[2] * _t2, _vy = _m[3] * _t0 + _m[4] * _t1 + _m[5] * _t2;
+	var _ix = ((floor(_tx) mod _c.tw) + _c.tw) mod _c.tw, _iy = clamp(floor(_ty), 0, _c.th - 1);
+	var _rr = 1 + _c.relf * power(clamp((_c.el[_ix + _iy * _c.tw] - _c.base) / max(.001, 1 - _c.base), 0, 1), 1.6);
+	return { x : _c.pcx + floor(_vx * _rr * _c.pr / _c.pxc) * _c.pxc, y : _c.pcy + floor(_vy * _rr * _c.pr / _c.pxc) * _c.pxc, z : _vz };
 };
-__draw_world_map = function(_d, _pn, _mr, _pcx, _pcy, _pr, _focus, _za, _mx, _my) {
+__wm_icon = function(_kind, _lz, _x, _y, _col, _am) {   // the map's icon with an OUTLINE (q304, his ask): black at the four offsets under it
+	__map_icon(_kind, _lz, _x - 1, _y, c_black, _am * .9); __map_icon(_kind, _lz, _x + 1, _y, c_black, _am * .9);
+	__map_icon(_kind, _lz, _x, _y - 1, c_black, _am * .9); __map_icon(_kind, _lz, _x, _y + 1, c_black, _am * .9);
+	__map_icon(_kind, _lz, _x, _y, _col, _am);
+};
+__draw_world_map = function(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _za, _mx, _my) {
 	wn_pts = [];
-	if (_za <= .01 || !is_struct(_pn) || _pn.row < _pn.th) return;
+	if (_za <= .01 || !is_struct(_pn) || _pn.row < _pn.th || !is_struct(_pn[$ "terr"])) return;
 	var _pxc = max(1, planet_cell()), _kk = region_kinds(), _nrg = region_count(_d), _e = g.exped;
-	var _hov = -1, _hd = 9;
-	// the roads, every region's - the picked region's whole, the rest dim
+	var _bump = (variable_global_exists("planet_relief_pct") ? g.planet_relief_pct : 140) / 100;
+	var _c = { tw : _pn.tw, th : _pn.th, el : _pn.elev, base : max(_pn.sea, .34), relf : planet_config().relief * max(.4, _bump), mr : _mr, pcx : floor(_pcx), pcy : floor(_pcy), pr : _pr, pxc : _pxc };
+	var _ppt = 2 * pi * _pr / _pn.tw;   // (room px a map texel)
+	// THE REGIONS IN VIEW (q304, his "laggy"): a region whose seed is behind the world, or whose span lies off the page,
+	// is skipped whole - one projection a region, not one a road point
+	var _vis = [], _sds = _pn.terr.seeds;
 	for (var _ri = 0; _ri < _nrg; _ri++) {
 		var _rg = region_get(_d, _ri);
-		if (!is_struct(_rg[$ "tmap"])) continue;
-		var _fa = ((_focus < 0) ? .7 : ((_ri == _focus) ? 1 : .3)) * _za;
+		if (!is_struct(_rg[$ "tmap"]) || _ri >= array_length(_sds)) continue;
+		var _s0 = __wm_scr(_c, _sds[_ri][0], _sds[_ri][1]);
+		if (is_undefined(_s0)) continue;
+		var _ext = (_rg.tmap.span * .6 + 4) * _ppt;
+		if (_s0.x < -_ext || _s0.x > _w + _ext || _s0.y < -_ext || _s0.y > _h + _ext) continue;
+		array_push(_vis, { ri : _ri, rg : _rg, fa : ((_focus < 0) ? .7 : ((_ri == _focus) ? 1 : .3)) * _za });
+	}
+	var _hov = -1, _hd = 9;
+	// the roads: a dark under-line (the four offsets), the ink over it - the picked region's whole, the rest dim
+	for (var _vi = 0; _vi < array_length(_vis); _vi++) {
+		var _rg = _vis[_vi].rg, _fa = _vis[_vi].fa;
 		for (var _ei = 0; _ei < array_length(_rg.edges); _ei++) {
 			var _ed = _rg.edges[_ei], _pts = _ed[$ "pts"];
 			if (!is_array(_pts) || array_length(_pts) < 2) _pts = [_rg.nodes[_ed.a], _rg.nodes[_ed.b]];
-			var _boat = (_ed[$ "boat"] ?? false), _prev = undefined;
+			var _boat = (_ed[$ "boat"] ?? false), _seg = [];
 			for (var _k = 0; _k < array_length(_pts); _k++) {
 				var _tp = __unit_tex(_rg, _pts[_k]);
-				var _sp = is_struct(_tp) ? __node_scr(_pn, _mr, _pcx, _pcy, _pr, _tp.tx, _tp.ty, _pxc) : undefined;
-				if (_k > 0 && is_struct(_sp) && is_struct(_prev) && (!_boat || (_k mod 2 == 1))) draw_px_line(_prev.x, _prev.y, _sp.x, _sp.y, _boat ? rgb(120, 190, 210) : sett_ink, (_boat ? .45 : .32) * _fa);
-				_prev = _sp;
+				array_push(_seg, is_struct(_tp) ? __wm_scr(_c, _tp.tx, _tp.ty) : undefined);
+			}
+			for (var _k = 1; _k < array_length(_seg); _k++) {
+				var _p1 = _seg[_k - 1], _p2 = _seg[_k];
+				if (is_undefined(_p1) || is_undefined(_p2) || (_boat && (_k mod 2 == 0))) continue;
+				draw_px_line(_p1.x - 1, _p1.y, _p2.x - 1, _p2.y, c_black, .5 * _fa); draw_px_line(_p1.x + 1, _p1.y, _p2.x + 1, _p2.y, c_black, .5 * _fa);
+				draw_px_line(_p1.x, _p1.y - 1, _p2.x, _p2.y - 1, c_black, .5 * _fa); draw_px_line(_p1.x, _p1.y + 1, _p2.x, _p2.y + 1, c_black, .5 * _fa);
+			}
+			for (var _k = 1; _k < array_length(_seg); _k++) {
+				var _p1 = _seg[_k - 1], _p2 = _seg[_k];
+				if (is_undefined(_p1) || is_undefined(_p2) || (_boat && (_k mod 2 == 0))) continue;
+				draw_px_line(_p1.x, _p1.y, _p2.x, _p2.y, _boat ? rgb(120, 190, 210) : rgb(236, 226, 200), (_boat ? .8 : .85) * _fa);
 			}
 		}
 	}
-	// the places: the map's icons, the landing's flag
-	for (var _ri = 0; _ri < _nrg; _ri++) {
-		var _rg = region_get(_d, _ri);
-		if (!is_struct(_rg[$ "tmap"])) continue;
-		var _fa = ((_focus < 0) ? .7 : ((_ri == _focus) ? 1 : .3)) * _za;
+	// the places: the map's icons outlined, the landing's flag
+	for (var _vi = 0; _vi < array_length(_vis); _vi++) {
+		var _rg = _vis[_vi].rg, _fa = _vis[_vi].fa, _ri = _vis[_vi].ri;
 		for (var _ni = 0; _ni < array_length(_rg.nodes); _ni++) {
 			var _nd = _rg.nodes[_ni];
 			if (is_undefined(_nd[$ "tx"])) continue;
-			var _sp = __node_scr(_pn, _mr, _pcx, _pcy, _pr, _nd.tx, _nd.ty, _pxc);
+			var _sp = __wm_scr(_c, _nd.tx, _nd.ty);
 			if (is_undefined(_sp)) continue;
 			var _kd = _kk[$ _nd.kind] ?? _kk.field, _lz = (_nd[$ "landing"] ?? false);
 			var _la = _fa * clamp((_sp.z - .12) / .25, 0, 1);
-			if (_lz && _nd.kind != "landing") __map_icon(_nd.kind, false, _sp.x, _sp.y, _kd.col, _la);
-			__map_icon(_nd.kind, _lz, _sp.x + ((_lz && _nd.kind != "landing") ? 6 : 0), _sp.y - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col, _la);
+			if (_lz && _nd.kind != "landing") __wm_icon(_nd.kind, false, _sp.x, _sp.y, _kd.col, _la);
+			__wm_icon(_nd.kind, _lz, _sp.x + ((_lz && _nd.kind != "landing") ? 6 : 0), _sp.y - ((_lz && _nd.kind != "landing") ? 6 : 0), _lz ? c_white : _kd.col, _la);
 			array_push(wn_pts, { ri : _ri, ni : _ni, x : _sp.x, y : _sp.y, a : _la });
 			var _dm = point_distance(_mx, _my, _sp.x, _sp.y);
 			if (_dm < _hd && _la > .2) { _hd = _dm; _hov = array_length(wn_pts) - 1; }
@@ -198,7 +225,7 @@ __draw_world_map = function(_d, _pn, _mr, _pcx, _pcy, _pr, _focus, _za, _mx, _my
 		var _cpos = clamp(_tr[$ "pos"] ?? _rg.landing, 0, array_length(_rg.nodes) - 1), _up = _rg.nodes[_cpos];
 		if (is_struct(_tr[$ "road"])) _up = region_road_point(_rg, _tr.road.a, _tr.road.b, clamp(_tr.road.t / max(1, _tr.road.d * EXPED_HOUR), 0, 1));
 		var _tp = __unit_tex(_rg, _up);
-		var _sp = is_struct(_tp) ? __node_scr(_pn, _mr, _pcx, _pcy, _pr, _tp.tx, _tp.ty, _pxc) : undefined;
+		var _sp = is_struct(_tp) ? __wm_scr(_c, _tp.tx, _tp.ty) : undefined;
 		if (is_undefined(_sp)) continue;
 		draw_sprite_ext(spr_pixel_1x1, 0, _sp.x - 3, _sp.y - 3, 6, 6, 0, c_black, .85 * _za);
 		draw_sprite_ext(spr_pixel_1x1, 0, _sp.x - 2, _sp.y - 2, 4, 4, 0, _tr.cols[0], _za);

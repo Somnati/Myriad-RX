@@ -402,6 +402,14 @@ function region_gen(_seed, _biome, _lv, _ri = 0, _pn = undefined) {
 			}
 		}
 		array_push(_pts, { x : _eb.x, y : _eb.y });
+		// THE ROAD OVER THE LAND (q304, his report: "roads cutting through water"): with a territory to walk, the road is
+		// routed over the region's own land (region_route) - round the lakes, over a ford only where there is no way round,
+		// never the sea; a land road with no land path (a joined islet) goes by boat. The bends above are still rolled and
+		// dropped, so the region's stream holds (the moods, the spot)
+		if (!(_ed[$ "boat"] ?? false) && is_struct(_tmap) && is_struct(_terr)) {
+			var _rp = region_route(_pn, _terr, _ri, _tmap, _ea, _eb);
+			if (is_array(_rp)) _pts = _rp; else { _ed.boat = true; _pts = [ { x : _ea.x, y : _ea.y }, { x : _eb.x, y : _eb.y } ]; }
+		}
 		_ed.pts = _pts;
 		var _pl = 0;
 		for (var _k = 1; _k < array_length(_pts); _k++) _pl += point_distance(_pts[_k - 1].x, _pts[_k - 1].y, _pts[_k].x, _pts[_k].y);

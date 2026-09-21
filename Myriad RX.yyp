@@ -881,6 +881,7 @@
     {"id":{"name":"region_ready","path":"scripts/region_ready/region_ready.yy",},},
     {"id":{"name":"region_road_name","path":"scripts/region_road_name/region_road_name.yy",},},
     {"id":{"name":"region_road_point","path":"scripts/region_road_point/region_road_point.yy",},},
+    {"id":{"name":"region_route","path":"scripts/region_route/region_route.yy",},},
     {"id":{"name":"region_season","path":"scripts/region_season/region_season.yy",},},
     {"id":{"name":"region_title","path":"scripts/region_title/region_title.yy",},},
     {"id":{"name":"region_villain","path":"scripts/region_villain/region_villain.yy",},},
