@@ -448,8 +448,8 @@ function settings_content() {
 		function() { return g.planet_fine; },
 		function(_v) { g.planet_fine = _v; },
 		"on: the world and its moons are drawn at ONE room pixel a cell - twice the density, the coasts, the "
-		+ "clouds and the borders finer. off: the house cell of two, the chunkier pixel look. costs nothing "
-		+ "either way: the cell only snaps the ray, the gpu draws every pixel regardless.");
+		+ "clouds and the borders finer. off (the default): the house cell of two, the pixel look. costs nothing "
+		+ "either way: the cell only snaps the ray, the gpu draws every pixel regardless. the zoom's rungs follow the cell.");
 	// THE MOUNTAINS (his ask, 2026-09-16): the bump shading, the self-shadow, the
 	// snow line and the silhouette's relief, on one knob - live, like the dither
 	settings_slider("mountain relief", 50, 250,

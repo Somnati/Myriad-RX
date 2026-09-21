@@ -214,13 +214,62 @@ __worlds_step = function() {
 __lod_drop = function() { tiers.drop(); };
 __lod_free_all = function() { tiers.free_all(); };
 __lod_ready = function(_pn) { return tiers.ready(_pn); };
-__lod_want = function() {   // the tier the zoom asks for: 0 or 3
+__lod_want = function() {   // the tier the zoom asks for: 0 or 3 (a flag: 3 = wanted)
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
-	// FROM THE REGION VIEW'S OWN ZOOM (his ask, 2026-09-17: "trigger at the zoom level where viewing a region settles"):
-	// region mode's pull-in is the tier's threshold - the map's texels are already cell-sized there and the tier's
-	// three-to-one resolves the coasts at the cell; the wheel past it keeps it
+	// FROM THE LADDER'S FIRST TIER RUNG (q302; before: zoom 1.83, his ask 2026-09-17 - "trigger at the zoom level where
+	// viewing a region settles"): the tier is wanted from the zoom where a tier texel is one whole cell (px LOD_K x the
+	// cell a map texel - region mode's framing); below it the map's own texels are whole cells
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	return (_zt >= 1.83) ? 3 : 0;   // (the tier's own threshold - the old region pull-in's; the region zoom went to x5 (q269) and the tier is wanted well before that)
+	return (_zt >= __zoom_of_ppt(LOD_K * max(1, planet_cell())) * .98) ? 3 : 0;
+};
+/// THE ZOOM LADDER (q302, his "position snap"): the zooms where a DRAWN texel is whole cells - the map's texel at one, two,
+/// three... cells up to the tier's first rung, then the tier's texel at one, two, three... cells; the wheel steps
+/// between them, region mode's pull-in lands on the nearest, and __cam_snap lays the texel grid on the cell grid there.
+/// ppt = room px a MAP texel: zoom = ppt x tw / (2 pi x the base radius)
+__zoom_of_ppt = function(_ppt) {
+	var _tw = 320;
+	if (is_struct(pl_dest)) { var _pz = planet_peek(pl_dest.seed); if (is_struct(_pz)) _tw = _pz.tw; }
+	return _ppt * _tw / (2 * pi * starmap_config().pr);
+};
+__zoom_ladder = function(_mode) {   // (mode: 1 the planet view, PV_ZOOM_RG region mode - the range is the mode's, in TOTAL zoom)
+	var _pxc = max(1, planet_cell()), _lo = (_mode > 1) ? 1.15 : PV_ZOOM_MIN, _hi = (_mode > 1) ? (PV_ZOOM_MAX * 1.85) : PV_ZOOM_MAX, _out = [];
+	for (var _n = 1; _n < LOD_K; _n++) { var _z = __zoom_of_ppt(_n * _pxc); if (_z >= _lo * .99 && _z <= _hi * 1.01) array_push(_out, _z); }
+	for (var _m = 1; _m <= 12; _m++) { var _z2 = __zoom_of_ppt(LOD_K * _pxc * _m); if (_z2 >= _lo * .99 && _z2 <= _hi * 1.01) array_push(_out, _z2); }
+	return _out;
+};
+__zoom_snap = function(_z, _mode) {   // the nearest rung (in ratio), or the zoom itself off a ladder with no rung in range
+	var _lad = __zoom_ladder(_mode), _best = _z, _bd = 1000000000;
+	for (var _i = 0; _i < array_length(_lad); _i++) { var _dd = abs(ln(_lad[_i] / max(_z, .01))); if (_dd < _bd) { _bd = _dd; _best = _lad[_i]; } }
+	return _best;
+};
+/// THE POSITION SNAP (q302, his ask): the camera nudged - for the draw alone, never the state - so the map's texel corner
+/// nearest the view's centre sits on a CELL corner. On a rung of the ladder the texels then lie on the cell grid about
+/// the centre (whole cells a texel), the ground moves under the hand in cell steps, and nothing crawls. The one thing
+/// it cannot do is the sphere's: east-west a texel narrows with the latitude (cos lat), so off the equator a row of
+/// texels is not all whole cells - the map's projection, not the render's. m = texture from view (planet_draw's chain);
+/// the centre ray is m . (0, 0, 1); the jacobian screen px -> texels at the centre from m's first two columns; the nudge
+/// is two small turns about the view's axes, the drag's own sign (a drag pulls the ground with the hand)
+__cam_snap = function(_pn, _cam, _spin, _pr, _pxc) {
+	if (_pxc <= 0 || _pr < 4 || !is_struct(_pn)) return _cam;
+	var _w = mat3_mul(mat3_rot(0, 0, 1, _pn.tilt), mat3_rot(0, 1, 0, _spin));
+	var _m = mat3_mul(mat3_transpose(_w), _cam);
+	var _tx = _m[2], _ty = _m[5], _tz = _m[8];
+	var _hh = _tx * _tx + _tz * _tz;
+	if (_hh < .01 || abs(_ty) > .995) return _cam;   // (over a pole the grid is a fan: nothing to lay it on)
+	var _tw = _pn.tw, _th = _pn.th;
+	var _U = (arctan2(_tz, _tx) / (2 * pi) + .5) * _tw, _V = (arccos(clamp(_ty, -1, 1)) / pi) * _th;
+	var _fU = _U - round(_U), _fV = _V - round(_V);
+	var _glx = -_tz / _hh, _glz = _tx / _hh;
+	var _gvy = -1 / (pi * sqrt(max(1 - _ty * _ty, .0001)));
+	var _j00 = _tw * (_glx * _m[0] + _glz * _m[6]) / (2 * pi) / _pr, _j01 = _tw * (_glx * _m[1] + _glz * _m[7]) / (2 * pi) / _pr;
+	var _j10 = _th * _gvy * _m[3] / _pr, _j11 = _th * _gvy * _m[4] / _pr;
+	var _det = _j00 * _j11 - _j01 * _j10;
+	if (abs(_det) < .000000001) return _cam;
+	var _px = -(_j11 * _fU - _j01 * _fV) / _det, _py = -(-_j10 * _fU + _j00 * _fV) / _det;   // (the corner on the screen, px from the centre)
+	var _sx = round(_px / _pxc) * _pxc - _px, _sy = round(_py / _pxc) * _pxc - _py;         // (to the cell corner nearest it)
+	if (abs(_sx) > _pxc || abs(_sy) > _pxc) return _cam;
+	var _k = 180 / (pi * _pr);
+	return mat3_mul(mat3_mul(_cam, mat3_rot(0, 1, 0, _sx * _k)), mat3_rot(1, 0, 0, -_sy * _k));
 };
 __lod_pick = function(_pn) { return tiers.pick(_pn, __lod_want() >= 3); };
 /// THE BACKGROUND SHARE (q256): the slice any page other than the planet's gives the pending build - a share of the

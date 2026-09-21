@@ -84,7 +84,7 @@ g.page_dither_amt = 25;     // ...and its intensity, % of PAGE_GRAIN_MAX levels
 g.hp_bar_hue = "red";       // the hp bars' colour: red / green (settings > visuals, 2026-09-16; NOT hp_bar_col - that name is the function)
 g.planet_relief_pct = 140;  // the mountains' exaggeration, % (settings > visuals, 2026-09-16)
 g.cloud_volume = true;      // the cloud decks marched as a volume (settings > visuals, 2026-09-17; off = the surface march)
-g.planet_fine = true;       // the world at one room pixel a cell (settings > visuals, q301; off = the house two)
+g.planet_fine = false;      // the world at one room pixel a cell (settings > visuals, q301; off = the house two - his call q302: "a lil too fine for the style")
 g.puck_mat = "random";   // the puck's, off the same roster ("random" = black rubber)
 g.display_gps = 0;
 // ROUNDED BULK BUYS (DE's law): x10 buys UP TO the next round level.

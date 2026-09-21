@@ -39,7 +39,7 @@ function TierKeep() constructor {
 		if (!is_struct(_pn) || _pn.row < _pn.th || (_pn[$ "brow"] ?? 0) < 3 * _pn.th) return;
 		if (seed != _pn.seed) { drop(); seed = _pn.seed; cur = take(_pn.seed); }
 		if (is_struct(cur) && cur.ready) { if (!surface_exists(cur.tsurf) || !surface_exists(cur.hsurf)) planet_lod_upload(cur); return; }
-		if (!is_struct(cur)) cur = planet_lod_begin(_pn, 3);
+		if (!is_struct(cur)) cur = planet_lod_begin(_pn, LOD_K);   // (four to one since q302 - the ladder's rung)
 		if (!is_undefined(_focus) && abs((cur[$ "focus_v"] ?? .5) - _focus) > .05) planet_lod_focus(cur, _focus);   // (the focus moved a twentieth of the map: the rows to come re-sorted - q270)
 		// a share of the frame, whatever the refresh rate (delta = the frame in sixtieths): four tenths, 1.5 to 6 ms; under the
 		// hand fifteen hundredths, .6 to 1.5 ms - never nothing

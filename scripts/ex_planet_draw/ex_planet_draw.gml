@@ -19,7 +19,8 @@ function ex_planet_draw(_e, _ea, _dim) {
 	var _pr = _ocf.pr * pv_zoom;
 	var _nol = __nolanding(_d);   // (a gas giant: no spots, no region mode - q243)
 	g.planet_rshow = 1; g.planet_rsel = (pl_focus >= 0) ? pl_focus + 1 : 0;   // THE TERRITORIES on the world (q287): the tint and the borders, the picked one brighter
-	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, pv_cam, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade);
+	var _camd = __cam_snap(_pn, pv_cam, pv_spin, _pr, planet_cell());   // THE POSITION SNAP (q302): the texel grid on the cell grid about the centre - the draw's camera, the state untouched
+	var _mats = __draw_orbit(_d, _pvr.x, _pvr.y, _w, _h, _lcx, _lcy, _pr, _camd, pv_spin, _nol ? -1 : ((pv_mode == "region") ? pl_focus : -2), pl_focus, pv_cfade);
 	g.planet_rshow = 0;
 	pv_mat_m = _mats.m; pv_mat_r = _mats.r;
 	ui_fade_set(_ea);

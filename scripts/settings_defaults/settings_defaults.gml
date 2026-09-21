@@ -45,7 +45,7 @@ function settings_defaults(_section = "all") {
 		g.hp_bar_hue            = "red";       // the hp bars' colour: red / green
 		g.planet_relief_pct     = 140;         // the mountains' exaggeration, %
 		g.cloud_volume          = true;        // the decks as a volume (2026-09-17)
-		g.planet_fine           = true;        // the world at one room pixel a cell (q301)
+		g.planet_fine           = false;       // the world at one room pixel a cell (q301; off since q302)
 		g.puck_mat              = "random"; // the puck's (same roster; random = black rubber)
 		g.bit_pick              = { profit : "glow", credit : "glow",
 		                            unit : "glow", tile : "plain" }; // bit_config ids

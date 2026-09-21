@@ -1005,7 +1005,7 @@ void main()
                     float zw = smoothstep(1.5, 6.0, cpz);
                     float lw = ((rsel > 0.5) ? (2.6 + 2.6 * zw) : (1.8 + 1.8 * zw)) / max(u_pxs, 1.0);   // (room px, in cells - q301)
                     float dd = min(ddr * max(cpc, 0.9), ddc * max(cpc / gk, 0.9));
-                    if (dd < lw) col = rc;
+                    if (dd < lw) col = (u_rsel > 0.5 && rsel < 0.5) ? mix(col, rc, 0.35) : rc;   // (a region picked: the others' lines at a third - q302, his ask)
                 }
             }
         }

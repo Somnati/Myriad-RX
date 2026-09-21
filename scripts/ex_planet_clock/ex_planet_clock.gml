@@ -20,7 +20,8 @@ function ex_planet_clock() {
 	}
 	pv_dwa = move_to(pv_dwa, pv_dw ? 1 : 0, 6);
 	// region mode: the pull-in, the clouds thinning (both eased)
-	var _zt0 = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
+	var _zmode = (pv_mode == "region") ? PV_ZOOM_RG : 1;
+	var _zt0 = __zoom_snap(pv_zuser * _zmode, _zmode);   // (the nearest rung of the ladder - q302: a drawn texel whole cells)
 	pv_zoom  = lerp(pv_zoom, _zt0, 1 - power(.88, delta));   // (the mode's pull-in x the wheel's - 2026-09-17)
 	if (abs(pv_zoom - _zt0) < .002) pv_zoom = _zt0;        // (and lands, rather than creeping under a pixel for a second - the cells would flicker)
 	pv_cfade = lerp(pv_cfade, 1 - .88 * clamp((pv_zoom - 1.2) / (PV_ZOOM_RG - 1.2), 0, 1), 1 - power(.88, delta));   // (by the ZOOM, his ask 2026-09-17: the wheel past 1.2 thins them, region mode's 1.55 is the same .12 as before)

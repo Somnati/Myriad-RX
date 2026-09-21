@@ -103,9 +103,12 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	// g.planet_px to 1 round its draws, so a stamp eight pixels across is eight pixels, not four cells
 	var _pxc = planet_cell();   // (one room px on the planet page since q301 - "increase the pixel density"; the moons read the same)
 	if (_pxc > 0) {
+		// (the CENTRE on the grid once, the corner centre - q: the corner was rounded from centre - q each frame, and at a
+		// one-pixel cell with a half-pixel centre round(.5) fell either way as q grew - the world hopped a pixel a zoom
+		// step, "the camera jitters up and down"; q302)
 		var _pxs = _pxc;
 		_q = max(_pxs, round(_q / _pxs) * _pxs);
-		_qx = round((_cx - _q) / _pxs) * _pxs; _qy = round((_cy - _q) / _pxs) * _pxs;
+		_qx = round(_cx / _pxs) * _pxs - _q; _qy = round(_cy / _pxs) * _pxs - _q;
 	}
 	shader_set(sh_planet);
 	shader_set_uniform_f_array(_u.rot, _m);

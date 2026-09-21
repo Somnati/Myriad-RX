@@ -430,6 +430,7 @@ function main_macros() {
 #macro PV_ZOOM_RG    5.0     // (his read off the debug readout, 2026-09-19: "zoom x4.99 = wheel x2.70 x region x1.85 - pr 429" - the region fills the view) the planet page's pull-in on [view region] (region mode: the banner left, the quests right, the clouds thinned; closer - his ask 2026-09-17, was 1.55)
 #macro PV_ZOOM_MAX   7       // THE WHEEL (his ask, 2026-09-17: "zoom in and out even when it artificially zooms in on the region"): the hand's zoom, on top of the mode's
 #macro PV_ZOOM_MIN   .7
+#macro LOD_K         4       // THE ZOOM TIER's resolution over the map's (q302; was 3): a tier texel is ONE cell at the ladder's rung px 8 a map texel (zoom 4.7 - region mode's framing), two at 16
 #macro RING_ALL      true    // DEBUG (his ask, 2026-09-17): every world wears a ring - false for the real odds (planet_gen_begin)
 #macro VOLCANO_ALL   true    // DEBUG (his ask, 2026-09-17): every rock world has at least one volcano - false for the real odds (planet_volcanoes)
 #macro DEBUG_HOME    true    // DEBUG (his ask, 2026-09-18): the home system holds a desert world (with a plateau and its canyon), a lava world and a gas giant, the home world a plateau, and the nearest stars a red giant, a white dwarf, a pulsar and a black hole (debug_scenario, from galaxy_home - one script, deletable whole) - false for the real galaxy
