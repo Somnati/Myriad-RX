@@ -96,6 +96,35 @@ function planet_territories(_pn, _until = infinity) {
 	}
 	var _ids = array_create(_n, 0);
 	for (var _i = 0; _i < _n; _i++) _ids[_i] = (_sd[_i] <= 3) ? _ow[_i] : 0;
+	// THE LAND SMOOTHED (q296; his report: "stray lines off in nowhere"): a land texel whose land neighbours mostly belong to
+	// one other region joins it - two passes, the seeds held - so the walk's one-texel enclaves and hairs go before the
+	// borders, the neighbours and the crossings are read
+	var _isseed = array_create(_n, false);
+	for (var _k4 = 0; _k4 < _nr; _k4++) _isseed[_sds[_k4][0] + _sds[_k4][1] * _tw] = true;
+	for (var _sp = 0; _sp < 2; _sp++) {
+		var _nid = array_create(_n, 0);
+		for (var _i4 = 0; _i4 < _n; _i4++) {
+			_nid[_i4] = _ids[_i4];
+			if (_el[_i4] < _sea || _ids[_i4] == 0 || _isseed[_i4]) continue;
+			var _x4 = _i4 mod _tw, _y4 = _i4 div _tw;
+			var _nb4 = [((_x4 + _tw - 1) mod _tw) + _y4 * _tw, ((_x4 + 1) mod _tw) + _y4 * _tw, (_y4 > 0) ? _i4 - _tw : -1, (_y4 < _th - 1) ? _i4 + _tw : -1];
+			var _va = 0, _vb = 0, _vc = 0, _cnta = 0, _cntb = 0, _cntc = 0, _same = 0, _lnd4 = 0;
+			for (var _q4 = 0; _q4 < 4; _q4++) {
+				var _j4 = _nb4[_q4]; if (_j4 < 0 || _el[_j4] < _sea || _ids[_j4] == 0) continue;
+				_lnd4++;
+				var _v4 = _ids[_j4];
+				if (_v4 == _ids[_i4]) { _same++; continue; }
+				if (_va == 0 || _va == _v4) { _va = _v4; _cnta++; } else if (_vb == 0 || _vb == _v4) { _vb = _v4; _cntb++; } else { _vc = _v4; _cntc++; }
+			}
+			var _top = max(_cnta, _cntb, _cntc), _tv = (_cnta >= _cntb && _cnta >= _cntc) ? _va : ((_cntb >= _cntc) ? _vb : _vc);
+			if (_lnd4 >= 2 && _top > _same && _top >= 2) _nid[_i4] = _tv;
+		}
+		_ids = _nid;
+	}
+	// THE COLOURS (q296, his ask: "a seeded region colour"): a hue a region, hashed off the world and its index - the sheet's
+	// green carries it to the shader, region_col hands the same colour to the pages
+	var _hue = array_create(_nr, 0);
+	for (var _k = 0; _k < _nr; _k++) _hue[_k] = hash_mix(_pn.seed, 7000 + _k) mod 256;
 	var _adj = array_create(_nr * _nr, false), _area = array_create(_nr, 0), _bord = array_create(_n, 0);
 	// THE CROSSINGS (q291): for every pair of neighbours the best texel pair on their border - both on land if it can be
 	// (a boat where the border runs through water), off the peaks, near the line between the two seeds - the passes
@@ -137,10 +166,11 @@ function planet_territories(_pn, _until = infinity) {
 	var _lv = array_create(_nr, 0);
 	for (var _k = 0; _k < _nr; _k++) _lv[_k] = (_ring[_k] < 0) ? 8 : min(8, round(_ring[_k] * 1.5));
 	var _rb = buffer_create(_n * 4, buffer_fixed, 1), _ord = surface_byte_order(), _or = _ord[0], _og = _ord[1], _ob = _ord[2], _oa = _ord[3];
-	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, _bord[_i] * 255); buffer_poke(_rb, _o + _ob, buffer_u8, 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
+	// (the sheet: red the id, green the region's hue, blue the SEA flag - the outline reads the sea as nobody's; q296)
+	for (var _i = 0; _i < _n; _i++) { var _o = _i * 4; buffer_poke(_rb, _o + _or, buffer_u8, _ids[_i]); buffer_poke(_rb, _o + _og, buffer_u8, (_ids[_i] > 0) ? _hue[_ids[_i] - 1] : 0); buffer_poke(_rb, _o + _ob, buffer_u8, (_el[_i] < _sea) ? 255 : 0); buffer_poke(_rb, _o + _oa, buffer_u8, 255); }
 	if (buffer_exists(_pn[$ "rbuf"] ?? -1)) buffer_delete(_pn.rbuf);
 	_pn.rbuf = _rb; _pn.rsurf = -1;
-	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross };
+	_pn.terr = { n : _nr, ids : _ids, seeds : _sds, area : _area, adj : _adj, ring : _ring, lv : _lv, cross : _cross, hue : _hue };
 	_pn.terr_st = undefined;
 	return true;
 }

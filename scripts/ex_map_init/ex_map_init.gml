@@ -29,8 +29,9 @@ __draw_info_box = function(_d, _rg, _bn) {
 	var _inf = _bs.inf;
 	_bn.w = _bs.w; _bn.h = _bs.h;
 	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, _bn.w, _bn.h, 0, c_black, .8);
-	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, c_gold, .9);
-	draw_set_font(fnt_large); draw_set_color(c_gold); draw_set_alpha(.95);
+	var _rgc = region_col(_d, _rg[$ "ri"] ?? 0);   // (the region's own colour on its box - q296)
+	draw_sprite_ext(spr_pixel_1x1, 0, _bn.x, _bn.y, 2, _bn.h, 0, _rgc, .95);
+	draw_set_font(fnt_large); draw_set_color(_rgc); draw_set_alpha(.95);
 	draw_text_ext(_bn.x + 8, _bn.y + 5, str_cap(_rg.name), 11, _bn.w - 26);
 	// the fold's glyph, top right (the house chip: + shut, - open); the whole box is the tap
 	draw_set_font(fnt);

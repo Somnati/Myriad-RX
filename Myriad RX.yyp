@@ -851,6 +851,7 @@
     {"id":{"name":"rebirth_milestone_tick","path":"scripts/rebirth_milestone_tick/rebirth_milestone_tick.yy",},},
     {"id":{"name":"rebirth_open","path":"scripts/rebirth_open/rebirth_open.yy",},},
     {"id":{"name":"rebirth_spent","path":"scripts/rebirth_spent/rebirth_spent.yy",},},
+    {"id":{"name":"region_col","path":"scripts/region_col/region_col.yy",},},
     {"id":{"name":"region_count","path":"scripts/region_count/region_count.yy",},},
     {"id":{"name":"region_daylight","path":"scripts/region_daylight/region_daylight.yy",},},
     {"id":{"name":"region_event","path":"scripts/region_event/region_event.yy",},},

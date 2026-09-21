@@ -172,13 +172,17 @@ vec4 hmap_uv(vec2 uv)
     float m = patch_built(uv);
     return (m > 0.0) ? mix(b, texture2D(u_pheight, patch_st(uv)), m) : b;
 }
-// the territory under a map texel (q287): its id, 0 for nobody's; u wraps, v clamps
-float region_id(vec2 t)
+// the territory under a map texel (q287 / q296): the sheet's texel - red the id (0 nobody's), green the region's hue,
+// blue the sea flag; u wraps, v clamps
+vec4 region_tex(vec2 t)
 {
     t.x = fract(t.x / u_tsize.x) * u_tsize.x;
     t.y = clamp(t.y, 0.0, u_tsize.y - 1.0);
-    return floor(texture2D(u_region, (t + 0.5) / u_tsize).r * 255.0 + 0.5);
+    return texture2D(u_region, (t + 0.5) / u_tsize);
 }
+float region_id(vec2 t) { return floor(region_tex(t).r * 255.0 + 0.5); }
+// ...the id the OUTLINE reads (q296): the sea is nobody's, so a coast is an edge; an inland lake or river keeps its owner's, so it is not
+float region_oid(vec2 t) { vec4 r = region_tex(t); return (r.b > 0.5) ? 0.0 : floor(r.r * 255.0 + 0.5); }
 vec3 hsv2rgb(vec3 c)
 {
     vec3 p = abs(fract(c.xxx + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
@@ -833,27 +837,30 @@ void main()
         // THE TERRITORIES (q287): the region under the pixel - a faint tint of its own hue on its land and its waters (the
         // picked one brighter), and a LINE along the texel edges where two regions meet, a cell wide at any zoom (the
         // edge's distance in texels against the cells a texel spans)
-        if (u_rshow > 0.5) {
+        if (u_rshow > 0.5 && hsmp.g < 0.5) {   // (on LAND alone - never a line on a water pixel; q296)
             vec2 rt = floor(muv * u_tsize);
-            float rid = region_id(rt);
+            vec4 rtx = region_tex(rt);
+            float rid = floor(rtx.r * 255.0 + 0.5);
             if (rid > 0.5) {
                 float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
-                // (q295, his screenshot: "weird lines... random... kinda everywhere" - a border a cell wide at the region zoom reads
-                // as a scratch, and a tenth of a hue reads as nothing. The political map is for ORBIT: thin dark lines that fade out
-                // as the region zoom comes in (cpc 1.6 .. 3.2); up close only the PICKED region keeps its gold outline and tint)
+                // THE OUTLINE (q296, his asks: enclosing, no strays, nothing in the water, the region's own colour): an edge is
+                // wherever the texel's neighbour is not this region's land or inland water - the next region's land, or the
+                // sea (region_oid: the sea is nobody's) - so every region's line closes along its coasts and its borders and
+                // never crosses a lake or a river. The colour is the region's (the sheet's green); the picked one wider and
+                // whole, the rest thin and from orbit (they fade out as the region zoom comes in, cpc 1.6 .. 3.2)
                 float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
-                vec3 rc = hsv2rgb(vec3(fract(rid * 0.618034), 0.55, 0.95));
-                col = mix(col, rc, 0.16 * rsel);
+                vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
+                col = mix(col, rc, 0.14 * rsel);
                 vec2 rf = fract(muv * u_tsize);
                 float dmin = 9.0, ie;
-                ie = region_id(rt + vec2(1.0, 0.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.x);
-                ie = region_id(rt + vec2(-1.0, 0.0)); if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, rf.x);
-                ie = region_id(rt + vec2(0.0, 1.0));  if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.y);
-                ie = region_id(rt + vec2(0.0, -1.0)); if (ie > 0.5 && abs(ie - rid) > 0.5) dmin = min(dmin, rf.y);
-                float lw = 0.9 / max(cpc, 0.9);
+                ie = region_oid(rt + vec2(1.0, 0.0));  if (abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.x);
+                ie = region_oid(rt + vec2(-1.0, 0.0)); if (abs(ie - rid) > 0.5) dmin = min(dmin, rf.x);
+                ie = region_oid(rt + vec2(0.0, 1.0));  if (abs(ie - rid) > 0.5) dmin = min(dmin, 1.0 - rf.y);
+                ie = region_oid(rt + vec2(0.0, -1.0)); if (abs(ie - rid) > 0.5) dmin = min(dmin, rf.y);
+                float lw = ((rsel > 0.5) ? 1.4 : 0.9) / max(cpc, 0.9);
                 if (dmin < lw) {
-                    if (rsel > 0.5) col = mix(col, vec3(1.0, 0.85, 0.35), 0.85);
-                    else if (bfade > 0.0) col = mix(col, col * 0.40, 0.75 * bfade);
+                    if (rsel > 0.5) col = mix(col, rc, 0.92);
+                    else if (bfade > 0.0) col = mix(col, rc * 0.85, 0.80 * bfade);
                 }
             }
         }

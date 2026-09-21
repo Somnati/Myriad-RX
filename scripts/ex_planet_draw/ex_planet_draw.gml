@@ -189,9 +189,10 @@ function ex_planet_draw(_e, _ea, _dim) {
 				if (_rg.nodes[_j].kind == "camp") _ncmp++;
 				if (_rg.nodes[_j].kind == "landing") _nlnd++;
 			}
-			var _on = (pl_focus == _i);
+			var _on = (pl_focus == _i), _rcl = region_col(_d, _i);   // (the region's own colour - the outline's on the world; q296)
 			draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, _rr.w, _rr.h, 0, c_black, .7);
-			draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _on ? c_gold : c_steelblue, _on ? .9 : .5);
+			draw_px_rect(_rr.x, _rr.y, _rr.w, _rr.h, _rcl, _on ? .95 : .45);
+			draw_sprite_ext(spr_pixel_1x1, 0, _rr.x, _rr.y, 2, _rr.h, 0, _rcl, _on ? .95 : .6);
 			draw_set_color(c_white); draw_set_alpha(.95);
 			draw_text(_rr.x + 5, _rr.y + 3, string_copy(_rg.name, 1, land ? 18 : 14));
 			draw_set_halign(fa_right);
