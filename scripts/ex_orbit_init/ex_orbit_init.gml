@@ -375,11 +375,12 @@ __lod_free_all = function() { tiers.free_all(); };
 __lod_ready = function(_pn) { return tiers.ready(_pn); };
 __lod_want = function() {   // the tier the zoom asks for: 0 or 3 (a flag: 3 = wanted)
 	if (view != "planet" || !is_struct(pl_dest)) return 0;
-	// FROM THE LADDER'S FIRST TIER RUNG (q302; before: zoom 1.83, his ask 2026-09-17 - "trigger at the zoom level where
-	// viewing a region settles"): the tier is wanted from the zoom where a tier texel is one whole cell (px LOD_K x the
-	// cell a map texel - region mode's framing); below it the map's own texels are whole cells
+	// FROM ZOOM 1.83 (his ask 2026-09-17: "trigger at the zoom level where viewing a region settles"; q302 moved it to the
+	// ladder's first tier rung, 4.7, and the rungs between drew the map's own texels at two and three cells - "very large
+	// chunky pixels", his report q307 - so it is back): on the ladder that is the second rung and up; a tier texel is
+	// under a cell there and the cell samples it nearest - finer than the map's texel at two cells
 	var _zt = pv_zuser * ((pv_mode == "region") ? PV_ZOOM_RG : 1);
-	return (_zt >= __zoom_of_ppt(LOD_K * max(1, planet_cell())) * .98) ? 3 : 0;
+	return (_zt >= 1.83) ? 3 : 0;
 };
 /// THE ZOOM LADDER (q302, his "position snap"): the zooms where a DRAWN texel is whole cells - the map's texel at one, two,
 /// three... cells up to the tier's first rung, then the tier's texel at one, two, three... cells; the wheel steps
@@ -458,7 +459,7 @@ __lod_step = function() {
 	var _pk = tiers.pick(_pn, __lod_want() >= 3);
 	if (!is_struct(_pk)) { lod_fade = 0; return; }
 	if (_pk[$ "faded"] ?? false) { lod_fade = 1; return; }
-	lod_fade = min(1, lod_fade + delta / 6);   // (near-instant since q306: at the ladder's rung a texel is eight pixels, and a slow crossfade between the map's coast and the tier's read as a morph)
+	lod_fade = min(1, lod_fade + delta / 24);   // (four tenths of a second - q306 hurried it on a guess, his word q307: "the fading was fine")
 	if (lod_fade >= 1) _pk.faded = true;
 };
 /// THE BUILD BEHIND THE SPRITE MENU (q256): the pending world (the sheet first - it is the veil's gate), then its
