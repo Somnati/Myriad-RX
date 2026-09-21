@@ -79,10 +79,16 @@ function exped_tick(_secs) {
 	}
 	for (var _i = array_length(_e.trips) - 1; _i >= 0; _i--) {
 		var _tr = _e.trips[_i];
+		// THE WORLD FIRST (q294): a crew on a world whose territories have not stood (at boot; a world the cache let go)
+		// OWES its seconds and walks nothing - the regions are not real until the world is - and pays them back in slices
+		// once it has (the background builder raises the trips' worlds)
+		if (!region_ready(_tr.dest)) { _tr.owedw = (_tr[$ "owedw"] ?? 0) + _dt; continue; }
+		var _dtt = _dt;
+		if ((_tr[$ "owedw"] ?? 0) > 0) { var _payw = min(_tr.owedw, EXPED_OWED_SLICE); _dtt += _payw; _tr.owedw -= _payw; if (_tr.owedw <= 0) _tr.owedw = 0; }
 		// A FIGHT PLAYS AT ITS OWN PACE (his ask, 2026-09-15): the debug clock
 		// hurries the walk, not the fight - unless it is at x100
 		if (!is_undefined(_tr.fight) && _spd < 100) { exped_tick_one(_tr, _secs); continue; }
-		var _left = _dt, _home = false;
+		var _left = _dtt, _home = false;
 		while (_left > 0 && !_home) {
 			var _step = min(_left, EXPED_TICK_MAX);
 			_left -= _step;

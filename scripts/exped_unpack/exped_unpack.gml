@@ -118,6 +118,7 @@ function exped_unpack(_s) {
 			if (_vsv != "") { var _vs = string_split(_vsv, ";"); for (var _vi = 0; _vi < array_length(_vs); _vi++) if (_vs[_vi] != "") array_push(_trn.visited, clamp(real(_vs[_vi]), 0, _rgn - 1)); }
 			if (array_length(_trn.visited) == 0) _trn.visited = [ _trn.home ];
 			var _snv = string_split(_kv[$ "sn"] ?? "", ":");   // (q291)
+			_trn.owedw = max(0, real(_kv[$ "ow"] ?? "0"));   // (q294)
 			if (array_length(_snv) >= 2 && _snv[0] != "") { _trn.seen = max(0, real(_snv[0])); _trn.regions = max(1, real(_snv[1])); }
 			// the quest
 			if ((_kv[$ "qk"] ?? "") != "") {

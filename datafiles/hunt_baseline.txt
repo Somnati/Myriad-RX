@@ -927,7 +927,7 @@ dupvar	scripts\exped_room_find\exped_room_find.gml          _l
 dupvar	scripts\exped_say\exped_say.gml                      _i _nn _t _tr array_length
 dupvar	scripts\exped_shop\exped_shop.gml                    _it _it2 _it3 _j _k0 _rg _s _slot _st _tr
 dupvar	scripts\exped_start\exped_start.gml                  _i _sp
-dupvar	scripts\exped_tick\exped_tick.gml                    _e _si
+dupvar	scripts\exped_tick\exped_tick.gml                    EXPED_OWED_SLICE _e _si
 dupvar	scripts\exped_tick_one\exped_tick_one.gml            _bf _j _k _q _rg _tr exped_region
 dupvar	scripts\exped_unpack\exped_unpack.gml                _fl _i _k _rgi _t
 dupvar	scripts\exped_unpack_v1\exped_unpack_v1.gml          _i _k _t _trn

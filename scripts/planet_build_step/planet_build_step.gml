@@ -18,7 +18,7 @@
 function planet_build_step(_pn, _until = infinity, _rows = undefined) {
 	if (!is_struct(_pn)) return false;
 	var _n = 0;
-	while (_pn.row < _pn.th && get_timer() < _until && (is_undefined(_rows) || _n < _rows)) { planet_gen_step(_pn, 1); _n++; }
+	while (_pn.row < _pn.th && get_timer() < _until && (is_undefined(_rows) || _n < _rows)) { planet_gen_step(_pn, 1, _until); _n++; }   // (the row itself answers to the deadline - q294)
 	if (_pn.row >= _pn.th) planet_bake(_pn, _until);
 	return planet_lite_ready(_pn);
 }

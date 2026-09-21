@@ -2,7 +2,7 @@
 /// complete. Samples `rows` more rows of the world's equirect map
 /// (planet_texel for terrain, the puffs + belts for cloud cover). Spread
 /// over frames by the caller so a world arrives without a hitch.
-function planet_gen_step(_pn, _rows = undefined) {
+function planet_gen_step(_pn, _rows = undefined, _until = infinity) {   // (until: a get_timer deadline the row's texels answer to - q294: a row is 44 ms of noise, a "millisecond a frame" builder hitched by the row)
 	if (_pn.row >= _pn.th) return true;
 	if (is_undefined(_rows)) _rows = planet_config().rows_per_step;
 	var _ps = _pn.smp, _ctx = _ps.ctx;
@@ -13,7 +13,8 @@ function planet_gen_step(_pn, _rows = undefined) {
 		var _vv2 = (_ty + .5) / _th;
 		var _sl  = sin(_vv2 * pi);
 		var _py  = cos(_vv2 * pi);
-		for (var _tx = 0; _tx < _tw; _tx++) {
+		for (var _tx = (_pn[$ "col"] ?? 0); _tx < _tw; _tx++) {
+			if ((_tx & 7) == 7 && get_timer() >= _until) { _pn.col = _tx; return false; }   // (the row picks up here next call)
 			var _uu2 = (_tx + .5) / _tw;
 			var _lon = _uu2 * 2 * pi;
 			var _px  = _sl * cos(_lon);
@@ -105,6 +106,7 @@ function planet_gen_step(_pn, _rows = undefined) {
 			}
 			_pn.cthk[_i2] = _t;
 		}
+		_pn.col = 0;
 		_pn.row += 1;
 	}
 	return (_pn.row >= _th);

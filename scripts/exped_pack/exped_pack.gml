@@ -77,6 +77,7 @@ function exped_pack() {
 			array_push(_f, "rc=" + ((_r[$ "recall"] ?? false) ? "1" : "0"));
 			array_push(_f, "lt=" + string(_r[$ "leave_t"] ?? 0));
 			array_push(_f, "pt=" + string(_r[$ "planet_t"] ?? 0));
+			array_push(_f, "ow=" + string(max(0, round(_r[$ "owedw"] ?? 0))));   // (the seconds owed while the world stood up - q294)
 			array_push(_f, "home=" + string(_r[$ "home"] ?? 0));
 			var _rex = _r[$ "ex"]; if (!is_struct(_rex)) _rex = { kind : "wander", n : 0 };
 			array_push(_f, "ex=" + _rex.kind + ":" + string(_rex.n));
