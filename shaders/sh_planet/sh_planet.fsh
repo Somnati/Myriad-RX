@@ -963,15 +963,14 @@ void main()
         // an edge is wherever a drawn texel's neighbour is water (the height sheet's green at the DRAWN grid - the tier's
         // where it stands, so the line hugs the coast that is on screen, his diagnosis) or another region's land or the
         // cap (the map's ids; the sea and the polar rows are nobody's) - so every region's line closes and never crosses
-        // a lake or a river. PAINT, not ground: after every light, the colour whole - the picked region's at full width
-        // and a half, the others thin from orbit (they fade out as the region zoom comes in, cpc 1.6 .. 3.2)
+        // a lake or a river. PAINT, not ground: after every light, the colour whole - the picked region's wider, the rest
+        // thinner, both growing with the zoom, none fading (q299, his ask: "thicker and not fade when i zoom in close")
         if (u_rshow > 0.5 && hsmp.g < 0.5) {
             vec2 rt = floor(muv * u_tsize);
             vec4 rtx = region_tex(rt);
             float rid = floor(rtx.r * 255.0 + 0.5);
             if (rid > 0.5 && rtx.b < 0.5) {
                 float rsel = (abs(rid - u_rsel) < 0.5) ? 1.0 : 0.0;
-                float bfade = 1.0 - smoothstep(1.6, 3.2, cpc);
                 vec3 rc = hsv2rgb(vec3(rtx.g, 0.60, 0.95));
                 col = mix(col, rc, 0.12 * rsel);
                 // THE ISOLINE (q298, his "pixel warping"): a bilinear MEMBERSHIP field over the drawn grid - is this texel the
@@ -987,11 +986,11 @@ void main()
                 float F = mix(mix(m00, m10, pf.x), mix(m01, m11, pf.x), pf.y);
                 vec2 gF = vec2(mix(m10 - m00, m11 - m01, pf.y), mix(m01 - m00, m11 - m10, pf.x));
                 float dd = (F - 0.5) / max(length(gF), 0.08);   // (drawn texels to the contour, inward positive)
-                float lw = ((rsel > 0.5) ? 1.3 : 0.8) / max(cpc / gk, 0.9);
-                if (F >= 0.5 && dd < lw) {
-                    if (rsel > 0.5) col = rc;
-                    else if (bfade > 0.0) col = mix(col, rc, bfade);
-                }
+                // THE WIDTH (q299): in screen cells, growing with the zoom - the picked region's 1.3 from orbit to 2.6 up close
+                // (cpc 1.5 .. 6), the rest 0.9 to 1.8 - and never fading: the political map holds at every zoom
+                float zw = smoothstep(1.5, 6.0, cpc);
+                float lw = ((rsel > 0.5) ? (1.3 + 1.3 * zw) : (0.9 + 0.9 * zw)) / max(cpc / gk, 0.9);
+                if (F >= 0.5 && dd < lw) col = rc;
             }
         }
 
@@ -1050,7 +1049,7 @@ void main()
         if (ringA > 0.0 && ringZ > czf) col = mix(col, ringC, ringA);
 
         col += dn * (min(dot(col, vec3(0.299, 0.587, 0.114)) * 255.0 * 0.5, 2.0) / 255.0);
-        gl_FragColor = vec4(col, 1.0);
+        gl_FragColor = vec4(col, v_vColour.a);   // (the vertex alpha: a moon fading with the zoom - q299)
     } else {
         // THE HALO (2026-09-17, his ask: "a larger atmospheric glow on the light side ... the night side without the grey"):
         // twice the reach (.42 radii - the quad's pad 1.6 has the room), the lit side bright, the night side nothing
@@ -1078,6 +1077,6 @@ void main()
             a = a + aa * (1.0 - a);
             col = (a > 0.001) ? pm / a : col;
         }
-        gl_FragColor = vec4(col, a);
+        gl_FragColor = vec4(col, a * v_vColour.a);
     }
 }

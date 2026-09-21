@@ -25,38 +25,32 @@ function planet_territories(_pn, _until = infinity) {
 		var _seeds = [];
 		var _h = function(_s, _k) { return (hash_mix(_s, 40000 + _k) mod 10000) / 10000; };
 		var _okl = function(_b, _e, _s) { return _e >= _s && !(_b == 0 || _b == 1 || _b == 11 || _b == 25 || _b == 9 || _b == 10 || _b == 14); };
+		// PLAIN GROUND (q298 / q299, his "who starts a country in a volcano"): a seed never sits on a crest, in a crater or a
+		// flow, on a cone's mid flank or above (cmask .15 - the foot keeps its grass and may seed an island that is all footprint), nor on the landmark
+		var _plain = method({ rl : _rl, vm : _pn[$ "vmask"], cm : _pn[$ "cmask"], sm : _pn[$ "sigmask"] }, function(_i) {
+			if (is_array(rl) && rl[_i] > .10) return false;
+			if (is_array(vm) && vm[_i] > 0) return false;
+			if (is_array(cm) && cm[_i] >= .15) return false;   // (the mid flank and up; the foot may hold the seed of an island that is all one cone's footprint)
+			if (is_array(sm) && sm[_i] > 0) return false;
+			return true;
+		});
 		var _rmin = sqrt(REGION_AREA) * .85;
-		for (var _t = 0; _t < 240 && array_length(_seeds) == 0; _t++) {
-			var _x = floor(_h(_pn.seed, _t * 2) * _tw), _y = floor((.18 + .64 * _h(_pn.seed, _t * 2 + 1)) * _th), _i = _x + _y * _tw, _b = _bm[_i];
-			if (!_okl(_b, _el[_i], _sea)) continue;
-			if (_t < 140 && !(_b == 4 || _b == 5 || _b == 6 || _b == 21 || _b == 22)) continue;   // (the gate is green while it can be)
-			array_push(_seeds, [_x, _y]);
-		}
-		if (array_length(_seeds) == 0) for (var _i = 0; _i < _n && array_length(_seeds) == 0; _i++) if (_el[_i] >= _sea) array_push(_seeds, [_i mod _tw, _i div _tw]);
-		if (array_length(_seeds) == 0) { _pn.terr = { n : 0, ids : [], seeds : [], area : [], adj : [], ring : [], lv : [] }; return true; }   // (a world with no land at all)
 		var _prow = round(_th * TERR_POLE);   // (the polar rows: nobody's - q297)
-		for (var _t = 0; _t < _want * 40 && array_length(_seeds) < _want; _t++) {
-			var _x = floor(_h(_pn.seed, 1000 + _t * 2) * _tw), _y = floor((TERR_POLE + .02 + (1 - 2 * (TERR_POLE + .02)) * _h(_pn.seed, 1001 + _t * 2)) * _th), _i = _x + _y * _tw;
-			if (!_okl(_bm[_i], _el[_i], _sea)) continue;
-			var _cl = max(.2, sin(pi * (_y + .5) / _th)), _ok = true;
-			for (var _k = 0; _k < array_length(_seeds) && _ok; _k++) {
-				var _dx = abs(_x - _seeds[_k][0]); _dx = min(_dx, _tw - _dx);
-				if (sqrt(sqr(_dx * _cl) + sqr(_y - _seeds[_k][1])) < _rmin) _ok = false;
-			}
-			if (_ok) array_push(_seeds, [_x, _y]);
-		}
-		// THE LANDMASSES (q297): every land component (four-connected, off the poles) - one with TERR_ISLE_MIN texels or more
-		// and no seed on it gets one at its centroid, so no island of size hangs on a stranger across the water; the walk
-		// below never crosses the sea, and the small ones join a neighbour whole (after the walk)
-		var _comp = array_create(_n, -1), _csz = [], _cx = [], _cy = [], _cfirst = [];
+		// THE LANDMASSES (q297; first since q299 - the seeds ask after them): every land component (four-connected, off the
+		// poles) - one with TERR_ISLE_MIN texels or more and no seed on it gets one at its centroid, so no island of size
+		// hangs on a stranger across the water; the walk below never crosses the sea, and the small ones join a neighbour
+		// whole (after the walk). A VOLCANO ISLET - a landmass half bare cone or more - is nobody's: never seeded, never
+		// joined (q299, his report: "that one island is still grabbing part of the volcano")
+		var _comp = array_create(_n, -1), _csz = [], _cx = [], _cy = [], _cfirst = [], _cvol = [], _cmk0 = _pn[$ "cmask"];
 		for (var _i0 = 0; _i0 < _n; _i0++) {
 			if (_comp[_i0] >= 0 || _el[_i0] < _sea) continue;
 			var _y0 = _i0 div _tw; if (_y0 < _prow || _y0 >= _th - _prow) continue;
-			var _cid = array_length(_csz), _stk = [_i0], _sz = 0, _sx = 0, _sy = 0, _x00 = _i0 mod _tw;
+			var _cid = array_length(_csz), _stk = [_i0], _sz = 0, _sx = 0, _sy = 0, _x00 = _i0 mod _tw, _svol = 0;
 			_comp[_i0] = _cid;
 			while (array_length(_stk) > 0) {
 				var _ci = array_pop(_stk), _cxx = _ci mod _tw, _cyy = _ci div _tw;
 				_sz++; _sx += ((_cxx - _x00 + _tw + (_tw div 2)) mod _tw) - (_tw div 2); _sy += _cyy;
+				if (is_array(_cmk0) && _cmk0[_ci] >= VOLCANO_BARE) _svol++;   // (the bare cone's texels - q299)
 				var _cnb4 = [((_cxx + _tw - 1) mod _tw) + _cyy * _tw, ((_cxx + 1) mod _tw) + _cyy * _tw, (_cyy > 0) ? _ci - _tw : -1, (_cyy < _th - 1) ? _ci + _tw : -1];
 				for (var _cq = 0; _cq < 4; _cq++) {
 					var _cj = _cnb4[_cq]; if (_cj < 0 || _comp[_cj] >= 0 || _el[_cj] < _sea) continue;
@@ -64,21 +58,36 @@ function planet_territories(_pn, _until = infinity) {
 					_comp[_cj] = _cid; array_push(_stk, _cj);
 				}
 			}
-			array_push(_csz, _sz); array_push(_cx, (((_x00 + round(_sx / _sz)) mod _tw) + _tw) mod _tw); array_push(_cy, clamp(round(_sy / _sz), 0, _th - 1)); array_push(_cfirst, _i0);
+			array_push(_csz, _sz); array_push(_cx, (((_x00 + round(_sx / _sz)) mod _tw) + _tw) mod _tw); array_push(_cy, clamp(round(_sy / _sz), 0, _th - 1)); array_push(_cfirst, _i0); array_push(_cvol, _svol >= _sz * .5);   // (half bare cone or more: a volcano islet)
+		}
+		// ---- the seeds: the gate on green off the poles, the rest poisson-spread - plain ground, never a volcano islet ----
+		for (var _t = 0; _t < 240 && array_length(_seeds) == 0; _t++) {
+			var _x = floor(_h(_pn.seed, _t * 2) * _tw), _y = floor((.18 + .64 * _h(_pn.seed, _t * 2 + 1)) * _th), _i = _x + _y * _tw, _b = _bm[_i];
+			if (!_okl(_b, _el[_i], _sea) || !_plain(_i) || _comp[_i] < 0 || _cvol[_comp[_i]]) continue;
+			if (_t < 140 && !(_b == 4 || _b == 5 || _b == 6 || _b == 21 || _b == 22)) continue;   // (the gate is green while it can be)
+			array_push(_seeds, [_x, _y]);
+		}
+		if (array_length(_seeds) == 0) for (var _i = 0; _i < _n && array_length(_seeds) == 0; _i++) if (_el[_i] >= _sea) array_push(_seeds, [_i mod _tw, _i div _tw]);
+		if (array_length(_seeds) == 0) { _pn.terr = { n : 0, ids : [], seeds : [], area : [], adj : [], ring : [], lv : [] }; return true; }   // (a world with no land at all)
+		for (var _t = 0; _t < _want * 40 && array_length(_seeds) < _want; _t++) {
+			var _x = floor(_h(_pn.seed, 1000 + _t * 2) * _tw), _y = floor((TERR_POLE + .02 + (1 - 2 * (TERR_POLE + .02)) * _h(_pn.seed, 1001 + _t * 2)) * _th), _i = _x + _y * _tw;
+			if (!_okl(_bm[_i], _el[_i], _sea) || !_plain(_i) || _comp[_i] < 0 || _cvol[_comp[_i]]) continue;
+			var _cl = max(.2, sin(pi * (_y + .5) / _th)), _ok = true;
+			for (var _k = 0; _k < array_length(_seeds) && _ok; _k++) {
+				var _dx = abs(_x - _seeds[_k][0]); _dx = min(_dx, _tw - _dx);
+				if (sqrt(sqr(_dx * _cl) + sqr(_y - _seeds[_k][1])) < _rmin) _ok = false;
+			}
+			if (_ok) array_push(_seeds, [_x, _y]);
 		}
 		var _cseed = array_create(array_length(_csz), false);
 		for (var _ck = 0; _ck < array_length(_seeds); _ck++) { var _sc0 = _comp[_seeds[_ck][0] + _seeds[_ck][1] * _tw]; if (_sc0 >= 0) _cseed[_sc0] = true; }
 		for (var _c0 = 0; _c0 < array_length(_csz); _c0++) {
-			if (_cseed[_c0] || _csz[_c0] < TERR_ISLE_MIN || array_length(_seeds) >= REGION_MAX) continue;
-			// the texel of the component nearest its centroid (the centroid itself may be a lake or a bay)
-			var _cbi = -1, _cbd = 1000000, _vmk = _pn[$ "vmask"], _smk = _pn[$ "sigmask"];
+			if (_cseed[_c0] || _cvol[_c0] || _csz[_c0] < TERR_ISLE_MIN || array_length(_seeds) >= REGION_MAX) continue;
+			// the texel of the component nearest its centroid (the centroid itself may be a lake or a bay) - plain ground (q298 / q299)
+			var _cbi = -1, _cbd = 1000000;
 			for (var _i1 = 0; _i1 < _n; _i1++) {
 				if (_comp[_i1] != _c0) continue;
-				// (nobody starts a country in a volcano, a lake or on a peak - q298: the seed wants plain ground)
-				if (!_okl(_bm[_i1], _el[_i1], _sea)) continue;
-				if (is_array(_rl) && _rl[_i1] > .10) continue;
-				if (is_array(_vmk) && _vmk[_i1] > 0) continue;
-				if (is_array(_smk) && _smk[_i1] > 0) continue;
+				if (!_okl(_bm[_i1], _el[_i1], _sea) || !_plain(_i1)) continue;
 				var _dx1 = abs((_i1 mod _tw) - _cx[_c0]); _dx1 = min(_dx1, _tw - _dx1);
 				var _dd1 = sqr(_dx1) + sqr((_i1 div _tw) - _cy[_c0]);
 				if (_dd1 < _cbd) { _cbd = _dd1; _cbi = _i1; }
@@ -89,7 +98,7 @@ function planet_territories(_pn, _until = infinity) {
 		var _dist = array_create(_n, 1000000), _own = array_create(_n, 0), _bk = array_create(TERR_CMAX + 1, -1);
 		_bk[0] = [];
 		for (var _k = 0; _k < array_length(_seeds); _k++) { var _i = _seeds[_k][0] + _seeds[_k][1] * _tw; _dist[_i] = 0; _own[_i] = _k + 1; array_push(_bk[0], _i); }
-		_st = { seeds : _seeds, dist : _dist, own : _own, bk : _bk, c : 0, land : _land, comp : _comp, csz : _csz, cseed : _cseed, prow : _prow };
+		_st = { seeds : _seeds, dist : _dist, own : _own, bk : _bk, c : 0, land : _land, comp : _comp, csz : _csz, cseed : _cseed, cvol : _cvol, prow : _prow };
 		_pn.terr_st = _st;
 	}
 	// ---- the walk, sliced ----
@@ -107,6 +116,9 @@ function planet_territories(_pn, _until = infinity) {
 					var _ny = _y + _oy[_k]; if (_ny < _prw || _ny >= _th - _prw) continue;   // (never the polar rows - q297)
 					var _nx = (_x + _ox[_k] + _tw) mod _tw, _j = _nx + _ny * _tw;
 					if (_el[_j] < _sea) continue;   // (never the sea: a region ends at its coast; an island of size has a seed, a small one joins a neighbour after - q297)
+					// A DIAGONAL STEP only where an orthogonal one would do (q299): the landmasses are four-connected, and the walk
+					// leaked across a strait's corner onto the next island - his "island grabbing part of the volcano"
+					if (_k >= 4 && _el[_nx + _y * _tw] < _sea && _el[_x + _ny * _tw] < _sea) continue;
 					var _base = (_k < 4) ? ((_ox[_k] != 0) ? 4 * _cl : 4) : sqrt(sqr(4 * _cl) + 16);
 					var _m = 1, _b = _bm[_j];
 					if (_b == 1 || _b == 11) _m = 5; else if (_b == 9 || _b == 10) _m = 3;   // (a river or a lake five times: the fronts meet at the water - q298)
@@ -126,11 +138,12 @@ function planet_territories(_pn, _until = infinity) {
 		if ((_c & 15) == 0 && get_timer() >= _until) { _st.c = _c; return false; }
 	}
 	// ---- done: the islands, the waters, the borders, the neighbours, the rings, the sheet ----
-	var _sds = _st.seeds, _nr = array_length(_sds), _cmp = _st.comp, _csz2 = _st.csz, _cseed2 = _st.cseed, _prw2 = _st.prow;
+	var _sds = _st.seeds, _nr = array_length(_sds), _cmp = _st.comp, _csz2 = _st.csz, _cseed2 = _st.cseed, _cvol2 = _st.cvol, _prw2 = _st.prow;
 	// THE SMALL ISLANDS (q297): a landmass with no seed joins the region owning the nearest owned land within TERR_ISLE_REACH
-	// texels of ground - the whole of it to one owner; past that reach it is nobody's (a rock in the deep)
+	// texels of ground - the whole of it to one owner; past that reach it is nobody's (a rock in the deep). A volcano islet
+	// never joins (q299)
 	for (var _c1 = 0; _c1 < array_length(_csz2); _c1++) {
-		if (_cseed2[_c1]) continue;
+		if (_cseed2[_c1] || _cvol2[_c1]) continue;
 		var _bown = 0, _bdd = 1000000;
 		for (var _i2 = 0; _i2 < _n; _i2++) {
 			if (_cmp[_i2] != _c1) continue;
@@ -181,6 +194,27 @@ function planet_territories(_pn, _until = infinity) {
 			if (_lnd4 >= 2 && _top > _same && _top >= 2) _nid[_i4] = _tv;
 		}
 		_ids = _nid;
+	}
+	// THE CONES WHOLE (q299; his report: "grabbing part of the volcano"): a volcano's bare cone - its crater and summit, cmask
+	// at VOLCANO_BARE and over - belongs to ONE region, the one owning most of it. The fronts meet on the costly flank and
+	// split the crater; the border runs round the cone now
+	var _cmk = _pn[$ "cmask"];
+	if (is_array(_cmk)) {
+		var _cseen = array_create(_n, false);
+		for (var _i5 = 0; _i5 < _n; _i5++) {
+			if (_cseen[_i5] || _el[_i5] < _sea || _cmk[_i5] < VOLCANO_BARE) continue;
+			var _stk5 = [_i5], _grp = [], _cnt = array_create(_nr + 1, 0);
+			_cseen[_i5] = true;
+			while (array_length(_stk5) > 0) {
+				var _g5 = array_pop(_stk5); array_push(_grp, _g5); _cnt[_ids[_g5]]++;
+				var _x5 = _g5 mod _tw, _y5 = _g5 div _tw;
+				var _nb5 = [((_x5 + _tw - 1) mod _tw) + _y5 * _tw, ((_x5 + 1) mod _tw) + _y5 * _tw, (_y5 > 0) ? _g5 - _tw : -1, (_y5 < _th - 1) ? _g5 + _tw : -1];
+				for (var _q5 = 0; _q5 < 4; _q5++) { var _j5 = _nb5[_q5]; if (_j5 < 0 || _cseen[_j5] || _el[_j5] < _sea || _cmk[_j5] < VOLCANO_BARE) continue; _cseen[_j5] = true; array_push(_stk5, _j5); }
+			}
+			var _bo = 0, _bc5 = 0;
+			for (var _o5 = 1; _o5 <= _nr; _o5++) if (_cnt[_o5] > _bc5) { _bc5 = _cnt[_o5]; _bo = _o5; }
+			if (_bo > 0) for (var _g6 = 0; _g6 < array_length(_grp); _g6++) _ids[_grp[_g6]] = _bo;
+		}
 	}
 	// THE COLOURS (q296, his ask: "a seeded region colour"): a hue a region, hashed off the world and its index - the sheet's
 	// green carries it to the shader, region_col hands the same colour to the pages

@@ -1,6 +1,6 @@
 /// @description region_place(nodes, pn, terr, ri) -> the region's frame { sx, sy, cl, span, cxm, cym, x0, y0, w, h } - EVERY PLACE ON A TEXEL OF ITS TERRITORY (q288): each node's texel chosen for its kind among the territory's own land, two to six texels of ground from its parent (the tree the layout grew), clear of the others; its unit x / y (the map's frame) from the territory's bounding box. Rolls on the region's stream (region_gen's seed is set)
 function region_place(_nodes, _pn, _terr, _ri) {
-	var _tw = _pn.tw, _th = _pn.th, _ids = _terr.ids, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"], _id = _ri + 1;
+	var _tw = _pn.tw, _th = _pn.th, _ids = _terr.ids, _el = _pn.elev, _bm = _pn.biome, _sea = _pn.sea, _rl = _pn[$ "rlift"], _id = _ri + 1, _vm = _pn[$ "vmask"], _cm = _pn[$ "cmask"];
 	var _sx = _terr.seeds[_ri][0], _sy = _terr.seeds[_ri][1], _cl = max(.2, sin(pi * (_sy + .5) / _th));
 	// the territory's land, with what each texel is: coastal (a sea texel beside it), by water (a river or a lake or the coast), on a range
 	var _T = [], _minx = 9999, _maxx = -9999, _miny = 9999, _maxy = -9999;
@@ -10,12 +10,16 @@ function region_place(_nodes, _pn, _terr, _ri) {
 		if (_b == 0 || _b == 1 || _b == 11 || _b == 25) continue;
 		var _x = _i mod _tw, _y = _i div _tw;
 		var _dx = ((_x - _sx + _tw + (_tw div 2)) mod _tw) - (_tw div 2), _dy = _y - _sy;
+		_minx = min(_minx, _dx); _maxx = max(_maxx, _dx); _miny = min(_miny, _dy); _maxy = max(_maxy, _dy);   // (the frame takes every texel; the places below skip some)
+		// NO PLACE IN A VOLCANO (q299; his report: "a damn node in the middle of the volcano's lava"): never the crater, a flow, the
+		// walls, nor the bare cone - the lower flank keeps its grass and may hold a village at the foot
+		if (is_array(_vm) && _vm[_i] > 0) continue;
+		if (is_array(_cm) && _cm[_i] >= VOLCANO_BARE) continue;
 		var _l = ((_x + _tw - 1) mod _tw) + _y * _tw, _r = ((_x + 1) mod _tw) + _y * _tw, _u = (_y > 0) ? _i - _tw : _i, _dn = (_y < _th - 1) ? _i + _tw : _i;
 		var _coast = (_el[_l] < _sea || _el[_r] < _sea || _el[_u] < _sea || _el[_dn] < _sea);
 		var _wat = _coast || (_bm[_l] == 1 || _bm[_l] == 11 || _bm[_r] == 1 || _bm[_r] == 11 || _bm[_u] == 1 || _bm[_u] == 11 || _bm[_dn] == 1 || _bm[_dn] == 11);
 		var _rng = is_array(_rl) && _rl[_i] > .06;
 		array_push(_T, { i : _i, dx : _dx, dy : _dy, b : _b, coast : _coast, wat : _wat, rng : _rng, gx : _dx * _cl, gy : _dy });
-		_minx = min(_minx, _dx); _maxx = max(_maxx, _dx); _miny = min(_miny, _dy); _maxy = max(_maxy, _dy);
 	}
 	if (array_length(_T) == 0) return undefined;
 	var _w = _maxx - _minx + 1, _h = _maxy - _miny + 1;
@@ -33,7 +37,7 @@ function region_place(_nodes, _pn, _terr, _ri) {
 			case "marsh":     return (_b == 12) ? 1 : .1;
 			case "desert":    return (_b == 3 || _b == 13 || _b == 23 || _b == 24) ? 1 : .1;
 			case "hills":     return (_b == 23 || _b == 15 || _b == 16 || _b == 17 || (_t.rng && !(_b == 9 || _b == 10))) ? 1 : .25;
-			case "mountains": return (_b == 9 || _b == 10 || _b == 18 || _t.rng) ? 1 : .1;
+			case "mountains": return (_b == 9 || _b == 10 || _t.rng) ? 1 : .1;   // (18, lava, scored as a mountain - a node in the pool; q299)
 			case "tundra":    return (_b == 7 || _b == 8 || _b == 14) ? 1 : .1;
 			case "field":     return (_b == 4 || _b == 21) ? 1 : .2;
 			case "mine":      return _t.rng ? 1 : ((_b == 23 || _b == 17) ? .8 : .15);

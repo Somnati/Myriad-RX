@@ -11,7 +11,7 @@
 /// persist between draws, so every one is set every call.
 /// msh (2026-09-16) = the moons' view-space casters [[x, y, z, size], ...] (moon_view_pos); storms = the storm regions' spots in texture space [[x, y, z], ...]
 /// lod (2026-09-17) = the ZOOM PATCH (syst_exped_panel's lod_show): { k, u0, v0, uw, vh, tsurf, hsurf } - the window of the map under the view sampled k times finer; undefined = none
-function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined, _lod = undefined, _pfade = 1) {   // (pfade: the volcanoes' plumes' own fade, 2026-09-17)
+function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = undefined, _light_w = undefined, _msh = undefined, _storms = undefined, _lod = undefined, _pfade = 1, _rfade = 1) {   // (pfade: the volcanoes' plumes' own fade, 2026-09-17)
 	if (!planet_bake(_pn)) return false;
 	var _cfg = planet_config();
 	if (is_undefined(_spin)) _spin = planet_spin_now(_pn);   // the universal clock (the agent's day / night agrees with it)
@@ -120,7 +120,7 @@ function planet_draw(_pn, _cx, _cy, _pr, _spin = undefined, _cfade = 1, _cam = u
 	shader_set_uniform_f(_u.pad, _pad);
 	shader_set_uniform_f(_u.time, (current_time mod 100000) / 1000);
 	shader_set_uniform_f(_u.cells, (_pxc > 0) ? (2 * _q) / _pxc : 0);
-	shader_set_uniform_f(_u.ring, _pn.ring ? .85 : 0);
+	shader_set_uniform_f(_u.ring, _pn.ring ? .85 * clamp(_rfade, 0, 1) : 0);   // (rfade: the ring thinning with the zoom like the clouds, its shadow with it - q299, his ask)
 	shader_set_uniform_f(_u.raxis, _ax[0], _ax[1], _ax[2]);
 	shader_set_uniform_f(_u.rcol, colour_get_red(_pn.ring_col) / 255, colour_get_green(_pn.ring_col) / 255, colour_get_blue(_pn.ring_col) / 255);
 	// THE RING'S MAKE (2026-09-17): its kind, reach, second colour and band seed; and a gap where a moon rides inside it

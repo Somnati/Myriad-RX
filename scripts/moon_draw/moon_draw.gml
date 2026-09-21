@@ -9,7 +9,8 @@
 /// perspective as the ring (an eye six radii out): near moons swing wider
 /// and draw bigger. It dims as it passes into the world's shadow. The
 /// angle is advanced on the universal clock here.
-function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
+function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w, _alpha = 1) {   // (alpha: the moon fading with the zoom - q299, his ask)
+	if (_alpha <= .01) return false;
 	var _cfg = planet_config();
 	var _tex = moon_tex();
 	var _ang = (_mo.ang + _mo.spd * 60 * universal_now()) mod 360;
@@ -89,7 +90,7 @@ function moon_draw(_pn, _mo, _i, _near, _cx, _cy, _pr, _cam, _light_w) {
 	shader_set_uniform_f(_u.cityn, 0);
 	texture_set_stage(_u.cloud, surface_get_texture(_tex.c));
 	texture_set_stage(_u.height, surface_get_texture(_tex.h));
-	draw_surface_ext(_tex.t, _qx, _qy, (2 * _q) / MOON_TEX_W, (2 * _q) / MOON_TEX_H, 0, _mcol, 1);
+	draw_surface_ext(_tex.t, _qx, _qy, (2 * _q) / MOON_TEX_W, (2 * _q) / MOON_TEX_H, 0, _mcol, clamp(_alpha, 0, 1));
 	shader_reset();
 	return true;
 }

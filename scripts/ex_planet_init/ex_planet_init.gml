@@ -186,7 +186,7 @@ __hand_open = function(_kind) {
 			// A TWO-STOP QUEST names both (q268; his report: "are these quests named wrong" - a wheel fetched at Kah's spit for
 			// Xehythe was titled Kah's spit alone): "Kah's spit to Xehythe"
 			var _ttl = _nd.name;
-			if (!is_undefined(_q[$ "from"]) && _q.node != _q.from && _q.node >= 0 && _q.node < array_length(_rg.nodes)) _ttl = _rg.nodes[_q.from].name + " to " + _rg.nodes[_q.node].name;
+			if (!is_undefined(_q[$ "from"]) && _q.from >= 0 && _q.from < array_length(_rg.nodes) && _q.node != _q.from && _q.node >= 0 && _q.node < array_length(_rg.nodes)) _ttl = _rg.nodes[_q.from].name + " to " + _rg.nodes[_q.node].name;
 			array_push(_faces, { title : _ttl, sub : (((_sl[_i][$ "pers"] ?? false) ? "personal  -  " : "") + (is_struct(_kd) ? _kd.name : _nd.kind)), col : is_struct(_kd) ? _kd.col : c_gold, txt : _obj, haz : region_hazard_at(pl_dest, _rg, _nd.kind),   // (a personal card says so; the season's hazard - 2026-09-16)
 			                     diff : _q.diff, diff_txt : _q.diff_txt, hrs : string(_q.hours) + "h", cr : string(_q.reward) + " cr", xp : string(sprite_xp_quest(_q.lv, 1, _q.mult)) + " xp",   // (the xp in xp - his ask: "x3" meant nothing)
 			                     slot : _sl[_i], si : _i, hours : _q.hours, salt0 : _sl[_i].salt });

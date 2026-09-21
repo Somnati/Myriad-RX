@@ -54,7 +54,9 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	g.dither_off = page_float();   // (the world into a float page: no dither of its own - the blit's grain is the one)
 	// THE MOONS (the tech demo's, back - 2026-09-15): the far half before the world, the near half after
 	var _mns = planet_moons(_d.seed), _nmn = min(4, planet_props(_d).moons);
-	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, _sky.light_w);
+	// THE RING AND THE MOONS FADE WITH THE ZOOM (q299, his ask): on the clouds' curve, gone a little before them - they crossed the region view
+	var _ofade = clamp((_cfade - .4) / .55, 0, 1);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, false, _pcx, _pcy, _pr, _cam, _sky.light_w, _ofade);
 	// the moons' shadow casters, and the storm regions' spots (2026-09-16)
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
@@ -66,8 +68,8 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _askd = _sky[$ "skind"] ?? "main";
 	_pn.astr = (_sky[$ "hole"] ?? false) ? 1.2 : ((_askd == "giant") ? 1.6 : ((_askd == "dwarf") ? .45 : ((_askd == "pulsar") ? 2.2 : ((_askd == "chroma") ? 1.8 : ((_askd == "swell") ? 1.5 : ((_askd == "brown") ? .3 : 1))))));
 	_pn.sunl = star_light((_sky[$ "hole"] ?? false) ? "hole" : _askd, _sky[$ "sseed"] ?? 0, _sky[$ "speriod"] ?? 2400).tint;   // THE STAR'S LIGHT on the world (q253): sh_planet's day in the sun's colour and strength
-	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod, (view == "planet") ? pv_pfade : 1);
-	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w);
+	if (_built) planet_draw(_pn, _pcx, _pcy, _pr, _spin, _cfade, _cam, _sky.light_w, _msh, _storms, _lod, (view == "planet") ? pv_pfade : 1, _ofade);
+	if (_built) for (var _mi = 0; _mi < _nmn; _mi++) moon_draw(_pn, _mns[_mi], _mi, true, _pcx, _pcy, _pr, _cam, _sky.light_w, _ofade);
 	// THE ECLIPSE RIM (2026-09-16): the sun behind the world - its glare leaks round the limb on the side it hides behind
 	if (_built) {
 		var _svr = mat3_apply(mat3_transpose(_cam), _sky.light_w[0], _sky.light_w[1], _sky.light_w[2]);
