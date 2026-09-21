@@ -25,7 +25,7 @@ if (view == "depart") {
 rg_box_a = move_to(rg_box_a, rg_box_open ? 1 : 0, 5);   // the info box's fold (2026-09-16)
 if (view == "planet" && pv_mode == "region") {
 	// region mode swings in - and OUT the same way (rg_leave: the info box back to the left, the buttons back to their edges), then the planet
-	if (rg_leave) { rg_in = move_to(rg_in, 0, 4); if (rg_in <= .03) { rg_in = 0; rg_leave = false; pv_mode = "planet"; } }
+	if (rg_leave) { rg_in = move_to(rg_in, 0, 4); if (rg_in <= .03) { rg_in = 0; rg_leave = false; pv_mode = "planet"; pv_zuser = clamp(pv_zuser * PV_ZOOM_RG, PV_ZOOM_MIN, PV_ZOOM_MAX); } }   // (the distance kept across the flip - q309, his ask)
 	else { rg_in = move_to(rg_in, 1, 4); if (rg_in >= .985) rg_in = 1; }
 } else { rg_in = 0; rg_leave = false; }
 // the sheet modal's fade (dp_sheet_a; the sprite it showed stays for the fade out), the map's legend, the haul's roster list

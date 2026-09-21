@@ -28,16 +28,35 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	var _mr = mat3_transpose(_mm);
 	var _fa = g.ui_fade_a;
 	ui_fade_set(1);
-	if (_built && _wmap > 0) __wm_bake(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _wmap); else { wn_pts = []; wm_stamp = ""; }   // THE REGION MAPS ON THE WORLD, baked on a view change (q305) - before the world's target
-	surface_set_target(wb_surf);
-	draw_clear_alpha(c_black, 1);
+	// THE WORLD'S MAP (q305 / q309): baked on a view change, the PICKED REGION'S alone (his call: "we can just load it when we
+	// select a region") - before the world's target
+	if (_built && _wmap > 0 && _focus >= 0) __wm_bake(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _wmap); else { wn_pts = []; wm_stamp = ""; }
+	// THE SKY BAKED (q309, his profile: galaxy_sky_draw 2.3 ms a frame - three thousand stars): to a surface, re-baked when
+	// the camera turned a hair (the stamp) or every dozen frames (the twinkle), never when the world covers the page
+	var _fx = (_pcx < _w * .5) ? _w : 0, _fy = (_pcy < _h * .5) ? _h : 0;
+	var _covered = (_pr > point_distance(_pcx, _pcy, _fx, _fy) + 2);
 	// the sun's occluders: the world's disc, and the moons' (the moon maths of moon_draw - an eclipse from the camera's seat, 2026-09-16)
 	var _occs = [{ x : _pcx, y : _pcy, r : _pr }];
 	var _mns0 = planet_moons(_d.seed), _nmn0 = min(4, planet_props(_d).moons);
 	for (var _mi0 = 0; _mi0 < _nmn0; _mi0++) { var _mv0 = moon_view_pos(_pn, _mns0[_mi0], _cam); var _k0 = 6 / max(6 - _mv0[2], .5); array_push(_occs, { kind : "moon", x : _pcx + _mv0[0] * _pr * _k0, y : _pcy + _mv0[1] * _pr * _k0, r : max(1, _mv0[3] * _pr * 1.02 * _k0) }); }
-	galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, _occs);   // (the sun fades behind the world - his report 2026-09-16)
-	galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
-	galaxy_sky_holes(_sky, _cam, _pcx, _pcy, _w, _h, true, _occs);   // (the holes over the fog; a hole for a sun bends the fog too - 2026-09-17)
+	if (!_covered) {
+		if (!surface_exists(sky_surf) || surface_get_width(sky_surf) != _w || surface_get_height(sky_surf) != _h) { if (surface_exists(sky_surf)) surface_free(sky_surf); sky_surf = surface_create(_w, _h); sky_stamp = ""; }
+		var _sst = string(_d.seed) + ":" + string(floor(_pcx)) + ":" + string(floor(_pcy)) + ":" + string(round(_pr));
+		for (var _si0 = 0; _si0 < 9; _si0++) _sst += ":" + string(round(_cam[_si0] * 1000));
+		sky_age += 1;
+		if (_sst != sky_stamp || sky_age >= 12) {
+			sky_stamp = _sst; sky_age = 0;
+			surface_set_target(sky_surf);
+			draw_clear_alpha(c_black, 1);
+			galaxy_sky_draw(_sky, _cam, _pcx, _pcy, _w, _h, true, true, _occs);   // (the sun fades behind the world - his report 2026-09-16)
+			galaxy_fog_draw(_sky, _cam, _pcx, _pcy, _w, _h, sky_fog_surf);
+			galaxy_sky_holes(_sky, _cam, _pcx, _pcy, _w, _h, true, _occs);   // (the holes over the fog; a hole for a sun bends the fog too - 2026-09-17)
+			surface_reset_target();
+		}
+	} else sky_stamp = "";
+	surface_set_target(wb_surf);
+	draw_clear_alpha(c_black, 1);
+	if (!_covered && surface_exists(sky_surf)) draw_surface(sky_surf, 0, 0);
 	// THE METEOR (2026-09-16): a streak now and then, fading along its length; page space, before the world (it is sky)
 	sky_met_t += delta / 60;
 	if (is_undefined(sky_met) && sky_met_t > (starmap_config()[$ "sky_meteor"] ?? 28) * random_range(.6, 1.5)) {
@@ -61,8 +80,12 @@ __draw_orbit = function(_d, _x, _y, _w, _h, _pcx, _pcy, _pr, _cam, _spin, _spots
 	// the moons' shadow casters, and the storm regions' spots (2026-09-16)
 	var _msh = [];
 	for (var _mi = 0; _mi < _nmn; _mi++) array_push(_msh, moon_view_pos(_pn, _mns[_mi], _cam));
-	var _storms = [];
-	for (var _si = 0; _si < region_count(_d); _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
+	// THE STORMS' SPOTS once a second and a half (q309, his profile: region_weather x57 was 1.8 ms a frame) - the weather turns by the hour
+	if (st_storms_seed != _d.seed || st_storms_t <= 0) {
+		st_storms = []; st_storms_seed = _d.seed; st_storms_t = 90;
+		for (var _si = 0; _si < region_count(_d); _si++) { var _srg = region_get(_d, _si); if (region_weather(_d, _srg) == "storm") array_push(st_storms, __spot_dir(_srg.spot.lon, _srg.spot.lat)); }
+	} else st_storms_t -= delta;
+	var _storms = st_storms;
 	var _lod = (view == "planet") ? __lod_pick(_pn) : ((view == "trip") ? tiers.pick(_pn, true) : undefined);   // (the zoom tier standing for this zoom, the page's own - 2026-09-17; the trip page's region box wants it too - q268)
 	if (is_struct(_lod)) _lod.fade = lod_fade;   // (its fade-in, __lod_step's - q256)
 	// the aurora's strength is the star's (q205): main 1, a red giant 1.6, a white dwarf .45, a pulsar 2.2, a black hole's disc 1.2
@@ -203,7 +226,9 @@ __wm_bake = function(_d, _pn, _mr, _pcx, _pcy, _pr, _w, _h, _focus, _za) {
 	surface_set_target(wm_surf);
 	draw_clear_alpha(c_black, 0);
 	var _vis = [];
-	for (var _ri = 0; _ri < _nrg; _ri++) {
+	// THE PICKED REGION ALONE (q309, his call: "you dont have to load every region's poi/roads... just load it when we select
+	// a region"): one region's places and roads a bake - cheap enough to bake every frame of a drag, on a phone too
+	for (var _ri = max(0, _focus); _ri < _nrg && _ri <= _focus; _ri++) {
 		var _rg = region_get(_d, _ri);
 		if (!is_struct(_rg[$ "tmap"]) || _ri >= array_length(_pn.terr.seeds)) continue;
 		var _geo = __wm_geo(_pn, _rg, _bump);

@@ -47,6 +47,13 @@ wn_pts = [];       // THE REGION MAPS ON THE WORLD (q303): this frame's visible 
 pv_pop = undefined;   // ...the place whose card is up { ri, ni } (region mode's tap on a place), else undefined
 wm_surf = -1;         // ...the overlay the roads and the places are baked to (q305), and the view it was baked for
 wm_stamp = "";
+sky_surf = -1;        // THE SKY BAKED (q309): the stars, the fog and the holes to a surface, re-baked when the camera turned or every dozen frames
+sky_stamp = "";
+sky_age = 0;
+st_storms = [];       // the storm regions' spots, read once a second and a half (q309)
+st_storms_seed = -1;
+st_storms_t = 0;
+pv_zt = 1;            // the zoom's target this frame (the ladder's rung) - the clock's; the world's map bakes quick while the zoom eases toward it
 pv_snap_a = 0;        // THE PHASE SNAP's ease (q305): 0 while the camera moves, to 1 once it is still - the pan is smooth, the rest is on the grid
 pv_rsc = 0;   // THE DRAWER'S ROWS SCROLLED (q295, his report: "49 regions but i can only select the first 5"): rows skipped from the top; the wheel over the drawer moves it
 rg_infl_tab = "lanes"; rg_infl_tabs = []; rg_infl_scroll = 0; rg_infl_hmax = 0;   // ...IN TABS (q286): the tab up, the pills' rects (the Draw lays them, the press reads them), the wheel's scroll and its reach
@@ -318,5 +325,18 @@ __pv_pick = function(_i) {
 	rg_sel = _i; pl_focus = _i; pv_face = _i;
 	pv_vx = 0; pv_vy = 0;   // (the tap's own glide would fight the snap - "jitters back and forth", his report 2026-09-17)
 	play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1);
+};
+/// REGION MODE IN AND OUT (q309, his ask: "if i click on a region for it to go into the view a region... clicking off a region
+/// for it to go back"): in - the pull-in on the picked region (the region's own distance); out - the swing back to the world
+/// view, the camera's distance KEPT (the zoom carries over when the mode flips - syst_exped_panel's Step)
+__rg_enter = function() {
+	if (pl_focus < 0 || __nolanding(pl_dest)) return;
+	rg_sel = pl_focus; pv_face = pl_focus; pv_mode = "region"; pv_dw = false; pv_pop = undefined;
+	pv_zuser = 1;   // (the region's own distance every time, wherever the wheel was - his ask 2026-09-17)
+};
+__rg_leave = function() {
+	if (pv_mode != "region" || rg_leave) return;
+	if (hand != "") __hand_fold();
+	rg_leave = true; rg_infl = false; pv_pop = undefined;
 };
 }

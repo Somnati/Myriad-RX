@@ -56,7 +56,7 @@ function ex_planet_hold() {
 					var _dot = _tp[0] * _pk.tx + _tp[1] * _pk.ty + _tp[2] * _pk.tz;
 					if (_dot > _bd) { _bd = _dot; _best = _i; }
 				}
-				if (_best >= 0) __pv_pick(_best);
+				if (_best >= 0) { __pv_pick(_best); __rg_enter(); }   // (straight into region mode - q309, his ask)
 				else play_sound_ext(snd_matclick2, .7, .8, .3, 0);
 			}
 		}
@@ -71,7 +71,21 @@ function ex_planet_hold() {
 				if (_dd2 < _hd2) { _hd2 = _dd2; _hit2 = _wp; }
 			}
 			if (is_struct(_hit2)) { pv_pop = (is_struct(pv_pop) && pv_pop.ri == _hit2.ri && pv_pop.ni == _hit2.ni) ? undefined : { ri : _hit2.ri, ni : _hit2.ni }; play_sound_ext(snd_softclick, 1.05, 1.15, .4, 1); }
-			else pv_pop = undefined;
+			else {
+				var _hadpop = is_struct(pv_pop);
+				pv_pop = undefined;
+				// THE TAP OFF THE REGION (q309, his ask): on another region's ground - view that one; on the sea or off the world -
+				// back to the world view; on this region's own ground - the card folds, nothing more
+				var _pc3 = __pv_c(), _ppn3 = planet_get(pl_dest.seed, exped_planet_hint(pl_dest));
+				var _pk3 = planet_pick(_ppn3, mouse_x, mouse_y, _pc3.x, _pc3.y, _ocf.pr * pv_zoom, pv_mat_m);
+				var _tid3 = 0;
+				if (_pk3.hit && is_struct(_ppn3[$ "terr"]) && _ppn3.terr.n > 0) {
+					var _tu3 = frac(arctan2(_pk3.tz, _pk3.tx) / (2 * pi) + .5 + 1), _tv3 = clamp(arccos(clamp(_pk3.ty, -1, 1)) / pi, 0, .9999);
+					_tid3 = _ppn3.terr.ids[clamp(floor(_tu3 * _ppn3.tw), 0, _ppn3.tw - 1) + clamp(floor(_tv3 * _ppn3.th), 0, _ppn3.th - 1) * _ppn3.tw];
+				}
+				if (_tid3 > 0 && _tid3 <= region_count(pl_dest) && _tid3 - 1 != rg_sel) { if (hand != "") __hand_fold(); rg_infl = false; __pv_pick(_tid3 - 1); }
+				else if (_tid3 == 0 && !_hadpop) __rg_leave();
+			}
 		}
 	}
 	if (!pv_drag) {
