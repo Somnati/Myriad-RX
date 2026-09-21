@@ -626,6 +626,8 @@ ivars	syst_rm_arena              Create_0.gml                             mat x1
 ivars	syst_rm_arena              Create_0.gml                             rows x1
 ivars	syst_rm_arena              Create_0.gml                             turns x1
 ivars	syst_rm_arena              Step_0.gml                               target x3
+ivars	syst_rm_delta              Create_0.gml                             lbl x8
+ivars	syst_rm_delta              Create_0.gml                             tip x8
 ivars	syst_scene_light           Create_0.gml                             macro x1
 ivars	syst_settings              Create_0.gml                             data x3
 ivars	syst_settings              Create_0.gml                             help x3
@@ -801,6 +803,8 @@ dupvar	objects\syst_rm_ability\Step_0.gml                   _c _c2 _d _i mouse_y
 dupvar	objects\syst_rm_arena\Create_0.gml                   _hz _i _it _j _o _p _sp _t
 dupvar	objects\syst_rm_arena\Draw_0.gml                     _ff _i _isact _k _lbl _ln _lr _nat _p _r _ros _st p_season
 dupvar	objects\syst_rm_arena\Step_0.gml                     _ac _i _k
+dupvar	objects\syst_rm_delta\Draw_0.gml                     _i _k _rw _x _y
+dupvar	objects\syst_rm_delta\Step_0.gml                     _i
 dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
 dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
@@ -861,6 +865,14 @@ dupvar	scripts\cbt_status\cbt_status.gml                    round
 dupvar	scripts\ccore_tick\ccore_tick.gml                    _c
 dupvar	scripts\crunch_time_ago\crunch_time_ago.gml          _n
 dupvar	scripts\debug_scenario\debug_scenario.gml            _hy _i _k _s _st _st2
+dupvar	scripts\delta_catchup\delta_catchup.gml              _left
+dupvar	scripts\delta_drop\delta_drop.gml                    _cx _cy _h _sed _w
+dupvar	scripts\delta_hex\delta_hex.gml                      _i
+dupvar	scripts\delta_hex\delta_hex.gml                      _m
+dupvar	scripts\delta_init\delta_init.gml                    _h _seed _t _y
+dupvar	scripts\delta_pack\delta_pack.gml                    _i
+dupvar	scripts\delta_tick\delta_tick.gml                    _k
+dupvar	scripts\delta_unpack\delta_unpack.gml                _i
 dupvar	scripts\dial_breakdown\dial_breakdown.gml            _cfg _d _ms _s
 dupvar	scripts\dial_buy\dial_buy.gml                        _d
 dupvar	scripts\dial_buy_ext\dial_buy_ext.gml                _from _to

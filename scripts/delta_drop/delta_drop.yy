@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"delta_drop",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"delta_drop",
+  "parent":{
+    "name":"delta",
+    "path":"folders/game/delta.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -41,6 +41,7 @@ function menu2_content() {
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 
 	menu2_section("misc");
+	menu2_button("alluvium",     function() { delta_open(); }, c_sblue);   // ALLUVIUM (q314): the delta - a mini idle game of its own, unwired to the rest for now (his call)
 	menu2_button("number formats", rm_numfmt,      c_gold);   // the comparison table (his ask)
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
 	menu2_button("services",     rm_services,      c_seagreen);

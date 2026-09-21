@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"delta_hex",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"delta_hex",
+  "parent":{
+    "name":"delta",
+    "path":"folders/game/delta.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -601,6 +601,28 @@ function main_macros() {
 // have no tiles section and load their defaults through handle() - no
 // migration, nothing to convert.
 #macro TILES_LIVE true
+// ALLUVIUM (q314) - the delta's knobs: the grid, the sea, the droplet's physics, the seasons
+#macro DELTA_W        64
+#macro DELTA_H        37
+#macro DELTA_CELL     6       // room px a cell
+#macro DELTA_SEA      .30     // sea level: under it the sea, and a droplet's end
+#macro DELTA_LIFE     90      // steps a droplet walks at most
+#macro DELTA_INERTIA  .55     // how much of its way a droplet keeps against the slope
+#macro DELTA_CAP      .9      // sediment capacity per unit slope x speed x water (the richness lifts it)
+#macro DELTA_MINSLOPE .02
+#macro DELTA_DEPOSIT  .35     // the share of the excess dropped a step
+#macro DELTA_ERODE    .12     // the share of the free capacity cut a step
+#macro DELTA_GRAV     3.0
+#macro DELTA_EVAP     .012
+#macro DELTA_SILT_K   3.0     // silt laid per unit of sediment dropped
+#macro DELTA_SEA_GIFT .004    // what every droplet carries into the sea whatever it picked up (the river's mud; the twin: .03 filled the whole sea in a quarter hour)
+#macro DELTA_WET_DECAY .07    // the wet's fade a second
+#macro DELTA_WET_GAIN  .08    // what a droplet's pass leaves (the twin: .3 wetted the whole land - a river is a band)
+#macro DELTA_CROP_MAXH .72    // no field above this height: the peaks are the peaks
+#macro DELTA_FLOOD_EVERY 240  // seconds between floods
+#macro DELTA_FLOOD_LEN   14   // ...and how long one runs
+#macro DELTA_CATCHUP_MAX 21600   // the catch-up's reach, seconds (six hours)
+#macro DELTA_DROPS_MAX   3000    // ...and its droplets at most
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
