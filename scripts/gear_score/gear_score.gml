@@ -14,7 +14,7 @@ function gear_score(_sp, _it) {
 	var _ql = _it[$ "quirks"] ?? [];
 	if (array_length(_ql) > 0) {
 		var _qs = gear_quirks();
-		for (var _i = 0; _i < array_length(_ql); _i++) for (var _j = 0; _j < array_length(_qs); _j++) if (_qs[_j].key == _ql[_i]) _s += _qs[_j].val * 5;
+		for (var _i = 0; _i < array_length(_ql); _i++) for (var _j = 0; _j < array_length(_qs); _j++) if (_qs[_j].key == _ql[_i]) _s += (_qs[_j][$ "val"] ?? 1) * 5;   // (his crash 2026-09-21: the element quirks shipped without a val - the roster has one now, the reader no longer trusts it)
 	}
 	return _s;
 }

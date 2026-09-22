@@ -84,11 +84,13 @@
     {"link":"io.gamemaker.gm_filter_whitenoise-1.0.0","name":"io.gamemaker.gm_filter_whitenoise-1.0.0","path":"io.gamemaker.gm_filter_whitenoise-1.0.0.yyp",},
   ],
   "IncludedFiles":[
+    {"$GMIncludedFile":"","%Name":"collider_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"collider_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"dial_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"dial_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"sprite_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"sprite_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"stack_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"stack_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"tiles_twin.cpython-314.pyc","CopyToMask":-1,"filePath":"datafiles/__pycache__","name":"tiles_twin.cpython-314.pyc","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"battery_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"battery_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
+    {"$GMIncludedFile":"","%Name":"collider_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"collider_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"credits_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"credits_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"dial_twin.py","CopyToMask":-1,"filePath":"datafiles","name":"dial_twin.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
     {"$GMIncludedFile":"","%Name":"gen_foe_sprites.py","CopyToMask":-1,"filePath":"datafiles","name":"gen_foe_sprites.py","resourceType":"GMIncludedFile","resourceVersion":"2.0",},
