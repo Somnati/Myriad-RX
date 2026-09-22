@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stk_speed",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stk_speed",
+  "parent":{
+    "name":"stack",
+    "path":"folders/game/stack.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

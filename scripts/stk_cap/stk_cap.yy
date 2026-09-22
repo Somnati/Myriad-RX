@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stk_cap",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stk_cap",
+  "parent":{
+    "name":"stack",
+    "path":"folders/game/stack.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

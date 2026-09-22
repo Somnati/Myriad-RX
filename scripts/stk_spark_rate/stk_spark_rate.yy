@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"stk_spark_rate",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"stk_spark_rate",
+  "parent":{
+    "name":"stack",
+    "path":"folders/game/stack.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -601,37 +601,22 @@ function main_macros() {
 // have no tiles section and load their defaults through handle() - no
 // migration, nothing to convert.
 #macro TILES_LIVE true
-// ALLUVIUM (q314) - the delta's knobs: the grid, the sea, the droplet's physics, the seasons
-#macro DELTA_W        64
-#macro DELTA_H        37
-#macro DELTA_CELL     6       // room px a cell
-#macro DELTA_SEA      .30     // sea level: under it the sea, and a droplet's end
-#macro DELTA_LIFE     90      // steps a droplet walks at most
-#macro DELTA_INERTIA  .55     // how much of its way a droplet keeps against the slope
-#macro DELTA_CAP      .9      // sediment capacity per unit slope x speed x water (the richness lifts it)
-#macro DELTA_MINSLOPE .02
-#macro DELTA_DEPOSIT  .35     // the share of the excess dropped a step
-#macro DELTA_ERODE    .12     // the share of the free capacity cut a step
-#macro DELTA_GRAV     3.0
-#macro DELTA_EVAP     .012
-#macro DELTA_SILT_K   3.0     // silt laid per unit of sediment dropped
-#macro DELTA_SEA_GIFT .004    // what every droplet carries into the sea whatever it picked up (the river's mud; the twin: .03 filled the whole sea in a quarter hour)
-#macro DELTA_WET_DECAY .07    // the wet's fade a second
-#macro DELTA_WET_GAIN  .08    // what a droplet's pass leaves (the twin: .3 wetted the whole land - a river is a band)
-#macro DELTA_CROP_MAXH .72    // no field above this height: the peaks are the peaks
-#macro DELTA_FLOOD_EVERY 240  // seconds between floods
-#macro DELTA_FLOOD_LEN   14   // ...and how long one runs
-#macro DELTA_CATCHUP_MAX 21600   // the catch-up's reach, seconds (six hours)
-#macro DELTA_DROPS_MAX   3000    // ...and its droplets at most
-// SYZYGY (q315) - the cycles' knobs
-#macro SYZ_PER_MIN     3      // a period's floor, seconds
-#macro SYZ_PER_MAX     60     // ...and ceiling
-#macro SYZ_PER_POW     1.3    // a fire pays per^this (longer pays more a second too)
-#macro SYZ_CYCLES_MAX  8      // cycles at most (the ninth by token)
-#macro SYZ_DRIFT_EVERY 75     // seconds between wobbles
-#macro SYZ_SYNC_CD     180    // the sync's cooldown, seconds
-#macro SYZ_CATCHUP_MAX 21600  // the catch-up's reach (six hours)
-#macro SYZ_TUNE_BONUS  .25    // in tune (a period a whole multiple of another's): this much more
+// THE STACK (q316) - the layered energy's laws
+#macro STK_THR_BASE    40      // energy-seconds a sink's first level takes (datafiles/stack_twin.py tunes the pace - must print HOLDS)
+#macro STK_THR_MULT    1.35    // ...and the ladder's step (the NGU law)
+#macro STK_BONUS_POW   .75     // the diminishing law: a bonus climbs as level^this
+#macro STK_CAP_POW     1.5     // a cap sink's cap climbs as level^this (the well deepens faster the deeper it goes; level ~ log t, so still no runaway)
+#macro STK_CAP_BASE    10      // energy's cap at the start
+#macro STK_CAP_STEP    4       // ...and what a buy adds
+#macro STK_CAP_COST    40      // the first cap's price in spark
+#macro STK_CAP_MULT    2.0     // ...and the price's step
+#macro STK_SPEED_AE    1       // aether's progress a second per unit, before its multipliers (aether is scarce - a unit works as hard as energy's)
+#macro STK_SPEED_QU    .5      // quintessence's
+#macro STK_FOCUS_ON    2.5     // the focused sink's speed
+#macro STK_FOCUS_OFF   .6      // ...and the rest of its layer's
+#macro STK_CINDER_SPD  .06     // a cinder: this much on every speed
+#macro STK_CINDER_SPK  .03     // ...and on spark
+#macro STK_CATCHUP_MAX 86400   // the catch-up's reach (a day)
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -

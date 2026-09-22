@@ -41,8 +41,7 @@ function menu2_content() {
 	menu2_button("quit",         rm_quit,          c_hred);    // myriad
 
 	menu2_section("misc");
-	menu2_button("alluvium",     function() { delta_open(); }, c_sblue);
-	menu2_button("syzygy",       function() { syz_open(); },   c_hpurple);   // SYZYGY (q315): the clockwork - numbers, buttons and bars; unwired for now   // ALLUVIUM (q314): the delta - a mini idle game of its own, unwired to the rest for now (his call)
+	menu2_button("the stack",    function() { stk_open(); }, c_sgreen);   // THE STACK (q316): the layered energy - unwired to the rest for now (his call)
 	menu2_button("number formats", rm_numfmt,      c_gold);   // the comparison table (his ask)
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
 	menu2_button("services",     rm_services,      c_seagreen);

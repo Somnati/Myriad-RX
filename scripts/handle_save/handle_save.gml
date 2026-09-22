@@ -126,24 +126,19 @@ function handle_save(){
 		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
 	}
 
+	// ---- THE STACK (q316): the layered energy, whole, as one packed line;
+	// `last` rides inside it, so the room's catch-up replays the absence ----
+	section = "stack";
+	stk_init();
+	var _stk = handle("layers", stk_pack());
+	if (action == sv_load) stk_unpack(_stk);
+
 	// ---- history: the spark graphs, which are LIFETIME (his call) and
 	// therefore have to outlive the session. A series is 120 reals and a
 	// step, joined with pipes - 3 series is about 4KB of ini, which is
 	// the whole price of a graph that reaches back months.
 	// The buffer decimates itself (stats_hist_push), so this never grows
 	// no matter how long the account runs. ----
-	// ALLUVIUM (q314): the delta whole - its ledger and its four grids - as one string
-	section = "delta";
-	delta_init();
-	var _dlt = handle("grid", delta_pack());
-	if (action == sv_load) delta_unpack(_dlt);
-
-	// SYZYGY (q315): the clockwork whole
-	section = "syzygy";
-	syz_init();
-	var _syz = handle("clock", syz_pack());
-	if (action == sv_load) syz_unpack(_syz);
-
 	section = "history";
 	if (!variable_global_exists("stats_hist")) g.stats_hist = {};
 	if (!variable_global_exists("hist_meta"))  g.hist_meta  = {};
