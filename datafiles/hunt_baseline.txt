@@ -799,6 +799,9 @@ dupvar	objects\syst_rm_ability\Step_0.gml                   _c _c2 _d _i mouse_y
 dupvar	objects\syst_rm_arena\Create_0.gml                   _hz _i _it _j _o _p _sp _t
 dupvar	objects\syst_rm_arena\Draw_0.gml                     _ff _i _isact _k _lbl _ln _lr _nat _p _r _ros _st p_season
 dupvar	objects\syst_rm_arena\Step_0.gml                     _ac _i _k
+dupvar	objects\syst_rm_collider\Create_0.gml                _i
+dupvar	objects\syst_rm_collider\Draw_0.gml                  _cost _i _lf _stepk _up c
+dupvar	objects\syst_rm_collider\Step_0.gml                  _i _on _s
 dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
 dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
@@ -851,6 +854,7 @@ dupvar	scripts\bignum_vis_mantissa_string\bignum_vis_mantissa_string.gml _n
 dupvar	scripts\bignum_visualizer_create\bignum_visualizer_create.gml _ft _oc _ot _wm i
 dupvar	scripts\blur_snap\blur_snap.gml                      _d _i
 dupvar	scripts\capsule_bevel\capsule_bevel.gml              _r
+dupvar	scripts\cas_tick\cas_tick.gml                        _j
 dupvar	scripts\cbt_fight_new\cbt_fight_new.gml              _i
 dupvar	scripts\cbt_fight_next\cbt_fight_next.gml            _i _p _rts
 dupvar	scripts\cbt_fight_options\cbt_fight_options.gml      _i _t
@@ -860,6 +864,10 @@ dupvar	scripts\cbt_skill_gen\cbt_skill_gen.gml              _d _i _k _n _p _sc _
 dupvar	scripts\cbt_skills\cbt_skills.gml                    _all _d _i _p _ph _s _t _u _und elem magic mult name
 dupvar	scripts\cbt_status\cbt_status.gml                    round
 dupvar	scripts\ccore_tick\ccore_tick.gml                    _c
+dupvar	scripts\coll_pack\coll_pack.gml                      _c
+dupvar	scripts\coll_tick\coll_tick.gml                      _step
+dupvar	scripts\coll_tier_buy\coll_tier_buy.gml              _c _i _k _q
+dupvar	scripts\coll_unpack\coll_unpack.gml                  _c _i
 dupvar	scripts\crunch_time_ago\crunch_time_ago.gml          _n
 dupvar	scripts\debug_scenario\debug_scenario.gml            _hy _i _k _s _st _st2
 dupvar	scripts\dial_breakdown\dial_breakdown.gml            _cfg _d _ms _s

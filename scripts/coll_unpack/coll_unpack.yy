@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"coll_unpack",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"coll_unpack",
+  "parent":{
+    "name":"collider",
+    "path":"folders/game/collider.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

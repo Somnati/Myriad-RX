@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"coll_auto_every",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"coll_auto_every",
+  "parent":{
+    "name":"collider",
+    "path":"folders/game/collider.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

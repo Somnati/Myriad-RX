@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"cas_buy",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"cas_buy",
+  "parent":{
+    "name":"collider",
+    "path":"folders/game/collider.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

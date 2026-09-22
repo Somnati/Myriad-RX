@@ -126,6 +126,13 @@ function handle_save(){
 		if (!(g.rebirth.prev_units >= arb(1))) g.rebirth.prev_units = 0;
 	}
 
+	// ---- THE COLLIDER (q319): both cascades + the ledger as one packed line;
+	// `last` rides inside it, so the room's catch-up replays the absence ----
+	section = "collider";
+	coll_init();
+	var _coll = handle("state", coll_pack());
+	if (action == sv_load) coll_unpack(_coll);
+
 	// ---- THE STACK (q316): the layered energy, whole, as one packed line;
 	// `last` rides inside it, so the room's catch-up replays the absence ----
 	section = "stack";

@@ -29,6 +29,7 @@ function game_reset(_diff = 1) {
 	// engine into every room of a fresh game
 	if (variable_global_exists("tiles")) tiles_init(true);
 	if (variable_global_exists("stk")) stk_init(true);   // (the stack: fresh - q316)
+	if (variable_global_exists("coll")) { g.coll = undefined; coll_init(true); }   // (the collider: fresh, best + crunches wiped with it - q319)
 	if (variable_global_exists("away"))  away_init(true);
 	autom_init(true);    // preferences: a new game forgets them, a
 	                     // rebirth does not

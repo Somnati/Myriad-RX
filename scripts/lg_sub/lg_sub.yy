@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"lg_sub",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"lg_sub",
+  "parent":{
+    "name":"collider",
+    "path":"folders/game/collider.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

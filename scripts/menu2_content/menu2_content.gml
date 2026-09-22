@@ -42,6 +42,7 @@ function menu2_content() {
 
 	menu2_section("misc");
 	menu2_button("the stack",    function() { stk_open(); }, c_sgreen);   // THE STACK (q316): the layered energy - unwired to the rest for now (his call)
+	menu2_button("the collider", function() { coll_open(); }, c_hred);    // THE COLLIDER (q319): matter vs antimatter on the dimensions framework - unwired
 	menu2_button("number formats", rm_numfmt,      c_gold);   // the comparison table (his ask)
 	menu2_button("gamepad",      rm_gamepad,       c_steelblue);
 	menu2_button("services",     rm_services,      c_seagreen);

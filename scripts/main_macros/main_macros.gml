@@ -625,6 +625,18 @@ function main_macros() {
 #macro STK_VEIN_MULT   2       // a VEIN: the sink's per, doubled, for the run
 #macro STK_SIPHON      .1      // THE SIPHON: its energy feeds aether's working sinks at this rate
 #macro STK_HAND_EVERY  600     // THE HAND: the chase preset re-runs each layer this often while away
+// THE COLLIDER (q319) - two cascades on the antimatter-dimensions framework, each the other's fuel
+#macro COLL_N          8       // tiers a side
+#macro COLL_LZ         -1000000000   // the log10 zero sentinel (the framework's; plain digits - no 1e9 literals)
+#macro COLL_WALL       308.2547     // log10(1.8e308): the horizon, the run's end
+#macro COLL_FIELD_MULT 1.15    // the field: every tier on both sides x this a level (tickspeed's twin)
+#macro COLL_FIELD_COST 2       // ...its first level costs 10^this energy, a decade more each
+#macro COLL_MAGNET_COST 4      // the magnet (the clean window x1.5 a level): 10^this energy, two decades more each
+#macro COLL_MAGNET_MULT 1.5    // ...the window's growth a level
+#macro COLL_RESIDUE    .99     // each crunch shaves the tier cost steps x this (the framework's knife edge, gently; 30 crunches at most)
+#macro COLL_PAIR_E     2       // energy a pair annihilated (E = mc^2's spirit)
+#macro COLL_CLEAN      2       // ...x up to this when the two stocks are within a factor of two (the clean collision)
+#macro COLL_AWAY_MAX   2592000 // the catch-up's reach (30 days, the framework's)
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
