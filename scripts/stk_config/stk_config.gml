@@ -21,7 +21,7 @@ function stk_config() {
 		[   // AETHER
 			{ key : "resonator", name : "resonator",   col : c_sgreen,    per : 8,   kind : "speed_en",    what : "energy speed" },
 			{ key : "amplifier", name : "amplifier",   col : c_gold,      per : 10,  kind : "spark",       what : "spark" },
-			{ key : "deepwell",  name : "the deep well", col : c_hred,    per : 20,  kind : "cap_qu",      what : "quintessence cap", thk : 4 },
+			{ key : "deepwell",  name : "the deep well", col : c_hred,    per : 20,  kind : "cap_qu",      what : "quint cap", thk : 4 },
 			{ key : "prism",     name : "prism",       col : c_hpurple,   per : 5,   kind : "speed_ae",    what : "aether speed" },
 			{ key : "hollow",    name : "the hollow",  col : c_seagreen,  per : 30,  kind : "cap_en_flat", what : "energy cap", thk : 3 },
 			{ key : "echo",      name : "echo",        col : c_aqua,      per : 3,   kind : "thr_ae",      what : "aether thresholds" },
@@ -32,7 +32,7 @@ function stk_config() {
 			{ key : "tempo",     name : "tempo",       col : c_sgreen,    per : 6,   kind : "speed_all",   what : "every speed" },
 			{ key : "loop",      name : "the loop",    col : c_seagreen,  per : 50,  kind : "cap_en_flat", what : "energy cap", thk : 3 },
 			{ key : "crown",     name : "crown",       col : c_gold,      per : 12,  kind : "spark",       what : "spark" },
-			{ key : "still",     name : "still",       col : c_aqua,      per : 3,   kind : "thr_qu",      what : "quintessence thresholds" },
+			{ key : "still",     name : "still",       col : c_aqua,      per : 3,   kind : "thr_qu",      what : "quint thresholds" },
 			{ key : "ember",     name : "ember",       col : c_hred,      per : 30,  kind : "cap_ae_flat", what : "aether cap", thk : 3 },
 			{ key : "crucible",  name : "crucible",    col : c_hred,      per : 6,   kind : "cinders",     what : "cinders on the turn" },
 		],

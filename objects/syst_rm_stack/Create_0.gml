@@ -26,14 +26,14 @@ foot_y = row_y0 + 6 * (row_h + row_gap) + 2;   // the presets, the turn, the lin
 rep_l = -1; rep_i = -1; rep_dir = 0; rep_t = 0;   // hold-to-repeat on the steppers
 flash = 0; pulse = 0;
 __layout  = function() { rows_n = stk_sink_n(s, min(s.tab, 2)); row_h = (rows_n >= 7) ? 22 : 24; foot_y = row_y0 + rows_n * (row_h + row_gap) + 2; };
-__tab_r   = function(_l) { return { x : 6 + _l * 100, y : tab_y, w : 96, h : 13 }; };
+__tab_r   = function(_l) { return { x : 6 + _l * 117, y : tab_y, w : 114, h : 13 }; };
 __buy_r   = function() { return { x : room_width - 6 - 128, y : band_y + 1, w : 128, h : 15 }; };
 __burn_r  = function() { return (s.tab == 0) ? { x : room_width - 6 - 128 - 76, y : band_y + 1, w : 72, h : 15 } : { x : room_width - 6 - 128, y : band_y + 1, w : 128, h : 15 }; };
 __row_r   = function(_i) { return { x : row_x, y : row_y0 + _i * (row_h + row_gap), w : row_w, h : row_h }; };
 __name_r  = function(_i) { var _r = __row_r(_i); return { x : _r.x + 2, y : _r.y + 2, w : 86, h : 10 }; };
 __btn     = function(_i, _bx, _w) { var _r = __row_r(_i); return { x : _bx, y : _r.y + 5, w : _w, h : 13 }; };
 __perk_r  = function(_p) { return { x : row_x, y : row_y0 + _p * 16, w : row_w, h : 15 }; };
-__perk_b  = function(_p) { var _r = __perk_r(_p); return { x : _r.x + _r.w - 76, y : _r.y + 1, w : 74, h : 13 }; };
+__perk_b  = function(_p) { var _r = __perk_r(_p); return { x : _r.x + _r.w - 70, y : _r.y + 1, w : 68, h : 13 }; };
 __even_r  = function() { return { x : 6, y : foot_y, w : 52, h : 13 }; };
 __chase_r = function() { return { x : 62, y : foot_y, w : 52, h : 13 }; };
 __clear_r = function() { return { x : 118, y : foot_y, w : 40, h : 13 }; };
@@ -41,6 +41,8 @@ __turn_r  = function() { return { x : room_width - 6 - 150, y : foot_y, w : 150,
 __back_r  = function() { return { x : room_width - 62, y : bby + 1, w : 56, h : 13 }; };
 __hit     = function(_r) { return point_in_rectangle(mouse_x, mouse_y, _r.x, _r.y, _r.x + _r.w, _r.y + _r.h); };
 __open    = function(_l) { return (_l == 0) || (_l == 3) || (stk_cap(s, _l) > 0); };
+/// a status line trimmed to a width: parts dropped from the END until it fits (the band under its buttons)
+__fit     = function(_parts, _w) { var _t = ""; for (var _i = 0; _i < array_length(_parts); _i++) { var _try = _t + ((_t == "") ? "" : "   ") + _parts[_i]; if (string_width(_try) > _w) break; _t = _try; } return _t; };
 __mmss    = function(_t) { return (_t < 60) ? (string(ceil(_t)) + "s") : ((_t < 3600) ? (string(floor(_t / 60)) + "m " + string(floor(_t mod 60)) + "s") : (string(floor(_t / 3600)) + "h " + string(floor((_t mod 3600) / 60)) + "m")); };
 /// the bonus, in words, for a sink
 __bonus_txt = function(_l, _i) {

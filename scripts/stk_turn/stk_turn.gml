@@ -2,9 +2,9 @@
 function stk_turn(_s) {
 	var _c = stk_cinders(_s);
 	if (_c < 1 || stk_cap(_s, 2) < 1) return false;
-	var _cin = _s.cinders + _c, _turns = _s.turns + 1, _life = _s.life, _spent = _s.spent, _perks = _s.perks, _old = _s.layers;
+	var _cin = _s.cinders + _c, _turns = _s.turns + 1, _life = _s.life, _spent = _s.spent, _perks = _s.perks, _old = _s.layers, _tab = _s.tab;
 	var _n = stk_init(true);
-	_n.cinders = _cin; _n.turns = _turns; _n.life = _life; _n.spent = _spent; _n.perks = _perks;
+	_n.cinders = _cin; _n.turns = _turns; _n.life = _life; _n.spent = _spent; _n.perks = _perks; _n.tab = _tab;
 	var _keep = .1 * stk_perk(_n, "keep");
 	if (_keep > 0) for (var _l = 0; _l < 3; _l++) for (var _i = 0; _i < array_length(_old[_l].sinks); _i++) _n.layers[_l].sinks[_i].level = floor(_old[_l].sinks[_i].level * _keep);
 	var _hs = stk_perk(_n, "headstart");

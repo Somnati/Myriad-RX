@@ -16,7 +16,7 @@ for (var _t = 0; _t < 4; _t++) {
 	draw_sprite_ext(spr_pixel_1x1, 0, _tr.x, _tr.y, _tr.w, _tr.h, 0, _on ? _tc : c_black, _on ? .9 : .7);
 	draw_px_rect(_tr.x, _tr.y, _tr.w, _tr.h, _tc, _fl ? (.5 + .5 * _pw) : (_op ? .9 : .3));
 	draw_set_color(_on ? c_black : (_op ? _tc : c_gray)); draw_set_alpha(.95);
-	var _lbl = (_t < 3) ? (_nm[_t].name + "  " + ((_t == 0) ? "" : (_op ? ("cap " + string(stk_cap(s, _t))) : "shut")) + (_fl ? " ~" : "")) : ("cinders  " + string(s.cinders));
+	var _lbl = (_t < 3) ? (_nm[_t].name + ((_t == 0) ? "" : (_op ? (" " + string(stk_cap(s, _t))) : " shut")) + (_fl ? " ~" : "")) : ("cinders " + string(s.cinders));
 	draw_text(_tr.x + 5, _tr.y + 2, _lbl);
 }
 var _tip = "";
@@ -34,25 +34,34 @@ if (_l == 3) {
 		draw_set_color((_rk > 0) ? c_white : c_hred); draw_set_alpha(.95);
 		draw_text(_r.x + 5, _r.y + 3, _d.name);
 		draw_set_color(c_gold); draw_set_alpha(.9);
-		draw_text(_r.x + 84, _r.y + 3, string(_rk) + "/" + string(_d.max));
+		draw_text(_r.x + 100, _r.y + 3, string(_rk) + "/" + string(_d.max));
 		draw_set_color(sett_ink); draw_set_alpha(.7);
-		draw_text(_r.x + 110, _r.y + 3, _d.what);
+		draw_text(_r.x + 126, _r.y + 3, _d.what);
 		draw_ui_button(_b.x, _b.y, _b.w, _b.h, (_c < 0) ? "at the top" : ("buy  " + string(_c)), c_hred, _c >= 0 && s.cinders >= _c, _c >= 0 && s.cinders >= _c);
-		if (_tip == "" && __hit(_r)) _tip = _d.name + ": " + _d.what + ((_c >= 0) ? ("; the next rank costs " + string(_c) + " cinders held") : "; at its top");
+		if (_tip == "" && __hit(_r)) {
+			var _long = _d.what;
+			switch (_d.key) {
+				case "headstart": _long = "every run (and now) seats the well at lv 3 a rank - aether opens at once"; break;
+				case "hand":      _long = "while you are away the catch-up re-runs [chase] on every open layer each ten minutes"; break;
+				case "seventh":   _long = "a seventh sink opens on every layer: the siphon (energy feeds aether), the mirror (doubles down on aether's focus), the crucible (more cinders a turn)"; break;
+				case "keep":      _long = "the turn keeps 10% of every level a rank instead of letting them all go"; break;
+			}
+			_tip = _d.name + ": " + _long + ((_c >= 0) ? ("; the next rank costs " + string(_c) + " cinders held") : "; at its top");
+		}
 	}
 	var _tr2 = __turn_r(), _cin = stk_cinders(s), _canturn = (_cin >= 1 && stk_cap(s, 2) >= 1);
 	draw_ui_button(_tr2.x, _tr2.y, _tr2.w, _tr2.h, _canturn ? ("the turn  +" + string(_cin) + " cinder" + ((_cin == 1) ? "" : "s")) : ((stk_cap(s, 2) < 1) ? "the turn: quintessence first" : ("the turn  +" + string(_cin))), c_hred, _canturn, _canturn);
-	if (__hit(_tr2)) _tip = "THE TURN: the stack reset - spark, caps, every level - for cinders, the square root of the levels held over four (aether's count three times, quintessence's five; the crucible multiplies); the keep holds a share; the veins move";
+	if (__hit(_tr2)) _tip = "THE TURN: spark, caps and levels let go for cinders - sqrt(levels; aether x3, quintessence x5) / 4, x the crucible; the keep holds a share, the veins move";
 } else {
 	// ================================================================ A LAYER
 	var _sk = s.layers[_l].sinks, _ly = s.layers[_l], _cap = stk_cap(s, _l), _tot = 0, _n = rows_n;
 	for (var _i = 0; _i < array_length(_sk); _i++) _tot += _sk[_i].alloc;
 	draw_set_color(_lc); draw_set_alpha(.95);
-	var _band = _nm[_l].name + "  " + string(_tot) + " / " + string(_cap) + "   x" + string_format(stk_speed(s, _l), 1, 2);
-	if (_tide.layer == _l && _cap > 0) _band += "   flood x" + string_format(stk_tide_mult(s), 1, 1) + " " + __mmss(_tide.left);
-	if (_ly.burn_t > 0) _band += "   burn +" + string(_ly.burn_add) + " " + __mmss(_ly.burn_t);
-	if (_ly.focus >= 0) _band += "   focus: " + _cfg[_l][_ly.focus].name;
-	draw_text(6, band_y + 2, _band);
+	var _parts = [_nm[_l].name + " " + string(_tot) + "/" + string(_cap), "x" + string_format(stk_speed(s, _l), 1, 2)];
+	if (_tide.layer == _l && _cap > 0) array_push(_parts, "flood x" + string_format(stk_tide_mult(s), 1, 1) + " " + __mmss(_tide.left));
+	if (_ly.burn_t > 0) array_push(_parts, "burn +" + string(_ly.burn_add) + " " + __mmss(_ly.burn_t));
+	if (_ly.focus >= 0) array_push(_parts, "focus: " + _cfg[_l][_ly.focus].name);
+	draw_text(6, band_y + 2, __fit(_parts, __burn_r().x - 10));
 	draw_sprite_ext(spr_pixel_1x1, 0, 6, band_y + 14, room_width - 12, 6, 0, c_black, .6);
 	if (_cap > 0) {
 		draw_sprite_ext(spr_pixel_1x1, 0, 6, band_y + 14, (room_width - 12) * clamp(_tot / _cap, 0, 1), 6, 0, _lc, .8);
@@ -70,13 +79,16 @@ if (_l == 3) {
 		draw_sprite_ext(spr_pixel_1x1, 0, _r.x, _r.y, 2, _r.h, 0, _vn ? c_gold : _c.col, .9);
 		var _stars = "", _ms = [10, 25, 50, 100, 200];
 		for (var _m = 0; _m < array_length(_ms); _m++) if (_k.level >= _ms[_m]) _stars += "*";
-		draw_set_color(_foc ? c_white : _c.col); draw_set_alpha(.95);
-		draw_text(_r.x + 5, _r.y + 2, _c.name + (_foc ? "  focus" : "") + ((_stars != "") ? ("  " + _stars) : ""));
-		if (_vn) { draw_set_color(c_gold); draw_set_alpha(.6 + .4 * _pw); draw_text(_r.x + 5 + string_width(_c.name + (_foc ? "  focus" : "") + ((_stars != "") ? ("  " + _stars) : "")) + 4, _r.y + 2, "vein"); }
+		// line one: the name (gold and breathing on a vein; white when focused) in the name column, the bonus in words at the bar's x
+		draw_set_color(_vn ? merge_colour(c_gold, c_white, .3 * _pw) : (_foc ? c_white : _c.col)); draw_set_alpha(.95);
+		draw_text(_r.x + 5, _r.y + 2, _c.name);
+		draw_set_color(_foc ? c_white : sett_ink); draw_set_alpha(.8);
+		draw_text(bar_x, _r.y + 2, __bonus_txt(_l, _i) + (_foc ? "   focus" : ""));
+		// line two: the level (+ the stars) under the name, the bar beside it
+		var _by = _r.y + row_h - 11;
 		draw_set_color(sett_ink); draw_set_alpha(.75);
-		draw_text(_r.x + 5, _r.y + row_h - 12, "lv " + string(_k.level) + "   " + __bonus_txt(_l, _i));
-		// the bar toward the next level
-		var _thr = stk_thr(s, _l, _i, _k.level), _fl = clamp(_k.prog / max(.0001, _thr), 0, 1), _by = _r.y + floor((row_h - 8) * .5);
+		draw_text(_r.x + 5, _by, "lv " + string(_k.level) + ((_stars != "") ? (" " + _stars) : ""));
+		var _thr = stk_thr(s, _l, _i, _k.level), _fl = clamp(_k.prog / max(.0001, _thr), 0, 1);
 		draw_sprite_ext(spr_pixel_1x1, 0, bar_x, _by, bar_w, 8, 0, c_black, .6);
 		draw_sprite_ext(spr_pixel_1x1, 0, bar_x, _by, bar_w * _fl, 8, 0, _c.col, (_k.alloc > 0) ? .85 : .35);
 		draw_px_rect(bar_x, _by, bar_w, 8, _c.col, .3);
@@ -107,9 +119,9 @@ if (_l == 3) {
 	var _cin = stk_cinders(s), _canturn = (_cin >= 1 && stk_cap(s, 2) >= 1);
 	draw_ui_button(_tr2.x, _tr2.y, _tr2.w, _tr2.h, _canturn ? ("the turn  +" + string(_cin) + " cinder" + ((_cin == 1) ? "" : "s")) : ((stk_cap(s, 2) < 1) ? "the turn: quintessence first" : ("the turn  +" + string(_cin))), c_hred, _canturn, _canturn);
 	if (__hit(_er)) _tip = "even: the cap spread over the open sinks"; else if (__hit(_hr)) _tip = "chase: all of it to the sink nearest its next level"; else if (__hit(_zr)) _tip = "every allocation of this layer back";
-	else if (__hit(_tr2)) _tip = "THE TURN: the stack reset - spark, caps, every level - for cinders, the square root of the levels held over four (aether's count three times, quintessence's five); a cinder HELD is +6% every speed and +3% spark; the cinders tab spends them";
+	else if (__hit(_tr2)) _tip = "THE TURN: spark, caps and levels let go for cinders - sqrt(levels; aether x3, quintessence x5) / 4; a cinder HELD is +6% every speed, +3% spark; the cinders tab spends them";
 	else if (__hit(__buy_r()) && _l == 0) _tip = "energy's cap, +" + string(STK_CAP_STEP) + " a buy - the price doubles each; the ballast lowers it";
-	else if (__hit(__burn_r())) _tip = (_ly.burn_t > 0) ? ("burning: +" + string(_ly.burn_add) + " cap for " + __mmss(_ly.burn_t) + " more; when it dies the overflow drains back") : ("BURN: " + string(STK_BURN_PRICE * 100) + "% of the next cap buy's spark lifts this layer's cap +" + string(STK_BURN_PCT * 100) + "% for " + __mmss(STK_BURN_LEN * (1 + .5 * stk_perk(s, "burn"))) + " - permanent +4 or a temporary +half, your call");
+	else if (__hit(__burn_r())) _tip = (_ly.burn_t > 0) ? ("burning: +" + string(_ly.burn_add) + " cap for " + __mmss(_ly.burn_t) + " more; when it dies the overflow drains back") : ("BURN: " + string(STK_BURN_PRICE * 100) + "% of the next cap buy's spark lifts this cap +" + string(STK_BURN_PCT * 100) + "% for " + __mmss(STK_BURN_LEN * (1 + .5 * stk_perk(s, "burn"))) + " - a permanent +4 or a temporary +half");
 	else if (_tide.layer == _l && _cap > 0 && __hit({ x : 6, y : band_y, w : room_width - 12, h : 12 })) _tip = "THE TIDE: a flood walks the layers on the clock, " + string(STK_TIDE_LEN / 60) + " min each - the flooded layer runs x" + string_format(stk_tide_mult(s), 1, 1) + "; feed it while it lasts";
 }
 draw_set_color((note_t > 0) ? c_white : c_gray); draw_set_alpha(.8);

@@ -1,4 +1,5 @@
 // THE STACK runs here a frame at a time (the room is its clock; the catch-up covers the rest)
+if (s != g.stk) { s = stk_init(); rep_l = -1; }   // (a load / reset / turn swapped the struct under us)
 stk_tick(s, delta / 60);
 __layout();
 pulse += delta / 60;

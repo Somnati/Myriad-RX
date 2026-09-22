@@ -19,7 +19,7 @@ function stk_unpack(_str) {
 		if (array_length(_fr) < 2) continue;
 		var _y = _s.layers[_l], _hd = string_split(_fr[0], ":");
 		_y.focus = real(_hd[0]);
-		if (array_length(_hd) >= 5) { _y.vein = real(_hd[1]); _y.vein2 = real(_hd[2]); _y.burn_t = max(0, real(_hd[3])); _y.burn_add = real(_hd[4]); }
+		if (array_length(_hd) >= 5) { _y.vein = clamp(real(_hd[1]), -1, 5); _y.vein2 = clamp(real(_hd[2]), -1, 5); _y.burn_t = max(0, real(_hd[3])); _y.burn_add = max(0, real(_hd[4])); if (_y.burn_t <= 0) _y.burn_add = 0; }
 		var _sks = string_split(_fr[1], ",");
 		for (var _i = 0; _i < min(array_length(_sks), array_length(_y.sinks)); _i++) {
 			var _q = string_split(_sks[_i], ":");
@@ -29,5 +29,6 @@ function stk_unpack(_str) {
 		}
 	}
 	if (_v == 1) stk_veins_roll(_s);
+	for (var _l = 0; _l < array_length(_s.layers); _l++) if (_s.layers[_l].focus >= stk_sink_n(_s, _l)) _s.layers[_l].focus = -1;
 	stk_clamp(_s);
 }
