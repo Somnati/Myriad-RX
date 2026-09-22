@@ -1,6 +1,7 @@
-/// @description stk_alloc(s, l, i, delta) -> the new allocation: THE allocation lawyer - moves sink (l, i)'s energy by delta, clamped 0..alloc + the layer's free; INSTANT AND FREE by law
+/// @description stk_alloc(s, l, i, delta) -> the new allocation: THE allocation lawyer - moves sink (l, i)'s energy by delta, clamped 0..alloc + the layer's free; INSTANT AND FREE by law; a sink not yet open takes nothing
 function stk_alloc(_s, _l, _i, _delta) {
 	var _sk = _s.layers[_l].sinks, _tot = 0;
+	if (_i >= stk_sink_n(_s, _l)) return _sk[_i].alloc;
 	for (var _k = 0; _k < array_length(_sk); _k++) _tot += _sk[_k].alloc;
 	var _free = max(0, stk_cap(_s, _l) - _tot);
 	var _new = floor(clamp(_sk[_i].alloc + _delta, 0, _sk[_i].alloc + _free));

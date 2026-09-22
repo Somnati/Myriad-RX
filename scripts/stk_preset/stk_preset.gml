@@ -1,7 +1,7 @@
-/// @description stk_preset(s, l, which) - a layer's allocation at a stroke: "even" (the cap spread over the sinks, the remainder to the first), "chase" (all of it to the sink nearest its next level, in time), "clear" (all of it back)
+/// @description stk_preset(s, l, which) - a layer's allocation at a stroke: "even" (the cap spread over the open sinks, the remainder to the first), "chase" (all of it to the sink nearest its next level, in time), "clear" (all of it back)
 function stk_preset(_s, _l, _which) {
-	var _sk = _s.layers[_l].sinks, _n = array_length(_sk), _cap = stk_cap(_s, _l);
-	for (var _i = 0; _i < _n; _i++) _sk[_i].alloc = 0;
+	var _sk = _s.layers[_l].sinks, _n = stk_sink_n(_s, _l), _cap = stk_cap(_s, _l);
+	for (var _i = 0; _i < array_length(_sk); _i++) _sk[_i].alloc = 0;
 	if (_which == "even") { var _each = floor(_cap / _n); for (var _i = 0; _i < _n; _i++) _sk[_i].alloc = _each; _sk[0].alloc += _cap - _each * _n; }
 	else if (_which == "chase") {
 		var _best = 0, _bt = infinity;

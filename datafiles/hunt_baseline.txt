@@ -803,7 +803,8 @@ dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
 dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
 dupvar	objects\syst_rm_stack\Create_0.gml                   _r
-dupvar	objects\syst_rm_stack\Draw_0.gml                     _i _k _l _thr
+dupvar	objects\syst_rm_stack\Draw_0.gml                     _c _canturn _cin _d _fl _i _k _l _r _t _thr _tr2
+dupvar	objects\syst_rm_stack\Step_0.gml                     _c _pk
 dupvar	objects\syst_roomtrans\Draw_73.gml                   _e _w2
 dupvar	objects\syst_scene_light\Create_0.gml                _i
 dupvar	objects\syst_services\Draw_0.gml                     _i _ry btn_x
@@ -1088,9 +1089,14 @@ dupvar	scripts\stats_hist_offline\stats_hist_offline.gml    _f _m
 dupvar	scripts\stats_v2_content\stats_v2_content.gml        _d _hd _i _k _mm _s _st _sv _tb2
 dupvar	scripts\stats_v2_cycle\stats_v2_cycle.gml            _n
 dupvar	scripts\stk_alloc\stk_alloc.gml                      _sk
+dupvar	scripts\stk_cap\stk_cap.gml                          _k
 dupvar	scripts\stk_catchup\stk_catchup.gml                  _left
+dupvar	scripts\stk_cinders\stk_cinders.gml                  _l
 dupvar	scripts\stk_clamp\stk_clamp.gml                      _k _l _tot
+dupvar	scripts\stk_mult\stk_mult.gml                        _l
 dupvar	scripts\stk_preset\stk_preset.gml                    _i _l _sk
+dupvar	scripts\stk_spark_rate\stk_spark_rate.gml            _l
+dupvar	scripts\stk_speed\stk_speed.gml                      _kind
 dupvar	scripts\stk_tick\stk_tick.gml                        _i _k _l
 dupvar	scripts\surface_byte_order\surface_byte_order.gml    false
 dupvar	scripts\tap_breakdown\tap_breakdown.gml              _i

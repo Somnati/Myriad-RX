@@ -616,7 +616,15 @@ function main_macros() {
 #macro STK_FOCUS_OFF   .6      // ...and the rest of its layer's
 #macro STK_CINDER_SPD  .06     // a cinder: this much on every speed
 #macro STK_CINDER_SPK  .03     // ...and on spark
-#macro STK_CATCHUP_MAX 86400   // the catch-up's reach (a day)
+#macro STK_CATCHUP_MAX 86400   // the catch-up's reach (a day; the long reach perk adds days)
+#macro STK_TIDE_LEN    1200    // q317 THE TIDE: seconds a layer stays in flood (the tide walks energy -> aether -> quintessence -> ...)
+#macro STK_TIDE_MULT   2       // ...and the flood's speed (tidewatch +.5 a rank)
+#macro STK_BURN_PRICE  .4      // BURN: costs this much of the next cap buy, in spark...
+#macro STK_BURN_PCT    .5      // ...lifts the layer's cap by this much...
+#macro STK_BURN_LEN    300     // ...for this long (long burn +50% a rank)
+#macro STK_VEIN_MULT   2       // a VEIN: the sink's per, doubled, for the run
+#macro STK_SIPHON      .1      // THE SIPHON: its energy feeds aether's working sinks at this rate
+#macro STK_HAND_EVERY  600     // THE HAND: the chase preset re-runs each layer this often while away
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
