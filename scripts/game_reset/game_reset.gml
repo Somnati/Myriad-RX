@@ -29,6 +29,7 @@ function game_reset(_diff = 1) {
 	// engine into every room of a fresh game
 	if (variable_global_exists("tiles")) tiles_init(true);
 	if (variable_global_exists("alluv")) delta_init(true);   // (alluvium: a fresh land - q314)
+	if (variable_global_exists("syz")) syz_init(true);       // (syzygy: the two cycles again - q315)
 	if (variable_global_exists("away"))  away_init(true);
 	autom_init(true);    // preferences: a new game forgets them, a
 	                     // rebirth does not

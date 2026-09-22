@@ -808,6 +808,7 @@ dupvar	objects\syst_rm_delta\Step_0.gml                     _i
 dupvar	objects\syst_rm_dimensions\Create_0.gml              _lv _m
 dupvar	objects\syst_rm_dimensions\Draw_0.gml                _i
 dupvar	objects\syst_rm_numfmt\Draw_0.gml                    _c _cx _on
+dupvar	objects\syst_rm_syzygy\Draw_0.gml                    _c _i
 dupvar	objects\syst_roomtrans\Draw_73.gml                   _e _w2
 dupvar	objects\syst_scene_light\Create_0.gml                _i
 dupvar	objects\syst_services\Draw_0.gml                     _i _ry btn_x
@@ -1100,6 +1101,12 @@ dupvar	scripts\stats_hist_offline\stats_hist_offline.gml    _f _m
 dupvar	scripts\stats_v2_content\stats_v2_content.gml        _d _hd _i _k _mm _s _st _sv _tb2
 dupvar	scripts\stats_v2_cycle\stats_v2_cycle.gml            _n
 dupvar	scripts\surface_byte_order\surface_byte_order.gml    false
+dupvar	scripts\syz_buy\syz_buy.gml                          _j
+dupvar	scripts\syz_catchup\syz_catchup.gml                  _left
+dupvar	scripts\syz_next\syz_next.gml                        _i
+dupvar	scripts\syz_pack\syz_pack.gml                        _i
+dupvar	scripts\syz_tick\syz_tick.gml                        _i
+dupvar	scripts\syz_unpack\syz_unpack.gml                    _i
 dupvar	scripts\tap_breakdown\tap_breakdown.gml              _i
 dupvar	scripts\tap_fire\tap_fire.gml                        _col _fly _fstr
 dupvar	scripts\ticket_grant\ticket_grant.gml                _i

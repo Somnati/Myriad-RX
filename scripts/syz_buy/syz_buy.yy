@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"syz_buy",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"syz_buy",
+  "parent":{
+    "name":"syzygy",
+    "path":"folders/game/syzygy.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

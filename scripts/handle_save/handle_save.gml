@@ -138,6 +138,12 @@ function handle_save(){
 	var _dlt = handle("grid", delta_pack());
 	if (action == sv_load) delta_unpack(_dlt);
 
+	// SYZYGY (q315): the clockwork whole
+	section = "syzygy";
+	syz_init();
+	var _syz = handle("clock", syz_pack());
+	if (action == sv_load) syz_unpack(_syz);
+
 	section = "history";
 	if (!variable_global_exists("stats_hist")) g.stats_hist = {};
 	if (!variable_global_exists("hist_meta"))  g.hist_meta  = {};

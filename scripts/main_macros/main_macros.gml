@@ -623,6 +623,15 @@ function main_macros() {
 #macro DELTA_FLOOD_LEN   14   // ...and how long one runs
 #macro DELTA_CATCHUP_MAX 21600   // the catch-up's reach, seconds (six hours)
 #macro DELTA_DROPS_MAX   3000    // ...and its droplets at most
+// SYZYGY (q315) - the cycles' knobs
+#macro SYZ_PER_MIN     3      // a period's floor, seconds
+#macro SYZ_PER_MAX     60     // ...and ceiling
+#macro SYZ_PER_POW     1.3    // a fire pays per^this (longer pays more a second too)
+#macro SYZ_CYCLES_MAX  8      // cycles at most (the ninth by token)
+#macro SYZ_DRIFT_EVERY 75     // seconds between wobbles
+#macro SYZ_SYNC_CD     180    // the sync's cooldown, seconds
+#macro SYZ_CATCHUP_MAX 21600  // the catch-up's reach (six hours)
+#macro SYZ_TUNE_BONUS  .25    // in tune (a period a whole multiple of another's): this much more
 
 // THE TILE TABLE's base shape and what one upgrade level moves. Every
 // one of these is read by tiles_sync and by datafiles/tiles_twin.py -
