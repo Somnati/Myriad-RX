@@ -52,6 +52,7 @@ for (var _k = 0; _k < 3; _k++) if (__hit(__upg_r(_k))) {
 for (var _s = 0; _s < 2; _s++) for (var _i = 0; _i < 8; _i++) if (__hit(__tbuy_r(_s, _i))) {
 	var _did = coll_tier_buy(c, _s, _i, buy_q);
 	play_sound_ext(_did > 0 ? snd_matclick2 : snd_matclick, _did > 0 ? 1.1 : .7, _did > 0 ? 1.3 : .8, .5, 1);
-	if (_did <= 0) { var _lk = (_i > 0 && ((_s == 0) ? c.m : c.a).bought[_i - 1] <= 0); note = _lk ? ("buy a " + tier_name[_i - 1] + " " + side_name[_s] + " first") : ("a " + side_name[_s] + " tier is paid in " + side_name[1 - _s] + " - not enough"); note_t = 3; }
+	if (_did <= 0) { var _cs = (_s == 0) ? c.m : c.a;   // (GM1012: a member can't hang off a parenthesised expression - the house lesson)
+		var _lk = (_i > 0 && _cs.bought[_i - 1] <= 0); note = _lk ? ("buy a " + tier_name[_i - 1] + " " + side_name[_s] + " first") : ("a " + side_name[_s] + " tier is paid in " + side_name[1 - _s] + " - not enough"); note_t = 3; }
 	exit;
 }

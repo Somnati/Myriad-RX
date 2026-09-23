@@ -373,10 +373,15 @@ check("no struct field named after a GML constant (pi / infinity / NaN)",
 # says "got '[$' expected ')'" plus "malformed assignment statement"
 # against the line, which reads like a bracket typo. (2026-09-12:
 # tiles_sync and tile_rarity_rate, the flux ladder's `fupg` reads.)
+# 2026-09-22 (his warning list): the same rule covers a DOT - GM1012
+# "malformed variable addressing expression" on
+# `((_s == 0) ? c.m : c.a).bought[i]` in syst_rm_collider's Step. A
+# member hangs off a name or a call, never off a parenthesised group
+# either, so the check watches `)[` and `).` alike.
 def _group_accessor(src):
-    """-> the 1-based line of the first `)[` whose `)` closes a group
-    that is not a call, or 0."""
-    for m in re.finditer(r"\)\s*\[", src):
+    """-> the 1-based line of the first `)[` or `).` whose `)` closes a
+    group that is not a call, or 0."""
+    for m in re.finditer(r"\)\s*(?:\[|\.\s*[A-Za-z_])", src):
         depth, j = 0, m.start()
         while j >= 0:                       # walk back to the matching `(`
             if src[j] == ")": depth += 1
@@ -396,7 +401,7 @@ acc = []
 for p, s2 in srcs.items():
     ln = _group_accessor(s2)
     if ln: acc.append(f"{p}:{ln}")
-check("no accessor chained onto a parenthesised expression ((x ?? {})[$ k] is a GML parse error)",
+check("no accessor chained onto a parenthesised expression ((x ?? {})[$ k] / (a ? b : c).f are GML parse errors)",
       not acc, "; ".join(acc[:3]))
 
 # --- 8b. CHAINED TERNARIES. GML will not parse `a ? b : c ? d : e` -

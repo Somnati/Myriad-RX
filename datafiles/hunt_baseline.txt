@@ -990,7 +990,7 @@ dupvar	scripts\gas_paint\gas_paint.gml                      _c1 _gs _k _k0 _py _
 dupvar	scripts\gear_gen\gear_gen.gml                        _i
 dupvar	scripts\gear_score\gear_score.gml                    _i
 dupvar	scripts\gift_board\gift_board.gml                    _r
-dupvar	scripts\handle_save\handle_save.gml                  _cp _d _f _has _i _k _kv _old _pp _s _sl _sp _stk _tk _tp _u _v floor g string_join_ext true variable_struct_get_names
+dupvar	scripts\handle_save\handle_save.gml                  _cp _d _f _has _i _k _kv _old _pp _s _sl _sp _tk _tp _u _v floor g string_join_ext true variable_struct_get_names
 dupvar	scripts\handle_settings\handle_settings.gml          _i
 dupvar	scripts\hole_draw\hole_draw.gml                      _ph _pw _qw
 dupvar	scripts\hole_frame\hole_frame.gml                    sqrt
@@ -1050,7 +1050,7 @@ dupvar	scripts\region_gen\region_gen.gml                    _cx0 _cy0 _dir _dx _
 dupvar	scripts\region_get\region_get.gml                    _lv _pn _ri
 dupvar	scripts\region_hazard_at\region_hazard_at.gml        _rg
 dupvar	scripts\region_hazards\region_hazards.gml            _j
-dupvar	scripts\region_info\region_info.gml                  _bi _epn _et _fkd _i _rg exped_planet_hint
+dupvar	scripts\region_info\region_info.gml                  _bj _epn _et _fkd _i _rg exped_planet_hint
 dupvar	scripts\region_islets\region_islets.gml              _c _el _i _id _ids _sea _seen _th _tw false
 dupvar	scripts\region_ledger\region_ledger.gml              _i _kd _pi _rg _ri _vile
 dupvar	scripts\region_map_sheet\region_map_sheet.gml        _el _i _id _ids _j _m10 _m11 _or _pfx _pfy _piy _sea _sh _si _sw _sx _sy _th _tw _yb buffer_u8

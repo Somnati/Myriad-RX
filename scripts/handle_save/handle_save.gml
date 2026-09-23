@@ -137,8 +137,8 @@ function handle_save(){
 	// `last` rides inside it, so the room's catch-up replays the absence ----
 	section = "stack";
 	stk_init();
-	var _stk = handle("layers", stk_pack());
-	if (action == sv_load) stk_unpack(_stk);
+	var _stkl = handle("layers", stk_pack());
+	if (action == sv_load) stk_unpack(_stkl);
 
 	// ---- history: the spark graphs, which are LIFETIME (his call) and
 	// therefore have to outlive the session. A series is 120 reals and a

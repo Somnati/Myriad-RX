@@ -112,9 +112,11 @@ function region_info(_d, _rg) {
 		if (!is_string(_brow)) {
 			_brow = "";
 			var _bpn = planet_get(_d.seed, exped_planet_hint(_d)), _btr = is_struct(_bpn) ? _bpn[$ "terr"] : undefined, _bri = _rg[$ "ri"] ?? 0;
-			if (is_struct(_btr) && _bri < _btr.n) for (var _bi = 0; _bi < _btr.n; _bi++) {
-				if (_bi == _bri || !_btr.adj[_bri * _btr.n + _bi]) continue;
-				var _bnr = region_get(_d, _bi);
+			// (_bj, NOT _bi: _bi is the BIOME NAME from the top of this function and GML vars are function-scoped -
+			//  shadowing it left every flavour-text test below comparing a number to a string. His warning list, 2026-09-22)
+			if (is_struct(_btr) && _bri < _btr.n) for (var _bj = 0; _bj < _btr.n; _bj++) {
+				if (_bj == _bri || !_btr.adj[_bri * _btr.n + _bj]) continue;
+				var _bnr = region_get(_d, _bj);
 				_brow += ((_brow != "") ? ", " : "") + _bnr.name + " (lv " + string(_bnr.lv) + ")";
 			}
 			_rg.brow = _brow;

@@ -234,8 +234,8 @@ function ex_galaxy_draw(_ea, _dim) {
 	var _msc2 = _mmr.w / _sm.width;
 	var _vx0 = _mmr.x + gx_x * _msc2, _vy0 = _mmr.y + gx_y * _msc2, _vw0 = max(2, _vw / gx_zoom * _msc2), _vh0 = max(2, _vh / gx_zoom * _msc2);
 	draw_px_rect(floor(_vx0), floor(_vy0), ceil(_vw0), ceil(_vh0), c_white, .7);
-	var _hst = _sm.stars[_hm.star];
-	draw_sprite_ext(spr_pixel_1x1, 0, floor(_mmr.x + _hst.x * _msc2) - 1, floor(_mmr.y + _hst.y * _msc2) - 1, 2, 2, 0, c_gold, 1);
+	var _hmst = _sm.stars[_hm.star];   // (_hst is already this function's, up at the sky pass)
+	draw_sprite_ext(spr_pixel_1x1, 0, floor(_mmr.x + _hmst.x * _msc2) - 1, floor(_mmr.y + _hmst.y * _msc2) - 1, 2, 2, 0, c_gold, 1);
 	// the title
 	draw_set_color(c_white); draw_set_alpha(.95);
 	draw_text(land ? 14 : 4, list_y + 6, _sm.name);
